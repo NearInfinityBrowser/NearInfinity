@@ -22,7 +22,7 @@ public class LayerRegion extends BasicLayer<LayerObjectRegion>
 
   public LayerRegion(AreResource are, AreaViewer viewer)
   {
-    super(are, ViewerConstants.LayerType.Region, viewer);
+    super(are, ViewerConstants.LayerType.REGION, viewer);
     loadLayer(false);
   }
 

@@ -69,7 +69,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
                                              ChangeListener, MouseListener
 {
   /** Supported control types. */
-  public enum ControlType { Unknown, Button, Slider, TextField, TextArea, Label, ScrollBar }
+  public enum ControlType { UNKNOWN, BUTTON, SLIDER, TEXT_FIELD, TEXT_AREA, LABEL, SCROLL_BAR }
 
   private final ChuResource chu;
 
@@ -85,13 +85,13 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
   public static ControlType getControlType(int type)
   {
     switch (type) {
-      case 0:  return ControlType.Button;
-      case 2:  return ControlType.Slider;
-      case 3:  return ControlType.TextField;
-      case 5:  return ControlType.TextArea;
-      case 6:  return ControlType.Label;
-      case 7:  return ControlType.ScrollBar;
-      default: return ControlType.Unknown;
+      case 0:  return ControlType.BUTTON;
+      case 2:  return ControlType.SLIDER;
+      case 3:  return ControlType.TEXT_FIELD;
+      case 5:  return ControlType.TEXT_AREA;
+      case 6:  return ControlType.LABEL;
+      case 7:  return ControlType.SCROLL_BAR;
+      default: return ControlType.UNKNOWN;
     }
   }
 
@@ -99,12 +99,12 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
   public static int getControlId(ControlType type)
   {
     switch (type) {
-      case Button:      return 0;
-      case Slider:      return 2;
-      case TextField:   return 3;
-      case TextArea:    return 5;
-      case Label:       return 6;
-      case ScrollBar:   return 7;
+      case BUTTON:      return 0;
+      case SLIDER:      return 2;
+      case TEXT_FIELD:   return 3;
+      case TEXT_AREA:    return 5;
+      case LABEL:       return 6;
+      case SCROLL_BAR:   return 7;
       default:          return -1;
     }
   }
@@ -112,14 +112,14 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
   /** Returns a control object of the given type. */
   public static BaseControl createControl(Viewer viewer, Control control)
   {
-    ControlType type = (control != null) ? getControlType(control.getControlType()) : ControlType.Unknown;
+    ControlType type = (control != null) ? getControlType(control.getControlType()) : ControlType.UNKNOWN;
     switch (type) {
-      case Button:      return new ButtonControl(viewer, control);
-      case Slider:      return new SliderControl(viewer, control);
-      case TextField:   return new TextFieldControl(viewer, control);
-      case TextArea:    return new TextAreaControl(viewer, control);
-      case Label:       return new LabelControl(viewer, control);
-      case ScrollBar:   return new ScrollBarControl(viewer, control);
+      case BUTTON:      return new ButtonControl(viewer, control);
+      case SLIDER:      return new SliderControl(viewer, control);
+      case TEXT_FIELD:   return new TextFieldControl(viewer, control);
+      case TEXT_AREA:    return new TextAreaControl(viewer, control);
+      case LABEL:       return new LabelControl(viewer, control);
+      case SCROLL_BAR:   return new ScrollBarControl(viewer, control);
       default:          return new UnknownControl(viewer, control);
     }
   }
@@ -625,18 +625,18 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     public void showPanel(ControlType type)
     {
       switch (type) {
-        case Button:
-        case Slider:
-        case TextField:
-        case TextArea:
-        case Label:
-        case ScrollBar:
+        case BUTTON:
+        case SLIDER:
+        case TEXT_FIELD:
+        case TEXT_AREA:
+        case LABEL:
+        case SCROLL_BAR:
           cbVisible.setEnabled(true);
           clControl.show(pControl, type.name());
           break;
         default:
           cbVisible.setEnabled(false);
-          clControl.show(pControl, ControlType.Unknown.name());
+          clControl.show(pControl, ControlType.UNKNOWN.name());
       }
     }
 
@@ -675,7 +675,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       } else {
         lPosition.setText("");
         lSize.setText("");
-        showPanel(ControlType.Unknown);
+        showPanel(ControlType.UNKNOWN);
       }
     }
 
@@ -746,7 +746,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       pControl = new JPanel(clControl);
 
       // empty panel
-      pControl.add(new JPanel(), ControlType.Unknown.name());
+      pControl.add(new JPanel(), ControlType.UNKNOWN.name());
 
       // button panel
       JPanel pButton = new JPanel(new GridBagLayout());
@@ -780,7 +780,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
                               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pButton.add(rbButtonState[3], gbc);
 
-      pControl.add(pButton, ControlType.Button.name());
+      pControl.add(pButton, ControlType.BUTTON.name());
 
 
       // slider panel
@@ -791,7 +791,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
                               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pSlider.add(cbSliderGrabbed, gbc);
 
-      pControl.add(pSlider, ControlType.Slider.name());
+      pControl.add(pSlider, ControlType.SLIDER.name());
 
 
       // text field panel
@@ -802,15 +802,15 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
                               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pTextField.add(cbTextFieldCaret, gbc);
 
-      pControl.add(pTextField, ControlType.TextField.name());
+      pControl.add(pTextField, ControlType.TEXT_FIELD.name());
 
 
       // text area panel (nothing to do)
-      pControl.add(new JPanel(), ControlType.TextArea.name());
+      pControl.add(new JPanel(), ControlType.TEXT_AREA.name());
 
 
       // label panel (nothing to do)
-      pControl.add(new JPanel(), ControlType.Label.name());
+      pControl.add(new JPanel(), ControlType.LABEL.name());
 
 
       // scroll bar panel
@@ -826,7 +826,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
                               GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
       pScrollBar.add(cbScrollBarDownState, gbc);
 
-      pControl.add(pScrollBar, ControlType.ScrollBar.name());
+      pControl.add(pScrollBar, ControlType.SCROLL_BAR.name());
 
 
       // putting all together
@@ -838,7 +838,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       add(pControl, gbc);
 
       // showing empty control by default
-      showPanel(ControlType.Unknown);
+      showPanel(ControlType.UNKNOWN);
     }
   }
 
@@ -1059,7 +1059,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       if (!isEmpty()) {
         return getControlType(getResource().getControlType());
       } else {
-        return ControlType.Unknown;
+        return ControlType.UNKNOWN;
       }
     }
 
@@ -1194,7 +1194,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
         // 2. determine text width
         BamControl ctrl = fntBam.createControl();
-        ctrl.setMode(BamControl.Mode.Individual);
+        ctrl.setMode(BamControl.Mode.INDIVIDUAL);
         for (int i = 0; i < text.length(); i++) {
           int ch = text.charAt(i);
           if (ch < 1 || ch > 255) ch = 32;
@@ -1224,7 +1224,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       if (text == null) text = "";
       if (fntBam != null) {
         BamControl ctrl = fntBam.createControl();
-        ctrl.setMode(BamControl.Mode.Individual);
+        ctrl.setMode(BamControl.Mode.INDIVIDUAL);
         Rectangle rect = getTextDimension(text, fntBam);
         BufferedImage letter = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_ARGB);
         image = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_ARGB);
@@ -1297,7 +1297,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
     public UnknownControl(Viewer viewer, Control control)
     {
-      super(viewer, control, ControlType.Unknown);
+      super(viewer, control, ControlType.UNKNOWN);
       updateImage();
     }
 
@@ -1365,7 +1365,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
     public ButtonControl(Viewer viewer, Control control)
     {
-      super(viewer, control, ControlType.Button);
+      super(viewer, control, ControlType.BUTTON);
       buttonState = UNPRESSED;
       updateImage();
     }
@@ -1445,7 +1445,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
                   BamControl bamCtrl = bam.createControl();
-                  bamCtrl.setMode(BamControl.Mode.Individual);
+                  bamCtrl.setMode(BamControl.Mode.INDIVIDUAL);
                   if (cycleIdx >= 0 && cycleIdx < bamCtrl.cycleCount()) {
                     bamCtrl.cycleSet(cycleIdx);
                     if (frameIdx >= 0 && frameIdx < bamCtrl.cycleFrameCount()) {
@@ -1488,7 +1488,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
     public SliderControl(Viewer viewer, Control control)
     {
-      super(viewer, control, ControlType.Slider);
+      super(viewer, control, ControlType.SLIDER);
       sliderGrabbed = false;
       updateImage();
     }
@@ -1550,7 +1550,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
               BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
               if (bam != null) {
                 BamControl bamCtrl = bam.createControl();
-                bamCtrl.setMode(BamControl.Mode.Individual);
+                bamCtrl.setMode(BamControl.Mode.INDIVIDUAL);
                 // getting specified cycle index
                 int cycleIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_SLD_ANIMATION_INDEX)).getValue();
                 cycleIdx = Math.min(bamCtrl.cycleCount()-1, Math.max(0, cycleIdx));
@@ -1597,7 +1597,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
     public TextFieldControl(Viewer viewer, Control control)
     {
-      super(viewer, control, ControlType.TextField);
+      super(viewer, control, ControlType.TEXT_FIELD);
       caretEnabled = false;
       updateImage();
     }
@@ -1684,7 +1684,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
                   BamControl bamCtrl = bam.createControl();
-                  bamCtrl.setMode(BamControl.Mode.Individual);
+                  bamCtrl.setMode(BamControl.Mode.INDIVIDUAL);
                   // getting specified cycle index
                   int cycleIdx = ((DecNumber)getResource().getAttribute(Control.CHU_CONTROL_TF_ANIMATION_INDEX)).getValue();
                   cycleIdx = Math.min(bamCtrl.cycleCount()-1, Math.max(0, cycleIdx));
@@ -1727,7 +1727,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
     public TextAreaControl(Viewer viewer, Control control)
     {
-      super(viewer, control, ControlType.TextArea);
+      super(viewer, control, ControlType.TEXT_AREA);
       updateImage();
     }
 
@@ -1778,7 +1778,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
     public LabelControl(Viewer viewer, Control control)
     {
-      super(viewer, control, ControlType.Label);
+      super(viewer, control, ControlType.LABEL);
       updateImage();
     }
 
@@ -1869,7 +1869,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
     public ScrollBarControl(Viewer viewer, Control control)
     {
-      super(viewer, control, ControlType.ScrollBar);
+      super(viewer, control, ControlType.SCROLL_BAR);
       upPressed = downPressed = false;
       updateImage();
     }

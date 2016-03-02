@@ -79,7 +79,7 @@ import org.infinity.util.io.FileOutputStreamNI;
 public class TisResource implements Resource, Closeable, ActionListener, ChangeListener,
                                      ItemListener, KeyListener, PropertyChangeListener
 {
-  private enum Status { Success, Cancelled, Error, Unsupported }
+  private enum Status { SUCCESS, CANCELLED, ERROR, UNSUPPORTED }
 
   private static final Color TransparentColor = new Color(0, true);
   private static final int DEFAULT_COLUMNS = 5;
@@ -113,7 +113,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.FindReferences)) {
+    if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES)) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExport) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
@@ -126,7 +126,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
           @Override
           public Status doInBackground()
           {
-            Status retVal = Status.Error;
+            Status retVal = Status.ERROR;
             try {
               retVal = convertToPaletteTis(tisFile, true);
             } catch (Exception e) {
@@ -147,7 +147,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
           @Override
           public Status doInBackground()
           {
-            Status retVal = Status.Error;
+            Status retVal = Status.ERROR;
             try {
               retVal = convertToPvrzTis(tisFile, true);
             } catch (Exception e) {
@@ -168,7 +168,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
           @Override
           public Status doInBackground()
           {
-            Status retVal = Status.Error;
+            Status retVal = Status.ERROR;
             try {
               retVal = exportPNG(pngFile, true);
             } catch (Exception e) {
@@ -271,25 +271,25 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
           blocker.setBlocked(false);
           blocker = null;
         }
-        Status retVal = Status.Error;
+        Status retVal = Status.ERROR;
         try {
           retVal = worker.get();
           if (retVal == null) {
-            retVal = Status.Error;
+            retVal = Status.ERROR;
           }
         } catch (Exception e) {
           e.printStackTrace();
         }
 
-        if (retVal == Status.Success) {
+        if (retVal == Status.SUCCESS) {
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                         "File exported successfully.", "Export complete",
                                         JOptionPane.INFORMATION_MESSAGE);
-        } else if (retVal == Status.Cancelled) {
+        } else if (retVal == Status.CANCELLED) {
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                         "Export has been cancelled.", "Information",
                                         JOptionPane.INFORMATION_MESSAGE);
-        } else if (retVal == Status.Unsupported) {
+        } else if (retVal == Status.UNSUPPORTED) {
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                         "Operation not (yet) supported.", "Information",
                                         JOptionPane.INFORMATION_MESSAGE);
@@ -460,8 +460,8 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
     for (int i = 0; i < mi.length; i++) {
       mi[i] = list.get(i);
     }
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ExportMenu);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(mi);
 
     // 4. packing all together
@@ -580,7 +580,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
   // Converts the current PVRZ-based tileset into the old tileset variant.
   public Status convertToPaletteTis(File output, boolean showProgress)
   {
-    Status retVal = Status.Error;
+    Status retVal = Status.ERROR;
     if (output != null) {
       if (tileImages != null && !tileImages.isEmpty()) {
         String note = "Converting tile %1$d / %2$d";
@@ -596,7 +596,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
         try {
           BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
           try {
-            retVal = Status.Success;
+            retVal = Status.SUCCESS;
 
             // writing header data
             byte[] header = new byte[24];
@@ -619,7 +619,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
             for (int tileIdx = 0; tileIdx < decoder.getTileCount(); tileIdx++) {
               colorCache.clear();
               if (progress != null && progress.isCanceled()) {
-                retVal = Status.Cancelled;
+                retVal = Status.CANCELLED;
                 break;
               }
               progressIndex++;
@@ -668,7 +668,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
                   }
                 }
               } else {
-                retVal = Status.Error;
+                retVal = Status.ERROR;
                 break;
               }
               bos.write(tilePalette);
@@ -685,10 +685,10 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
             bos = null;
           }
         } catch (Exception e) {
-          retVal = Status.Error;
+          retVal = Status.ERROR;
           e.printStackTrace();
         }
-        if (retVal != Status.Success && output.isFile()) {
+        if (retVal != Status.SUCCESS && output.isFile()) {
           output.delete();
         }
       }
@@ -699,7 +699,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
   // Converts the current palette-based tileset into the new PVRZ-based variant.
   public Status convertToPvrzTis(File output, boolean showProgress)
   {
-    Status retVal = Status.Error;
+    Status retVal = Status.ERROR;
     if (output != null) {
       try {
         ProgressMonitor progress = null;
@@ -727,7 +727,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
           bos.write(header);
 
           // processing tiles
-          final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BottomLeftRule;
+          final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BOTTOM_LEFT_RULE;
           final int pageDim = 1024;
           final int tileDim = 64;
           final int tilesPerDim = pageDim / tileDim;
@@ -799,10 +799,10 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
           bos = null;
         }
       } catch (Exception e) {
-        retVal = Status.Error;
+        retVal = Status.ERROR;
         e.printStackTrace();
       }
-      if (retVal != Status.Success && output.isFile()) {
+      if (retVal != Status.SUCCESS && output.isFile()) {
         output.delete();
       }
     }
@@ -812,7 +812,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
   // Converts the tileset into the PNG format.
   public Status exportPNG(File output, boolean showProgress)
   {
-    Status retVal = Status.Error;
+    Status retVal = Status.ERROR;
     if (output != null) {
       if (tileImages != null && !tileImages.isEmpty()) {
         int tilesX = tileGrid.getTileColumns();
@@ -844,7 +844,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
             BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(output));
             try {
               if (ImageIO.write(image, "png", bos)) {
-                retVal = Status.Success;
+                retVal = Status.SUCCESS;
               }
             } finally {
               bos.close();
@@ -853,14 +853,14 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
           } catch (Exception e) {
           }
           if (progress != null && progress.isCanceled()) {
-            retVal = Status.Cancelled;
+            retVal = Status.CANCELLED;
           }
           if (progress != null) {
             progress.close();
             progress = null;
           }
         }
-        if (retVal != Status.Success && output.isFile()) {
+        if (retVal != Status.SUCCESS && output.isFile()) {
           output.delete();
         }
       }
@@ -872,7 +872,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
   private Status writePvrzPages(File tisFile, List<BinPack2D> pageList,
                                  List<ConvertToTis.TileEntry> entryList, ProgressMonitor progress)
   {
-    Status retVal = Status.Success;
+    Status retVal = Status.SUCCESS;
     DxtEncoder.DxtType dxtType = DxtEncoder.DxtType.DXT1;
     int dxtCode = 7;  // PVR code for DXT1
     byte[] output = new byte[DxtEncoder.calcImageSize(1024, 1024, dxtType)];
@@ -886,7 +886,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
       for (int pageIdx = 0; pageIdx < pageList.size(); pageIdx++) {
         if (progress != null) {
           if (progress.isCanceled()) {
-            retVal = Status.Cancelled;
+            retVal = Status.CANCELLED;
             return retVal;
           }
           progress.setProgress(pageIdx + 1);
@@ -941,20 +941,20 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
               bos = null;
             }
           } catch (IOException e) {
-            retVal = Status.Error;
+            retVal = Status.ERROR;
             e.printStackTrace();
             return retVal;
           }
           pvrz = null;
         } catch (Exception e) {
-          retVal = Status.Error;
+          retVal = Status.ERROR;
           e.printStackTrace();
           return retVal;
         }
       }
     } finally {
       // cleaning up
-      if (retVal != Status.Success) {
+      if (retVal != Status.SUCCESS) {
         for (int i = 0; i < pageList.size(); i++) {
           File pvrzFile = generatePvrzFileName(tisFile, i);
           if (pvrzFile != null && pvrzFile.isFile()) {

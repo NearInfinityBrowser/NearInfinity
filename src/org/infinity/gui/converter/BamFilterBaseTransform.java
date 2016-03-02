@@ -14,7 +14,7 @@ public abstract class BamFilterBaseTransform extends BamFilterBase
 {
   protected BamFilterBaseTransform(ConvertToBam parent, String name, String desc)
   {
-    super(parent, name, desc, Type.Transform);
+    super(parent, name, desc, Type.TRANSFORM);
   }
 
   /**

@@ -16,14 +16,14 @@ public class SharedResourceCache
 {
   // Identifies the type of cache object to retrieve
   public static enum Type {
-    Icon, Animation/*, Creature*/
+    ICON, ANIMATION/*, Creature*/
   }
 
   private static EnumMap<Type, HashMap<Object, DataWrapper>> tables =
       new EnumMap<Type, HashMap<Object, DataWrapper>>(Type.class);
   static {
-    tables.put(Type.Icon, new HashMap<Object, DataWrapper>());
-    tables.put(Type.Animation, new HashMap<Object, DataWrapper>());
+    tables.put(Type.ICON, new HashMap<Object, DataWrapper>());
+    tables.put(Type.ANIMATION, new HashMap<Object, DataWrapper>());
 //    tables.put(Type.Creature, new HashMap<Object, DataWrapper>());
   }
 

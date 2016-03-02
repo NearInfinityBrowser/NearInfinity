@@ -22,7 +22,7 @@ public class LayerContainer extends BasicLayer<LayerObjectContainer>
 
   public LayerContainer(AreResource are, AreaViewer viewer)
   {
-    super(are, ViewerConstants.LayerType.Container, viewer);
+    super(are, ViewerConstants.LayerType.CONTAINER, viewer);
     loadLayer(false);
   }
 

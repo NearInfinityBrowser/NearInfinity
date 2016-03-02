@@ -22,7 +22,7 @@ public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
 
   public LayerSpawnPoint(AreResource are, AreaViewer viewer)
   {
-    super(are, ViewerConstants.LayerType.SpawnPoint, viewer);
+    super(are, ViewerConstants.LayerType.SPAWN_POINT, viewer);
     loadLayer(false);
   }
 

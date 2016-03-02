@@ -36,7 +36,7 @@ public final class BIFFArchive
     /** Block-compressed BIFC V1.0 */
     BIFC,
     /** Unsupported file type */
-    Unknown
+    UNKNOWN
   }
 
   private static final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
@@ -57,7 +57,7 @@ public final class BIFFArchive
       } else if (signature.equals("BIFC")) {
         biffType = Type.BIFC;
       } else {
-        biffType = Type.Unknown;
+        biffType = Type.UNKNOWN;
       }
 
       switch (biffType) {

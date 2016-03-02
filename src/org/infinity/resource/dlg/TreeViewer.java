@@ -156,7 +156,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     } else if (e.getSource() == miExpandAll) {
       if (worker == null) {
-        worker = new TreeWorker(this, TreeWorker.Type.Expand, new TreePath(dlgModel.getRoot()));
+        worker = new TreeWorker(this, TreeWorker.Type.EXPAND, new TreePath(dlgModel.getRoot()));
         worker.addPropertyChangeListener(this);
         blocker = new WindowBlocker(NearInfinity.getInstance());
         blocker.setBlocked(true);
@@ -164,7 +164,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     } else if (e.getSource() == miCollapseAll) {
       if (worker == null) {
-        worker = new TreeWorker(this, TreeWorker.Type.Collapse, new TreePath(dlgModel.getRoot()));
+        worker = new TreeWorker(this, TreeWorker.Type.COLLAPSE, new TreePath(dlgModel.getRoot()));
         worker.addPropertyChangeListener(this);
         blocker = new WindowBlocker(NearInfinity.getInstance());
         blocker.setBlocked(true);
@@ -172,7 +172,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     } else if (e.getSource() == miExpand) {
       if (worker == null) {
-        worker = new TreeWorker(this, TreeWorker.Type.Expand, dlgTree.getSelectionPath());
+        worker = new TreeWorker(this, TreeWorker.Type.EXPAND, dlgTree.getSelectionPath());
         worker.addPropertyChangeListener(this);
         blocker = new WindowBlocker(NearInfinity.getInstance());
         blocker.setBlocked(true);
@@ -180,7 +180,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     } else if (e.getSource() == miCollapse) {
       if (worker == null) {
-        worker = new TreeWorker(this, TreeWorker.Type.Collapse, dlgTree.getSelectionPath());
+        worker = new TreeWorker(this, TreeWorker.Type.COLLAPSE, dlgTree.getSelectionPath());
         worker.addPropertyChangeListener(this);
         blocker = new WindowBlocker(NearInfinity.getInstance());
         blocker.setBlocked(true);
@@ -663,7 +663,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private static class TreeWorker extends SwingWorker<Void, Void>
   {
     // Supported operations
-    public enum Type { Expand, Collapse }
+    public enum Type { EXPAND, COLLAPSE }
 
     private final TreeViewer instance;
     private final Type type;
@@ -679,10 +679,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
       String msg;
       switch (getType()) {
-        case Expand:
+        case EXPAND:
           msg = "Expanding nodes";
           break;
-        case Collapse:
+        case COLLAPSE:
           msg = "Collapsing nodes";
           break;
         default:
@@ -699,10 +699,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     {
       try {
         switch (getType()) {
-          case Expand:
+          case EXPAND:
             instance.expandNode(path);
             break;
-          case Collapse:
+          case COLLAPSE:
             instance.collapseNode(path);
             break;
         }

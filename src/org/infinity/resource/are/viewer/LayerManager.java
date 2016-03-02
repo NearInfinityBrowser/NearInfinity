@@ -20,36 +20,36 @@ public final class LayerManager
 {
   // Defines order of drawing
   public static final LayerType[] LayerOrdered = {
-    LayerType.Actor,
-    LayerType.Entrance,
-    LayerType.Ambient,
-    LayerType.ProTrap,
-    LayerType.Animation,
-    LayerType.SpawnPoint,
-    LayerType.Automap,
-    LayerType.Container,
-    LayerType.Door,
-    LayerType.Region,
-    LayerType.Transition,
-    LayerType.DoorPoly,
-    LayerType.WallPoly
+    LayerType.ACTOR,
+    LayerType.ENTRANCE,
+    LayerType.AMBIENT,
+    LayerType.PRO_TRAP,
+    LayerType.ANIMATION,
+    LayerType.SPAWN_POINT,
+    LayerType.AUTOMAP,
+    LayerType.CONTAINER,
+    LayerType.DOOR,
+    LayerType.REGION,
+    LayerType.TRANSITION,
+    LayerType.DOOR_POLY,
+    LayerType.WALL_POLY
   };
 
   private static final EnumMap<LayerType, String> LayerLabels = new EnumMap<LayerType, String>(LayerType.class);
   static {
-    LayerLabels.put(LayerType.Actor, "Actors");
-    LayerLabels.put(LayerType.Region, "Regions");
-    LayerLabels.put(LayerType.Entrance, "Entrances");
-    LayerLabels.put(LayerType.Container, "Containers");
-    LayerLabels.put(LayerType.Ambient, "Ambient Sounds");
-    LayerLabels.put(LayerType.Door, "Doors");
-    LayerLabels.put(LayerType.Animation, "Background Animations");
-    LayerLabels.put(LayerType.Automap, "Automap Notes");
-    LayerLabels.put(LayerType.SpawnPoint, "Spawn Points");
-    LayerLabels.put(LayerType.Transition, "Map Transitions");
-    LayerLabels.put(LayerType.ProTrap, "Projectile Traps");
-    LayerLabels.put(LayerType.DoorPoly, "Door Polygons");
-    LayerLabels.put(LayerType.WallPoly, "Wall Polygons");
+    LayerLabels.put(LayerType.ACTOR, "Actors");
+    LayerLabels.put(LayerType.REGION, "Regions");
+    LayerLabels.put(LayerType.ENTRANCE, "Entrances");
+    LayerLabels.put(LayerType.CONTAINER, "Containers");
+    LayerLabels.put(LayerType.AMBIENT, "Ambient Sounds");
+    LayerLabels.put(LayerType.DOOR, "Doors");
+    LayerLabels.put(LayerType.ANIMATION, "Background Animations");
+    LayerLabels.put(LayerType.AUTOMAP, "Automap Notes");
+    LayerLabels.put(LayerType.SPAWN_POINT, "Spawn Points");
+    LayerLabels.put(LayerType.TRANSITION, "Map Transitions");
+    LayerLabels.put(LayerType.PRO_TRAP, "Projectile Traps");
+    LayerLabels.put(LayerType.DOOR_POLY, "Door Polygons");
+    LayerLabels.put(LayerType.WALL_POLY, "Wall Polygons");
   }
 
   private final EnumMap<LayerType, BasicLayer<? extends LayerObject>> layers = new EnumMap<LayerType, BasicLayer<? extends LayerObject>>(LayerType.class);
@@ -211,7 +211,7 @@ public final class LayerManager
    */
   public String getLayerAvailability(LayerType layer, int type)
   {
-    if (layer == LayerType.Ambient) {
+    if (layer == LayerType.AMBIENT) {
       return getLayerAvailability(layer, type);
     } else {
       return getLayerAvailability(layer);
@@ -394,7 +394,7 @@ public final class LayerManager
    */
   public int getDoorState()
   {
-    return ((LayerDoor)getLayer(LayerType.Door)).getDoorState();
+    return ((LayerDoor)getLayer(LayerType.DOOR)).getDoorState();
   }
 
   /**
@@ -404,8 +404,8 @@ public final class LayerManager
    */
   public void setDoorState(int state)
   {
-    ((LayerDoor)getLayer(LayerType.Door)).setDoorState(state);
-    ((LayerDoorPoly)getLayer(LayerType.DoorPoly)).setDoorState(state);
+    ((LayerDoor)getLayer(LayerType.DOOR)).setDoorState(state);
+    ((LayerDoorPoly)getLayer(LayerType.DOOR_POLY)).setDoorState(state);
   }
 
   /**
@@ -413,7 +413,7 @@ public final class LayerManager
    */
   public boolean isRealAnimationEnabled()
   {
-    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.Animation);
+    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.ANIMATION);
     if (layer != null) {
       return layer.isRealAnimationEnabled();
     }
@@ -425,7 +425,7 @@ public final class LayerManager
    */
   public void setRealAnimationEnabled(boolean enable)
   {
-    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.Animation);
+    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.ANIMATION);
     if (layer != null) {
       layer.setRealAnimationEnabled(enable);
     }
@@ -436,7 +436,7 @@ public final class LayerManager
    */
   public boolean isRealAnimationPlaying()
   {
-    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.Animation);
+    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.ANIMATION);
     if (layer != null) {
       return layer.isRealAnimationPlaying();
     }
@@ -449,7 +449,7 @@ public final class LayerManager
    */
   public void setRealAnimationPlaying(boolean play)
   {
-    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.Animation);
+    LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.ANIMATION);
     if (layer != null) {
       layer.setRealAnimationPlaying(play);
     }
@@ -476,7 +476,7 @@ public final class LayerManager
         interpolationType == ViewerConstants.TYPE_BILINEAR ||
         interpolationType == ViewerConstants.TYPE_BICUBIC) {
       animInterpolationType = interpolationType;
-      LayerAnimation layer = (LayerAnimation)getLayer(LayerType.Animation);
+      LayerAnimation layer = (LayerAnimation)getLayer(LayerType.ANIMATION);
       if (layer != null) {
         layer.setRealAnimationInterpolation(animInterpolationType);
       }
@@ -499,7 +499,7 @@ public final class LayerManager
   public void setRealAnimationForcedInterpolation(boolean forced)
   {
     animForcedInterpolation = forced;
-    LayerAnimation layer = (LayerAnimation)getLayer(LayerType.Animation);
+    LayerAnimation layer = (LayerAnimation)getLayer(LayerType.ANIMATION);
     if (layer != null) {
       layer.setRealAnimationForcedInterpolation(animForcedInterpolation);
     }
@@ -523,7 +523,7 @@ public final class LayerManager
     frameRate = Math.min(Math.max(frameRate, 1.0), 30.0);
     if (frameRate != this.animFrameRate) {
       animFrameRate = frameRate;
-      LayerAnimation layer = (LayerAnimation)getLayer(LayerType.Animation);
+      LayerAnimation layer = (LayerAnimation)getLayer(LayerType.ANIMATION);
       if (layer != null) {
         layer.setRealAnimationFrameRate(animFrameRate);
       }
@@ -602,21 +602,21 @@ public final class LayerManager
 
       for (final LayerType layer: LayerType.values()) {
         switch (layer) {
-          case Actor:
-          case Region:
-          case Entrance:
-          case Container:
-          case Ambient:
-          case Door:
-          case Animation:
-          case Automap:
-          case SpawnPoint:
-          case Transition:
-          case ProTrap:
+          case ACTOR:
+          case REGION:
+          case ENTRANCE:
+          case CONTAINER:
+          case AMBIENT:
+          case DOOR:
+          case ANIMATION:
+          case AUTOMAP:
+          case SPAWN_POINT:
+          case TRANSITION:
+          case PRO_TRAP:
             loadLayer(layer, forced || areChanged);
             break;
-          case DoorPoly:
-          case WallPoly:
+          case DOOR_POLY:
+          case WALL_POLY:
             loadLayer(layer, forced || wedChanged);
             break;
           default:
@@ -632,7 +632,7 @@ public final class LayerManager
     int retVal = 0;
     if (layer != null) {
       switch (layer) {
-        case Actor:
+        case ACTOR:
         {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
@@ -643,7 +643,7 @@ public final class LayerManager
           }
           break;
         }
-        case Region:
+        case REGION:
         {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
@@ -654,7 +654,7 @@ public final class LayerManager
           }
           break;
         }
-        case Entrance:
+        case ENTRANCE:
         {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
@@ -665,7 +665,7 @@ public final class LayerManager
           }
           break;
         }
-        case Container:
+        case CONTAINER:
         {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
@@ -676,7 +676,7 @@ public final class LayerManager
           }
           break;
         }
-        case Ambient:
+        case AMBIENT:
         {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
@@ -687,7 +687,7 @@ public final class LayerManager
           }
           break;
         }
-        case Door:
+        case DOOR:
         {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
@@ -698,7 +698,7 @@ public final class LayerManager
           }
           break;
         }
-        case Animation:
+        case ANIMATION:
         {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
@@ -709,7 +709,7 @@ public final class LayerManager
           }
           break;
         }
-        case Automap:
+        case AUTOMAP:
         {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
@@ -720,7 +720,7 @@ public final class LayerManager
           }
           break;
         }
-        case SpawnPoint:
+        case SPAWN_POINT:
         {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
@@ -731,7 +731,7 @@ public final class LayerManager
           }
           break;
         }
-        case Transition:
+        case TRANSITION:
         {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
@@ -742,7 +742,7 @@ public final class LayerManager
           }
           break;
         }
-        case ProTrap:
+        case PRO_TRAP:
         {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
@@ -753,7 +753,7 @@ public final class LayerManager
           }
           break;
         }
-        case DoorPoly:
+        case DOOR_POLY:
         {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);
@@ -764,7 +764,7 @@ public final class LayerManager
           }
           break;
         }
-        case WallPoly:
+        case WALL_POLY:
         {
           if (layers.containsKey(layer)) {
             retVal = layers.get(layer).loadLayer(forced);

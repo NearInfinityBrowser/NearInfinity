@@ -387,13 +387,13 @@ public class AreaViewer extends ChildFrame
       cbLayers[i].addActionListener(getListeners());
       t2 = new DefaultMutableTreeNode(cbLayers[i]);
       t.add(t2);
-      if (i == LayerManager.getLayerTypeIndex(LayerType.Ambient)) {
+      if (i == LayerManager.getLayerTypeIndex(LayerType.AMBIENT)) {
         // Initializing ambient sound range checkbox
         cbLayerAmbientRange = new JCheckBox("Show local sound ranges");
         cbLayerAmbientRange.addActionListener(getListeners());
         t3 = new DefaultMutableTreeNode(cbLayerAmbientRange);
         t2.add(t3);
-      } else if (i == LayerManager.getLayerTypeIndex(LayerType.Animation)) {
+      } else if (i == LayerManager.getLayerTypeIndex(LayerType.ANIMATION)) {
         // Initializing real animation checkboxes
         cbLayerRealAnimation[0] = new JCheckBox("Show actual animations");
         cbLayerRealAnimation[0].addActionListener(getListeners());
@@ -516,73 +516,73 @@ public class AreaViewer extends ChildFrame
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
-    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Actor)] = tb;
+    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.ACTOR)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_REGION), false);
     tb.setToolTipText("Add a new region to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
-    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Region)] = tb;
+    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.REGION)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_ENTRANCE), false);
     tb.setToolTipText("Add a new entrance to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
-    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Entrance)] = tb;
+    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.ENTRANCE)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_CONTAINER), false);
     tb.setToolTipText("Add a new container to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
-    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Container)] = tb;
+    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.CONTAINER)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_AMBIENT), false);
     tb.setToolTipText("Add a new global ambient sound to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
-    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Ambient)] = tb;
+    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.AMBIENT)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_DOOR), false);
     tb.setToolTipText("Add a new door to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
-    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Door)] = tb;
+    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.DOOR)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_ANIM), false);
     tb.setToolTipText("Add a new background animation to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
-    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Animation)] = tb;
+    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.ANIMATION)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_AUTOMAP), false);
     tb.setToolTipText("Add a new automap note to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
-    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.Automap)] = tb;
+    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.AUTOMAP)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_SPAWN_POINT), false);
     tb.setToolTipText("Add a new spawn point to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
-    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.SpawnPoint)] = tb;
+    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.SPAWN_POINT)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_PRO_TRAP), false);
     tb.setToolTipText("Add a new projectile trap to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
-    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.ProTrap)] = tb;
+    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.PRO_TRAP)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_DOOR_POLY), false);
     tb.setToolTipText("Add a new door polygon to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
-    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.DoorPoly)] = tb;
+    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.DOOR_POLY)] = tb;
     tb = new JToggleButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_ADD_WALL_POLY), false);
     tb.setToolTipText("Add a new wall polygon to the map");
     tb.addActionListener(getListeners());
     tb.setEnabled(false);
 //    toolBar.add(tb);
-    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.WallPoly)] = tb;
+    tbAddLayerItem[LayerManager.getLayerTypeIndex(LayerType.WALL_POLY)] = tb;
 
 //    toolBar.addSeparator(dimSeparator);
 
@@ -752,7 +752,7 @@ public class AreaViewer extends ChildFrame
     }
 
     // Setting up ambient sound ranges
-    LayerAmbient layerAmbient = (LayerAmbient)layerManager.getLayer(ViewerConstants.LayerType.Ambient);
+    LayerAmbient layerAmbient = (LayerAmbient)layerManager.getLayer(ViewerConstants.LayerType.AMBIENT);
     if (layerAmbient.getLayerObjectCount(ViewerConstants.AMBIENT_TYPE_LOCAL) > 0) {
       cbLayerAmbientRange.setToolTipText(layerAmbient.getAvailability(ViewerConstants.AMBIENT_TYPE_LOCAL));
     }
@@ -764,7 +764,7 @@ public class AreaViewer extends ChildFrame
     if (Settings.ShowRealAnimations == ViewerConstants.ANIM_SHOW_ANIMATED) {
       Settings.ShowRealAnimations = ViewerConstants.ANIM_SHOW_STILL;
     }
-    ((LayerAnimation)layerManager.getLayer(LayerType.Animation)).setRealAnimationFrameState(Settings.ShowFrame);
+    ((LayerAnimation)layerManager.getLayer(LayerType.ANIMATION)).setRealAnimationFrameState(Settings.ShowFrame);
     cbLayerRealAnimation[0].setSelected(Settings.ShowRealAnimations == ViewerConstants.ANIM_SHOW_STILL);
     cbLayerRealAnimation[1].setSelected(false);
     updateRealAnimation();
@@ -1262,13 +1262,13 @@ public class AreaViewer extends ChildFrame
               // for each layer item...
               for (int k = 0; k < items.length; k++) {
                 // special case: Ambient/Ambient range (avoiding duplicates)
-                if (stacking == LayerStackingType.Ambient &&
+                if (stacking == LayerStackingType.AMBIENT &&
                     cbLayerAmbientRange.isSelected() &&
                     ((LayerObjectAmbient)itemList.get(j)).isLocal()) {
                   // skipped: will be handled in AmbientRange layer
                   break;
                 }
-                if (stacking == LayerStackingType.AmbientRange) {
+                if (stacking == LayerStackingType.AMBIENT_RANGE) {
                   if (((LayerObjectAmbient)itemList.get(j)).isLocal() &&
                       k == ViewerConstants.AMBIENT_ITEM_ICON) {
                     // considering ranged item only
@@ -1360,13 +1360,13 @@ public class AreaViewer extends ChildFrame
       for (int i = 0, ltCount = LayerManager.getLayerTypeCount(); i < ltCount; i++) {
         LayerType layer = LayerManager.getLayerType(i);
         LayerStackingType layer2 = Settings.layerToStacking(layer);
-        if (layer != LayerType.DoorPoly && layer != LayerType.WallPoly) {
+        if (layer != LayerType.DOOR_POLY && layer != LayerType.WALL_POLY) {
           layerManager.reload(layer);
           updateLayerItems(layer2);
           addLayerItems(layer2);
-          if (layer == LayerType.Ambient) {
-            updateLayerItems(LayerStackingType.AmbientRange);
-            addLayerItems(LayerStackingType.AmbientRange);
+          if (layer == LayerType.AMBIENT) {
+            updateLayerItems(LayerStackingType.AMBIENT_RANGE);
+            addLayerItems(LayerStackingType.AMBIENT_RANGE);
           }
           showLayer(layer, cbLayers[i].isSelected());
         }
@@ -1384,17 +1384,17 @@ public class AreaViewer extends ChildFrame
   private void reloadWedLayers(boolean order)
   {
     if (layerManager != null) {
-      layerManager.close(LayerType.DoorPoly);
-      layerManager.close(LayerType.WallPoly);
+      layerManager.close(LayerType.DOOR_POLY);
+      layerManager.close(LayerType.WALL_POLY);
       layerManager.setWedResource(getCurrentWed());
-      layerManager.reload(LayerType.DoorPoly);
-      layerManager.reload(LayerType.WallPoly);
-      updateLayerItems(LayerStackingType.DoorPoly);
-      updateLayerItems(LayerStackingType.WallPoly);
-      addLayerItems(LayerStackingType.DoorPoly);
-      addLayerItems(LayerStackingType.WallPoly);
-      showLayer(LayerType.DoorPoly, cbLayers[LayerManager.getLayerTypeIndex(LayerType.DoorPoly)].isSelected());
-      showLayer(LayerType.WallPoly, cbLayers[LayerManager.getLayerTypeIndex(LayerType.WallPoly)].isSelected());
+      layerManager.reload(LayerType.DOOR_POLY);
+      layerManager.reload(LayerType.WALL_POLY);
+      updateLayerItems(LayerStackingType.DOOR_POLY);
+      updateLayerItems(LayerStackingType.WALL_POLY);
+      addLayerItems(LayerStackingType.DOOR_POLY);
+      addLayerItems(LayerStackingType.WALL_POLY);
+      showLayer(LayerType.DOOR_POLY, cbLayers[LayerManager.getLayerTypeIndex(LayerType.DOOR_POLY)].isSelected());
+      showLayer(LayerType.WALL_POLY, cbLayers[LayerManager.getLayerTypeIndex(LayerType.WALL_POLY)].isSelected());
     }
     if (order) {
       orderLayerItems();
@@ -1522,9 +1522,9 @@ public class AreaViewer extends ChildFrame
   private void updateAmbientRange()
   {
     if (layerManager != null) {
-      LayerAmbient layer = (LayerAmbient)layerManager.getLayer(LayerType.Ambient);
+      LayerAmbient layer = (LayerAmbient)layerManager.getLayer(LayerType.AMBIENT);
       if (layer != null) {
-        JCheckBox cb = cbLayers[LayerManager.getLayerTypeIndex(LayerType.Ambient)];
+        JCheckBox cb = cbLayers[LayerManager.getLayerTypeIndex(LayerType.AMBIENT)];
         cbLayerAmbientRange.setEnabled(cb.isSelected() && layer.getLayerObjectCount(ViewerConstants.AMBIENT_TYPE_LOCAL) > 0);
         boolean state = cbLayerAmbientRange.isEnabled() && cbLayerAmbientRange.isSelected();
         layer.setItemTypeEnabled(ViewerConstants.AMBIENT_ITEM_RANGE, state);
@@ -1542,7 +1542,7 @@ public class AreaViewer extends ChildFrame
   private void updateRealAnimationsLighting(int visualState)
   {
     if (layerManager != null) {
-      List<? extends LayerObject> list = layerManager.getLayerObjects(LayerType.Animation);
+      List<? extends LayerObject> list = layerManager.getLayerObjects(LayerType.ANIMATION);
       if (list != null) {
         for (int i = 0, size = list.size(); i < size; i++) {
           LayerObjectAnimation obj = (LayerObjectAnimation)list.get(i);
@@ -1556,9 +1556,9 @@ public class AreaViewer extends ChildFrame
   private void updateRealAnimation()
   {
     if (layerManager != null) {
-      LayerAnimation layer = (LayerAnimation)layerManager.getLayer(LayerType.Animation);
+      LayerAnimation layer = (LayerAnimation)layerManager.getLayer(LayerType.ANIMATION);
       if (layer != null) {
-        JCheckBox cb = cbLayers[LayerManager.getLayerTypeIndex(LayerType.Animation)];
+        JCheckBox cb = cbLayers[LayerManager.getLayerTypeIndex(LayerType.ANIMATION)];
         boolean enabled = cb.isEnabled() && cb.isSelected();
         cbLayerRealAnimation[0].setEnabled(enabled);
         cbLayerRealAnimation[1].setEnabled(enabled);
@@ -1634,12 +1634,12 @@ public class AreaViewer extends ChildFrame
   {
     if (object != null) {
       // Dealing with ambient icons and ambient ranges separately
-      if (layer == LayerStackingType.Ambient) {
+      if (layer == LayerStackingType.AMBIENT) {
         AbstractLayerItem item = object.getLayerItem(ViewerConstants.AMBIENT_ITEM_ICON);
         if (item != null) {
           rcCanvas.add(item);
         }
-      } else if (layer == LayerStackingType.AmbientRange) {
+      } else if (layer == LayerStackingType.AMBIENT_RANGE) {
         AbstractLayerItem item = object.getLayerItem(ViewerConstants.AMBIENT_ITEM_RANGE);
         if (item != null) {
           rcCanvas.add(item);
@@ -1681,10 +1681,10 @@ public class AreaViewer extends ChildFrame
   private void removeLayerItem(LayerStackingType layer, LayerObject object)
   {
     if (object != null) {
-      if (layer == LayerStackingType.Ambient) {
+      if (layer == LayerStackingType.AMBIENT) {
         AbstractLayerItem item = object.getLayerItem(ViewerConstants.AMBIENT_ITEM_ICON);
         rcCanvas.remove(item);
-      } else if (layer == LayerStackingType.AmbientRange) {
+      } else if (layer == LayerStackingType.AMBIENT_RANGE) {
         AbstractLayerItem item = object.getLayerItem(ViewerConstants.AMBIENT_ITEM_RANGE);
         if (item != null) {
           rcCanvas.remove(item);
@@ -1710,7 +1710,7 @@ public class AreaViewer extends ChildFrame
         List<? extends LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(Settings.ListLayerOrder.get(i)));
         if (list != null) {
           for (int j = 0, size = list.size(); j < size; j++) {
-            if (Settings.ListLayerOrder.get(i) == LayerStackingType.AmbientRange) {
+            if (Settings.ListLayerOrder.get(i) == LayerStackingType.AMBIENT_RANGE) {
               // Special: process ambient ranges only
               LayerObjectAmbient obj = (LayerObjectAmbient)list.get(j);
               AbstractLayerItem item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_RANGE);
@@ -1718,7 +1718,7 @@ public class AreaViewer extends ChildFrame
                 rcCanvas.setComponentZOrder(item, index);
                 index++;
               }
-            } else if (Settings.ListLayerOrder.get(i) == LayerStackingType.Ambient) {
+            } else if (Settings.ListLayerOrder.get(i) == LayerStackingType.AMBIENT) {
               // Special: process ambient icons only
               LayerObjectAmbient obj = (LayerObjectAmbient)list.get(j);
               AbstractLayerItem item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_ICON);
@@ -1888,9 +1888,9 @@ public class AreaViewer extends ChildFrame
 
     if (layerManager != null) {
       // applying animation frame settings
-      ((LayerAnimation)layerManager.getLayer(LayerType.Animation)).setRealAnimationFrameState(Settings.ShowFrame);
+      ((LayerAnimation)layerManager.getLayer(LayerType.ANIMATION)).setRealAnimationFrameState(Settings.ShowFrame);
       // applying animation active override settings
-      ((LayerAnimation)layerManager.getLayer(LayerType.Animation)).setRealAnimationActiveIgnored(Settings.OverrideAnimVisibility);
+      ((LayerAnimation)layerManager.getLayer(LayerType.ANIMATION)).setRealAnimationActiveIgnored(Settings.OverrideAnimVisibility);
       // applying interpolation settings to animations
       switch (Settings.InterpolationAnim) {
         case ViewerConstants.FILTERING_AUTO:
@@ -1983,10 +1983,10 @@ public class AreaViewer extends ChildFrame
         LayerType layer = getLayerType(cb);
         if (layer != null) {
           showLayer(layer, cb.isSelected());
-          if (layer == LayerType.Ambient) {
+          if (layer == LayerType.AMBIENT) {
             // Taking care of local ambient ranges
             updateAmbientRange();
-          } else if (layer == LayerType.Animation) {
+          } else if (layer == LayerType.ANIMATION) {
             // Taking care of real animation display
             updateRealAnimation();
           }

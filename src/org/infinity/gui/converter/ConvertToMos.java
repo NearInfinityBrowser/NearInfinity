@@ -315,7 +315,7 @@ public class ConvertToMos extends ChildFrame
 
       // processing tiles
       final int pageDim = 1024;
-      final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BottomLeftRule;
+      final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BOTTOM_LEFT_RULE;
 
       int x = 0, y = 0, pOfs = 0;
       while (pOfs < width*height) {

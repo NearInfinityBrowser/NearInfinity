@@ -87,7 +87,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
         }
         WindowBlocker.blockWindow(false);
       }
-    } else if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExport) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
@@ -227,7 +227,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
 
     mosType = MosDecoder.getType(entry);
 
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
 
     miExport = new JMenuItem("original");
     miExport.addActionListener(this);
@@ -262,7 +262,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
     for (int i = 0; i < mi.length; i++) {
       mi[i] = list.get(i);
     }
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ExportMenu);
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(mi);
 
     rcImage = new RenderCanvas();

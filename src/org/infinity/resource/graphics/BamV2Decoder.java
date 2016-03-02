@@ -101,7 +101,7 @@ public class BamV2Decoder extends BamDecoder
         control = defaultControl;
       }
       int w, h;
-      if (control.getMode() == BamDecoder.BamControl.Mode.Shared) {
+      if (control.getMode() == BamDecoder.BamControl.Mode.SHARED) {
         Dimension d = control.getSharedDimension();
         w = d.width;
         h = d.height;
@@ -126,7 +126,7 @@ public class BamV2Decoder extends BamDecoder
         control = defaultControl;
       }
       int w, h;
-      if (control.getMode() == BamDecoder.BamControl.Mode.Shared) {
+      if (control.getMode() == BamDecoder.BamControl.Mode.SHARED) {
         Dimension d = control.getSharedDimension();
         w = d.width;
         h = d.height;
@@ -221,7 +221,7 @@ public class BamV2Decoder extends BamDecoder
 
         // creating default bam control instance as a fallback option
         defaultControl = new BamV2Control(this);
-        defaultControl.setMode(BamControl.Mode.Shared);
+        defaultControl.setMode(BamControl.Mode.SHARED);
         defaultControl.setSharedPerCycle(false);
       } catch (Exception e) {
         e.printStackTrace();
@@ -272,7 +272,7 @@ public class BamV2Decoder extends BamDecoder
       int srcWidth = listFrames.get(frameIdx).width;
       int srcHeight = listFrames.get(frameIdx).height;
       int[] srcBuffer = ((DataBufferInt)listFrames.get(frameIdx).frame.getRaster().getDataBuffer()).getData();
-      if (control.getMode() == BamControl.Mode.Shared) {
+      if (control.getMode() == BamControl.Mode.SHARED) {
         // drawing on shared canvas
         int left = -control.getSharedRectangle().x - listFrames.get(frameIdx).centerX;
         int top = -control.getSharedRectangle().y - listFrames.get(frameIdx).centerY;

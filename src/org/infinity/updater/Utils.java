@@ -502,7 +502,7 @@ public class Utils
     String retVal = null;
     if (url != null) {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      if (Utils.downloadFromUrl(url, proxy, baos, UpdateInfo.FileType.Original, null)) {
+      if (Utils.downloadFromUrl(url, proxy, baos, UpdateInfo.FileType.ORIGINAL, null)) {
         if (charset == null  || charset.isEmpty() || !Charset.isSupported(charset)) {
           charset = Charset.defaultCharset().name();
         }
@@ -553,13 +553,13 @@ public class Utils
         conn.setConnectTimeout(timeout);
         try {
           switch (type) {
-            case Original:
+            case ORIGINAL:
               return downloadRaw(is, os, url, proxy, listeners);
             case ZIP:
               return downloadZip(is, os, url, proxy, listeners);
             case GZIP:
               return downloadGzip(is, os, url, proxy, listeners);
-            case Unknown:
+            case UNKNOWN:
               return false;
           }
         } finally {

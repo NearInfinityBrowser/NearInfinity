@@ -393,8 +393,8 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
             if (o instanceof AbstractCode) {
               AbstractCode dialogCode = (AbstractCode)o;
               Compiler compiler = new Compiler(dialogCode.toString(),
-                                               (dialogCode instanceof Action) ? Compiler.ScriptType.Action :
-                                                                                Compiler.ScriptType.Trigger);
+                                               (dialogCode instanceof Action) ? Compiler.ScriptType.ACTION :
+                                                                                Compiler.ScriptType.TRIGGER);
               compiler.getCode();
               SortedMap<Integer, String> errorMap = compiler.getErrors();
               for (final Integer lineNr : errorMap.keySet()) {

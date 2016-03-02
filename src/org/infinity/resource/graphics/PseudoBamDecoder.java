@@ -393,7 +393,7 @@ public class PseudoBamDecoder extends BamDecoder
         control = defaultControl;
       }
       int w, h;
-      if (control.getMode() == BamDecoder.BamControl.Mode.Shared) {
+      if (control.getMode() == BamDecoder.BamControl.Mode.SHARED) {
         Dimension d = control.getSharedDimension();
         w = d.width;
         h = d.height;
@@ -418,7 +418,7 @@ public class PseudoBamDecoder extends BamDecoder
         control = defaultControl;
       }
       int w, h;
-      if (control.getMode() == BamDecoder.BamControl.Mode.Shared) {
+      if (control.getMode() == BamDecoder.BamControl.Mode.SHARED) {
         control.updateSharedBamSize();
         Dimension d = control.getSharedDimension();
         w = d.width;
@@ -459,7 +459,7 @@ public class PseudoBamDecoder extends BamDecoder
 
     // creating default bam control instance as a fallback option
     defaultControl = new PseudoBamControl(this);
-    defaultControl.setMode(BamControl.Mode.Shared);
+    defaultControl.setMode(BamControl.Mode.SHARED);
     defaultControl.setSharedPerCycle(false);
   }
 
@@ -497,7 +497,7 @@ public class PseudoBamDecoder extends BamDecoder
       int dstHeight = dstImage.getHeight();
       int srcWidth = listFrames.get(frameIdx).width;
       int srcHeight = listFrames.get(frameIdx).height;
-      if (control.getMode() == BamControl.Mode.Shared) {
+      if (control.getMode() == BamControl.Mode.SHARED) {
         // drawing on shared canvas
         Rectangle shared = control.getSharedRectangle();
         int srcCenterX = listFrames.get(frameIdx).centerX;
@@ -680,7 +680,7 @@ public class PseudoBamDecoder extends BamDecoder
 
       // calculating the max. space required for a single frame
       PseudoBamControl control = createControl();
-      control.setMode(BamDecoder.BamControl.Mode.Shared);
+      control.setMode(BamDecoder.BamControl.Mode.SHARED);
       control.setSharedPerCycle(false);
       Dimension dimFrame = control.calculateSharedCanvas(false).getSize();
       int maxImageSize = (dimFrame.width*dimFrame.height*3) / 2;    // about 1.5x of max. size
@@ -1200,7 +1200,7 @@ public class PseudoBamDecoder extends BamDecoder
   {
     if (framesList != null && gridList != null && pvrzPageIndex >= 0 && pvrzPageIndex < 99999) {
       final int pageDim = 1024;
-      final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BottomLeftRule;
+      final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BOTTOM_LEFT_RULE;
 
       for (int frameIdx = 0; frameIdx < listFrames.size(); frameIdx++) {
         int imgWidth = listFrames.get(frameIdx).frame.getWidth() + 2;

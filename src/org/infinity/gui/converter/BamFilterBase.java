@@ -22,11 +22,11 @@ public abstract class BamFilterBase
   /** Supported filter types. */
   public enum Type {
     /** Specifies an filter type that manipulates on color/pixel level only. (Examples: Brightness, Color balance) */
-    Color,
+    COLOR,
     /** Specifies an filter type that manipulates on image level. (Example: Resize) */
-    Transform,
+    TRANSFORM,
     /** Specifies an filter type that outputs the current BAM structure to disk. (Example: Split BAM) */
-    Output
+    OUTPUT
   }
 
   private final ConvertToBam converter;

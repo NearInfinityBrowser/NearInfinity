@@ -807,7 +807,7 @@ public final class CreResource extends AbstractStruct
     viewer.addTabChangeListener(hexViewer);
     if (isChr) {
       ButtonPanel panel = viewer.getButtonPanel();
-      JButton b = (JButton)panel.getControlByType(ButtonPanel.Control.ExportButton);
+      JButton b = (JButton)panel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON);
       int idx = panel.getControlPosition(b);
       if (b != null && idx >= 0) {
         // replacing button with menu
@@ -816,7 +816,7 @@ public final class CreResource extends AbstractStruct
         miExport = new JMenuItem("original");
         miExport.setToolTipText(b.getToolTipText());
         miConvert = new JMenuItem("as CRE");
-        bExport = (ButtonPopupMenu)panel.addControl(idx, ButtonPanel.Control.ExportMenu);
+        bExport = (ButtonPopupMenu)panel.addControl(idx, ButtonPanel.Control.EXPORT_MENU);
         bExport.setMenuItems(new JMenuItem[]{miExport, miConvert});
         bExport.addItemListener(this);
       }

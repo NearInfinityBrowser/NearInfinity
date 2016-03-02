@@ -37,11 +37,11 @@ public final class Compiler
     /** Treat source as full BAF resource. */
     BAF,
     /** Treat source as script trigger only. */
-    Trigger,
+    TRIGGER,
     /** Treat source as script action only. */
-    Action,
+    ACTION,
     /** Do not compile automatically. */
-    Custom
+    CUSTOM
   }
 
   // Definition of triggers that don't use combined string and namespace arguments and supported engines (null = all engines)
@@ -253,8 +253,8 @@ public final class Compiler
   {
     switch (scriptType) {
       case BAF: return compileScript();
-      case Trigger: return compileTrigger();
-      case Action: return compileAction();
+      case TRIGGER: return compileTrigger();
+      case ACTION: return compileAction();
       default: throw new IllegalArgumentException("Could not determine script type");
     }
   }

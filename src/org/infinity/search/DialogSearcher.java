@@ -289,15 +289,15 @@ public final class DialogSearcher implements Runnable, ActionListener
             } else if (searchEntry instanceof AbstractCode) {
               try {
                 Compiler compiler = new Compiler(searchEntry.toString(),
-                                                 (searchEntry instanceof Action) ? Compiler.ScriptType.Action :
-                                                                                   Compiler.ScriptType.Trigger);
+                                                 (searchEntry instanceof Action) ? Compiler.ScriptType.ACTION :
+                                                                                   Compiler.ScriptType.TRIGGER);
                 String code = compiler.getCode();
                 if (compiler.getErrors().size() == 0) {
                   Decompiler decompiler = new Decompiler(code, false);
                   if (searchEntry instanceof Action) {
-                    decompiler.setScriptType(Decompiler.ScriptType.Action);
+                    decompiler.setScriptType(Decompiler.ScriptType.ACTION);
                   } else {
-                    decompiler.setScriptType(Decompiler.ScriptType.Trigger);
+                    decompiler.setScriptType(Decompiler.ScriptType.TRIGGER);
                   }
                   s = decompiler.getSource();
                 } else {

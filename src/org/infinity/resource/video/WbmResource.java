@@ -53,9 +53,9 @@ public final class WbmResource implements Resource, Closeable, ActionListener
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
-    } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry,panel.getTopLevelAncestor());
     } else if (event.getSource() == bPlayExternal) {
       try {
@@ -111,8 +111,8 @@ public final class WbmResource implements Resource, Closeable, ActionListener
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
 
     bPlayExternal = new JButton("Open in video player");
     bPlayExternal.addActionListener(this);

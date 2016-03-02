@@ -83,15 +83,15 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
         AbstractCode sourceCode = (AbstractCode)o;
         try {
           Compiler compiler = new Compiler(sourceCode.toString(),
-                                           (sourceCode instanceof Action) ? Compiler.ScriptType.Action :
-                                                                            Compiler.ScriptType.Trigger);
+                                           (sourceCode instanceof Action) ? Compiler.ScriptType.ACTION :
+                                                                            Compiler.ScriptType.TRIGGER);
           String code = compiler.getCode();
           if (compiler.getErrors().size() == 0) {
             Decompiler decompiler = new Decompiler(code, true);
             if (o instanceof Action) {
-              decompiler.setScriptType(Decompiler.ScriptType.Action);
+              decompiler.setScriptType(Decompiler.ScriptType.ACTION);
             } else {
-              decompiler.setScriptType(Decompiler.ScriptType.Trigger);
+              decompiler.setScriptType(Decompiler.ScriptType.TRIGGER);
             }
             decompiler.decompile();
             for (final ResourceEntry resourceUsed : decompiler.getResourcesUsed()) {

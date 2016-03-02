@@ -32,7 +32,7 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
 
   public LayerAmbient(AreResource are, AreaViewer viewer)
   {
-    super(are, ViewerConstants.LayerType.Ambient, viewer);
+    super(are, ViewerConstants.LayerType.AMBIENT, viewer);
     iconEnabled = true;
     rangeEnabled = false;
     loadLayer(false);

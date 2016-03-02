@@ -92,9 +92,9 @@ public final class BmpResource implements Resource, ActionListener
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
-    } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     }
   }
@@ -123,8 +123,8 @@ public final class BmpResource implements Resource, ActionListener
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());

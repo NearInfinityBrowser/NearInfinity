@@ -19,20 +19,20 @@ public class Settings
 {
   // Default layer order on map
   public static final ViewerConstants.LayerStackingType[] DefaultLayerOrder = {
-      ViewerConstants.LayerStackingType.Actor,
-      ViewerConstants.LayerStackingType.Entrance,
-      ViewerConstants.LayerStackingType.Ambient,
-      ViewerConstants.LayerStackingType.Animation,
-      ViewerConstants.LayerStackingType.Automap,
-      ViewerConstants.LayerStackingType.SpawnPoint,
-      ViewerConstants.LayerStackingType.ProTrap,
-      ViewerConstants.LayerStackingType.Container,
-      ViewerConstants.LayerStackingType.Region,
-      ViewerConstants.LayerStackingType.Door,
-      ViewerConstants.LayerStackingType.DoorPoly,
-      ViewerConstants.LayerStackingType.WallPoly,
-      ViewerConstants.LayerStackingType.AmbientRange,
-      ViewerConstants.LayerStackingType.Transition
+      ViewerConstants.LayerStackingType.ACTOR,
+      ViewerConstants.LayerStackingType.ENTRANCE,
+      ViewerConstants.LayerStackingType.AMBIENT,
+      ViewerConstants.LayerStackingType.ANIMATION,
+      ViewerConstants.LayerStackingType.AUTOMAP,
+      ViewerConstants.LayerStackingType.SPAWN_POINT,
+      ViewerConstants.LayerStackingType.PRO_TRAP,
+      ViewerConstants.LayerStackingType.CONTAINER,
+      ViewerConstants.LayerStackingType.REGION,
+      ViewerConstants.LayerStackingType.DOOR,
+      ViewerConstants.LayerStackingType.DOOR_POLY,
+      ViewerConstants.LayerStackingType.WALL_POLY,
+      ViewerConstants.LayerStackingType.AMBIENT_RANGE,
+      ViewerConstants.LayerStackingType.TRANSITION
   };
   public static final String[] LabelZoomFactor = {"Auto-fit", "25%", "33%", "50%", "100%", "200%", "300%", "400%"};
   public static final double[] ItemZoomFactor = {0.0, 0.25, 1.0/3.0, 0.5, 1.0, 2.0, 3.0, 4.0};
@@ -352,33 +352,33 @@ public class Settings
   public static LayerType stackingToLayer(LayerStackingType type)
   {
     switch (type) {
-      case Actor:
-        return LayerType.Actor;
-      case Ambient:
-      case AmbientRange:
-        return LayerType.Ambient;
-      case Animation:
-        return LayerType.Animation;
-      case Automap:
-        return LayerType.Automap;
-      case Container:
-        return LayerType.Container;
-      case Door:
-        return LayerType.Door;
-      case DoorPoly:
-        return LayerType.DoorPoly;
-      case Entrance:
-        return LayerType.Entrance;
-      case ProTrap:
-        return LayerType.ProTrap;
-      case Region:
-        return LayerType.Region;
-      case SpawnPoint:
-        return LayerType.SpawnPoint;
-      case Transition:
-        return LayerType.Transition;
-      case WallPoly:
-        return LayerType.WallPoly;
+      case ACTOR:
+        return LayerType.ACTOR;
+      case AMBIENT:
+      case AMBIENT_RANGE:
+        return LayerType.AMBIENT;
+      case ANIMATION:
+        return LayerType.ANIMATION;
+      case AUTOMAP:
+        return LayerType.AUTOMAP;
+      case CONTAINER:
+        return LayerType.CONTAINER;
+      case DOOR:
+        return LayerType.DOOR;
+      case DOOR_POLY:
+        return LayerType.DOOR_POLY;
+      case ENTRANCE:
+        return LayerType.ENTRANCE;
+      case PRO_TRAP:
+        return LayerType.PRO_TRAP;
+      case REGION:
+        return LayerType.REGION;
+      case SPAWN_POINT:
+        return LayerType.SPAWN_POINT;
+      case TRANSITION:
+        return LayerType.TRANSITION;
+      case WALL_POLY:
+        return LayerType.WALL_POLY;
       default:
         return null;
     }
@@ -389,32 +389,32 @@ public class Settings
   {
     switch (type)
     {
-      case Actor:
-        return LayerStackingType.Actor;
-      case Ambient:
-        return LayerStackingType.Ambient;
-      case Animation:
-        return LayerStackingType.Animation;
-      case Automap:
-        return LayerStackingType.Automap;
-      case Container:
-        return LayerStackingType.Container;
-      case Door:
-        return LayerStackingType.Door;
-      case DoorPoly:
-        return LayerStackingType.DoorPoly;
-      case Entrance:
-        return LayerStackingType.Entrance;
-      case ProTrap:
-        return LayerStackingType.ProTrap;
-      case Region:
-        return LayerStackingType.Region;
-      case SpawnPoint:
-        return LayerStackingType.SpawnPoint;
-      case Transition:
-        return LayerStackingType.Transition;
-      case WallPoly:
-        return LayerStackingType.WallPoly;
+      case ACTOR:
+        return LayerStackingType.ACTOR;
+      case AMBIENT:
+        return LayerStackingType.AMBIENT;
+      case ANIMATION:
+        return LayerStackingType.ANIMATION;
+      case AUTOMAP:
+        return LayerStackingType.AUTOMAP;
+      case CONTAINER:
+        return LayerStackingType.CONTAINER;
+      case DOOR:
+        return LayerStackingType.DOOR;
+      case DOOR_POLY:
+        return LayerStackingType.DOOR_POLY;
+      case ENTRANCE:
+        return LayerStackingType.ENTRANCE;
+      case PRO_TRAP:
+        return LayerStackingType.PRO_TRAP;
+      case REGION:
+        return LayerStackingType.REGION;
+      case SPAWN_POINT:
+        return LayerStackingType.SPAWN_POINT;
+      case TRANSITION:
+        return LayerStackingType.TRANSITION;
+      case WALL_POLY:
+        return LayerStackingType.WALL_POLY;
       default:
         return null;
     }

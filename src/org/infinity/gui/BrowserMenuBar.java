@@ -579,7 +579,7 @@ public final class BrowserMenuBar extends JMenuBar
       // Updating current game if needed
       Bookmark bookmark = getBookmarkOf(Profile.getChitinKey());
       if (bookmark != null) {
-        Profile.addProperty(Profile.GET_GAME_DESC, Profile.Type.String, bookmark.getName());
+        Profile.addProperty(Profile.GET_GAME_DESC, Profile.Type.STRING, bookmark.getName());
         NearInfinity.getInstance().updateWindowTitle();
       }
     }
@@ -602,7 +602,7 @@ public final class BrowserMenuBar extends JMenuBar
             }
           }
         }
-        Profile.addProperty(Profile.GET_GAME_DESC, Profile.Type.String, null);
+        Profile.addProperty(Profile.GET_GAME_DESC, Profile.Type.STRING, null);
         NearInfinity.getInstance().updateWindowTitle();
       }
     }
@@ -627,7 +627,7 @@ public final class BrowserMenuBar extends JMenuBar
         gameBookmarks.insert(bookmark.getMenuItem(), idx);
         gameBookmarkSeparator.setVisible(!bookmarkList.isEmpty());
         gameBookmarkEdit.setEnabled(!bookmarkList.isEmpty());
-        Profile.addProperty(Profile.GET_GAME_DESC, Profile.Type.String, bookmark.getName());
+        Profile.addProperty(Profile.GET_GAME_DESC, Profile.Type.STRING, bookmark.getName());
         NearInfinity.getInstance().updateWindowTitle();
       }
     }

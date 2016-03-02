@@ -76,10 +76,10 @@ public class LayerObjectAnimation extends LayerObject
         if (key != null) {
           switch (i) {
             case ViewerConstants.ANIM_ITEM_ICON:
-              SharedResourceCache.remove(SharedResourceCache.Type.Icon, key);
+              SharedResourceCache.remove(SharedResourceCache.Type.ICON, key);
               break;
             case ViewerConstants.ANIM_ITEM_REAL:
-              SharedResourceCache.remove(SharedResourceCache.Type.Animation, key);
+              SharedResourceCache.remove(SharedResourceCache.Type.ANIMATION, key);
               break;
           }
         }
@@ -239,12 +239,12 @@ public class LayerObjectAnimation extends LayerObject
           // generating key from icon hashcode
           keyAnim = String.format(String.format("%1$08x", Icon[iconIdx][0].hashCode()));
           BamDecoder bam = null;
-          if (!SharedResourceCache.contains(SharedResourceCache.Type.Animation, keyAnim)) {
+          if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
             bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(Icon[iconIdx][0], true, false), Center);
-            SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim, new ResourceAnimation(keyAnim, bam));
+            SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim, new ResourceAnimation(keyAnim, bam));
           } else {
-            SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim);
-            bam = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.Animation, keyAnim)).getData();
+            SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim);
+            bam = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.ANIMATION, keyAnim)).getData();
           }
           animation = new BackgroundAnimationProvider(bam);
           animation.setBaseAlpha(baseAlpha);
@@ -255,12 +255,12 @@ public class LayerObjectAnimation extends LayerObject
           // generating key from icon hashcode
           keyAnim = String.format(String.format("%1$08x", Icon[iconIdx][0].hashCode()));
           BamDecoder bam = null;
-          if (!SharedResourceCache.contains(SharedResourceCache.Type.Animation, keyAnim)) {
+          if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
             bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(Icon[iconIdx][0], true, false), Center);
-            SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim, new ResourceAnimation(keyAnim, bam));
+            SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim, new ResourceAnimation(keyAnim, bam));
           } else {
-            SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim);
-            bam = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.Animation, keyAnim)).getData();
+            SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim);
+            bam = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.ANIMATION, keyAnim)).getData();
           }
           animation = new BackgroundAnimationProvider(bam);
           animation.setBaseAlpha(baseAlpha);
@@ -300,13 +300,13 @@ public class LayerObjectAnimation extends LayerObject
           // generating unique key from BAM filename and optional palette hashcode
           keyAnim = String.format("%1$s", animFile);
           BamDecoder bam = null;
-          if (!SharedResourceCache.contains(SharedResourceCache.Type.Animation, keyAnim)) {
+          if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
             ResourceEntry bamEntry = ResourceFactory.getResourceEntry(animFile);
             bam = BamDecoder.loadBam(bamEntry);
-            SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim, new ResourceAnimation(keyAnim, bam));
+            SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim, new ResourceAnimation(keyAnim, bam));
           } else {
-            SharedResourceCache.add(SharedResourceCache.Type.Animation, keyAnim);
-            bam = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.Animation, keyAnim)).getData();
+            SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim);
+            bam = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.ANIMATION, keyAnim)).getData();
           }
           animation = new BackgroundAnimationProvider(bam);
           animation.setPalette(palette);
@@ -333,12 +333,12 @@ public class LayerObjectAnimation extends LayerObject
       Image[] icon;
       String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(Icon[iconIdx][0]),
                                                  SharedResourceCache.createKey(Icon[iconIdx][1]));
-      if (SharedResourceCache.contains(SharedResourceCache.Type.Icon, keyIcon)) {
-        icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.Icon, keyIcon)).getData();
-        SharedResourceCache.add(SharedResourceCache.Type.Icon, keyIcon);
+      if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
+        icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
+        SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon);
       } else {
         icon = Icon[iconIdx];
-        SharedResourceCache.add(SharedResourceCache.Type.Icon, keyIcon, new ResourceIcon(keyIcon, icon));
+        SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
       IconLayerItem item1 = new IconLayerItem(location, anim, msg, icon[0], Center);

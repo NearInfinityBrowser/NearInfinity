@@ -51,14 +51,14 @@ import org.infinity.util.StringResource;
 
 final class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener
 {
-  private static final ButtonPanel.Control CtrlNextState      = ButtonPanel.Control.Custom1;
-  private static final ButtonPanel.Control CtrlPrevState      = ButtonPanel.Control.Custom2;
-  private static final ButtonPanel.Control CtrlNextTrans      = ButtonPanel.Control.Custom3;
-  private static final ButtonPanel.Control CtrlPrevTrans      = ButtonPanel.Control.Custom4;
-  private static final ButtonPanel.Control CtrlSelect         = ButtonPanel.Control.Custom5;
-  private static final ButtonPanel.Control CtrlUndo           = ButtonPanel.Control.Custom6;
-  private static final ButtonPanel.Control CtrlStateField     = ButtonPanel.Control.Custom7;
-  private static final ButtonPanel.Control CtrlResponseField  = ButtonPanel.Control.Custom8;
+  private static final ButtonPanel.Control CtrlNextState      = ButtonPanel.Control.CUSTOM_1;
+  private static final ButtonPanel.Control CtrlPrevState      = ButtonPanel.Control.CUSTOM_2;
+  private static final ButtonPanel.Control CtrlNextTrans      = ButtonPanel.Control.CUSTOM_3;
+  private static final ButtonPanel.Control CtrlPrevTrans      = ButtonPanel.Control.CUSTOM_4;
+  private static final ButtonPanel.Control CtrlSelect         = ButtonPanel.Control.CUSTOM_5;
+  private static final ButtonPanel.Control CtrlUndo           = ButtonPanel.Control.CUSTOM_6;
+  private static final ButtonPanel.Control CtrlStateField     = ButtonPanel.Control.CUSTOM_7;
+  private static final ButtonPanel.Control CtrlResponseField  = ButtonPanel.Control.CUSTOM_8;
 
   private final ButtonPanel buttonPanel = new ButtonPanel();
   private final DlgPanel stateTextPanel, stateTriggerPanel, transTextPanel, transTriggerPanel, transActionPanel;
@@ -87,7 +87,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     this.dlg = dlg;
     this.dlg.addTableModelListener(this);
 
-    ButtonPopupMenu bpmFind = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.FindMenu);
+    ButtonPopupMenu bpmFind = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.FIND_MENU);
     bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
     bpmFind.addItemListener(this);
     bpmFind.addActionListener(this);
@@ -159,7 +159,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     buttonPanel.addControl(bNextTrans, CtrlNextTrans);
     buttonPanel.addControl(bSelect, CtrlSelect);
     buttonPanel.addControl(bUndo, CtrlUndo);
-    buttonPanel.addControl(bpmFind, ButtonPanel.Control.FindMenu);
+    buttonPanel.addControl(bpmFind, ButtonPanel.Control.FIND_MENU);
 
     setLayout(new BorderLayout());
     add(outerpanel, BorderLayout.CENTER);
@@ -275,7 +275,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   @Override
   public void itemStateChanged(ItemEvent event)
   {
-    if (buttonPanel.getControlByType(ButtonPanel.Control.FindMenu) == event.getSource()) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU) == event.getSource()) {
       ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
       if (bpmFind.getSelectedItem() == ifindall) {
         List<ResourceEntry> files = ResourceFactory.getResources("DLG");
@@ -631,16 +631,16 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       bGoto.setEnabled(true);
       structEntry = trigger;
       Compiler compiler = new Compiler(trigger.toString(),
-                                       (trigger instanceof Action) ? Compiler.ScriptType.Action :
-                                                                     Compiler.ScriptType.Trigger);
+                                       (trigger instanceof Action) ? Compiler.ScriptType.ACTION :
+                                                                     Compiler.ScriptType.TRIGGER);
       String code = compiler.getCode();
       try {
         if (compiler.getErrors().size() == 0) {
           Decompiler decompiler = new Decompiler(code, true);
           if (trigger instanceof Action) {
-            decompiler.setScriptType(Decompiler.ScriptType.Action);
+            decompiler.setScriptType(Decompiler.ScriptType.ACTION);
           } else {
-            decompiler.setScriptType(Decompiler.ScriptType.Trigger);
+            decompiler.setScriptType(Decompiler.ScriptType.TRIGGER);
           }
           textArea.setText(decompiler.getSource());
         } else {

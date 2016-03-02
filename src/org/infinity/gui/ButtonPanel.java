@@ -26,65 +26,65 @@ public class ButtonPanel extends JPanel
   /** Predefined controls that can be added or inserted into the button panel. */
   public enum Control {
     /** "Find..." (JButton) */
-    FindButton,
+    FIND_BUTTON,
     /** "Find..." (ButtonPopupMenu) */
-    FindMenu,
+    FIND_MENU,
     /** "Find references..." (JButton) */
-    FindReferences,
+    FIND_REFERENCES,
     /** "View/Edit..." (JButton) */
-    ViewEdit,
+    VIEW_EDIT,
     /** "Print..." (JButton) */
-    Print,
+    PRINT,
     /** "Export..." (JButton) */
-    ExportButton,
+    EXPORT_BUTTON,
     /** "Export..." (ButtonPopupMenu) */
-    ExportMenu,
+    EXPORT_MENU,
     /** "Save" (JButton) */
-    Save,
+    SAVE,
     /** "Add..." (ButtonPopupMenu) */
-    Add,
+    ADD,
     /** "Remove" (JButton) */
-    Remove,
+    REMOVE,
     /** "Trim spaces" (JButton) */
-    TrimSpaces,
+    TRIM_SPACES,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom1,
+    CUSTOM_1,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom2,
+    CUSTOM_2,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom3,
+    CUSTOM_3,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom4,
+    CUSTOM_4,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom5,
+    CUSTOM_5,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom6,
+    CUSTOM_6,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom7,
+    CUSTOM_7,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom8,
+    CUSTOM_8,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom9,
+    CUSTOM_9,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom10,
+    CUSTOM_10,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom11,
+    CUSTOM_11,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom12,
+    CUSTOM_12,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom13,
+    CUSTOM_13,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom14,
+    CUSTOM_14,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom15,
+    CUSTOM_15,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom16,
+    CUSTOM_16,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom17,
+    CUSTOM_17,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom18,
+    CUSTOM_18,
     /** Unused control type. Can be used to identify custom controls. */
-    Custom19,
+    CUSTOM_19,
   }
 
   private static final int DefaultGapSize = 4;
@@ -102,14 +102,14 @@ public class ButtonPanel extends JPanel
   {
     JComponent retVal = null;
     switch (type) {
-      case Add:
+      case ADD:
       {
         ButtonPopupMenu bpm = new ButtonPopupMenu("Add...", new JMenuItem[]{});
         bpm.setIcon(Icons.getIcon(Icons.ICON_ADD_16));
         retVal = bpm;
         break;
       }
-      case ExportButton:
+      case EXPORT_BUTTON:
       {
         JButton b = new JButton("Export...", Icons.getIcon(Icons.ICON_EXPORT_16));
         b.setToolTipText("NB! Will export last *saved* version");
@@ -117,35 +117,35 @@ public class ButtonPanel extends JPanel
         retVal = b;
         break;
       }
-      case ExportMenu:
+      case EXPORT_MENU:
       {
         ButtonPopupMenu bpm = new ButtonPopupMenu("Export...", new JMenuItem[]{});
         bpm.setIcon(Icons.getIcon(Icons.ICON_EXPORT_16));
         retVal = bpm;
         break;
       }
-      case FindButton:
+      case FIND_BUTTON:
       {
         JButton b = new JButton("Find...", Icons.getIcon(Icons.ICON_FIND_16));
         b.setMnemonic('f');
         retVal = b;
         break;
       }
-      case FindMenu:
+      case FIND_MENU:
       {
         ButtonPopupMenu bpm = new ButtonPopupMenu("Find...", new JMenuItem[]{});
         bpm.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
         retVal = bpm;
         break;
       }
-      case FindReferences:
+      case FIND_REFERENCES:
       {
         JButton b = new JButton("Find references...", Icons.getIcon(Icons.ICON_FIND_16));
         b.setMnemonic('f');
         retVal = b;
         break;
       }
-      case Print:
+      case PRINT:
       {
         JButton b =  new JButton(Icons.getIcon(Icons.ICON_PRINT_16));
         b.setMargin(new Insets(b.getMargin().top, 3, b.getMargin().bottom, 3));
@@ -153,26 +153,26 @@ public class ButtonPanel extends JPanel
         retVal = b;
         break;
       }
-      case Remove:
+      case REMOVE:
       {
         JButton b = new JButton("Remove", Icons.getIcon(Icons.ICON_REMOVE_16));
         b.setMnemonic('r');
         retVal = b;
         break;
       }
-      case Save:
+      case SAVE:
       {
         JButton b = new JButton("Save", Icons.getIcon(Icons.ICON_SAVE_16));
         b.setMnemonic('a');
         retVal = b;
         break;
       }
-      case TrimSpaces:
+      case TRIM_SPACES:
       {
         retVal = new JButton("Trim spaces", Icons.getIcon(Icons.ICON_REFRESH_16));
         break;
       }
-      case ViewEdit:
+      case VIEW_EDIT:
       {
         JButton b = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
         b.setMnemonic('v');

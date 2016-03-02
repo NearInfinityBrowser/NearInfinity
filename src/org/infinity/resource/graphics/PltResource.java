@@ -28,7 +28,7 @@ import org.infinity.util.DynamicArray;
 
 public final class PltResource implements Resource, ActionListener
 {
-  private static final ButtonPanel.Control CtrlColorList = ButtonPanel.Control.Custom1;
+  private static final ButtonPanel.Control CtrlColorList = ButtonPanel.Control.CUSTOM_1;
 
   private final ResourceEntry entry;
   private final byte[] buffer;
@@ -50,7 +50,7 @@ public final class PltResource implements Resource, ActionListener
   {
     if (buttonPanel.getControlByType(CtrlColorList) == event.getSource()) {
       rcCanvas.setImage(getImage());
-    } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     }
   }
@@ -88,7 +88,7 @@ public final class PltResource implements Resource, ActionListener
 
     buttonPanel.addControl(new JLabel("Colors: "));
     buttonPanel.addControl(cbColorBMP, CtrlColorList);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
 
     rcCanvas = new RenderCanvas(getImage());
     JScrollPane scroll = new JScrollPane(rcCanvas);

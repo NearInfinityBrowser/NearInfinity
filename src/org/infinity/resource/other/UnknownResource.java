@@ -139,10 +139,10 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
     if (event.getSource() == bShowEditor) {
       openTextEditor(true);
     }
-    else if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.ExportButton)) {
+    else if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON)) {
       ResourceFactory.exportResource(entry, panelMain.getTopLevelAncestor());
     }
-    else if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.Save)) {
+    else if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.SAVE)) {
       if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor())) {
         setTextModified(false);
         setRawModified(false);
@@ -212,9 +212,9 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.Save)).addActionListener(this);
-    buttonPanel.getControlByType(ButtonPanel.Control.Save).setEnabled(false);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
+    buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(false);
 
     GridBagConstraints gbc = new GridBagConstraints();
 
@@ -397,7 +397,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
 
   private void setSaveButtonEnabled(boolean enable)
   {
-    buttonPanel.getControlByType(ButtonPanel.Control.Save).setEnabled(enable);
+    buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(enable);
   }
 
   private void updateStatusBar()

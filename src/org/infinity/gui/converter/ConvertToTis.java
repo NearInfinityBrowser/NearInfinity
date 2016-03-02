@@ -331,7 +331,7 @@ public class ConvertToTis extends ChildFrame
       dstOfs += 24;
 
       // processing tiles
-      final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BottomLeftRule;
+      final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BOTTOM_LEFT_RULE;
       final int pageDim = 1024;
       final int tileDim = 64;
       final int tilesPerDim = pageDim / tileDim;

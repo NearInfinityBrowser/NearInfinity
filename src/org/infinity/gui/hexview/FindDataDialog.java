@@ -43,7 +43,7 @@ import org.infinity.gui.ViewerUtil;
 public class FindDataDialog extends JDialog implements ActionListener, ItemListener, DocumentListener
 {
   /** The data type of the search string. */
-  public enum Type { Text, Bytes }
+  public enum Type { TEXT, BYTES }
 
   private String text;
   private byte[] bytes;
@@ -131,7 +131,7 @@ public class FindDataDialog extends JDialog implements ActionListener, ItemListe
   /** Returns the selected data type. */
   public Type getDataType()
   {
-    return (cbType.getSelectedIndex() == 0) ? Type.Text : Type.Bytes;
+    return (cbType.getSelectedIndex() == 0) ? Type.TEXT : Type.BYTES;
   }
 
   /**

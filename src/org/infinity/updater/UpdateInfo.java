@@ -50,9 +50,9 @@ public class UpdateInfo
   /** File type of data to be downloaded. */
   public enum FileType {
     /** Indicates an unknown or unsupported file type. */
-    Unknown,
+    UNKNOWN,
     /** No further processing necessary. */
-    Original,
+    ORIGINAL,
     /** Unpack first available file from the zip archive. */
     ZIP,
     /** Uncompress gzip file. */
@@ -593,7 +593,7 @@ public class UpdateInfo
     private static FileType validateLinkType(String linkType) throws Exception
     {
       if ("jar".equalsIgnoreCase(linkType)) {
-        return FileType.Original;
+        return FileType.ORIGINAL;
       } else if ("zip".equalsIgnoreCase(linkType)) {
         return FileType.ZIP;
       } else if ("gzip".equalsIgnoreCase(linkType)) {

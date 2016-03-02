@@ -24,7 +24,7 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
 
   public LayerDoor(AreResource are, AreaViewer viewer)
   {
-    super(are, ViewerConstants.LayerType.Door, viewer);
+    super(are, ViewerConstants.LayerType.DOOR, viewer);
     doorClosed = false;
     loadLayer(false);
   }

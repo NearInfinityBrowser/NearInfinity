@@ -81,12 +81,12 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
       if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor()))
         resourceChanged = false;
-    } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
-    } else if (buttonPanel.getControlByType(ButtonPanel.Control.TrimSpaces) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.TRIM_SPACES) == event.getSource()) {
       StringBuffer newText = new StringBuffer(editor.getText().length());
       StringTokenizer st = new StringTokenizer(editor.getText(), "\n");
       while (st.hasMoreTokens()) {
@@ -155,7 +155,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   @Override
   public void itemStateChanged(ItemEvent event)
   {
-    ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.getControlByType(ButtonPanel.Control.FindMenu);
+    ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU);
     if (event.getSource() == bpmFind) {
       if (bpmFind.getSelectedItem() == ifindall) {
         String type = entry.toString().substring(entry.toString().indexOf(".") + 1);
@@ -246,12 +246,12 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     ifindall =
         new JMenuItem("in all " + entry.toString().substring(entry.toString().indexOf(".") + 1) + " files");
     ifindthis = new JMenuItem("in this file only");
-    ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FindMenu);
+    ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FIND_MENU);
     bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
     bpmFind.addItemListener(this);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.TrimSpaces)).addActionListener(this);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.Save)).addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.TRIM_SPACES)).addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());

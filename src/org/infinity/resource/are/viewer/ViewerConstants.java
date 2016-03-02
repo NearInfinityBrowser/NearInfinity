@@ -15,13 +15,13 @@ public final class ViewerConstants
   /**
    * Supported layer types.
    */
-  public static enum LayerType {Actor, Region, Entrance, Container, Ambient, Door, Animation,
-                                Automap, SpawnPoint, Transition, ProTrap, DoorPoly, WallPoly }
+  public static enum LayerType {ACTOR, REGION, ENTRANCE, CONTAINER, AMBIENT, DOOR, ANIMATION,
+                                AUTOMAP, SPAWN_POINT, TRANSITION, PRO_TRAP, DOOR_POLY, WALL_POLY }
 
   // Used for setting stacking order on map
-  public static enum LayerStackingType {Actor, Region, Entrance, Container, Ambient, AmbientRange,
-                                        Door, Animation, Automap, SpawnPoint, Transition,
-                                        ProTrap, DoorPoly, WallPoly }
+  public static enum LayerStackingType {ACTOR, REGION, ENTRANCE, CONTAINER, AMBIENT, AMBIENT_RANGE,
+                                        DOOR, ANIMATION, AUTOMAP, SPAWN_POINT, TRANSITION,
+                                        PRO_TRAP, DOOR_POLY, WALL_POLY }
 
   // Flags that identify the different control sections in the sidebar
   public static final int SIDEBAR_VISUALSTATE = 1 << 0;

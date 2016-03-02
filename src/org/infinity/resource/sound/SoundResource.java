@@ -69,7 +69,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
       bStop.setEnabled(false);
       player.stopPlay();
       bPlay.setEnabled(true);
-    } else if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       new WavReferenceSearcher(entry, panel.getTopLevelAncestor());
     }
   }
@@ -81,7 +81,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
   @Override
   public void itemStateChanged(ItemEvent event)
   {
-    if (buttonPanel.getControlByType(ButtonPanel.Control.ExportMenu) == event.getSource()) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_MENU) == event.getSource()) {
       ButtonPopupMenu bpmExport = (ButtonPopupMenu)event.getSource();
       if (bpmExport.getSelectedItem() == miExport) {
         ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
@@ -173,13 +173,13 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
 
     if (isReference) {
       // only available for WAV resource types
-      ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
+      ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
     }
 
     miExport = new JMenuItem("original");
     miConvert = new JMenuItem("as WAV");
     miConvert.setEnabled(!isWAV);
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ExportMenu);
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(new JMenuItem[]{miExport, miConvert});
     bpmExport.addItemListener(this);
 

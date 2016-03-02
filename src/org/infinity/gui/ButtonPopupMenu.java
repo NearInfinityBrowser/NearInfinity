@@ -25,9 +25,9 @@ public class ButtonPopupMenu extends JButton
 {
   public enum Align {
     /** Show the menu below the button. */
-    Top,
+    TOP,
     /** Show the menu on top of the button. */
-    Bottom,
+    BOTTOM,
   }
 
   private static final Comparator<JComponent> menuItemComparator = new Comparator<JComponent>() {
@@ -57,7 +57,7 @@ public class ButtonPopupMenu extends JButton
    */
   public ButtonPopupMenu(String text)
   {
-    this(text, (List<JMenuItem>)null, true, Align.Top);
+    this(text, (List<JMenuItem>)null, true, Align.TOP);
   }
 
   /**
@@ -79,7 +79,7 @@ public class ButtonPopupMenu extends JButton
    */
   public ButtonPopupMenu(String text, JMenuItem[] menuItems)
   {
-    this(text, menuItems, true, Align.Top);
+    this(text, menuItems, true, Align.TOP);
   }
 
   /**
@@ -104,7 +104,7 @@ public class ButtonPopupMenu extends JButton
    */
   public ButtonPopupMenu(String text, List<JMenuItem> menuItems)
   {
-    this(text, menuItems, true, Align.Top);
+    this(text, menuItems, true, Align.TOP);
   }
 
   /**
@@ -345,7 +345,7 @@ public class ButtonPopupMenu extends JButton
     public void mousePressed(MouseEvent e)
     {
       if (!e.isPopupTrigger() && e.getComponent().isEnabled()) {
-        if (getMenuAlignment() == Align.Bottom) {
+        if (getMenuAlignment() == Align.BOTTOM) {
           menu.show(e.getComponent(), 0, e.getComponent().getSize().height);
         } else {
           menu.show(e.getComponent(), 0, -menu.getPreferredSize().height);
@@ -358,7 +358,7 @@ public class ButtonPopupMenu extends JButton
     {
       if (!e.isPopupTrigger() && ((JButton)e.getSource()).contains(e.getX(), e.getY()) &&
           e.getComponent().isEnabled()) {
-        if (getMenuAlignment() == Align.Bottom) {
+        if (getMenuAlignment() == Align.BOTTOM) {
           menu.show(e.getComponent(), 0, e.getComponent().getSize().height);
         } else {
           menu.show(e.getComponent(), 0, -menu.getPreferredSize().height);

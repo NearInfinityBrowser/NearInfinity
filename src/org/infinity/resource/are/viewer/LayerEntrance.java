@@ -22,7 +22,7 @@ public class LayerEntrance extends BasicLayer<LayerObjectEntrance>
 
   public LayerEntrance(AreResource are, AreaViewer viewer)
   {
-    super(are, ViewerConstants.LayerType.Entrance, viewer);
+    super(are, ViewerConstants.LayerType.ENTRANCE, viewer);
     loadLayer(false);
   }
 

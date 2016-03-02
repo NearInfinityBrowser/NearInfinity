@@ -36,7 +36,7 @@ public abstract class BamFilterBaseColor extends BamFilterBase
 {
   protected BamFilterBaseColor(ConvertToBam parent, String name, String desc)
   {
-    super(parent, name, desc, Type.Color);
+    super(parent, name, desc, Type.COLOR);
   }
 
   /**
@@ -243,7 +243,7 @@ public abstract class BamFilterBaseColor extends BamFilterBase
       cgPalette.setColorEntryHorizontalGap(4);
       cgPalette.setColorEntryVerticalGap(4);
       cgPalette.setSelectionMode(ColorGrid.SELECTION_MULTIPLE);
-      cgPalette.setSelectionFrame(ColorGrid.Frame.SingleLine);
+      cgPalette.setSelectionFrame(ColorGrid.Frame.SINGLE_LINE);
       cgPalette.addMouseOverListener(this);
       cgPalette.addActionListener(this);
       JPanel pPalette = new JPanel(new GridBagLayout());

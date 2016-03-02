@@ -22,7 +22,7 @@ public class LayerWallPoly extends BasicLayer<LayerObjectWallPoly>
 
   public LayerWallPoly(WedResource wed, AreaViewer viewer)
   {
-    super(wed, ViewerConstants.LayerType.WallPoly, viewer);
+    super(wed, ViewerConstants.LayerType.WALL_POLY, viewer);
     loadLayer(false);
   }
 

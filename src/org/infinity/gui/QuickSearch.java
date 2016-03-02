@@ -46,12 +46,12 @@ public class QuickSearch extends JPanel implements Runnable
 {
   // Internally used to control actions in the background task
   private enum Command {
-    Idle, Update, Destroy
+    IDLE, UPDATE, DESTROY
   }
 
   // Defines available search actions
   private enum Result {
-    Cancel, Open, OpenNew,
+    CANCEL, OPEN, OPEN_NEW,
   }
 
   private final ButtonPopupWindow parent;
@@ -75,7 +75,7 @@ public class QuickSearch extends JPanel implements Runnable
     this.parent = parent;
     this.tree = tree;
     this.resourceTree = new MapTree<Character, List<ResourceEntry>>(Character.valueOf('\0'), null);
-    this.command = Command.Idle;
+    this.command = Command.IDLE;
     new Thread(this).start();   // updating list of matching resources is done in the background
     init();
   }
@@ -87,7 +87,7 @@ public class QuickSearch extends JPanel implements Runnable
       @Override
       public void actionPerformed(ActionEvent e)
       {
-        close(Result.Open);
+        close(Result.OPEN);
       }
     };
 
@@ -96,7 +96,7 @@ public class QuickSearch extends JPanel implements Runnable
       @Override
       public void actionPerformed(ActionEvent e)
       {
-        close(Result.OpenNew);
+        close(Result.OPEN_NEW);
       }
     };
 
@@ -105,7 +105,7 @@ public class QuickSearch extends JPanel implements Runnable
       @Override
       public void actionPerformed(ActionEvent e)
       {
-        close(Result.Cancel);
+        close(Result.CANCEL);
       }
     };
 
@@ -117,14 +117,14 @@ public class QuickSearch extends JPanel implements Runnable
         switch (event.getKeyCode()) {
           case KeyEvent.VK_ESCAPE:
             event.consume();
-            close(Result.Cancel);
+            close(Result.CANCEL);
             break;
           case KeyEvent.VK_ENTER:
             event.consume();
             if ((event.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK) {
-              close(Result.OpenNew);
+              close(Result.OPEN_NEW);
             } else {
-              close(Result.Open);
+              close(Result.OPEN);
             }
             break;
           default:
@@ -147,7 +147,7 @@ public class QuickSearch extends JPanel implements Runnable
         cbSearch.hidePopup();
 
         synchronized (monitor) {
-          command = Command.Destroy;
+          command = Command.DESTROY;
           monitor.notify();
         }
       }
@@ -212,7 +212,7 @@ public class QuickSearch extends JPanel implements Runnable
   {
     synchronized (monitor) {
       keyword = (text != null) ? text : "";
-      command = Command.Update;
+      command = Command.UPDATE;
       monitor.notify();
     }
   }
@@ -226,16 +226,16 @@ public class QuickSearch extends JPanel implements Runnable
   // Executed when accepting current input
   private void close(Result result)
   {
-    if (result != Result.Cancel) {
+    if (result != Result.CANCEL) {
       Object item = cbSearch.getSelectedItem();
       if (!(item instanceof ResourceEntry)) {
         item = cbSearch.getItemAt(0);
       }
 
       if (item instanceof ResourceEntry) {
-        if (result == Result.Open) {
+        if (result == Result.OPEN) {
           tree.select((ResourceEntry)item);
-        } else if (result == Result.OpenNew) {
+        } else if (result == Result.OPEN_NEW) {
           Resource res = ResourceFactory.getResource((ResourceEntry)item);
           if (res != null) {
             new ViewFrame(NearInfinity.getInstance(), res);
@@ -339,14 +339,14 @@ public class QuickSearch extends JPanel implements Runnable
   {
     // main loop
     while (true) {
-      if (command == Command.Destroy) {
+      if (command == Command.DESTROY) {
         synchronized (monitor) {
-          command = Command.Idle;
+          command = Command.IDLE;
         }
         break;
-      } else if (command == Command.Update) {
+      } else if (command == Command.UPDATE) {
         synchronized (monitor) {
-          command = Command.Idle;
+          command = Command.IDLE;
 
           // populating root node
           if (resourceTree.getValue() == null || resourceTree.getValue().isEmpty()) {

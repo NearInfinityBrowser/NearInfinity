@@ -145,7 +145,7 @@ public final class TohResource extends AbstractStruct implements Resource, HasVi
     viewer.addTabChangeListener(hexViewer);
 
     // disabling 'Save' button
-    JButton bSave = (JButton)viewer.getButtonPanel().getControlByType(ButtonPanel.Control.Save);
+    JButton bSave = (JButton)viewer.getButtonPanel().getControlByType(ButtonPanel.Control.SAVE);
     if (bSave != null) {
       bSave.setEnabled(false);
     }

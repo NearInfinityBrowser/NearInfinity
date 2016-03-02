@@ -51,7 +51,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       new ReferenceSearcher(entry, new String[]{"BAM", "MOS", "TIS"}, panel.getTopLevelAncestor());
     }
     else if (event.getSource() == miExport) {
@@ -108,7 +108,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    JButton btn = ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences));
+    JButton btn = ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES));
     btn.addActionListener(this);
     btn.setEnabled(Profile.isEnhancedEdition());
 
@@ -116,7 +116,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
     miExport.addActionListener(this);
     miPNG = new JMenuItem("as PNG");
     miPNG.addActionListener(this);
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ExportMenu);
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(new JMenuItem[]{miExport, miPNG});
 
     rcImage = new RenderCanvas();

@@ -29,7 +29,7 @@ import org.infinity.util.StringResource;
 
 public final class NewResSettings extends NewAbstractSettings implements KeyListener
 {
-  private enum GameType { Unknown, BG2, IWD, IWD2, IWDEE }
+  private enum GameType { UNKNOWN, BG2, IWD, IWD2, IWDEE }
 
   private static final EnumMap<GameType, Vector<StrrefItem>> STRREF_ITEM  =
       new EnumMap<GameType, Vector<StrrefItem>>(GameType.class);
@@ -37,7 +37,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     Vector<StrrefItem> list;
     // creating maps for unknown, BG2, IWD and IWD2
     // initializing 'unknown' items
-    STRREF_ITEM.put(GameType.Unknown, (list = new Vector<StrrefItem>()));
+    STRREF_ITEM.put(GameType.UNKNOWN, (list = new Vector<StrrefItem>()));
     list.add(new StrrefItem(-1,    "User-defined biography"));
     // initializing BG2 items
     STRREF_ITEM.put(GameType.BG2, (list = new Vector<StrrefItem>()));
@@ -219,7 +219,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
         gameType = GameType.IWDEE;
         break;
       default:
-        gameType = GameType.Unknown;
+        gameType = GameType.UNKNOWN;
         break;
     }
   }

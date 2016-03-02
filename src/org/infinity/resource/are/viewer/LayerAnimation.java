@@ -33,7 +33,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
 
   public LayerAnimation(AreResource are, AreaViewer viewer)
   {
-    super(are, ViewerConstants.LayerType.Animation, viewer);
+    super(are, ViewerConstants.LayerType.ANIMATION, viewer);
     realEnabled = realPlaying = false;
     frameState = ViewerConstants.FRAME_AUTO;
     forcedInterpolation = false;

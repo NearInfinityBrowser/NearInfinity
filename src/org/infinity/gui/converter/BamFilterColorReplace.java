@@ -440,7 +440,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       JPanel pPalette = new JPanel(new GridBagLayout());
       pPalette.setBorder(BorderFactory.createTitledBorder("Palette "));
       cgPalette = new ColorGrid(256);
-      cgPalette.setSelectionFrame(ColorGrid.Frame.DoubleLine);
+      cgPalette.setSelectionFrame(ColorGrid.Frame.DOUBLE_LINE);
       cgPalette.addActionListener(this);
       cgPalette.addMouseOverListener(this);
       cgPalette.addChangeListener(this);

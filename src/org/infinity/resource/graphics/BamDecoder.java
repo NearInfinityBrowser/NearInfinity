@@ -195,7 +195,7 @@ public abstract class BamDecoder
      * <b>Shared:</b> Each frame is drawn onto a canvas of fixed dimension that is big enough to hold
      *                every single frame without cropping or resizing. Takes frame centers into account.
      */
-    public enum Mode { Individual, Shared }
+    public enum Mode { INDIVIDUAL, SHARED }
 
     private final BamDecoder parent;
 
@@ -209,7 +209,7 @@ public abstract class BamDecoder
     protected BamControl(BamDecoder parent)
     {
       this.parent = parent;
-      this.mode = Mode.Individual;
+      this.mode = Mode.INDIVIDUAL;
       this.sharedBamSize = new Rectangle();
       this.sharedPerCycle = true;
     }

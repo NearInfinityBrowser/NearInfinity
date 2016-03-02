@@ -60,11 +60,11 @@ public final class SavResource implements Resource, Closeable, Writeable,
                                                  "<li>If any changes have been made, " +
                                                  "Compress to rebuild SAV file.</ol></html>");
 
-  private static final ButtonPanel.Control CtrlCompress   = ButtonPanel.Control.Custom1;
-  private static final ButtonPanel.Control CtrlDecompress = ButtonPanel.Control.Custom2;
-  private static final ButtonPanel.Control CtrlEdit       = ButtonPanel.Control.Custom3;
-  private static final ButtonPanel.Control CtrlDelete     = ButtonPanel.Control.Custom4;
-  private static final ButtonPanel.Control CtrlAdd        = ButtonPanel.Control.Add;
+  private static final ButtonPanel.Control CtrlCompress   = ButtonPanel.Control.CUSTOM_1;
+  private static final ButtonPanel.Control CtrlDecompress = ButtonPanel.Control.CUSTOM_2;
+  private static final ButtonPanel.Control CtrlEdit       = ButtonPanel.Control.CUSTOM_3;
+  private static final ButtonPanel.Control CtrlDelete     = ButtonPanel.Control.CUSTOM_4;
+  private static final ButtonPanel.Control CtrlAdd        = ButtonPanel.Control.ADD;
 
   private final IOHandler handler;
   private final ResourceEntry entry;
@@ -96,7 +96,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
       ResourceEntry fileentry = entries.get(filelist.getSelectedIndex());
       Resource res = ResourceFactory.getResource(fileentry);
       new ViewFrame(panel.getTopLevelAncestor(), res);
-    } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportButton) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(CtrlDelete) == event.getSource()) {
       if (!filelist.isSelectionEmpty()) {
@@ -261,7 +261,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
     buttonPanel.addControl(bpmAdd, CtrlAdd);
     buttonPanel.addControl(bDelete, CtrlDelete);
     buttonPanel.addControl(bCompress, CtrlCompress);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.ExportButton)).addActionListener(this);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
 
     panel = new JPanel(new BorderLayout());
     panel.add(centerpanel, BorderLayout.CENTER);

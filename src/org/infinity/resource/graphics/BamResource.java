@@ -85,14 +85,14 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
   private static final Color TransparentColor = new Color(0, true);
   private static final int ANIM_DELAY = 1000 / 15;    // 15 fps in milliseconds
 
-  private static final ButtonPanel.Control CtrlNextCycle  = ButtonPanel.Control.Custom1;
-  private static final ButtonPanel.Control CtrlPrevCycle  = ButtonPanel.Control.Custom2;
-  private static final ButtonPanel.Control CtrlNextFrame  = ButtonPanel.Control.Custom3;
-  private static final ButtonPanel.Control CtrlPrevFrame  = ButtonPanel.Control.Custom4;
-  private static final ButtonPanel.Control CtrlPlay       = ButtonPanel.Control.Custom5;
-  private static final ButtonPanel.Control CtrlCycleLabel = ButtonPanel.Control.Custom6;
-  private static final ButtonPanel.Control CtrlFrameLabel = ButtonPanel.Control.Custom7;
-  private static final ButtonPanel.Control BamEdit        = ButtonPanel.Control.Custom8;
+  private static final ButtonPanel.Control CtrlNextCycle  = ButtonPanel.Control.CUSTOM_1;
+  private static final ButtonPanel.Control CtrlPrevCycle  = ButtonPanel.Control.CUSTOM_2;
+  private static final ButtonPanel.Control CtrlNextFrame  = ButtonPanel.Control.CUSTOM_3;
+  private static final ButtonPanel.Control CtrlPrevFrame  = ButtonPanel.Control.CUSTOM_4;
+  private static final ButtonPanel.Control CtrlPlay       = ButtonPanel.Control.CUSTOM_5;
+  private static final ButtonPanel.Control CtrlCycleLabel = ButtonPanel.Control.CUSTOM_6;
+  private static final ButtonPanel.Control CtrlFrameLabel = ButtonPanel.Control.CUSTOM_7;
+  private static final ButtonPanel.Control BamEdit        = ButtonPanel.Control.CUSTOM_8;
 
   private static boolean transparencyEnabled = true;
 
@@ -122,10 +122,10 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     try {
       decoder = BamDecoder.loadBam(entry);
       bamControl = decoder.createControl();
-      bamControl.setMode(BamDecoder.BamControl.Mode.Shared);
+      bamControl.setMode(BamDecoder.BamControl.Mode.SHARED);
       if (bamControl instanceof BamV1Decoder.BamV1Control) {
         ((BamV1Decoder.BamV1Control)bamControl).setTransparencyEnabled(transparencyEnabled);
-        ((BamV1Decoder.BamV1Control)bamControl).setTransparencyMode(BamV1Decoder.TransparencyMode.Normal);
+        ((BamV1Decoder.BamV1Control)bamControl).setTransparencyMode(BamV1Decoder.TransparencyMode.NORMAL);
       }
     } catch (Throwable t) {
       t.printStackTrace();
@@ -218,9 +218,9 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
           timer.stop();
         }
       }
-    } else if (buttonPanel.getControlByType(ButtonPanel.Control.FindReferences) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       new ReferenceSearcher(entry, panelMain.getTopLevelAncestor());
-    } else if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
       if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor())) {
         setRawModified(false);
       }
@@ -446,7 +446,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     rcDisplay.setHorizontalAlignment(SwingConstants.CENTER);
     rcDisplay.setVerticalAlignment(SwingConstants.CENTER);
 
-    JButton bFind = (JButton)ButtonPanel.createControl(ButtonPanel.Control.FindReferences);
+    JButton bFind = (JButton)ButtonPanel.createControl(ButtonPanel.Control.FIND_REFERENCES);
     bFind.addActionListener(this);
 
     JToggleButton bPlay = new JToggleButton("Play", Icons.getIcon(Icons.ICON_PLAY_16));
@@ -537,17 +537,17 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     for (int i = 0; i < mi.length; i++) {
       mi[i] = list.get(i);
     }
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.ExportMenu);
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(mi);
 
     JButton bEdit = new JButton("Edit BAM", Icons.getIcon(Icons.ICON_APPLICATION_16));
     bEdit.setToolTipText("Opens resource in BAM Converter.");
     bEdit.addActionListener(this);
 
-    buttonPanel.addControl(bFind, ButtonPanel.Control.FindReferences);
-    buttonPanel.addControl(bpmExport, ButtonPanel.Control.ExportMenu);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.Save)).addActionListener(this);
-    buttonPanel.getControlByType(ButtonPanel.Control.Save).setEnabled(false);
+    buttonPanel.addControl(bFind, ButtonPanel.Control.FIND_REFERENCES);
+    buttonPanel.addControl(bpmExport, ButtonPanel.Control.EXPORT_MENU);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
+    buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(false);
     buttonPanel.addControl(bEdit, BamEdit);
     buttonPanel.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
 
@@ -625,7 +625,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     Image image = null;
     if (decoder != null) {
       BamDecoder.BamControl.Mode oldMode = bamControl.getMode();
-      bamControl.setMode(BamDecoder.BamControl.Mode.Individual);
+      bamControl.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
       image = decoder.frameGet(bamControl, frameIdx);
       bamControl.setMode(oldMode);
     }
@@ -766,7 +766,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     try {
       if (decoder != null) {
         BamDecoder.BamControl control = decoder.createControl();
-        control.setMode(BamDecoder.BamControl.Mode.Individual);
+        control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
         // using selected transparency mode for BAM v1 frames
         if (control instanceof BamV1Decoder.BamV1Control) {
           ((BamV1Decoder.BamV1Control)control).setTransparencyEnabled(enableTransparency);
@@ -872,7 +872,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
 
       // checking for issues
       BamDecoder.BamControl control = decoder.createControl();
-      control.setMode(BamDecoder.BamControl.Mode.Individual);
+      control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
       for (int i = 0; i < numFrames; i++) {
         BufferedImage img = ColorConvert.toBufferedImage(decoder.frameGet(control, i), true);
         if (img != null) {
@@ -948,7 +948,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
   {
     if (decoder != null) {
       BamDecoder.BamControl control = decoder.createControl();
-      control.setMode(BamDecoder.BamControl.Mode.Individual);
+      control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
       // max. supported number of frames and cycles
       int frameCount = Math.min(decoder.frameCount(), 65535);
       int cycleCount = Math.min(control.cycleCount(), 255);
@@ -1243,7 +1243,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
       if (!modified) {
         hexViewer.clearModified();
       }
-      buttonPanel.getControlByType(ButtonPanel.Control.Save).setEnabled(modified);
+      buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(modified);
     }
   }
 }

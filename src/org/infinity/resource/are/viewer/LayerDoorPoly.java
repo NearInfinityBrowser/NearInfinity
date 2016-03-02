@@ -25,7 +25,7 @@ public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly>
 
   public LayerDoorPoly(WedResource wed, AreaViewer viewer)
   {
-    super(wed, ViewerConstants.LayerType.DoorPoly, viewer);
+    super(wed, ViewerConstants.LayerType.DOOR_POLY, viewer);
     doorClosed = false;
     loadLayer(false);
   }

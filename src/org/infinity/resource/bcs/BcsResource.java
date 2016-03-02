@@ -64,13 +64,13 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
   private static final boolean DEBUG = false;
 
   // for decompile panel
-  private static final ButtonPanel.Control CtrlCompile    = ButtonPanel.Control.Custom1;
-  private static final ButtonPanel.Control CtrlErrors     = ButtonPanel.Control.Custom2;
-  private static final ButtonPanel.Control CtrlWarnings   = ButtonPanel.Control.Custom3;
+  private static final ButtonPanel.Control CtrlCompile    = ButtonPanel.Control.CUSTOM_1;
+  private static final ButtonPanel.Control CtrlErrors     = ButtonPanel.Control.CUSTOM_2;
+  private static final ButtonPanel.Control CtrlWarnings   = ButtonPanel.Control.CUSTOM_3;
   // for compiled panel
-  private static final ButtonPanel.Control CtrlDecompile  = ButtonPanel.Control.Custom1;
+  private static final ButtonPanel.Control CtrlDecompile  = ButtonPanel.Control.CUSTOM_1;
   // for button panel
-  private static final ButtonPanel.Control CtrlUses       = ButtonPanel.Control.Custom1;
+  private static final ButtonPanel.Control CtrlUses       = ButtonPanel.Control.CUSTOM_1;
 
   private static JFileChooser chooser;
   private final ResourceEntry entry;
@@ -183,7 +183,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       bDecompile.setEnabled(false);
       sourceChanged = false;
       tabbedPane.setSelectedIndex(0);
-    } else if (buttonPanel.getControlByType(ButtonPanel.Control.Save) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
       JButton bSave = (JButton)event.getSource();
       ButtonPopupMenu bpmErrors = (ButtonPopupMenu)bpDecompile.getControlByType(CtrlErrors);
       if (bpmErrors.isEnabled()) {
@@ -254,7 +254,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
   public void insertUpdate(DocumentEvent event)
   {
     if (event.getDocument() == codeText.getDocument()) {
-      buttonPanel.getControlByType(ButtonPanel.Control.Save).setEnabled(true);
+      buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(true);
       bpCompiled.getControlByType(CtrlDecompile).setEnabled(true);
       sourceChanged = false;
       codeChanged = true;
@@ -269,7 +269,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
   public void removeUpdate(DocumentEvent event)
   {
     if (event.getDocument() == codeText.getDocument()) {
-      buttonPanel.getControlByType(ButtonPanel.Control.Save).setEnabled(true);
+      buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(true);
       bpCompiled.getControlByType(CtrlDecompile).setEnabled(true);
       sourceChanged = false;
       codeChanged = true;
@@ -284,7 +284,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
   public void changedUpdate(DocumentEvent event)
   {
     if (event.getDocument() == codeText.getDocument()) {
-      buttonPanel.getControlByType(ButtonPanel.Control.Save).setEnabled(true);
+      buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(true);
       bpCompiled.getControlByType(CtrlDecompile).setEnabled(true);
       sourceChanged = false;
       codeChanged = true;
@@ -303,7 +303,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
   @Override
   public void itemStateChanged(ItemEvent event)
   {
-    if (buttonPanel.getControlByType(ButtonPanel.Control.FindMenu) == event.getSource()) {
+    if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU) == event.getSource()) {
       ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
       if (bpmFind.getSelectedItem() == ifindall) {
         List<ResourceEntry> files = ResourceFactory.getResources("BCS");
@@ -325,7 +325,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       }
       ResourceEntry resEntry = ResourceFactory.getResourceEntry(name);
       new ViewFrame(panel.getTopLevelAncestor(), ResourceFactory.getResource(resEntry));
-    } else if (buttonPanel.getControlByType(ButtonPanel.Control.ExportMenu) == event.getSource()) {
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_MENU) == event.getSource()) {
       ButtonPopupMenu bpmExport = (ButtonPopupMenu)event.getSource();
       if (bpmExport.getSelectedItem() == iexportsource) {
         if (chooser == null) {
@@ -492,7 +492,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     ifindall = new JMenuItem("in all scripts");
     ifindthis = new JMenuItem("in this script only");
     ifindusage = new JMenuItem("references to this script");
-    ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FindMenu);
+    ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FIND_MENU);
     bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis, ifindusage});
     bpmFind.addItemListener(this);
     ButtonPopupMenu bpmUses = new ButtonPopupMenu("Uses...", new JMenuItem[]{});
@@ -502,10 +502,10 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     iexportscript = new JMenuItem("script code");
     iexportsource = new JMenuItem("script source");
     iexportscript.setToolTipText("NB! Will export last *saved* version");
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ExportMenu);
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(new JMenuItem[]{iexportscript, iexportsource});
     bpmExport.addItemListener(this);
-    JButton bSave = (JButton)buttonPanel.addControl(ButtonPanel.Control.Save);
+    JButton bSave = (JButton)buttonPanel.addControl(ButtonPanel.Control.SAVE);
     bSave.addActionListener(this);
 
     tabbedPane = new JTabbedPane();

@@ -26,17 +26,17 @@ public final class Profile
   /** Supported data types for properties. */
   public enum Type {
     /** Property data is of type {@link Boolean}. */
-    Boolean,
+    BOOLEAN,
     /** Property data is of type {@link Integer}. */
-    Integer,
+    INTEGER,
     /** Property data is of type {@link String}. */
-    String,
+    STRING,
     /** Property data is of type {@link java.util.List}. */
-    List,
+    LIST,
     /** Property data is of type {@link java.io.File}. */
-    File,
+    FILE,
     /** Property data is of any custom data type. */
-    Object,
+    OBJECT,
   }
 
   /** Supported Infinity Engine games. */
@@ -691,7 +691,7 @@ public final class Profile
           updateProperty(GET_GAME_DIALOG_FILE, new FileNI(langPath, (String)getProperty(GET_GLOBAL_DIALOG_NAME)));
           File femaleTlkFile = new FileNI(langPath, (String)getProperty(GET_GLOBAL_DIALOG_NAME_FEMALE));
           if (femaleTlkFile.isFile()) {
-            addProperty(GET_GAME_DIALOGF_FILE, Type.File, femaleTlkFile);
+            addProperty(GET_GAME_DIALOGF_FILE, Type.FILE, femaleTlkFile);
           } else {
             updateProperty(GET_GAME_DIALOGF_FILE, null);
           }
@@ -863,24 +863,24 @@ public final class Profile
   private static void initStaticProperties()
   {
     // setting current NI version
-    addEntry(GET_GLOBAL_NEARINFINITY_VERSION, Type.String, NearInfinity.getVersion());
+    addEntry(GET_GLOBAL_NEARINFINITY_VERSION, Type.STRING, NearInfinity.getVersion());
 
     // setting list of supported games and associated data
     List<Game> gameList = new ArrayList<Game>();
     for (Game game : Game.values()) {
       gameList.add(game);
     }
-    addEntry(GET_GLOBAL_GAMES, Type.List, gameList);
-    addEntry(GET_GLOBAL_GAME_TITLE, Type.String, GAME_TITLE);
-    addEntry(GET_GLOBAL_EXTRA_FOLDERS, Type.List, GAME_EXTRA_FOLDERS);
-    addEntry(GET_GLOBAL_HOME_FOLDER, Type.String, GAME_HOME_FOLDER);
+    addEntry(GET_GLOBAL_GAMES, Type.LIST, gameList);
+    addEntry(GET_GLOBAL_GAME_TITLE, Type.STRING, GAME_TITLE);
+    addEntry(GET_GLOBAL_EXTRA_FOLDERS, Type.LIST, GAME_EXTRA_FOLDERS);
+    addEntry(GET_GLOBAL_HOME_FOLDER, Type.STRING, GAME_HOME_FOLDER);
 
     // setting default override folder name
-    addEntry(GET_GLOBAL_OVERRIDE_NAME, Type.String, "Override");
+    addEntry(GET_GLOBAL_OVERRIDE_NAME, Type.STRING, "Override");
 
     // setting dialog.tlk file names
-    addEntry(GET_GLOBAL_DIALOG_NAME, Type.String, "dialog.tlk");
-    addEntry(GET_GLOBAL_DIALOG_NAME_FEMALE, Type.String, "dialogf.tlk");
+    addEntry(GET_GLOBAL_DIALOG_NAME, Type.STRING, "dialog.tlk");
+    addEntry(GET_GLOBAL_DIALOG_NAME_FEMALE, Type.STRING, "dialogf.tlk");
   }
 
 
@@ -899,16 +899,16 @@ public final class Profile
     }
 
     if (desc != null) {
-      addEntry(GET_GAME_DESC, Type.String, desc);
+      addEntry(GET_GAME_DESC, Type.STRING, desc);
     }
 
     // adding chitin.key path
-    addEntry(GET_GAME_CHITIN_KEY, Type.File, keyFile);
+    addEntry(GET_GAME_CHITIN_KEY, Type.FILE, keyFile);
 
     // adding game's root folder and name
     File rootDir = keyFile.getAbsoluteFile().getParentFile();
-    addEntry(GET_GAME_ROOT_FOLDER, Type.File, rootDir);
-    addEntry(GET_GAME_ROOT_FOLDER_NAME, Type.String, rootDir.getName());
+    addEntry(GET_GAME_ROOT_FOLDER, Type.FILE, rootDir);
+    addEntry(GET_GAME_ROOT_FOLDER_NAME, Type.STRING, rootDir.getName());
 
     initGame();
   }
@@ -921,7 +921,7 @@ public final class Profile
     File gameRoot = (File)getProperty(GET_GAME_ROOT_FOLDER);
     if (new FileNI(gameRoot, "movies/howseer.wbm").isFile()) {
       game = Game.IWDEE;
-      addEntry(GET_GAME_INI_NAME, Type.String, "baldur.ini");
+      addEntry(GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
     } else if (new FileNI(gameRoot, "movies/pocketzz.wbm").isFile()) {
       if (new FileNI(gameRoot, "override/EET.flag").isFile() ||
           new FileNI(gameRoot, "data/eetTU00.bif").isFile()) {
@@ -929,67 +929,67 @@ public final class Profile
       } else {
         game = Game.BG2EE;
       }
-      addEntry(GET_GAME_INI_NAME, Type.String, "baldur.ini");
+      addEntry(GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
     } else if (new FileNI(gameRoot, "movies/sodcin01.wbm").isFile()) {
       game = Game.BG1SoD;
-      addEntry(GET_GAME_INI_NAME, Type.String, "baldur.ini");
+      addEntry(GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
     } else if (new FileNI(gameRoot, "movies/bgenter.wbm").isFile()) {
       game = Game.BG1EE;
-      addEntry(GET_GAME_INI_NAME, Type.String, "baldur.ini");
+      addEntry(GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
     } else if (new FileNI(gameRoot, "torment.exe").isFile() &&
                !(new FileNI(gameRoot, "movies/sigil.wbm").isFile())) {
       game = Game.PST;
-      addEntry(GET_GAME_INI_NAME, Type.String, "torment.ini");
-      addEntry(GET_GAME_INI_FILE, Type.File, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
+      addEntry(GET_GAME_INI_NAME, Type.STRING, "torment.ini");
+      addEntry(GET_GAME_INI_FILE, Type.FILE, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
     } else if (new FileNI(gameRoot, "idmain.exe").isFile() &&
                !(new FileNI(gameRoot, "movies/howseer.wbm").isFile())) {
       game = Game.IWD;
-      addEntry(GET_GAME_INI_NAME, Type.String, "icewind.ini");
-      addEntry(GET_GAME_INI_FILE, Type.File, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
+      addEntry(GET_GAME_INI_NAME, Type.STRING, "icewind.ini");
+      addEntry(GET_GAME_INI_FILE, Type.FILE, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
     } else if (new FileNI(gameRoot, "iwd2.exe").isFile() &&
                new FileNI(gameRoot, "Data/Credits.mve").isFile()) {
       game = Game.IWD2;
-      addEntry(GET_GAME_INI_NAME, Type.String, "icewind2.ini");
-      addEntry(GET_GAME_INI_FILE, Type.File, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
+      addEntry(GET_GAME_INI_NAME, Type.STRING, "icewind2.ini");
+      addEntry(GET_GAME_INI_FILE, Type.FILE, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
     } else if (new FileNI(gameRoot, "baldur.exe").isFile() &&
                new FileNI(gameRoot, "BGConfig.exe").isFile()) {
       game = Game.BG2SoA;
-      addEntry(GET_GAME_INI_NAME, Type.String, "baldur.ini");
-      addEntry(GET_GAME_INI_FILE, Type.File, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
+      addEntry(GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
+      addEntry(GET_GAME_INI_FILE, Type.FILE, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
     } else if (new FileNI(gameRoot, "movies/graphsim.mov").isFile() || // Mac BG1 detection hack
                (new FileNI(gameRoot, "baldur.exe").isFile() && new FileNI(gameRoot, "Config.exe").isFile())) {
       game = Game.BG1;
-      addEntry(GET_GAME_INI_NAME, Type.String, "baldur.ini");
-      addEntry(GET_GAME_INI_FILE, Type.File, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
+      addEntry(GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
+      addEntry(GET_GAME_INI_FILE, Type.FILE, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
     } else if (new FileNI(gameRoot, "bg1tutu.exe").isFile()) {
       game = Game.Tutu;
-      addEntry(GET_GAME_INI_NAME, Type.String, "baldur.ini");
-      addEntry(GET_GAME_INI_FILE, Type.File, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
+      addEntry(GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
+      addEntry(GET_GAME_INI_FILE, Type.FILE, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
     } else {
       // game == Game.Unknown
       game = Game.Unknown;
-      addEntry(GET_GAME_INI_NAME, Type.String, "baldur.ini");
-      addEntry(GET_GAME_INI_FILE, Type.File, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
+      addEntry(GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
+      addEntry(GET_GAME_INI_FILE, Type.FILE, new FileNI(gameRoot, (String)getProperty(GET_GAME_INI_NAME)));
     }
     // adding priliminary game type into storage
-    addEntry(GET_GAME_TYPE, Type.Object, game);
-    addEntry(GET_GAME_EXTRA_FOLDERS, Type.List, GAME_EXTRA_FOLDERS.get(game));
+    addEntry(GET_GAME_TYPE, Type.OBJECT, game);
+    addEntry(GET_GAME_EXTRA_FOLDERS, Type.LIST, GAME_EXTRA_FOLDERS.get(game));
 
     // determining game engine
     initGameEngine();
 
     // initializing method isEnhancedEdition()
-    addEntry(IS_ENHANCED_EDITION, Type.Boolean, Boolean.valueOf(getEngine() == Engine.EE));
+    addEntry(IS_ENHANCED_EDITION, Type.BOOLEAN, Boolean.valueOf(getEngine() == Engine.EE));
 
     if (isEnhancedEdition()) {
       File langDir = new FileNI(gameRoot, "lang");
       if (langDir.isDirectory()) {
-        addEntry(GET_GAME_LANG_FOLDER_BASE, Type.File, langDir);
+        addEntry(GET_GAME_LANG_FOLDER_BASE, Type.FILE, langDir);
       }
     }
 
     if (GAME_HOME_FOLDER.containsKey(game)) {
-      addEntry(GET_GAME_HOME_FOLDER_NAME, Type.String, GAME_HOME_FOLDER.get(game));
+      addEntry(GET_GAME_HOME_FOLDER_NAME, Type.STRING, GAME_HOME_FOLDER.get(game));
     }
 
     initRootDirs();
@@ -998,12 +998,12 @@ public final class Profile
     File tlk = FileNI.getFile((List<?>)getProperty(GET_GAME_FOLDERS),
                               (String)getProperty(GET_GLOBAL_DIALOG_NAME));
     if (tlk != null && tlk.isFile()) {
-      addEntry(GET_GAME_DIALOG_FILE, Type.File, tlk);
+      addEntry(GET_GAME_DIALOG_FILE, Type.FILE, tlk);
     }
     tlk = FileNI.getFile((List<?>)getProperty(GET_GAME_FOLDERS),
                          (String)getProperty(GET_GLOBAL_DIALOG_NAME_FEMALE));
     if (tlk != null && tlk.isFile()) {
-      addEntry(GET_GAME_DIALOGF_FILE, Type.File, tlk);
+      addEntry(GET_GAME_DIALOGF_FILE, Type.FILE, tlk);
     }
 
     // Initializing resource structure
@@ -1029,13 +1029,13 @@ public final class Profile
     }
 
     // updating game type
-    addEntry(GET_GAME_TYPE, Type.Object, game);
-    addEntry(GET_GAME_TITLE, Type.String, GAME_TITLE.get(game));
+    addEntry(GET_GAME_TYPE, Type.OBJECT, game);
+    addEntry(GET_GAME_TITLE, Type.STRING, GAME_TITLE.get(game));
 
     // initializing list of folders containing BIFF archives
     List<File> biffDirs = ResourceFactory.getBIFFDirs();
     if (biffDirs != null && !biffDirs.isEmpty()) {
-      addEntry(GET_GAME_BIFF_FOLDERS, Type.List, biffDirs);
+      addEntry(GET_GAME_BIFF_FOLDERS, Type.LIST, biffDirs);
     }
 
     // initializing list of available override folders
@@ -1086,7 +1086,7 @@ public final class Profile
       default:
         engine = Engine.Unknown;
     }
-    addEntry(GET_GAME_ENGINE, Type.Object, engine);
+    addEntry(GET_GAME_ENGINE, Type.OBJECT, engine);
   }
 
   // Initializes available root folders of the game
@@ -1109,27 +1109,27 @@ public final class Profile
 
     List<File> listRoots = new ArrayList<File>();
     if (langRoot != null) {
-      addEntry(GET_GAME_LANG_FOLDER_NAME, Type.String, language);
-      addEntry(GET_GAME_LANG_FOLDER, Type.File, langRoot);
+      addEntry(GET_GAME_LANG_FOLDER_NAME, Type.STRING, language);
+      addEntry(GET_GAME_LANG_FOLDER, Type.FILE, langRoot);
       List<File> langPaths = ResourceFactory.getAvailableGameLanguages();
-      addEntry(GET_GAME_LANG_FOLDERS_AVAILABLE, Type.List, langPaths);
+      addEntry(GET_GAME_LANG_FOLDERS_AVAILABLE, Type.LIST, langPaths);
       List<String> languages = new ArrayList<String>(langPaths.size());
       for (Iterator<File> iter = langPaths.iterator(); iter.hasNext();) {
         languages.add(iter.next().getName());
       }
-      addEntry(GET_GAME_LANG_FOLDER_NAMES_AVAILABLE, Type.List, languages);
+      addEntry(GET_GAME_LANG_FOLDER_NAMES_AVAILABLE, Type.LIST, languages);
       listRoots.add(langRoot);
     }
     if (langRootDef != null) {
       listRoots.add(langRootDef);
     }
     if (homeRoot != null) {
-      addEntry(GET_GAME_HOME_FOLDER, Type.File, homeRoot);
-      addEntry(GET_GAME_INI_FILE, Type.File, new FileNI(homeRoot, (String)getProperty(GET_GAME_INI_NAME)));
+      addEntry(GET_GAME_HOME_FOLDER, Type.FILE, homeRoot);
+      addEntry(GET_GAME_INI_FILE, Type.FILE, new FileNI(homeRoot, (String)getProperty(GET_GAME_INI_NAME)));
       listRoots.add(homeRoot);
     }
     listRoots.add((File)getProperty(GET_GAME_ROOT_FOLDER));
-    addEntry(GET_GAME_FOLDERS, Type.File, listRoots);
+    addEntry(GET_GAME_FOLDERS, Type.FILE, listRoots);
   }
 
   // Initializes supported override folders used by specific games
@@ -1163,7 +1163,7 @@ public final class Profile
       list.add(new FileNI(gameRoot, "Scripts"));
       list.add(new FileNI(gameRoot, "Override"));
     }
-    addEntry(GET_GAME_OVERRIDE_FOLDERS, Type.List, list);
+    addEntry(GET_GAME_OVERRIDE_FOLDERS, Type.LIST, list);
   }
 
   // Initializes supported resource types
@@ -1172,141 +1172,141 @@ public final class Profile
     Game game = getGame();
     Engine engine = getEngine();
 
-    addEntry(IS_SUPPORTED_2DA, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_2DA, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_ACM, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_ACM, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_ARE_V10, Type.Boolean, (engine == Engine.BG1 || engine == Engine.BG2 ||
+    addEntry(IS_SUPPORTED_ARE_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
                                                   engine == Engine.IWD || engine == Engine.PST ||
                                                   engine == Engine.EE || engine == Engine.Unknown));
-    addEntry(IS_SUPPORTED_ARE_V91, Type.Boolean, (engine == Engine.IWD2));
+    addEntry(IS_SUPPORTED_ARE_V91, Type.BOOLEAN, (engine == Engine.IWD2));
 
-    addEntry(IS_SUPPORTED_BAM_V1, Type.Boolean, Boolean.valueOf(true));
-    addEntry(IS_SUPPORTED_BAMC_V1, Type.Boolean, (engine == Engine.BG2 || engine == Engine.IWD ||
+    addEntry(IS_SUPPORTED_BAM_V1, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_BAMC_V1, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD ||
                                                   engine == Engine.IWD2 || engine == Engine.EE));
-    addEntry(IS_SUPPORTED_BAM_V2, Type.Boolean, isEnhancedEdition());
+    addEntry(IS_SUPPORTED_BAM_V2, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(IS_SUPPORTED_BCS, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_BCS, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_BIFF, Type.Boolean, Boolean.valueOf(true));
-    addEntry(IS_SUPPORTED_BIF, Type.Boolean, (engine == Engine.IWD));
-    addEntry(IS_SUPPORTED_BIFC, Type.Boolean, (engine == Engine.BG2 || engine == Engine.IWD2));
+    addEntry(IS_SUPPORTED_BIFF, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_BIF, Type.BOOLEAN, (engine == Engine.IWD));
+    addEntry(IS_SUPPORTED_BIFC, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD2));
 
-    addEntry(IS_SUPPORTED_BIK, Type.Boolean, (engine == Engine.IWD2));
+    addEntry(IS_SUPPORTED_BIK, Type.BOOLEAN, (engine == Engine.IWD2));
 
-    addEntry(IS_SUPPORTED_BIO, Type.Boolean, (engine == Engine.BG1 || engine == Engine.BG2 ||
+    addEntry(IS_SUPPORTED_BIO, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
                                               engine == Engine.EE || engine == Engine.Unknown));
 
-    addEntry(IS_SUPPORTED_BMP_PAL, Type.Boolean, Boolean.valueOf(true));
-    addEntry(IS_SUPPORTED_BMP_ALPHA, Type.Boolean, isEnhancedEdition());
+    addEntry(IS_SUPPORTED_BMP_PAL, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_BMP_ALPHA, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(IS_SUPPORTED_CHR_V10, Type.Boolean, (engine == Engine.BG1 || engine == Engine.Unknown));
-    addEntry(IS_SUPPORTED_CHR_V20, Type.Boolean, (engine == Engine.BG2 || engine == Engine.EE));
-    addEntry(IS_SUPPORTED_CHR_V21, Type.Boolean, (game == Game.BG2ToB || engine == Engine.EE));
-    addEntry(IS_SUPPORTED_CHR_V22, Type.Boolean, (engine == Engine.IWD2));
+    addEntry(IS_SUPPORTED_CHR_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.Unknown));
+    addEntry(IS_SUPPORTED_CHR_V20, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
+    addEntry(IS_SUPPORTED_CHR_V21, Type.BOOLEAN, (game == Game.BG2ToB || engine == Engine.EE));
+    addEntry(IS_SUPPORTED_CHR_V22, Type.BOOLEAN, (engine == Engine.IWD2));
 
-    addEntry(IS_SUPPORTED_CHU, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_CHU, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_CRE_V10, Type.Boolean, (engine == Engine.BG1 || engine == Engine.BG2 ||
+    addEntry(IS_SUPPORTED_CRE_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
                                                   engine == Engine.EE || engine == Engine.Unknown));
-    addEntry(IS_SUPPORTED_CRE_V12, Type.Boolean, (engine == Engine.PST));
-    addEntry(IS_SUPPORTED_CRE_V22, Type.Boolean, (engine == Engine.IWD2));
-    addEntry(IS_SUPPORTED_CRE_V90, Type.Boolean, (engine == Engine.IWD));
+    addEntry(IS_SUPPORTED_CRE_V12, Type.BOOLEAN, (engine == Engine.PST));
+    addEntry(IS_SUPPORTED_CRE_V22, Type.BOOLEAN, (engine == Engine.IWD2));
+    addEntry(IS_SUPPORTED_CRE_V90, Type.BOOLEAN, (engine == Engine.IWD));
 
-    addEntry(IS_SUPPORTED_DLG, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_DLG, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_EFF, Type.Boolean, (engine == Engine.BG1 || engine == Engine.BG2 ||
+    addEntry(IS_SUPPORTED_EFF, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
                                               engine == Engine.IWD || engine == Engine.EE ||
                                               engine == Engine.Unknown));
 
-    addEntry(IS_SUPPORTED_FNT, Type.Boolean, isEnhancedEdition());
+    addEntry(IS_SUPPORTED_FNT, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(IS_SUPPORTED_GAM_V11, Type.Boolean, (engine == Engine.BG1 || engine == Engine.IWD ||
+    addEntry(IS_SUPPORTED_GAM_V11, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.IWD ||
                                                   engine == Engine.PST || engine == Engine.Unknown));
-    addEntry(IS_SUPPORTED_GAM_V20, Type.Boolean, (engine == Engine.BG2 || engine == Engine.EE));
-    addEntry(IS_SUPPORTED_GAM_V21, Type.Boolean, (game == Game.BG2ToB || engine == Engine.EE));
-    addEntry(IS_SUPPORTED_GAM_V22, Type.Boolean, (engine == Engine.IWD2));
+    addEntry(IS_SUPPORTED_GAM_V20, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
+    addEntry(IS_SUPPORTED_GAM_V21, Type.BOOLEAN, (game == Game.BG2ToB || engine == Engine.EE));
+    addEntry(IS_SUPPORTED_GAM_V22, Type.BOOLEAN, (engine == Engine.IWD2));
 
-    addEntry(IS_SUPPORTED_GLSL, Type.Boolean, isEnhancedEdition());
+    addEntry(IS_SUPPORTED_GLSL, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(IS_SUPPORTED_GUI, Type.Boolean, isEnhancedEdition());
+    addEntry(IS_SUPPORTED_GUI, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(IS_SUPPORTED_IDS, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_IDS, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_INI, Type.Boolean, (engine == Engine.IWD || engine == Engine.IWD2 ||
+    addEntry(IS_SUPPORTED_INI, Type.BOOLEAN, (engine == Engine.IWD || engine == Engine.IWD2 ||
                                               engine == Engine.PST || game == Game.IWDEE));
 
-    addEntry(IS_SUPPORTED_ITM_V10, Type.Boolean, (engine == Engine.BG1 || engine == Engine.BG2 ||
+    addEntry(IS_SUPPORTED_ITM_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
                                                   engine == Engine.IWD || engine == Engine.EE ||
                                                   engine == Engine.Unknown));
-    addEntry(IS_SUPPORTED_ITM_V11, Type.Boolean, (engine == Engine.PST));
-    addEntry(IS_SUPPORTED_ITM_V20, Type.Boolean, (engine == Engine.IWD2));
+    addEntry(IS_SUPPORTED_ITM_V11, Type.BOOLEAN, (engine == Engine.PST));
+    addEntry(IS_SUPPORTED_ITM_V20, Type.BOOLEAN, (engine == Engine.IWD2));
 
-    addEntry(IS_SUPPORTED_KEY, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_KEY, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_MOS_V1, Type.Boolean, Boolean.valueOf(true));
-    addEntry(IS_SUPPORTED_MOSC_V1, Type.Boolean, (engine == Engine.BG2 || engine == Engine.IWD ||
+    addEntry(IS_SUPPORTED_MOS_V1, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_MOSC_V1, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD ||
                                                   engine == Engine.IWD2 || engine == Engine.EE));
-    addEntry(IS_SUPPORTED_MOS_V2, Type.Boolean, isEnhancedEdition());
+    addEntry(IS_SUPPORTED_MOS_V2, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(IS_SUPPORTED_MUS, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_MUS, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_MVE, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_MVE, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_OGG, Type.Boolean, isEnhancedEdition());
+    addEntry(IS_SUPPORTED_OGG, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(IS_SUPPORTED_PLT, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_PLT, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_PVRZ, Type.Boolean, isEnhancedEdition());
+    addEntry(IS_SUPPORTED_PVRZ, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(IS_SUPPORTED_PRO, Type.Boolean, (engine == Engine.BG2 || engine == Engine.EE));
+    addEntry(IS_SUPPORTED_PRO, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
 
-    addEntry(IS_SUPPORTED_RES, Type.Boolean, (engine == Engine.IWD || engine == Engine.IWD2 ||
+    addEntry(IS_SUPPORTED_RES, Type.BOOLEAN, (engine == Engine.IWD || engine == Engine.IWD2 ||
                                               game == Game.IWDEE));
 
-    addEntry(IS_SUPPORTED_SAV, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_SAV, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_SPL_V1, Type.Boolean, (engine == Engine.BG1 || engine == Engine.BG2 ||
+    addEntry(IS_SUPPORTED_SPL_V1, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
                                                  engine == Engine.IWD || engine == Engine.PST ||
                                                  engine == Engine.EE || engine == Engine.Unknown));
-    addEntry(IS_SUPPORTED_SPL_V2, Type.Boolean, (engine == Engine.IWD2));
+    addEntry(IS_SUPPORTED_SPL_V2, Type.BOOLEAN, (engine == Engine.IWD2));
 
-    addEntry(IS_SUPPORTED_SQL, Type.Boolean, isEnhancedEdition());
+    addEntry(IS_SUPPORTED_SQL, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(IS_SUPPORTED_SRC_PST, Type.Boolean, (engine == Engine.PST));
+    addEntry(IS_SUPPORTED_SRC_PST, Type.BOOLEAN, (engine == Engine.PST));
 
-    addEntry(IS_SUPPORTED_SRC_IWD2, Type.Boolean, (engine == Engine.IWD2));
+    addEntry(IS_SUPPORTED_SRC_IWD2, Type.BOOLEAN, (engine == Engine.IWD2));
 
-    addEntry(IS_SUPPORTED_STO_V10, Type.Boolean, (engine == Engine.BG1 || engine == Engine.BG2 ||
+    addEntry(IS_SUPPORTED_STO_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
                                                   engine == Engine.EE || engine == Engine.Unknown));
-    addEntry(IS_SUPPORTED_STO_V11, Type.Boolean, (engine == Engine.PST));
-    addEntry(IS_SUPPORTED_STO_V90, Type.Boolean, (engine == Engine.IWD || engine == Engine.IWD2));
+    addEntry(IS_SUPPORTED_STO_V11, Type.BOOLEAN, (engine == Engine.PST));
+    addEntry(IS_SUPPORTED_STO_V90, Type.BOOLEAN, (engine == Engine.IWD || engine == Engine.IWD2));
 
-    addEntry(IS_SUPPORTED_TIS_V1, Type.Boolean, Boolean.valueOf(true));
-    addEntry(IS_SUPPORTED_TIS_V2, Type.Boolean, isEnhancedEdition());
+    addEntry(IS_SUPPORTED_TIS_V1, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_TIS_V2, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(IS_SUPPORTED_TLK, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_TLK, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_TO_V1, Type.Boolean, (engine == Engine.BG2 || engine == Engine.IWD));
-    addEntry(IS_SUPPORTED_TO_V2, Type.Boolean, isEnhancedEdition());
+    addEntry(IS_SUPPORTED_TO_V1, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD));
+    addEntry(IS_SUPPORTED_TO_V2, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(IS_SUPPORTED_VAR, Type.Boolean, (engine == Engine.PST));
+    addEntry(IS_SUPPORTED_VAR, Type.BOOLEAN, (engine == Engine.PST));
 
-    addEntry(IS_SUPPORTED_VEF, Type.Boolean, (engine == Engine.BG2 || engine == Engine.EE));
+    addEntry(IS_SUPPORTED_VEF, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
 
-    addEntry(IS_SUPPORTED_VVC, Type.Boolean, (engine == Engine.BG2 || engine == Engine.EE));
+    addEntry(IS_SUPPORTED_VVC, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
 
-    addEntry(IS_SUPPORTED_WAV, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_WAV, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_WAVC, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_WAVC, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_WBM, Type.Boolean, isEnhancedEdition());
+    addEntry(IS_SUPPORTED_WBM, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(IS_SUPPORTED_WED, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_WED, Type.BOOLEAN, Boolean.valueOf(true));
 
-    addEntry(IS_SUPPORTED_WFX, Type.Boolean, (engine == Engine.BG2 || engine == Engine.EE));
+    addEntry(IS_SUPPORTED_WFX, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
 
-    addEntry(IS_SUPPORTED_WMP, Type.Boolean, Boolean.valueOf(true));
+    addEntry(IS_SUPPORTED_WMP, Type.BOOLEAN, Boolean.valueOf(true));
   }
 
   // Initializes game-specific features
@@ -1316,21 +1316,21 @@ public final class Profile
     Engine engine = getEngine();
 
     // Are Kits supported?
-    addEntry(IS_SUPPORTED_KITS, Type.Boolean, (engine == Engine.BG2 || engine == Engine.IWD2 ||
+    addEntry(IS_SUPPORTED_KITS, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD2 ||
                                                engine == Engine.EE));
 
     // the actual name of the "Alignment" IDS resource
-    addEntry(GET_IDS_ALIGNMENT, Type.String, (engine == Engine.IWD2) ? "ALIGNMNT.IDS" : "ALIGNMEN.IDS");
+    addEntry(GET_IDS_ALIGNMENT, Type.STRING, (engine == Engine.IWD2) ? "ALIGNMNT.IDS" : "ALIGNMEN.IDS");
 
     // display mode of overlays in tilesets
-    addEntry(IS_TILESET_STENCILED, Type.Boolean, (engine == Engine.BG2 || game == Game.BG2EE));
+    addEntry(IS_TILESET_STENCILED, Type.BOOLEAN, (engine == Engine.BG2 || game == Game.BG2EE));
 
     // Has TobEx been installed?
     if (engine == Engine.BG2) {
       File tobexIni = new FileNI((File)getProperty(GET_GAME_ROOT_FOLDER), "TobEx_ini/TobExCore.ini");
-      addEntry(IS_GAME_TOBEX, Type.Boolean, tobexIni.isFile());
+      addEntry(IS_GAME_TOBEX, Type.BOOLEAN, tobexIni.isFile());
     } else {
-      addEntry(IS_GAME_TOBEX, Type.Boolean, Boolean.FALSE);
+      addEntry(IS_GAME_TOBEX, Type.BOOLEAN, Boolean.FALSE);
     }
   }
 

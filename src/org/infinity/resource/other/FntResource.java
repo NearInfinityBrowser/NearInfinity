@@ -93,7 +93,7 @@ public final class FntResource extends AbstractStruct implements Resource, Close
     viewer.addTabChangeListener(hexViewer);
 
     // disabling 'Save' button
-    JButton bSave = (JButton)viewer.getButtonPanel().getControlByType(ButtonPanel.Control.Save);
+    JButton bSave = (JButton)viewer.getButtonPanel().getControlByType(ButtonPanel.Control.SAVE);
     if (bSave != null) {
       bSave.setEnabled(false);
     }

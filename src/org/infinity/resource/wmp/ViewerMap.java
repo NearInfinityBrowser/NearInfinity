@@ -58,7 +58,7 @@ import org.infinity.resource.key.ResourceEntry;
 public class ViewerMap extends JPanel
 {
   // Needed to determine map edges to travel from/to
-  private enum Direction { North, West, South, East }
+  private enum Direction { NORTH, WEST, SOUTH, EAST }
 
   private final JPopupMenu pmOptions = new JPopupMenu("Options");
   private final JCheckBoxMenuItem miShowIcons = new JCheckBoxMenuItem("Show all map icons", true);
@@ -254,7 +254,7 @@ public class ViewerMap extends JPanel
   {
     AreaEntry area = getAreaEntry(areaIndex);
     if (area != null) {
-      final Direction[] srcDir = { Direction.North, Direction.West, Direction.South, Direction.East };
+      final Direction[] srcDir = { Direction.NORTH, Direction.WEST, Direction.SOUTH, Direction.EAST };
       final Color[] dirColor = { Color.GREEN, Color.RED, Color.CYAN, Color.YELLOW };
       final int[] links = new int[8];
       final int linkSize = 216;   // size of a single area link structure
@@ -278,13 +278,13 @@ public class ViewerMap extends JPanel
           if (destLink != null) {
             int dstAreaIndex = ((DecNumber)destLink.getAttribute(AreaLink.WMP_LINK_TARGET_AREA)).getValue();
             Flag flag = (Flag)destLink.getAttribute(AreaLink.WMP_LINK_DEFAULT_ENTRANCE);
-            Direction dstDir = Direction.North;
+            Direction dstDir = Direction.NORTH;
             if (flag.isFlagSet(1)) {
-              dstDir = Direction.East;
+              dstDir = Direction.EAST;
             } else if (flag.isFlagSet(2)) {
-              dstDir = Direction.South;
+              dstDir = Direction.SOUTH;
             } else if (flag.isFlagSet(3)) {
-              dstDir = Direction.West;
+              dstDir = Direction.WEST;
             }
             Point ptTarget = getMapIconCoordinate(dstAreaIndex, dstDir);
 
@@ -357,19 +357,19 @@ public class ViewerMap extends JPanel
       }
       Point retVal = new Point();
       switch (dir) {
-        case North:
+        case NORTH:
           retVal.x = x + (width / 2);
           retVal.y = y;
           break;
-        case West:
+        case WEST:
           retVal.x = x;
           retVal.y = y + (height / 2);
           break;
-        case South:
+        case SOUTH:
           retVal.x = x + (width / 2);
           retVal.y = y + height - 1;
           break;
-        case East:
+        case EAST:
           retVal.x = x + width - 1;
           retVal.y = y + (height / 2);
           break;

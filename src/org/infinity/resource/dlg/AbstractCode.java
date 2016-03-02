@@ -51,10 +51,10 @@ public abstract class AbstractCode extends Datatype
   public static final String DLG_CODE_LENGTH = "Length";
   public static final String DLG_CODE_TEXT    = "Text";
 
-  private static final ButtonPanel.Control CtrlUpdate   = ButtonPanel.Control.Custom1;
-  private static final ButtonPanel.Control CtrlCheck    = ButtonPanel.Control.Custom2;
-  private static final ButtonPanel.Control CtrlErrors   = ButtonPanel.Control.Custom3;
-  private static final ButtonPanel.Control CtrlWarnings = ButtonPanel.Control.Custom4;
+  private static final ButtonPanel.Control CtrlUpdate   = ButtonPanel.Control.CUSTOM_1;
+  private static final ButtonPanel.Control CtrlCheck    = ButtonPanel.Control.CUSTOM_2;
+  private static final ButtonPanel.Control CtrlErrors   = ButtonPanel.Control.CUSTOM_3;
+  private static final ButtonPanel.Control CtrlWarnings = ButtonPanel.Control.CUSTOM_4;
 
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
@@ -87,8 +87,8 @@ public abstract class AbstractCode extends Datatype
       ButtonPopupMenu bpmErrors = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlErrors);
       ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlWarnings);
       Compiler compiler = new Compiler(textArea.getText(),
-                                       (this instanceof Action) ? Compiler.ScriptType.Action :
-                                                                  Compiler.ScriptType.Trigger);
+                                       (this instanceof Action) ? Compiler.ScriptType.ACTION :
+                                                                  Compiler.ScriptType.TRIGGER);
       errors = compiler.getErrors();
       warnings = compiler.getWarnings();
       if (errors.size() > 0) {

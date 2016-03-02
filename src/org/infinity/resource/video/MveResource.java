@@ -55,9 +55,9 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
 {
   private static final int VIDEO_BUFFERS = 3;
 
-  private static final ButtonPanel.Control CtrlPlay   = ButtonPanel.Control.Custom1;
-  private static final ButtonPanel.Control CtrlPause  = ButtonPanel.Control.Custom2;
-  private static final ButtonPanel.Control CtrlStop   = ButtonPanel.Control.Custom3;
+  private static final ButtonPanel.Control CtrlPlay   = ButtonPanel.Control.CUSTOM_1;
+  private static final ButtonPanel.Control CtrlPause  = ButtonPanel.Control.CUSTOM_2;
+  private static final ButtonPanel.Control CtrlStop   = ButtonPanel.Control.CUSTOM_3;
 
   private static boolean isZoom = true;
   private static boolean isFilter = true;
@@ -96,7 +96,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.FindReferences)) {
+    if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES)) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (miExport == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
@@ -269,14 +269,14 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     miExport.addActionListener(this);
     miExportAvi = new JMenuItem("as AVI");
     miExportAvi.addActionListener(this);
-    ButtonPopupMenu bpmExport = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.ExportMenu);
+    ButtonPopupMenu bpmExport = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportAvi});
 
     buttonPanel.addControl(bPlay, CtrlPlay);
     buttonPanel.addControl(bPause, CtrlPause);
     buttonPanel.addControl(bStop, CtrlStop);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FindReferences)).addActionListener(this);
-    buttonPanel.addControl(bpmExport, ButtonPanel.Control.ExportMenu);
+    ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
+    buttonPanel.addControl(bpmExport, ButtonPanel.Control.EXPORT_MENU);
     buttonPanel.addControl(optionsPanel);
 
     panel = new JPanel();

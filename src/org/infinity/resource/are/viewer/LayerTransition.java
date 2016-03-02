@@ -20,7 +20,7 @@ public class LayerTransition extends BasicLayer<LayerObjectTransition>
 
   public LayerTransition(AreResource are, AreaViewer viewer)
   {
-    super(are, ViewerConstants.LayerType.Transition, viewer);
+    super(are, ViewerConstants.LayerType.TRANSITION, viewer);
     loadLayer(false);
   }
 

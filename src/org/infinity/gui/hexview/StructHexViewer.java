@@ -97,11 +97,11 @@ import tv.porst.jhexview.JHexView;
 public class StructHexViewer extends JPanel implements IHexViewListener, IDataChangedListener,
                                                  ActionListener, ChangeListener, Closeable
 {
-  private static final ButtonPanel.Control BUTTON_FIND      = ButtonPanel.Control.FindButton;
-  private static final ButtonPanel.Control BUTTON_FINDNEXT  = ButtonPanel.Control.Custom1;
-  private static final ButtonPanel.Control BUTTON_EXPORT    = ButtonPanel.Control.ExportButton;
-  private static final ButtonPanel.Control BUTTON_SAVE      = ButtonPanel.Control.Save;
-  private static final ButtonPanel.Control BUTTON_REFRESH   = ButtonPanel.Control.Custom2;
+  private static final ButtonPanel.Control BUTTON_FIND      = ButtonPanel.Control.FIND_BUTTON;
+  private static final ButtonPanel.Control BUTTON_FINDNEXT  = ButtonPanel.Control.CUSTOM_1;
+  private static final ButtonPanel.Control BUTTON_EXPORT    = ButtonPanel.Control.EXPORT_BUTTON;
+  private static final ButtonPanel.Control BUTTON_SAVE      = ButtonPanel.Control.SAVE;
+  private static final ButtonPanel.Control BUTTON_REFRESH   = ButtonPanel.Control.CUSTOM_2;
 
   private static final String FMT_OFFSET = "%1$Xh (%1$d)";
 
@@ -232,7 +232,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       if (getFindData().find()) {
         boolean b;
         String s = null;
-        if (getFindData().getDataType() == FindDataDialog.Type.Text) {
+        if (getFindData().getDataType() == FindDataDialog.Type.TEXT) {
           b = !getFindData().getText().isEmpty();
           s = getFindData().getText();
         } else {
@@ -515,7 +515,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
   // Attempts to find the next match of the search string as defined in the FindData instance, starting at offset.
   private void findPattern(int offset)
   {
-    if (getFindData().getDataType() == FindDataDialog.Type.Text) {
+    if (getFindData().getDataType() == FindDataDialog.Type.TEXT) {
       offset = getHexView().findAscii(offset, getFindData().getText(), getFindData().isCaseSensitive());
       if (offset >= 0) {
         getHexView().setCurrentOffset(offset);

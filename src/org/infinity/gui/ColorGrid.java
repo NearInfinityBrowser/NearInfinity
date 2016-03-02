@@ -32,7 +32,7 @@ import javax.swing.event.ChangeListener;
 public class ColorGrid extends JPanel implements MouseListener, MouseMotionListener
 {
   /** Supported frame types for selected color entries. */
-  public enum Frame { SingleLine, DoubleLine }
+  public enum Frame { SINGLE_LINE, DOUBLE_LINE }
 
   /** Only one color entry can be selected at a time. */
   public static final int SELECTION_SINGLE = 0;
@@ -50,7 +50,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
   private static final int DefaultSelectionMode = SELECTION_SINGLE;
   private static final Dimension DefaultColorSize = new Dimension(16, 16);
   private static final Color DefaultColor = Color.BLACK;
-  private static final Frame DefaultFrame = Frame.SingleLine;
+  private static final Frame DefaultFrame = Frame.SINGLE_LINE;
   private static final Color DefaultFrameColor = Color.BLUE;
   private static final boolean DefaultDragDropEnabled = false;
   // Defines the square of the minimum dragging distance before activating drag&drop mode
@@ -714,12 +714,12 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
         int y = gapY + row*(gapY + colorSize.height);
         g.setColor(frameColor);
         switch (frame) {
-          case SingleLine:
+          case SINGLE_LINE:
           {
             g.drawRect(x - 2, y - 2, colorSize.width + 3, colorSize.height + 3);
             break;
           }
-          case DoubleLine:
+          case DOUBLE_LINE:
           {
             g.drawRect(x - 1, y - 1, colorSize.width + 1, colorSize.height + 1);
             g.drawRect(x - 3, y - 3, colorSize.width + 5, colorSize.height + 5);

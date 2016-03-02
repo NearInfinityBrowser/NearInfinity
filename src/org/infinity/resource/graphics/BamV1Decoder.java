@@ -31,7 +31,7 @@ public class BamV1Decoder extends BamDecoder
    * <code>FirstIndexOnly</code> automatically uses palette index 0 without looking for entries
    * containing RGB(0, 255, 0).
    */
-  public enum TransparencyMode { Normal, FirstIndexOnly }
+  public enum TransparencyMode { NORMAL, FIRST_INDEX_ONLY }
 
   private final List<BamV1FrameEntry> listFrames = new ArrayList<BamV1FrameEntry>();
   private final List<CycleEntry> listCycles = new ArrayList<CycleEntry>();
@@ -112,7 +112,7 @@ public class BamV1Decoder extends BamDecoder
         control = defaultControl;
       }
       int w, h;
-      if (control.getMode() == BamDecoder.BamControl.Mode.Shared) {
+      if (control.getMode() == BamDecoder.BamControl.Mode.SHARED) {
         Dimension d = control.getSharedDimension();
         w = d.width;
         h = d.height;
@@ -137,7 +137,7 @@ public class BamV1Decoder extends BamDecoder
         control = defaultControl;
       }
       int w, h;
-      if (control.getMode() == BamDecoder.BamControl.Mode.Shared) {
+      if (control.getMode() == BamDecoder.BamControl.Mode.SHARED) {
         Dimension d = control.getSharedDimension();
         w = d.width;
         h = d.height;
@@ -239,7 +239,7 @@ public class BamV1Decoder extends BamDecoder
 
         // creating default bam control instance as a fallback option
         defaultControl = new BamV1Control(this);
-        defaultControl.setMode(BamControl.Mode.Shared);
+        defaultControl.setMode(BamControl.Mode.SHARED);
         defaultControl.setSharedPerCycle(false);
       } catch (Exception e) {
         e.printStackTrace();
@@ -281,7 +281,7 @@ public class BamV1Decoder extends BamDecoder
       int left, top, maxWidth, maxHeight, srcOfs, dstOfs;
       int count = 0, color = 0;
       byte pixel = 0;
-      if (control.getMode() == BamControl.Mode.Shared) {
+      if (control.getMode() == BamControl.Mode.SHARED) {
         left = -control.getSharedRectangle().x - listFrames.get(frameIdx).centerX;
         top = -control.getSharedRectangle().y - listFrames.get(frameIdx).centerY;
         maxWidth = (dstWidth < srcWidth + left) ? dstWidth : srcWidth;
@@ -645,7 +645,7 @@ public class BamV1Decoder extends BamDecoder
     private void init()
     {
       this.transparencyEnabled = true;
-      this.transparencyMode = TransparencyMode.Normal;
+      this.transparencyMode = TransparencyMode.NORMAL;
       currentPalette = null;
       externalPalette = null;
       currentCycle = currentFrame = 0;
@@ -663,7 +663,7 @@ public class BamV1Decoder extends BamDecoder
       }
 
       // some optimizations: don't prepare if the palette hasn't change
-      boolean isNormalMode = (getTransparencyMode() == TransparencyMode.Normal);
+      boolean isNormalMode = (getTransparencyMode() == TransparencyMode.NORMAL);
       int idx = 0;
       int transIndex = -1;
       int alphaMask = Profile.isEnhancedEdition() ? 0 : 0xff000000;

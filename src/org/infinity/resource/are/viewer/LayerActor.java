@@ -29,7 +29,7 @@ public class LayerActor extends BasicLayer<LayerObjectActor>
 
   public LayerActor(AreResource are, AreaViewer viewer)
   {
-    super(are, ViewerConstants.LayerType.Actor, viewer);
+    super(are, ViewerConstants.LayerType.ACTOR, viewer);
     loadLayer(false);
   }
 

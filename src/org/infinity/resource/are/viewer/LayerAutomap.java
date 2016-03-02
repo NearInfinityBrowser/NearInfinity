@@ -24,7 +24,7 @@ public class LayerAutomap extends BasicLayer<LayerObject>
 
   public LayerAutomap(AreResource are, AreaViewer viewer)
   {
-    super(are, ViewerConstants.LayerType.Automap, viewer);
+    super(are, ViewerConstants.LayerType.AUTOMAP, viewer);
     loadLayer(false);
   }
 

@@ -27,11 +27,11 @@ public final class Decompiler
     /** Treat code as full BCS resource. */
     BCS,
     /** Treat code as script trigger only. */
-    Trigger,
+    TRIGGER,
     /** Treat code as script action only. */
-    Action,
+    ACTION,
     /** Do not decompile automatically. */
-    Custom
+    CUSTOM
   }
 
   private final Set<Integer> stringrefsUsed = new HashSet<Integer>();
@@ -206,8 +206,8 @@ public final class Decompiler
   {
     switch (scriptType) {
       case BCS: return decompileScript();
-      case Trigger: return decompileTrigger();
-      case Action: return decompileAction();
+      case TRIGGER: return decompileTrigger();
+      case ACTION: return decompileAction();
       default: throw new IllegalArgumentException("Could not determine script type");
     }
   }

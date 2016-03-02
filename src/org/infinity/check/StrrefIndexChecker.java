@@ -354,14 +354,14 @@ public class StrrefIndexChecker extends ChildFrame implements ActionListener, Li
           AbstractCode code = (AbstractCode)entry;
           try {
             Compiler compiler = new Compiler(code.toString(),
-                                             (code instanceof Action) ? Compiler.ScriptType.Action
-                                                                      : Compiler.ScriptType.Trigger);
+                                             (code instanceof Action) ? Compiler.ScriptType.ACTION
+                                                                      : Compiler.ScriptType.TRIGGER);
             String compiled = compiler.getCode();
             Decompiler decompiler = new Decompiler(compiled, true);
             if (code instanceof Action) {
-              decompiler.setScriptType(Decompiler.ScriptType.Action);
+              decompiler.setScriptType(Decompiler.ScriptType.ACTION);
             } else {
-              decompiler.setScriptType(Decompiler.ScriptType.Trigger);
+              decompiler.setScriptType(Decompiler.ScriptType.TRIGGER);
             }
             decompiler.decompile();
             Set<Integer> used = decompiler.getStringRefsUsed();

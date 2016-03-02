@@ -129,12 +129,12 @@ public class LayerObjectSpawnPoint extends LayerObject
       Image[] icon;
       String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(Icon[0]),
                                                  SharedResourceCache.createKey(Icon[1]));
-      if (SharedResourceCache.contains(SharedResourceCache.Type.Icon, keyIcon)) {
-        icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.Icon, keyIcon)).getData();
-        SharedResourceCache.add(SharedResourceCache.Type.Icon, keyIcon);
+      if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
+        icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
+        SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon);
       } else {
         icon = Icon;
-        SharedResourceCache.add(SharedResourceCache.Type.Icon, keyIcon, new ResourceIcon(keyIcon, icon));
+        SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
       item = new IconLayerItem(location, sp, msg, icon[0], Center);

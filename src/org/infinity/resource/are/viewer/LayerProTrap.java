@@ -22,7 +22,7 @@ public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
 
   public LayerProTrap(AreResource are, AreaViewer viewer)
   {
-    super(are, ViewerConstants.LayerType.ProTrap, viewer);
+    super(are, ViewerConstants.LayerType.PRO_TRAP, viewer);
     loadLayer(false);
   }
 

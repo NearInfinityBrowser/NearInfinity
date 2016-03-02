@@ -1045,7 +1045,7 @@ public class ConvertToBam extends ChildFrame
     bpmFramesAdd = new ButtonPopupMenu("Add...", new JMenuItem[]{miFramesAddFiles, miFramesAddResources,
                                                                  miFramesAddFolder,
                                                                  miFramesImportFile, miFramesImportResource},
-                                       false, ButtonPopupMenu.Align.Top);
+                                       false, ButtonPopupMenu.Align.TOP);
     bpmFramesAdd.setIcon(Icons.getIcon(Icons.ICON_ARROW_UP_15));
     bpmFramesAdd.setIconTextGap(8);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
@@ -2024,7 +2024,7 @@ public class ConvertToBam extends ChildFrame
           int frameIdx = indices[0];
           PseudoBamFrameEntry fe = getBamDecoder(BAM_ORIGINAL).getFrameInfo(frameIdx);
           PseudoBamControl control = getBamDecoder(BAM_ORIGINAL).createControl();
-          control.setMode(BamDecoder.BamControl.Mode.Individual);
+          control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
           Image image = getBamDecoder(BAM_ORIGINAL).frameGet(control, frameIdx);
           control = null;
           boolean zoom = ((fe.getWidth() > imgWidth || fe.getHeight() > imgHeight));
@@ -2407,7 +2407,7 @@ public class ConvertToBam extends ChildFrame
     if (listIndex >= 0 && entry != null && BamDecoder.isValid(entry)) {
       BamDecoder decoder = BamDecoder.loadBam(entry);
       BamDecoder.BamControl control = decoder.createControl();
-      control.setMode(BamDecoder.BamControl.Mode.Individual);
+      control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
 
       // preparing palette-specific properties
       IndexColorModel cm = null;
@@ -3321,7 +3321,7 @@ public class ConvertToBam extends ChildFrame
   {
     if (bamControlPreview == null) {
       bamControlPreview = bamDecoderFinal.createControl();
-      bamControlPreview.setMode(BamDecoder.BamControl.Mode.Shared);
+      bamControlPreview.setMode(BamDecoder.BamControl.Mode.SHARED);
       bamControlPreview.setSharedPerCycle(true);
     } else {
       int idx = bamControlPreview.cycleGet();
@@ -3757,10 +3757,10 @@ public class ConvertToBam extends ChildFrame
     DxtEncoder.DxtType dxtType = DxtEncoder.DxtType.DXT1;
 
     PseudoBamControl control = bamDecoder.createControl();
-    control.setMode(BamControl.Mode.Shared);
+    control.setMode(BamControl.Mode.SHARED);
     control.setSharedPerCycle(false);
     Dimension dim = control.getSharedDimension();
-    control.setMode(BamControl.Mode.Individual);
+    control.setMode(BamControl.Mode.INDIVIDUAL);
     BufferedImage canvas = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
     boolean typeFound = false;
     for (int i = 0; i < bamDecoder.frameCount(); i++) {
@@ -4334,7 +4334,7 @@ public class ConvertToBam extends ChildFrame
       if (images != null && pos >= 0 && pos <= getDecoder().frameCount()) {
         int count = 0;
         PseudoBamControl control = getDecoder().createControl();
-        control.setMode(BamDecoder.BamControl.Mode.Individual);
+        control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
         for (int i = 0; i < images.length; i++) {
           if (images[i] != null) {
             // adding frame to global list
@@ -4373,7 +4373,7 @@ public class ConvertToBam extends ChildFrame
           count = getDecoder().frameCount() - pos;
         }
         PseudoBamControl control = getDecoder().createControl();
-        control.setMode(BamDecoder.BamControl.Mode.Individual);
+        control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
         // unregistering color values in global color map
         for (int i = 0; i < count; i++) {
           BufferedImage image = ColorConvert.toBufferedImage(getDecoder().frameGet(control, pos+i), true, false);
@@ -4393,7 +4393,7 @@ public class ConvertToBam extends ChildFrame
       int count;
       count = getDecoder().frameCount();
       PseudoBamControl control = getDecoder().createControl();
-      control.setMode(BamDecoder.BamControl.Mode.Individual);
+      control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
       // clearing global color map
       getConverter().paletteDialog.getColorMap().clear();
       getConverter().paletteDialog.setPaletteModified();

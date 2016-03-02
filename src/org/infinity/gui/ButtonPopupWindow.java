@@ -47,13 +47,13 @@ public class ButtonPopupWindow extends JButton
 {
   public enum Align {
     /** Use in {@link #setWindowAlignment(int)}. Places the popup window below the button control. */
-    Bottom,
+    BOTTOM,
     /** Use in {@link #setWindowAlignment(int)}. Places the popup window on top of the button control. */
-    Top,
+    TOP,
     /** Use in {@link #setWindowAlignment(int)}. Places the popup window to the right of the button control. */
-    Right,
+    RIGHT,
     /** Use in {@link #setWindowAlignment(int)}. Places the popup window to the left of the button control. */
-    Left,
+    LEFT,
   }
 
   private final PopupWindow window = new PopupWindow(this);
@@ -66,13 +66,13 @@ public class ButtonPopupWindow extends JButton
   public ButtonPopupWindow()
   {
     super();
-    init(null, Align.Bottom);
+    init(null, Align.BOTTOM);
   }
 
   public ButtonPopupWindow(Component content)
   {
     super();
-    init(content, Align.Bottom);
+    init(content, Align.BOTTOM);
   }
 
   public ButtonPopupWindow(Component content, Align align)
@@ -84,13 +84,13 @@ public class ButtonPopupWindow extends JButton
   public ButtonPopupWindow(Action a)
   {
     super(a);
-    init(null, Align.Bottom);
+    init(null, Align.BOTTOM);
   }
 
   public ButtonPopupWindow(Action a, Component content)
   {
     super(a);
-    init(content, Align.Bottom);
+    init(content, Align.BOTTOM);
   }
 
   public ButtonPopupWindow(Action a, Component content, Align align)
@@ -102,13 +102,13 @@ public class ButtonPopupWindow extends JButton
   public ButtonPopupWindow(Icon icon)
   {
     super(icon);
-    init(null, Align.Bottom);
+    init(null, Align.BOTTOM);
   }
 
   public ButtonPopupWindow(Icon icon, Component content)
   {
     super(icon);
-    init(content, Align.Bottom);
+    init(content, Align.BOTTOM);
   }
 
   public ButtonPopupWindow(Icon icon, Component content, Align align)
@@ -120,13 +120,13 @@ public class ButtonPopupWindow extends JButton
   public ButtonPopupWindow(String text)
   {
     super(text);
-    init(null, Align.Bottom);
+    init(null, Align.BOTTOM);
   }
 
   public ButtonPopupWindow(String text, Component content)
   {
     super(text);
-    init(content, Align.Bottom);
+    init(content, Align.BOTTOM);
   }
 
   public ButtonPopupWindow(String text, Component content, Align align)
@@ -138,13 +138,13 @@ public class ButtonPopupWindow extends JButton
   public ButtonPopupWindow(String text, Icon icon)
   {
     super(text, icon);
-    init(null, Align.Bottom);
+    init(null, Align.BOTTOM);
   }
 
   public ButtonPopupWindow(String text, Icon icon, Component content)
   {
     super(text, icon);
-    init(content, Align.Bottom);
+    init(content, Align.BOTTOM);
   }
 
   public ButtonPopupWindow(String text, Icon icon, Component content, Align align)
@@ -256,13 +256,13 @@ public class ButtonPopupWindow extends JButton
   public void setWindowAlignment(Align align)
   {
     switch (align) {
-      case Top:
-      case Left:
-      case Right:
+      case TOP:
+      case LEFT:
+      case RIGHT:
         windowAlign = align;
         break;
       default:
-        windowAlign = Align.Bottom;
+        windowAlign = Align.BOTTOM;
     }
   }
 
@@ -361,7 +361,7 @@ public class ButtonPopupWindow extends JButton
       Dimension dimWin = window.getSize();
       Point location = new Point();
 
-      if (windowAlign == Align.Right) {
+      if (windowAlign == Align.RIGHT) {
         if (dimWin.width >= dimScreen.width - rectButton.x - rectButton.width) {
           // show left of the button
           location.x = rectButton.x - dimWin.width;
@@ -369,7 +369,7 @@ public class ButtonPopupWindow extends JButton
           // show right of the button
           location.x = rectButton.x + rectButton.width;
         }
-      } else if (windowAlign == Align.Left) {
+      } else if (windowAlign == Align.LEFT) {
         if (dimWin.width > rectButton.x) {
           // show right of the button
           location.x = rectButton.x + rectButton.width;
@@ -377,7 +377,7 @@ public class ButtonPopupWindow extends JButton
           // show left of the button
           location.x = rectButton.x - dimWin.width;
         }
-      } else if (windowAlign == Align.Top) {
+      } else if (windowAlign == Align.TOP) {
         if (dimWin.height > rectButton.y) {
           // show below button
           location.y = rectButton.y + rectButton.height;
@@ -395,7 +395,7 @@ public class ButtonPopupWindow extends JButton
         }
       }
 
-      if (windowAlign == Align.Right || windowAlign == Align.Left) {
+      if (windowAlign == Align.RIGHT || windowAlign == Align.LEFT) {
         if (dimWin.height < dimScreen.height - rectButton.y) {
           // align with button vertically
           location.y = rectButton.y;

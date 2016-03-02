@@ -43,7 +43,7 @@ import org.infinity.gui.WindowBlocker;
  */
 public class UpdateCheck extends JDialog
 {
-  public enum UpdateAction { Update, Download, Cancel }
+  public enum UpdateAction { UPDATE, DOWNLOAD, CANCEL }
 
   private final JTextField tfCurrentVersion = new JTextField();
   private final JTextField tfCurrentPath = new JTextField();
@@ -56,7 +56,7 @@ public class UpdateCheck extends JDialog
   private final Listeners listeners = new Listeners();
   private final UpdateInfo updateInfo;
 
-  private UpdateAction retVal = UpdateAction.Cancel;
+  private UpdateAction retVal = UpdateAction.CANCEL;
 
   /** Shows update check dialog and returns the action selected by the user. */
   public static UpdateAction showDialog(Window owner, UpdateInfo updateInfo)
@@ -74,7 +74,7 @@ public class UpdateCheck extends JDialog
     } finally {
       dlg = null;
     }
-    return UpdateAction.Cancel;
+    return UpdateAction.CANCEL;
   }
 
 
@@ -312,7 +312,7 @@ public class UpdateCheck extends JDialog
   private void updateNow()
   {
     // TODO: to be implemented later
-    retVal = UpdateAction.Update;
+    retVal = UpdateAction.UPDATE;
     setVisible(false);
   }
 
@@ -339,14 +339,14 @@ public class UpdateCheck extends JDialog
       JOptionPane.showMessageDialog(getOwner(), "Error opening download link in browser.",
                                     "Error", JOptionPane.ERROR_MESSAGE);
     }
-    retVal = UpdateAction.Download;
+    retVal = UpdateAction.DOWNLOAD;
     setVisible(false);
   }
 
   // Closes dialog without triggering actions
   private void cancel()
   {
-    retVal = UpdateAction.Cancel;
+    retVal = UpdateAction.CANCEL;
     setVisible(false);
   }
 

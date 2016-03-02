@@ -22,15 +22,15 @@ public class BinPack2D
   /** Specifies the different heuristic rules that can be used when deciding where to place a new rectangle. */
   public enum HeuristicRules {
     /** BSSF: Positions the rectangle against the short side of a free rectangle into which it fits the best. */
-    BestShortSideFit,
+    BEST_SHORT_SIDE_FIT,
     /** BLSF: Positions the rectangle against the long side of a free rectangle into which it fits the best. */
-    BestLongSideFit,
+    BEST_LONG_SIDE_FIT,
     /** BAF: Positions the rectangle into the smallest free rect into which it fits. */
-    BestAreaFit,
+    BEST_AREA_FIT,
     /** BL: Does the Tetris placement. */
-    BottomLeftRule,
+    BOTTOM_LEFT_RULE,
     /** CP: Chooses the placement where the rectangle touches other rects as much as possible. */
-    ContactPointRule,
+    CONTACT_POINT_RULE,
   }
 
   private final List<Rectangle> usedRectangles = new ArrayList<Rectangle>();
@@ -195,19 +195,19 @@ public class BinPack2D
   {
     Rectangle newNode = null;
     switch (rule) {
-      case BestShortSideFit:
+      case BEST_SHORT_SIDE_FIT:
         newNode = findPositionForNewNodeBestShortSideFit(width, height, null);
         break;
-      case BottomLeftRule:
+      case BOTTOM_LEFT_RULE:
         newNode = findPositionForNewNodeBottomLeft(width, height, null);
         break;
-      case ContactPointRule:
+      case CONTACT_POINT_RULE:
         newNode = findPositionForNewNodeContactPoint(width, height, null);
         break;
-      case BestLongSideFit:
+      case BEST_LONG_SIDE_FIT:
         newNode = findPositionForNewNodeBestLongSideFit(width, height, null);
         break;
-      case BestAreaFit:
+      case BEST_AREA_FIT:
         newNode = findPositionForNewNodeBestAreaFit(width, height, null);
         break;
     }
@@ -261,20 +261,20 @@ public class BinPack2D
     score.setFirst(Integer.MAX_VALUE);
     score.setSecond(Integer.MAX_VALUE);
     switch (rule) {
-      case BestShortSideFit:
+      case BEST_SHORT_SIDE_FIT:
         newNode = findPositionForNewNodeBestShortSideFit(width, height, score);
         break;
-      case BottomLeftRule:
+      case BOTTOM_LEFT_RULE:
         newNode = findPositionForNewNodeBottomLeft(width, height, score);
         break;
-      case ContactPointRule:
+      case CONTACT_POINT_RULE:
         newNode = findPositionForNewNodeContactPoint(width, height, score);
         score.setFirst(-score.getFirst());
         break;
-      case BestLongSideFit:
+      case BEST_LONG_SIDE_FIT:
         newNode = findPositionForNewNodeBestLongSideFit(width, height, score);
         break;
-      case BestAreaFit:
+      case BEST_AREA_FIT:
         newNode = findPositionForNewNodeBestAreaFit(width, height, score);
         break;
     }
