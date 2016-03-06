@@ -115,12 +115,13 @@ public class LayerObjectWallPoly extends LayerObject
         int baseOfs = ((SectionOffset)getParentStructure().getAttribute(WedResource.WED_OFFSET_WALL_POLYGONS)).getValue();
         int ofs = wall.getOffset();
         count = (ofs - baseOfs) / wall.getSize();
+        Flag flags = (Flag)wall.getAttribute(WallPolygon.WED_POLY_FLAGS);
         msg = String.format("Wall polygon #%1$d %2$s", count,
-                            createFlags((Flag)wall.getAttribute(WallPolygon.WED_POLY_FLAGS),
-                                        org.infinity.resource.wed.Polygon.s_flags));
+                            createFlags(flags, org.infinity.resource.wed.Polygon.s_flags));
         int vNum = ((DecNumber)wall.getAttribute(WallPolygon.WED_POLY_NUM_VERTICES)).getValue();
         int vOfs = ((HexNumber)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
-        shapeCoords = loadVertices(wall, vOfs, 0, vNum, Vertex.class);
+        int startIdx = flags.isFlagSet(2) ? 2 : 0;  // skipping first two vertices for "hovering walls"
+        shapeCoords = loadVertices(wall, vOfs, startIdx, vNum - startIdx, Vertex.class);
         poly = createPolygon(shapeCoords, 1.0);
         bounds = normalizePolygon(poly);
       } catch (Exception e) {
