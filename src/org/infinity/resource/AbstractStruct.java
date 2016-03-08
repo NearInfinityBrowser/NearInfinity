@@ -353,7 +353,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public void write(OutputStream os) throws IOException
   {
     Collections.sort(getList()); // This way we can writeField out in the order in list - sorted by offset
-    for (int i = 0; i < getFieldCount(); i++) {
+    for (int i = 0, count = getFieldCount(); i < count; i++) {
       getField(i).write(os);
     }
   }
@@ -399,7 +399,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public String toString()
   {
     StringBuffer sb = new StringBuffer(80);
-    for (int i = 0; i < getFieldCount() && sb.length() < 80; i++) { // < 80 to speed things up
+    for (int i = 0, count = getFieldCount(); i < count && sb.length() < 80; i++) { // < 80 to speed things up
       StructEntry datatype = getField(i);
       sb.append(datatype.getName()).append(": ").append(datatype.toString()).append(',');
     }
@@ -415,16 +415,17 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       index = viewer.getSelectedRow();
     } else if (offsetmap.containsKey(addedEntry.getClass())) {
       int offset = offsetmap.get(addedEntry.getClass()).getValue() + extraoffset;
-      while (index < getFieldCount() && getField(index).getOffset() < offset) {
+      int fieldCount = getFieldCount();
+      while (index < fieldCount && getField(index).getOffset() < offset) {
         index++;
       }
-      while (index < getFieldCount() && addedEntry.getClass() == (getField(index)).getClass()) {
+      while (index < fieldCount && addedEntry.getClass() == (getField(index)).getClass()) {
         index++;
       }
       if (index == 0) {
         SectionOffset soffset = offsetmap.get(addedEntry.getClass());
         if (soffset.getValue() == 0) {
-          index = getFieldCount();
+          index = fieldCount;
           soffset.setValue(getSize());
         }
         else
@@ -632,7 +633,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     if (parent == null) parent = this;
     if (type == null) type = StructEntry.class;
 
-    for (int i = 0; i < parent.getFieldCount(); i++) {
+    for (int i = 0, count = parent.getFieldCount(); i < count; i++) {
       StructEntry structEntry = parent.getField(i);
       if (offset >= structEntry.getOffset() &&
           offset < structEntry.getOffset() + structEntry.getSize()) {
@@ -651,9 +652,9 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     if (name != null && !name.isEmpty()) {
       if (parent == null) parent = this;
 
-      for (int i = 0; i < parent.getFieldCount(); i++) {
+      for (int i = 0, count = parent.getFieldCount(); i < count; i++) {
         StructEntry structEntry = parent.getField(i);
-        if (structEntry.getName().equalsIgnoreCase(name)) {
+        if (structEntry.getName().equals(name)) {
           return structEntry;
         } else if (recursive && structEntry instanceof AbstractStruct) {
           structEntry = getAttribute((AbstractStruct)structEntry, name, recursive);
@@ -694,8 +695,9 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
    */
   public StructEntry getField(int index)
   {
-    if (index >= 0 && index < getFieldCount()) {
+    try {
       return list.get(index);
+    } catch (IndexOutOfBoundsException e) {
     }
     return null;
   }
