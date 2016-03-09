@@ -107,11 +107,11 @@ public final class Profile
   public static final int GET_GLOBAL_NEARINFINITY_VERSION     = 1;
   /** Property: (List&lt;Game&gt;) List of supported games. */
   public static final int GET_GLOBAL_GAMES                    = 2;
-  /** Property: (String) The name of the override folder ("<code>Override</code>"). */
+  /** Property: (String) The name of the override folder ("{@code Override}"). */
   public static final int GET_GLOBAL_OVERRIDE_NAME            = 3;
-  /** Property: (String) Returns "<code>dialog.tlk</code>". */
+  /** Property: (String) Returns "{@code dialog.tlk}". */
   public static final int GET_GLOBAL_DIALOG_NAME              = 4;
-  /** Property: (String) Returns "<code>dialogf.tlk</code>". */
+  /** Property: (String) Returns "{@code dialogf.tlk}". */
   public static final int GET_GLOBAL_DIALOG_NAME_FEMALE       = 5;
 
   // Static properties which require an additional parameter.
@@ -370,11 +370,9 @@ public final class Profile
     final String[] PST_EXTRA_FOLDERS = { "Music", "Save", "Temp" };
     final String[] BG_EXTRA_FOLDERS = { "Characters", "MPSave", "Music", "Portraits", "Save", "Screenshots",
                                         "Scripts", "ScrnShot", "Sounds", "Temp", "TempSave" };
-    final String[] BGEE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "Movies", "MPSave", "MPBPSave",
-                                          "Music", "Portraits", "Save", "Sounds", "ScrnShot", "Scripts",
-                                          "Temp", "TempSave" };
-    final String[] EE_EXTRA_FOLDERS = { "Characters", "Fonts", "Movies", "MPSave", "Music", "Portraits",
-                                        "Save", "Sounds", "ScrnShot", "Scripts", "Temp", "TempSave" };
+    final String[] EE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "Movies", "MPSave", "MPBPSave",
+                                        "MPSODSave", "Music", "Portraits", "Save", "Sounds", "ScrnShot",
+                                        "Scripts", "SODSave", "Temp", "TempSave" };
     GAME_EXTRA_FOLDERS.put(Game.Unknown, Arrays.asList(BG_EXTRA_FOLDERS));
     GAME_EXTRA_FOLDERS.put(Game.BG1, Arrays.asList(BG_EXTRA_FOLDERS));
     GAME_EXTRA_FOLDERS.put(Game.BG1TotSC, Arrays.asList(BG_EXTRA_FOLDERS));
@@ -387,15 +385,15 @@ public final class Profile
     GAME_EXTRA_FOLDERS.put(Game.IWDHoW, Arrays.asList(BG_EXTRA_FOLDERS));
     GAME_EXTRA_FOLDERS.put(Game.IWDHowToTLM, Arrays.asList(BG_EXTRA_FOLDERS));
     GAME_EXTRA_FOLDERS.put(Game.IWD2, Arrays.asList(BG_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.BG1EE, Arrays.asList(BGEE_EXTRA_FOLDERS));
+    GAME_EXTRA_FOLDERS.put(Game.BG1EE, Arrays.asList(EE_EXTRA_FOLDERS));
     GAME_EXTRA_FOLDERS.put(Game.BG1SoD, Arrays.asList(EE_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.BG2EE, Arrays.asList(BGEE_EXTRA_FOLDERS));
+    GAME_EXTRA_FOLDERS.put(Game.BG2EE, Arrays.asList(EE_EXTRA_FOLDERS));
     GAME_EXTRA_FOLDERS.put(Game.IWDEE, Arrays.asList(EE_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.EET, Arrays.asList(BGEE_EXTRA_FOLDERS));
+    GAME_EXTRA_FOLDERS.put(Game.EET, Arrays.asList(EE_EXTRA_FOLDERS));
 
     // initializing home folder names for Enhanced Edition games
     GAME_HOME_FOLDER.put(Game.BG1EE, "Baldur's Gate - Enhanced Edition");
-    GAME_HOME_FOLDER.put(Game.BG1SoD, "Baldur's Gate - Siege of Dragonspear");   // TODO: confirm!
+    GAME_HOME_FOLDER.put(Game.BG1SoD, GAME_HOME_FOLDER.get(Game.BG1EE));
     GAME_HOME_FOLDER.put(Game.BG2EE, "Baldur's Gate II - Enhanced Edition");
     GAME_HOME_FOLDER.put(Game.EET, GAME_HOME_FOLDER.get(Game.BG2EE));
     GAME_HOME_FOLDER.put(Game.IWDEE, "Icewind Dale - Enhanced Edition");
@@ -921,7 +919,7 @@ public final class Profile
     File gameRoot = (File)getProperty(GET_GAME_ROOT_FOLDER);
     if (new FileNI(gameRoot, "movies/howseer.wbm").isFile()) {
       game = Game.IWDEE;
-      addEntry(GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
+      // Note: baldur.ini is initialized later
     } else if (new FileNI(gameRoot, "movies/pocketzz.wbm").isFile()) {
       if (new FileNI(gameRoot, "override/EET.flag").isFile() ||
           new FileNI(gameRoot, "data/eetTU00.bif").isFile()) {
@@ -929,13 +927,13 @@ public final class Profile
       } else {
         game = Game.BG2EE;
       }
-      addEntry(GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
+      // Note: baldur.ini is initialized later
     } else if (new FileNI(gameRoot, "movies/sodcin01.wbm").isFile()) {
       game = Game.BG1SoD;
-      addEntry(GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
+      // Note: baldur.ini is initialized later
     } else if (new FileNI(gameRoot, "movies/bgenter.wbm").isFile()) {
       game = Game.BG1EE;
-      addEntry(GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
+      // Note: baldur.ini is initialized later
     } else if (new FileNI(gameRoot, "torment.exe").isFile() &&
                !(new FileNI(gameRoot, "movies/sigil.wbm").isFile())) {
       game = Game.PST;
@@ -990,6 +988,11 @@ public final class Profile
 
     if (GAME_HOME_FOLDER.containsKey(game)) {
       addEntry(GET_GAME_HOME_FOLDER_NAME, Type.STRING, GAME_HOME_FOLDER.get(game));
+    }
+
+    // delayed initialization of ini files (EE only)
+    if (isEnhancedEdition() && getProperty(GET_GAME_INI_FILE) == null) {
+      initIniFile("baldur.lua", "baldur.ini");
     }
 
     initRootDirs();
@@ -1089,6 +1092,20 @@ public final class Profile
     addEntry(GET_GAME_ENGINE, Type.OBJECT, engine);
   }
 
+  // Initializes the first available of the specified ini files
+  private void initIniFile(String... iniFiles)
+  {
+    if (iniFiles != null) {
+      File homeRoot = ResourceFactory.getHomeRoot();
+      for (int i = 0; i < iniFiles.length; i++) {
+        if (new FileNI(homeRoot, iniFiles[i]).isFile()) {
+          addEntry(GET_GAME_INI_NAME, Type.STRING, iniFiles[i]);
+          break;
+        }
+      }
+    }
+  }
+
   // Initializes available root folders of the game
   private void initRootDirs()
   {
@@ -1140,18 +1157,18 @@ public final class Profile
       File gameRoot = (File)getProperty(GET_GAME_ROOT_FOLDER);
       File homeRoot = (File)getProperty(GET_GAME_HOME_FOLDER);
       File langRoot = (File)getProperty(GET_GAME_LANG_FOLDER);
-      list.add(new FileNI(langRoot, "Override"));
-      list.add(new FileNI(langRoot, "Movies"));
-      list.add(new FileNI(langRoot, "Sounds"));
       list.add(new FileNI(homeRoot, "Movies"));
       list.add(new FileNI(homeRoot, "Characters"));
       list.add(new FileNI(homeRoot, "Portraits"));
       list.add(new FileNI(homeRoot, "Sounds"));
       list.add(new FileNI(homeRoot, "Scripts"));
       list.add(new FileNI(homeRoot, "Override"));
+      list.add(new FileNI(langRoot, "Override"));
+      list.add(new FileNI(langRoot, "Movies"));
       list.add(new FileNI(gameRoot, "Movies"));
       list.add(new FileNI(gameRoot, "Characters"));
       list.add(new FileNI(gameRoot, "Portraits"));
+      list.add(new FileNI(langRoot, "Sounds"));
       list.add(new FileNI(gameRoot, "Sounds"));
       list.add(new FileNI(gameRoot, "Scripts"));
       list.add(new FileNI(gameRoot, "Override"));

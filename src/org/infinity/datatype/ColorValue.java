@@ -29,7 +29,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
-import org.infinity.resource.graphics.BmpResource;
+import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.util.DynamicArray;
 
 public final class ColorValue extends Datatype implements Editable, IsNumeric, ChangeListener, ActionListener
@@ -68,9 +68,9 @@ public final class ColorValue extends Datatype implements Editable, IsNumeric, C
   {
     try {
       if (ResourceFactory.resourceExists("RANGES12.BMP"))
-        image = new BmpResource(ResourceFactory.getResourceEntry("RANGES12.BMP")).getImage();
+        image = new GraphicsResource(ResourceFactory.getResourceEntry("RANGES12.BMP")).getImage();
       else
-        image = new BmpResource(ResourceFactory.getResourceEntry("MPALETTE.BMP")).getImage();
+        image = new GraphicsResource(ResourceFactory.getResourceEntry("MPALETTE.BMP")).getImage();
     } catch (Exception e) {
       e.printStackTrace();
     }

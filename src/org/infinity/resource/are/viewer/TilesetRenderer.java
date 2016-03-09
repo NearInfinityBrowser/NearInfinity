@@ -27,7 +27,7 @@ import org.infinity.datatype.TextString;
 import org.infinity.gui.RenderCanvas;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.graphics.BmpResource;
+import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.TisDecoder;
 import org.infinity.resource.key.ResourceEntry;
@@ -83,7 +83,7 @@ public class TilesetRenderer extends RenderCanvas
   private int lighting = ViewerConstants.LIGHTING_DAY;    // the lighting condition to be used (day/twilight/night)
   private int miniMapType = ViewerConstants.MAP_NONE;     // the currently overlayed mini map (one of the MAP_XXX constants)
   private int miniMapAlpha = 128;                         // alpha transparency for overlayed mini maps
-  private BmpResource miniMap = null;                     // the current mini map resource
+  private GraphicsResource miniMap = null;                     // the current mini map resource
 
   /**
    * Returns the number of supported lighting modes.
@@ -432,7 +432,7 @@ public class TilesetRenderer extends RenderCanvas
    * Returns the BmpResource instance of the current mini map.
    * @return BmpResource instance of the current mini map, or <code>null</code> if not available.
    */
-  public BmpResource getMiniMap()
+  public GraphicsResource getMiniMap()
   {
     return miniMap;
   }
@@ -442,7 +442,7 @@ public class TilesetRenderer extends RenderCanvas
    * @param mapType The type of the mini map.
    * @param bmp The mini map resource.
    */
-  public void setMiniMap(int mapType, BmpResource bmp)
+  public void setMiniMap(int mapType, GraphicsResource bmp)
   {
     if (mapType != miniMapType || bmp != miniMap) {
       switch (mapType) {

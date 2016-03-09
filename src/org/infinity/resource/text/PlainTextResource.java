@@ -323,6 +323,11 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
             BrowserMenuBar.getInstance().getSqlSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.SQL;
         }
+      } else if ("LUA".equalsIgnoreCase(entry.getExtension())) {
+        if (BrowserMenuBar.getInstance() == null ||
+            BrowserMenuBar.getInstance().getLuaSyntaxHighlightingEnabled()) {
+          language = InfinityTextArea.Language.LUA;
+        }
       } else if (Profile.isEnhancedEdition() && "BALDUR.INI".equalsIgnoreCase(entry.getResourceName())) {
         if (BrowserMenuBar.getInstance() == null ||
             BrowserMenuBar.getInstance().getSqlSyntaxHighlightingEnabled()) {

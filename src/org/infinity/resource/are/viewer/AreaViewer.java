@@ -105,7 +105,7 @@ import org.infinity.resource.are.Song;
 import org.infinity.resource.are.viewer.ViewerConstants.LayerStackingType;
 import org.infinity.resource.are.viewer.ViewerConstants.LayerType;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
-import org.infinity.resource.graphics.BmpResource;
+import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
@@ -2436,12 +2436,12 @@ public class AreaViewer extends ChildFrame
     private final Window parent;
     private final WedResource[] wed = new WedResource[2];
     private final AbstractLayerItem[] wedItem = new IconLayerItem[]{null, null};
-    private final BmpResource[] mapLight = new BmpResource[]{null, null};
+    private final GraphicsResource[] mapLight = new GraphicsResource[]{null, null};
 
     private AreResource are;
     private boolean hasDayNight, hasExtendedNight;
     private AbstractLayerItem areItem, songItem, restItem;
-    private BmpResource mapSearch, mapHeight;
+    private GraphicsResource mapSearch, mapHeight;
 
     public Map(Window parent, AreResource are)
     {
@@ -2497,7 +2497,7 @@ public class AreaViewer extends ChildFrame
      *                or <code>false</code> to return the day-specific light map.
      * @return The specified BmpResource instance.
      */
-    public BmpResource getMiniMap(int mapType, boolean isNight)
+    public GraphicsResource getMiniMap(int mapType, boolean isNight)
     {
       switch (mapType) {
         case ViewerConstants.MAP_SEARCH:
@@ -2629,7 +2629,7 @@ public class AreaViewer extends ChildFrame
         // loading search map
         String name = mapName + "SR.BMP";
         try {
-          mapSearch = new BmpResource(ResourceFactory.getResourceEntry(name));
+          mapSearch = new GraphicsResource(ResourceFactory.getResourceEntry(name));
         } catch (Exception e) {
           mapSearch = null;
         }
@@ -2637,7 +2637,7 @@ public class AreaViewer extends ChildFrame
         // loading height map
         name = mapName + "HT.BMP";
         try {
-          mapHeight = new BmpResource(ResourceFactory.getResourceEntry(name));
+          mapHeight = new GraphicsResource(ResourceFactory.getResourceEntry(name));
         } catch (Exception e) {
           mapHeight = null;
         }
@@ -2645,14 +2645,14 @@ public class AreaViewer extends ChildFrame
         // loading light map(s)
         name = mapName + "LM.BMP";
         try {
-          mapLight[0] = new BmpResource(ResourceFactory.getResourceEntry(name));
+          mapLight[0] = new GraphicsResource(ResourceFactory.getResourceEntry(name));
         } catch (Exception e) {
           mapLight[0] = null;
         }
         if (hasExtendedNight()) {
           name = mapName + "LN.BMP";
           try {
-            mapLight[1] = new BmpResource(ResourceFactory.getResourceEntry(name));
+            mapLight[1] = new GraphicsResource(ResourceFactory.getResourceEntry(name));
           } catch (Exception e) {
             mapLight[1] = mapLight[0];
           }

@@ -66,6 +66,12 @@ public final class Keyfile
   public static final int TYPE_SQL    = 0x403;
   public static final int TYPE_PVRZ   = 0x404;
   public static final int TYPE_GLSL   = 0x405;
+  public static final int TYPE_TOT    = 0x406;
+  public static final int TYPE_TOH    = 0x407;
+  public static final int TYPE_MENU   = 0x408;
+  public static final int TYPE_LUA    = 0x409;
+  public static final int TYPE_TTF    = 0x40a;
+  public static final int TYPE_PNG    = 0x40b;
   public static final int TYPE_BAH    = 0x44c;
   public static final int TYPE_INI    = 0x802;
   public static final int TYPE_SRC    = 0x803;
@@ -165,7 +171,18 @@ public final class Keyfile
     resourceicons.put("PVRZ", ICON_IMAGE);
     extmap.put(TYPE_GLSL, "GLSL");
     resourceicons.put("GLSL", ICON_TEXT);
-
+    extmap.put(TYPE_TOT, "TOT");
+    resourceicons.put("TOT", ICON_STRUCT);
+    extmap.put(TYPE_TOH, "TOH");
+    resourceicons.put("TOH", ICON_STRUCT);
+    extmap.put(TYPE_MENU, "MENU");
+    resourceicons.put("MENU", ICON_SCRIPT);
+    extmap.put(TYPE_LUA, "LUA");
+    resourceicons.put("LUA", ICON_SCRIPT);
+    extmap.put(TYPE_TTF, "TTF");
+    resourceicons.put("TTF", ICON_IMAGE);
+    extmap.put(TYPE_PNG, "PNG");
+    resourceicons.put("PNG", ICON_IMAGE);
     extmap.put(TYPE_MUS, "MUS");
     resourceicons.put("MUS", ICON_SOUND);
     extmap.put(TYPE_ACM, "ACM");
@@ -174,8 +191,6 @@ public final class Keyfile
     resourceicons.put("TXT", ICON_TEXT);
     resourceicons.put("RES", ICON_TEXT);
     resourceicons.put("BAF", ICON_SCRIPT);
-    resourceicons.put("TOH", ICON_STRUCT);
-    resourceicons.put("TOT", ICON_STRUCT);
   }
 
   @Override

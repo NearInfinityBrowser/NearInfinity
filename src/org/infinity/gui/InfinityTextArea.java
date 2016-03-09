@@ -38,6 +38,8 @@ public class InfinityTextArea extends RSyntaxTextArea
     BCS,
     /** Select GLSL highlighting. */
     GLSL,
+    /** Select LUA highlighting. */
+    LUA,
     /** Select SQL highlighting. */
     SQL,
   }
@@ -260,6 +262,9 @@ public class InfinityTextArea extends RSyntaxTextArea
         case GLSL:
           style = GLSLTokenMaker.SYNTAX_STYLE_GLSL;
           break;
+        case LUA:
+          style = SyntaxConstants.SYNTAX_STYLE_LUA;
+          break;
         case SQL:
           style = SyntaxConstants.SYNTAX_STYLE_SQL;
           break;
@@ -289,6 +294,11 @@ public class InfinityTextArea extends RSyntaxTextArea
           case GLSL:
             if (BrowserMenuBar.getInstance() != null) {
               schemePath = BrowserMenuBar.getInstance().getGlslColorScheme();
+            }
+            break;
+          case LUA:
+            if (BrowserMenuBar.getInstance() != null) {
+              schemePath = BrowserMenuBar.getInstance().getLuaColorScheme();
             }
             break;
           case SQL:

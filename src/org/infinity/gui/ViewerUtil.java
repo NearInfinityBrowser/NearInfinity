@@ -49,7 +49,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.graphics.BamDecoder;
-import org.infinity.resource.graphics.BmpResource;
+import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.key.ResourceEntry;
@@ -197,8 +197,8 @@ public final class ViewerUtil
         JLabel label = new JLabel(imageRef.getName(), JLabel.CENTER);
         label.setVerticalTextPosition(SwingConstants.BOTTOM);
         label.setHorizontalTextPosition(SwingConstants.CENTER);
-        if (resource instanceof BmpResource) {
-          label.setIcon(new ImageIcon(((BmpResource)resource).getImage()));
+        if (resource instanceof GraphicsResource) {
+          label.setIcon(new ImageIcon(((GraphicsResource)resource).getImage()));
         } else if (resource instanceof MosResource) {
           label.setIcon(new ImageIcon(((MosResource)resource).getImage()));
         }

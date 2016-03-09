@@ -39,7 +39,7 @@ import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.gam.GamResource;
 import org.infinity.resource.graphics.BamResource;
-import org.infinity.resource.graphics.BmpResource;
+import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.graphics.PltResource;
 import org.infinity.resource.graphics.PvrzResource;
@@ -54,6 +54,7 @@ import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.resource.mus.MusResource;
 import org.infinity.resource.other.EffResource;
 import org.infinity.resource.other.FntResource;
+import org.infinity.resource.other.TtfResource;
 import org.infinity.resource.other.UnknownResource;
 import org.infinity.resource.other.VvcResource;
 import org.infinity.resource.other.WfxResource;
@@ -116,24 +117,22 @@ public final class ResourceFactory
         res = new BamResource(entry);
       } else if (ext.equalsIgnoreCase("TIS")) {
         res = new TisResource(entry);
-      } else if (ext.equalsIgnoreCase("BMP")) {
-        res = new BmpResource(entry);
+      } else if (ext.equalsIgnoreCase("BMP") || ext.equalsIgnoreCase("PNG")) {
+        res = new GraphicsResource(entry);
       } else if (ext.equalsIgnoreCase("MOS")) {
         res = new MosResource(entry);
-      } else if (ext.equalsIgnoreCase("WAV") ||
-                 ext.equalsIgnoreCase("ACM")) {
+      } else if (ext.equalsIgnoreCase("WAV") || ext.equalsIgnoreCase("ACM")) {
         res = new SoundResource(entry);
       } else if (ext.equalsIgnoreCase("MUS")) {
         res = new MusResource(entry);
-      } else if (ext.equalsIgnoreCase("IDS") ||
-                 ext.equalsIgnoreCase("2DA") ||
-                 ext.equalsIgnoreCase("BIO") ||
-                 ext.equalsIgnoreCase("RES") ||
-                 ext.equalsIgnoreCase("INI") ||
-                 ext.equalsIgnoreCase("TXT") ||
+      } else if (ext.equalsIgnoreCase("IDS") || ext.equalsIgnoreCase("2DA") ||
+                 ext.equalsIgnoreCase("BIO") || ext.equalsIgnoreCase("RES") ||
+                 ext.equalsIgnoreCase("INI") || ext.equalsIgnoreCase("TXT") ||
                  (ext.equalsIgnoreCase("SRC") && Profile.getEngine() == Profile.Engine.IWD2) ||
                  (Profile.isEnhancedEdition() && (ext.equalsIgnoreCase("SQL") ||
                                                   ext.equalsIgnoreCase("GUI") ||
+                                                  ext.equalsIgnoreCase("LUA") ||
+                                                  ext.equalsIgnoreCase("MENU") ||
                                                   ext.equalsIgnoreCase("GLSL")))) {
         res = new PlainTextResource(entry);
       } else if (ext.equalsIgnoreCase("MVE")) {
@@ -142,8 +141,7 @@ public final class ResourceFactory
         res = new WbmResource(entry);
       } else if (ext.equalsIgnoreCase("PLT") && ext.equals(forcedExtension)) {
         res = new PltResource(entry);
-      } else if (ext.equalsIgnoreCase("BCS") ||
-                 ext.equalsIgnoreCase("BS")) {
+      } else if (ext.equalsIgnoreCase("BCS") || ext.equalsIgnoreCase("BS")) {
         res = new BcsResource(entry);
       } else if (ext.equalsIgnoreCase("ITM")) {
         res = new ItmResource(entry);
@@ -165,8 +163,7 @@ public final class ResourceFactory
         res = new WmpResource(entry);
       } else if (ext.equalsIgnoreCase("CHU")) {
         res = new ChuResource(entry);
-      } else if (ext.equalsIgnoreCase("CRE") ||
-                 ext.equalsIgnoreCase("CHR")) {
+      } else if (ext.equalsIgnoreCase("CRE") || ext.equalsIgnoreCase("CHR")) {
         res = new CreResource(entry);
       } else if (ext.equalsIgnoreCase("ARE")) {
         res = new AreResource(entry);
@@ -192,6 +189,8 @@ public final class ResourceFactory
         res = new PvrzResource(entry);
       } else if (ext.equalsIgnoreCase("FNT") && Profile.isEnhancedEdition()) {
         res = new FntResource(entry);
+      } else if (ext.equalsIgnoreCase("TTF") && Profile.isEnhancedEdition()) {
+        res = new TtfResource(entry);
       } else {
         res = detectResource(entry);
         if (res == null) {
@@ -292,6 +291,11 @@ public final class ResourceFactory
                 res = getResource(entry, "WBM");
               } else if (data.length > 6 && data[3] == 0 && data[4] == 0x78) {  // just guessing...
                 res = getResource(entry, "PVRZ");
+              } else if (data.length > 4 && data[0] == 0x89 &&
+                         data[1] == 0x50 && data[2] == 0x4e && data[3] == 0x47) {
+                res = getResource(entry, "PNG");
+              } else if (DynamicArray.getInt(data, 0) == 0x00000100) {  // wild guess...
+                res = getResource(entry, "TTF");
               }
             }
           }
@@ -541,7 +545,9 @@ public final class ResourceFactory
             if (line.contains("'Language'")) {
               String[] entries = line.split(",");
               if (entries.length == 3) {
-                String lang = entries[2].replace('\'', ' ').trim();
+                // Note: replace operation is compatible with both baldur.ini and baldur.lua
+                String lang = entries[2].replaceFirst("^[^']*'", "");
+                lang = lang.replaceFirst("'.*$", "");
                 if (lang.matches("[A-Za-z]{2}_[A-Za-z]{2}")) {
                   File dir = new FileNI(Profile.getGameRoot(), "lang/" + lang);
                   if (dir.isDirectory()) {

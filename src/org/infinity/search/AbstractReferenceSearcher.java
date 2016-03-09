@@ -352,6 +352,10 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
         selectedExt = new String[]{"2DA", "ARE", "BCS", "CHU", "DLG", "WMP"};
       } else if ("MVE".equalsIgnoreCase(ext) || "WBM".equalsIgnoreCase(ext)) {
         selectedExt = new String[]{"ARE", "BCS", "CRE", "DLG", "EFF", "GAM", "ITM", "SPL"};
+      } else if ("PNG".equalsIgnoreCase(ext)) {
+        // TODO: confirm!
+        selectedExt = new String[]{"2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF", "GAM",
+                                   "INI", "ITM", "PRO", "SPL", "VEF", "VVC"};
       } else if ("PRO".equalsIgnoreCase(ext)) {
         selectedExt = new String[]{"ARE", "CRE", "EFF", "GAM", "ITM", "SPL"};
       } else if ("PVRZ".equalsIgnoreCase(ext)) {

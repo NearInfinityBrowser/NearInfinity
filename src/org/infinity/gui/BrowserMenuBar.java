@@ -285,6 +285,16 @@ public final class BrowserMenuBar extends JMenuBar
     }
   }
 
+  /** Returns the selected LUA color scheme. */
+  public String getLuaColorScheme()
+  {
+    if (NearInfinity.isDebug() && optionsMenu.getDebugColorScheme() != null) {
+      return optionsMenu.getDebugColorScheme();
+    } else {
+      return optionsMenu.getLuaColorScheme();
+    }
+  }
+
   /** Returns the selected SQL color scheme. */
   public String getSqlColorScheme()
   {
@@ -299,6 +309,12 @@ public final class BrowserMenuBar extends JMenuBar
   public boolean getGlslSyntaxHighlightingEnabled()
   {
     return optionsMenu.optionGLSLEnableSyntax.isSelected();
+  }
+
+  /** Returns state of "Enable Syntax Highlighting for LUA" */
+  public boolean getLuaSyntaxHighlightingEnabled()
+  {
+    return optionsMenu.optionLUAEnableSyntax.isSelected();
   }
 
   /** Returns state of "Enable Syntax Highlighting for SQL" */
@@ -1580,6 +1596,8 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_GLSL_SYNTAXHIGHLIGHTING  = "GlslSyntaxHighlighting";
     private static final String OPTION_GLSL_COLORSCHEME         = "GlslColorScheme";
     private static final String OPTION_GLSL_CODEFOLDING         = "GlslCodeFolding";
+    private static final String OPTION_LUA_SYNTAXHIGHLIGHTING   = "LuaSyntaxHighlighting";
+    private static final String OPTION_LUA_COLORSCHEME          = "LuaColorScheme";
     private static final String OPTION_SQL_SYNTAXHIGHLIGHTING   = "SqlSyntaxHighlighting";
     private static final String OPTION_SQL_COLORSCHEME          = "SqlColorScheme";
     private static final String OPTION_TEXT_DEBUG_ENABLECOLORSCHEME = "DebugColorSchemeEnabled";
@@ -1606,11 +1624,13 @@ public final class BrowserMenuBar extends JMenuBar
     private final JRadioButtonMenuItem[] selectBcsIndent = new JRadioButtonMenuItem[BCSINDENT.length];
     private final JRadioButtonMenuItem[] selectBcsColorScheme = new JRadioButtonMenuItem[BCSCOLORSCHEME.length];
     private final JRadioButtonMenuItem[] selectGlslColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
+    private final JRadioButtonMenuItem[] selectLuaColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
     private final JRadioButtonMenuItem[] selectSqlColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
     private JCheckBoxMenuItem optionTextHightlightCurrent, optionTextLineNumbers,
                               optionTextShowWhiteSpace, optionTextShowEOL, optionTextTabEmulate,
                               optionBCSEnableSyntax, optionBCSEnableCodeFolding,
-                              optionBCSEnableAutoIndent, optionGLSLEnableSyntax, optionSQLEnableSyntax,
+                              optionBCSEnableAutoIndent, optionGLSLEnableSyntax, optionLUAEnableSyntax,
+                              optionSQLEnableSyntax,
 //                              optionBCSEnableAutoComplete,
                               optionGLSLEnableCodeFolding,
                               optionTextDebugColorSchemeEnabled;
@@ -1771,6 +1791,21 @@ public final class BrowserMenuBar extends JMenuBar
         textGLSLColors.add(selectGlslColorScheme[i]);
         bg.add(selectGlslColorScheme[i]);
       }
+
+      JMenu textLUAColors = new JMenu("Color Scheme for LUA");
+      textMisc.add(textLUAColors);
+      bg = new ButtonGroup();
+      int selectedLUAScheme = getPrefs().getInt(OPTION_LUA_COLORSCHEME, 0);
+      if (selectedLUAScheme < 0 || selectedLUAScheme >= COLORSCHEME.length) {
+        selectedLUAScheme = 0;
+      }
+      for (int i = 0; i < COLORSCHEME.length; i++) {
+        selectLuaColorScheme[i] = new JRadioButtonMenuItem(COLORSCHEME[i][1], selectedLUAScheme == i);
+        selectLuaColorScheme[i].setToolTipText(COLORSCHEME[i][2]);
+        textLUAColors.add(selectLuaColorScheme[i]);
+        bg.add(selectLuaColorScheme[i]);
+      }
+
       JMenu textSQLColors = new JMenu("Color Scheme for SQL");
       textMisc.add(textSQLColors);
       bg = new ButtonGroup();
@@ -1784,9 +1819,13 @@ public final class BrowserMenuBar extends JMenuBar
         textSQLColors.add(selectSqlColorScheme[i]);
         bg.add(selectSqlColorScheme[i]);
       }
+
       optionGLSLEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting for GLSL",
                                                      getPrefs().getBoolean(OPTION_GLSL_SYNTAXHIGHLIGHTING, true));
       textMisc.add(optionGLSLEnableSyntax);
+      optionLUAEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting for LUA",
+                                                    getPrefs().getBoolean(OPTION_LUA_SYNTAXHIGHLIGHTING, true));
+      textMisc.add(optionLUAEnableSyntax);
       optionSQLEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting for SQL",
                                                     getPrefs().getBoolean(OPTION_SQL_SYNTAXHIGHLIGHTING, true));
       textMisc.add(optionSQLEnableSyntax);
@@ -2246,9 +2285,12 @@ public final class BrowserMenuBar extends JMenuBar
 //      prefs.putBoolean(OPTION_BCS_AUTOCOMPLETE, optionBCSEnableAutoComplete.isSelected());
       selectColorScheme = getSelectedButtonIndex(selectGlslColorScheme, 0);
       getPrefs().putInt(OPTION_GLSL_COLORSCHEME, selectColorScheme);
+      selectColorScheme = getSelectedButtonIndex(selectLuaColorScheme, 0);
+      getPrefs().putInt(OPTION_LUA_COLORSCHEME, selectColorScheme);
       selectColorScheme = getSelectedButtonIndex(selectSqlColorScheme, 0);
       getPrefs().putInt(OPTION_SQL_COLORSCHEME, selectColorScheme);
       getPrefs().putBoolean(OPTION_GLSL_SYNTAXHIGHLIGHTING, optionGLSLEnableSyntax.isSelected());
+      getPrefs().putBoolean(OPTION_LUA_SYNTAXHIGHLIGHTING, optionLUAEnableSyntax.isSelected());
       getPrefs().putBoolean(OPTION_SQL_SYNTAXHIGHLIGHTING, optionSQLEnableSyntax.isSelected());
       getPrefs().putBoolean(OPTION_GLSL_CODEFOLDING, optionGLSLEnableCodeFolding.isSelected());
       getPrefs().putInt(OPTION_OPTION_FIXED, optionFixedInternal);
@@ -2535,6 +2577,12 @@ public final class BrowserMenuBar extends JMenuBar
     public String getGlslColorScheme()
     {
       int idx = getSelectedButtonIndex(selectGlslColorScheme, 0);
+      return COLORSCHEME[idx][0];
+    }
+
+    public String getLuaColorScheme()
+    {
+      int idx = getSelectedButtonIndex(selectLuaColorScheme, 0);
       return COLORSCHEME[idx][0];
     }
 

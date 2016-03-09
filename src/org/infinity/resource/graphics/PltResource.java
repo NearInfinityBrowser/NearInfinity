@@ -110,7 +110,7 @@ public final class PltResource implements Resource, ActionListener
     Object item = ((JComboBox<?>)buttonPanel.getControlByType(CtrlColorList)).getSelectedItem();
     if (!item.toString().equalsIgnoreCase("None")) {
       try {
-        palette = new BmpResource((ResourceEntry)item).getPalette();
+        palette = new GraphicsResource((ResourceEntry)item).getPalette();
       } catch (Exception e) {
         e.printStackTrace();
         palette = null;
