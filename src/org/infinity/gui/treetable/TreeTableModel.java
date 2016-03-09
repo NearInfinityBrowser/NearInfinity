@@ -9,7 +9,7 @@ import javax.swing.tree.TreeModel;
 public interface TreeTableModel extends TreeModel
 {
   /**
-   * Returns the type for column number <code>column</code>.
+   * Returns the type for column number {@code column}.
    */
   Class<? extends Object> getColumnClass(int column);
   /**
@@ -18,25 +18,25 @@ public interface TreeTableModel extends TreeModel
   int getColumnCount();
 
   /**
-   * Returns the name for column number <code>column</code>.
+   * Returns the name for column number {@code column}.
    */
   String getColumnName(int column);
 
   /**
-   * Returns the value to be displayed for node <code>node</code>,
-   * at column number <code>column</code>.
+   * Returns the value to be displayed for node {@code node},
+   * at column number {@code column}.
    */
   Object getValueAt(Object node, int column);
 
   /**
-   * Indicates whether the the value for node <code>node</code>,
-   * at column number <code>column</code> is editable.
+   * Indicates whether the the value for node {@code node},
+   * at column number {@code column} is editable.
    */
   boolean isCellEditable(Object node, int column);
 
   /**
-   * Sets the value for node <code>node</code>,
-   * at column number <code>column</code>.
+   * Sets the value for node {@code node},
+   * at column number {@code column}.
    */
   void setValueAt(Object aValue, Object node, int column);
 }

@@ -135,7 +135,7 @@ public abstract class AudioBuffer
      * Creates an audio channel override object.
      * (A value of zero signals the audio decoder to ignore that parameter.
      *  A negative value lets the AudioBuffer object decide what to do with that parameter.)
-     * @param numChannels Force to use <code>numChannels</code> audio channels.
+     * @param numChannels Force to use {@code numChannels} audio channels.
      * @return An AudioOverride object initialized with the specified parameters.
      */
     public static AudioOverride overrideChannels(int numChannels)
@@ -147,7 +147,7 @@ public abstract class AudioBuffer
      * Creates a sample rate override object.
      * (A value of zero signals the audio decoder to ignore that parameter.
      *  A negative value lets the AudioBuffer object decide what to do with that parameter.)
-     * @param sampleRate Force a sample rate of <code>sampleRate</code> Hz.
+     * @param sampleRate Force a sample rate of {@code sampleRate} Hz.
      * @return An AudioOverride object initialized with the specified parameters.
      */
     public static AudioOverride overrideSampleRate(int sampleRate)
@@ -159,7 +159,7 @@ public abstract class AudioBuffer
      * Creates a bits per sample override object.
      * (A value of zero signals the audio decoder to ignore that parameter.
      *  A negative value lets the AudioBuffer object decide what to do with that parameter.)
-     * @param bitsPerSample Force <code>bitsPerSample</code> bits per sample.
+     * @param bitsPerSample Force {@code bitsPerSample} bits per sample.
      * @return An AudioOverride object initialized with the specified parameters.
      */
     public static AudioOverride overrideBitsPerSample(int bitsPerSample)
@@ -171,9 +171,9 @@ public abstract class AudioBuffer
      * Creates an override object with the specified forced properties.
      * (A value of zero signals the audio decoder to ignore that parameter.
      *  A negative value lets the AudioBuffer object decide what to do with that parameter.)
-     * @param numChannels Force to use <code>numChannels</code> audio channels.
-     * @param sampleRate Force a sample rate of <code>sampleRate</code> Hz.
-     * @param bitsPerSample Force <code>bitsPerSample</code> bits per sample.
+     * @param numChannels Force to use {@code numChannels} audio channels.
+     * @param sampleRate Force a sample rate of {@code sampleRate} Hz.
+     * @param bitsPerSample Force {@code bitsPerSample} bits per sample.
      * @return An AudioOverride object initialized with the specified parameters.
      */
     public static AudioOverride override(int numChannels, int sampleRate, int bitsPerSample)

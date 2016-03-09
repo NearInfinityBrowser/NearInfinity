@@ -166,7 +166,7 @@ final class DebugConsole extends ChildFrame implements ActionListener, ItemListe
           PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
           pw.println("Near Infinity Debug Log");
           pw.println(BrowserMenuBar.VERSION);
-          pw.println((String)Profile.getProperty(Profile.GET_GAME_TITLE));
+          pw.println((String)Profile.getProperty(Profile.Key.GET_GAME_TITLE));
           pw.println();
           pw.println(NearInfinity.getConsoleText().getText());
           pw.println();

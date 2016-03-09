@@ -33,7 +33,7 @@ public abstract class TisDecoder
 
   /**
    * Returns the type of the specified resource entry.
-   * @return One of the TIS <code>Type</code>s.
+   * @return One of the TIS {@code Type}s.
    */
   public static Type getType(ResourceEntry tisEntry)
   {
@@ -61,7 +61,7 @@ public abstract class TisDecoder
   /**
    * Returns a new TisDecoder object based on the type of the specified resource entry.
    * @param tisEntry The TIS resource entry.
-   * @return Either <code>TisV1Decoder</code> or <code>TisV2Decoder</code> depending on the
+   * @return Either {@code TisV1Decoder} or {@code TisV2Decoder} depending on the
    *         TIS resource type.
    */
   public static TisDecoder loadTis(ResourceEntry tisEntry)

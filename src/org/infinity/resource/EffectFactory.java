@@ -66,7 +66,7 @@ public final class EffectFactory
   private String[] s_effname;
 
   /**
-   * Used in conjunction with <code>getEffectStructure</code> to address specific fields within
+   * Used in conjunction with {@code getEffectStructure} to address specific fields within
    * an effect structure.
    */
   public static enum EffectEntry {
@@ -412,7 +412,7 @@ public final class EffectFactory
   {
     if (Profile.getEngine() == Profile.Engine.IWD2) {
       return s_savetype2;
-    } else if ((Boolean)Profile.getProperty(Profile.IS_GAME_TOBEX)) {
+    } else if ((Boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX)) {
       return s_savetype_tobex;
     } else {
       return s_savetype;
@@ -1944,7 +1944,7 @@ public final class EffectFactory
   {
     String restype = null;
     boolean isExtended = (Profile.getEngine() == Profile.Engine.EE && Profile.getGame() != Profile.Game.BG1EE);
-    boolean isTobEx = (Boolean)Profile.getProperty(Profile.IS_GAME_TOBEX);
+    boolean isTobEx = (Boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX);
 
     switch (effectType) {
       case 0: // AC bonus
@@ -2402,7 +2402,7 @@ public final class EffectFactory
       case 57: // Change alignment
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new IdsBitmap(buffer, offset + 4, 4, "Alignment",
-                            (String)Profile.getProperty(Profile.GET_IDS_ALIGNMENT)));
+                            (String)Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT)));
         break;
 
       case 58: // Dispel effects
@@ -2498,7 +2498,7 @@ public final class EffectFactory
       {
         final String[] ids = new String[]{"EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS",
                                           "SPECIFIC.IDS", "GENDER.IDS",
-                                          (String)Profile.getProperty(Profile.GET_IDS_ALIGNMENT)};
+                                          (String)Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT)};
         IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4, IdsTargetType.DEFAULT_NAME_TYPE, ids);
         s.add(param2.createIdsValueFromType(buffer));
         s.add(param2);
@@ -3159,7 +3159,7 @@ public final class EffectFactory
   {
     String restype = null;
     boolean isExtended = (Profile.getEngine() == Profile.Engine.EE && Profile.getGame() != Profile.Game.BG1EE);
-    boolean isTobEx = (Boolean)Profile.getProperty(Profile.IS_GAME_TOBEX);
+    boolean isTobEx = (Boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX);
 
     switch (effectType) {
       case 61: // Creature RGB color fade
@@ -4854,7 +4854,7 @@ public final class EffectFactory
         s.add(new DecNumber(buffer, offset + 12, 4, EFFECT_SAVE_PENALTY));
       }
       else {
-        if ((Boolean)Profile.getProperty(Profile.IS_GAME_TOBEX)) {
+        if ((Boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX)) {
         } else {
           s.add(new Flag(buffer, offset + 8, 4, EFFECT_SAVE_TYPE, save_type));
         }

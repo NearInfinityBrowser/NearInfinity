@@ -115,7 +115,7 @@ public abstract class LayerObject
 
   /**
    * Returns the base structure the current structure belongs to. This can either be an
-   * <code>AreResource</code> or a <code>WedResource</code> object.
+   * {@code AreResource} or a {@code WedResource} object.
    */
   public AbstractStruct getParentStructure()
   {
@@ -169,10 +169,10 @@ public abstract class LayerObject
   public abstract AbstractLayerItem getLayerItem();
 
   /**
-   * Returns the specified layer item. <code>type</code> is layer type specific, usually defined
-   * as an identifier in <code>ViewerConstants</code>.
+   * Returns the specified layer item. {@code type} is layer type specific, usually defined
+   * as an identifier in {@code ViewerConstants}.
    * @param type A layer-specific type to identify the item to return.
-   * @return The desired layer item, or <code>null</code> if not available.
+   * @return The desired layer item, or {@code null} if not available.
    */
   public abstract AbstractLayerItem getLayerItem(int type);
 
@@ -213,8 +213,8 @@ public abstract class LayerObject
   /**
    * Returns whether the layer object is active at a specific scheduled time.
    * @param time The desired scheduled time index.
-   * @return <code>true</code> if the animation is active at the specified scheduled time,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if the animation is active at the specified scheduled time,
+   *         {@code false} otherwise.
    */
   public boolean isScheduled(int schedule)
   {
@@ -268,7 +268,7 @@ public abstract class LayerObject
    * Creates a polygon object out of the specified coordinates. Uses zoomFactor to scale the result.
    * @param coords Array of coordinates for the polygon.
    * @param zoomFactor Coordinates will be scaled by this value.
-   * @return A <code>Polygon</code> object.
+   * @return A {@code Polygon} object.
    */
   protected Polygon createPolygon(Point[] coords, double zoomFactor)
   {

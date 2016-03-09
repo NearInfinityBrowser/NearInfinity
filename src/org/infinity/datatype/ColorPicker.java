@@ -60,13 +60,13 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
   private int tmpHue, tmpSat, tmpBri, tmpRed, tmpGreen, tmpBlue;
   private int value;
 
-  /** Initializing color picker with the most commonly used color format <code>Format.XRGB</code>. */
+  /** Initializing color picker with the most commonly used color format {@code Format.XRGB}. */
   public ColorPicker(byte[] buffer, int offset, String name)
   {
     this(null, buffer, offset, name, Format.XRGB);
   }
 
-  /** Initializing color picker with the most commonly used color format <code>Format.XRGB</code>. */
+  /** Initializing color picker with the most commonly used color format {@code Format.XRGB}. */
   public ColorPicker(StructEntry parent, byte[] buffer, int offset, String name)
   {
     this(parent, buffer, offset, name, Format.XRGB);

@@ -43,7 +43,7 @@ public final class Compressor
    * @param data The data block to compress.
    * @param ofs Start offset of the data.
    * @param len Length of data to compress in bytes.
-   * @param prependSize If <code>true</code> the uncompressed size will be written to the
+   * @param prependSize If {@code true} the uncompressed size will be written to the
    *                    output block right before the compressed data.
    * @return The compressed data as byte array.
    */

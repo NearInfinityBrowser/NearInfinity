@@ -25,7 +25,7 @@ public abstract class BamFilterBaseOutput extends BamFilterBase
    * Outputs the specified BamDecoder to disk, considers the configuration stored in the
    * parent ConvertToBam instance.
    * @param decoder The BamDecoder to convert.
-   * @return <code>true</code> if the conversion finished successfully, <code>false</code> otherwise.
+   * @return {@code true} if the conversion finished successfully, {@code false} otherwise.
    */
   public abstract boolean process(PseudoBamDecoder decoder) throws Exception;
 

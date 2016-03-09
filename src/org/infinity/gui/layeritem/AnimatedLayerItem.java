@@ -205,8 +205,8 @@ public class AnimatedLayerItem extends AbstractLayerItem
   /**
    * Specifies whether the renderer uses the best interpolation type based on the current zoom factor
    * or uses a predefined interpolation type only.
-   * @param set If <code>true</code>, uses a predefined interpolation type only.
-   *            If <code>false</code>, chooses an interpolation type automatically.
+   * @param set If {@code true}, uses a predefined interpolation type only.
+   *            If {@code false}, chooses an interpolation type automatically.
    */
   public void setForcedInterpolation(boolean set)
   {

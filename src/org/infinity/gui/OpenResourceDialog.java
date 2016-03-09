@@ -73,10 +73,10 @@ public class OpenResourceDialog extends JDialog
    * @param owner The parent window of this dialog.
    * @param title The dialog title.
    * @param extensions A list of file extensions which is to limit the list of internal files.
-   *                   Specify <code>null</code> to show all available resources.
-   * @param multiSelection Specify <code>true</code> to allow selecting more than one resource.
+   *                   Specify {@code null} to show all available resources.
+   * @param multiSelection Specify {@code true} to allow selecting more than one resource.
    * @return An array of selected ResourceEntry objects.
-   *         Returns <code>null</code> if the user cancelled the operation.
+   *         Returns {@code null} if the user cancelled the operation.
    */
   public static ResourceEntry[] showOpenDialog(Window owner, String title, String[] extensions,
                                                boolean multiSelection)
@@ -225,7 +225,7 @@ public class OpenResourceDialog extends JDialog
     }
   }
 
-  /** Returns <code>true</code> if multiple list items can be selected. */
+  /** Returns {@code true} if multiple list items can be selected. */
   protected boolean isMultiSelection()
   {
     return (list.getSelectionMode() == ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -244,7 +244,7 @@ public class OpenResourceDialog extends JDialog
   /**
    * Returns the result of the last dialog operation.
    * Returns a list of ResourceEntry objects if dialog operation was successful.
-   * Returns <code>null</code> if operation has been cancelled.
+   * Returns {@code null} if operation has been cancelled.
    */
   protected ResourceEntry[] getResult()
   {

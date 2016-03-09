@@ -74,7 +74,7 @@ public class MveDecoder
 
   /**
    * Creates an empty (closed) MveDecoder object. No data processing is possible until the
-   * <code>open()</code> method has been called successfully.
+   * {@code open()} method has been called successfully.
    */
   public MveDecoder()
   {
@@ -216,7 +216,7 @@ public class MveDecoder
 
   /**
    * Returns whether a MVE resource is already attached to the decoder.
-   * @return <code>true</code> if a MVE resource is already attached to the decoder.
+   * @return {@code true} if a MVE resource is already attached to the decoder.
    */
   public boolean isOpen()
   {
@@ -225,7 +225,7 @@ public class MveDecoder
 
   /**
    * Connects a video output object with the decoder. (Note: The decoder calls
-   * <code>VideoBuffer.flip()</code> automatically after each successfully processed frame.
+   * {@code VideoBuffer.flip()} automatically after each successfully processed frame.
    * @param renderer The VideoBuffer object to render the decoded frames into.
    */
   public void setVideoOutput(VideoBuffer videoOut)
@@ -236,7 +236,7 @@ public class MveDecoder
   /**
    * Returns the currently connected video output object.
    * @return The currently connected video output object,
-   *         or <code>null</code> if no video buffer is available.
+   *         or {@code null} if no video buffer is available.
    */
   public VideoBuffer getVideoOutput()
   {
@@ -261,7 +261,7 @@ public class MveDecoder
 
   /**
    * Returns the currently connected audio output queue.
-   * @return The currently connected AudioQueue object, or <code>null</code> if no
+   * @return The currently connected AudioQueue object, or {@code null} if no
    *         audio output has been defined yet.
    */
   public AudioQueue getDefaultAudioOutput()
@@ -293,7 +293,7 @@ public class MveDecoder
   /**
    * Returns the audio output queue of the specified stream. Valid streams range from 0 to 15.
    * @param index The audio stream to query (range: 0..15).
-   * @return The connected AudioQueue object of the specified stream, or <code>null</code> if no
+   * @return The connected AudioQueue object of the specified stream, or {@code null} if no
    *         audio output had been defined yet for the specified stream.
    * @throws IndexOutOfBoundsException If index is out of range.
    */
@@ -368,8 +368,8 @@ public class MveDecoder
 
   /**
    * If true, the frame delay does not change after each processed frame.
-   * @return <code>true</code> if the frame delay is stable for the remaining frames,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if the frame delay is stable for the remaining frames,
+   *         {@code false} otherwise.
    */
   public boolean isFrameDelayStable()
   {
@@ -382,8 +382,8 @@ public class MveDecoder
 
   /**
    * Returns whether video has been initialized in the last processed frame.
-   * @return <code>true</code> if video has been (re-)initialized in the last frame,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if video has been (re-)initialized in the last frame,
+   *         {@code false} otherwise.
    */
   public boolean videoInitialized()
   {
@@ -392,8 +392,8 @@ public class MveDecoder
 
   /**
    * Returns whether audio has been initialized in the last processed frame.
-   * @return <code>true</code> if audio has been (re-)initialized in the last frame,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if audio has been (re-)initialized in the last frame,
+   *         {@code false} otherwise.
    */
   public boolean audioInitialized()
   {
@@ -402,7 +402,7 @@ public class MveDecoder
 
   /**
    * Indicates whether the current frame contains video data.
-   * @return <code>true</code> if the frame contains video data, <code>false</code> otherwise.
+   * @return {@code true} if the frame contains video data, {@code false} otherwise.
    */
   public boolean frameHasVideo()
   {
@@ -411,7 +411,7 @@ public class MveDecoder
 
   /**
    * Indicates whether the current frame contains audio data.
-   * @return <code>true</code> if the frame contains audio data, <code>false</code> otherwise.
+   * @return {@code true} if the frame contains audio data, {@code false} otherwise.
    */
   public boolean frameHasAudio()
   {
@@ -420,8 +420,8 @@ public class MveDecoder
 
   /**
    * Determines whether the MVE data stream contains more frames.
-   * @return <code>true</code> if there is at least one more frame is available,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if there is at least one more frame is available,
+   *         {@code false} otherwise.
    */
   public boolean hasNextFrame()
   {
@@ -441,7 +441,7 @@ public class MveDecoder
   /**
    * Signals the decoder to process the MVE data stream until a new frame has been rendered.
    * The result can be accessed via the connected VideoBuffer (video) and AudioQueue(s) (audio).
-   * @return <code>true</code> if a frame has been decoded successfully, <code>false</code> otherwise.
+   * @return {@code true} if a frame has been decoded successfully, {@code false} otherwise.
    * @throws Exception
    */
   public boolean processNextFrame() throws Exception
@@ -654,7 +654,7 @@ public class MveDecoder
      * Must be called once to initialize a new MVE data stream.
      * <b>Note:</b> The MVE data stream must already be positioned right before a MVE chunk.
      * @param in The MVE data stream
-     * @return <code>true</code> if initialization was successful, <code>false</code> otherwise.
+     * @return {@code true} if initialization was successful, {@code false} otherwise.
      */
     public boolean init(InputStream in)
     {
@@ -670,7 +670,7 @@ public class MveDecoder
 
     /**
      * Loads and preprocesses the next available chunk.
-     * @return <code>true</code> if another chunk is available, <code>false</code> otherwise.
+     * @return {@code true} if another chunk is available, {@code false} otherwise.
      */
     public boolean loadChunk()
     {
@@ -895,7 +895,7 @@ public class MveDecoder
 
     /**
      * Returns whether the buffer contains more data to fetch.
-     * @return <code>true</code> if more data is available, <code>false</code> otherwise.
+     * @return {@code true} if more data is available, {@code false} otherwise.
      */
     public boolean available()
     {
@@ -905,7 +905,7 @@ public class MveDecoder
     /**
      * Returns whether the buffer contains more data to fetch from extra offset.
      * Note: This method is required for a number of video codes in direct color mode.
-     * @return <code>true</code> if more data is available, <code>false</code> otherwise.
+     * @return {@code true} if more data is available, {@code false} otherwise.
      */
     public boolean availableExtra()
     {

@@ -167,10 +167,10 @@ public class ChildFrame extends JFrame
 
   /**
    * This method is called whenever the dialog is about to be closed and removed from memory.
-   * @param forced If <code>false</code>, the return value will be honored.
-   *               If <code>true</code>, the return value will be disregarded.
-   * @return If <code>true</code>, the closing procedure continues.
-   *         If <code>false</code>, the closing procedure will be cancelled.
+   * @param forced If {@code false}, the return value will be honored.
+   *               If {@code true}, the return value will be disregarded.
+   * @return If {@code true}, the closing procedure continues.
+   *         If {@code false}, the closing procedure will be cancelled.
    * @throws Exception
    */
   protected boolean windowClosing(boolean forced) throws Exception

@@ -214,8 +214,8 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
   /**
    * Specify whether a frame around the item will be displayed for the specified visual state.
    * @param state The frame's visual state to set the display state.
-   * @param show <code>true</code> if the frame should be displayed for the specified visual state
-   *             or <code>false</code> otherwise.
+   * @param show {@code true} if the frame should be displayed for the specified visual state
+   *             or {@code false} otherwise.
    */
   public void setFrameEnabled(ItemState state, boolean show)
   {

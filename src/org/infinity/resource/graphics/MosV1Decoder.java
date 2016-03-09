@@ -68,7 +68,7 @@ public class MosV1Decoder extends MosDecoder
   /**
    * Returns the palette of the specified data block as an int array of 256 entries. (Format: ARGB)
    * @param blockIdx The block index.
-   * @return Palette as int array of 256 entries. Returns <code>null</code> on error.
+   * @return Palette as int array of 256 entries. Returns {@code null} on error.
    */
   public int[] getPalette(int blockIdx)
   {
@@ -87,7 +87,7 @@ public class MosV1Decoder extends MosDecoder
    * Writes the palette of the specified MOS block into the buffer.
    * @param blockIdx The block index.
    * @param buffer The buffer to write the palette entries into.
-   * @return <code>true</code> if palette data has been written, <code>false</code> otherwise.
+   * @return {@code true} if palette data has been written, {@code false} otherwise.
    */
   public boolean getPalette(int blockIdx, int[] buffer)
   {
@@ -131,7 +131,7 @@ public class MosV1Decoder extends MosDecoder
    * <pre>size = {@link #getBlockWidth(int)}*{@link #getBlockHeight(int)}.</pre>
    * @param blockIdx The block index.
    * @param buffer The buffer to write the raw block data into.
-   * @return <code>true</code> if block data has been written, <code>false</code> otherwise.
+   * @return {@code true} if block data has been written, {@code false} otherwise.
    */
   public boolean getRawBlockData(int blockIdx, byte[] buffer)
   {

@@ -32,7 +32,7 @@ public class FixedFocusTraversalPolicy extends FocusTraversalPolicy
    * it will focus on.
    * @param list The list of components to focus.
    * @param defaultComponent An optional default component. Defaults to the first component in
-   *                         <code>list</code> if not specified.
+   *                         {@code list} if not specified.
    */
   public FixedFocusTraversalPolicy(Component[] list, Component defaultComponent)
   {

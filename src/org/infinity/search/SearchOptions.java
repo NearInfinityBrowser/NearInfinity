@@ -358,7 +358,7 @@ public class SearchOptions
   /**
    * Returns whether the specified option key defines a resource field by offset rather than by name.
    * @param key The option key.
-   * @return <code>true</code> if the specified option key defines a resource field by offset.
+   * @return {@code true} if the specified option key defines a resource field by offset.
    */
   public static boolean isResourceByOffset(String key)
   {
@@ -413,7 +413,7 @@ public class SearchOptions
   /**
    * Returns the option of the specified name as an option-specific Object type.
    * @param name The name of the option.
-   * @return The option object associated with the specified name, or <code>null</code> if not found.
+   * @return The option object associated with the specified name, or {@code null} if not found.
    */
   public Object getOption(String name)
   {
@@ -424,12 +424,12 @@ public class SearchOptions
   }
 
   /**
-   * Adds the specified name/value pair into the list. If <code>value</code> is <code>null</code>, an
+   * Adds the specified name/value pair into the list. If {@code value} is {@code null}, an
    * existing entry of the specified name will be removed.
    * @param name The name of the option to add.
-   * @param value The value of the option to add. Special: If <code>value</code> is <code>null</code>,
+   * @param value The value of the option to add. Special: If {@code value} is {@code null},
    *        an existing option of the same name will be removed.
-   * @return The previous value of the option, or <code>null</code> if no previous option of the
+   * @return The previous value of the option, or {@code null} if no previous option of the
    *         specified name exists.
    */
   public Object setOption(String name, Object value)

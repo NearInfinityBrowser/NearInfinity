@@ -67,7 +67,7 @@ public class RenderCanvas extends JComponent implements SwingConstants
 
   /**
    * Returns the currently assigned image.
-   * @return Image object if an image has been assigned, <code>false</code> otherwise.
+   * @return Image object if an image has been assigned, {@code false} otherwise.
    */
   public Image getImage()
   {
@@ -155,7 +155,7 @@ public class RenderCanvas extends JComponent implements SwingConstants
 
   /**
    * Returns whether scaling has been activated.
-   * @return <code>true</code> if scaling has been activated.
+   * @return {@code true} if scaling has been activated.
    */
   public boolean isScalingEnabled()
   {
@@ -164,7 +164,7 @@ public class RenderCanvas extends JComponent implements SwingConstants
 
   /**
    * Sets whether the image buffer's content should be drawn scaled.
-   * @param enable <code>true</code> to enable scaling.
+   * @param enable {@code true} to enable scaling.
    */
   public void setScalingEnabled(boolean enable)
   {

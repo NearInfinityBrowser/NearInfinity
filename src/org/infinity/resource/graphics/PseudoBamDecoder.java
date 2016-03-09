@@ -155,8 +155,8 @@ public class PseudoBamDecoder extends BamDecoder
 
   /**
    * Attaches a custom list of frame entries to the object.
-   * Caution: Methods don't check explicitly for <code>null</code> entries in the list.
-   * @param framesList The new frames list to attach. Specifying <code>null</code> will create
+   * Caution: Methods don't check explicitly for {@code null} entries in the list.
+   * @param framesList The new frames list to attach. Specifying {@code null} will create
    *                   a new list automatically.
    */
   public void setFramesList(List<PseudoBamFrameEntry> framesList)
@@ -177,8 +177,8 @@ public class PseudoBamDecoder extends BamDecoder
 
   /**
    * Attaches a custom list of cycle entries to the object.
-   * Caution: Methods don't check explicitely for <code>null</code> entries in the list.
-   * @param cyclesList The new cycles list to attach. Specifying <code>null</code> will create
+   * Caution: Methods don't check explicitely for {@code null} entries in the list.
+   * @param cyclesList The new cycles list to attach. Specifying {@code null} will create
    *                   a new list automatically.
    */
   public void setCyclesList(List<PseudoBamCycleEntry> cyclesList)
@@ -568,7 +568,7 @@ public class PseudoBamDecoder extends BamDecoder
    * @param color The color to check.
    * @param rleColor The RLE color index.
    * @param threshold The amount of alpha allowed for opaque colors.
-   * @return <code>true</code> if the color is determined as the RLE-compressed color.
+   * @return {@code true} if the color is determined as the RLE-compressed color.
    */
   public static boolean isRleColor(int color, int rleColor, int threshold)
   {
@@ -584,7 +584,7 @@ public class PseudoBamDecoder extends BamDecoder
    * Determines whether "color" is interpreted as "transparent".
    * @param color The color to check.
    * @param threshold The amount of alpha allowed for opaque colors.
-   * @return <code>true</code> if the color is determined as "transparent".
+   * @return {@code true} if the color is determined as "transparent".
    */
   public static boolean isTransparentColor(int color, int threshold)
   {
@@ -602,7 +602,7 @@ public class PseudoBamDecoder extends BamDecoder
    * @param fileName The filename of the BAM file to export.
    * @param progress An optional progress monitor to display the state of the export progress.
    * @param curProgress The current progress state of the progress monitor.
-   * @return <code>true</code> if the export was successfull, <code>false</code> otherwise.
+   * @return {@code true} if the export was successfull, {@code false} otherwise.
    * @throws Exception If an unrecoverable error occured.
    */
   public boolean exportBamV1(String fileName, ProgressMonitor progress, int curProgress) throws Exception
@@ -848,7 +848,7 @@ public class PseudoBamDecoder extends BamDecoder
    * @param pvrzIndex The start index of PVRZ files.
    * @param progress An optional progress monitor to display the state of the export progress.
    * @param curProgress The current progress state of the progress monitor.
-   * @return <code>true</code> if the export was successful, <code>false</code> otherwise.
+   * @return {@code true} if the export was successful, {@code false} otherwise.
    * @throws Exception If an unrecoverable error occured.
    */
   public boolean exportBamV2(String fileName, DxtEncoder.DxtType dxtType, int pvrzIndex,
@@ -1014,7 +1014,7 @@ public class PseudoBamDecoder extends BamDecoder
   /**
    * Creates an array of max. 255 colors that can be used to create a global palette for all available frames.
    * Makes use of the specified color map if available. Does not consider transparent color.
-   * @param colorMap An optional color map that will be used if available. Can be <code>null</code>.
+   * @param colorMap An optional color map that will be used if available. Can be {@code null}.
    * @return An int array containing up to 255 colors without the transparent color entry.
    */
   public int[] createGlobalPalette(HashMap<Integer, Integer> colorMap)
@@ -1731,19 +1731,19 @@ public class PseudoBamDecoder extends BamDecoder
     }
 
 
-    /** Returns the palette of the current frame in the current cycle. Returns <code>null</code> if no palette is available. */
+    /** Returns the palette of the current frame in the current cycle. Returns {@code null} if no palette is available. */
     public int[] cycleFrameGetPalette()
     {
       return cycleFrameGetPalette(currentCycle, currentFrame);
     }
 
-    /** Returns the palette of the specified frame in the current cycle. Returns <code>null</code> if no palette is available. */
+    /** Returns the palette of the specified frame in the current cycle. Returns {@code null} if no palette is available. */
     public int[] cycleFrameGetPalette(int frameIdx)
     {
       return cycleFrameGetPalette(currentCycle, frameIdx);
     }
 
-    /** Returns the palette of the frame in the specified cycle. Returns <code>null</code> if no palette is available. */
+    /** Returns the palette of the frame in the specified cycle. Returns {@code null} if no palette is available. */
     public int[] cycleFrameGetPalette(int cycleIdx, int frameIdx)
     {
       int index = cycleGetFrameIndexAbsolute(cycleIdx, frameIdx);

@@ -40,7 +40,7 @@ import javax.swing.border.BevelBorder;
 
 /**
  * Provides a button component that pops up an associated window when the button is pressed.
- * It works similar to <code>ButtonPopupMenu</code>.
+ * It works similar to {@code ButtonPopupMenu}.
  * @author argent77
  */
 public class ButtonPopupWindow extends JButton
@@ -210,7 +210,7 @@ public class ButtonPopupWindow extends JButton
 
   /**
    * Returns the currently assigned content of the popup window.
-   * @return Current content of the popup window. Can be <code>null</code>.
+   * @return Current content of the popup window. Can be {@code null}.
    */
   public Component getContent()
   {
@@ -248,9 +248,9 @@ public class ButtonPopupWindow extends JButton
 
   /**
    * Specify a new default alignment of the popup window relative to the associated button control.
-   * Use one of the constants (<code>Align.Bottom</code>, <code>Align.Top</code>,
-   * <code>Align.Left</code>, <code>Align.Right</code>).
-   * <code>ButtonPopupWindow.BOTTOM</code> is the default.
+   * Use one of the constants ({@code Align.Bottom}, {@code Align.Top},
+   * {@code Align.Left}, {@code Align.Right}).
+   * {@code ButtonPopupWindow.BOTTOM} is the default.
    * @param align The new default alignment of the popup window.
    */
   public void setWindowAlignment(Align align)

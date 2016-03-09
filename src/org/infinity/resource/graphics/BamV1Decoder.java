@@ -26,9 +26,9 @@ public class BamV1Decoder extends BamDecoder
 {
   /**
    * Definitions on how to handle palette transparency:<br>
-   * <code>Normal</code> looks for the first entry containing RGB(0, 255, 0). It falls back to palette
+   * {@code Normal} looks for the first entry containing RGB(0, 255, 0). It falls back to palette
    * index 0 if no entry has been found.<br>
-   * <code>FirstIndexOnly</code> automatically uses palette index 0 without looking for entries
+   * {@code FirstIndexOnly} automatically uses palette index 0 without looking for entries
    * containing RGB(0, 255, 0).
    */
   public enum TransparencyMode { NORMAL, FIRST_INDEX_ONLY }
@@ -455,7 +455,7 @@ public class BamV1Decoder extends BamDecoder
 
     /**
      * Returns the currently assigned external palette.
-     * @return The currently assigned external palette, or <code>null</code> if not available.
+     * @return The currently assigned external palette, or {@code null} if not available.
      */
     public int[] getExternalPalette()
     {
@@ -465,7 +465,7 @@ public class BamV1Decoder extends BamDecoder
     /**
      * Applies the colors of the specified palette to the active BAM palette.
      * <b>Note:</b> Must be called whenever any changes to the external palette have been done.
-     * @param palette An external palette. Specify <code>null</code> to use the default palette.
+     * @param palette An external palette. Specify {@code null} to use the default palette.
      */
     public void setExternalPalette(int[] palette)
     {

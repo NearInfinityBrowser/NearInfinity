@@ -37,7 +37,7 @@ public abstract class BamDecoder
 
   /**
    * Returns the type of the specified resource entry.
-   * @return One of the BAM <code>Type</code>s.
+   * @return One of the BAM {@code Type}s.
    */
   public static Type getType(ResourceEntry bamEntry)
   {
@@ -69,8 +69,8 @@ public abstract class BamDecoder
   /**
    * Returns a new BamDecoder object based on the specified Bam resource entry.
    * @param bamEntry The BAM resource entry.
-   * @return Either <code>BamV1Decoder</code> or <code>BamV2Decoder</code>, depending on the
-   *         BAM resource type. Returns <code>null</code> if the resource doesn't contain valid
+   * @return Either {@code BamV1Decoder} or {@code BamV2Decoder}, depending on the
+   *         BAM resource type. Returns {@code null} if the resource doesn't contain valid
    *         BAM data.
    */
   public static BamDecoder loadBam(ResourceEntry bamEntry)
@@ -117,7 +117,7 @@ public abstract class BamDecoder
   }
 
   /**
-   * Returns <code>true</code> if the BAM has been closed, is invalid or does not contain any frames.
+   * Returns {@code true} if the BAM has been closed, is invalid or does not contain any frames.
    */
   public boolean isEmpty()
   {
@@ -256,7 +256,7 @@ public abstract class BamDecoder
 
     /**
      * Calculates the rectangle of the current BAM animation. Takes {@link #isSharedPerCycle()} into account.
-     * @param isMirrored If <code>true</code>, returns a rectangle that is based on the
+     * @param isMirrored If {@code true}, returns a rectangle that is based on the
      *                   animation mirrored along the x axis.
      * @return A rectangle containing information about the base offset (x, y) and
      *         overall dimension (width, height).
@@ -281,7 +281,7 @@ public abstract class BamDecoder
     /**
      * Returns the point of origin for frames that are drawn in shared mode.<br>
      * The top-left corner of the selected frame is calculated as:<br>
-     * <code>topleft = getSharedOrigin() - frameCenter()</code>
+     * {@code topleft = getSharedOrigin() - frameCenter()}
      */
     public Point getSharedOrigin()
     {
@@ -299,7 +299,7 @@ public abstract class BamDecoder
       return parent;
     }
 
-    /** Returns <code>true</code> if, and only if {@link #cycleCount()} is 0. */
+    /** Returns {@code true} if, and only if {@link #cycleCount()} is 0. */
     public boolean isEmpty()
     {
       return (cycleCount() == 0);

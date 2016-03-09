@@ -209,8 +209,8 @@ public class FileReaderNI extends FileReader
   /**
    * Sign extends the specified value consisting of specified number of bits.
    * @param value The value to sign-extend
-   * @param bits Size of <code>value</code> in bits.
-   * @return A sign-extended version of <code>value</code>.
+   * @param bits Size of {@code value} in bits.
+   * @return A sign-extended version of {@code value}.
    */
   public static int signExtend(int value, int bits)
   {

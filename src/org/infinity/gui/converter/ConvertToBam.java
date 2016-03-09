@@ -4404,7 +4404,7 @@ public class ConvertToBam extends ChildFrame
     }
 
     /**
-     * Moves the specified entry within the list by <code>offset</code>.
+     * Moves the specified entry within the list by {@code offset}.
      * @param index The index of the frame.
      * @param offset The number of positions to move.
      */
@@ -4430,7 +4430,7 @@ public class ConvertToBam extends ChildFrame
       }
     }
 
-    /** Returns <code>true</code> if, and only if <code>getDecoder().getFrameCount()</code> is 0. */
+    /** Returns {@code true} if, and only if {@code getDecoder().getFrameCount()} is 0. */
     public boolean isEmpty()
     {
       return getDecoder().isEmpty();
@@ -4581,7 +4581,7 @@ public class ConvertToBam extends ChildFrame
     }
 
     /**
-     * Moves the specified entry within the list by <code>offset</code>.
+     * Moves the specified entry within the list by {@code offset}.
      * @param index The index of the frame.
      * @param offset The number of positions to move.
      */
@@ -4607,7 +4607,7 @@ public class ConvertToBam extends ChildFrame
       }
     }
 
-    /** Returns <code>true</code> if, and only if <code>getControl().cycleFrameCount()</code> is 0. */
+    /** Returns {@code true} if, and only if {@code getControl().cycleFrameCount()} is 0. */
     public boolean isEmpty()
     {
       return (getControl().cycleFrameCount() == 0);
@@ -4739,7 +4739,7 @@ public class ConvertToBam extends ChildFrame
     }
 
     /**
-     * Moves the specified cycle entry within the cycles list by <code>offset</code>.
+     * Moves the specified cycle entry within the cycles list by {@code offset}.
      * @param cycleIdx The index of the cycle.
      * @param offset The number of positions to move.
      */
@@ -4781,7 +4781,7 @@ public class ConvertToBam extends ChildFrame
       }
     }
 
-    /** Returns <code>true</code> if, and only if <code>getControl().cycleCount()</code> is 0. */
+    /** Returns {@code true} if, and only if {@code getControl().cycleCount()} is 0. */
     public boolean isEmpty()
     {
       return getControl().isEmpty();

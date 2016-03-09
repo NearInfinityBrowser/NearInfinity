@@ -66,7 +66,7 @@ public class IdsTargetType extends Bitmap
   /**
    * Constructs an IDS type field with the default list of IDS entries and optional modifications.
    * @param secondIds   Replace IDS resource at index = 2 by the specified resource. (Default: EA.IDS)
-   * @param targetActor If <code>true</code>, Enhanced Editions will use index 10 for
+   * @param targetActor If {@code true}, Enhanced Editions will use index 10 for
    *                    Actor's name strrefs and index 11 for Actor's script name.
    */
   public IdsTargetType(byte[] buffer, int offset, int size, String name, String secondIds,
@@ -78,7 +78,7 @@ public class IdsTargetType extends Bitmap
   /**
    * Constructs an IDS type field with the default list of IDS entries and optional modifications.
    * @param secondIds   Replace IDS resource at index = 2 by the specified resource. (Default: EA.IDS)
-   * @param targetActor If <code>true</code>, Enhanced Editions will use index 10 for
+   * @param targetActor If {@code true}, Enhanced Editions will use index 10 for
    *                    Actor's name strrefs and index 11 for Actor's script name.
    */
   public IdsTargetType(StructEntry parent, byte[] buffer, int offset, int size, String name,
@@ -91,7 +91,7 @@ public class IdsTargetType extends Bitmap
    * Constructs an IDS type field with the default list of IDS entries and optional modifications.
    * @param idx         An optional number added to the field name. (Default: -1 for none)
    * @param secondIds   Replace IDS resource at index = 2 by the specified resource. (Default: EA.IDS)
-   * @param targetActor If <code>true</code>, Enhanced Editions will use index 10 for
+   * @param targetActor If {@code true}, Enhanced Editions will use index 10 for
    *                    Actor's name strrefs and index 11 for Actor's script name.
    */
   public IdsTargetType(byte[] buffer, int offset, int size, String name, int idx, String secondIds,
@@ -104,7 +104,7 @@ public class IdsTargetType extends Bitmap
    * Constructs an IDS type field with the default list of IDS entries and optional modifications.
    * @param idx         An optional number added to the field name. (Default: -1 for none)
    * @param secondIds   Replace IDS resource at index = 2 by the specified resource. (Default: EA.IDS)
-   * @param targetActor If <code>true</code>, Enhanced Editions will use index 10 for
+   * @param targetActor If {@code true}, Enhanced Editions will use index 10 for
    *                    Actor's name strrefs and index 11 for Actor's script name.
    */
   public IdsTargetType(StructEntry parent, byte[] buffer, int offset, int size, String name, int idx,
@@ -238,7 +238,7 @@ public class IdsTargetType extends Bitmap
     }
     String[] retVal = Arrays.copyOf(DEFAULT_IDS_LIST, len);
     retVal[2] = (secondIds != null) ? secondIds : DEFAULT_SECOND_IDS;
-    retVal[8] = (String)Profile.getProperty(Profile.GET_IDS_ALIGNMENT);
+    retVal[8] = (String)Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT);
     if (Profile.isEnhancedEdition()) {
       retVal[9] = "KIT.IDS";
       if (targetActor) {

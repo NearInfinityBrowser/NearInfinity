@@ -33,7 +33,7 @@ public abstract class MosDecoder
 
   /**
    * Returns the type of the specified resource entry.
-   * @return One of the MOS <code>Type</code>s.
+   * @return One of the MOS {@code Type}s.
    */
   public static Type getType(ResourceEntry mosEntry)
   {
@@ -65,8 +65,8 @@ public abstract class MosDecoder
   /**
    * Returns a new MosDecoder object based on the specified MOS resource entry.
    * @param mosEntry The MOS resource entry.
-   * @return Either <code>MosV1Decoder</code> or <code>MosV2Decoder</code>, depending on the
-   *         BAM resource type. Returns <code>null</code> if the resource doesn't contain valid
+   * @return Either {@code MosV1Decoder} or {@code MosV2Decoder}, depending on the
+   *         BAM resource type. Returns {@code null} if the resource doesn't contain valid
    *         BAM data.
    */
   public static MosDecoder loadMos(ResourceEntry mosEntry)

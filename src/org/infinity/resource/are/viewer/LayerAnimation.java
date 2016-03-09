@@ -189,8 +189,8 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
 
   /**
    * Returns whether real animation items or iconic animation items are enabled.
-   * @return If <code>true</code>, real animation items are enabled.
-   *         If <code>false</code>, iconic animation items are enabled.
+   * @return If {@code true}, real animation items are enabled.
+   *         If {@code false}, iconic animation items are enabled.
    */
   public boolean isRealAnimationEnabled()
   {
@@ -199,8 +199,8 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
 
   /**
    * Specify whether iconic animation type or real animation type is enabled.
-   * @param enable If <code>true</code>, real animation items will be shown.
-   *               If <code>false</code>, iconic animation items will be shown.
+   * @param enable If {@code true}, real animation items will be shown.
+   *               If {@code false}, iconic animation items will be shown.
    */
   public void setRealAnimationEnabled(boolean enable)
   {
@@ -221,7 +221,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
   }
 
   /**
-   * Specify whether real animation should be animated. Setting to <code>true</code> will enable
+   * Specify whether real animation should be animated. Setting to {@code true} will enable
    * real animations automatically.
    */
   public void setRealAnimationPlaying(boolean play)

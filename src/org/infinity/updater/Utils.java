@@ -215,7 +215,7 @@ public class Utils
 
   /**
    * Returns a number based on the date and time of the specified Calendar object.
-   * @param cal The calendar object or <code>null</code> to get a number based on the current time.
+   * @param cal The calendar object or {@code null} to get a number based on the current time.
    * @return A comparable numeric value derived from the calendar object (higher = newer).
    */
   public static long getTimeValue(Calendar cal)
@@ -265,7 +265,7 @@ public class Utils
   /**
    * Checks whether the specified string contains a valid URL.
    * @param url The URL string to test.
-   * @return <code>true</code> if the string contains a valid URL, <code>false</code> otherwise.
+   * @return {@code true} if the string contains a valid URL, {@code false} otherwise.
    */
   public static boolean isUrlValid(String url)
   {
@@ -337,7 +337,7 @@ public class Utils
   /**
    * Attempts to determine the size of the file specified by url.
    * @param url The URL pointing to a file of any kind.
-   * @param proxy An optional proxy definition. Can be <code>null</code>.
+   * @param proxy An optional proxy definition. Can be {@code null}.
    * @return The size of the file or -1 on error.
    * @throws IOException
    */
@@ -356,7 +356,7 @@ public class Utils
    * combined with 'base'.
    * @param base An optional URL which is used with a relative path parameter.
    * @param path Either an absolute path or a relative path together with the base parameter.
-   * @return A valid URL or <code>null</code> in case of an error.
+   * @return A valid URL or {@code null} in case of an error.
    * @throws MalformedURLException
    */
   public static URL getUrl(URL base, String path) throws MalformedURLException
@@ -414,8 +414,8 @@ public class Utils
   /**
    * Checks whether the certificates of the specified HTTPS url are valid.
    * @param url The url to test. Must be HTTPS!
-   * @return <code>true</code> if the certificate chain of the specified URL is valid.
-   *         <code>false</code> if the certificate chain is invalid or the connection does not use
+   * @return {@code true} if the certificate chain of the specified URL is valid.
+   *         {@code false} if the certificate chain is invalid or the connection does not use
    *         the HTTPS protocol.
    * @throws Exception
    * @throws IOException
@@ -461,8 +461,8 @@ public class Utils
   /**
    * Attempts to open the specified URL in the default browser of the system.
    * @param url The URL to open.
-   * @return <code>true</code> if the URL has been opened in the system's default browser.
-   *         <code>false</code> otherwise.
+   * @return {@code true} if the URL has been opened in the system's default browser.
+   *         {@code false} otherwise.
    * @throws IOException
    * @throws URISyntaxException
    * @throws UnsupportedOperationException
@@ -487,9 +487,9 @@ public class Utils
   /**
    * A convenience method for downloading textual data from a URL.
    * @param url The URL to download data from.
-   * @param proxy An optional proxy definition. Can be <code>null</code>.
+   * @param proxy An optional proxy definition. Can be {@code null}.
    * @param charset The character set of the text content (e.g. utf-8).
-   * @return The text content on success or <code>null</code> on error.
+   * @return The text content on success or {@code null} on error.
    * @throws IOException
    * @throws FileNotFoundException
    * @throws ProtocolException
@@ -520,7 +520,7 @@ public class Utils
    * Downloads data from the specified URL into the output stream. It is recommended to call this
    * method in a background task.
    * @param url The URL to download data from.
-   * @param proxy An optional proxy definition. Can be <code>null</code>.
+   * @param proxy An optional proxy definition. Can be {@code null}.
    * @param os The output stream to write the downloaded data into.
    * @param type The file type of the data.
    *             FileType.Original does no further preprocessing.
@@ -573,8 +573,8 @@ public class Utils
 
   /**
    * Download data from the input stream into the output stream without special processing.
-   * @return <code>true</code> if the download has finished successfully,
-   *         <code>false</code> on error or if the download has been cancelled.
+   * @return {@code true} if the download has finished successfully,
+   *         {@code false} on error or if the download has been cancelled.
    * @throws IOException
    * @throws ProtocolException
    * @throws UnknownServiceException
@@ -609,8 +609,8 @@ public class Utils
 
   /**
    * Decompresses the first available file entry in the zipped data provided by the input stream.
-   * @return <code>true</code> if the download has finished successfully,
-   *         <code>false</code> on error or if the download has been cancelled.
+   * @return {@code true} if the download has finished successfully,
+   *         {@code false} on error or if the download has been cancelled.
    * @throws IOException
    * @throws ZipException
    */
@@ -650,8 +650,8 @@ public class Utils
 
   /**
    * Decompresses the GZIP compressed data provided by the input stream.
-   * @return <code>true</code> if the download has finished successfully,
-   *         <code>false</code> on error or if the download has been cancelled.
+   * @return {@code true} if the download has finished successfully,
+   *         {@code false} on error or if the download has been cancelled.
    * @throws IOException
    */
   static boolean downloadGzip(InputStream is, OutputStream os, URL url, Proxy proxy,
@@ -714,9 +714,9 @@ public class Utils
   /**
    * Executes the specified JAR file with optional parameters and working directory.
    * @param jar The JAR file to execute.
-   * @param params Parameter list. Can be <code>null</code>.
-   * @param dir An optional working directory. Can be <code>null</code>.
-   * @return The Process instance of the executed JAR file or <code>null</code> on error.
+   * @param params Parameter list. Can be {@code null}.
+   * @param dir An optional working directory. Can be {@code null}.
+   * @return The Process instance of the executed JAR file or {@code null} on error.
    */
   public static Process executeJar(String jar, String params, String dir)
   {
@@ -802,8 +802,8 @@ public class Utils
     public boolean isFinished() { return finished; }
 
     /**
-     * Call this method to signal that the current operation can be canceled (<code>true</code>)
-     * or resumed (<code>false</code>).
+     * Call this method to signal that the current operation can be canceled ({@code true})
+     * or resumed ({@code false}).
      */
     public void cancelOperation(boolean cancel) { cancelOperation = cancel; }
 

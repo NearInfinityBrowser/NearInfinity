@@ -159,7 +159,7 @@ public class BamV2Decoder extends BamDecoder
           bamPath = bamFile.getParentFile();
           // Skip path if it denotes an override folder of the game
           @SuppressWarnings("unchecked")
-          List<File> list = (List<File>)Profile.getProperty(Profile.GET_GAME_OVERRIDE_FOLDERS);
+          List<File> list = (List<File>)Profile.getProperty(Profile.Key.GET_GAME_OVERRIDE_FOLDERS);
           if (list != null) {
             for (Iterator<File> iter = list.iterator(); iter.hasNext();) {
               if (bamPath.equals(iter.next())) {

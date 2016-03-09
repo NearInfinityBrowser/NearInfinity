@@ -108,7 +108,7 @@ public class LayerObjectAnimation extends LayerObject
   /**
    * Returns the layer item of the specific state. (either ANIM_ITEM_ICON or ANIM_ITEM_REAL).
    * @param type The state of the item to be returned.
-   * @return The desired layer item, or <code>null</code> if not available.
+   * @return The desired layer item, or {@code null} if not available.
    */
   @Override
   public AbstractLayerItem getLayerItem(int type)
@@ -168,8 +168,8 @@ public class LayerObjectAnimation extends LayerObject
   /**
    * Sets the lighting condition of the animation. Does nothing if the animation is flagged as
    * self-illuminating.
-   * @param dayTime One of the constants: <code>TilesetRenderer.LIGHTING_DAY</code>,
-   *                <code>TilesetRenderer.LIGHTING_TWILIGHT</code>, <code>TilesetRenderer.LIGHTING_NIGHT</code>.
+   * @param dayTime One of the constants: {@code TilesetRenderer.LIGHTING_DAY},
+   *                {@code TilesetRenderer.LIGHTING_TWILIGHT}, {@code TilesetRenderer.LIGHTING_NIGHT}.
    */
   public void setLighting(int dayTime)
   {

@@ -185,7 +185,7 @@ class BamPaletteDialog extends JDialog
     }
   }
 
-  /** Returns the specified palette if available. Returns <code>null</code> if palette is not available. */
+  /** Returns the specified palette if available. Returns {@code null} if palette is not available. */
   public int[] getPalette(int type)
   {
     switch (type) {

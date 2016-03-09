@@ -79,7 +79,7 @@ public class BinPack2D
 
   /**
    * Attempts to shrink the current bin as much as possible.
-   * @param binary If <code>true</code>, the shrinking process will always try to reduce dimensions
+   * @param binary If {@code true}, the shrinking process will always try to reduce dimensions
    *               by 50% for each iteration.
    */
   public void shrinkBin(boolean binary)
@@ -481,7 +481,7 @@ public class BinPack2D
     return bestNode;
   }
 
-  /** Returns <code>true</code> if the free node was split. */
+  /** Returns {@code true} if the free node was split. */
   private boolean splitFreeNode(Rectangle freeNode, Rectangle usedNode)
   {
     // Test with SAT if the rectangles even intersect.

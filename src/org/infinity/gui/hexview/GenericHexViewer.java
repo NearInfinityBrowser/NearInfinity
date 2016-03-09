@@ -129,7 +129,7 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
 
   /**
    * Returns data as String with the specified character encoding.
-   * Specify <code>null</code> to use a default ANSI charset.
+   * Specify {@code null} to use a default ANSI charset.
    */
   public String getText(Charset cs)
   {
@@ -160,7 +160,7 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
   /**
    * Sets new data by converting the string into byte data using the specified charset.
    * @param text Text to set.
-   * @param cs Character encoding of the text. Specify <code>null</code> to use a default ANSI charset.
+   * @param cs Character encoding of the text. Specify {@code null} to use a default ANSI charset.
    */
   public void setText(String text, Charset cs)
   {

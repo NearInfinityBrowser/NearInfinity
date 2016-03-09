@@ -101,7 +101,7 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
 
   /**
    * Returns whether the specific layer item type is visible.
-   * @param itemType One of <code>ViewerConstants.AMBIENT_ITEM_ICON</code> and <code>ViewerConstants.AMBIENT_ITEM_RANGE</code>.
+   * @param itemType One of {@code ViewerConstants.AMBIENT_ITEM_ICON} and {@code ViewerConstants.AMBIENT_ITEM_RANGE}.
    * @return Whether items of the specified state are visible.
    */
   public boolean isLayerVisible(int itemType)
@@ -117,8 +117,8 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
 
   /**
    * Returns whether the items of specified type have been enabled (i.e. will be shown when visibility state
-   * is set to <code>true</code>).
-   * @param itemType One of <code>ViewerConstants.AMBIENT_ITEM_ICON</code> and <code>ViewerConstants.AMBIENT_ITEM_RANGE</code>.
+   * is set to {@code true}).
+   * @param itemType One of {@code ViewerConstants.AMBIENT_ITEM_ICON} and {@code ViewerConstants.AMBIENT_ITEM_RANGE}.
    * @return The activation state of the item type.
    */
   public boolean isItemTypeEnabled(int itemType)
@@ -134,7 +134,7 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
 
   /**
    * Sets the enabled state of the specified item type.
-   * @param itemType One of <code>ViewerConstants.AMBIENT_ITEM_ICON</code> and <code>ViewerConstants.AMBIENT_ITEM_RANGE</code>.
+   * @param itemType One of {@code ViewerConstants.AMBIENT_ITEM_ICON} and {@code ViewerConstants.AMBIENT_ITEM_RANGE}.
    * @param enable Whether the item type will be considered when setting the visibility state of the layer items.
    */
   public void setItemTypeEnabled(int itemType, boolean enable)
@@ -179,7 +179,7 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
    * @param ambientType The ambient sound type (either ViewerConstants.AMBIENT_TYPE_GLOBAL,
    *                    ViewerConstants.AMBIENT_TYPE_LOCAL or ViewerConstants.AMBIENT_TYPE_ALL).
    * @param index The index of the layer object.
-   * @return The layer object, of <code>null</code> if not available.
+   * @return The layer object, of {@code null} if not available.
    */
   public LayerObjectAmbient getLayerObject(int ambientType, int index)
   {

@@ -87,8 +87,8 @@ public class UpdateInfo
    * <b>Note:</b> This is an expensive operation.
    * @param s The string to check.
    * @param systemId Base path for relative URIs (required for Doctype reference).
-   * @return <code>true</code> if the string conforms to the update.xml specification,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if the string conforms to the update.xml specification,
+   *         {@code false} otherwise.
    */
   public static boolean isValidXml(String s, String systemId)
   {
@@ -103,8 +103,8 @@ public class UpdateInfo
    * Checks if the specified file contains valid update.xml data.
    * <b>Note:</b> This is an expensive operation.
    * @param f The file to read data from.
-   * @return <code>true</code> if the file content conforms to the update.xml specification,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if the file content conforms to the update.xml specification,
+   *         {@code false} otherwise.
    */
   public static boolean isValidXml(File f)
   {
@@ -120,8 +120,8 @@ public class UpdateInfo
    * <b>Note:</b> This is an expensive operation.
    * @param is The input stream to read data from.
    * @param systemId Base path for relative URIs (required for Doctype reference).
-   * @return <code>true</code> if the data from the stream conforms to the update.xml specification,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if the data from the stream conforms to the update.xml specification,
+   *         {@code false} otherwise.
    */
   public static boolean isValidXml(InputStream is, String systemId)
   {
@@ -175,7 +175,7 @@ public class UpdateInfo
 
   /**
    * Provides access to the the Release section specified by the user in the Server Settings
-   * or returns <code>null</code> if not available.
+   * or returns {@code null} if not available.
    */
   public Release getRelease()
   {
@@ -183,7 +183,7 @@ public class UpdateInfo
   }
 
   /**
-   * Provides access to the specified Release section or returns <code>null</code> if not available.
+   * Provides access to the specified Release section or returns {@code null} if not available.
    * @param type The release type to access.
    */
   public Release getRelease(ReleaseType type)
@@ -440,7 +440,7 @@ public class UpdateInfo
     /**  Returns number of available alternate update servers. */
     public int getServerCount() { return servers.size(); }
 
-    /** Returns the URL of the specified alternate server or <code>null</code> if not available. */
+    /** Returns the URL of the specified alternate server or {@code null} if not available. */
     public String getServer(int index)
     {
       if (index >= 0 && index < getServerCount()) {
@@ -453,7 +453,7 @@ public class UpdateInfo
     /** Returns number of available links to related websites. */
     public int getInformationCount() { return information.size(); }
 
-    /** Returns name of the specified related website or <code>null</code> if not available. */
+    /** Returns name of the specified related website or {@code null} if not available. */
     public String getInformationName(int index)
     {
       if (index >= 0 && index < getInformationCount()) {
@@ -463,7 +463,7 @@ public class UpdateInfo
       }
     }
 
-    /** Returns URL of the specified related website or <code>null</code> if not available. */
+    /** Returns URL of the specified related website or {@code null} if not available. */
     public String getInformationLink(int index)
     {
       if (index >= 0 && index < getInformationCount()) {
@@ -565,7 +565,7 @@ public class UpdateInfo
     /** Returns a String version of the timestamp in  ISO 8601 format. */
     public String getTimeStampString() { return Utils.toTimeStamp(timeStamp); }
 
-    /** Returns a link to the file for manual download or <code>null</code> if not available. */
+    /** Returns a link to the file for manual download or {@code null} if not available. */
     public String getDownloadLink() { return linkManual; }
 
     /** Returns whether a ChangeLog is available. */

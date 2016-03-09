@@ -51,8 +51,8 @@ public class MveVideoDecoder
   /**
    * Processes video specific segments.
    * @param segment The current segment to process.
-   * @return <code>true</code> if the segment has been processed successfully,
-   *         <code>false</code> if the segment did not fit into the video category.
+   * @return {@code true} if the segment has been processed successfully,
+   *         {@code false} if the segment did not fit into the video category.
    * @throws Exception On error.
    */
   public boolean processVideo(MveSegment segment) throws Exception

@@ -80,7 +80,7 @@ public class PvrDecoder
   /**
    * Returns an initialized PvrDecoder object with the specified resource (if available).
    * @param entry The ResourceEntry object of the pvr(z) resource to load.
-   * @return the PvrDecoder object containing the decoded PVR resource, or <code>null</code> on error.
+   * @return the PvrDecoder object containing the decoded PVR resource, or {@code null} on error.
    */
   public static PvrDecoder loadPvr(ResourceEntry entry)
   {
@@ -104,7 +104,7 @@ public class PvrDecoder
   /**
    * Returns an initialized PvrDecoder object with the specified file (if available).
    * @param fileName The filename of the pvr(z) resource to load.
-   * @return the PvrDecoder object containing the decoded PVR resource, or <code>null</code> on error.
+   * @return the PvrDecoder object containing the decoded PVR resource, or {@code null} on error.
    */
   public static PvrDecoder loadPvr(String fileName)
   {
@@ -128,7 +128,7 @@ public class PvrDecoder
   /**
    * Returns an initialized PvrDecoder object with the specified file (if available).
    * @param file The file object of the pvr(z) resource to load.
-   * @return the PvrDecoder object containing the decoded PVR resource, or <code>null</code> on error.
+   * @return the PvrDecoder object containing the decoded PVR resource, or {@code null} on error.
    */
   public static PvrDecoder loadPvr(File file)
   {
@@ -149,7 +149,7 @@ public class PvrDecoder
   /**
    * Returns an initialized PvrDecoder object with the specified input stream (if available).
    * @param input The input stream of the pvr(z) resource to load.
-   * @return the PvrDecoder object containing the decoded PVR resource, or <code>null</code> on error.
+   * @return the PvrDecoder object containing the decoded PVR resource, or {@code null} on error.
    */
   public static PvrDecoder loadPvr(InputStream input)
   {
@@ -279,7 +279,7 @@ public class PvrDecoder
   /** Returns the pixel format used to encode image data within the PVR file. */
   public PixelFormat getPixelFormat() { return info.pixelFormat; }
 
-  /** Returns meaningful data only if pixelFormat() returns <code>PixelFormat.CUSTOM</code>. */
+  /** Returns meaningful data only if pixelFormat() returns {@code PixelFormat.CUSTOM}. */
   public byte[] getPixelFormatEx() { return info.pixelFormatEx; }
 
   /** Returns the color space the image data is in. */
@@ -345,7 +345,7 @@ public class PvrDecoder
   /**
    * Decodes the currently loaded PVR data and draws the result into a BufferedImage object.
    * @param image The BufferedImage object to draw the PVR texture into.
-   * @return <code>true</code> if the image has been drawn successfully, <code>false</code> otherwise.
+   * @return {@code true} if the image has been drawn successfully, {@code false} otherwise.
    * @throws Exception on error.
    */
   public boolean decode(BufferedImage image) throws Exception
@@ -385,7 +385,7 @@ public class PvrDecoder
    * @param y Top-most y coordinate of the pixel block.
    * @param width Width in pixels.
    * @param height Height in pixels.
-   * @return <code>true</code> if the image has been drawn successfully, <code>false</code> otherwise.
+   * @return {@code true} if the image has been drawn successfully, {@code false} otherwise.
    * @throws Exception
    */
   public boolean decode(BufferedImage image, int x, int y, int width, int height) throws Exception

@@ -111,9 +111,9 @@ public final class StringResource
    * Returns the string of the specified strref entry. Optionally adds the specified
    * Strref entry to the returned string.
    * @param index The strref entry
-   * @param extended If <code>true</code> adds the specified strref entry to the resulting string.
-   * @param asPrefix Strref value is prepended (if <code>true</code>) or appended
-   *                 (if <code>false</code>) to the string. Ignored if "extended" is <code>false</code>.
+   * @param extended If {@code true} adds the specified strref entry to the resulting string.
+   * @param asPrefix Strref value is prepended (if {@code true}) or appended
+   *                 (if {@code false}) to the string. Ignored if "extended" is {@code false}.
    * @return The string optionally including the strref entry.
    */
   public static String getStringRef(int index, boolean extended, boolean asPrefix)

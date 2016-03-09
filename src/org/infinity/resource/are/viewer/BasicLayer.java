@@ -130,7 +130,7 @@ public abstract class BasicLayer<E extends LayerObject>
   /**
    * Returns the layer object at the specified index.
    * @param index The index of the layer object.
-   * @return The layer object, of <code>null</code> if not available.
+   * @return The layer object, of {@code null} if not available.
    */
   public E getLayerObject(int index)
   {
@@ -177,7 +177,7 @@ public abstract class BasicLayer<E extends LayerObject>
 
   /**
    * Returns the layer object containing the specified layer item.
-   * @return The object, if it has been found, <code>null</code> otherwise.
+   * @return The object, if it has been found, {@code null} otherwise.
    */
   public E getLayerObjectOf(AbstractLayerItem item)
   {
@@ -197,7 +197,7 @@ public abstract class BasicLayer<E extends LayerObject>
 
   /**
    * Loads all available objects of this layer if it hasn't been loaded yet.
-   * @param forced If <code>true</code>, always (re-)loads the current layer, even if it has been loaded already.
+   * @param forced If {@code true}, always (re-)loads the current layer, even if it has been loaded already.
    * @return The number of initialized layer objects.
    */
   public abstract int loadLayer(boolean forced);
@@ -219,7 +219,7 @@ public abstract class BasicLayer<E extends LayerObject>
 
   /**
    * Returns whether schedules will be considered when querying {@link #isScheduled(int)}.
-   * @return <code>true</code> if schedules will be considered, <code>false</code> otherwise.
+   * @return {@code true} if schedules will be considered, {@code false} otherwise.
    */
   public boolean isScheduleEnabled()
   {
@@ -228,7 +228,7 @@ public abstract class BasicLayer<E extends LayerObject>
 
   /**
    * Set whether schedules will be considered when querying {@link #isScheduled(int)}.
-   * When setting <code>false</code>, {@link #isScheduled(int)} will always return true.
+   * When setting {@code false}, {@link #isScheduled(int)} will always return true.
    */
   public void setScheduleEnabled(boolean enable)
   {
@@ -263,8 +263,8 @@ public abstract class BasicLayer<E extends LayerObject>
   /**
    * Returns whether the layer object at the specified index is active at the currently set schedule.
    * @param index The index of the layer object to check.
-   * @return <code>true</code> if the layer object is scheduled, <code>false</code> otherwise.
-   *         (Note: Layer objects without schedule always return <code>true</code>.)
+   * @return {@code true} if the layer object is scheduled, {@code false} otherwise.
+   *         (Note: Layer objects without schedule always return {@code true}.)
    */
   public boolean isScheduled(int index)
   {

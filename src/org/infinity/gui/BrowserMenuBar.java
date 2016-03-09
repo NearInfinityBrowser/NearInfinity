@@ -422,7 +422,7 @@ public final class BrowserMenuBar extends JMenuBar
   /**
    * Attempts to find a matching bookmark and returns its name.
    * @param keyPath The path to the game's chitin.key.
-   * @return The bookmark name of a matching game or <code>null</code> otherwise.
+   * @return The bookmark name of a matching game or {@code null} otherwise.
    */
   public String getBookmarkName(File keyFile)
   {
@@ -595,7 +595,7 @@ public final class BrowserMenuBar extends JMenuBar
       // Updating current game if needed
       Bookmark bookmark = getBookmarkOf(Profile.getChitinKey());
       if (bookmark != null) {
-        Profile.addProperty(Profile.GET_GAME_DESC, Profile.Type.STRING, bookmark.getName());
+        Profile.addProperty(Profile.Key.GET_GAME_DESC, Profile.Type.STRING, bookmark.getName());
         NearInfinity.getInstance().updateWindowTitle();
       }
     }
@@ -618,7 +618,7 @@ public final class BrowserMenuBar extends JMenuBar
             }
           }
         }
-        Profile.addProperty(Profile.GET_GAME_DESC, Profile.Type.STRING, null);
+        Profile.addProperty(Profile.Key.GET_GAME_DESC, Profile.Type.STRING, null);
         NearInfinity.getInstance().updateWindowTitle();
       }
     }
@@ -643,7 +643,7 @@ public final class BrowserMenuBar extends JMenuBar
         gameBookmarks.insert(bookmark.getMenuItem(), idx);
         gameBookmarkSeparator.setVisible(!bookmarkList.isEmpty());
         gameBookmarkEdit.setEnabled(!bookmarkList.isEmpty());
-        Profile.addProperty(Profile.GET_GAME_DESC, Profile.Type.STRING, bookmark.getName());
+        Profile.addProperty(Profile.Key.GET_GAME_DESC, Profile.Type.STRING, bookmark.getName());
         NearInfinity.getInstance().updateWindowTitle();
       }
     }
@@ -654,7 +654,7 @@ public final class BrowserMenuBar extends JMenuBar
       if (name != null) {
         name = name.trim();
         if (name.isEmpty()) {
-          name = (String)Profile.getProperty(Profile.GET_GAME_TITLE);
+          name = (String)Profile.getProperty(Profile.Key.GET_GAME_TITLE);
         }
         Profile.Game game = Profile.getGame();
         String path = Profile.getChitinKey().getAbsolutePath();
@@ -1060,7 +1060,7 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void gameLoaded()
     {
-      File iniFile = (File)Profile.getProperty(Profile.GET_GAME_INI_FILE);
+      File iniFile = (File)Profile.getProperty(Profile.Key.GET_GAME_INI_FILE);
       if (iniFile != null && iniFile.isFile()) {
         editIni.setText(iniFile.getName());
         editIni.setEnabled(true);
@@ -1070,7 +1070,7 @@ public final class BrowserMenuBar extends JMenuBar
         editIni.setEnabled(false);
         editIni.setToolTipText("Ini file not available");
       }
-      editString2.setEnabled(Profile.getProperty(Profile.GET_GAME_DIALOGF_FILE) != null);
+      editString2.setEnabled(Profile.getProperty(Profile.Key.GET_GAME_DIALOGF_FILE) != null);
       editVarVar.setEnabled(FileNI.getFile(Profile.getRootFolders(), "VAR.VAR").isFile());
       if (editString2.isEnabled()) {
         editString2.setToolTipText("");
@@ -1102,7 +1102,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
       else if (event.getSource() == editString2) {
         StringEditor editor = null;
-        File file = (File)Profile.getProperty(Profile.GET_GAME_DIALOGF_FILE);
+        File file = (File)Profile.getProperty(Profile.Key.GET_GAME_DIALOGF_FILE);
         List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
         for (int i = 0; i < frames.size(); i++) {
           StringEditor e = (StringEditor)frames.get(i);
@@ -1170,7 +1170,7 @@ public final class BrowserMenuBar extends JMenuBar
         if (textSearchMenu.getMenuComponent(i) instanceof JMenuItem) {
           JMenuItem mi = (JMenuItem)textSearchMenu.getMenuComponent(i);
           if ("INI".equals(mi.getText())) {
-            if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_INI)) {
+            if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_INI)) {
               mi.setEnabled(true);
             } else {
               mi.setEnabled(false);
@@ -2010,7 +2010,7 @@ public final class BrowserMenuBar extends JMenuBar
       mLanguageMenu.add(rbmi);
 
       if (Profile.isEnhancedEdition()) {
-        List<?> languages = (List<?>)Profile.getProperty(Profile.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE);
+        List<?> languages = (List<?>)Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE);
         for (Iterator<?> iter = languages.iterator(); iter.hasNext();) {
           String lang = (String)iter.next();
           String langName = getDisplayLanguage(lang);
@@ -2436,12 +2436,12 @@ public final class BrowserMenuBar extends JMenuBar
     {
       if (newLanguage != null) {
         // switch language and refresh resources
-        String oldLanguage = (String)Profile.getProperty(Profile.GET_GAME_LANG_FOLDER_NAME);
+        String oldLanguage = (String)Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_NAME);
         String oldLangName = getDisplayLanguage(oldLanguage);
         String newLanguageCode;
         if (newLanguage.equalsIgnoreCase(LANGUAGE_AUTODETECT)) {
           // "Autodetect" must be converted into an actual language code before proceeding
-          newLanguageCode = ResourceFactory.autodetectGameLanguage((File)Profile.getProperty(Profile.GET_GAME_INI_FILE));
+          newLanguageCode = ResourceFactory.autodetectGameLanguage((File)Profile.getProperty(Profile.Key.GET_GAME_INI_FILE));
         } else {
           newLanguageCode = newLanguage;
         }
@@ -3089,7 +3089,7 @@ public final class BrowserMenuBar extends JMenuBar
         throw new NullPointerException();
       }
       if (name == null || name.trim().isEmpty()) {
-        name = (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE, game);
+        name = (String)Profile.getProperty(Profile.Key.GET_GLOBAL_GAME_TITLE, game);
       }
       this.name = name;
       this.game = game;
@@ -3246,9 +3246,9 @@ public final class BrowserMenuBar extends JMenuBar
     {
       if (index >= 0) {
         return String.format("%1$d  %2$s", index+1,
-                             (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE, game));
+                             (String)Profile.getProperty(Profile.Key.GET_GLOBAL_GAME_TITLE, game));
       } else {
-        return (String)Profile.getProperty(Profile.GET_GLOBAL_GAME_TITLE, game);
+        return (String)Profile.getProperty(Profile.Key.GET_GLOBAL_GAME_TITLE, game);
       }
     }
 

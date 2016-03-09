@@ -332,7 +332,7 @@ public class DynamicArray
    * @param offset Buffer offset.
    * @param length The number of bytes to convert.
    * @param charset The charset to be used to decode the bytes.
-   *                Specify <code>null</code> to use "windows-1252" charset.
+   *                Specify {@code null} to use "windows-1252" charset.
    * @return A string representation of the byte sequence or an empty string on error.
    */
   public static String getString(byte[] buffer, int offset, int length, Charset charset)
@@ -558,7 +558,7 @@ public class DynamicArray
 
   /**
    * Adds the specified index to the current base offset of the underlying array.
-   * @param index Adds an offset of <code>index</code> elements to the current base offset. Can be negative.
+   * @param index Adds an offset of {@code index} elements to the current base offset. Can be negative.
    * @return This object
    */
   public DynamicArray addToBaseOffset(int index)

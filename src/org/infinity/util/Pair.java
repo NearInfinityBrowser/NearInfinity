@@ -15,7 +15,7 @@ public class Pair<V> implements Cloneable
   private V first, second;
 
   /**
-   * Creates a pair object with both elements initialized to <code>null</code>.
+   * Creates a pair object with both elements initialized to {@code null}.
    */
   public Pair()
   {
@@ -25,7 +25,7 @@ public class Pair<V> implements Cloneable
 
   /**
    * Creates a pair object, setting the first element to the specified value and
-   * setting the second element to <code>null</code>.
+   * setting the second element to {@code null}.
    * @param first The value of the first element.
    */
   public Pair(V first)

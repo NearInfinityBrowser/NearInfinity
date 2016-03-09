@@ -97,7 +97,7 @@ public class Misc
    * @param data Text data as byte array.
    * @param defaultCharset The default charset to return if autodetection is not successful.
    *                       (Default: ISO-8859-1)
-   * @return The detected character set or <code>defaultCharset</code>
+   * @return The detected character set or {@code defaultCharset}
    *         if autodetection was not successful.
    */
   public static Charset detectCharset(byte[] data, Charset defaultCharset)
@@ -163,7 +163,7 @@ public class Misc
    * Creates a thread pool with a pool size depending on the number of available CPU cores.<br>
    * <br>
    * <b>numThreads:</b>   Number of available CPU cores.<br>
-   * <b>maxQueueSize:</b> 2 x <code>numThreads</code>.<br>
+   * <b>maxQueueSize:</b> 2 x {@code numThreads}.<br>
    * @return A ThreadPoolExecutor instance.
    */
   public static ThreadPoolExecutor createThreadPool()
@@ -175,7 +175,7 @@ public class Misc
   /**
    * Creates a thread pool with the specified parameters.
    * @param numThreads Max. number of parallel threads to execute. Must be >= 1.
-   * @param maxQueueSize Max. size of the working queue. Must be >= <code>numThreads</code>.
+   * @param maxQueueSize Max. size of the working queue. Must be >= {@code numThreads}.
    * @return A ThreadPoolExecutor instance.
    */
   public static ThreadPoolExecutor createThreadPool(int numThreads, int maxQueueSize)
@@ -190,9 +190,9 @@ public class Misc
    * Helper routine which can be used to check or block execution of new threads while the
    * blocking queue is full.
    * @param executor The executor to query.
-   * @param block Specify <code>true</code> to block execution as long as the queue is full.
+   * @param block Specify {@code true} to block execution as long as the queue is full.
    * @param maxWaitMs Specify max. time to block queue, in milliseconds. Specify -1 to block indefinitely.
-   * @return <code>true</code> if queue is ready for new elements, <code>false</code> otherwise.
+   * @return {@code true} if queue is ready for new elements, {@code false} otherwise.
    */
   public static boolean isQueueReady(ThreadPoolExecutor executor, boolean block, int maxWaitMs)
   {

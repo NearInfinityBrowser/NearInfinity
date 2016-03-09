@@ -145,7 +145,7 @@ public class LayerObjectDoorPoly extends LayerObject
 
   /**
    * Returns an array of layer items of the specified state.
-   * @param state The state of the layer items (<code>Open</code> or <code>Closed</code>).
+   * @param state The state of the layer items ({@code Open} or {@code Closed}).
    * @return An array of layer items.
    */
   public AbstractLayerItem[] getLayerItems(int state)

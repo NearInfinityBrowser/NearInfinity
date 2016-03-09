@@ -122,7 +122,7 @@ public class ResourceChooser extends JComponent implements ActionListener
 
   /**
    * Returns the format extension of the selected resource type.
-   * @return Resource type as file extension string or <code>null</code> if no type is selected.
+   * @return Resource type as file extension string or {@code null} if no type is selected.
    */
   public String getSelectedType()
   {
@@ -134,9 +134,9 @@ public class ResourceChooser extends JComponent implements ActionListener
   }
 
   /**
-   * Returns the filename of the selected resource from the list. Returns <code>null</code> if
+   * Returns the filename of the selected resource from the list. Returns {@code null} if
    * no item has been selected.
-   * @return The resource filename or <code>null</code> if no selection has been made.
+   * @return The resource filename or {@code null} if no selection has been made.
    */
   public String getSelectedItem()
   {
@@ -150,7 +150,7 @@ public class ResourceChooser extends JComponent implements ActionListener
 
   /**
    * Pops up a resource chooser dialog.
-   * @param parent The parent component of the dialog. Can be <code>null</code>.
+   * @param parent The parent component of the dialog. Can be {@code null}.
    * @return The return state of the dialog on pop down. Can be either
    */
   public int showDialog(Component parent)

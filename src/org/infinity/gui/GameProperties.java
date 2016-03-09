@@ -20,10 +20,12 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -46,81 +48,85 @@ import org.infinity.util.Pair;
  */
 public final class GameProperties extends ChildFrame implements ActionListener
 {
-  private static final TreeMap<Integer, String> RES_TYPES = new TreeMap<Integer, String>();
+  private static final EnumMap<Profile.Key, String> RES_TYPES = new EnumMap<>(Profile.Key.class);
 
   static {
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_2DA), "2DA V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_ACM), "ACM");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_ARE_V10), "ARE V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_ARE_V91), "ARE V9.1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_BAM_V1), "BAM V1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_BAMC_V1), "BAMC V1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_BAM_V2), "BAM V2");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_BCS), "BCS");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_BIFF), "BIFF V1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_BIFC), "BIFC V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_BIF), "BIF V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_BIK), "BIK");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_BIO), "BIO");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_BMP_PAL), "BMP (8-bit)");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_BMP_ALPHA), "BMP (32-bit)");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_CHR_V10), "CHR V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_CHR_V20), "CHR V2.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_CHR_V21), "CHR V2.1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_CHR_V22), "CHR V2.2");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_CHU), "CHU V1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_CRE_V10), "CRE V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_CRE_V12), "CRE V1.2");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_CRE_V22), "CRE V2.2");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_CRE_V90), "CRE V9.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_DLG), "DLG V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_EFF), "EFF V2.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_FNT), "FNT");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_GAM_V11), "GAM V1.1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_GAM_V20), "GAM V2.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_GAM_V21), "GAM V2.1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_GAM_V22), "GAM V2.2");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_GLSL), "GLSL");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_GUI), "GUI");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_IDS), "IDS V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_INI), "INI");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_ITM_V10), "ITM V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_ITM_V11), "ITM V1.1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_ITM_V20), "ITM V2.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_KEY), "KEY V1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_MOS_V1), "MOS V1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_MOSC_V1), "MOSC V1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_MOS_V2), "MOS V2");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_MUS), "MUS");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_MVE), "MVE");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_OGG), "OGG");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_PLT), "PLT V1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_PRO), "PRO V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_PVRZ), "PVRZ");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_RES), "RES");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_SAV), "SAV V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_SPL_V1), "SPL V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_SPL_V2), "SPL V2.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_SQL), "SQL");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_SRC_PST), "SRC (PS:T)");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_SRC_IWD2), "SRC (IWD2)");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_STO_V10), "STO V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_STO_V11), "STO V1.1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_STO_V90), "STO V9.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_TIS_V1), "TIS (Tiled)");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_TIS_V2), "TIS (PVRZ)");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_TLK), "TLK V1");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_TO_V1), "TOH/TOT");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_TO_V2), "TOH V2");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_VAR), "VAR");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_VEF), "VEF");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_VVC), "VVC V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_WAV), "WAV");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_WAVC), "WAVC V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_WBM), "WBM");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_WED), "WED V1.3");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_WFX), "WFX V1.0");
-    RES_TYPES.put(Integer.valueOf(Profile.IS_SUPPORTED_WMP), "WMP V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_2DA, "2DA V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_ACM, "ACM");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_ARE_V10, "ARE V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_ARE_V91, "ARE V9.1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_BAM_V1, "BAM V1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_BAMC_V1, "BAMC V1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_BAM_V2, "BAM V2");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_BCS, "BCS");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_BIFF, "BIFF V1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_BIFC, "BIFC V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_BIF, "BIF V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_BIK, "BIK");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_BIO, "BIO");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_BMP_PAL, "BMP (8-bit)");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_BMP_ALPHA, "BMP (32-bit)");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_CHR_V10, "CHR V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_CHR_V20, "CHR V2.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_CHR_V21, "CHR V2.1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_CHR_V22, "CHR V2.2");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_CHU, "CHU V1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_CRE_V10, "CRE V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_CRE_V12, "CRE V1.2");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_CRE_V22, "CRE V2.2");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_CRE_V90, "CRE V9.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_DLG, "DLG V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_EFF, "EFF V2.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_FNT, "FNT");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_GAM_V11, "GAM V1.1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_GAM_V20, "GAM V2.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_GAM_V21, "GAM V2.1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_GAM_V22, "GAM V2.2");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_GLSL, "GLSL");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_GUI, "GUI");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_IDS, "IDS V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_INI, "INI");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_ITM_V10, "ITM V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_ITM_V11, "ITM V1.1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_ITM_V20, "ITM V2.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_KEY, "KEY V1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_LUA, "LUA");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_MENU, "MENU");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_MOS_V1, "MOS V1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_MOSC_V1, "MOSC V1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_MOS_V2, "MOS V2");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_MUS, "MUS");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_MVE, "MVE");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_OGG, "OGG");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_PLT, "PLT V1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_PNG, "PNG");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_PRO, "PRO V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_PVRZ, "PVRZ");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_RES, "RES");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_SAV, "SAV V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_SPL_V1, "SPL V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_SPL_V2, "SPL V2.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_SQL, "SQL");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_SRC_PST, "SRC (PS:T)");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_SRC_IWD2, "SRC (IWD2)");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_STO_V10, "STO V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_STO_V11, "STO V1.1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_STO_V90, "STO V9.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_TIS_V1, "TIS (Tiled)");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_TIS_V2, "TIS (PVRZ)");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_TLK, "TLK V1");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_TO_V1, "TOH/TOT");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_TO_V2, "TOH V2");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_TTF, "TTF");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_VAR, "VAR");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_VEF, "VEF");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_VVC, "VVC V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_WAV, "WAV");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_WAVC, "WAVC V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_WBM, "WBM");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_WED, "WED V1.3");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_WFX, "WFX V1.0");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_WMP, "WMP V1.0");
   }
 
   private final JButton bClose = new JButton("Close");
@@ -158,33 +164,33 @@ public final class GameProperties extends ChildFrame implements ActionListener
     String s;
 
     // Entry: game type
-    s = (String)Profile.getProperty(Profile.GET_GAME_TITLE);
+    s = (String)Profile.getProperty(Profile.Key.GET_GAME_TITLE);
     l = new JLabel("Game type:");
     tf = createReadOnlyField(s, true);
     listControls.add(new Pair<JComponent>(l, tf));
 
     // Entry: profile name
-    s = (String)Profile.getProperty(Profile.GET_GAME_DESC);
+    s = (String)Profile.getProperty(Profile.Key.GET_GAME_DESC);
     l = new JLabel("Profile name:");
     tf = createReadOnlyField((s != null) ? s : "n/a", true);
     listControls.add(new Pair<JComponent>(l, tf));
 
     // Entry: game folder
-    s = ((File)Profile.getProperty(Profile.GET_GAME_ROOT_FOLDER)).toString();
+    s = ((File)Profile.getProperty(Profile.Key.GET_GAME_ROOT_FOLDER)).toString();
     l = new JLabel("Game folder:");
     tf = createReadOnlyField(s, true);
     listControls.add(new Pair<JComponent>(l, tf));
     if (Profile.isEnhancedEdition()) {
       // Entry: home folder
-      s = ((File)Profile.getProperty(Profile.GET_GAME_HOME_FOLDER)).toString();
+      s = ((File)Profile.getProperty(Profile.Key.GET_GAME_HOME_FOLDER)).toString();
       l = new JLabel("Home folder:");
       tf = createReadOnlyField(s, true);
       listControls.add(new Pair<JComponent>(l, tf));
 
       // Entry: available languages
-      List<?> languages = (List<?>)Profile.getProperty(Profile.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE);
+      List<?> languages = (List<?>)Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE);
       StringBuilder sb = new StringBuilder();
-      s = ResourceFactory.autodetectGameLanguage((File)Profile.getProperty(Profile.GET_GAME_INI_FILE));
+      s = ResourceFactory.autodetectGameLanguage((File)Profile.getProperty(Profile.Key.GET_GAME_INI_FILE));
       if (s != null) {
         sb.append(String.format("Autodetect (%1$s)", getLanguageName(s)));
       }
@@ -201,7 +207,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
       listControls.add(new Pair<JComponent>(l, tf));
 
       // Entry: language
-      s = getLanguageName((String)Profile.getProperty(Profile.GET_GAME_LANG_FOLDER_NAME));
+      s = getLanguageName((String)Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_NAME));
       l = new JLabel("Current language:");
       tf = createReadOnlyField(s, true);
       listControls.add(new Pair<JComponent>(l, tf));
@@ -209,13 +215,13 @@ public final class GameProperties extends ChildFrame implements ActionListener
 
     // Entry: Use female TLK file
     l = new JLabel("Uses female TLK file:");
-    tf = createReadOnlyField(Boolean.toString((Profile.getProperty(Profile.GET_GAME_DIALOGF_FILE) != null)), true);
+    tf = createReadOnlyField(Boolean.toString((Profile.getProperty(Profile.Key.GET_GAME_DIALOGF_FILE) != null)), true);
     listControls.add(new Pair<JComponent>(l, tf));
 
     // Entry: game's ini file
     l = new JLabel("Game's INI file:");
     JPanel pIni = new JPanel(new GridBagLayout());
-    File iniFile = (File)Profile.getProperty(Profile.GET_GAME_INI_FILE);
+    File iniFile = (File)Profile.getProperty(Profile.Key.GET_GAME_INI_FILE);
     tf = createReadOnlyField(iniFile.toString(), true);
     gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
@@ -255,8 +261,8 @@ public final class GameProperties extends ChildFrame implements ActionListener
     List<JLabel> listTypes = new ArrayList<JLabel>();
     int maxWidth = 0, maxHeight = 0;
     // preparing entries
-    for (Iterator<Integer> iter = RES_TYPES.keySet().iterator(); iter.hasNext();) {
-      Integer key = iter.next();
+    for (Iterator<Profile.Key> iter = RES_TYPES.keySet().iterator(); iter.hasNext();) {
+      Profile.Key key = iter.next();
       if (key != null) {
         JLabel label = createCheckLabel(key, RES_TYPES.get(key));
         maxWidth = Math.max(maxWidth, label.getPreferredSize().width);
@@ -264,6 +270,15 @@ public final class GameProperties extends ChildFrame implements ActionListener
         listTypes.add(label);
       }
     }
+
+    Collections.sort(listTypes, new Comparator<JLabel>() {
+      @Override
+      public int compare(JLabel o1, JLabel o2)
+      {
+        return o1.getText().compareToIgnoreCase(o2.getText());
+      }
+    });
+
     // setting preferred size to fit all entries
     int itemsPerRow = pFixed.getPreferredSize().width / (maxWidth + flow.getHgap());
     if (pFixed.getPreferredSize().width % (maxWidth + flow.getHgap()) > (maxWidth / 2)) {
@@ -375,7 +390,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
   }
 
   // Creates a label with a graphical icon specifying checked or unchecked state
-  private static JLabel createCheckLabel(Integer key, String desc)
+  private static JLabel createCheckLabel(Profile.Key key, String desc)
   {
     if (key != null && desc != null && Profile.getProperty(key) instanceof Boolean) {
       ImageIcon icon;

@@ -95,7 +95,7 @@ public class ButtonPanel extends JPanel
 
   /**
    * Creates a component of the specified type.
-   * @param type One of the predefined types defined in the enum <code>Control</code>.
+   * @param type One of the predefined types defined in the enum {@code Control}.
    * @return The resulting component.
    */
   public static JComponent createControl(Control type)
@@ -210,7 +210,7 @@ public class ButtonPanel extends JPanel
   /**
    * Adds one of the predefined controls to the button panel.
    * @param type The predefined control to add.
-   * @return The added component, or <code>null</code> on error.
+   * @return The added component, or {@code null} on error.
    */
   public JComponent addControl(Control type)
   {
@@ -220,7 +220,7 @@ public class ButtonPanel extends JPanel
   /**
    * Adds the specified component to the button panel.
    * @param component The custom component to add.
-   * @return The added component, or <code>null</code> on error.
+   * @return The added component, or {@code null} on error.
    */
   public JComponent addControl(JComponent component)
   {
@@ -230,8 +230,8 @@ public class ButtonPanel extends JPanel
   /**
    * Adds the specified component to the button panel and associates it with a specific type.
    * @param component The custom component to add.
-   * @param type The <code>Control</code> type to attach.
-   * @return The added component, or <code>null</code> on error.
+   * @param type The {@code Control} type to attach.
+   * @return The added component, or {@code null} on error.
    */
   public JComponent addControl(JComponent component, Control type)
   {
@@ -242,7 +242,7 @@ public class ButtonPanel extends JPanel
    * Inserts one of the predefined control into the button panel at the specified position if possible.
    * @param position The requested position where to place the control (ordered from left to right)
    * @param type The predefined control to add.
-   * @return The inserted component, or <code>null</code> on error.
+   * @return The inserted component, or {@code null} on error.
    */
   public JComponent addControl(int position, Control type)
   {
@@ -253,7 +253,7 @@ public class ButtonPanel extends JPanel
    * Inserts the specified control into the button panel at the specified position if possible.
    * @param position The requested position where to place the control (ordered from left to right)
    * @param component The custom component to add.
-   * @return The inserted component, or <code>null</code> on error.
+   * @return The inserted component, or {@code null} on error.
    */
   public JComponent addControl(int position, JComponent component)
   {
@@ -265,8 +265,8 @@ public class ButtonPanel extends JPanel
    * associates it with a specific type.
    * @param position The requested position where to place the control (ordered from left to right)
    * @param component The custom component to add.
-   * @param type The <code>Control</code> type to attach.
-   * @return The inserted component, or <code>null</code> on error.
+   * @param type The {@code Control} type to attach.
+   * @return The inserted component, or {@code null} on error.
    */
   public JComponent addControl(int position, JComponent component, Control type)
   {
@@ -301,7 +301,7 @@ public class ButtonPanel extends JPanel
   /**
    * Returns the component at the specified index.
    * @param index The index of the component.
-   * @return The component or <code>null</code> if index is out of bounds.
+   * @return The component or {@code null} if index is out of bounds.
    */
   public JComponent getControl(int index)
   {
@@ -313,9 +313,9 @@ public class ButtonPanel extends JPanel
 
   /**
    * Returns the first available component of the specified type.
-   * @param type One of the predefined types defined in the enum <code>Control</code>.
-   *             Specifying <code>null</code> will return the first available non-predefined component.
-   * @return The component or <code>null</code> if not found.
+   * @param type One of the predefined types defined in the enum {@code Control}.
+   *             Specifying {@code null} will return the first available non-predefined component.
+   * @return The component or {@code null} if not found.
    */
   public JComponent getControlByType(Control type)
   {
@@ -329,7 +329,7 @@ public class ButtonPanel extends JPanel
 
   /**
    * Returns all available components of the specified type.
-   * @param type One of the predefined types defined in the enum <code>Control</code>.
+   * @param type One of the predefined types defined in the enum {@code Control}.
    * @return An array of matching components. The array will be empty if no component has been found.
    */
   public JComponent[] getControlsByType(Control type)

@@ -51,7 +51,7 @@ public interface VideoBuffer
    * Returns the data object associated with the current front buffer.
    * The data should be discarded automatically with the next call of {@link #flipBuffers()}.
    * @return The data object associated with the current front buffer,
-   *         or <code>null</code> if no data is available.
+   *         or {@code null} if no data is available.
    * @see #attachData(Object)
    */
   public Object fetchData();

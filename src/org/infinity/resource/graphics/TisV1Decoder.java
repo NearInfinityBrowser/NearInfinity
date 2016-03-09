@@ -38,7 +38,7 @@ public class TisV1Decoder extends TisDecoder
    * Returns the palette of the specified tile.
    * @param tileIdx The tile index
    * @return The palette as int array of 256 entries (Format: ARGB).
-   *         Returns <code>null</code> on error.
+   *         Returns {@code null} on error.
    */
   public int[] getTilePalette(int tileIdx)
   {
@@ -79,7 +79,7 @@ public class TisV1Decoder extends TisDecoder
    * Returns the unprocessed tile data (without palette).
    * @param tileIdx The tile index
    * @return Unprocessed data of the specified tile without the palette block.
-   *         Returns <code>null</code> on error.
+   *         Returns {@code null} on error.
    */
   public byte[] getRawTileData(int tileIdx)
   {

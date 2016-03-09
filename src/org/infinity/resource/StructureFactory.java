@@ -21,7 +21,7 @@ import org.infinity.util.ResourceStructure;
 import org.infinity.util.io.FileNI;
 import org.infinity.util.io.FileOutputStreamNI;
 
-// Create different pre-initialized IE game resources from scratch and writing them to disk.
+// Create different pre-initialized IE game resources from scratch and writes them to disk.
 public final class StructureFactory
 {
   // Supported resource types
@@ -180,7 +180,7 @@ public final class StructureFactory
     if (fileBase.length() > 8)
       fileBase = fileBase.substring(0, 8);
 
-    boolean isV91 = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ARE_V91);
+    boolean isV91 = (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ARE_V91);
     s_are.add(ResourceStructure.ID_STRING, 4, "AREA");      // Signature
     s_are.add(ResourceStructure.ID_STRING, 4, isV91 ? "V9.1" : "V1.0");   // Version
     s_are.add(ResourceStructure.ID_RESREF, fileBase);       // Area WED (replaced with actual WED filename)
@@ -254,21 +254,21 @@ public final class StructureFactory
       ResourceStructure s_cre = createCRE();
 
       s_chr.add(ResourceStructure.ID_STRING, 4, "CHR ");          // Signature
-      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CHR_V22)) {
+      if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_CHR_V22)) {
         s_chr.add(ResourceStructure.ID_STRING, 4, "V2.2");        // Version
-      } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CHR_V20)) {
+      } else if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_CHR_V20)) {
         s_chr.add(ResourceStructure.ID_STRING, 4, "V2.0");        // Version
       } else {
         s_chr.add(ResourceStructure.ID_STRING, 4, "V1.0");        // Version
       }
       s_chr.add(ResourceStructure.ID_STRING, 32, name);           // Name of Protagonist/Player
-      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CHR_V22)) {
+      if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_CHR_V22)) {
         s_chr.add(ResourceStructure.ID_DWORD, 0x0224);            // Offset to CRE structure
       } else {
         s_chr.add(ResourceStructure.ID_DWORD, 0x0064);            // Offset to CRE structure
       }
       s_chr.add(ResourceStructure.ID_DWORD, s_cre.size());        // Length of the CRE structure
-      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CHR_V22)) {
+      if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_CHR_V22)) {
         s_chr.add(ResourceStructure.ID_ARRAY, 500);               // block of zeros
       } else {
         s_chr.add(ResourceStructure.ID_ARRAY, 52);                // block of zeros
@@ -286,11 +286,11 @@ public final class StructureFactory
     final int[] ofs = {0x2d4, 0x378, 0, 0x33c};
     final int[] count = {38, 46, 50, 38};
     int idx;
-    if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V90)) { // IWD
+    if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_CRE_V90)) { // IWD
       idx = 3;
-    } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V22)) {  // IWD2
+    } else if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_CRE_V22)) {  // IWD2
       idx = 2;
-    } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V12)) {  // PST
+    } else if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_CRE_V12)) {  // PST
       idx = 1;
     } else {  // BG1, BG2, EE
       idx = 0;
@@ -409,9 +409,9 @@ public final class StructureFactory
     final int[] ofs = {0x72, 0x9a, 0x82};
     final int[] count = {4, 44, 20};
     int idx;
-    if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V20)) { // IWD2
+    if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V20)) { // IWD2
       idx = 2;
-    } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V11)) { // PST
+    } else if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V11)) { // PST
       idx = 1;
     } else {  // BG1, BG2, IWD, EE
       idx = 0;
@@ -474,7 +474,7 @@ public final class StructureFactory
     final String[] version = {"V1  ", "V2.0"};
     final int[] ofs = {0x72, 0x82};
     final int[] count = {4, 20};
-    int idx = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_SPL_V2) ? 1 : 0;
+    int idx = (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_SPL_V2) ? 1 : 0;
     ResourceStructure s_spl = new ResourceStructure();
     s_spl.add(ResourceStructure.ID_STRING, 4, "SPL ");        // Signature
     s_spl.add(ResourceStructure.ID_STRING, 4, version[idx]);  // Version
@@ -500,14 +500,14 @@ public final class StructureFactory
 
   private ResourceStructure createSRC() throws StructureException
   {
-    if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_SRC_PST)) {
+    if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_SRC_PST)) {
       ResourceStructure s_src = new ResourceStructure();
       s_src.add(ResourceStructure.ID_DWORD, 1);         // strref entry count
       s_src.add(ResourceStructure.ID_STRREF, -1);       // strref
       s_src.add(ResourceStructure.ID_DWORD, 1);         // always 1?
 
       return s_src;
-    } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_SRC_IWD2)) {
+    } else if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_SRC_IWD2)) {
       ResourceStructure s_src = new ResourceStructure();
       final String s = "Placeholder text...";
       s_src.add(ResourceStructure.ID_STRING, s);
@@ -523,9 +523,9 @@ public final class StructureFactory
     final int[] ofs = {0x9c, 0x9c, 0xf0};
     final int[] count = {40, 40, 124};
     int idx;
-    if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_STO_V90)) { // IWD, IWD2
+    if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V90)) { // IWD, IWD2
       idx = 2;
-    } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_STO_V11)) { // PST
+    } else if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V11)) { // PST
       idx = 1;
     } else {  // BG1, BG2, EE
       idx = 0;

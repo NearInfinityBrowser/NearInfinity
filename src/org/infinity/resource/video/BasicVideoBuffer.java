@@ -124,8 +124,8 @@ public class BasicVideoBuffer implements VideoBuffer
    * @param width The image width in pixels
    * @param height The image height in pixels
    * @param hasTransparency Enable/Disable transparency/alpha support.
-   * @return <code>true</code> if the new buffer chain has been created successfully,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if the new buffer chain has been created successfully,
+   *         {@code false} otherwise.
    */
   public boolean create(int numBuffers, int width, int height, boolean hasTransparency)
   {
@@ -156,8 +156,8 @@ public class BasicVideoBuffer implements VideoBuffer
    * Initializes the buffer chain using the BufferedImage objects from the specified list.
    * Old buffers will be discarded.
    * @param bufferList The collection of BufferedImage objects.
-   * @return <code>true</code> if the new buffer chain has been created successfully,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if the new buffer chain has been created successfully,
+   *         {@code false} otherwise.
    */
   public boolean create(Collection<Image> bufferList)
   {

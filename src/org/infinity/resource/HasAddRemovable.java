@@ -18,7 +18,7 @@ public interface HasAddRemovable
    * {@link AddRemovable} argument before it is added to the structure or to cancel the operation.
    * @param struct The {@link AddRemovable} entry to add.
    * @return The {@link AddRemovable} entry to add.
-   *         May return <code>null</code> to cancel the operation.
+   *         May return {@code null} to cancel the operation.
    */
   AddRemovable confirmAddEntry(AddRemovable entry) throws Exception;
 
@@ -26,7 +26,7 @@ public interface HasAddRemovable
    * This method is called whenever an {@link AddRemovable} entry is about to be removed from the
    * parent structure. It allows subclasses to cancel the operation.
    * @param entry The {@link AddRemovable} entry to remove.
-   * @return <code>true</code> to continue the remove operation. <code>false</code> to cancel the
+   * @return {@code true} to continue the remove operation. {@code false} to cancel the
    *         remove operation.
    */
   boolean confirmRemoveEntry(AddRemovable entry) throws Exception;

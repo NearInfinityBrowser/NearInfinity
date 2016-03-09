@@ -215,7 +215,7 @@ public final class ResourceFactory
 
   /**
    * Attempts to detect the resource type from the data itself
-   * and returns the respective resource class instance, or <code>null</code> on failure.
+   * and returns the respective resource class instance, or {@code null} on failure.
    */
   public static Resource detectResource(ResourceEntry entry)
   {
@@ -353,8 +353,8 @@ public final class ResourceFactory
   /**
    * Returns whether the specified resource exists.
    * @param resourceName The resource filename.
-   * @return <code>true</code> if the resource exists in BIFF archives or override folders,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if the resource exists in BIFF archives or override folders,
+   *         {@code false} otherwise.
    */
   public static boolean resourceExists(String resourceName)
   {
@@ -364,10 +364,10 @@ public final class ResourceFactory
   /**
    * Returns whether the specified resource exists.
    * @param resourceName The resource filename.
-   * @param searchExtraDirs If <code>true</code>, all supported override folders will be searched.
-   *                        If <code>false</code>, only the default 'override' folders will be searched.
-   * @return <code>true</code> if the resource exists in BIFF archives or override folders,
-   *         <code>false</code> otherwise.
+   * @param searchExtraDirs If {@code true}, all supported override folders will be searched.
+   *                        If {@code false}, only the default 'override' folders will be searched.
+   * @return {@code true} if the resource exists in BIFF archives or override folders,
+   *         {@code false} otherwise.
    */
   public static boolean resourceExists(String resourceName, boolean searchExtraDirs)
   {
@@ -377,12 +377,12 @@ public final class ResourceFactory
   /**
    * Returns whether the specified resource exists.
    * @param resourceName The resource filename.
-   * @param searchExtraDirs If <code>true</code>, all supported override folders will be searched.
-   *                        If <code>false</code>, only the default 'override' folders will be searched.
+   * @param searchExtraDirs If {@code true}, all supported override folders will be searched.
+   *                        If {@code false}, only the default 'override' folders will be searched.
    * @param extraDirs       A list of File entries pointing to additional folders to search, not
    *                        covered by the default override folder list (e.g. "install:/music").
-   * @return <code>true</code> if the resource exists in BIFF archives or override folders,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if the resource exists in BIFF archives or override folders,
+   *         {@code false} otherwise.
    */
   public static boolean resourceExists(String resourceName, boolean searchExtraDirs, List<File> extraDirs)
   {
@@ -392,7 +392,7 @@ public final class ResourceFactory
   /**
    * Returns a ResourceEntry instance of the given resource name.
    * @param resourceName The resource filename.
-   * @return A ResourceEntry instance of the given resource filename, or <code>null</code> if not
+   * @return A ResourceEntry instance of the given resource filename, or {@code null} if not
    *         available.
    */
   public static ResourceEntry getResourceEntry(String resourceName)
@@ -403,9 +403,9 @@ public final class ResourceFactory
   /**
    * Returns a ResourceEntry instance of the given resource name.
    * @param resourceName The resource filename.
-   * @param searchExtraDirs If <code>true</code>, all supported override folders will be searched.
-   *                        If <code>false</code>, only the default 'override' folders will be searched.
-   * @return A ResourceEntry instance of the given resource filename, or <code>null</code> if not
+   * @param searchExtraDirs If {@code true}, all supported override folders will be searched.
+   *                        If {@code false}, only the default 'override' folders will be searched.
+   * @return A ResourceEntry instance of the given resource filename, or {@code null} if not
    *         available.
    */
   public static ResourceEntry getResourceEntry(String resourceName, boolean searchExtraDirs)
@@ -416,11 +416,11 @@ public final class ResourceFactory
   /**
    * Returns a ResourceEntry instance of the given resource name.
    * @param resourceName The resource filename.
-   * @param searchExtraDirs If <code>true</code>, all supported override folders will be searched.
-   *                        If <code>false</code>, only the default 'override' folders will be searched.
+   * @param searchExtraDirs If {@code true}, all supported override folders will be searched.
+   *                        If {@code false}, only the default 'override' folders will be searched.
    * @param extraDirs       A list of File entries pointing to additional folders to search, not
    *                        covered by the default override folder list (e.g. "install:/music").
-   * @return A ResourceEntry instance of the given resource filename, or <code>null</code> if not
+   * @return A ResourceEntry instance of the given resource filename, or {@code null} if not
    *         available.
    */
   public static ResourceEntry getResourceEntry(String resourceName, boolean searchExtraDirs, List<File> extraDirs)
@@ -432,7 +432,7 @@ public final class ResourceFactory
       // checking default override folder list
       if (searchExtraDirs && (entry == null)) {
         @SuppressWarnings("unchecked")
-        List<File> extraFolders = (List<File>)Profile.getProperty(Profile.GET_GAME_OVERRIDE_FOLDERS);
+        List<File> extraFolders = (List<File>)Profile.getProperty(Profile.Key.GET_GAME_OVERRIDE_FOLDERS);
         if (extraFolders != null) {
           for (final File folder: extraFolders) {
             File f = new FileNI(folder, resourceName);
@@ -511,7 +511,7 @@ public final class ResourceFactory
     List<File> list = new ArrayList<File>();
 
     if (Profile.isEnhancedEdition()) {
-      File langDir = (File)Profile.getProperty(Profile.GET_GAME_LANG_FOLDER_BASE);
+      File langDir = (File)Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_BASE);
       if (langDir.isDirectory()) {
         File[] langDirList = langDir.listFiles(new FileFilter() {
           @Override
@@ -520,7 +520,7 @@ public final class ResourceFactory
             // accept only folder names in language code format containing a dialog.tlk file
             return (pathname != null && pathname.isDirectory() &&
                     pathname.getName().matches("[a-z]{2}_[A-Z]{2}") &&
-                    (new FileNI(pathname, (String)Profile.getProperty(Profile.GET_GLOBAL_DIALOG_NAME))).isFile());
+                    (new FileNI(pathname, (String)Profile.getProperty(Profile.Key.GET_GLOBAL_DIALOG_NAME))).isFile());
           }
         });
         for (final File lang: langDirList) {
@@ -531,7 +531,7 @@ public final class ResourceFactory
     return list;
   }
 
-  /**  Return the game language specified in the given baldur.ini if found. Returns <code>en_US</code> otherwise. */
+  /**  Return the game language specified in the given baldur.ini if found. Returns {@code en_US} otherwise. */
   public static String autodetectGameLanguage(File iniFile)
   {
     final String langDefault = "en_US";   // using default language, if no language entry found
@@ -581,7 +581,7 @@ public final class ResourceFactory
   {
     if (Profile.isEnhancedEdition()) {
       final String EE_DOC_ROOT = FileSystemView.getFileSystemView().getDefaultDirectory().toString();
-      final String EE_DIR = (String)Profile.getProperty(Profile.GET_GAME_HOME_FOLDER_NAME);
+      final String EE_DIR = (String)Profile.getProperty(Profile.Key.GET_GAME_HOME_FOLDER_NAME);
       File userDir = new FileNI(EE_DOC_ROOT, EE_DIR);
       if (userDir.isDirectory()) {
         return userDir;
@@ -627,8 +627,8 @@ public final class ResourceFactory
 
     // fetching the CD folders in a game installation
     if (!Profile.isEnhancedEdition()) {
-      File iniFile = (File)Profile.getProperty(Profile.GET_GAME_INI_FILE);
-      List<?> rootFolders = (List<?>)Profile.getProperty(Profile.GET_GAME_FOLDERS);
+      File iniFile = (File)Profile.getProperty(Profile.Key.GET_GAME_INI_FILE);
+      List<?> rootFolders = (List<?>)Profile.getProperty(Profile.Key.GET_GAME_FOLDERS);
       if (iniFile != null && iniFile.isFile()) {
         try {
           BufferedReader br = new BufferedReader(new FileReaderNI(iniFile));
@@ -826,7 +826,7 @@ public final class ResourceFactory
     if (file.exists()) {
       return file;
     }
-    List<?> biffDirs = (List<?>)Profile.getProperty(Profile.GET_GAME_BIFF_FOLDERS);
+    List<?> biffDirs = (List<?>)Profile.getProperty(Profile.Key.GET_GAME_BIFF_FOLDERS);
     for (final Object biffDir : biffDirs) {
       if (biffDir instanceof File) {
         file = new FileNI((File)biffDir, filename);
@@ -844,10 +844,10 @@ public final class ResourceFactory
 
     // Get resources from keyfile
     keyfile.addBIFFResourceEntries(treeModel);
-    StringResource.init((File)Profile.getProperty(Profile.GET_GAME_DIALOG_FILE));
+    StringResource.init((File)Profile.getProperty(Profile.Key.GET_GAME_DIALOG_FILE));
 
     // Add other resources
-    List<?> extraDirs = (List<?>)Profile.getProperty(Profile.GET_GAME_EXTRA_FOLDERS);
+    List<?> extraDirs = (List<?>)Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
     List<File> rootDirs = Profile.getRootFolders();
     for (final Object extraDir : extraDirs) {
       for (final File root: rootDirs) {
@@ -897,7 +897,7 @@ public final class ResourceFactory
       list = new ArrayList<ResourceEntry>();
     }
     int initsize = list.size();
-    List<?> extraDirs = (List<?>)Profile.getProperty(Profile.GET_GAME_EXTRA_FOLDERS);
+    List<?> extraDirs = (List<?>)Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
     for (Iterator<?> iter = extraDirs.iterator(); iter.hasNext();) {
       ResourceTreeFolder extraNode = treeModel.getFolder(iter.next().toString());
       if (extraNode != null) {

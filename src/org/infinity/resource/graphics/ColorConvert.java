@@ -62,8 +62,8 @@ public class ColorConvert
    * Creates a BufferedImage object in the native color format for best possible performance.
    * @param width Image width in pixels
    * @param height Image height in pixels
-   * @param transparency The transparency type (either one of <code>Transparency.OPAQUE</code>,
-   *                     <code>Transparency.BITMASK</code> or <code>Transparency.TRANSLUCENT</code>).
+   * @param transparency The transparency type (either one of {@code Transparency.OPAQUE},
+   *                     {@code Transparency.BITMASK} or {@code Transparency.TRANSLUCENT}).
    * @return A new BufferedImage object with the specified properties.
    */
   public static BufferedImage createCompatibleImage(int width, int height, int transparency)
@@ -96,8 +96,8 @@ public class ColorConvert
    * Creates a VolatileImage object in the native color format for best possible performance.
    * @param width Image width in pixels
    * @param height Image height in pixels
-   * @param transparency The transparency type (either one of <code>Transparency.OPAQUE</code>,
-   *                     <code>Transparency.BITMASK</code> or <code>Transparency.TRANSLUCENT</code>).
+   * @param transparency The transparency type (either one of {@code Transparency.OPAQUE},
+   *                     {@code Transparency.BITMASK} or {@code Transparency.TRANSLUCENT}).
    * @return A new VolatileImage object with the specified properties.
    */
   public static VolatileImage createVolatileImage(int width, int height, int transparency)
@@ -129,7 +129,7 @@ public class ColorConvert
    * @param forceTrueColor Indicates whether the returned BufferedImage object will alway be in
    *        true color color format (i.e. pixels in ARGB format, with or without transparency support).
    * @return A BufferedImage object of the specified image in either BufferedImage.TYPE_BYTE_INDEXED format
-   *         or one of the true color formats, Returns <code>null</code> on error.
+   *         or one of the true color formats, Returns {@code null} on error.
    */
   public static BufferedImage toBufferedImage(Image img, boolean hasTransparency, boolean forceTrueColor)
   {
@@ -168,7 +168,7 @@ public class ColorConvert
    * Note: Only indexed and truecolored BufferedImage objects are fully supported!
    * @param image The image object to clone.
    * @return A new BufferedImage object possessing the content and properties of the source image.
-   *         Returns <code>null</code> on error.
+   *         Returns {@code null} on error.
    */
   public static BufferedImage cloneImage(BufferedImage image)
   {
@@ -250,7 +250,7 @@ public class ColorConvert
    * if you want to use the method {@link #nearestColor(int, int[])}.
    * @param rgbPalette The source RGB palette.
    * @param hclPalette An array to store the resulting HCL colors into.
-   * @return <code>true</code> if the conversion finished successfully, <code>false</code> otherwise.
+   * @return {@code true} if the conversion finished successfully, {@code false} otherwise.
    */
   public static boolean toHclPalette(int[] rgbPalette, int[] hclPalette)
   {
@@ -327,8 +327,8 @@ public class ColorConvert
    * Reduces the number of colors of the specified pixel data block.
    * @param pixels The pixel block of the image in ARGB format (alpha is ignored).
    * @param desiredColors The resulting number of colors after reduction (range 1..256).
-   * @param ignoreAlpha If <code>false</code>, only visible color values (alpha > 0) will be counted.
-   * @return An array containing the resulting colors, or <code>null</code> on error.
+   * @param ignoreAlpha If {@code false}, only visible color values (alpha > 0) will be counted.
+   * @return An array containing the resulting colors, or {@code null} on error.
    */
   public static int[] medianCut(int[] pixels, int desiredColors, boolean ignoreAlpha)
   {
@@ -348,8 +348,8 @@ public class ColorConvert
    * @param pixels The pixel block of the image in ARGB format (alpha is ignored).
    * @param desiredColors The resulting number of colors after reduction (range 1..256).
    * @param palette The array to write the resulting colors into.
-   * @param ignoreAlpha If <code>false</code>, only visible color values (alpha > 0) will be counted.
-   * @return <code>true</code> if color reduction succeeded, <code>false</code> otherwise.
+   * @param ignoreAlpha If {@code false}, only visible color values (alpha > 0) will be counted.
+   * @return {@code true} if color reduction succeeded, {@code false} otherwise.
    */
   public static boolean medianCut(int[] pixels, int desiredColors, int[] palette, boolean ignoreAlpha)
   {
@@ -634,7 +634,7 @@ public class ColorConvert
    * image.
    * @param image The image to convert.
    * @return The converted image if the source format is compatible with a 256 color table,
-   *         <code>null</code> otherwise.
+   *         {@code null} otherwise.
    */
   private static BufferedImage convertToIndexedImage(BufferedImage image)
   {

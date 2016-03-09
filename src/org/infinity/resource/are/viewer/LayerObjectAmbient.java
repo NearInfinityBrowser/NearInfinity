@@ -78,8 +78,8 @@ public class LayerObjectAmbient extends LayerObject
 
   /**
    * Returns the layer item of specified type.
-   * @param type The type of the item to return (either <code>ViewerConstants.AMBIENT_ITEM_ICON</code> or
-   *              <code>ViewerConstants.AMBIENT_ITEM_RANGE</code>).
+   * @param type The type of the item to return (either {@code ViewerConstants.AMBIENT_ITEM_ICON} or
+   *              {@code ViewerConstants.AMBIENT_ITEM_RANGE}).
    * @return The layer item of specified type.
    */
   @Override

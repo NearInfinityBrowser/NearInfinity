@@ -262,7 +262,7 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
   }
 
   /**
-   * Returns the currently selected cycle if {@link #isMultiPart()} is <code>false</code>.
+   * Returns the currently selected cycle if {@link #isMultiPart()} is {@code false}.
    * @return The currently selected cycle
    */
   public int getCycle()
@@ -275,7 +275,7 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
   }
 
   /**
-   * Sets the current BAM cycle. Does nothing if {@link #isMultiPart()} is <code>true</code>.
+   * Sets the current BAM cycle. Does nothing if {@link #isMultiPart()} is {@code true}.
    * @param cycle The BAM cycle to set.
    */
   public void setCycle(int cycle)

@@ -268,10 +268,10 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
 
     List<String> formats = new ArrayList<String>();
     formats.add(s_bifformat[BIFF]);
-    if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_BIF)) {
+    if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BIF)) {
       formats.add(s_bifformat[BIF]);
     }
-    if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_BIFC)) {
+    if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BIFC)) {
       formats.add(s_bifformat[BIFC]);
     }
     cbformat = new JComboBox<>(formats.toArray(new String[formats.size()]));

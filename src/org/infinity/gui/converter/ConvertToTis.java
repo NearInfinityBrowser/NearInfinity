@@ -89,7 +89,7 @@ public class ConvertToTis extends ChildFrame
    * @param result Returns more specific information about the conversion process. Data placed in the
    *               first item indicates success, data in the second item indicates failure.
    * @param showProgress Specify whether to show a progress monitor (needs a valid 'parent' parameter).
-   * @return <code>true</code> if the conversion finished successfully, <code>false</code> otherwise.
+   * @return {@code true} if the conversion finished successfully, {@code false} otherwise.
    */
   public static boolean convertV1(Component parent, BufferedImage img, String tisFileName, int tileCount,
                                   List<String> result, boolean showProgress)
@@ -268,7 +268,7 @@ public class ConvertToTis extends ChildFrame
    * @param result Returns more specific information about the conversion process. Data placed in the
    *               first item indicates success, data in the second item indicates failure.
    * @param showProgress Specify whether to show a progress monitor (needs a valid 'parent' parameter).
-   * @return <code>true</code> if the conversion finished successfully, <code>false</code> otherwise.
+   * @return {@code true} if the conversion finished successfully, {@code false} otherwise.
    */
   public static boolean convertV2(Component parent, BufferedImage img, String tisFileName,
                                   int tileCount, List<String> result, boolean showProgress)

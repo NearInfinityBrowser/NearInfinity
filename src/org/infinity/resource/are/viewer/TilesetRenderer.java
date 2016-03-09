@@ -269,8 +269,8 @@ public class TilesetRenderer extends RenderCanvas
   /**
    * Specifies whether the renderer uses the best interpolation type based on the current zoom factor
    * or uses a predefined interpolation type only.
-   * @param set If <code>true</code>, uses a predefined interpolation type only.
-   *            If <code>false</code>, chooses an interpolation type automatically.
+   * @param set If {@code true}, uses a predefined interpolation type only.
+   *            If {@code false}, chooses an interpolation type automatically.
    */
   public void setForcedInterpolation(boolean set)
   {
@@ -325,8 +325,8 @@ public class TilesetRenderer extends RenderCanvas
 
   /**
    * Sets a new lighting condition to be used to draw the map. Only meaningful for day maps.
-   * @param lighting The lighting condition to use. (One of the constants <code>LIGHTING_DAY</code>,
-   *                 <code>LIGHTING_DUSK</code> or <code>LIGHTING_NIGHT</code>)
+   * @param lighting The lighting condition to use. (One of the constants {@code LIGHTING_DAY},
+   *                 {@code LIGHTING_DUSK} or {@code LIGHTING_NIGHT})
    */
   public void setLighting(int lighting)
   {
@@ -430,7 +430,7 @@ public class TilesetRenderer extends RenderCanvas
 
   /**
    * Returns the BmpResource instance of the current mini map.
-   * @return BmpResource instance of the current mini map, or <code>null</code> if not available.
+   * @return BmpResource instance of the current mini map, or {@code null} if not available.
    */
   public GraphicsResource getMiniMap()
   {
@@ -486,7 +486,7 @@ public class TilesetRenderer extends RenderCanvas
 
   /**
    * Redraw all tiles of the current map if needed.
-   * @param force If <code>true</code>, the map will be redrawn regardless of the current map state.
+   * @param force If {@code true}, the map will be redrawn regardless of the current map state.
    */
   public void reload(boolean force)
   {
@@ -580,7 +580,7 @@ public class TilesetRenderer extends RenderCanvas
     release(false);
 
     // resetting states
-    blendedOverlays = (Boolean)Profile.getProperty(Profile.IS_TILESET_STENCILED);
+    blendedOverlays = (Boolean)Profile.getProperty(Profile.Key.IS_TILESET_STENCILED);
     lighting = ViewerConstants.LIGHTING_DAY;
 
     // loading map data

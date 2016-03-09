@@ -303,9 +303,9 @@ public class SearchResource extends ChildFrame
       setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
       GridBagConstraints c = new GridBagConstraints();
 
-      boolean effSupported = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_EFF);
-      boolean proSupported = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_PRO);
-      boolean vvcSupported = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_VVC);
+      boolean effSupported = (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_EFF);
+      boolean proSupported = (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_PRO);
+      boolean vvcSupported = (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_VVC);
       int resTypeCount = 5;
       if (effSupported) resTypeCount++;
       if (proSupported) resTypeCount++;
@@ -1023,7 +1023,7 @@ public class SearchResource extends ChildFrame
               break;
             case ID_Level:
             {
-              if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V22)) {
+              if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_CRE_V22)) {
                 if (pLevelIWD2.isActive(CreLevelIWD2Panel.LEVEL_TOTAL)) {
                   retVal.setOption(SearchOptions.CRE_IWD2LevelTotal,
                                    pLevelIWD2.getOptionLevel(CreLevelIWD2Panel.LEVEL_TOTAL));
@@ -1103,7 +1103,7 @@ public class SearchResource extends ChildFrame
                                  new Integer(pType.getOptionType(CreTypePanel.TYPE_ALIGNMENT)));
               }
               if (pType.isActive(CreTypePanel.TYPE_GENDER)) {
-                if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V22)) {
+                if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_CRE_V22)) {
                   retVal.setOption(SearchOptions.CRE_Sex,
                                    new Integer(pType.getOptionType(CreTypePanel.TYPE_GENDER)));
                 } else {
@@ -1284,7 +1284,7 @@ public class SearchResource extends ChildFrame
       bpwFlags = new ButtonPopupWindow(setOptionsText, pFlags);
       pType = new CreTypePanel();
       bpwTypes = new ButtonPopupWindow(setOptionsText, pType);
-      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_CRE_V22)) {
+      if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_CRE_V22)) {
         pLevelIWD2 = new CreLevelIWD2Panel();
         bpwLevel = new ButtonPopupWindow(setOptionsText, pLevelIWD2);
       } else {
@@ -2034,10 +2034,10 @@ public class SearchResource extends ChildFrame
 
       String[] sFlags;
       String[] sCat;
-      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V11)) {
+      if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V11)) {
         sFlags = ItmResource.s_flags11;
         sCat = ItmResource.s_categories11;
-      } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V20)) {
+      } else if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V20)) {
         sFlags = ItmResource.s_flags;
         sCat = ItmResource.s_categories;
       } else {
@@ -2052,7 +2052,7 @@ public class SearchResource extends ChildFrame
       bpwUsability = new ButtonPopupWindow(setOptionsText, pUsability);
 
       ObjectString[] osAppearance = null;
-      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V11)) {
+      if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V11)) {
         osAppearance = ObjectString.createString(ItmResource.s_anim11, ItmResource.s_tag11);
       } else if (Profile.isEnhancedEdition()) {
         osAppearance = ObjectString.createString(ItmResource.s_anim_1pp, ItmResource.s_tag_1pp);
@@ -4496,7 +4496,7 @@ public class SearchResource extends ChildFrame
 
     private void init()
     {
-      boolean hasKit = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_KITS);
+      boolean hasKit = (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_KITS);
 
       // initializing components
       for (int i = 0; i < EntryCount; i++) {
@@ -4519,7 +4519,7 @@ public class SearchResource extends ChildFrame
       cbType[TYPE_SPECIFICS] = Utils.defaultWidth(
           new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Specifics", "SPECIFIC.IDS"))),
           defaultSize);
-      String idsFile = (String)Profile.getProperty(Profile.GET_IDS_ALIGNMENT);
+      String idsFile = (String)Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT);
       cbType[TYPE_ALIGNMENT] = Utils.defaultWidth(
           new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Alignment", idsFile))),
           defaultSize);
@@ -5100,7 +5100,7 @@ public class SearchResource extends ChildFrame
 
     private void init()
     {
-      boolean kitsSupported = (Boolean)Profile.getProperty(Profile.IS_SUPPORTED_KITS);
+      boolean kitsSupported = (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_KITS);
 
       // initializing components
       for (int i = 0; i < EntryCount; i++) {
@@ -5112,9 +5112,9 @@ public class SearchResource extends ChildFrame
       }
 
       String[] sUnusable;
-      if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V11)) {
+      if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V11)) {
         sUnusable = ItmResource.s_usability11;
-      } else if ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_ITM_V20)) {
+      } else if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V20)) {
         sUnusable = ItmResource.s_usability20;
       } else {
         sUnusable = ItmResource.s_usability;
@@ -6032,7 +6032,7 @@ public class SearchResource extends ChildFrame
         cbLabel[i] = new JCheckBox(String.format("Category %1$d:", i+1));
         cbLabel[i].addActionListener(this);
 
-        String[] cat = ((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_STO_V11)) ?
+        String[] cat = ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V11)) ?
                        ItmResource.s_categories11 : ItmResource.s_categories;
         cbCategory[i] = new AutoComboBox<>(IndexedString.createArray(cat, 0, 0));
       }

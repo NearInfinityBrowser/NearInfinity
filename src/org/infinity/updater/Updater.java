@@ -115,8 +115,8 @@ public class Updater
   /**
    * Returns whether the specified release can be considered a new release.
    * @param release The release to check.
-   * @param onlyOnce If <code>true</code>, each new release will be checked only once.
-   * @return <code>true</code> if the specified release is considered newer, <code>false</code> otherwise.
+   * @param onlyOnce If {@code true}, each new release will be checked only once.
+   * @return {@code true} if the specified release is considered newer, {@code false} otherwise.
    */
   public static boolean isNewRelease(UpdateInfo.Release release, boolean onlyOnce)
   {
@@ -237,8 +237,8 @@ public class Updater
    * Adds a new update server link to the server list. Optionally checks online if the link points
    * to a valid update.xml. Does nothing if the server URL already exists.
    * @param link The update server URL.
-   * @param validate Only checks link format if <code>false</code>. Additionally checks if
-   *                 link points to a valid update.xml if <code>true</code>.
+   * @param validate Only checks link format if {@code false}. Additionally checks if
+   *                 link points to a valid update.xml if {@code true}.
    * @throws IOException
    * @throws MalformedURLException
    */
@@ -311,7 +311,7 @@ public class Updater
     return autoCheckDate;
   }
 
-  /** Updates the last update check date. Specifying <code>null</code> will add the current date. */
+  /** Updates the last update check date. Specifying {@code null} will add the current date. */
   public void setAutoUpdateCheckDate(Calendar cal)
   {
     if (cal != null) {
@@ -370,7 +370,7 @@ public class Updater
 
   /**
    * Returns the current Proxy settings if available and enabled.
-   * More specifically, calls {@link #getProxy(boolean)} with force = <code>false</code>.
+   * More specifically, calls {@link #getProxy(boolean)} with force = {@code false}.
    */
   public Proxy getProxy()
   {
@@ -380,7 +380,7 @@ public class Updater
   /**
    * Returns the current Proxy settings if available and enabled.
    * @param force Force to return proxy information even if it has been disabled.
-   * @return A proxy object or <code>null</code> depending on availability.
+   * @return A proxy object or {@code null} depending on availability.
    */
   public Proxy getProxy(boolean force)
   {
@@ -392,7 +392,7 @@ public class Updater
   }
 
   /**
-   * Sets up a new HTTP proxy. Specifying <code>null</code> or 0 for one or both parameters will
+   * Sets up a new HTTP proxy. Specifying {@code null} or 0 for one or both parameters will
    * remove the current proxy settings.
    * @param hostName The host name of the proxy address.
    * @param port The port of the proxy address.
@@ -584,9 +584,9 @@ public class Updater
 
   /**
    * Checks the specified URL if it points to a valid update.xml and returns the
-   * (possibly modified) URL on success or <code>null</code> on error.
+   * (possibly modified) URL on success or {@code null} on error.
    * @param link A URL pointing to the update.xml.
-   * @return A URL that is guaranteed to point to a valid update.xml or <code>null</code> on error.
+   * @return A URL that is guaranteed to point to a valid update.xml or {@code null} on error.
    * @throws IOException
    * @throws MalformedURLException
    */
@@ -618,7 +618,7 @@ public class Updater
 
   /**
    * Attempts to download update information and return them as UpdateInfo object.
-   * @return The UpdateInfo object containing update information, or <code>null</code> if not available.
+   * @return The UpdateInfo object containing update information, or {@code null} if not available.
    */
   public UpdateInfo loadUpdateInfo()
   {

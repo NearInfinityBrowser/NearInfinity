@@ -43,7 +43,7 @@ public class IniMapEntry
 
   /**
    * Helper routine: Splits values and returns them as array of individual values.
-   * Using default separator "<code>,</code>" (comma).
+   * Using default separator "{@code ,}" (comma).
    */
   public static String[] splitValues(String value)
   {
@@ -91,8 +91,8 @@ public class IniMapEntry
 
   /**
    * Helper routine: Extracts the object identifiers from a string of the format
-   * "<code>[ea.general.race.class.specific.gender.align]</code>" where identifiers after
-   * "<code>ea</code>" are optional.
+   * "{@code [ea.general.race.class.specific.gender.align]}" where identifiers after
+   * "{@code ea}" are optional.
    */
   public static int[] splitObjectValue(String value)
   {
@@ -121,7 +121,7 @@ public class IniMapEntry
 
   /**
    * Helper routine: Extracts the coordinates of an Infinity Engine position value in the format
-   * "<code>[x.y:dir]</code>".
+   * "{@code [x.y:dir]}".
    */
   public static int[] splitPositionValue(String value)
   {

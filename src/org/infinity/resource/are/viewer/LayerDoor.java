@@ -79,7 +79,7 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
 
   /**
    * Returns the current state of doors.
-   * @return Either <code>ViewerConstants.DOOR_OPEN</code> or <code>ViewerConstants.DOOR_CLOSED</code>.
+   * @return Either {@code ViewerConstants.DOOR_OPEN} or {@code ViewerConstants.DOOR_CLOSED}.
    */
   public int getDoorState()
   {
@@ -88,8 +88,8 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
 
   /**
    * Sets the state of doors for all door layer objects.
-   * @param state The door state (either <code>ViewerConstants.DOOR_OPEN</code> or
-   *              <code>ViewerConstants.DOOR_CLOSED</code>).
+   * @param state The door state (either {@code ViewerConstants.DOOR_OPEN} or
+   *              {@code ViewerConstants.DOOR_CLOSED}).
    */
   public void setDoorState(int state)
   {

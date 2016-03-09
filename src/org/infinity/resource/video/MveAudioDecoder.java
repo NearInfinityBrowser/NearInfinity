@@ -45,7 +45,7 @@ public class MveAudioDecoder
   /**
    * Creates a new MveAudioDecoder object. Constructor is not publicly accessible.
    * @param info Info structure containing all MVE related data.
-   * @return An MveAudioDecoder object on success, <code>null</code> otherwise.
+   * @return An MveAudioDecoder object on success, {@code null} otherwise.
    */
   public static MveAudioDecoder createDecoder(MveInfo info)
   {
@@ -59,8 +59,8 @@ public class MveAudioDecoder
   /**
    * Processes audio specific segments.
    * @param segment The current segment to process.
-   * @return <code>true</code> if the segment has been processed successfully,
-   *         <code>false</code> if the segment did not fit into the audio category.
+   * @return {@code true} if the segment has been processed successfully,
+   *         {@code false} if the segment did not fit into the audio category.
    * @throws Exception On error.
    */
   public boolean processAudio(MveSegment segment) throws Exception

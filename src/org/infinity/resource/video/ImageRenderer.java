@@ -67,8 +67,8 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
    * @param numBuffers The number of buffers to create.
    * @param width The new width of the buffer in pixels.
    * @param height The new height of the buffer in pixels.
-   * @return <code>true</code> if the buffer chain has been created successfully,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if the buffer chain has been created successfully,
+   *         {@code false} otherwise.
    */
   public boolean createBuffer(int numBuffers, int width, int height)
   {
@@ -127,7 +127,7 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
   }
 
   /**
-   * Returns the width of the image buffers set in the constructor or <code>createBuffer()</code> method.
+   * Returns the width of the image buffers set in the constructor or {@code createBuffer()} method.
    * @return Image buffer's width in pixels.
    */
   public int getBufferWidth()
@@ -140,7 +140,7 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
   }
 
   /**
-   * Returns the height of the image buffers set in the constructor or <code>createBuffer()</code> method.
+   * Returns the height of the image buffers set in the constructor or {@code createBuffer()} method.
    * @return Image buffer's height in pixels.
    */
   public int getBufferHeight()
@@ -154,7 +154,7 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
 
   /**
    * Returns whether scaling has been activated.
-   * @return <code>true</code> if scaling has been activated.
+   * @return {@code true} if scaling has been activated.
    */
   public boolean getScalingEnabled()
   {
@@ -163,7 +163,7 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
 
   /**
    * Sets whether the image buffer's content should be drawn scaled.
-   * @param enable <code>true</code> to enable scaling.
+   * @param enable {@code true} to enable scaling.
    */
   public void setScalingEnabled(boolean enable)
   {
@@ -195,8 +195,8 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
 
   /**
    * Returns whether the aspect ratio of the displayed image will be preserved.
-   * @return <code>true</code> if aspect ratio preservation has been enabled,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if aspect ratio preservation has been enabled,
+   *         {@code false} otherwise.
    */
   public boolean getAspectRatioEnabled()
   {
@@ -206,7 +206,7 @@ public class ImageRenderer extends JComponent implements VideoBuffer, ComponentL
   /**
    * Sets whether the aspect ratio of the displayed graphics should be preserved. This flag is used
    * in conjunction with with {@link #setScalingEnabled(boolean)}.
-   * @param enable Set to <code>true</code> if aspect ratio should be preserved.
+   * @param enable Set to {@code true} if aspect ratio should be preserved.
    */
   public void setAspectRatioEnabled(boolean enable)
   {

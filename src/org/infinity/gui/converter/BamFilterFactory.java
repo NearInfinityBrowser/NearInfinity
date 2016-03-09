@@ -100,7 +100,7 @@ public class BamFilterFactory
   /**
    * Creates an instance of the specified class type.
    * @param filterClass The class type to create an instance from.
-   * @return The filter class instance, or <code>null</code> on error.
+   * @return The filter class instance, or {@code null} on error.
    */
   public static BamFilterBase createInstance(ConvertToBam parent, Class<? extends BamFilterBase> filterClass)
   {
@@ -116,7 +116,7 @@ public class BamFilterFactory
 
   /**
    * Creates a normalized filter list based on the specified argument.
-   * It moves existing output filter to the end of the list. The filter <code>BamFilterOutputDefault</code>
+   * It moves existing output filter to the end of the list. The filter {@code BamFilterOutputDefault}
    * will be added to the end of the list if no output filter has been found.
    */
   public static List<BamFilterBase> normalizeFilterList(ConvertToBam parent, List<BamFilterBase> filterList)

@@ -104,7 +104,7 @@ public class ObjectString implements CharSequence, Comparable<ObjectString>
 
   /**
    * Constructs an ObjectString with the specified String and object fields.
-   * @param fmt Indicates how <code>toString()</code> should display the formatted string.
+   * @param fmt Indicates how {@code toString()} should display the formatted string.
    */
   public ObjectString(String s, Object object, String fmt)
   {
@@ -197,8 +197,8 @@ public class ObjectString implements CharSequence, Comparable<ObjectString>
   }
 
   /**
-   * Specify how to display textual output when using <code>toString()</code>.
-   * @param fmt Indicates how <code>toString()</code> should display the formatted string.
+   * Specify how to display textual output when using {@code toString()}.
+   * @param fmt Indicates how {@code toString()} should display the formatted string.
    */
   public void setDisplayFormat(String fmt)
   {
@@ -206,7 +206,7 @@ public class ObjectString implements CharSequence, Comparable<ObjectString>
   }
 
   /**
-   * Returns the current display format for <code>toString()</code>.
+   * Returns the current display format for {@code toString()}.
    */
   public String getDisplayFormat()
   {

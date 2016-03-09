@@ -200,7 +200,7 @@ public final class Decompiler
    * Decompiles the currently loaded script code into human-readable source.
    * Uses {@link #getScriptType()} to determine the correct decompile action.
    * @return The decompiled script source.
-   * @throws Exception Thrown if script type is <code>Custom</code>.
+   * @throws Exception Thrown if script type is {@code Custom}.
    */
   public String decompile()
   {
@@ -213,7 +213,7 @@ public final class Decompiler
   }
 
   /**
-   * Decompiles the current script code as if defined as <code>ScriptType.BCS</code>.
+   * Decompiles the current script code as if defined as {@code ScriptType.BCS}.
    * @return The decompiled script source. Also available via {@link #getSource()}.
    */
   public String decompileScript()
@@ -230,7 +230,7 @@ public final class Decompiler
   }
 
   /**
-   * Decompiles the current script code as if defined as <code>ScriptType.Trigger</code>.
+   * Decompiles the current script code as if defined as {@code ScriptType.Trigger}.
    * @return The decompiled script source. Also available via {@link #getSource()}.
    */
   public String decompileTrigger()
@@ -253,7 +253,7 @@ public final class Decompiler
   }
 
   /**
-   * Decompiles the current script code as if defined as <code>ScriptType.Action</code>.
+   * Decompiles the current script code as if defined as {@code ScriptType.Action}.
    * @return The decompiled script source. Also available via {@link #getSource()}.
    */
   public String decompileAction()

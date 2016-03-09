@@ -21,7 +21,7 @@ import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 
 /**
- * A token maker that turns text into a linked list of <code>Token</code>s
+ * A token maker that turns text into a linked list of {@code Token}s
  * for syntax highlighting Infinity Engine BCS scripts.
  * @author argent77
  */
@@ -243,7 +243,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
    * @param text The text to break into tokens.
    * @param initialTokenType The token with which to start tokenizing.
    * @param startOffset The offset at which the line of tokens begins.
-   * @return A linked list of tokens representing <code>text</code>.
+   * @return A linked list of tokens representing {@code text}.
    */
   @Override
   public Token getTokenList(Segment text, int initialTokenType, int startOffset)

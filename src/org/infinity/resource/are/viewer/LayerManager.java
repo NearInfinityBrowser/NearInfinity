@@ -272,8 +272,8 @@ public final class LayerManager
   /**
    * Returns whether the specified layer object is active at the current scheduled time.
    * @param obj The layer object to query
-   * @return <code>true</code> if the layer object is scheduled at the currently set hour or
-   *         schedule is disabled, <code>false</code> otherwise.
+   * @return {@code true} if the layer object is scheduled at the currently set hour or
+   *         schedule is disabled, {@code false} otherwise.
    */
   public boolean isScheduled(LayerObject obj)
   {
@@ -363,7 +363,7 @@ public final class LayerManager
    * Returns a specific layer object.
    * @param layer The layer of the object.
    * @param index The index of the object.
-   * @return The layer object if found, <code>null</code> otherwise.
+   * @return The layer object if found, {@code null} otherwise.
    */
   public LayerObject getLayerObject(LayerType layer, int index)
   {
@@ -377,7 +377,7 @@ public final class LayerManager
   /**
    * Returns a list of objects associated with the specified layer.
    * @param layer The layer of the objects
-   * @return A list of objects or <code>null</code> if not found.
+   * @return A list of objects or {@code null} if not found.
    */
   public List<? extends LayerObject> getLayerObjects(LayerType layer)
   {
@@ -390,7 +390,7 @@ public final class LayerManager
 
   /**
    * Returns the current state of the door.
-   * @return Either <code>ViewerConstants.DOOR_OPEN</code> or <code>ViewerConstants.DOOR_CLOSED</code>.
+   * @return Either {@code ViewerConstants.DOOR_OPEN} or {@code ViewerConstants.DOOR_CLOSED}.
    */
   public int getDoorState()
   {
@@ -400,7 +400,7 @@ public final class LayerManager
   /**
    * Sets the door state used by certain layers. Automatically updates the visibility state of
    * related layers.
-   * @param state Either <code>ViewerConstants.DOOR_OPEN</code> or <code>ViewerConstants.DOOR_CLOSED</code>.
+   * @param state Either {@code ViewerConstants.DOOR_OPEN} or {@code ViewerConstants.DOOR_CLOSED}.
    */
   public void setDoorState(int state)
   {
@@ -444,7 +444,7 @@ public final class LayerManager
   }
 
   /**
-   * Specify whether to animate real background animations. Setting to <code>true</code> implicitly
+   * Specify whether to animate real background animations. Setting to {@code true} implicitly
    * enables real animations.
    */
   public void setRealAnimationPlaying(boolean play)
@@ -533,7 +533,7 @@ public final class LayerManager
   /**
    * Returns whether the items of the specified layer are visible.
    * @param layer The layer to check for visibility.
-   * @return <code>true</code> if one or more items of the specified layer are visible, <code>false</code> otherwise.
+   * @return {@code true} if one or more items of the specified layer are visible, {@code false} otherwise.
    */
   public boolean isLayerVisible(LayerType layer)
   {
@@ -565,7 +565,7 @@ public final class LayerManager
   /**
    * Attempts to find the LayerObject instance the specified item belongs to.
    * @param item The AbstractLayerItem object.
-   * @return A LayerObject instance if a match has been found, <code>null</code> otherwise.
+   * @return A LayerObject instance if a match has been found, {@code null} otherwise.
    */
   public LayerObject getLayerObjectOf(AbstractLayerItem item)
   {

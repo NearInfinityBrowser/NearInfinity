@@ -551,7 +551,7 @@ public final class FileLookup
      * Creates a sorted array of PathNode objects, starting from the root up to the last element.
      * @param file
      * @return An array of PathNode object containing the individual path elements from root to leaf.
-     *         Returns <code>null</code> on error.
+     *         Returns {@code null} on error.
      */
     public static List<PathNode> createPath(File file)
     {

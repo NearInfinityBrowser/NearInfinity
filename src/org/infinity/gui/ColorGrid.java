@@ -281,7 +281,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
 
   /**
    * Specify the size for each individual color entry displayed by the component.
-   * Specifying <code>null</code> restores the default size.
+   * Specifying {@code null} restores the default size.
    */
   public void setColorEntrySize(Dimension size)
   {
@@ -428,7 +428,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
     return frameColor;
   }
 
-  /** Sets a new frame color. Specifying <code>null</code> sets the default frame color. */
+  /** Sets a new frame color. Specifying {@code null} sets the default frame color. */
   public void setSelectionFrameColor(Color color)
   {
     if (color != null) {
@@ -442,7 +442,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
   /**
    * Returns the color value at the selected color entry. In multiple selection mode only the last
    * selected color value will be returned.
-   * Returns <code>null</code> if no color has been selected.
+   * Returns {@code null} if no color has been selected.
    */
   public Color getSelectedColor()
   {
@@ -476,7 +476,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
     return false;
   }
 
-  /** Returns <code>true</code> if nothing is selected, <code>false</code> otherwise. */
+  /** Returns {@code true} if nothing is selected, {@code false} otherwise. */
   public boolean isSelectionEmpty()
   {
     return listSelection.isEmpty();

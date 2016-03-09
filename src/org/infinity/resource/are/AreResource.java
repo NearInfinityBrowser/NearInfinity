@@ -786,10 +786,10 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
    * @param flags A static String array used as basis for Flag labels.
    * @param idsFile IDS resource to take entries from.
    * @param size Size of flags field in bytes. (Range: 1..4)
-   * @param overwrite If <code>true</code>, then static flag label will be overwritten with entries
+   * @param overwrite If {@code true}, then static flag label will be overwritten with entries
    *                  from the IDS resource.
-   *                  If <code>false</code>, then entries from IDS resource will be used only for
-   *                  missing or empty entries in the <code>flags</code> array.
+   *                  If {@code false}, then entries from IDS resource will be used only for
+   *                  missing or empty entries in the {@code flags} array.
    * @return
    */
   public static String[] getUpdatedIdsFlags(String[] flags, String idsFile, int size, boolean overwrite)

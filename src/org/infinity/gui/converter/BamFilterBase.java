@@ -47,7 +47,7 @@ public abstract class BamFilterBase
     this.controls = loadControls();
   }
 
-  /** Returns the associated <code>ConvertToBam</code> instance. */
+  /** Returns the associated {@code ConvertToBam} instance. */
   public ConvertToBam getConverter()
   {
     return converter;
@@ -94,8 +94,8 @@ public abstract class BamFilterBase
   /**
    * Applies the specified configuration data to the filter.
    * @param config The configuration data as string data.
-   * @return <code>true</code> if configuration have been applied successfully,
-   *         <code>false</code> otherwise.
+   * @return {@code true} if configuration have been applied successfully,
+   *         {@code false} otherwise.
    */
   public abstract boolean setConfiguration(String config);
 

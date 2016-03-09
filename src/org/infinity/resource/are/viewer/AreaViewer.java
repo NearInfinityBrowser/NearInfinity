@@ -166,7 +166,7 @@ public class AreaViewer extends ChildFrame
   /**
    * Checks whether the specified ARE resource can be displayed with the area viewer.
    * @param are The ARE resource to check
-   * @return <code>true</code> if area is viewable, <code>false</code> otherwise.
+   * @return {@code true} if area is viewable, {@code false} otherwise.
    */
   public static boolean isValid(AreResource are)
   {
@@ -2493,8 +2493,8 @@ public class AreaViewer extends ChildFrame
     /**
      * Returns the specifie minimap.
      * @param mapType One of MAP_SEARCH, MAP_HEIGHT or MAP_LIGHT.
-     * @param isNight Specify <code>true</code> to return the night-specific light map,
-     *                or <code>false</code> to return the day-specific light map.
+     * @param isNight Specify {@code true} to return the night-specific light map,
+     *                or {@code false} to return the day-specific light map.
      * @return The specified BmpResource instance.
      */
     public GraphicsResource getMiniMap(int mapType, boolean isNight)
@@ -2515,7 +2515,7 @@ public class AreaViewer extends ChildFrame
      * Attempts to close the specified WED. If changes have been done, a dialog asks for saving.
      * @param dayNight Either AREA_DAY or AREA_NIGHT.
      * @param allowCancel Indicates whether to allow cancelling the saving process.
-     * @return <code>true</code> if the resource has been closed, <code>false</code> otherwise (e.g.
+     * @return {@code true} if the resource has been closed, {@code false} otherwise (e.g.
      *         if the user chooses to cancel saving changes.)
      */
     public boolean closeWed(int dayNight, boolean allowCancel)

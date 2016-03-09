@@ -27,7 +27,7 @@ public final class WindowBlocker
 
   /**
    * Blocks or unblocks the whole GUI and shows the respective mouse cursor.
-   * @param block Blocks the GUI if set to <code>true</code>, unblocks if set to <code>false</code>.
+   * @param block Blocks the GUI if set to {@code true}, unblocks if set to {@code false}.
    */
   public static void blockWindow(boolean block)
   {
@@ -36,8 +36,8 @@ public final class WindowBlocker
 
   /**
    * Blocks or unblocks the specified component and shows the respective mouse cursor.
-   * @param block Blocks the component if set to <code>true</code>,
-   *              unblocks if set to <code>false</code>.
+   * @param block Blocks the component if set to {@code true},
+   *              unblocks if set to {@code false}.
    */
   public static void blockWindow(Window window, boolean block)
   {

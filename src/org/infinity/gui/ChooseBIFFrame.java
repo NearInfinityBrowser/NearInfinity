@@ -178,8 +178,8 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
       tfbifname.setEnabled(true);
       rbbiff.setEnabled(true);
 
-      rbbif.setEnabled((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_BIF));
-      rbbifc.setEnabled((Boolean)Profile.getProperty(Profile.IS_SUPPORTED_BIFC));
+      rbbif.setEnabled((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BIF));
+      rbbifc.setEnabled((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BIFC));
     }
     else if (event.getSource() == bok || event.getSource() == tfbifname) {
       if (rbcreate.isSelected()) {

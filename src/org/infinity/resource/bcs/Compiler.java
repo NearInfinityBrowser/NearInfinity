@@ -260,7 +260,7 @@ public final class Compiler
   }
 
   /**
-   * Compiles the current script source as if defined as <code>ScriptType.BAF</code>.
+   * Compiles the current script source as if defined as {@code ScriptType.BAF}.
    * @return The compiled BCS script byte code. Also available via {@link #getCode()}.
    */
   public String compileScript()
@@ -294,7 +294,7 @@ public final class Compiler
   }
 
   /**
-   * Compiles the current script source as if defined as <code>ScriptType.Trigger</code>.
+   * Compiles the current script source as if defined as {@code ScriptType.Trigger}.
    * @return The compiled BCS script byte code. Also available via {@link #getCode()}.
    */
   public String compileTrigger()
@@ -303,7 +303,7 @@ public final class Compiler
   }
 
   /**
-   * Compiles the current script source as if defined as <code>ScriptType.Action</code>.
+   * Compiles the current script source as if defined as {@code ScriptType.Action}.
    * @return The compiled BCS script byte code. Also available via {@link #getCode()}.
    */
   public String compileAction()

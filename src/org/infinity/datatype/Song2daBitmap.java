@@ -56,7 +56,7 @@ public class Song2daBitmap extends ResourceBitmap
     if (SongList.isEmpty()) {
       // search "music" subfolder as well
       List<File> searchDirs = new ArrayList<File>();
-      searchDirs.add(new FileNI((File)Profile.getProperty(Profile.GET_GAME_ROOT_FOLDER), "Music"));
+      searchDirs.add(new FileNI((File)Profile.getProperty(Profile.Key.GET_GAME_ROOT_FOLDER), "Music"));
 
       if (ResourceFactory.resourceExists("SONGLIST.2DA")) {
         TableName = "SONGLIST.2DA";

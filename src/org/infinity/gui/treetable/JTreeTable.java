@@ -274,7 +274,7 @@ public final class JTreeTable extends JTable
     }
 
     /**
-     * This is overridden to set <code>updatingListSelectionModel</code>
+     * This is overridden to set {@code updatingListSelectionModel}
      * and message super. This is the only place DefaultTreeSelectionModel
      * alters the ListSelectionModel.
      */
@@ -305,7 +305,7 @@ public final class JTreeTable extends JTable
     }
 
     /**
-     * If <code>updatingListSelectionModel</code> is false, this will
+     * If {@code updatingListSelectionModel} is false, this will
      * reset the selected paths from the selected rows in the list
      * selection model.
      */

@@ -343,7 +343,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     ResourceTreeModel treemodel = ResourceFactory.getResources();
     updateWindowTitle();
     final String msg = String.format(STATUSBAR_TEXT_FMT,
-                                     Profile.getProperty(Profile.GET_GAME_TITLE),
+                                     Profile.getProperty(Profile.Key.GET_GAME_TITLE),
                                      Profile.getGameRoot(), treemodel.size());
     statusBar.setMessage(msg);
     tree = new ResourceTree(treemodel);
@@ -493,7 +493,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         ResourceTreeModel treemodel = ResourceFactory.getResources();
         updateWindowTitle();
         final String msg = String.format(STATUSBAR_TEXT_FMT,
-                                         Profile.getProperty(Profile.GET_GAME_TITLE),
+                                         Profile.getProperty(Profile.Key.GET_GAME_TITLE),
                                          Profile.getGameRoot(), treemodel.size());
         statusBar.setMessage(msg);
         BrowserMenuBar.getInstance().gameLoaded(oldGame, oldFile);
@@ -628,7 +628,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       ResourceTreeModel treemodel = ResourceFactory.getResources();
       updateWindowTitle();
       final String msg = String.format(STATUSBAR_TEXT_FMT,
-                                       Profile.getProperty(Profile.GET_GAME_TITLE),
+                                       Profile.getProperty(Profile.Key.GET_GAME_TITLE),
                                        Profile.getGameRoot(), treemodel.size());
       statusBar.setMessage(msg);
       BrowserMenuBar.getInstance().gameLoaded(oldGame, oldFile);
@@ -683,7 +683,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         ChildFrame.closeWindows();
         ResourceTreeModel treemodel = ResourceFactory.getResources();
         final String msg = String.format(STATUSBAR_TEXT_FMT,
-                                         Profile.getProperty(Profile.GET_GAME_TITLE),
+                                         Profile.getProperty(Profile.Key.GET_GAME_TITLE),
                                          Profile.getGameRoot(), treemodel.size());
         statusBar.setMessage(msg);
         BrowserMenuBar.getInstance().gameLoaded(null, null);
@@ -700,8 +700,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   // Set/Reset main window title
   public void updateWindowTitle()
   {
-    String title = (String)Profile.getProperty(Profile.GET_GAME_TITLE);
-    String desc = (String)Profile.getProperty(Profile.GET_GAME_DESC);
+    String title = (String)Profile.getProperty(Profile.Key.GET_GAME_TITLE);
+    String desc = (String)Profile.getProperty(Profile.Key.GET_GAME_DESC);
     if (desc != null && !desc.isEmpty()) {
       setTitle(String.format("Near Infinity - %1$s (%2$s)", title, desc));
     } else {
@@ -713,7 +713,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   public boolean editGameIni(Component parent)
   {
     boolean retVal = false;
-    File iniFile = (File)Profile.getProperty(Profile.GET_GAME_INI_FILE);
+    File iniFile = (File)Profile.getProperty(Profile.Key.GET_GAME_INI_FILE);
     try {
       if (iniFile != null && iniFile.isFile()) {
         new ViewFrame(parent, new PlainTextResource(new FileResourceEntry(iniFile)));
@@ -923,7 +923,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         File file = files.get(0);
         if (file != null && file.isFile() &&
             file.getName().toUpperCase(Locale.ENGLISH).endsWith(".KEY")) {
-          File curFile = (File)Profile.getProperty(Profile.GET_GAME_CHITIN_KEY);
+          File curFile = (File)Profile.getProperty(Profile.Key.GET_GAME_CHITIN_KEY);
           if (!file.equals(curFile)) {
             int ret = JOptionPane.showConfirmDialog(NearInfinity.getInstance(),
                                                     "Open game \"" + file.getPath() + "\"?",

@@ -47,8 +47,8 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 
 /**
- * The <code>FontChooser</code> class is a swing component for font selection.
- * This class has <code>FileChooser</code> like APIs. The following code pops up
+ * The {@code FontChooser} class is a swing component for font selection.
+ * This class has {@code FileChooser} like APIs. The following code pops up
  * a font chooser dialog.
  *
  * <pre>
@@ -67,19 +67,19 @@ public class FontChooser extends JComponent
 {
   // class variables
   /**
-   * Return value from <code>showDialog()</code>.
+   * Return value from {@code showDialog()}.
    *
    * @see #showDialog
    **/
   public static final int OK_OPTION = 0;
   /**
-   * Return value from <code>showDialog()</code>.
+   * Return value from {@code showDialog()}.
    *
    * @see #showDialog
    **/
   public static final int CANCEL_OPTION = 1;
   /**
-   * Return value from <code>showDialog()</code>.
+   * Return value from {@code showDialog()}.
    *
    * @see #showDialog
    **/
@@ -112,7 +112,7 @@ public class FontChooser extends JComponent
   private JTextField sampleText = null;
 
   /**
-   * Constructs a <code>FontChooser</code> object.
+   * Constructs a {@code FontChooser} object.
    **/
   public FontChooser()
   {
@@ -120,7 +120,7 @@ public class FontChooser extends JComponent
   }
 
   /**
-   * Constructs a <code>FontChooser</code> object using the given font size
+   * Constructs a {@code FontChooser} object using the given font size
    * array.
    *
    * @param fontSizeStrings
@@ -251,9 +251,9 @@ public class FontChooser extends JComponent
   /**
    * Get the style of the selected font.
    *
-   * @return the style of the selected font. <code>Font.PLAIN</code>,
-   *         <code>Font.BOLD</code>, <code>Font.ITALIC</code>,
-   *         <code>Font.BOLD|Font.ITALIC</code>
+   * @return the style of the selected font. {@code Font.PLAIN},
+   *         {@code Font.BOLD}, {@code Font.ITALIC},
+   *         {@code Font.BOLD|Font.ITALIC}
    *
    * @see java.awt.Font#PLAIN
    * @see java.awt.Font#BOLD
@@ -328,9 +328,9 @@ public class FontChooser extends JComponent
    * Set the style of the selected font.
    *
    * @param style
-   *          the size of the selected font. <code>Font.PLAIN</code>,
-   *          <code>Font.BOLD</code>, <code>Font.ITALIC</code>, or
-   *          <code>Font.BOLD|Font.ITALIC</code>.
+   *          the size of the selected font. {@code Font.PLAIN},
+   *          {@code Font.BOLD}, {@code Font.ITALIC}, or
+   *          {@code Font.BOLD|Font.ITALIC}.
    *
    * @see java.awt.Font#PLAIN
    * @see java.awt.Font#BOLD

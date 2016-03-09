@@ -84,11 +84,11 @@ public class ConvertToMos extends ChildFrame
    * @param parent This parameter is needed for the progress monitor only.
    * @param img The source image to convert into a MOS resource.
    * @param mosFileName The name of the resulting MOS file.
-   * @param compressed If <code>true</code>, converts into a compressed BAMC file.
+   * @param compressed If {@code true}, converts into a compressed BAMC file.
    * @param result Returns more specific information about the conversion process. Data placed in the
    *               first item indicates success, data in the second item indicates failure.
    * @param showProgress Specify whether to show a progress monitor (needs a valid 'parent' parameter).
-   * @return <code>true</code> if the conversion finished successfully, <code>false</code> otherwise.
+   * @return {@code true} if the conversion finished successfully, {@code false} otherwise.
    */
   public static boolean convertV1(Component parent, BufferedImage img, String mosFileName,
                                   boolean compressed, List<String> result, boolean showProgress)
@@ -271,7 +271,7 @@ public class ConvertToMos extends ChildFrame
    * @param result Returns more specific information about the conversion process. Data placed in the
    *               first item indicates success, data in the second item indicates failure.
    * @param showProgress Specify whether to show a progress monitor (needs a valid 'parent' parameter).
-   * @return <code>true</code> if the conversion finished successfully, <code>false</code> otherwise.
+   * @return {@code true} if the conversion finished successfully, {@code false} otherwise.
    */
   public static boolean convertV2(Component parent, BufferedImage img, String mosFileName,
                                   DxtEncoder.DxtType dxtType, int pvrzIndex,

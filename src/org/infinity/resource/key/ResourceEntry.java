@@ -153,7 +153,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
    * Returns whether the current resource matches all of the search options specified in the
    * SearchOptions argument.
    * @param searchOptions Contains the options to check the resource against.
-   * @return <code>true</code> if all options are matching, <code>false</code> otherwise.
+   * @return {@code true} if all options are matching, {@code false} otherwise.
    */
   public boolean matchSearchOptions(SearchOptions searchOptions)
   {

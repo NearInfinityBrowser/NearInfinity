@@ -106,7 +106,7 @@ public class InfinityTextArea extends RSyntaxTextArea
 
   /**
    * Constructor.
-   * @param applySettings If <code>true</code>, applies global text editor settings to this component.
+   * @param applySettings If {@code true}, applies global text editor settings to this component.
    */
   public InfinityTextArea(boolean applySettings)
   {
@@ -120,7 +120,7 @@ public class InfinityTextArea extends RSyntaxTextArea
   /**
    * Constructor.
    * @param doc The document for the editor.
-   * @param applySettings If <code>true</code>, applies global text editor settings to this component.
+   * @param applySettings If {@code true}, applies global text editor settings to this component.
    */
   public InfinityTextArea(RSyntaxDocument doc, boolean applySettings)
   {
@@ -134,7 +134,7 @@ public class InfinityTextArea extends RSyntaxTextArea
   /**
    * Constructor.
    * @param text The initial text to display.
-   * @param applySettings If <code>true</code>, applies global text editor settings to this component.
+   * @param applySettings If {@code true}, applies global text editor settings to this component.
    */
   public InfinityTextArea(String text, boolean applySettings)
   {
@@ -147,8 +147,8 @@ public class InfinityTextArea extends RSyntaxTextArea
 
   /**
    * Constructor.
-   * @param textMode Either <code>INSERT_MODE</code> or <code>OVERWRITE_MODE</code>.
-   * @param applySettings If <code>true</code>, applies global text editor settings to this component.
+   * @param textMode Either {@code INSERT_MODE} or {@code OVERWRITE_MODE}.
+   * @param applySettings If {@code true}, applies global text editor settings to this component.
    */
   public InfinityTextArea(int textMode, boolean applySettings)
   {
@@ -163,8 +163,8 @@ public class InfinityTextArea extends RSyntaxTextArea
    * Constructor.
    * @param rows The number of rows to display.
    * @param cols The number of columns to display.
-   * @param applySettings If <code>true</code>, applies global text editor settings to this component.
-   * @throws IllegalArgumentException If either <code>rows</code> or <code>cols</code> is negative.
+   * @param applySettings If {@code true}, applies global text editor settings to this component.
+   * @throws IllegalArgumentException If either {@code rows} or {@code cols} is negative.
    */
   public InfinityTextArea(int rows, int cols, boolean applySettings)
   {
@@ -180,8 +180,8 @@ public class InfinityTextArea extends RSyntaxTextArea
    * @param text The initial text to display.
    * @param rows The number of rows to display.
    * @param cols The number of columns to display.
-   * @param applySettings If <code>true</code>, applies global text editor settings to this component.
-   * @throws IllegalArgumentException If either <code>rows</code> or <code>cols</code> is negative.
+   * @param applySettings If {@code true}, applies global text editor settings to this component.
+   * @throws IllegalArgumentException If either {@code rows} or {@code cols} is negative.
    */
   public InfinityTextArea(String text, int rows, int cols, boolean applySettings)
   {
@@ -198,8 +198,8 @@ public class InfinityTextArea extends RSyntaxTextArea
    * @param text The initial text to display.
    * @param rows The number of rows to display.
    * @param cols The number of columns to display.
-   * @param applySettings If <code>true</code>, applies global text editor settings to this component.
-   * @throws IllegalArgumentException If either <code>rows</code> or <code>cols</code> is negative.
+   * @param applySettings If {@code true}, applies global text editor settings to this component.
+   * @throws IllegalArgumentException If either {@code rows} or {@code cols} is negative.
    */
   public InfinityTextArea(RSyntaxDocument doc, String text, int rows, int cols, boolean applySettings)
   {
@@ -240,10 +240,10 @@ public class InfinityTextArea extends RSyntaxTextArea
 
   /**
    * Applies syntax highlighting and color schemes to the specified {@link RSyntaxTextArea} component.
-   * @param language The language to highlight. Specifying <code>null</code> uses
-   *                 <code>Language.NONE</code> for syntax hightlighting.
+   * @param language The language to highlight. Specifying {@code null} uses
+   *                 {@code Language.NONE} for syntax hightlighting.
    * @param scheme A color scheme to apply to the specified {@link RSyntaxTextArea} component.
-   *               Specifying <code>null</code> uses the color scheme as defined for the specified
+   *               Specifying {@code null} uses the color scheme as defined for the specified
    *               language.
    */
   public static void applyExtendedSettings(RSyntaxTextArea edit, Language language, Scheme scheme)
@@ -366,10 +366,10 @@ public class InfinityTextArea extends RSyntaxTextArea
 
   /**
    * Applies syntax highlighting and color schemes to this component.
-   * @param language The language to highlight. Specifying <code>null</code> uses
-   *                 <code>Language.NONE</code> for syntax hightlighting.
+   * @param language The language to highlight. Specifying {@code null} uses
+   *                 {@code Language.NONE} for syntax hightlighting.
    * @param scheme A color scheme to apply to the specified {@link RSyntaxTextArea} component.
-   *               Specifying <code>null</code> uses the color scheme as defined for the specified
+   *               Specifying {@code null} uses the color scheme as defined for the specified
    *               language.
    */
   public void applyExtendedSettings(Language language, Scheme scheme)

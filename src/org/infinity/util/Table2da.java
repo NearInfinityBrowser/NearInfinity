@@ -77,7 +77,7 @@ public class Table2da
   /**
    * Returns header label of specified column.
    * <b>Note:</b> Column 0 always contains empty label.
-   * Returns <code>null</code> on error.
+   * Returns {@code null} on error.
    */
   public String getHeader(int col)
   {

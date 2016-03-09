@@ -25,7 +25,7 @@ public class AudioQueue
 
   /**
    * Returns whether one or more audio blocks are available.
-   * @return <code>true</code> if one or more audio blocks are available, <code>false</code> otherwise.
+   * @return {@code true} if one or more audio blocks are available, {@code false} otherwise.
    */
   public synchronized boolean hasNext()
   {
@@ -52,7 +52,7 @@ public class AudioQueue
 
   /**
    * Returns the next available audio block without actually removing it.
-   * @return The next available audio block as byte array, or <code>null</code> otherwise.
+   * @return The next available audio block as byte array, or {@code null} otherwise.
    */
   public synchronized byte[] peekNextData()
   {
@@ -61,7 +61,7 @@ public class AudioQueue
 
   /**
    * Returns the next available audio block.
-   * @return The next available audio block as byte array, or <code>null</code> otherwise.
+   * @return The next available audio block as byte array, or {@code null} otherwise.
    */
   public synchronized byte[] getNextData()
   {
@@ -87,8 +87,8 @@ public class AudioQueue
 
   /**
    * Removes the next available block in the queue.
-   * @return <code>true</code> if the next block in the queue has been discarded,
-   *         <code>false</code> if no blocks were available.
+   * @return {@code true} if the next block in the queue has been discarded,
+   *         {@code false} if no blocks were available.
    */
   public boolean skipNext()
   {
@@ -112,7 +112,7 @@ public class AudioQueue
    * Adds a new audio block to the queue. Note: This is done automatically by the decoder.
    * @param index The index of the audio block
    * @param data The audio data
-   * @return <code>true</code> if a valid block has been added successfully, <code>false</code> otherwise.
+   * @return {@code true} if a valid block has been added successfully, {@code false} otherwise.
    */
   public synchronized boolean addAudioBlock(int index, byte[] data)
   {
