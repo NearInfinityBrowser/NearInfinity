@@ -190,7 +190,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
       for (int i = 0; i < FONT_SIZE.length; i++) {
         String label = Integer.toString(FONT_SIZE[i]) + "    ";
         SimpleAttributeSet as = new SimpleAttributeSet();
-        StyleConstants.setFontFamily(as, font.getFamily());
+        StyleConstants.setFontFamily(as, "SansSerif");
         StyleConstants.setFontSize(as, FONT_SIZE[0]);
         try {
           doc.insertString(pos, label, as);
