@@ -79,10 +79,10 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private static final String FMT_PROGRESS = "Processing resource %d/%d";
   private static final String TYPES[] = {"2DA", "ARE", "BAM", "BCS", "BS", "BIO", "BMP",
                                          "CHU", "CHR", "CRE", "DLG", "EFF", "FNT", "GAM",
-                                         "GLSL", "GUI", "IDS", "INI", "ITM", "MOS", "MVE",
-                                         "PLT", "PRO", "PVRZ", "SPL", "SQL", "SRC", "STO",
-                                         "TIS", "TOH", "TOT", "VEF", "VVC", "WAV", "WBM",
-                                         "WED", "WFX", "WMP"};
+                                         "GLSL", "GUI", "IDS", "INI", "ITM", "LUA", "MENU",
+                                         "MOS", "MVE", "PLT", "PNG", "PRO", "PVRZ", "SPL",
+                                         "SQL", "SRC", "STO", "TIS", "TOH", "TOT", "TTF",
+                                         "VEF", "VVC", "WAV", "WBM", "WED", "WFX", "WMP"};
   private final JButton bExport = new JButton("Export", Icons.getIcon(Icons.ICON_EXPORT_16));
   private final JButton bCancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
   private final JButton bDirectory = new JButton(Icons.getIcon(Icons.ICON_OPEN_16));
