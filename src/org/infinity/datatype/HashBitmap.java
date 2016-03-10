@@ -262,6 +262,8 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
                                                        ObjectString.FMT_OBJECT_HYPHEN));
       }
       return retVal;
+    } else if (map == null) {
+      return new LongIntegerHashMap<ObjectString>();
     } else {
       return map;
     }
