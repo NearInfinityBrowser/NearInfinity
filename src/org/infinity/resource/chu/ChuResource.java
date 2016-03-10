@@ -268,7 +268,11 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
     numPanels = DynamicArray.getInt(buffer, offset + 8);
     ofsControls = DynamicArray.getInt(buffer, offset + 12);
     ofsPanels = DynamicArray.getInt(buffer, offset + 16);
-    sizePanels = Math.abs(ofsControls - ofsPanels) / numPanels;
+    if (numPanels > 0) {
+      sizePanels = Math.abs(ofsControls - ofsPanels) / numPanels;
+    } else {
+      sizePanels = 28;
+    }
     if (sizePanels >= 36) sizePanels = 36; else if (sizePanels >= 28) sizePanels = 28;
 
     // loading controls data
