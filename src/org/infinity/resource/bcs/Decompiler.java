@@ -966,7 +966,7 @@ public final class Decompiler
 
   private String lookup(IdsMap idsmap, int code)
   {
-    if (code == 0) return null;
+    if (idsmap == null || code == 0) return null;
     IdsMapEntry entry = idsmap.getValue((long)code);
     if (entry != null)
       return entry.getString();
