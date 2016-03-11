@@ -487,6 +487,12 @@ public class SpellProtType extends Bitmap
                 default: label = "Enemies match: " + getRelation(rel); break;
               }
               break;
+            case 0x115: // summon creature limit
+              label = String.format("# summoned creatures %s specified value", getRelation(rel));
+              break;
+            case 0x116: // chapter check
+              label = String.format("Chapter %s specified value", getRelation(rel));
+              break;
             default:    // use values from STATS.IDS
               if (stat >= 0 && stat < 0x100) {
                 // valid stat
