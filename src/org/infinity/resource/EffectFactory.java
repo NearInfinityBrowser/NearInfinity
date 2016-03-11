@@ -2825,7 +2825,7 @@ public final class EffectFactory
           makeEffectParamsDefault(buffer, offset, s);
         } else {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Pass walls", s_yesno));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Pass walls?", s_yesno));
         }
         break;
 
@@ -3066,7 +3066,7 @@ public final class EffectFactory
       case 218: // Stoneskin effect
         s.add(new DecNumber(buffer, offset, 4, "# skins"));
         if (Profile.isEnhancedEdition()) {
-          s.add(new Bitmap(buffer, offset + 4, 4, "Use dice", s_noyes));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Use dice?", s_noyes));
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
@@ -4720,7 +4720,7 @@ public final class EffectFactory
           break;
 
         case 145: // Disable spellcasting
-          s.add(new Bitmap(buffer, offset, 4, "Display message", s_yesno));
+          s.add(new Bitmap(buffer, offset, 4, "Display message?", s_yesno));
           break;
 
         case 181:   // Disallow item type
