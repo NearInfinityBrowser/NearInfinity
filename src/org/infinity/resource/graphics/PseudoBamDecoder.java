@@ -474,18 +474,47 @@ public class PseudoBamDecoder extends BamDecoder
       // decoding frame data
       BufferedImage srcImage = listFrames.get(frameIdx).frame;
       BufferedImage dstImage = ColorConvert.toBufferedImage(canvas, true, false);
+      int srcPixelStride = srcImage.getRaster().getSampleModel().getNumDataElements();
+      int srcBufferType = srcImage.getRaster().getDataBuffer().getDataType();
+      int dstBufferType = dstImage.getRaster().getDataBuffer().getDataType();
       byte[] srcBufferB = null, dstBufferB = null;
       int[] srcBufferI = null, dstBufferI = null;
       IndexColorModel cm = null;
-      if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+      if (srcBufferType == DataBuffer.TYPE_BYTE) {
         srcBufferB = ((DataBufferByte)srcImage.getRaster().getDataBuffer()).getData();
-        cm = (IndexColorModel)srcImage.getColorModel();
-      } else {
+        if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+          cm = (IndexColorModel)srcImage.getColorModel();
+        } else if (srcPixelStride == 3 || srcPixelStride == 4) {
+          // XXX: a hack to convert non-paletted pixel types on-the-fly
+          srcBufferI = new int[srcImage.getWidth()*srcImage.getHeight()];
+          int[] shift;
+          int mask;
+          if (srcPixelStride == 3) {
+            shift = new int[]{0, 8, 16};
+            mask = 0xff000000;
+          } else {
+            shift = new int[]{24, 0, 8, 16};
+            mask = 0;
+          }
+          for (int si = 0, di = 0, numPixels = srcBufferI.length; di < numPixels; si += srcPixelStride, di++) {
+            int px = 0;
+            for (int i = 0, cnt = shift.length; i < cnt; i++) {
+              px |= (srcBufferB[si+i] & 0xff) << shift[i];
+            }
+            px |= mask;
+            srcBufferI[di] = px;
+          }
+          srcBufferB = null;
+        } else {
+          // not supported
+          return;
+        }
+      } else if (srcBufferType == DataBuffer.TYPE_INT) {
         srcBufferI = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
       }
-      if (dstImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+      if (dstBufferType == DataBuffer.TYPE_BYTE) {
         dstBufferB = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
-      } else {
+      } else if (dstBufferType == DataBuffer.TYPE_INT) {
         dstBufferI = ((DataBufferInt)dstImage.getRaster().getDataBuffer()).getData();
       }
       if (srcBufferI != null && dstBufferB != null) {
