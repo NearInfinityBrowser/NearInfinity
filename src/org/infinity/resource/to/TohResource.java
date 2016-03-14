@@ -32,6 +32,7 @@ public final class TohResource extends AbstractStruct implements Resource, HasVi
   // TOH-specific field labels
   public static final String TOH_NUM_ENTRIES    = "# strref entries";
   public static final String TOH_OFFSET_ENTRIES = "Strref entries offset";
+  public static final String TOH_LANGUAGE_TYPE  = "Language type";
 
   private StructHexViewer hexViewer;
 
@@ -89,7 +90,7 @@ public final class TohResource extends AbstractStruct implements Resource, HasVi
     boolean isEnhanced = Profile.isEnhancedEdition() && (DynamicArray.getInt(buffer, offset + 4) == 2);
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     addField(new DecNumber(buffer, offset + 4, 4, COMMON_VERSION));
-    addField(new Unknown(buffer, offset + 8, 4));
+    addField(new DecNumber(buffer, offset + 8, 4, TOH_LANGUAGE_TYPE));
     SectionCount scStrref = new SectionCount(buffer, offset + 12, 4, TOH_NUM_ENTRIES, StrRefEntry.class);
     addField(scStrref);
     SectionOffset soStrref = null;

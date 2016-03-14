@@ -74,7 +74,9 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   public static final String GAM_ZOOM_LEVEL                       = "Zoom level";
   public static final String GAM_RANDOM_ENCOUNTER_AREA            = "Random encounter area";
   public static final String GAM_WORLDMAP                         = "Worldmap";
+  public static final String GAM_CAMPAIGN                         = "Campaign";
   public static final String GAM_FAMILIAR_OWNER                   = "Familiar owner";
+  public static final String GAM_ENCOUNTER_ENTRY                  = "Encounter entry";
   public static final String GAM_BESTIARY                         = "Bestiary";
   public static final String GAM_OFFSET_END_OF_UNKNOWN_STRUCTURE  = "End of unknown structure offset";
   public static final String GAM_UNKNOWN_STRUCTURE                = "Unknown structure";
@@ -374,13 +376,9 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
         addField(new DecNumber(buffer, offset + 128, 4, GAM_ZOOM_LEVEL));
         addField(new ResourceRef(buffer, offset + 132, GAM_RANDOM_ENCOUNTER_AREA, "ARE"));
         addField(new ResourceRef(buffer, offset + 140, GAM_WORLDMAP, "WMP"));
-        if (Profile.getGame() == Profile.Game.IWDEE) {
-          addField(new Unknown(buffer, offset + 148, 8));
-          addField(new Bitmap(buffer, offset + 156, 4, GAM_FAMILIAR_OWNER, s_familiar_owner));
-          addField(new Unknown(buffer, offset + 160, 20));
-        } else {
-          addField(new Unknown(buffer, offset + 148, 32));
-        }
+        addField(new TextString(buffer, offset + 148, 8, GAM_CAMPAIGN));
+        addField(new Bitmap(buffer, offset + 156, 4, GAM_FAMILIAR_OWNER, s_familiar_owner));
+        addField(new TextString(buffer, offset + 160, 20, GAM_ENCOUNTER_ENTRY));
       } else {
         addField(new Unknown(buffer, offset + 128, 52));
       }

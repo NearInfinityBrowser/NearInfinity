@@ -7,6 +7,7 @@ package org.infinity.resource.wmp;
 import javax.swing.JComponent;
 
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -15,6 +16,7 @@ import org.infinity.datatype.Unknown;
 import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.HasViewerTabs;
+import org.infinity.resource.Profile;
 
 final class MapEntry extends AbstractStruct implements HasViewerTabs
 {
@@ -32,6 +34,8 @@ final class MapEntry extends AbstractStruct implements HasViewerTabs
   public static final String WMP_MAP_OFFSET_AREA_LINKS  = "Area links offset";
   public static final String WMP_MAP_NUM_AREA_LINKS     = "# area links";
   public static final String WMP_MAP_ICONS              = "Map icons";
+
+  private static final String[] s_flag = {"No flags set", "Colored icon", "Ignore palette"};
 
   MapEntry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
   {
@@ -85,7 +89,12 @@ final class MapEntry extends AbstractStruct implements HasViewerTabs
     SectionCount link_count = new SectionCount(buffer, offset + 44, 4, WMP_MAP_NUM_AREA_LINKS, AreaLink.class);
     addField(link_count);
     addField(new ResourceRef(buffer, offset + 48, WMP_MAP_ICONS, "BAM"));
-    addField(new Unknown(buffer, offset + 56, 128));
+    if (Profile.isEnhancedEdition()) {
+      addField(new Flag(buffer, offset + 56, 4, "Flags", s_flag));
+      addField(new Unknown(buffer, offset + 60, 124));
+    } else {
+      addField(new Unknown(buffer, offset + 56, 128));
+    }
 
     int curOfs = area_offset.getValue();
     for (int i = 0; i < area_count.getValue(); i++) {

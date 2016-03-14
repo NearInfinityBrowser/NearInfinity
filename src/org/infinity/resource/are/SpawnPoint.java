@@ -12,6 +12,7 @@ import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.resource.Profile;
 
 public final class SpawnPoint extends AbstractStruct implements AddRemovable
 {
@@ -33,6 +34,9 @@ public final class SpawnPoint extends AbstractStruct implements AddRemovable
   public static final String ARE_SPAWN_ACTIVE_AT            = "Active at";
   public static final String ARE_SPAWN_PROBABILITY_DAY      = "Probability (day)";
   public static final String ARE_SPAWN_PROBABILITY_NIGHT    = "Probability (night)";
+  public static final String ARE_SPAWN_FREQUENCY            = "Spawn frequency";
+  public static final String ARE_SPAWN_COUNTDOWN            = "Countdown";
+  public static final String ARE_SPAWN_WEIGHT_FMT           = "Spawn weight %d";
 
   public static final String[] s_noyes = { "No", "Yes" };
   public static final String[] s_method = {"No flags set", "Spawn until paused",
@@ -80,7 +84,17 @@ public final class SpawnPoint extends AbstractStruct implements AddRemovable
     addField(new Flag(buffer, offset + 136, 4, ARE_SPAWN_ACTIVE_AT, Actor.s_schedule));
     addField(new DecNumber(buffer, offset + 140, 2, ARE_SPAWN_PROBABILITY_DAY));
     addField(new DecNumber(buffer, offset + 142, 2, ARE_SPAWN_PROBABILITY_NIGHT));
-    addField(new Unknown(buffer, offset + 144, 56));
+    if (Profile.isEnhancedEdition()) {
+      addField(new DecNumber(buffer, offset + 144, 4, ARE_SPAWN_FREQUENCY));
+      addField(new DecNumber(buffer, offset + 148, 4, ARE_SPAWN_COUNTDOWN));
+      for (int i = 0; i < 10; i++) {
+        addField(new DecNumber(buffer, offset + 152 + i, 1,
+                               String.format(ARE_SPAWN_WEIGHT_FMT, i+1)));
+      }
+      addField(new Unknown(buffer, offset + 162, 38));
+    } else {
+      addField(new Unknown(buffer, offset + 144, 56));
+    }
     return offset + 200;
   }
 }
