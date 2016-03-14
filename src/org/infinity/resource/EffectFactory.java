@@ -1155,7 +1155,7 @@ public final class EffectFactory
             "Stoneskin protection", "Remove animation", "Rest", "Haste 2", "Protection from spell",
             "Restrict item",
             // 320..329
-            "Change weather", "Remove effects by resource", "Protection from area of effect spell",
+            "Change weather", "Remove effects by resource", "AoE evade check",
             "Turn undead level", "Immunity to spell and message", "All saving throws bonus",
             "Apply effects list", "Show visual effect", "Set state", "Slow poison",
             // 330..339
@@ -1171,7 +1171,7 @@ public final class EffectFactory
             "Unknown (355)", "Unknown (356)", "Unknown (357)", "Unknown (358)", "Unknown (359)",
             // 360
             "Ignore reputation breaking point", "Cast spell on critical miss", "Critical miss bonus",
-            "Movement rate check", "Unknown (364)", "Make unselectable", "Unknown (366)",
+            "Movement rate check", "Unknown (364)", "Make unselectable", "Apply spell on movement",
             "Minimum base stats"
             };
         break;
@@ -3522,11 +3522,10 @@ public final class EffectFactory
         }
         break;
 
-      case 322: // Protection from area of effect spell
+      case 322: // AoE evade check
         if (Profile.isEnhancedEdition()) {
-          // TODO: need more info
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-          s.add(new DecNumber(buffer, offset + 4, 4, "Type"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -3788,6 +3787,16 @@ public final class EffectFactory
         if (Profile.isEnhancedEdition()) {
           s.add(new Bitmap(buffer, offset, 4, "Disable AI?", s_noyes));
           s.add(new Bitmap(buffer, offset + 4, 4, "Disable dialogue?", s_noyes));
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 366: // Apply spell on movement
+        if (Profile.isEnhancedEdition()) {
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+          restype = "SPL";
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -4817,6 +4826,10 @@ public final class EffectFactory
 
         case 365: // Make unselectable
           s.add(new Bitmap(buffer, offset, 4, "Disable purple selection color?", s_noyes));
+          break;
+
+        case 366: // Apply spell on movement
+          s.add(new IdsBitmap(buffer, offset, 4, "Modal state to check", "MODAL.IDS"));
           break;
 
         default:
