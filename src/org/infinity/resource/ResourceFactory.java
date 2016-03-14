@@ -579,7 +579,7 @@ public final class ResourceFactory
   /** Attempts to find the home folder of an Enhanced Edition game. */
   static File getHomeRoot()
   {
-    if (Profile.isEnhancedEdition()) {
+    if (Profile.hasProperty(Profile.Key.GET_GAME_HOME_FOLDER_NAME)) {
       final String EE_DOC_ROOT = FileSystemView.getFileSystemView().getDefaultDirectory().toString();
       final String EE_DIR = (String)Profile.getProperty(Profile.Key.GET_GAME_HOME_FOLDER_NAME);
       File userDir = new FileNI(EE_DOC_ROOT, EE_DIR);

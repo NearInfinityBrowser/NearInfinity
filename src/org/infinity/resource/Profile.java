@@ -5,11 +5,16 @@
 package org.infinity.resource;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.infinity.NearInfinity;
 import org.infinity.util.io.FileNI;
@@ -99,24 +104,24 @@ public final class Profile
    */
   public enum Key {
     // Static properties
-    /** Property: (String) List of supported games. */
+    /** Property: ({@code String}) Current Near Infinity version. */
     GET_GLOBAL_NEARINFINITY_VERSION,
-    /** Property: (List&lt;Game&gt;) List of supported games. */
+    /** Property: ({@code List<Game>}) List of supported games. */
     GET_GLOBAL_GAMES,
-    /** Property: (String) The name of the override folder ("{@code Override}"). */
+    /** Property: ({@code String}) The name of the override folder ("{@code Override}"). */
     GET_GLOBAL_OVERRIDE_NAME,
-    /** Property: (String) Returns "{@code dialog.tlk}". */
+    /** Property: ({@code String}) Returns "{@code dialog.tlk}". */
     GET_GLOBAL_DIALOG_NAME,
-    /** Property: (String) Returns "{@code dialogf.tlk}". */
+    /** Property: ({@code String}) Returns "{@code dialogf.tlk}". */
     GET_GLOBAL_DIALOG_NAME_FEMALE,
 
     // Static properties which require an additional parameter.
-    /** Property: (String) Returns the game's title. Extra parameter: Desired {@link Game}. */
+    /** Property: ({@code String}) Returns the game's title. Extra parameter: Desired {@link Game}. */
     GET_GLOBAL_GAME_TITLE,
-    /** Property: (List&lt;String&gt;) Returns a list of extra folders for the specified game.
+    /** Property: ({@code List<String>}) Returns a list of extra folders for the specified game.
      *            Extra parameter: Desired {@link Game}. */
     GET_GLOBAL_EXTRA_FOLDERS,
-    /** Property: (String) Returns the game's home folder name.
+    /** Property: ({@code String}) Returns the game's home folder name.
      *            Extra parameter: Desired <em>Enhanced Edition</em> {@link Game}. */
     GET_GLOBAL_HOME_FOLDER,
 
@@ -125,216 +130,216 @@ public final class Profile
     GET_GAME_TYPE,
     /** Property: ({@link Engine}) Engine identifier. */
     GET_GAME_ENGINE,
-    /** Property: (String) Name of the game's root folder. */
+    /** Property: ({@code String}) Name of the game's root folder. */
     GET_GAME_ROOT_FOLDER_NAME,
-    /** Property: (String) Name of the game's home folder. (Enhanced Editions only) */
+    /** Property: ({@code String}) Name of the game's home folder. (Enhanced Editions only) */
     GET_GAME_HOME_FOLDER_NAME,
-    /** Property: (String) Name of the currently selected game language folder. (Enhanced Editions only) */
+    /** Property: ({@code String}) Name of the currently selected game language folder. (Enhanced Editions only) */
     GET_GAME_LANG_FOLDER_NAME,
-    /** Property: (List&lt;String&gt;) List of available languages as language code
+    /** Property: ({@code List<String>}) List of available languages as language code
      *            for the current game. (Enhanced Editions only) */
     GET_GAME_LANG_FOLDER_NAMES_AVAILABLE,
-    /** Property: (List&lt;File&gt;) List of valid root folder, sorted by priority in descending order. */
+    /** Property: ({@code List<File>}) List of valid root folder, sorted by priority in descending order. */
     GET_GAME_FOLDERS,
-    /** Property: (File) Game's root folder. */
+    /** Property: ({@code File}) Game's root folder. */
     GET_GAME_ROOT_FOLDER,
-    /** Property: (File) Game's home folder. (Enhanced Editions only) */
+    /** Property: ({@code File}) Game's home folder. (Enhanced Editions only) */
     GET_GAME_HOME_FOLDER,
-    /** Property: (File) Game's language folder. (Enhanced Editions only) */
+    /** Property: ({@code File}) Game's language folder. (Enhanced Editions only) */
     GET_GAME_LANG_FOLDER,
-    /** Property: (List<&lt;File&gt;) List of available game language folders. (Enhanced Editions only) */
+    /** Property: ({@code List<File>}) List of available game language folders. (Enhanced Editions only) */
     GET_GAME_LANG_FOLDERS_AVAILABLE,
-    /** Property: (File) Game's language root folder (where the actual language subfolder reside).
+    /** Property: ({@code File}) Game's language root folder (where the actual language subfolder reside).
      *            (Enhanced Editions only) */
     GET_GAME_LANG_FOLDER_BASE,
-    /** Property: (List&lt;File&gt;) List of override folders to search for game resources,
+    /** Property: ({@code List<File>}) List of override folders to search for game resources,
      *            sorted by priority in ascending order. */
     GET_GAME_OVERRIDE_FOLDERS,
-    /** Property: (List&lt;String&gt;) List of extra folders containing game-related resources,
+    /** Property: ({@code List<String>}) List of extra folders containing game-related resources,
      *            sorted alphabetically in ascending order. */
     GET_GAME_EXTRA_FOLDERS,
-    /** Property: (File) The game's chitin.key. */
+    /** Property: ({@code File}) The game's chitin.key. */
     GET_GAME_CHITIN_KEY,
-    /** Property: (String) Title of the game. */
+    /** Property: ({@code String}) Title of the game. */
     GET_GAME_TITLE,
-    /** Property: (String) A short user-defined description or name of the game.
+    /** Property: ({@code String}) A short user-defined description or name of the game.
      *            Can be used to tell specific game installations apart. */
     GET_GAME_DESC,
-    /** Property: (String) Name of the game's ini file. */
+    /** Property: ({@code String}) Name of the game's ini file. */
     GET_GAME_INI_NAME,
-    /** Property: (File) Path of the game's ini file. */
+    /** Property: ({@code File}) Path of the game's ini file. */
     GET_GAME_INI_FILE,
-    /** Property: (File) Path to the currently selected {@code dialog.tlk}. */
+    /** Property: ({@code File}) Path to the currently selected {@code dialog.tlk}. */
     GET_GAME_DIALOG_FILE,
-    /** Property: (File) Path to the currently selected female {@code dialogf.tlk}.
+    /** Property: ({@code File}) Path to the currently selected female {@code dialogf.tlk}.
      *            Returns {@code null} if the language does not require a dialogf.tlk. */
     GET_GAME_DIALOGF_FILE,
-    /** Property: (List&lt;File&gt;) Unsorted list of extra folders containing BIFF archives.
+    /** Property: ({@code List<File>}) Unsorted list of extra folders containing BIFF archives.
      *            (Non-Enhanced Editions only) */
     GET_GAME_BIFF_FOLDERS,
-    /** Property: (Boolean) Is game an Enhanced Edition game? */
+    /** Property: ({@code Boolean}) Is game an Enhanced Edition game? */
     IS_ENHANCED_EDITION,
-    /** Property: (Boolean) Has current game been enhanced by TobEx? */
+    /** Property: ({@code Boolean}) Has current game been enhanced by TobEx? */
     IS_GAME_TOBEX,
 
-    /** Property: (Boolean) Are {@code 2DA} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code 2DA} resources supported? */
     IS_SUPPORTED_2DA,
-    /** Property: (Boolean) Are {@code ACM} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code ACM} resources supported? */
     IS_SUPPORTED_ACM,
-    /** Property: (Boolean) Are {@code ARE V1.0} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code ARE V1.0} resources supported? */
     IS_SUPPORTED_ARE_V10,
-    /** Property: (Boolean) Are {@code ARE V9.1} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code ARE V9.1} resources supported? */
     IS_SUPPORTED_ARE_V91,
-    /** Property: (Boolean) Are {@code BAM V1} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code BAM V1} resources supported? */
     IS_SUPPORTED_BAM_V1,
-    /** Property: (Boolean) Are {@code BAM V1} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code BAM V1} resources supported? */
     IS_SUPPORTED_BAMC_V1,
-    /** Property: (Boolean) Are {@code BAM V2} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code BAM V2} resources supported? */
     IS_SUPPORTED_BAM_V2,
-    /** Property: (Boolean) Are {@code BCS} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code BCS} resources supported? */
     IS_SUPPORTED_BCS,
-    /** Property: (Boolean) Are uncompressed {@code BIFF V1} resources supported? */
+    /** Property: ({@code Boolean}) Are uncompressed {@code BIFF V1} resources supported? */
     IS_SUPPORTED_BIFF,
-    /** Property: (Boolean) Are compressed {@code BIF V1.0} resources supported? */
+    /** Property: ({@code Boolean}) Are compressed {@code BIF V1.0} resources supported? */
     IS_SUPPORTED_BIF,
-    /** Property: (Boolean) Are compressed {@code BIFC V1.0} resources supported? */
+    /** Property: ({@code Boolean}) Are compressed {@code BIFC V1.0} resources supported? */
     IS_SUPPORTED_BIFC,
-    /** Property: (Boolean) Are {@code BIK} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code BIK} resources supported? */
     IS_SUPPORTED_BIK,
-    /** Property: (Boolean) Are {@code BIO} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code BIO} resources supported? */
     IS_SUPPORTED_BIO,
-    /** Property: (Boolean) Are paletted {@code BMP} resources supported? */
+    /** Property: ({@code Boolean}) Are paletted {@code BMP} resources supported? */
     IS_SUPPORTED_BMP_PAL,
-    /** Property: (Boolean) Are alpha-blended {@code BMP} resources supported? */
+    /** Property: ({@code Boolean}) Are alpha-blended {@code BMP} resources supported? */
     IS_SUPPORTED_BMP_ALPHA,
-    /** Property: (Boolean) Are {@code CHR V1.0} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code CHR V1.0} resources supported? */
     IS_SUPPORTED_CHR_V10,
-    /** Property: (Boolean) Are {@code CHR V2.0} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code CHR V2.0} resources supported? */
     IS_SUPPORTED_CHR_V20,
-    /** Property: (Boolean) Are {@code CHR V2.1} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code CHR V2.1} resources supported? */
     IS_SUPPORTED_CHR_V21,
-    /** Property: (Boolean) Are {@code CHR V2.2} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code CHR V2.2} resources supported? */
     IS_SUPPORTED_CHR_V22,
-    /** Property: (Boolean) Are {@code CHU} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code CHU} resources supported? */
     IS_SUPPORTED_CHU,
-    /** Property: (Boolean) Are {@code CRE V1.0} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code CRE V1.0} resources supported? */
     IS_SUPPORTED_CRE_V10,
-    /** Property: (Boolean) Are {@code CRE V1.2} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code CRE V1.2} resources supported? */
     IS_SUPPORTED_CRE_V12,
-    /** Property: (Boolean) Are {@code CRE V2.2} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code CRE V2.2} resources supported? */
     IS_SUPPORTED_CRE_V22,
-    /** Property: (Boolean) Are {@code CRE V9.0} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code CRE V9.0} resources supported? */
     IS_SUPPORTED_CRE_V90,
-    /** Property: (Boolean) Are {@code DLG} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code DLG} resources supported? */
     IS_SUPPORTED_DLG,
-    /** Property: (Boolean) Are {@code EFF} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code EFF} resources supported? */
     IS_SUPPORTED_EFF,
-    /** Property: (Boolean) Are {@code FNT} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code FNT} resources supported? */
     IS_SUPPORTED_FNT,
-    /** Property: (Boolean) Are {@code GAM V1.1} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code GAM V1.1} resources supported? */
     IS_SUPPORTED_GAM_V11,
-    /** Property: (Boolean) Are {@code GAM V2.0} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code GAM V2.0} resources supported? */
     IS_SUPPORTED_GAM_V20,
-    /** Property: (Boolean) Are {@code GAM V2.1} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code GAM V2.1} resources supported? */
     IS_SUPPORTED_GAM_V21,
-    /** Property: (Boolean) Are {@code GAM V2.2} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code GAM V2.2} resources supported? */
     IS_SUPPORTED_GAM_V22,
-    /** Property: (Boolean) Are {@code GLSL} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code GLSL} resources supported? */
     IS_SUPPORTED_GLSL,
-    /** Property: (Boolean) Are {@code GUI} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code GUI} resources supported? */
     IS_SUPPORTED_GUI,
-    /** Property: (Boolean) Are {@code IDS} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code IDS} resources supported? */
     IS_SUPPORTED_IDS,
-    /** Property: (Boolean) Are {@code INI} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code INI} resources supported? */
     IS_SUPPORTED_INI,
-    /** Property: (Boolean) Are {@code ITM V1.0} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code ITM V1.0} resources supported? */
     IS_SUPPORTED_ITM_V10,
-    /** Property: (Boolean) Are {@code ITM V1.1} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code ITM V1.1} resources supported? */
     IS_SUPPORTED_ITM_V11,
-    /** Property: (Boolean) Are {@code ITM V2.0} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code ITM V2.0} resources supported? */
     IS_SUPPORTED_ITM_V20,
-    /** Property: (Boolean) Are {@code KEY} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code KEY} resources supported? */
     IS_SUPPORTED_KEY,
-    /** Property: (Boolean) Are {@code LUA} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code LUA} resources supported? */
     IS_SUPPORTED_LUA,
-    /** Property: (Boolean) Are {@code MENU} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code MENU} resources supported? */
     IS_SUPPORTED_MENU,
-    /** Property: (Boolean) Are {@code MOS V1} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code MOS V1} resources supported? */
     IS_SUPPORTED_MOS_V1,
-    /** Property: (Boolean) Are {@code MOSC V1} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code MOSC V1} resources supported? */
     IS_SUPPORTED_MOSC_V1,
-    /** Property: (Boolean) Are {@code MOS V2} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code MOS V2} resources supported? */
     IS_SUPPORTED_MOS_V2,
-    /** Property: (Boolean) Are {@code MUS} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code MUS} resources supported? */
     IS_SUPPORTED_MUS,
-    /** Property: (Boolean) Are {@code MVE} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code MVE} resources supported? */
     IS_SUPPORTED_MVE,
-    /** Property: (Boolean) Are {@code OGG} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code OGG} resources supported? */
     IS_SUPPORTED_OGG,
-    /** Property: (Boolean) Are {@code PLT} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code PLT} resources supported? */
     IS_SUPPORTED_PLT,
-    /** Property: (Boolean) Are {@code PNG} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code PNG} resources supported? */
     IS_SUPPORTED_PNG,
-    /** Property: (Boolean) Are {@code PRO} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code PRO} resources supported? */
     IS_SUPPORTED_PRO,
-    /** Property: (Boolean) Are {@code PVRZ} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code PVRZ} resources supported? */
     IS_SUPPORTED_PVRZ,
-    /** Property: (Boolean) Are {@code RES} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code RES} resources supported? */
     IS_SUPPORTED_RES,
-    /** Property: (Boolean) Are {@code SAV} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code SAV} resources supported? */
     IS_SUPPORTED_SAV,
-    /** Property: (Boolean) Are {@code SPL V1} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code SPL V1} resources supported? */
     IS_SUPPORTED_SPL_V1,
-    /** Property: (Boolean) Are {@code SPL V2} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code SPL V2} resources supported? */
     IS_SUPPORTED_SPL_V2,
-    /** Property: (Boolean) Are {@code SQL} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code SQL} resources supported? */
     IS_SUPPORTED_SQL,
-    /** Property: (Boolean) Are (PST) {@code SRC} resources supported? */
+    /** Property: ({@code Boolean}) Are (PST) {@code SRC} resources supported? */
     IS_SUPPORTED_SRC_PST,
-    /** Property: (Boolean) Are (IWD2) {@code SRC} resources supported? */
+    /** Property: ({@code Boolean}) Are (IWD2) {@code SRC} resources supported? */
     IS_SUPPORTED_SRC_IWD2,
-    /** Property: (Boolean) Are {@code STO V1.0} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code STO V1.0} resources supported? */
     IS_SUPPORTED_STO_V10,
-    /** Property: (Boolean) Are {@code STO V1.1} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code STO V1.1} resources supported? */
     IS_SUPPORTED_STO_V11,
-    /** Property: (Boolean) Are {@code STO V9.0} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code STO V9.0} resources supported? */
     IS_SUPPORTED_STO_V90,
-    /** Property: (Boolean) Are (palette-based) {@code TIS V1} resources supported? */
+    /** Property: ({@code Boolean}) Are (palette-based) {@code TIS V1} resources supported? */
     IS_SUPPORTED_TIS_V1,
-    /** Property: (Boolean) Are (PVRZ-based) {@code TIS V2} resources supported? */
+    /** Property: ({@code Boolean}) Are (PVRZ-based) {@code TIS V2} resources supported? */
     IS_SUPPORTED_TIS_V2,
-    /** Property: (Boolean) Are {@code TLK} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code TLK} resources supported? */
     IS_SUPPORTED_TLK,
-    /** Property: (Boolean) Are {@code TO V1} (TOH/TOT) resources supported? */
+    /** Property: ({@code Boolean}) Are {@code TO V1} (TOH/TOT) resources supported? */
     IS_SUPPORTED_TO_V1,
-    /** Property: (Boolean) Are {@code TO V2} (TOH only) resources supported? */
+    /** Property: ({@code Boolean}) Are {@code TO V2} (TOH only) resources supported? */
     IS_SUPPORTED_TO_V2,
-    /** Property: (Boolean) Are {@code TTF} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code TTF} resources supported? */
     IS_SUPPORTED_TTF,
-    /** Property: (Boolean) Are {@code VAR} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code VAR} resources supported? */
     IS_SUPPORTED_VAR,
-    /** Property: (Boolean) Are {@code VEF} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code VEF} resources supported? */
     IS_SUPPORTED_VEF,
-    /** Property: (Boolean) Are {@code VVC} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code VVC} resources supported? */
     IS_SUPPORTED_VVC,
-    /** Property: (Boolean) Are {@code WAV} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code WAV} resources supported? */
     IS_SUPPORTED_WAV,
-    /** Property: (Boolean) Are {@code WAVC} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code WAVC} resources supported? */
     IS_SUPPORTED_WAVC,
-    /** Property: (Boolean) Are {@code WBM} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code WBM} resources supported? */
     IS_SUPPORTED_WBM,
-    /** Property: (Boolean) Are {@code WED} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code WED} resources supported? */
     IS_SUPPORTED_WED,
-    /** Property: (Boolean) Are {@code WFX} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code WFX} resources supported? */
     IS_SUPPORTED_WFX,
-    /** Property: (Boolean) Are {@code WMP} resources supported? */
+    /** Property: ({@code Boolean}) Are {@code WMP} resources supported? */
     IS_SUPPORTED_WMP,
 
-    /** Property: (Boolean) Are Kits supported? */
+    /** Property: ({@code Boolean}) Are Kits supported? */
     IS_SUPPORTED_KITS,
-    /** Property: (String) The name of the ALIGNMENT IDS resource. */
+    /** Property: ({@code String}) The name of the ALIGNMENT IDS resource. */
     GET_IDS_ALIGNMENT,
-    /** Property: (Boolean) Indices whether overlays in tilesets are stenciled. */
+    /** Property: ({@code Boolean}) Indices whether overlays in tilesets are stenciled. */
     IS_TILESET_STENCILED,
   }
 
@@ -894,6 +899,46 @@ public final class Profile
     addEntry(Key.GET_GLOBAL_DIALOG_NAME_FEMALE, Type.STRING, "dialogf.tlk");
   }
 
+  // Attempts to determine home folder name from the game's "engine.lua" file if available
+  private static String getLuaHomeFolderName(Game game)
+  {
+    File gameRoot = (File)getProperty(Key.GET_GAME_ROOT_FOLDER);
+    if (gameRoot != null) {
+      File lua = new FileNI(gameRoot, "engine.lua");
+      if (lua.isFile()) {
+        String name = getLuaValue(lua, "engine_name");
+        if (name != null) {
+          return name.replace('"', ' ').trim();
+        }
+      }
+    }
+
+    if (game != null) {
+      return GAME_HOME_FOLDER.get(game);
+    } else {
+      return null;
+    }
+  }
+
+  // Returns the value of the Lua script entry specified by key
+  private static String getLuaValue(File file, String key)
+  {
+    if (file != null && file.isFile() && key != null && !key.trim().isEmpty()) {
+      try (Stream<String> lines = Files.lines(Paths.get(file.getPath()), StandardCharsets.UTF_8)) {
+        for (Iterator<String> iter = lines.iterator(); iter.hasNext();) {
+          String line = iter.next();
+          String[] split = line.split("=");
+          if (split.length > 1 && split[0].trim().equals(key)) {
+            String retVal = split[1];
+            return retVal.replaceFirst("--.*$", "").trim(); // remove comments and surrounding whitespace
+          }
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    return null;
+  }
 
   private Profile(File keyFile, String desc) throws Exception
   {
@@ -921,6 +966,20 @@ public final class Profile
     addEntry(Key.GET_GAME_ROOT_FOLDER, Type.FILE, rootDir);
     addEntry(Key.GET_GAME_ROOT_FOLDER_NAME, Type.STRING, rootDir.getName());
 
+    // first attempt to determine home directory for current game
+    String home = getLuaHomeFolderName(null);
+    File homeDir = null;
+    if (home != null) {
+      addEntry(Key.GET_GAME_HOME_FOLDER_NAME, Type.STRING, home);
+      homeDir = ResourceFactory.getHomeRoot();
+      if (homeDir != null) {
+        addEntry(Key.GET_GAME_HOME_FOLDER, Type.FILE, homeDir);
+      }
+    }
+
+    // TODO: initializing additional content provided as DLCs
+//     initDlc(rootDir, homeDir);
+
     initGame();
   }
 
@@ -941,7 +1000,7 @@ public final class Profile
         game = Game.BG2EE;
       }
       // Note: baldur.ini is initialized later
-    } else if (new FileNI(gameRoot, "movies/sodcin01.wbm").isFile()) {
+    } else if (new FileNI(gameRoot, "movies/sodcin01.wbm").isFile()) {  // TODO: add check for files in DLC archive
       game = Game.BG1SoD;
       // Note: baldur.ini is initialized later
     } else if (new FileNI(gameRoot, "movies/bgenter.wbm").isFile()) {
@@ -999,8 +1058,8 @@ public final class Profile
       }
     }
 
-    if (GAME_HOME_FOLDER.containsKey(game)) {
-      addEntry(Key.GET_GAME_HOME_FOLDER_NAME, Type.STRING, GAME_HOME_FOLDER.get(game));
+    if (!hasProperty(Key.GET_GAME_HOME_FOLDER_NAME) && GAME_HOME_FOLDER.containsKey(game)) {
+      addEntry(Key.GET_GAME_HOME_FOLDER_NAME, Type.STRING, getLuaHomeFolderName(game));
     }
 
     // delayed initialization of ini files (EE only)
@@ -1371,6 +1430,13 @@ public final class Profile
       addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, Boolean.FALSE);
     }
   }
+
+//  // Initialize additional content in form of zipped archives
+//  private void initDlc(File rootDir, File homeDir)
+//  {
+//    File[] archives = ZippedGame.getZippedGames(rootDir, homeDir);
+//    // TODO
+//  }
 
 //-------------------------- INNER CLASSES --------------------------
 
