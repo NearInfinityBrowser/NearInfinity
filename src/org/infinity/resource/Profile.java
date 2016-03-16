@@ -905,11 +905,9 @@ public final class Profile
     File gameRoot = (File)getProperty(Key.GET_GAME_ROOT_FOLDER);
     if (gameRoot != null) {
       File lua = new FileNI(gameRoot, "engine.lua");
-      if (lua.isFile()) {
-        String name = getLuaValue(lua, "engine_name");
-        if (name != null) {
-          return name.replace('"', ' ').trim();
-        }
+      String name = getLuaValue(lua, "engine_name", "Infinity Engine - Enhanced Edition", true);
+      if (name != null) {
+        return name.replace('"', ' ').trim();
       }
     }
 
@@ -921,23 +919,55 @@ public final class Profile
   }
 
   // Returns the value of the Lua script entry specified by key
-  private static String getLuaValue(File file, String key)
+  private static String getLuaValue(File file, String key, String defaultValue, boolean ifLuaExists)
   {
+    String retVal = ifLuaExists ? null : defaultValue;
     if (file != null && file.isFile() && key != null && !key.trim().isEmpty()) {
+      retVal = defaultValue;
       try (Stream<String> lines = Files.lines(Paths.get(file.getPath()), StandardCharsets.UTF_8)) {
         for (Iterator<String> iter = lines.iterator(); iter.hasNext();) {
           String line = iter.next();
-          String[] split = line.split("=");
-          if (split.length > 1 && split[0].trim().equals(key)) {
-            String retVal = split[1];
-            return retVal.replaceFirst("--.*$", "").trim(); // remove comments and surrounding whitespace
+          int sep = line.indexOf('=');
+          if (sep > 0) {
+            String name = line.substring(0, sep).trim();
+            if (name.equals(key)) {
+              String value = line.substring(sep+1).trim();
+              if (!value.isEmpty()) {
+                boolean quote = (value.charAt(0) == '"');
+                boolean cmt = false;
+                int pos = 0;
+                for (int i = 1, len = value.length(); i < len; i++) {
+                  char ch = value.charAt(i);
+                  if (ch == '"') {
+                    quote = !quote;
+                    if (!quote) {
+                      pos = i + 1;
+                      break;
+                    }
+                  } else if (ch == '-' && !quote) {
+                    cmt = !cmt;
+                    if (!cmt) {
+                      pos = i - 1;
+                      break;
+                    }
+                  } else {
+                    cmt = false;
+                  }
+                }
+                if (pos > 0) {
+                  value = value.substring(0, pos);
+                }
+                retVal = value;
+              }
+              break;
+            }
           }
         }
       } catch (IOException e) {
         e.printStackTrace();
       }
     }
-    return null;
+    return retVal;
   }
 
   private Profile(File keyFile, String desc) throws Exception
