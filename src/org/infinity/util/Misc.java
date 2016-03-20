@@ -158,6 +158,64 @@ public class Misc
     return defValue;
   }
 
+  /** Swaps byte order of the specified short value. */
+  public static final short swap16(short v)
+  {
+    return (short)(((v & 0xff) << 8) | ((v >> 8) & 0xff));
+  }
+
+  /** Swaps byte order of the specified int value. */
+  public static final int swap32(int v)
+  {
+    return ((v << 24) & 0xff000000) |
+        ((v << 8)  & 0x00ff0000) |
+        ((v >> 8)  & 0x0000ff00) |
+        ((v >> 24) & 0x000000ff);
+  }
+
+  /** Swaps byte order of the specified long value. */
+  public static final long swap64(long v)
+  {
+    return ((v << 56) & 0xff00000000000000L) |
+           ((v << 40) & 0x00ff000000000000L) |
+           ((v << 24) & 0x0000ff0000000000L) |
+           ((v << 8)  & 0x000000ff00000000L) |
+           ((v >> 8)  & 0x00000000ff000000L) |
+           ((v >> 24) & 0x0000000000ff0000L) |
+           ((v >> 40) & 0x000000000000ff00L) |
+           ((v >> 56) & 0x00000000000000ffL);
+  }
+
+  /** Swaps byte order of every short value in the specified array. */
+  public static final void swap(short[] array)
+  {
+    if (array != null) {
+      for (int i = 0, cnt = array.length; i < cnt; i++) {
+        array[i] = swap16(array[i]);
+      }
+    }
+  }
+
+  /** Swaps byte order of every int value in the specified array. */
+  public static final void swap(int[] array)
+  {
+    if (array != null) {
+      for (int i = 0, cnt = array.length; i < cnt; i++) {
+        array[i] = swap32(array[i]);
+      }
+    }
+  }
+
+  /** Swaps byte order of every long value in the specified array. */
+  public static final void swap(long[] array)
+  {
+    if (array != null) {
+      for (int i = 0, cnt = array.length; i < cnt; i++) {
+        array[i] = swap64(array[i]);
+      }
+    }
+  }
+
 
   /**
    * Creates a thread pool with a pool size depending on the number of available CPU cores.<br>
