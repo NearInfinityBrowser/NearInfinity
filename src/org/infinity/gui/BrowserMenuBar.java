@@ -2727,7 +2727,7 @@ public final class BrowserMenuBar extends JMenuBar
 
     private final JMenuItem helpAbout, helpWiki, helpLicense,
                             helpJOrbisLicense, helpFifeLicense, helpJHexViewLicense,
-                            helpMonteMediaLicense, helpJFontChooserLicense,
+                            helpMonteMediaLicense, helpJFontChooserLicense, helpOracleLicense,
                             helpUpdateSettings, helpUpdateCheck;
 
     private HelpMenu()
@@ -2750,25 +2750,29 @@ public final class BrowserMenuBar extends JMenuBar
       miscLicenses.setMnemonic(KeyEvent.VK_T);
       add(miscLicenses);
 
-      helpJOrbisLicense =
-          makeMenuItem("JOrbis License", KeyEvent.VK_J, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
-      miscLicenses.add(helpJOrbisLicense);
-
       helpFifeLicense =
           makeMenuItem("Fifesoft License", KeyEvent.VK_F, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
       miscLicenses.add(helpFifeLicense);
+
+      helpJFontChooserLicense =
+          makeMenuItem("JFontChooser License", KeyEvent.VK_C, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
+      miscLicenses.add(helpJFontChooserLicense);
 
       helpJHexViewLicense =
           makeMenuItem("JHexView License", KeyEvent.VK_H, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
       miscLicenses.add(helpJHexViewLicense);
 
+      helpJOrbisLicense =
+          makeMenuItem("JOrbis License", KeyEvent.VK_J, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
+      miscLicenses.add(helpJOrbisLicense);
+
       helpMonteMediaLicense =
           makeMenuItem("Monte Media License", KeyEvent.VK_M, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
       miscLicenses.add(helpMonteMediaLicense);
 
-      helpJFontChooserLicense =
-          makeMenuItem("JFontChooser License", KeyEvent.VK_C, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
-      miscLicenses.add(helpJFontChooserLicense);
+      helpOracleLicense =
+          makeMenuItem("Oracle License", KeyEvent.VK_O, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
+      miscLicenses.add(helpOracleLicense);
 
       addSeparator();
 
@@ -2798,6 +2802,8 @@ public final class BrowserMenuBar extends JMenuBar
         displayLicense("org/infinity/MonteMedia.License.txt", "Creative Commons / LGPL License");
       } else if (event.getSource() == helpJFontChooserLicense) {
         displayLicense("org/infinity/JFontChooser.License.txt", "MIT License");
+      } else if (event.getSource() == helpOracleLicense) {
+        displayLicense("org/infinity/Oracle.License.txt", "BSD License");
       } else if (event.getSource() == helpUpdateSettings) {
         UpdaterSettings.showDialog(NearInfinity.getInstance());
       } else if (event.getSource() == helpUpdateCheck) {
