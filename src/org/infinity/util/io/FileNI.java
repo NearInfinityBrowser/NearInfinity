@@ -95,9 +95,9 @@ public class FileNI extends File
   }
 
   /**
-   * Returns an abstract pathname from the first existing full pathname consisting of an entry from parentList and
-   * child. If no existing pathname can been found, then the last parentList entry will be used to create an abstract
-   * pathname.
+   * Returns an abstract pathname from the first existing full pathname consisting of an entry
+   * from parentList and child. If no existing pathname can been found, then the last
+   * parentList entry will be used to create an abstract pathname.
    * @param parentList List of potential pathnames to use.
    * @param child The child pathname string.
    * @return An abstract pathname representation.
@@ -113,9 +113,9 @@ public class FileNI extends File
   }
 
   /**
-   * Returns an abstract pathname from the first existing full pathname consisting of an entry from parentList and
-   * child. If no existing pathname can been found, then the last parentList entry will be used to create an abstract
-   * pathname.
+   * Returns an abstract pathname from the first existing full pathname consisting of an entry
+   * from parentList and child. If no existing pathname can been found, then the last
+   * parentList entry will be used to create an abstract pathname.
    * @param parentList Array of potential pathnames to use.
    * @param child The child pathname string.
    * @return An abstract pathname representation.
