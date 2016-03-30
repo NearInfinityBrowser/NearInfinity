@@ -4,6 +4,7 @@
 
 package org.infinity.resource.pro;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import javax.swing.JComponent;
@@ -212,7 +213,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
 //--------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     final String[] s_types = Profile.isEnhancedEdition() ? new String[]{"VVC", "BAM"}
                                                          : new String[]{"VEF", "VVC", "BAM"};
@@ -330,10 +331,10 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       StructEntry e1 = struct.getAttribute(offset, false);
       StructEntry e2 = struct.getAttribute(offset + 2, false);
       if (!(e2 instanceof SpellProtType)) {
-        byte[] typeBuffer = ((Datatype)e2).getDataBuffer();
+        ByteBuffer typeBuffer = ((Datatype)e2).getDataBuffer();
         SpellProtType newType = new SpellProtType(typeBuffer, 0, 2, null, nr);
         newType.setOffset(offset + 2);
-        byte[] valueBuffer = ((Datatype)e1).getDataBuffer();
+        ByteBuffer valueBuffer = ((Datatype)e1).getDataBuffer();
         StructEntry newValue = newType.createCreatureValueFromType(valueBuffer, 0);
         newValue.setOffset(offset);
 
@@ -352,10 +353,10 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       StructEntry e1 = struct.getAttribute(offset, false);
       StructEntry e2 = struct.getAttribute(offset + 2, false);
       if (!(e2 instanceof IdsTargetType)) {
-        byte[] typeBuffer = ((Datatype)e2).getDataBuffer();
+        ByteBuffer typeBuffer = ((Datatype)e2).getDataBuffer();
         IdsTargetType newType = new IdsTargetType(typeBuffer, 0, 2, null, nr, null, false);
         newType.setOffset(offset + 2);
-        byte[] valueBuffer = ((Datatype)e1).getDataBuffer();
+        ByteBuffer valueBuffer = ((Datatype)e1).getDataBuffer();
         StructEntry newValue = newType.createIdsValueFromType(valueBuffer, 0);
         newValue.setOffset(offset);
 

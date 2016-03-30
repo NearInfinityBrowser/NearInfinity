@@ -14,7 +14,6 @@ import org.infinity.resource.are.ProTrap;
 
 /**
  * Manages projectile trap layer objects.
- * @author argent77
  */
 public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
 {

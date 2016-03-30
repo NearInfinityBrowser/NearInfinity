@@ -13,9 +13,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -49,7 +50,6 @@ import org.infinity.resource.Writeable;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.SimpleListModel;
-import org.infinity.util.io.FileNI;
 
 public final class SavResource implements Resource, Closeable, Writeable,
                                           ActionListener, ListSelectionListener
@@ -110,7 +110,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
         }
       }
     } else if (miAddExternal == event.getSource()) {
-      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
       fc.setDialogTitle("Open external file");
       fc.setDialogType(JFileChooser.OPEN_DIALOG);
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -120,7 +120,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
       fc.addChoosableFileFilter(filter);
       fc.setFileFilter(filter);
       if (fc.showOpenDialog(panel.getTopLevelAncestor()) == JFileChooser.APPROVE_OPTION) {
-        addResource(new FileResourceEntry(fc.getSelectedFile()));
+        addResource(new FileResourceEntry(fc.getSelectedFile().toPath()));
       }
     } else if (miAddInternal == event.getSource()) {
       ResourceChooser rc = new ResourceChooser();
@@ -353,9 +353,9 @@ public final class SavResource implements Resource, Closeable, Writeable,
   private void addResource(ResourceEntry resourceEntry)
   {
     if (resourceEntry != null) {
-      File output = new FileNI(handler.getTempFolder(), resourceEntry.getResourceName());
+      Path output = handler.getTempFolder().resolve(resourceEntry.getResourceName());
       try {
-        if (output.isFile()) {
+        if (Files.exists(output)) {
           String msg = "File " + resourceEntry.getResourceName() + " already exists. Overwrite?";
           int ret = JOptionPane.showConfirmDialog(panel.getTopLevelAncestor(),
                                                   msg, "Overwrite file?", JOptionPane.YES_NO_OPTION,
@@ -397,9 +397,13 @@ public final class SavResource implements Resource, Closeable, Writeable,
   {
     if (entryIndex >= 0 && entryIndex < entries.size()) {
       ResourceEntry resourceEntry = entries.get(entryIndex);
-      File file = resourceEntry.getActualFile();
-      if (file != null) {
-        file.delete();
+      Path file = resourceEntry.getActualPath();
+      if (Files.exists(file)) {
+        try {
+          Files.delete(file);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
       entries.remove(resourceEntry);
       listModel.remove(entryIndex);

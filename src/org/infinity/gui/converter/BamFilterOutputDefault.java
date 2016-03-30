@@ -7,6 +7,7 @@ package org.infinity.gui.converter;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.nio.file.Path;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -19,7 +20,6 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 /**
  * The default BAM output filter.
- * @author argent77
  */
 public class BamFilterOutputDefault extends BamFilterBaseOutput
 {
@@ -82,7 +82,7 @@ public class BamFilterOutputDefault extends BamFilterBaseOutput
   private boolean applyEffect(PseudoBamDecoder decoder) throws Exception
   {
     if (getConverter() != null && decoder != null) {
-      String outFileName = getConverter().getBamOutput();
+      Path outFile = getConverter().getBamOutput();
 
       if (getConverter().isBamV1Selected()) {
         // convert to BAM v1
@@ -91,7 +91,7 @@ public class BamFilterOutputDefault extends BamFilterBaseOutput
         decoder.setOption(PseudoBamDecoder.OPTION_BOOL_COMPRESSED,
                           Boolean.valueOf(getConverter().isBamV1Compressed()));
         try {
-          return decoder.exportBamV1(outFileName, getConverter().getProgressMonitor(),
+          return decoder.exportBamV1(outFile, getConverter().getProgressMonitor(),
                                      getConverter().getProgressMonitorStage());
         } catch (Exception e) {
           e.printStackTrace();
@@ -102,7 +102,7 @@ public class BamFilterOutputDefault extends BamFilterBaseOutput
         DxtEncoder.DxtType dxtType = getConverter().getDxtType();
         int pvrzIndex = getConverter().getPvrzIndex();
         try {
-          return decoder.exportBamV2(outFileName, dxtType, pvrzIndex, getConverter().getProgressMonitor(),
+          return decoder.exportBamV2(outFile, dxtType, pvrzIndex, getConverter().getProgressMonitor(),
                                      getConverter().getProgressMonitorStage());
         } catch (Exception e) {
           e.printStackTrace();

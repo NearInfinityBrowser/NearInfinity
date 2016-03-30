@@ -9,17 +9,18 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.nio.ByteBuffer;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.DynamicArray;
+import org.infinity.util.io.StreamUtils;
 
 public class MosV2Decoder extends MosDecoder
 {
   private static final int HeaderSize = 16;   // size of the MOS header
   private static final int BlockSize = 28;    // size of a single data block
 
-  private byte[] mosData;
+  private ByteBuffer mosBuffer;
   private int width, height, blockCount, ofsData;
 
   public MosV2Decoder(ResourceEntry mosEntry)
@@ -37,7 +38,7 @@ public class MosV2Decoder extends MosDecoder
     for (int i = 0; i < getBlockCount(); i++) {
       int ofs = getBlockOffset(i);
       if (ofs > 0) {
-        int page = DynamicArray.getInt(mosData, ofs);
+        int page = mosBuffer.getInt(ofs);
         if (page >= 0) {
           getPVR(page);
         }
@@ -49,7 +50,7 @@ public class MosV2Decoder extends MosDecoder
   public void close()
   {
     PvrDecoder.flushCache();
-    mosData = null;
+    mosBuffer = null;
     width = height = blockCount = 0;
     ofsData = 0;
   }
@@ -61,9 +62,9 @@ public class MosV2Decoder extends MosDecoder
   }
 
   @Override
-  public byte[] getResourceData()
+  public ByteBuffer getResourceBuffer()
   {
-    return mosData;
+    return mosBuffer;
   }
 
   @Override
@@ -100,8 +101,8 @@ public class MosV2Decoder extends MosDecoder
       for (int i = 0; i < getBlockCount(); i++) {
         int ofs = getBlockOffset(i);
         if (ofs > 0) {
-          int dx = DynamicArray.getInt(mosData, ofs + 0x14);
-          int dy = DynamicArray.getInt(mosData, ofs + 0x18);
+          int dx = mosBuffer.getInt(ofs + 0x14);
+          int dy = mosBuffer.getInt(ofs + 0x18);
           bRet |= renderBlock(i, canvas, dx, dy);
         }
       }
@@ -132,8 +133,8 @@ public class MosV2Decoder extends MosDecoder
       for (int i = 0; i < getBlockCount(); i++) {
         int ofs = getBlockOffset(i);
         if (ofs > 0) {
-          int dx = DynamicArray.getInt(mosData, ofs + 0x14);
-          int dy = DynamicArray.getInt(mosData, ofs + 0x18);
+          int dx = mosBuffer.getInt(ofs + 0x14);
+          int dy = mosBuffer.getInt(ofs + 0x18);
           bRet |= renderBlock(i, buffer, getWidth(), getHeight(), dx, dy);
         }
       }
@@ -153,7 +154,7 @@ public class MosV2Decoder extends MosDecoder
   {
     int ofs = getBlockOffset(blockIdx);
     if (ofs > 0) {
-      return DynamicArray.getInt(mosData, ofs + 0x0c);
+      return mosBuffer.getInt(ofs + 0x0c);
     }
     return 0;
   }
@@ -163,7 +164,7 @@ public class MosV2Decoder extends MosDecoder
   {
     int ofs = getBlockOffset(blockIdx);
     if (ofs > 0) {
-      return DynamicArray.getInt(mosData, ofs + 0x10);
+      return mosBuffer.getInt(ofs + 0x10);
     }
     return 0;
   }
@@ -227,9 +228,9 @@ public class MosV2Decoder extends MosDecoder
 
     if (getResourceEntry() != null) {
       try {
-        mosData = getResourceEntry().getResourceData();
-        String signature = DynamicArray.getString(mosData, 0x00, 4);
-        String version = DynamicArray.getString(mosData, 0x04, 4);
+        mosBuffer = getResourceEntry().getResourceBuffer();
+        String signature = StreamUtils.readString(mosBuffer, 0x00, 4);
+        String version = StreamUtils.readString(mosBuffer, 0x04, 4);
         if ("MOS ".equals(signature) && "V2  ".equals(version)) {
           setType(Type.MOSV2);
         } else {
@@ -237,19 +238,19 @@ public class MosV2Decoder extends MosDecoder
         }
 
         // evaluating header data
-        width = DynamicArray.getInt(mosData, 0x08);
+        width = mosBuffer.getInt(0x08);
         if (width <= 0) {
           throw new Exception("Invalid MOS width: " + width);
         }
-        height = DynamicArray.getInt(mosData, 0x0c);
+        height = mosBuffer.getInt(0x0c);
         if (height <= 0) {
           throw new Exception("Invalid MOS height: " + height);
         }
-        blockCount = DynamicArray.getInt(mosData, 0x10);
+        blockCount = mosBuffer.getInt(0x10);
         if (blockCount <= 0) {
           throw new Exception("Invalid number of data blocks: " + blockCount);
         }
-        ofsData = DynamicArray.getInt(mosData, 0x14);
+        ofsData = mosBuffer.getInt(0x14);
         if (width < HeaderSize) {
           throw new Exception("Invalid data offset: " + ofsData);
         }
@@ -278,7 +279,7 @@ public class MosV2Decoder extends MosDecoder
   // Returns if a valid MOS has been initialized
   private boolean isInitialized()
   {
-    return (mosData != null && blockCount > 0 && width > 0 && height > 0);
+    return (mosBuffer != null && blockCount > 0 && width > 0 && height > 0);
   }
 
   // Returns whether the specified block index is valid
@@ -301,11 +302,11 @@ public class MosV2Decoder extends MosDecoder
   {
     int ofsBlock = getBlockOffset(blockIdx);
     if (ofsBlock > 0 && canvas != null && left >= 0 && top >= 0) {
-      int page = DynamicArray.getInt(mosData, ofsBlock);
-      int srcX = DynamicArray.getInt(mosData, ofsBlock + 0x04);
-      int srcY = DynamicArray.getInt(mosData, ofsBlock + 0x08);
-      int blockWidth = DynamicArray.getInt(mosData, ofsBlock + 0x0c);
-      int blockHeight = DynamicArray.getInt(mosData, ofsBlock + 0x10);
+      int page = mosBuffer.getInt(ofsBlock);
+      int srcX = mosBuffer.getInt(ofsBlock + 0x04);
+      int srcY = mosBuffer.getInt(ofsBlock + 0x08);
+      int blockWidth = mosBuffer.getInt(ofsBlock + 0x0c);
+      int blockHeight = mosBuffer.getInt(ofsBlock + 0x10);
       PvrDecoder decoder = getPVR(page);
       if (decoder != null) {
         try {
@@ -337,11 +338,11 @@ public class MosV2Decoder extends MosDecoder
   {
     int ofsBlock = getBlockOffset(blockIdx);
     if (ofsBlock > 0 && buffer != null && width > 0 && height > 0 && left >= 0 && top >= 0) {
-      int page = DynamicArray.getInt(mosData, ofsBlock);
-      int srcX = DynamicArray.getInt(mosData, ofsBlock + 0x04);
-      int srcY = DynamicArray.getInt(mosData, ofsBlock + 0x08);
-      int blockWidth = DynamicArray.getInt(mosData, ofsBlock + 0x0c);
-      int blockHeight = DynamicArray.getInt(mosData, ofsBlock + 0x10);
+      int page = mosBuffer.getInt(ofsBlock);
+      int srcX = mosBuffer.getInt(ofsBlock + 0x04);
+      int srcY = mosBuffer.getInt(ofsBlock + 0x08);
+      int blockWidth = mosBuffer.getInt(ofsBlock + 0x0c);
+      int blockHeight = mosBuffer.getInt(ofsBlock + 0x10);
       PvrDecoder decoder = getPVR(page);
       if (decoder != null) {
         try {

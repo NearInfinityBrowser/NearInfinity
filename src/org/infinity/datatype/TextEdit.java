@@ -10,9 +10,8 @@ import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.EnumMap;
 
 import javax.swing.JButton;
@@ -30,7 +29,8 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.Misc;
+import org.infinity.util.io.StreamUtils;
 
 public final class TextEdit extends Datatype implements Editable, IsTextual
 {
@@ -50,33 +50,34 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
 
   private InfinityTextArea textArea;
   private Align buttonAlign;
-  private byte[] bytes;
+  private ByteBuffer buffer;
   private String text;
   private EOLType eolType;
-  private String charsetName;
+  private Charset charset;
   private boolean terminateString, editable;
 
-  public TextEdit(byte buffer[], int offset, int length, String name)
+  public TextEdit(ByteBuffer buffer, int offset, int length, String name)
   {
     this(null, buffer, offset, length, name, Align.RIGHT);
   }
 
-  public TextEdit(byte buffer[], int offset, int length, String name, Align buttonAlignment)
+  public TextEdit(ByteBuffer buffer, int offset, int length, String name, Align buttonAlignment)
   {
     this(null, buffer, offset, length, name, buttonAlignment);
   }
 
-  public TextEdit(StructEntry parent, byte buffer[], int offset, int length, String name)
+  public TextEdit(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
   {
     this(parent, buffer, offset, length, name, Align.RIGHT);
   }
 
-  public TextEdit(StructEntry parent, byte buffer[], int offset, int length, String name, Align buttonAlignment)
+  public TextEdit(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, Align buttonAlignment)
   {
     super(parent, offset, length, name);
+    this.buffer = StreamUtils.getByteBuffer(getSize());
     read(buffer, offset);
     this.eolType = EOLType.UNIX;
-    this.charsetName = Charset.defaultCharset().name();
+    this.charset = Charset.defaultCharset();
     this.terminateString = false;
     this.editable = true;
     this.buttonAlign = (buttonAlignment != null) ? buttonAlignment : Align.RIGHT;
@@ -94,7 +95,7 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
       textArea.setWrapStyleWord(true);
       textArea.setLineWrap(true);
       textArea.setMargin(new Insets(3, 3, 3, 3));
-      textArea.setDocument(new FixedDocument(textArea, bytes.length));
+      textArea.setDocument(new FixedDocument(textArea, buffer.limit()));
       textArea.setEditable(editable);
     }
     textArea.setText(toString());
@@ -172,7 +173,7 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
   @Override
   public void write(OutputStream os) throws IOException
   {
-    FileWriterNI.writeBytes(os, toArray());
+    StreamUtils.writeBytes(os, toBuffer());
   }
 
   // --------------------- End Interface Writeable ---------------------
@@ -180,10 +181,9 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
-    bytes = Arrays.copyOfRange(buffer, offset, offset + getSize());
-
+    StreamUtils.copyBytes(buffer, offset, this.buffer, 0, getSize());
     return offset + getSize();
   }
 
@@ -195,16 +195,9 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
   public String getText()
   {
     if (text == null) {
-      try {
-        int len = 0;
-        while (len < bytes.length && bytes[len] != 0) {
-          len++;
-        }
-        text = eolConvert(new String(bytes, 0, len, charsetName), System.getProperty("line.separator"));
-      } catch (UnsupportedEncodingException e) {
-        text = eolConvert(new String(bytes, 0, bytes.length), System.getProperty("line.separator"));
-        e.printStackTrace();
-      }
+      buffer.position(0);
+      String s = StreamUtils.readString(buffer, buffer.limit(), charset);
+      text = eolConvert(s, Misc.LINE_SEPARATOR);
     }
     return text;
   }
@@ -217,28 +210,24 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
     return getText();
   }
 
-  public byte[] toArray()
+  public ByteBuffer toBuffer()
   {
     if (text != null) {
-      byte[] buf = null;
-      try {
-        buf = eolConvert(text).getBytes(charsetName);
-      } catch (UnsupportedEncodingException e) {
-        e.printStackTrace();
-        buf = eolConvert(text).getBytes();
-      }
+      byte[] buf = eolConvert(text).getBytes();
       if (buf != null) {
-        // XXX: multibyte encodings may cause issues
-        int imax = buf.length < bytes.length ? buf.length : bytes.length;
-        for (int i = 0; i < imax; i++)
-          bytes[i] = buf[i];
-        for (int i = imax; i < bytes.length; i++)
-          bytes[i] = 0;
-        if (terminateString)
-          bytes[bytes.length - 1] = 0;    // ensure null-termination
+        int imax = Math.min(buf.length, buffer.limit());
+        buffer.position(0);
+        buffer.put(buf, 0, imax);
+        while (buffer.remaining() > 0) {
+          buffer.put((byte)0);
+        }
+        if (terminateString) {
+          buffer.position(buffer.position() - 1);
+          buffer.put((byte)0);
+        }
       }
     }
-    return bytes;
+    return buffer;
   }
 
   public EOLType getEolType()
@@ -262,15 +251,15 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
     terminateString = terminated;
   }
 
-  public String getCharset()
+  public Charset getCharset()
   {
-    return charsetName;
+    return charset;
   }
 
   public boolean setCharset(String charsetName)
   {
     if (Charset.isSupported(charsetName)) {
-      this.charsetName = charsetName;
+      this.charset = Charset.forName(charsetName);
       return true;
     } else {
       return false;

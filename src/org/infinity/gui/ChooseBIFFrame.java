@@ -11,7 +11,6 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.util.Locale;
 
 import javax.swing.BorderFactory;
@@ -28,7 +27,7 @@ import org.infinity.NearInfinity;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.key.BIFFArchive;
+import org.infinity.resource.key.AbstractBIFFReader;
 import org.infinity.resource.key.BIFFEntry;
 
 final class ChooseBIFFrame extends ChildFrame implements ActionListener
@@ -164,8 +163,9 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bcancel)
+    if (event.getSource() == bcancel) {
       close();
+    }
     else if (event.getSource() == rbedit) {
       cbbifname.setEnabled(true);
       tfbifname.setEnabled(false);
@@ -178,8 +178,8 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
       tfbifname.setEnabled(true);
       rbbiff.setEnabled(true);
 
-      rbbif.setEnabled((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BIF));
-      rbbifc.setEnabled((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BIFC));
+      rbbif.setEnabled(Profile.getProperty(Profile.Key.IS_SUPPORTED_BIF));
+      rbbifc.setEnabled(Profile.getProperty(Profile.Key.IS_SUPPORTED_BIFC));
     }
     else if (event.getSource() == bok || event.getSource() == tfbifname) {
       if (rbcreate.isSelected()) {
@@ -191,28 +191,31 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
         }
         name = "data\\" + name;
         int form = BIFFEditor.BIFF;
-        if (rbbif.isSelected())
+        if (rbbif.isSelected()) {
           form = BIFFEditor.BIF;
-        else if (rbbifc.isSelected())
+        } else if (rbbifc.isSelected()) {
           form = BIFFEditor.BIFC;
-        if (!name.endsWith(".bif"))
+        }
+        if (!name.endsWith(".bif")) {
           name += ".bif";
-        for (int i = 0; i < cbbifname.getItemCount(); i++)
+        }
+        for (int i = 0; i < cbbifname.getItemCount(); i++) {
           if (name.equalsIgnoreCase(cbbifname.getItemAt(i).toString())) {
             JOptionPane.showMessageDialog(this, "This BIFF already exists!", "Error",
                                           JOptionPane.ERROR_MESSAGE);
             return;
           }
+        }
         close();
-        editor.makeEditor(new BIFFEntry(name), form);
+        editor.makeEditor(new BIFFEntry(Profile.getChitinKey(), name), form);
       }
       else {
         // Edit existing
         BIFFEntry entry = (BIFFEntry)cbbifname.getSelectedItem();
-        JOptionPane.showMessageDialog(this, "Make sure you have a backup of " + entry.getFile(),
+        JOptionPane.showMessageDialog(this, "Make sure you have a backup of " + entry.getPath(),
                                       "Warning", JOptionPane.WARNING_MESSAGE);
         try {
-          BIFFArchive file = ResourceFactory.getKeyfile().getBIFFFile(entry);
+          AbstractBIFFReader file = ResourceFactory.getKeyfile().getBIFFFile(entry);
           int form;
           switch (file.getType()) {
             case BIF:   form = BIFFEditor.BIF; break;
@@ -221,7 +224,7 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
           }
           close();
           editor.makeEditor(entry, form);
-        } catch (IOException e) {
+        } catch (Exception e) {
           e.printStackTrace();
         }
       }

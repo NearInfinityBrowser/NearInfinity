@@ -4,6 +4,8 @@
 
 package org.infinity.resource.dlg;
 
+import java.nio.ByteBuffer;
+
 public final class StateTrigger extends AbstractCode
 {
   // DLG/StateTrigger-specific field labels
@@ -16,7 +18,7 @@ public final class StateTrigger extends AbstractCode
     super(DLG_STATETRIGGER);
   }
 
-  StateTrigger(byte buffer[], int offset, int count)
+  StateTrigger(ByteBuffer buffer, int offset, int count)
   {
     super(buffer, offset, DLG_STATETRIGGER + " " + count);
     this.nr = count;

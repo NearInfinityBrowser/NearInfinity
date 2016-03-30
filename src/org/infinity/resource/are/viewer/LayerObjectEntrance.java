@@ -21,7 +21,6 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
 
 /**
  * Handles specific layer type: ARE/Entrance
- * @author argent77
  */
 public class LayerObjectEntrance extends LayerObject
 {

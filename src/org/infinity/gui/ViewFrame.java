@@ -61,7 +61,7 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer
       ResourceEntry entry = ((Resource)viewable).getResourceEntry();
       setTitle(entry.toString());
       setIconImage(entry.getIcon().getImage());
-      statusBar.setMessage(entry.getActualFile().toString());
+      statusBar.setMessage(entry.getActualPath().toString());
     }
     else {
       setIconImage(Keyfile.ICON_STRUCT.getImage());

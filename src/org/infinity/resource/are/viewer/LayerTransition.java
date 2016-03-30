@@ -12,7 +12,6 @@ import org.infinity.resource.are.AreResource;
 
 /**
  * Manages map transition layer objects.
- * @author argent77
  */
 public class LayerTransition extends BasicLayer<LayerObjectTransition>
 {

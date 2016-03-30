@@ -8,7 +8,6 @@ import java.awt.Image;
 
 /**
  * A structure to hold a unique identifier and the associated icon image.
- * @author argent77
  */
 public class ResourceIcon extends BasicResource
 {

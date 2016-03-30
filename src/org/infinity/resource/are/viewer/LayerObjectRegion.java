@@ -22,7 +22,6 @@ import org.infinity.resource.vertex.Vertex;
 
 /**
  * Handles specific layer type: ARE/Region
- * @author argent77
  */
 public class LayerObjectRegion extends LayerObject
 {

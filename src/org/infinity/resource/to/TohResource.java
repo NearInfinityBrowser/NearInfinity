@@ -4,6 +4,7 @@
 
 package org.infinity.resource.to;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +26,6 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.DynamicArray;
 
 public final class TohResource extends AbstractStruct implements Resource, HasViewerTabs
 {
@@ -84,10 +84,10 @@ public final class TohResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  public int read(byte[] buffer, int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     int startOffset = offset;
-    boolean isEnhanced = Profile.isEnhancedEdition() && (DynamicArray.getInt(buffer, offset + 4) == 2);
+    boolean isEnhanced = Profile.isEnhancedEdition() && (buffer.getInt(offset + 4) == 2);
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     addField(new DecNumber(buffer, offset + 4, 4, COMMON_VERSION));
     addField(new DecNumber(buffer, offset + 8, 4, TOH_LANGUAGE_TYPE));
@@ -110,7 +110,7 @@ public final class TohResource extends AbstractStruct implements Resource, HasVi
     for (int i = 0; i < scStrref.getValue(); i++) {
       if (isEnhanced) {
         // storing string offset for later
-        int ofs = soStrref.getValue() + DynamicArray.getInt(buffer, offset + 4);
+        int ofs = soStrref.getValue() + buffer.getInt(offset + 4);
         ofsList.add(ofs);
         // adding strref entries structure
         StrRefEntry2 entry = new StrRefEntry2(this, buffer, offset, i);

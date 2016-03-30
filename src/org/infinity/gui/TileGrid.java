@@ -23,7 +23,6 @@ import javax.swing.border.Border;
 /**
  * Implements a 2D grid of tiles (image blocks of fixed size) featuring resizable rows and columns
  * and several visual options.
- * @author argent77
  */
 public class TileGrid extends JComponent
 {

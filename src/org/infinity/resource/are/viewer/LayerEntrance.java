@@ -14,7 +14,6 @@ import org.infinity.resource.are.Entrance;
 
 /**
  * Manages entrance layer objects.
- * @author argent77
  */
 public class LayerEntrance extends BasicLayer<LayerObjectEntrance>
 {

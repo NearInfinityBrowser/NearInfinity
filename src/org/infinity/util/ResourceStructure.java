@@ -7,11 +7,10 @@ package org.infinity.util;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Vector;
 
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.io.StreamUtils;
 
 // Create a new IE game resource from scratch.
 public class ResourceStructure implements Cloneable
@@ -22,7 +21,7 @@ public class ResourceStructure implements Cloneable
   public static final int ID_STRREF  = 0x04;    // integer, fixed size=4 (alias for ID_DWORD)
   public static final int ID_RESREF  = 0x08;    // string, default size=8
   public static final int ID_STRING  = 0x10;    // string, variable size
-  public static final int ID_ARRAY   = 0x11;    // byte array, variable size
+  public static final int ID_BUFFER  = 0x11;    // ByteBuffer, variable size
 
   private Vector<Item> list;
   private int cursize;
@@ -78,7 +77,7 @@ public class ResourceStructure implements Cloneable
       case ID_WORD:   return insert(offset, type, type & 0xf, new Short((short)value));
       case ID_DWORD:  return insert(offset, type, type & 0xf, new Integer(value));
       case ID_STRING: return insert(offset, type, value, null);
-      case ID_ARRAY:  return insert(offset, type, value, null);
+      case ID_BUFFER: return insert(offset, type, value, null);
       default:        throw new IllegalArgumentException();
     }
   }
@@ -86,19 +85,22 @@ public class ResourceStructure implements Cloneable
   // Specialized method: for strings only, string length determines size for ID_STRING
   public int insert(int offset, int type, String value)
   {
-    if (type == ID_RESREF)
+    if (type == ID_RESREF) {
       return insert(offset, type, type & 0xf, value);
-    else if (type == ID_STRING && value != null)
-      return insert(offset, ID_ARRAY, value.getBytes().length, value.getBytes());
-    else
+    } else if (type == ID_STRING && value != null) {
+      ByteBuffer buffer = StreamUtils.getByteBuffer(value.getBytes());
+      return insert(offset, ID_BUFFER, buffer.limit(), buffer);
+    } else {
       throw new IllegalArgumentException();
+    }
   }
 
   // Catch-all method: returns size of the whole structure after insertion
   public int insert(int offset, int type, int size, Object value)
   {
-    if (type == ID_BYTE || type == ID_WORD || type == ID_DWORD)
+    if (type == ID_BYTE || type == ID_WORD || type == ID_DWORD) {
       size = type & 0xf;
+    }
     return insertItem(offset, type, size, value);
   }
 
@@ -131,27 +133,28 @@ public class ResourceStructure implements Cloneable
   }
 
   // returns whole structure as sequence of bytes
-  public byte[] getBytes()
+  public ByteBuffer getBuffer()
   {
-    if (list.size() == 0)
-      return null;
-    ByteBuffer buf = ByteBuffer.allocate(cursize);
-    for (final Item e : list)
+    if (list.size() == 0) {
+      return StreamUtils.getByteBuffer(0);
+    }
+    ByteBuffer buf = StreamUtils.getByteBuffer(cursize);
+    for (final Item e : list) {
       buf.put(e.toBuffer());
-    return buf.array();
+    }
+    buf.position(0);
+    return buf;
   }
 
   // returns item at specified offset as sequence of bytes
-  public byte[] getBytes(int offset)
+  public ByteBuffer getBuffer(int offset)
   {
     return getItem(offset).toBuffer();
   }
 
   public void write(OutputStream os) throws IOException
   {
-    byte[] data = getBytes();
-    if (data != null)
-      FileWriterNI.writeBytes(os, data);
+    StreamUtils.writeBytes(os, getBuffer());
   }
 
 
@@ -167,8 +170,10 @@ public class ResourceStructure implements Cloneable
       case ID_RESREF:
       case ID_STRING:
         return (value == null || (value instanceof String && ((String)value).getBytes().length <= size));
-      case ID_ARRAY:
-        return (value == null || ((byte[])value).length <= size);
+      case ID_BUFFER:
+        return ((value == null) ||
+                (value instanceof byte[]) ||
+                (value instanceof ByteBuffer && ((ByteBuffer)value).limit() <= size));
       default:
         return false;
     }
@@ -177,14 +182,16 @@ public class ResourceStructure implements Cloneable
   // returns the index of the item located at offset
   private int indexOf(int offset)
   {
-    if (offset < 0 || offset >= cursize)
+    if (offset < 0 || offset >= cursize) {
       throw new IndexOutOfBoundsException();
+    }
 
     int curofs = 0;
     for (int i = 0; i < list.size(); i++) {
       int size = list.get(i).getSize();
-      if (offset >= curofs && offset < curofs + size)
+      if (offset >= curofs && offset < curofs + size) {
         return i;
+      }
       curofs += size;
     }
 
@@ -194,12 +201,14 @@ public class ResourceStructure implements Cloneable
   private int insertItem(int offset, int type, int size, Object value)
   {
     if (offset >= 0 && offset <= cursize) {
-      if (!isValidItem(type, size, value))
+      if (!isValidItem(type, size, value)) {
         throw new IllegalArgumentException();
-      if (offset == cursize)
+      }
+      if (offset == cursize) {
         list.add(new Item(type, size, value));
-      else
+      } else {
         list.insertElementAt(new Item(type, size, value), indexOf(offset));
+      }
       cursize += size;
       return cursize;
     } else
@@ -309,23 +318,29 @@ public class ResourceStructure implements Cloneable
     {
       this.type = type;
       this.size = (type == ID_BYTE || type == ID_WORD || type == ID_DWORD) ? type & 0xf : size;
-      if (type == ID_RESREF || type == ID_STRING)
+      if (type == ID_RESREF || type == ID_STRING) {
         this.value = (value == null || !(value instanceof String)) ? "" : value;
-      else if (type == ID_ARRAY)
-        this.value = (value == null) ? new byte[]{0} : value;
-        else
-          this.value = value;
+      } else if (type == ID_BUFFER) {
+        if (value instanceof byte[]) {
+          this.value = StreamUtils.getByteBuffer((byte[])value);
+        } else if (value instanceof ByteBuffer) {
+          this.value = (ByteBuffer)value;
+        } else {
+          this.value = StreamUtils.getByteBuffer(size);
+        }
+      } else {
+        this.value = value;
+      }
     }
 
 
-    // returns the current item as a sequence of bytes
-    private byte[] toBuffer()
+    // returns the current item as a ByteBuffer object
+    private ByteBuffer toBuffer()
     {
       if (size <= 0)
         throw new IndexOutOfBoundsException();
 
-      ByteBuffer buf = ByteBuffer.allocate(size);
-      buf.order(ByteOrder.LITTLE_ENDIAN);
+      ByteBuffer buf = StreamUtils.getByteBuffer(size);
       switch (type) {
         case ID_BYTE:
           if (value != null)
@@ -341,19 +356,28 @@ public class ResourceStructure implements Cloneable
           break;
         case ID_RESREF:
         case ID_STRING:
-          if (value != null && value instanceof String) {
+          if (value instanceof String) {
             byte[] b = ((String)value).getBytes();
             buf.put(Arrays.copyOf(b, b.length <= size ? b.length : size));
           }
           break;
-        case ID_ARRAY:
-          if (value != null && value instanceof byte[]) {
-            byte[] b = (byte[])value;
-            buf.put(Arrays.copyOf(b, b.length <= size ? b.length : size));
+        case ID_BUFFER:
+          if (value instanceof ByteBuffer) {
+            ByteBuffer b = (ByteBuffer)value;
+            b.position(0);
+            int len = Math.min(b.limit(), size);
+            int limit = b.limit();
+            if (len < b.limit()) {
+              b.limit(len);
+            }
+            buf.put(b);
+            b.limit(limit);
+            b.position(0);
           }
           break;
       }
-      return buf.array();
+      buf.position(0);
+      return buf;
     }
   }
 }

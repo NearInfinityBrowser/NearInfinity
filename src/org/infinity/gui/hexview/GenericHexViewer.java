@@ -15,6 +15,7 @@ import org.infinity.NearInfinity;
 import org.infinity.gui.StatusBar;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Misc;
 
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.HexViewEvent;
@@ -44,7 +45,7 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
 
   public GenericHexViewer(ResourceEntry entry) throws Exception
   {
-    this(entry.getResourceData());
+    this(entry.getResourceBuffer().array());
   }
 
   public GenericHexViewer(byte[] data)
@@ -134,7 +135,7 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
   public String getText(Charset cs)
   {
     if (cs == null) {
-      cs = Charset.forName("iso-8859-1");
+      cs = Misc.CHARSET_DEFAULT;
     }
     byte[] data = getData();
     return new String(data, cs);
@@ -167,7 +168,7 @@ public class GenericHexViewer extends JPanel implements IHexViewListener, Closea
     long ofs = hexView.getCurrentOffset();
 
     if (cs == null) {
-      cs = Charset.forName("iso-8859-1");
+      cs = Misc.CHARSET_DEFAULT;
     }
 
     if (text != null) {

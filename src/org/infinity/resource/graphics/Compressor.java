@@ -5,7 +5,7 @@
 package org.infinity.resource.graphics;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
@@ -13,9 +13,38 @@ import java.util.zip.Inflater;
 
 import org.infinity.util.ArrayUtil;
 import org.infinity.util.DynamicArray;
+import org.infinity.util.io.StreamUtils;
 
 public final class Compressor
 {
+  /**
+   * Compresses the data of the specified ByteBuffer object and creates a simple header.
+   * @param buffer Contains the data to compress.
+   * @param signature Signature ID for the header.
+   * @param version Version ID for the header.
+   * @return The compressed data including header as {@link ByteBuffer}.
+   */
+  public static ByteBuffer compress(ByteBuffer buffer, String signature, String version)
+  {
+    ByteBuffer retVal = null;
+    if (buffer != null && buffer.remaining() > 0 &&
+        signature.length() == 4 && version.length() == 4) {
+      buffer.position(0);
+      byte[] data = new byte[buffer.remaining()];
+      buffer.put(data);
+      data = compress(data, 0, data.length, false);
+      if (data != null) {
+        retVal = StreamUtils.getByteBuffer(12 + data.length);
+        retVal.put(signature.getBytes());
+        retVal.put(version.getBytes());
+        retVal.putInt(buffer.limit());
+        retVal.put(data);
+        retVal.position(0);
+      }
+    }
+    return retVal;
+  }
+
   /**
    * Compresses the specified data and creates a simple header.
    * @param data The data to compress
@@ -25,8 +54,7 @@ public final class Compressor
    */
   public static byte[] compress(byte data[], String signature, String version)
   {
-    byte header[] = ArrayUtil.mergeArrays(signature.getBytes(Charset.forName("US-ASCII")),
-                                          version.getBytes(Charset.forName("US-ASCII")));
+    byte header[] = ArrayUtil.mergeArrays(signature.getBytes(), version.getBytes());
     header = ArrayUtil.mergeArrays(header, DynamicArray.convertInt(data.length));
     byte[] result = compress(data, 0, data.length, false);
     if (result != null) {
@@ -66,6 +94,22 @@ public final class Compressor
       return Arrays.copyOfRange(result, 0, clength + dstOfs);
     }
     return result;
+  }
+
+  public static ByteBuffer decompress(ByteBuffer buffer) throws IOException
+  {
+    return decompress(buffer, 8);
+  }
+
+  public static ByteBuffer decompress(ByteBuffer buffer, int offset) throws IOException
+  {
+    ByteBuffer retVal = null;
+    if (buffer != null && offset < buffer.limit()) {
+      byte[] src = StreamUtils.toArray(buffer);
+      byte[] dst = decompress(src, offset);
+      retVal = StreamUtils.getByteBuffer(dst);
+    }
+    return retVal;
   }
 
   public static byte[] decompress(byte buffer[]) throws IOException

@@ -20,6 +20,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -98,7 +99,7 @@ import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.Misc;
 import org.infinity.util.Pair;
 import org.infinity.util.SimpleListModel;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.StreamUtils;
 
 public class SearchResource extends ChildFrame
     implements ActionListener, PropertyChangeListener, Runnable
@@ -303,9 +304,9 @@ public class SearchResource extends ChildFrame
       setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
       GridBagConstraints c = new GridBagConstraints();
 
-      boolean effSupported = (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_EFF);
-      boolean proSupported = (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_PRO);
-      boolean vvcSupported = (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_VVC);
+      boolean effSupported = Profile.getProperty(Profile.Key.IS_SUPPORTED_EFF);
+      boolean proSupported = Profile.getProperty(Profile.Key.IS_SUPPORTED_PRO);
+      boolean vvcSupported = Profile.getProperty(Profile.Key.IS_SUPPORTED_VVC);
       int resTypeCount = 5;
       if (effSupported) resTypeCount++;
       if (proSupported) resTypeCount++;
@@ -1295,8 +1296,8 @@ public class SearchResource extends ChildFrame
       pScripts = new CreScriptsPanel(3);
       bpwScripts = new ButtonPopupWindow(setOptionsText, pScripts);
 
-      cbAnimation = new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0,0,0,0}, 0, 4,
-                                                                              "Animation", "ANIMATE.IDS")));
+      cbAnimation = new AutoComboBox<>(Utils.getIdsMapEntryList(
+          new IdsBitmap(StreamUtils.getByteBuffer(4), 0, 4, "Animation", "ANIMATE.IDS")));
       cbAnimation.setPreferredSize(Utils.getPrototypeSize(cbAnimation));
 
       pGameSpecific = new CreGameSpecificPanel();
@@ -4496,7 +4497,7 @@ public class SearchResource extends ChildFrame
 
     private void init()
     {
-      boolean hasKit = (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_KITS);
+      boolean hasKit = Profile.getProperty(Profile.Key.IS_SUPPORTED_KITS);
 
       // initializing components
       for (int i = 0; i < EntryCount; i++) {
@@ -4511,37 +4512,38 @@ public class SearchResource extends ChildFrame
 
       final int defaultSize = 160;
       cbType[TYPE_GENERAL] = Utils.defaultWidth(
-          new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "General", "GENERAL.IDS"))),
-          defaultSize);
+          new AutoComboBox<>(Utils.getIdsMapEntryList(
+              new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "General", "GENERAL.IDS"))), defaultSize);
       cbType[TYPE_CLASS] = Utils.defaultWidth(
-          new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Class", "CLASS.IDS"))),
-          defaultSize);
+          new AutoComboBox<>(Utils.getIdsMapEntryList(
+              new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Class", "CLASS.IDS"))), defaultSize);
       cbType[TYPE_SPECIFICS] = Utils.defaultWidth(
-          new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Specifics", "SPECIFIC.IDS"))),
-          defaultSize);
-      String idsFile = (String)Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT);
+          new AutoComboBox<>(Utils.getIdsMapEntryList(
+              new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Specifics", "SPECIFIC.IDS"))), defaultSize);
+      String idsFile = Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT);
       cbType[TYPE_ALIGNMENT] = Utils.defaultWidth(
-          new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Alignment", idsFile))),
-          defaultSize);
+          new AutoComboBox<>(Utils.getIdsMapEntryList(
+              new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Alignment", idsFile))), defaultSize);
       cbType[TYPE_GENDER] = Utils.defaultWidth(
-          new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Gender", "GENDER.IDS"))),
-          defaultSize);
+          new AutoComboBox<>(Utils.getIdsMapEntryList(
+              new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Gender", "GENDER.IDS"))), defaultSize);
       cbType[TYPE_RACE] = Utils.defaultWidth(
-          new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Race", "RACE.IDS"))),
-          defaultSize);
+          new AutoComboBox<>(Utils.getIdsMapEntryList(
+              new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Race", "RACE.IDS"))), defaultSize);
       cbType[TYPE_ALLEGIANCE] = Utils.defaultWidth(
-          new AutoComboBox<>(Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Allegiance", "EA.IDS"))),
-          defaultSize);
+          new AutoComboBox<>(Utils.getIdsMapEntryList(
+              new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Allegiance", "EA.IDS"))), defaultSize);
 
       StorageString[] kitList;
       if (Profile.getEngine() == Profile.Engine.IWD2) {
-        IdsMapEntry[] ids = Utils.getIdsMapEntryList(new IdsBitmap(new byte[]{0}, 0, 1, "Allegiance", "KIT.IDS"));
+        IdsMapEntry[] ids = Utils.getIdsMapEntryList(
+            new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Allegiance", "KIT.IDS"));
         kitList = new StorageString[ids.length];
         for (int i = 0; i < kitList.length; i++) {
           kitList[i] = new ObjectString(ids[i].getString(), new Integer((int)ids[i].getID()));
         }
       } else if (hasKit) {
-        KitIdsBitmap kit = new KitIdsBitmap(new byte[]{0,0,0,0}, 0, "");
+        KitIdsBitmap kit = new KitIdsBitmap(StreamUtils.getByteBuffer(4), 0, "");
         kitList = new StorageString[kit.getIdsMapEntryCount()];
         for (int i = 0; i < kitList.length; i++) {
           IdsMapEntry e = kit.getIdsMapEntryByIndex(i);
@@ -5100,7 +5102,7 @@ public class SearchResource extends ChildFrame
 
     private void init()
     {
-      boolean kitsSupported = (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_KITS);
+      boolean kitsSupported = Profile.getProperty(Profile.Key.IS_SUPPORTED_KITS);
 
       // initializing components
       for (int i = 0; i < EntryCount; i++) {
@@ -5541,7 +5543,7 @@ public class SearchResource extends ChildFrame
 
       StorageString[] pro;
       if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
-        ProRef proRef = new ProRef(new byte[]{0,0}, 0, "Projectile");
+        ProRef proRef = new ProRef(StreamUtils.getByteBuffer(2), 0, "Projectile");
         pro = new IndexedString[proRef.getResourceList().size()];
         for (int i = 0; i < pro.length; i++) {
           long id = proRef.getResourceList().get(i).getValue();
@@ -5852,7 +5854,7 @@ public class SearchResource extends ChildFrame
 
       StorageString[] pro;
       if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
-        ProRef proRef = new ProRef(new byte[]{0,0}, 0, "Projectile");
+        ProRef proRef = new ProRef(StreamUtils.getByteBuffer(2), 0, "Projectile");
         pro = new IndexedString[proRef.getResourceList().size()];
         for (int i = 0; i < pro.length; i++) {
           long id = proRef.getResourceList().get(i).getValue();
@@ -6411,7 +6413,8 @@ public class SearchResource extends ChildFrame
     public static Vector<NamedResourceEntry> createNamedResourceList(String[] extensions, boolean sort)
     {
       Vector<NamedResourceEntry> list = new Vector<NamedResourceEntry>();
-      NamedResourceEntry nre = new NamedResourceEntry(new FileResourceEntry(new FileNI("None")));
+      NamedResourceEntry nre =
+          new NamedResourceEntry(new FileResourceEntry(FileSystems.getDefault().getPath("None")));
       list.add(nre);
       if (extensions != null) {
         for (int i = 0; i < extensions.length; i++) {

@@ -14,7 +14,6 @@ import org.infinity.resource.wed.WedResource;
 
 /**
  * Manages wall polygon layer objects.
- * @author argent77
  */
 public class LayerWallPoly extends BasicLayer<LayerObjectWallPoly>
 {

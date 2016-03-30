@@ -4,6 +4,8 @@
 
 package org.infinity.resource.are;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
@@ -11,6 +13,7 @@ import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public final class Ambient extends AbstractStruct implements AddRemovable
 {
@@ -35,10 +38,10 @@ public final class Ambient extends AbstractStruct implements AddRemovable
 
   Ambient() throws Exception
   {
-    super(null, ARE_AMBIENT, new byte[212], 0);
+    super(null, ARE_AMBIENT, StreamUtils.getByteBuffer(212), 0);
   }
 
-  Ambient(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  Ambient(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, ARE_AMBIENT + " " + nr, buffer, offset);
   }
@@ -54,7 +57,7 @@ public final class Ambient extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 32, ARE_AMBIENT_NAME));
     addField(new DecNumber(buffer, offset + 32, 2, ARE_AMBIENT_ORIGIN_X));

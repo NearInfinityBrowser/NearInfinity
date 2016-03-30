@@ -18,12 +18,9 @@ import java.nio.charset.Charset;
  * <li>Reading/writing data in big endian or little endian byte order</li>
  * <li>Static methods for quick array/value conversions</li>
  * </ul>
- * @author argent77
  */
 public class DynamicArray
 {
-  private static final Charset DefaultCharset = Charset.forName("windows-1252");
-
   /**
    * Supported data type sizes.
    */
@@ -323,7 +320,7 @@ public class DynamicArray
   */
   public static String getString(byte[] buffer, int offset, int length)
   {
-    return getString(buffer, offset, length, DefaultCharset);
+    return getString(buffer, offset, length, Misc.CHARSET_DEFAULT);
   }
 
   /**
@@ -338,7 +335,9 @@ public class DynamicArray
   public static String getString(byte[] buffer, int offset, int length, Charset charset)
   {
     if (buffer != null && offset >= 0 && offset < buffer.length && length >= 0) {
-      if (charset == null) charset = DefaultCharset;
+      if (charset == null) {
+        charset = Misc.CHARSET_DEFAULT;
+      }
       if (offset + length > buffer.length)
         length = buffer.length - offset;
       for (int i = 0; i < length; i++) {
@@ -365,7 +364,7 @@ public class DynamicArray
    */
   public static boolean putString(byte[] buffer, int offset, int length, String s)
   {
-    return putString(buffer, offset, length, s, DefaultCharset);
+    return putString(buffer, offset, length, s, Misc.CHARSET_DEFAULT);
   }
 
   /**
@@ -380,7 +379,9 @@ public class DynamicArray
   public static boolean putString(byte[] buffer, int offset, int length, String s, Charset cs)
   {
     if (buffer != null && offset >= 0 && length >= 0 && offset+length <= buffer.length && s != null) {
-      if (cs == null) cs = DefaultCharset;
+      if (cs == null) {
+        cs = Misc.CHARSET_DEFAULT;
+      }
       byte[] buf = s.getBytes(cs);
       int len = Math.min(buffer.length - offset, buf.length);
       System.arraycopy(buf, 0, buffer, offset, len);

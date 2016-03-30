@@ -27,7 +27,6 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 /**
  * Color filter: create negatives of each color.
- * @author argent77
  */
 public class BamFilterColorInvert extends BamFilterBaseColor
     implements ChangeListener, ActionListener

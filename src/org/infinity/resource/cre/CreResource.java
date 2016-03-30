@@ -6,10 +6,12 @@ package org.infinity.resource.cre;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -63,12 +65,10 @@ import org.infinity.resource.are.AreResource;
 import org.infinity.resource.gam.GamResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
-import org.infinity.util.DynamicArray;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.LongIntegerHashMap;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileOutputStreamNI;
+import org.infinity.util.io.StreamUtils;
 
 public final class CreResource extends AbstractStruct
   implements Resource, HasAddRemovable, AddRemovable, HasViewerTabs, ItemListener
@@ -494,32 +494,32 @@ public final class CreResource extends AbstractStruct
                                    ResourceEntry entry)
   {
     try {
-      byte[] buffer = entry.getResourceData();
-      String signature = new String(buffer, 0, 4);
+      ByteBuffer buffer = entry.getResourceBuffer();
+      String signature = StreamUtils.readString(buffer, 0, 4);
       String scriptName = "";
       if (signature.equalsIgnoreCase("CRE ")) {
-        String version = new String(buffer, 4, 4);
-        if (version.equalsIgnoreCase("V1.0"))
-          scriptName = DynamicArray.getString(buffer, 640, 32);
-        else if (version.equalsIgnoreCase("V1.1") || version.equalsIgnoreCase("V1.2"))
-          scriptName = DynamicArray.getString(buffer, 804, 32);
-        else if (version.equalsIgnoreCase("V2.2"))
-          scriptName = DynamicArray.getString(buffer, 916, 32);
-        else if (version.equalsIgnoreCase("V9.0"))
-          scriptName = DynamicArray.getString(buffer, 744, 32);
-        if (scriptName.equals("") || scriptName.equalsIgnoreCase("None"))
+        String version = StreamUtils.readString(buffer, 4, 4);
+        if (version.equalsIgnoreCase("V1.0")) {
+          scriptName = StreamUtils.readString(buffer, 640, 32);
+        } else if (version.equalsIgnoreCase("V1.1") || version.equalsIgnoreCase("V1.2")) {
+          scriptName = StreamUtils.readString(buffer, 804, 32);
+        } else if (version.equalsIgnoreCase("V2.2")) {
+          scriptName = StreamUtils.readString(buffer, 916, 32);
+        } else if (version.equalsIgnoreCase("V9.0")) {
+          scriptName = StreamUtils.readString(buffer, 744, 32);
+        }
+        if (scriptName.equals("") || scriptName.equalsIgnoreCase("None")) {
           return;
         // Apparently script name is the only thing that matters
   //        scriptName = entry.toString().substring(0, entry.toString().length() - 4);
-        else {
+        } else {
           scriptName = scriptName.toLowerCase(Locale.ENGLISH).replaceAll(" ", "");
           if (scriptNames.containsKey(scriptName)) {
             synchronized (scriptNames) {
               Set<ResourceEntry> entries = scriptNames.get(scriptName);
               entries.add(entry);
             }
-          }
-          else {
+          } else {
             Set<ResourceEntry> entries = new HashSet<ResourceEntry>();
             entries.add(entry);
             synchronized (scriptNames) {
@@ -543,16 +543,17 @@ public final class CreResource extends AbstractStruct
 
   public static void convertCHRtoCRE(ResourceEntry resourceEntry)
   {
-    if (!resourceEntry.getExtension().equalsIgnoreCase("CHR"))
+    if (!resourceEntry.getExtension().equalsIgnoreCase("CHR")) {
       return;
+    }
     String resourcename = resourceEntry.toString();
     resourcename = resourcename.substring(0, resourcename.lastIndexOf(".")) + ".CRE";
-    JFileChooser chooser = new JFileChooser(Profile.getGameRoot());
+    JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
     chooser.setDialogTitle("Convert CHR to CRE");
-    chooser.setSelectedFile(new FileNI(resourcename));
+    chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), resourcename));
     if (chooser.showSaveDialog(NearInfinity.getInstance()) == JFileChooser.APPROVE_OPTION) {
-      File output = chooser.getSelectedFile();
-      if (output.exists()) {
+      Path output = chooser.getSelectedFile().toPath();
+      if (Files.exists(output)) {
         String options[] = {"Overwrite", "Cancel"};
         int result = JOptionPane.showOptionDialog(NearInfinity.getInstance(), output + " exists. Overwrite?",
                                                   "Save resource", JOptionPane.YES_NO_OPTION,
@@ -561,12 +562,13 @@ public final class CreResource extends AbstractStruct
       }
       try {
         CreResource crefile = (CreResource)ResourceFactory.getResource(resourceEntry);
-        while (!crefile.getField(0).toString().equals("CRE "))
+        while (!crefile.getField(0).toString().equals("CRE ")) {
           crefile.removeField(0);
+        }
         convertToSemiStandard(crefile);
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
-        crefile.write(bos);
-        bos.close();
+        try (OutputStream os = StreamUtils.getOutputStream(output, true)) {
+          crefile.write(os);
+        }
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File saved to " + output,
                                       "Conversion complete", JOptionPane.INFORMATION_MESSAGE);
       } catch (Exception e) {
@@ -657,23 +659,28 @@ public final class CreResource extends AbstractStruct
     return offsetStructs;
   }
 
-  public static String getSearchString(byte buffer[])
+  public static String getSearchString(ByteBuffer buffer)
   {
-    String signature = new String(buffer, 0, 4);
-    if (signature.equalsIgnoreCase("CHR "))
-      return new String(buffer, 8, 32);
-    String name = new StringRef(buffer, 8, "").toString().trim();
-    String shortname = new StringRef(buffer, 12, "").toString().trim();
-    if (name.equals(shortname))
-      return name;
-    return name + " - " + shortname;
+    String signature = StreamUtils.readString(buffer, 4);
+    ;
+    if (signature.equalsIgnoreCase("CHR ")) {
+      return StreamUtils.readString(buffer, 8, 32);
+    } else {
+      String name = new StringRef(buffer, 8, "").toString().trim();
+      String shortName = new StringRef(buffer, 12, "").toString().trim();
+      if (name.equals(shortName)) {
+        return name;
+      } else {
+        return name + " - " + shortName;
+      }
+    }
   }
 
   public CreResource(String name) throws Exception
   {
     super(null, name,
           StructureFactory.getInstance().createStructure(StructureFactory.ResType.RES_CRE,
-                                                         null, null).getBytes(),
+                                                         null, null).getBuffer(),
           0);
   }
 
@@ -683,10 +690,10 @@ public final class CreResource extends AbstractStruct
     isChr = entry.getExtension().equalsIgnoreCase("CHR");
   }
 
-  public CreResource(AbstractStruct superStruct, String name, byte data[], int startoffset) throws Exception
+  public CreResource(AbstractStruct superStruct, String name, ByteBuffer data, int startoffset) throws Exception
   {
     super(superStruct, name, data, startoffset);
-    isChr = new String(data, startoffset, 4).equalsIgnoreCase("CHR ");
+    isChr = StreamUtils.readString(data, startoffset, 4).equalsIgnoreCase("CHR ");
   }
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
@@ -870,7 +877,7 @@ public final class CreResource extends AbstractStruct
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     setExtraOffset(getExtraOffset() + offset);
     TextString signature = new TextString(buffer, offset, 4, COMMON_SIGNATURE);
@@ -973,7 +980,7 @@ public final class CreResource extends AbstractStruct
   // Icewind Dale 2
   ////////////////////////
 
-  private int readIWD2(byte buffer[], int offset) throws Exception
+  private int readIWD2(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new StringRef(buffer, offset, CRE_NAME));
     addField(new StringRef(buffer, offset + 4, CRE_TOOLTIP));
@@ -1386,7 +1393,7 @@ public final class CreResource extends AbstractStruct
   // Other IE games
   ////////////////////////
 
-  private int readOther(String version, byte buffer[], int offset) throws Exception
+  private int readOther(String version, ByteBuffer buffer, int offset) throws Exception
   {
     addField(new StringRef(buffer, offset, CRE_NAME));
     addField(new StringRef(buffer, offset + 4, CRE_TOOLTIP));

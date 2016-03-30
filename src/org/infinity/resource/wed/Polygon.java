@@ -4,6 +4,8 @@
 
 package org.infinity.resource.wed;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HexNumber;
@@ -30,7 +32,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
                                             "Hovering wall", "Cover animations", "Unknown",
                                             "Unknown", "Unknown", "Is door" };
 
-  public Polygon(AbstractStruct superStruct, String name, byte buffer[], int offset) throws Exception
+  public Polygon(AbstractStruct superStruct, String name, ByteBuffer buffer, int offset) throws Exception
   {
     super(superStruct, name, buffer, offset, 8);
   }
@@ -83,7 +85,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
     }
   }
 
-  public void readVertices(byte buffer[], int offset) throws Exception
+  public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
     DecNumber firstVertex = (DecNumber)getAttribute(WED_POLY_VERTEX_INDEX);
     DecNumber numVertices = (DecNumber)getAttribute(WED_POLY_NUM_VERTICES);
@@ -110,7 +112,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new DecNumber(buffer, offset, 4, WED_POLY_VERTEX_INDEX));
     addField(new SectionCount(buffer, offset + 4, 4, WED_POLY_NUM_VERTICES, Vertex.class));

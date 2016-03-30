@@ -15,7 +15,6 @@ import org.infinity.resource.wed.WedResource;
 
 /**
  * Manages door polygon layer objects.
- * @author argent77
  */
 public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly>
 {

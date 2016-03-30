@@ -14,7 +14,6 @@ import org.infinity.resource.are.Door;
 
 /**
  * Manages door layer objects.
- * @author argent77
  */
 public class LayerDoor extends BasicLayer<LayerObjectDoor>
 {

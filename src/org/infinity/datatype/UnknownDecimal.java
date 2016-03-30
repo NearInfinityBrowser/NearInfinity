@@ -4,17 +4,19 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 public final class UnknownDecimal extends Unknown
 {
-  public UnknownDecimal(byte[] buffer, int offset, int length, String name)
+  public UnknownDecimal(ByteBuffer buffer, int offset, int length, String name)
   {
     this(null, buffer, offset, length, name);
   }
 
-  public UnknownDecimal(StructEntry parent, byte[] buffer, int offset, int length, String name)
+  public UnknownDecimal(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
   {
     super(parent, buffer, offset, length, name);
   }
@@ -24,22 +26,25 @@ public final class UnknownDecimal extends Unknown
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
-    String value = textArea.getText().trim().replace('\n', ' ').replace('\r', ' ') + ' ';
-    byte newdata[] = new byte[data.length];
+    String value = textArea.getText().trim();
+    value = value.replaceAll("\r?\n", " ") + ' ';
+    byte newdata[] = new byte[buffer.limit()];
     int counter = 0;
     try {
       int index = value.indexOf((int)' ');
       while (counter < newdata.length && index != -1) {
         int i = Integer.parseInt(value.substring(0, index));
-        if (i > 255)
+        if (i > 255) {
           return false;
+        }
         newdata[counter] = (byte)i;
         counter++;
         value = value.substring(index + 1).trim() + ' ';
         index = value.indexOf((int)' ');
       }
       if (counter == newdata.length) {
-        data = newdata;
+        buffer.position(0);
+        buffer.get(newdata);
         return true;
       }
     } catch (NumberFormatException e) {
@@ -53,10 +58,12 @@ public final class UnknownDecimal extends Unknown
   @Override
   public String toString()
   {
-    if (data != null && data.length > 0) {
-      StringBuffer sb = new StringBuffer(4 * data.length + 1);
-      for (final byte d : data) {
-        String text = Integer.toString((int)d & 0xff);
+    if (buffer.limit() > 0) {
+      StringBuffer sb = new StringBuffer(4 * buffer.limit() + 1);
+      buffer.position(0);
+      while (buffer.remaining() > 0) {
+        int v = buffer.get() & 0xff;
+        String text = Integer.toString(v);
         for (int j = 0, count = 3 - text.length(); j < count; j++) {
           sb.append('0');
         }

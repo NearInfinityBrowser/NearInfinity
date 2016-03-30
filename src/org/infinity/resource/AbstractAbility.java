@@ -6,6 +6,7 @@ package org.infinity.resource;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.SectionCount;
@@ -329,7 +330,7 @@ public abstract class AbstractAbility extends AbstractStruct
     "Web (one person)", "Holy word (not party)", "Unholy word (not party)",
     "Power word, sleep", "MDK bullet", "Storm of vengeance", "Comet"};
 
-  protected AbstractAbility(AbstractStruct superStruct, String name, byte buffer[], int offset)
+  protected AbstractAbility(AbstractStruct superStruct, String name, ByteBuffer buffer, int offset)
           throws Exception
   {
     super(superStruct, name, buffer, offset);
@@ -371,7 +372,7 @@ public abstract class AbstractAbility extends AbstractStruct
     ((DecNumber)getAttribute(Ability.ABILITY_FIRST_EFFECT_INDEX)).incValue(value);
   }
 
-  public int readEffects(byte buffer[], int off) throws Exception
+  public int readEffects(ByteBuffer buffer, int off) throws Exception
   {
     int effect_count = ((SectionCount)getAttribute(Ability.ABILITY_NUM_EFFECTS)).getValue();
     for (int i = 0; i < effect_count; i++) {

@@ -10,22 +10,22 @@ import java.awt.Image;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.DynamicArray;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 
 /**
  * Handles BAM v2 resources.
- * @author argent77
  */
 public class BamV2Decoder extends BamDecoder
 {
@@ -34,9 +34,9 @@ public class BamV2Decoder extends BamDecoder
   private final BamV2FrameEntry defaultFrameInfo = new BamV2FrameEntry(null, 0, 0);
 
   private BamV2Control defaultControl;
-  private byte[] bamData;               // contains the raw (uncompressed) BAM v2 data
-  private File bamPath;                 // base path of the BAM resource (or null if BAM is biffed)
-  private int numDataBlocks;            // number of PVRZ data blocks
+  private ByteBuffer bamBuffer;           // contains the raw (uncompressed) BAM v2 data
+  private Path bamPath;                   // base path of the BAM resource (or null if BAM is biffed)
+  private int numDataBlocks;              // number of PVRZ data blocks
 
   public BamV2Decoder(ResourceEntry bamEntry)
   {
@@ -64,7 +64,7 @@ public class BamV2Decoder extends BamDecoder
   public void close()
   {
     PvrDecoder.flushCache();
-    bamData = null;
+    bamBuffer = null;
     listFrames.clear();
     listCycles.clear();
   }
@@ -72,7 +72,7 @@ public class BamV2Decoder extends BamDecoder
   @Override
   public boolean isOpen()
   {
-    return (bamData != null);
+    return (bamBuffer != null);
   }
 
   @Override
@@ -82,9 +82,9 @@ public class BamV2Decoder extends BamDecoder
   }
 
   @Override
-  public byte[] getResourceData()
+  public ByteBuffer getResourceBuffer()
   {
-    return bamData;
+    return bamBuffer;
   }
 
   @Override
@@ -154,51 +154,50 @@ public class BamV2Decoder extends BamDecoder
     ResourceEntry entry = getResourceEntry();
     if (entry != null) {
       try {
-        File bamFile = entry.getActualFile();
+        Path bamFile = entry.getActualPath();
         if (bamFile != null) {
-          bamPath = bamFile.getParentFile();
+          bamPath = bamFile.getParent();
           // Skip path if it denotes an override folder of the game
-          @SuppressWarnings("unchecked")
-          List<File> list = (List<File>)Profile.getProperty(Profile.Key.GET_GAME_OVERRIDE_FOLDERS);
+          List<Path> list = Profile.getOverrideFolders(true);
           if (list != null) {
-            for (Iterator<File> iter = list.iterator(); iter.hasNext();) {
-              if (bamPath.equals(iter.next())) {
+            for (final Path path: list) {
+              if (bamPath.equals(path)) {
                 bamPath = null;
                 break;
               }
             }
           }
         }
-        bamData = entry.getResourceData();
-        String signature = DynamicArray.getString(bamData, 0x00, 4);
-        String version = DynamicArray.getString(bamData, 0x04, 4);
+        bamBuffer = entry.getResourceBuffer();
+        String signature = StreamUtils.readString(bamBuffer, 0, 4);
+        String version = StreamUtils.readString(bamBuffer, 4, 4);
         if (!"BAM ".equals(signature) || !"V2  ".equals(version)) {
           throw new Exception("Invalid BAM type");
         }
         setType(Type.BAMV2);
 
         // evaluating header data
-        int framesCount = DynamicArray.getInt(bamData, 0x08);
+        int framesCount = bamBuffer.getInt(8);
         if (framesCount <= 0) {
           throw new Exception("Invalid number of frames");
         }
-        int cyclesCount = DynamicArray.getInt(bamData, 0x0c);
+        int cyclesCount = bamBuffer.getInt(0x0c);
         if (cyclesCount <= 0) {
           throw new Exception("Invalid number of cycles");
         }
-        numDataBlocks = DynamicArray.getInt(bamData, 0x10);
+        numDataBlocks = bamBuffer.getInt(0x10);
         if (numDataBlocks <= 0) {
           throw new Exception("Invalid number of data blocks");
         }
-        int ofsFrames = DynamicArray.getInt(bamData, 0x14);
+        int ofsFrames = bamBuffer.getInt(0x14);
         if (ofsFrames < 0x20) {
           throw new Exception("Invalid frames offset");
         }
-        int ofsCycles = DynamicArray.getInt(bamData, 0x18);
+        int ofsCycles = bamBuffer.getInt(0x18);
         if (ofsCycles < 0x20) {
           throw new Exception("Invalid cycles offset");
         }
-        int ofsBlocks = DynamicArray.getInt(bamData, 0x1c);
+        int ofsBlocks = bamBuffer.getInt(0x1c);
         if (ofsBlocks < 0x20) {
           throw new Exception("Invalid data blocks offset");
         }
@@ -206,15 +205,15 @@ public class BamV2Decoder extends BamDecoder
         int ofs = ofsFrames;
         // processing frame entries
         for (int i = 0; i < framesCount; i++) {
-          listFrames.add(new BamV2FrameEntry(bamData, ofs, ofsBlocks));
+          listFrames.add(new BamV2FrameEntry(bamBuffer, ofs, ofsBlocks));
           ofs += 0x0c;
         }
 
         // processing cycle entries
         ofs = ofsCycles;
         for (int i = 0; i < cyclesCount; i++) {
-          int cnt = DynamicArray.getUnsignedShort(bamData, ofs);
-          int idx = DynamicArray.getUnsignedShort(bamData, ofs+2);
+          int cnt = bamBuffer.getShort(ofs) & 0xffff;
+          int idx = bamBuffer.getShort(ofs+2) & 0xffff;
           listCycles.add(new CycleEntry(idx, cnt));
           ofs += 4;
         }
@@ -238,8 +237,8 @@ public class BamV2Decoder extends BamDecoder
       ResourceEntry entry = null;
       if (bamPath != null) {
         // preferring PVRZ files from the BAM's base path
-        File pvrzFile = new FileNI(bamPath, name);
-        if (pvrzFile.isFile()) {
+        Path pvrzFile = FileManager.resolve(bamPath.resolve(name));
+        if (Files.isRegularFile(pvrzFile)) {
           entry = new FileResourceEntry(pvrzFile);
         }
       }
@@ -327,15 +326,15 @@ public class BamV2Decoder extends BamDecoder
     private int width, height, centerX, centerY;
     private BufferedImage frame;
 
-    private BamV2FrameEntry(byte[] buffer, int ofsFrame, int ofsBlocks)
+    private BamV2FrameEntry(ByteBuffer buffer, int ofsFrame, int ofsBlocks)
     {
-      if (buffer != null && ofsFrame < buffer.length && ofsBlocks < buffer.length) {
-        width = DynamicArray.getUnsignedShort(buffer, ofsFrame);
-        height = DynamicArray.getUnsignedShort(buffer, ofsFrame+2);
-        centerX = DynamicArray.getShort(buffer, ofsFrame+4);
-        centerY = DynamicArray.getShort(buffer, ofsFrame+6);
-        int blockStart = DynamicArray.getUnsignedShort(buffer, ofsFrame+8);
-        int blockCount = DynamicArray.getUnsignedShort(buffer, ofsFrame+10);
+      if (buffer != null && ofsFrame < buffer.limit() && ofsBlocks < buffer.limit()) {
+        width = buffer.getShort(ofsFrame) & 0xffff;
+        height = buffer.getShort(ofsFrame+2) & 0xffff;
+        centerX = buffer.getShort(ofsFrame+4);
+        centerY = buffer.getShort(ofsFrame+6);
+        int blockStart = buffer.getShort(ofsFrame+8) & 0xffff;
+        int blockCount = buffer.getShort(ofsFrame+10) & 0xffff;
         decodeImage(buffer, ofsBlocks, blockStart, blockCount);
       } else {
         width = height = centerX = centerY = 0;
@@ -354,7 +353,7 @@ public class BamV2Decoder extends BamDecoder
 
     public Image getImage() { return frame; }
 
-    private void decodeImage(byte[] buffer, int ofsBlocks, int start, int count)
+    private void decodeImage(ByteBuffer buffer, int ofsBlocks, int start, int count)
     {
       frame = null;
       if (width > 0 && height > 0) {
@@ -362,13 +361,13 @@ public class BamV2Decoder extends BamDecoder
 
         int ofs = ofsBlocks + start*dataBlockSize;
         for (int i = 0; i < count; i++) {
-          int page = DynamicArray.getInt(buffer, ofs);
-          int srcX = DynamicArray.getInt(buffer, ofs+0x04);
-          int srcY = DynamicArray.getInt(buffer, ofs+0x08);
-          int w = DynamicArray.getInt(buffer, ofs+0x0c);
-          int h = DynamicArray.getInt(buffer, ofs+0x10);
-          int dstX = DynamicArray.getInt(buffer, ofs+0x14);
-          int dstY = DynamicArray.getInt(buffer, ofs+0x18);
+          int page = buffer.getInt(ofs);
+          int srcX = buffer.getInt(ofs+0x04);
+          int srcY = buffer.getInt(ofs+0x08);
+          int w = buffer.getInt(ofs+0x0c);
+          int h = buffer.getInt(ofs+0x10);
+          int dstX = buffer.getInt(ofs+0x14);
+          int dstY = buffer.getInt(ofs+0x18);
           ofs += dataBlockSize;
 
           PvrDecoder decoder = getPVR(page);

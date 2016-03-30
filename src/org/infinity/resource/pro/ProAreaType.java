@@ -4,6 +4,8 @@
 
 package org.infinity.resource.pro;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.ColorValue;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
@@ -17,6 +19,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
 import org.infinity.util.LongIntegerHashMap;
+import org.infinity.util.io.StreamUtils;
 
 public final class ProAreaType extends AbstractStruct implements AddRemovable
 {
@@ -85,11 +88,11 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
 
   public ProAreaType() throws Exception
   {
-    super(null, PRO_AREA, new byte[256], 0);
+    super(null, PRO_AREA, StreamUtils.getByteBuffer(256), 0);
     setOffset(512);
   }
 
-  public ProAreaType(AbstractStruct superStruct, byte[] buffer, int offset) throws Exception
+  public ProAreaType(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception
   {
     super(superStruct, PRO_AREA, buffer, offset);
   }
@@ -105,7 +108,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     final String[] s_types = Profile.isEnhancedEdition() ? new String[]{"VVC", "BAM"}
                                                          : new String[]{"VEF", "VVC", "BAM"};

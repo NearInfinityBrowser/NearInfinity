@@ -4,6 +4,8 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.StructEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
@@ -12,22 +14,22 @@ import org.infinity.util.LongIntegerHashMap;
 
 public class IdsBitmap extends HashBitmap
 {
-  public IdsBitmap(byte[] buffer, int offset, int length, String name, String resource)
+  public IdsBitmap(ByteBuffer buffer, int offset, int length, String name, String resource)
   {
     this(null, buffer, offset, length, name, resource, 0);
   }
 
-  public IdsBitmap(StructEntry parent, byte[] buffer, int offset, int length, String name, String resource)
+  public IdsBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, String resource)
   {
     this(parent, buffer, offset, length, name, resource, 0);
   }
 
-  public IdsBitmap(byte[] buffer, int offset, int length, String name, String resource, int idsStart)
+  public IdsBitmap(ByteBuffer buffer, int offset, int length, String name, String resource, int idsStart)
   {
     this(null, buffer, offset, length, name, resource, idsStart);
   }
 
-  public IdsBitmap(StructEntry parent, byte[] buffer, int offset, int length, String name, String resource,
+  public IdsBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, String resource,
                    int idsStart)
   {
     super(parent, buffer, offset, length, name, createResourceList(resource, idsStart), true);

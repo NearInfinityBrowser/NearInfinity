@@ -12,9 +12,8 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -25,14 +24,13 @@ import java.util.zip.InflaterInputStream;
 
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DynamicArray;
-import org.infinity.util.io.FileInputStreamNI;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * Decodes a PVR(Z) file.
  * Note: Supports only the minimal set of PVR-specific features required to decode the BGEE's
  * PVRZ resources (this includes only a selected number of supported pixel formats).
- * @author argent77
  */
 public class PvrDecoder
 {
@@ -117,7 +115,7 @@ public class PvrDecoder
       if (decoder != null) {
         return decoder;
       } else {
-        return createPvrDecoder(key, new BufferedInputStream(new FileInputStreamNI(new FileNI(fileName))));
+        return createPvrDecoder(key, StreamUtils.getInputStream(FileManager.resolve(fileName)));
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -130,15 +128,15 @@ public class PvrDecoder
    * @param file The file object of the pvr(z) resource to load.
    * @return the PvrDecoder object containing the decoded PVR resource, or {@code null} on error.
    */
-  public static PvrDecoder loadPvr(File file)
+  public static PvrDecoder loadPvr(Path file)
   {
     try {
-      String key = file.getName().toUpperCase(Locale.ENGLISH);
+      String key = file.getFileName().toString().toUpperCase(Locale.ENGLISH);
       PvrDecoder decoder = getCachedPvrDecoder(key);
       if (decoder != null) {
         return decoder;
       } else {
-        return createPvrDecoder(key, new BufferedInputStream(new FileInputStreamNI(file)));
+        return createPvrDecoder(key, StreamUtils.getInputStream(file));
       }
     } catch (Exception e) {
       e.printStackTrace();

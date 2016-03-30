@@ -4,7 +4,8 @@
 
 package org.infinity.datatype;
 
-import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -18,7 +19,7 @@ import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.Pair;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.FileManager;
 
 /** Specialized ResourceBitmap type for parsing ARE song reference entries. */
 public class Song2daBitmap extends ResourceBitmap
@@ -31,22 +32,22 @@ public class Song2daBitmap extends ResourceBitmap
   // Textual representation of the song reference field data
   private static String FormatString = FMT_REF_NAME_VALUE;
 
-  public Song2daBitmap(byte buffer[], int offset, int length)
+  public Song2daBitmap(ByteBuffer buffer, int offset, int length)
   {
     this(null, buffer, offset, length);
   }
 
-  public Song2daBitmap(StructEntry parent, byte buffer[], int offset, int length)
+  public Song2daBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length)
   {
     this(parent, buffer, offset, length, "Song");
   }
 
-  public Song2daBitmap(byte buffer[], int offset, int length, String name)
+  public Song2daBitmap(ByteBuffer buffer, int offset, int length, String name)
   {
     this(null, buffer, offset, length, name);
   }
 
-  public Song2daBitmap(StructEntry parent, byte buffer[], int offset, int length, String name)
+  public Song2daBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
   {
     super(parent, buffer, offset, length, name, createSongList(), "Unknown", FormatString);
   }
@@ -55,8 +56,8 @@ public class Song2daBitmap extends ResourceBitmap
   {
     if (SongList.isEmpty()) {
       // search "music" subfolder as well
-      List<File> searchDirs = new ArrayList<File>();
-      searchDirs.add(new FileNI((File)Profile.getProperty(Profile.Key.GET_GAME_ROOT_FOLDER), "Music"));
+      List<Path> searchDirs = new ArrayList<>();
+      searchDirs.add(FileManager.query(Profile.getGameRoot(), "Music"));
 
       if (ResourceFactory.resourceExists("SONGLIST.2DA")) {
         TableName = "SONGLIST.2DA";
@@ -84,7 +85,7 @@ public class Song2daBitmap extends ResourceBitmap
   }
 
   // Create song references for BG2 and Enhanced Edition games
-  private static List<RefEntry> createSongList_SONGLIST(List<File> searchDirs)
+  private static List<RefEntry> createSongList_SONGLIST(List<Path> searchDirs)
   {
     if (SongList.isEmpty()) {
       Table2da table = Table2daCache.get(TableName);
@@ -106,7 +107,7 @@ public class Song2daBitmap extends ResourceBitmap
   }
 
   // Create song references for IWD and IWD2
-  private static List<RefEntry> createSongList_MUSIC(List<File> searchDirs)
+  private static List<RefEntry> createSongList_MUSIC(List<Path> searchDirs)
   {
     if (SongList.isEmpty()) {
       LongIntegerHashMap<IdsMapEntry> map = IdsMapCache.get(TableName).getMap();
@@ -129,7 +130,7 @@ public class Song2daBitmap extends ResourceBitmap
   }
 
   // Create song references for PST
-  private static List<RefEntry> createSongList_PST(List<File> searchDirs)
+  private static List<RefEntry> createSongList_PST(List<Path> searchDirs)
   {
     // PST used static associations of SONGS.IDS with MUS resources (source: songlist.txt in game's music folder)
     final LongIntegerHashMap<Pair<String>> map = new LongIntegerHashMap<Pair<String>>();
@@ -191,7 +192,7 @@ public class Song2daBitmap extends ResourceBitmap
   }
 
   // Create song references for BG1
-  private static List<RefEntry> createSongList_BG1(List<File> searchDirs)
+  private static List<RefEntry> createSongList_BG1(List<Path> searchDirs)
   {
     // BG1 used static list of songs (source: GemRB's unhardcoded music.2da)
     final LongIntegerHashMap<String> map = new LongIntegerHashMap<String>();

@@ -13,8 +13,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -35,8 +35,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.DynamicArray;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.io.StreamUtils;
 
 public class ResourceRef extends Datatype
     implements Editable, IsTextual, IsReference, ActionListener, ListSelectionListener
@@ -45,57 +44,59 @@ public class ResourceRef extends Datatype
 
   private static final String NONE = "None";
   private final String[] type;
+  private final ByteBuffer buffer;
   private String curtype;
   private String resname;
   private JButton bView;
   private TextListPanel list;
-  private byte[] buffer;
 
-  public ResourceRef(byte[] h_buffer, int offset, String name, String type)
+  public ResourceRef(ByteBuffer h_buffer, int offset, String name, String type)
   {
     this(null, h_buffer, offset, 8, name, type);
   }
 
-  public ResourceRef(StructEntry parent, byte[] h_buffer, int offset, String name, String type)
+  public ResourceRef(StructEntry parent, ByteBuffer h_buffer, int offset, String name, String type)
   {
     this(parent, h_buffer, offset, 8, name, type);
   }
 
-  public ResourceRef(byte[] h_buffer, int offset, int length, String name, String type)
+  public ResourceRef(ByteBuffer h_buffer, int offset, int length, String name, String type)
   {
     this(null, h_buffer, offset, length, name, new String[]{type});
   }
 
-  public ResourceRef(StructEntry parent, byte[] h_buffer, int offset, int length, String name,
+  public ResourceRef(StructEntry parent, ByteBuffer h_buffer, int offset, int length, String name,
                      String type)
   {
     this(parent, h_buffer, offset, length, name, new String[]{type});
   }
 
-  public ResourceRef(byte[] h_buffer, int offset, String name, String[] type)
+  public ResourceRef(ByteBuffer h_buffer, int offset, String name, String[] type)
   {
     this(null, h_buffer, offset, 8, name, type);
   }
 
-  public ResourceRef(StructEntry parent, byte[] h_buffer, int offset, String name, String[] type)
+  public ResourceRef(StructEntry parent, ByteBuffer h_buffer, int offset, String name, String[] type)
   {
     this(parent, h_buffer, offset, 8, name, type);
   }
 
-  public ResourceRef(byte[] h_buffer, int offset, int length, String name, String[] type)
+  public ResourceRef(ByteBuffer h_buffer, int offset, int length, String name, String[] type)
   {
     this(null, h_buffer, offset, length, name, type);
   }
 
-  public ResourceRef(StructEntry parent, byte[] h_buffer, int offset, int length, String name,
+  public ResourceRef(StructEntry parent, ByteBuffer h_buffer, int offset, int length, String name,
                      String[] type)
   {
     super(parent, offset, length, name);
-    if (type == null || type.length == 0)
+    this.buffer = StreamUtils.getByteBuffer(length);
+    if (type == null || type.length == 0) {
       this.type = new String[]{""};
-    else
+    } else {
       this.type = type;
-    curtype = this.type[0];
+    }
+    this.curtype = this.type[0];
     read(h_buffer, offset);
   }
 
@@ -281,14 +282,16 @@ public class ResourceRef extends Datatype
   public void write(OutputStream os) throws IOException
   {
     if (resname.equalsIgnoreCase(NONE)) {
-      String s = DynamicArray.getString(buffer, 0, buffer.length);
+      buffer.position(0);
+      String s = StreamUtils.readString(buffer, buffer.limit());
+      buffer.position(0);
       if (s.equalsIgnoreCase(NONE)) {
-        FileWriterNI.writeBytes(os, buffer);
+        StreamUtils.writeBytes(os, buffer);
       } else {
-        FileWriterNI.writeBytes(os, (byte)0, buffer.length);
+        StreamUtils.writeBytes(os, (byte)0, buffer.limit());
       }
     } else {
-      FileWriterNI.writeString(os, resname, getSize());
+      StreamUtils.writeString(os, resname, getSize());
     }
   }
 
@@ -297,28 +300,18 @@ public class ResourceRef extends Datatype
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
-    this.buffer = Arrays.copyOfRange(buffer, offset, offset + getSize());
-    String s = new String(this.buffer);
-    if (this.buffer[0] == 0x00 || s.equalsIgnoreCase(NONE)) {
+    StreamUtils.copyBytes(buffer, offset, this.buffer, 0, getSize());
+    this.buffer.position(0);
+    String s = StreamUtils.readString(this.buffer, this.buffer.limit());
+    if (s.isEmpty() || s.equalsIgnoreCase(NONE)) {
       resname = NONE;
     } else {
-      int max = this.buffer.length;
-      for (int i = 0; i < this.buffer.length; i++) {
-        if (this.buffer[i] == 0x00) {
-          max = i;
-          break;
-        }
-      }
-      if (max < this.buffer.length) {
-        resname = new String(this.buffer, 0, max).toUpperCase(Locale.ENGLISH);
-      } else {
-        resname = new String(this.buffer).toUpperCase(Locale.ENGLISH);
-      }
-
-      if (resname.equalsIgnoreCase(NONE))
+      resname = s.toUpperCase(Locale.ENGLISH);
+      if (resname.equalsIgnoreCase(NONE)) {
         resname = NONE;
+      }
     }
 
     // determine the correct file extension

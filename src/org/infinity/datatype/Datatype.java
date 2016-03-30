@@ -5,15 +5,16 @@
 package org.infinity.datatype;
 
 import java.awt.Dimension;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
 import org.infinity.resource.StructEntry;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.io.ByteBufferOutputStream;
+import org.infinity.util.io.StreamUtils;
 
 public abstract class Datatype implements StructEntry
 {
@@ -120,15 +121,16 @@ public abstract class Datatype implements StructEntry
   }
 
   @Override
-  public byte[] getDataBuffer()
+  public ByteBuffer getDataBuffer()
   {
-    ByteArrayOutputStream os = new ByteArrayOutputStream(getSize());
-    try {
-      write(os);
+    ByteBuffer bb = StreamUtils.getByteBuffer(getSize());
+    try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(bb)) {
+      write(bbos);
     } catch (IOException e) {
       e.printStackTrace();
     }
-    return os.toByteArray();
+    bb.position(0);
+    return bb;
   }
 
 // --------------------- End Interface StructEntry ---------------------
@@ -196,30 +198,32 @@ public abstract class Datatype implements StructEntry
 
   void writeInt(OutputStream os, int value) throws IOException
   {
-    if (getSize() == 4)
-      FileWriterNI.writeInt(os, value);
-    else if (getSize() == 3)
-      FileWriterNI.writeInt24(os, value);
-    else if (getSize() == 2)
-      FileWriterNI.writeShort(os, (short)value);
-    else if (getSize() == 1)
-      FileWriterNI.writeByte(os, (byte)value);
-    else
+    if (getSize() == 4) {
+      StreamUtils.writeInt(os, value);
+    } else if (getSize() == 3) {
+      StreamUtils.writeInt24(os, value);
+    } else if (getSize() == 2) {
+      StreamUtils.writeShort(os, (short)value);
+    } else if (getSize() == 1) {
+      StreamUtils.writeByte(os, (byte)value);
+    } else {
       throw new IllegalArgumentException();
+    }
   }
 
   void writeLong(OutputStream os, long value) throws IOException
   {
-    if (getSize() == 4)
-      FileWriterNI.writeInt(os, (int)value);
-    else if (getSize() == 3)
-      FileWriterNI.writeInt24(os, (int)value);
-    else if (getSize() == 2)
-      FileWriterNI.writeShort(os, (short)value);
-    else if (getSize() == 1)
-      FileWriterNI.writeByte(os, (byte)value);
-    else
+    if (getSize() == 4) {
+      StreamUtils.writeInt(os, (int)value);
+    } else if (getSize() == 3) {
+      StreamUtils.writeInt24(os, (int)value);
+    } else if (getSize() == 2) {
+      StreamUtils.writeShort(os, (short)value);
+    } else if (getSize() == 1) {
+      StreamUtils.writeByte(os, (byte)value);
+    } else {
       throw new IllegalArgumentException();
+    }
   }
 }
 

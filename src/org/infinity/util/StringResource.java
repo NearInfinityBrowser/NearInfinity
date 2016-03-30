@@ -4,30 +4,30 @@
 
 package org.infinity.util;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.HashMap;
 
 import javax.swing.JOptionPane;
 
 import org.infinity.resource.Profile;
-import org.infinity.util.io.FileReaderNI;
-import org.infinity.util.io.RandomAccessFileNI;
+import org.infinity.util.io.StreamUtils;
 
 public final class StringResource
 {
   private static final HashMap<Integer, StringEntry> cachedEntry = new HashMap<Integer, StringResource.StringEntry>(1000);
-  private static final Charset cp1252Charset = Charset.forName("windows-1252");
-  private static final Charset utf8Charset = Charset.forName("utf8");
 
-  private static File ffile;
-  private static RandomAccessFile file;
+  private static Path dlgPath;
+  private static ByteBuffer buffer;
   private static String version;
   private static int maxnr, startindex;
-  private static Charset charset = cp1252Charset;
+  private static Charset charset = Misc.CHARSET_DEFAULT;
   private static Charset usedCharset = charset;
 
   /** Returns the charset used to decode strings of the string resource. */
@@ -44,21 +44,16 @@ public final class StringResource
   /** Explicitly closes the dialog.tlk file handle. */
   public static synchronized void close()
   {
-    if (file != null) {
-      try {
-        file.close();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-      file = null;
+    if (buffer != null) {
+      buffer = null;
     }
     cachedEntry.clear();
   }
 
-  /** Returns the File instance of the dialog.tlk */
-  public static File getFile()
+  /** Returns the {@link Path} instance of the dialog.tlk */
+  public static Path getPath()
   {
-    return ffile;
+    return dlgPath;
   }
 
   /** Returns the available number of strref entries in the dialog.tlk */
@@ -89,7 +84,7 @@ public final class StringResource
       }
     } catch (IOException e) {
       e.printStackTrace();
-      JOptionPane.showMessageDialog(null, "Error reading " + ffile.getName(),
+      JOptionPane.showMessageDialog(null, "Error reading " + dlgPath.getFileName().toString(),
                                     "Error", JOptionPane.ERROR_MESSAGE);
     }
     return null;
@@ -132,7 +127,7 @@ public final class StringResource
       }
     } catch (IOException e) {
       e.printStackTrace();
-      JOptionPane.showMessageDialog(null, "Error reading " + ffile.getName(),
+      JOptionPane.showMessageDialog(null, "Error reading " + dlgPath.getFileName().toString(),
                                     "Error", JOptionPane.ERROR_MESSAGE);
     }
     return "Error";
@@ -181,32 +176,38 @@ public final class StringResource
   }
 
   /** Specify a new dialog.tlk. */
-  public static void init(File ffile)
+  public static void init(Path dlgPath)
   {
     close();
-    StringResource.ffile = ffile;
+    StringResource.dlgPath = dlgPath;
   }
 
   private static synchronized void open() throws IOException
   {
-    if (file == null) {
-      file = new RandomAccessFileNI(ffile, "r");
-      file.seek((long)0x00);
-      String signature = FileReaderNI.readString(file, 4);
-      if (!signature.equalsIgnoreCase("TLK "))
-        throw new IOException("Not valid TLK file");
-      version = FileReaderNI.readString(file, 4);
-      if (version.equalsIgnoreCase("V1  ")) {
-        file.seek((long)0x0A);
-      } else {
-        file.close();
-        file = null;
-        throw new IOException("Invalid TLK version");
-      }
-      maxnr = FileReaderNI.readInt(file);
-      startindex = FileReaderNI.readInt(file);
-      if (Profile.isEnhancedEdition()) {
-        usedCharset = utf8Charset;
+    if (buffer == null) {
+      try (SeekableByteChannel ch = Files.newByteChannel(dlgPath, StandardOpenOption.READ)) {
+        buffer = StreamUtils.getByteBuffer((int)ch.size());
+        if (ch.read(buffer) < ch.size()) {
+          throw new IOException();
+        }
+        buffer.position(0);
+        String sig = StreamUtils.readString(buffer, 4);
+        if (!sig.equals("TLK ")) {
+          buffer = null;
+          throw new IOException("Not valid TLK file");
+        }
+        version = StreamUtils.readString(buffer, 4);
+        if (version.equals("V1  ")) {
+          buffer.position(0x0a);
+        } else {
+          buffer = null;
+          throw new IOException("Invalid TLK version");
+        }
+        maxnr = buffer.getInt();
+        startindex = buffer.getInt();
+        if (Profile.isEnhancedEdition()) {
+          usedCharset = Misc.CHARSET_UTF8;
+        }
       }
     }
   }
@@ -240,24 +241,24 @@ public final class StringResource
       if (index >= 0 && index < maxnr ) {
         strref = index;
         index *= 0x1a;
-        file.seek((long)(0x12 + index));
-        type = FileReaderNI.readShort(file);
-        byte[] buffer = new byte[8];
-        file.read(buffer);
-        int len = buffer.length;
-        for (int i = 0; i < buffer.length; i++) {
-          if (buffer[i] == 0) {
+        buffer.position(0x12 + index);
+        type = buffer.getShort();
+        byte[] buf = new byte[8];
+        buffer.get(buf);
+        int len = buf.length;
+        for (int i = 0; i < buf.length; i++) {
+          if (buf[i] == 0) {
             len = i;
             break;
           }
         }
-        soundRes = new String(Arrays.copyOf(buffer, len));
-        volume = FileReaderNI.readInt(file);
-        pitch = FileReaderNI.readInt(file);
-        long offset = startindex + FileReaderNI.readInt(file);
-        int length = FileReaderNI.readInt(file);
-        file.seek(offset);
-        text = FileReaderNI.readString(file, length, usedCharset);
+        soundRes = new String(Arrays.copyOf(buf, len));
+        volume = buffer.getInt();
+        pitch = buffer.getInt();
+        long offset = startindex + buffer.getInt();
+        int length = buffer.getInt();
+        buffer.position((int)offset);
+        text = StreamUtils.readString(buffer, length, usedCharset);
       } else {
         strref = -1;
         type = 0;

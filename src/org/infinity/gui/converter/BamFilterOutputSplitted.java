@@ -16,6 +16,7 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,10 +34,10 @@ import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 import org.infinity.util.Misc;
+import org.infinity.util.io.FileManager;
 
 /**
  * Output filter: split BAM and output each part into a separate file.
- * @author argent77
  */
 public class BamFilterOutputSplitted extends BamFilterBaseOutput
     implements ActionListener, ChangeListener
@@ -363,14 +364,14 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
       }
 
       // creating a format string for BAM output filenames
-      String bamName = getConverter().getBamOutput();
+      String bamFileName = getConverter().getBamOutput().toString();
       String ext = "BAM";
-      int idx = bamName.lastIndexOf('.');
+      int idx = bamFileName.lastIndexOf('.');
       if (idx >= 0) {
-        ext = bamName.substring(idx+1);
-        bamName = bamName.substring(0, idx);
+        ext = bamFileName.substring(idx+1);
+        bamFileName = bamFileName.substring(0, idx);
       }
-      String fmtBamFileName = String.format("%1$s%%1$0%2$dd.%3$s", bamName,
+      String fmtBamFileName = String.format("%1$s%%1$0%2$dd.%3$s", bamFileName,
                                             cbSuffixDigits.getSelectedIndex() + 1, ext);
 
       // creating BamDecoder instances for each individual segment
@@ -393,7 +394,7 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
         segmentDecoder.setCyclesList(decoder.getCyclesList());
 
         // converting segmented BAM structure
-        if (!convertBam(String.format(fmtBamFileName, segIdx), segmentDecoder)) {
+        if (!convertBam(FileManager.resolve(String.format(fmtBamFileName, segIdx)), segmentDecoder)) {
           throw new Exception(String.format("Error converting segment %1$d/%2$d", segIdx + 1, segmentCount));
         }
 
@@ -462,9 +463,9 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
 
 
   // Exports the BAM specified by "decoder" into the filename "outFileName" using global settings
-  private boolean convertBam(String outFileName, PseudoBamDecoder decoder) throws Exception
+  private boolean convertBam(Path outFileName, PseudoBamDecoder decoder) throws Exception
   {
-    if (getConverter() != null && outFileName != null && !outFileName.isEmpty() && decoder != null) {
+    if (getConverter() != null && outFileName != null && decoder != null) {
       if (getConverter().isBamV1Selected()) {
         // convert to BAM v1
         decoder.setOption(PseudoBamDecoder.OPTION_INT_RLEINDEX,

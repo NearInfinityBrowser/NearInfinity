@@ -9,7 +9,6 @@ import java.util.Deque;
 
 /**
  * Represents a container for audio chunks returned by the MveDecoder.
- * @author argent77
  */
 public class AudioQueue
 {

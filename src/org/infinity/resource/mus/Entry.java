@@ -4,9 +4,10 @@
 
 package org.infinity.resource.mus;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,14 +17,13 @@ import java.util.StringTokenizer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.AudioBuffer;
 import org.infinity.resource.sound.AudioFactory;
-import org.infinity.util.io.FileInputStreamNI;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public class Entry
 {
   // Caches AudioBuffer objects for faster reload
-  private static final LinkedHashMap<String, AudioBuffer> BufferCache =
-      new LinkedHashMap<String, AudioBuffer>(100);
+  private static final LinkedHashMap<Path, AudioBuffer> BufferCache = new LinkedHashMap<>(100);
   private static final long MAX_CACHE_SIZE = getMaxCacheSize();
   private static long currentCacheSize = 0L;
 
@@ -45,28 +45,28 @@ public class Entry
   }
 
   // adds an AudioBuffer object to the cache
-  private static void addCacheEntry(String dir, String name, AudioBuffer buffer)
+  private static void addCacheEntry(Path path, String name, AudioBuffer buffer)
   {
     if (name != null && buffer != null) {
       while (currentCacheSize + buffer.getAudioData().length > MAX_CACHE_SIZE &&
              !BufferCache.isEmpty()) {
-        Iterator<String> iter = BufferCache.keySet().iterator();
+        Iterator<Path> iter = BufferCache.keySet().iterator();
         if (iter.hasNext()) {
           AudioBuffer ab = BufferCache.get(iter.next());
           iter.remove();
           currentCacheSize -= ab.getAudioData().length;
         }
       }
-      BufferCache.put(getCacheKey(dir, name), buffer);
+      BufferCache.put(getCacheKey(path, name), buffer);
       currentCacheSize += buffer.getAudioData().length;
     }
   }
 
   // returns a cached AudioBuffer object or null if none found
-  private static AudioBuffer getCacheEntry(String dir, String name)
+  private static AudioBuffer getCacheEntry(Path path, String name)
   {
     if (name != null) {
-      String key = getCacheKey(dir, name);
+      Path key = getCacheKey(path, name);
       if (BufferCache.containsKey(key)) {
         AudioBuffer ab = BufferCache.get(key);
         return ab;
@@ -76,12 +76,13 @@ public class Entry
   }
 
   // internally used to create a valid cache key
-  private static String getCacheKey(String dir, String name)
+  private static Path getCacheKey(Path path, String name)
   {
-    String key = "";
+    Path key = null;
     if (name != null) {
       name = name.toUpperCase(Locale.ENGLISH);
-      key = (dir != null) ? dir + File.separator + name : File.separator + name;
+      key = (path != null) ? path.resolve(name) : FileManager.resolve(name);
+      key = key.toAbsolutePath();
     }
     return key;
   }
@@ -173,49 +174,38 @@ public class Entry
   private AudioBuffer getAudioBuffer(String fileName) throws IOException
   {
     // audio file can reside in a number of different locations
-    // fileDir should have no terimal separator
-    String fileDir = dir + File.separatorChar + dir;
-    File acmFile = new FileNI(entry.getActualFile().getParentFile(), fileDir +
-                              fileName + ".acm");
-    if (!acmFile.exists() || !acmFile.isFile()) {
-      fileDir = "";
-      acmFile = new FileNI(entry.getActualFile().getParentFile(), fileName + ".acm");
+    Path acmFile = FileManager.query(entry.getActualPath().getParent(), dir, dir + fileName + ".acm");
+    if (!Files.isRegularFile(acmFile)) {
+      acmFile = FileManager.query(entry.getActualPath().getParent(), fileName + ".acm");
     }
-    if ((!acmFile.exists() || !acmFile.isFile()) && fileName.toUpperCase(Locale.ENGLISH).startsWith("MX")) {
-      fileDir = fileName.substring(0, 6) + File.separatorChar;
-      acmFile = new FileNI(entry.getActualFile().getParentFile(), fileDir +
-                           fileName + ".acm");
+    if (!Files.isRegularFile(acmFile) && fileName.toUpperCase(Locale.ENGLISH).startsWith("MX")) {
+      acmFile = FileManager.query(entry.getActualPath().getParent(), fileName.substring(0, 6), fileName + ".acm");
     }
-    if (!acmFile.exists() || !acmFile.isFile())
+    if (!Files.isRegularFile(acmFile)) {
       throw new IOException("Could not find " + fileName);
+    }
 
     // simplest case: grab AudioBuffer from cache
-    AudioBuffer audio = getCacheEntry(fileDir, fileName);
-    if (audio != null)
+    AudioBuffer audio = getCacheEntry(acmFile, fileName);
+    if (audio != null) {
       return audio;
+    }
 
-    FileInputStream fis = new FileInputStreamNI(acmFile);
-    try {
-      byte[] buffer = new byte[(int)acmFile.length()];
-      int bytesRead = fis.read(buffer);
-      fis.close();
-      fis = null;
+    try (InputStream is = StreamUtils.getInputStream(acmFile)) {
+      byte[] buffer = new byte[(int)Files.size(acmFile)];
+      int bytesRead = is.read(buffer);
       if (bytesRead > 0) {
         // ignore # channels in header (only ACM will be affected)
         audio = AudioFactory.getAudioBuffer(buffer, 0, AudioBuffer.AudioOverride.overrideChannels(2));
         if (audio != null) {
-          addCacheEntry(fileDir, fileName, audio);
+          addCacheEntry(acmFile.getParent(), fileName, audio);
         }
       } else {
         throw new IOException("Unexpected end of file");
       }
     } catch (IOException e) {
-      if (fis != null) {
-        fis.close();
-      }
       throw new IOException("Error reading " + fileName);
     }
-
     return audio;
   }
 

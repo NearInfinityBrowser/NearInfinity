@@ -4,7 +4,10 @@
 
 package org.infinity.resource.vertex;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.AbstractStruct;
+import org.infinity.util.io.StreamUtils;
 
 public final class OpenVertexImpeded extends Vertex
 {
@@ -13,10 +16,10 @@ public final class OpenVertexImpeded extends Vertex
 
   public OpenVertexImpeded() throws Exception
   {
-    super(null, VERTEX_OPEN_IMPEDED, new byte[4], 0);
+    super(null, VERTEX_OPEN_IMPEDED, StreamUtils.getByteBuffer(4), 0);
   }
 
-  public OpenVertexImpeded(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public OpenVertexImpeded(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, VERTEX_OPEN_IMPEDED + " " + nr, buffer, offset);
   }

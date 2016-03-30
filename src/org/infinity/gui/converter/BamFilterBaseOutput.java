@@ -12,7 +12,6 @@ import org.infinity.resource.graphics.PseudoBamDecoder;
 
 /**
  * The base class for filters that output the current state of the BAM structure to disk.
- * @author argent77
  */
 public abstract class BamFilterBaseOutput extends BamFilterBase
 {

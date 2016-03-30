@@ -4,11 +4,15 @@
 
 package org.infinity.resource.key;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -87,24 +91,30 @@ public final class ResourceTreeModel implements TreeModel
 
 // --------------------- End Interface TreeModel ---------------------
 
-  public void addDirectory(ResourceTreeFolder parentFolder, File directory)
+  public void addDirectory(ResourceTreeFolder parentFolder, Path directory)
   {
-    File files[] = directory.listFiles();
-    if (files == null || files.length == 0)
+    try (DirectoryStream<Path> dstream = Files.newDirectoryStream(directory)) {
+      Iterator<Path> iter = dstream.iterator();
+      if (iter.hasNext()) {
+        ResourceTreeFolder folder = getFolder(parentFolder, directory.getFileName().toString());
+        if (folder == null) {
+          folder = new ResourceTreeFolder(parentFolder, directory.getFileName().toString());
+          folders.put(directory.getFileName().toString(), folder);
+          parentFolder.addFolder(folder);
+        }
+
+        while (iter.hasNext()) {
+          final Path path = iter.next();
+          if (Files.isDirectory(path)) {
+            addDirectory(folder, path);
+          } else {
+            folder.addResourceEntry(new FileResourceEntry(path), true);
+          }
+        }
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
       return;
-
-    ResourceTreeFolder folder = getFolder(parentFolder, directory.getName());
-    if (folder == null) {
-      folder = new ResourceTreeFolder(parentFolder, directory.getName());
-      folders.put(directory.getName(), folder);
-      parentFolder.addFolder(folder);
-    }
-
-    for (final File file : files) {
-      if (file.isDirectory())
-        addDirectory(folder, file);
-      else
-        folder.addResourceEntry(new FileResourceEntry(file));
     }
   }
 
@@ -116,7 +126,7 @@ public final class ResourceTreeModel implements TreeModel
       folders.put(folderName, folder);
       root.addFolder(folder);
     }
-    folder.addResourceEntry(entry);
+    folder.addResourceEntry(entry, true);
     if (entry.isVisible()) {
       entries.put(entry.getResourceName().toUpperCase(Locale.ENGLISH), entry);
     }

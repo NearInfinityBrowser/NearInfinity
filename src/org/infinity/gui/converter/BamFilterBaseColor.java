@@ -30,7 +30,6 @@ import org.infinity.util.Misc;
 
 /**
  * The base class for filters that manipulate on color/pixel level.
- * @author argent77
  */
 public abstract class BamFilterBaseColor extends BamFilterBase
 {

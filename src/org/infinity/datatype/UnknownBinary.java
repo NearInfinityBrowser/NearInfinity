@@ -4,17 +4,19 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
 public final class UnknownBinary extends Unknown
 {
-  public UnknownBinary(byte[] buffer, int offset, int length, String name)
+  public UnknownBinary(ByteBuffer buffer, int offset, int length, String name)
   {
     this(null, buffer, offset, length, name);
   }
 
-  public UnknownBinary(StructEntry parent, byte[] buffer, int offset, int length, String name)
+  public UnknownBinary(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
   {
     super(parent, buffer, offset, length, name);
   }
@@ -25,16 +27,16 @@ public final class UnknownBinary extends Unknown
   public boolean updateValue(AbstractStruct struct)
   {
     String value = textArea.getText().trim();
-    value = value.replace('\n', ' ');
-    value = value.replace('\r', ' ');
+    value = value.replaceAll("\r?\n", " ");
     int index = value.indexOf((int)' ');
     while (index != -1) {
       value = value.substring(0, index) + value.substring(index + 1);
       index = value.indexOf((int)' ');
     }
-    if (value.length() != 8 * data.length)
+    if (value.length() != 8 * buffer.limit()) {
       return false;
-    byte newdata[] = new byte[data.length];
+    }
+    byte newdata[] = new byte[buffer.limit()];
     for (int i = 0; i < newdata.length; i++) {
       String bytechars = value.substring(8 * i, 8 * i + 8);
       try {
@@ -43,7 +45,8 @@ public final class UnknownBinary extends Unknown
         return false;
       }
     }
-    data = newdata;
+    buffer.position(0);
+    buffer.get(newdata);
     return true;
   }
 
@@ -52,10 +55,12 @@ public final class UnknownBinary extends Unknown
   @Override
   public String toString()
   {
-    if (data != null && data.length > 0) {
-      StringBuffer sb = new StringBuffer(9 * data.length + 1);
-      for (final byte d : data) {
-        String text = Integer.toBinaryString((int)d & 0xff);
+    if (buffer.limit() > 0) {
+      StringBuffer sb = new StringBuffer(9 * buffer.limit() + 1);
+      buffer.position(0);
+      while (buffer.remaining() > 0) {
+        int v = buffer.get() & 0xff;
+        String text = Integer.toBinaryString(v);
         for (int j = 0, count = 8 - text.length(); j < count; j++) {
           sb.append('0');
         }

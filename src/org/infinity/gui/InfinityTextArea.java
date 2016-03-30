@@ -7,6 +7,8 @@ package org.infinity.gui;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.EnumMap;
 
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
@@ -21,12 +23,11 @@ import org.infinity.NearInfinity;
 import org.infinity.resource.text.modes.BCSFoldParser;
 import org.infinity.resource.text.modes.BCSTokenMaker;
 import org.infinity.resource.text.modes.GLSLTokenMaker;
-import org.infinity.util.io.FileInputStreamNI;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * Extends {@link RSyntaxTextArea} by NearInfinity-specific features.
- * @author argent77
  */
 public class InfinityTextArea extends RSyntaxTextArea
 {
@@ -310,13 +311,15 @@ public class InfinityTextArea extends RSyntaxTextArea
         }
       }
 
-      boolean isExternal = (NearInfinity.isDebug() && (new FileNI(schemePath)).isFile());
+      Path schemeFile = FileManager.resolve(schemePath);
+      boolean isExternal = (NearInfinity.isDebug() && (Files.isRegularFile(schemeFile)));
       InputStream is;
       if (isExternal) {
         try {
-          is = new FileInputStreamNI(schemePath);
+          is = StreamUtils.getInputStream(schemeFile);
         } catch (IOException e) {
           is = ClassLoader.getSystemResourceAsStream(SchemeNone);
+          e.printStackTrace();
         }
       } else {
         is = ClassLoader.getSystemResourceAsStream(schemePath);

@@ -4,7 +4,9 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
+
 public interface IsBinary
 {
-  byte[] getData();
+  ByteBuffer getData();
 }

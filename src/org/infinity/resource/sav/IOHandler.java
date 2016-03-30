@@ -4,10 +4,13 @@
 
 package org.infinity.resource.sav;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,32 +20,32 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.Writeable;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileOutputStreamNI;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.FileDeletionHook;
+import org.infinity.util.io.StreamUtils;
 
 public final class IOHandler implements Writeable
 {
   private final ResourceEntry entry;
   private final TextString header;
-  private File tempfolder;
-  private List<SavResourceEntry> fileentries;
+  private Path tempFolder;
+  private List<SavResourceEntry> fileEntries;
 
   public IOHandler(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
-    byte buffer[] = entry.getResourceData(true); // ignoreOverride - no real effect
+    ByteBuffer buffer = entry.getResourceBuffer(true);  // ignoreOverride - no real effect
     header = new TextString(buffer, 0, 8, null);
-    if (!header.toString().equalsIgnoreCase("SAV V1.0"))
+    if (!header.toString().equals("SAV V1.0")) {
       throw new Exception("Unsupported version: " + header);
-    fileentries = new ArrayList<SavResourceEntry>();
-    int offset = 8;
-    while (offset < buffer.length) {
-      SavResourceEntry fileentry = new SavResourceEntry(buffer, offset);
-      fileentries.add(fileentry);
-      offset = fileentry.getEndOffset();
     }
-    Collections.sort(fileentries);
+    fileEntries = new ArrayList<SavResourceEntry>();
+    int offset = 8;
+    while (offset < buffer.limit()) {
+      SavResourceEntry fileEntry = new SavResourceEntry(buffer, offset);
+      fileEntries.add(fileEntry);
+      offset = fileEntry.getEndOffset();
+    }
+    Collections.sort(fileEntries);
   }
 
 // --------------------- Begin Interface Writeable ---------------------
@@ -51,44 +54,59 @@ public final class IOHandler implements Writeable
   public void write(OutputStream os) throws IOException
   {
     header.write(os);
-    for (int i = 0; i < fileentries.size(); i++)
-      fileentries.get(i).write(os);
+    for (final SavResourceEntry entry: fileEntries) {
+      entry.write(os);
+    }
   }
 
 // --------------------- End Interface Writeable ---------------------
 
   public void close()
   {
-    if (tempfolder == null)
-      return;
-    File files[] = tempfolder.listFiles();
-    for (final File file : files)
-      file.delete();
-    tempfolder.delete();
-    tempfolder = null;
+    if (tempFolder != null && Files.isDirectory(tempFolder)) {
+      try (DirectoryStream<Path> dstream = Files.newDirectoryStream(tempFolder)) {
+        for (final Path file: dstream) {
+          try {
+            Files.delete(file);
+          } catch (AccessDeniedException e) {
+            FileDeletionHook.getInstance().registerFile(file);
+          }
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      try {
+        Files.delete(tempFolder);
+      } catch (IOException e) {
+        FileDeletionHook.getInstance().registerFile(tempFolder);
+        e.printStackTrace();
+      }
+      tempFolder = null;
+    }
   }
 
   public void compress(List<? extends ResourceEntry> entries) throws Exception
   {
-    fileentries.clear();
-    for (int i = 0; i < entries.size(); i++)
-      fileentries.add(new SavResourceEntry(entries.get(i)));
+    fileEntries.clear();
+    for (int i = 0; i < entries.size(); i++) {
+      fileEntries.add(new SavResourceEntry(entries.get(i)));
+    }
     close();
   }
 
   public List<ResourceEntry> decompress() throws Exception
   {
-    List<ResourceEntry> entries = new ArrayList<ResourceEntry>(fileentries.size());
-    tempfolder = createTempFolder();
-    if (tempfolder == null)
+    List<ResourceEntry> entries = new ArrayList<ResourceEntry>(fileEntries.size());
+    tempFolder = createTempFolder();
+    if (tempFolder == null) {
       throw new Exception("Unable to create temp folder");
-    tempfolder.mkdir();
-    for (int i = 0; i < fileentries.size(); i++) {
-      SavResourceEntry fentry = fileentries.get(i);
-      File file = new FileNI(tempfolder, fentry.toString());
-      OutputStream os = new BufferedOutputStream(new FileOutputStreamNI(file));
-      FileWriterNI.writeBytes(os, fentry.decompress());
-      os.close();
+    }
+    Files.createDirectory(tempFolder);
+    for (final SavResourceEntry entry: fileEntries) {
+      Path file = tempFolder.resolve(entry.toString());
+      try (OutputStream os = StreamUtils.getOutputStream(file, true)) {
+        StreamUtils.writeBytes(os, entry.decompress());
+      }
       entries.add(new FileResourceEntry(file));
     }
     return entries;
@@ -96,21 +114,21 @@ public final class IOHandler implements Writeable
 
   public List<? extends ResourceEntry> getFileEntries()
   {
-    return fileentries;
+    return fileEntries;
   }
 
-  public File getTempFolder()
+  public Path getTempFolder()
   {
-    return tempfolder;
+    return tempFolder;
   }
 
   // Create a unique temp folder for current baldur.sav
-  private File createTempFolder()
+  private Path createTempFolder()
   {
     for (int idx = 0; idx < Integer.MAX_VALUE; idx++) {
-      File f = new FileNI(Profile.getHomeRoot(), String.format("%1$s.%2$03d", entry.getTreeFolder(), idx));
-      if (!f.exists()) {
-        return f;
+      Path path = Profile.getHomeRoot().resolve(String.format("%s.%03d", entry.getTreeFolder(), idx));
+      if (!Files.exists(path)) {
+        return path;
       }
     }
     return null;

@@ -6,13 +6,13 @@ package org.infinity.resource.graphics;
 
 import java.awt.Image;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.io.FileReaderNI;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * Common base class for handling MOS resources.
- * @author argent77
  */
 public abstract class MosDecoder
 {
@@ -42,8 +42,8 @@ public abstract class MosDecoder
       try {
         InputStream is = mosEntry.getResourceDataAsStream();
         if (is != null) {
-          String signature = FileReaderNI.readString(is, 4);
-          String version = FileReaderNI.readString(is, 4);
+          String signature = StreamUtils.readString(is, 4);
+          String version = StreamUtils.readString(is, 4);
           is.close();
           if ("MOSC".equals(signature)) {
             retVal = Type.MOSC;
@@ -108,7 +108,7 @@ public abstract class MosDecoder
   public abstract void reload();
 
   /** Returns the raw data of the MOS resource. */
-  public abstract byte[] getResourceData();
+  public abstract ByteBuffer getResourceBuffer();
 
   /** Returns the width of the MOS resource. */
   public abstract int getWidth();

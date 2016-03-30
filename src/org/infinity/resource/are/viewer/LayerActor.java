@@ -21,7 +21,6 @@ import org.infinity.util.IniMapSection;
 
 /**
  * Manages actor layer objects.
- * @author argent77
  */
 public class LayerActor extends BasicLayer<LayerObjectActor>
 {

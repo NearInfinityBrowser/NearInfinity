@@ -4,10 +4,12 @@
 
 package org.infinity.resource;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.infinity.datatype.EffectType;
+import org.infinity.util.io.StreamUtils;
 
 public final class Effect extends AbstractStruct implements AddRemovable
 {
@@ -16,10 +18,10 @@ public final class Effect extends AbstractStruct implements AddRemovable
 
   public Effect() throws Exception
   {
-    super(null, EFFECT, new byte[48], 0);
+    super(null, EFFECT, StreamUtils.getByteBuffer(48), 0);
   }
 
-  public Effect(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  public Effect(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, EFFECT + " " + number, buffer, offset);
   }
@@ -35,7 +37,7 @@ public final class Effect extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     EffectType type = new EffectType(buffer, offset, 2);
     addField(type);

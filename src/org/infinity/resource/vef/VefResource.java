@@ -4,6 +4,8 @@
 
 package org.infinity.resource.vef;
 
+import java.nio.ByteBuffer;
+
 import javax.swing.JComponent;
 
 import org.infinity.datatype.SectionCount;
@@ -90,7 +92,7 @@ public final class VefResource extends AbstractStruct implements Resource, HasAd
 //--------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));

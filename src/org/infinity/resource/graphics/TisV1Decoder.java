@@ -10,20 +10,19 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.nio.ByteBuffer;
 
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.DynamicArray;
 
 /**
  * Handles legacy TIS resources (using palettized tiles).
- * @author argent77
  */
 public class TisV1Decoder extends TisDecoder
 {
   private static final int HeaderSize = 24;   // Size of the TIS header
   private static final Color TransparentColor = new Color(0, true);
 
-  private byte[] tisData;
+  private ByteBuffer tisBuffer;
   private int tileCount, tileSize;
   private int[] workingPalette;
   private BufferedImage workingCanvas;
@@ -63,7 +62,7 @@ public class TisV1Decoder extends TisDecoder
       if (ofs > 0) {
         int maxLen = (buffer.length > 256) ? 256 : buffer.length;
         for (int i = 0; i < maxLen; i++) {
-          buffer[i] = DynamicArray.getInt(tisData, ofs);
+          buffer[i] = tisBuffer.getInt(ofs);
           if (i == 0 && (buffer[i] & 0x00ffffff) == 0x0000ff00) {
             buffer[i] &= 0xff000000;
           } else {
@@ -103,7 +102,8 @@ public class TisV1Decoder extends TisDecoder
       int ofs = getTileOffset(tileIdx);
       if (ofs > 0) {
         int maxSize = (buffer.length > TileDimension*TileDimension) ? TileDimension*TileDimension : buffer.length;
-        System.arraycopy(tisData, ofs, buffer, 0, maxSize);
+        tisBuffer.position(ofs);
+        tisBuffer.get(buffer, 0, maxSize);
       }
     }
   }
@@ -112,7 +112,7 @@ public class TisV1Decoder extends TisDecoder
   @Override
   public void close()
   {
-    tisData = null;
+    tisBuffer = null;
     tileCount = 0;
     tileSize = 0;
     workingPalette = null;
@@ -129,9 +129,9 @@ public class TisV1Decoder extends TisDecoder
   }
 
   @Override
-  public byte[] getResourceData()
+  public ByteBuffer getResourceBuffer()
   {
-    return tisData;
+    return tisBuffer;
   }
 
   @Override
@@ -200,7 +200,7 @@ public class TisV1Decoder extends TisDecoder
         if (tileSize != 1024 + TileDimension*TileDimension) {
           throw new Exception("Invalid tile size: " + tileSize);
         }
-        tisData = getResourceEntry().getResourceData();
+        tisBuffer = getResourceEntry().getResourceBuffer();
 
         setType(Type.PALETTE);
 
@@ -257,7 +257,7 @@ public class TisV1Decoder extends TisDecoder
         ofs += 1024;    // skipping palette data
         getTilePalette(tileIdx, workingPalette);
         for (int i = 0; i < size; i++, ofs++) {
-          buffer[i] = workingPalette[tisData[ofs] & 0xff];
+          buffer[i] = workingPalette[tisBuffer.get(ofs) & 0xff];
         }
         return true;
       }

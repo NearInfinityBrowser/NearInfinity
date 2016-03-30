@@ -5,12 +5,12 @@
 package org.infinity.resource.graphics;
 
 import java.awt.Image;
+import java.nio.ByteBuffer;
 
 import org.infinity.resource.key.ResourceEntry;
 
 /**
  * Common base class for handling TIS resources.
- * @author argent77
  */
 public abstract class TisDecoder
 {
@@ -101,7 +101,7 @@ public abstract class TisDecoder
   public abstract void reload();
 
   /** Returns the raw data of the TIS resource. */
-  public abstract byte[] getResourceData();
+  public abstract ByteBuffer getResourceBuffer();
 
   /** Returns the width of a single tile (in pixels). */
   public abstract int getTileWidth();

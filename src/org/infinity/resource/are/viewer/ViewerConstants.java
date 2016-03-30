@@ -8,7 +8,6 @@ import java.awt.RenderingHints;
 
 /**
  * Definitions of constants and custom types used throughout the area viewer classes.
- * @author argent77
  */
 public final class ViewerConstants
 {

@@ -20,7 +20,6 @@ import org.infinity.resource.Viewable;
 
 /**
  * Common base class for visual components, representing parts of a game resource
- * @author argent77
  */
 public abstract class AbstractLayerItem extends JComponent implements MouseListener, MouseMotionListener
 {

@@ -13,7 +13,6 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 
 /**
  * Extends {@link RTextScrollPane} by NearInfinity-specific features.
- * @author argent77
  */
 public class InfinityScrollPane extends RTextScrollPane
 {

@@ -5,6 +5,7 @@
 package org.infinity.datatype;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,12 +27,12 @@ public final class EffectType extends Bitmap implements UpdateListener
                                             "Caster group", "Target group", "Everyone except self", "Original caster"};
   private int attr_length;
 
-  public EffectType(byte buffer[], int offset, int length)
+  public EffectType(ByteBuffer buffer, int offset, int length)
   {
     this(null, buffer, offset, length);
   }
 
-  public EffectType(StructEntry parent, byte buffer[], int offset, int length)
+  public EffectType(StructEntry parent, ByteBuffer buffer, int offset, int length)
   {
     super(parent, buffer, offset, length, EFFECT_TYPE, EffectFactory.getFactory().getEffectNameArray());
   }
@@ -74,7 +75,7 @@ public final class EffectType extends Bitmap implements UpdateListener
 
 // --------------------- End Interface UpdateListener ---------------------
 
-  public int readAttributes(byte buffer[], int off, List<StructEntry> list)
+  public int readAttributes(ByteBuffer buffer, int off, List<StructEntry> list)
   {
     attr_length = off;
     boolean isV1 = (getSize() == 2);

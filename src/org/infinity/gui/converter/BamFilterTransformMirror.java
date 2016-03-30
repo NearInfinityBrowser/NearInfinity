@@ -21,7 +21,6 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 /**
  * Transform filter: mirrors BAM frames horizontally or vertically.
- * @author argent77
  */
 public class BamFilterTransformMirror extends BamFilterBaseTransform implements ActionListener
 {

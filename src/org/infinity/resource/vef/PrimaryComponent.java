@@ -4,6 +4,8 @@
 
 package org.infinity.resource.vef;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.AbstractStruct;
 
 public final class PrimaryComponent extends AbstractComponent
@@ -16,7 +18,7 @@ public final class PrimaryComponent extends AbstractComponent
     super(VEF_COMP_PRI);
   }
 
-  PrimaryComponent(AbstractStruct superStruct, byte[] buffer, int offset, int nr) throws Exception
+  PrimaryComponent(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, buffer, offset, VEF_COMP_PRI + " " + nr);
   }

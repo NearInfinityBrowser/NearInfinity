@@ -14,7 +14,6 @@ import org.infinity.resource.are.ITEPoint;
 
 /**
  * Manages region layer objects.
- * @author argent77
  */
 public class LayerRegion extends BasicLayer<LayerObjectRegion>
 {

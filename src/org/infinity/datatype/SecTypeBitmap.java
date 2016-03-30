@@ -4,6 +4,7 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
 import java.util.Locale;
 
 import org.infinity.resource.ResourceFactory;
@@ -23,12 +24,12 @@ public class SecTypeBitmap extends HashBitmap
                                               "Disabling", "Combination", "Non-combat"};
   private static final LongIntegerHashMap<String> typeMap = new LongIntegerHashMap<String>();
 
-  public SecTypeBitmap(byte buffer[], int offset, int length, String name)
+  public SecTypeBitmap(ByteBuffer buffer, int offset, int length, String name)
   {
     this(null, buffer, offset, length, name);
   }
 
-  public SecTypeBitmap(StructEntry parent, byte buffer[], int offset, int length, String name)
+  public SecTypeBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
   {
     super(parent, buffer, offset, length, name, getTypeTable());
   }

@@ -30,7 +30,7 @@ import java.awt.image.VolatileImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.Hashtable;
@@ -111,12 +111,12 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.WedResource;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * The Area Viewer shows a selected map with its associated structures, such as actors, regions or
  * animations.
- * @author argent77
  */
 public class AreaViewer extends ChildFrame
 {
@@ -1951,7 +1951,8 @@ public class AreaViewer extends ChildFrame
         if (bRet) {
           String fileName = getCurrentAre().getResourceEntry().getResourceName()
                               .toUpperCase(Locale.US).replace(".ARE", ".PNG");
-          ResourceFactory.exportResource(getCurrentAre().getResourceEntry(), os.toByteArray(),
+          ResourceFactory.exportResource(getCurrentAre().getResourceEntry(),
+                                         StreamUtils.getByteBuffer(os.toByteArray()),
                                          fileName, AreaViewer.this);
         } else {
           JOptionPane.showMessageDialog(AreaViewer.this, "Error while exporting map as graphics.",
@@ -2524,13 +2525,12 @@ public class AreaViewer extends ChildFrame
       dayNight = (dayNight == ViewerConstants.AREA_NIGHT) ? ViewerConstants.AREA_NIGHT : ViewerConstants.AREA_DAY;
       if (wed[dayNight] != null) {
         if (wed[dayNight].hasStructChanged()) {
-          File output;
+          Path output;
           if (wed[dayNight].getResourceEntry() instanceof BIFFResourceEntry) {
-            output = FileNI.getFile(Profile.getRootFolders(),
-                                    Profile.getOverrideFolderName() + File.separatorChar +
-                                    wed[dayNight].getResourceEntry().toString());
+            output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(),
+                                       wed[dayNight].getResourceEntry().toString());
           } else {
-            output = wed[dayNight].getResourceEntry().getActualFile();
+            output = wed[dayNight].getResourceEntry().getActualPath();
           }
           int optionIndex = allowCancel ? 1 : 0;
           int optionType = allowCancel ? JOptionPane.YES_NO_CANCEL_OPTION : JOptionPane.YES_NO_OPTION;

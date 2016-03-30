@@ -4,6 +4,8 @@
 
 package org.infinity.resource.gam;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Unknown;
@@ -28,13 +30,13 @@ public final class ModronMaze extends AbstractStruct
 
   private static final String[] s_noyes = {"No", "Yes"};
 
-  public ModronMaze(AbstractStruct superStruct, byte[] buffer, int offset) throws Exception
+  public ModronMaze(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception
   {
     super(superStruct, GAM_MAZE, buffer, offset);
   }
 
   @Override
-  public int read(byte[] buffer, int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     int curOfs = offset;
 

@@ -4,6 +4,8 @@
 
 package org.infinity.resource.sto;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
@@ -11,6 +13,7 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public final class ItemSale extends AbstractStruct implements AddRemovable
 {
@@ -28,10 +31,10 @@ public final class ItemSale extends AbstractStruct implements AddRemovable
 
   ItemSale() throws Exception
   {
-    super(null, STO_SALE, new byte[28], 0);
+    super(null, STO_SALE, StreamUtils.getByteBuffer(28), 0);
   }
 
-  ItemSale(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  ItemSale(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, STO_SALE + " " + number, buffer, offset);
   }
@@ -47,7 +50,7 @@ public final class ItemSale extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, STO_SALE_ITEM, "ITM"));
     addField(new Unknown(buffer, offset + 8, 2));

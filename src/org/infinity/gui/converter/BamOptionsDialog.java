@@ -14,7 +14,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -37,11 +38,10 @@ import javax.swing.WindowConstants;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.Profile;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.FileManager;
 
 /**
  * An options dialog for the BAM converter.
- * @author argent77
  */
 class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
 {
@@ -55,25 +55,25 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   private static final String PREFS_PVRZINDEX     = "BCPvrzIndex";
 
   // Default settings
-  private static final int DefaultBamVersion            = ConvertToBam.VERSION_BAMV1;
-  private static final String DefaultPath               = "";
-  private static final boolean DefaultAutoClear         = true;
-  private static final boolean DefaultCloseOnExit       = false;
-  private static final int DefaultTransparencyThreshold = 5;    // in percent
-  private static final boolean DefaultCompressBam       = false;
-  private static final int DefaultCompressionType       = ConvertToBam.COMPRESSION_AUTO;
-  private static final int DefaultPvrzIndex             = 1000;
+  private static final int DEFAULT_BAM_VERSION            = ConvertToBam.VERSION_BAMV1;
+  private static final String DEFAULT_PATH                = "";
+  private static final boolean DEFAULT_AUTO_CLEAR         = true;
+  private static final boolean DEFAULT_CLOSE_ON_EXIT      = false;
+  private static final int DEFAULT_TRANSPARENCY_THRESHOLD = 5;    // in percent
+  private static final boolean DEFAULT_COMPRESS_BAM       = false;
+  private static final int DEFAULT_COMPRESSION_TYPE       = ConvertToBam.COMPRESSION_AUTO;
+  private static final int DEFAULT_PVRZ_INDEX             = 1000;
 
   // Current settings
-  private static boolean SettingsLoaded     = false;
-  private static int BamVersion             = DefaultBamVersion;
-  private static String Path                = DefaultPath;
-  private static boolean AutoClear          = DefaultAutoClear;
-  private static boolean CloseOnExit        = DefaultCloseOnExit;
-  private static int TransparencyThreshold  = DefaultTransparencyThreshold;
-  private static boolean CompressBam        = DefaultCompressBam;
-  private static int CompressionType        = DefaultCompressionType;
-  private static int PvrzIndex              = DefaultPvrzIndex;
+  private static boolean settingsLoaded     = false;
+  private static int bamVersion             = DEFAULT_BAM_VERSION;
+  private static String path                = DEFAULT_PATH;
+  private static boolean autoClear          = DEFAULT_AUTO_CLEAR;
+  private static boolean closeOnExit        = DEFAULT_CLOSE_ON_EXIT;
+  private static int transparencyThreshold  = DEFAULT_TRANSPARENCY_THRESHOLD;
+  private static boolean compressBam        = DEFAULT_COMPRESS_BAM;
+  private static int compressionType        = DEFAULT_COMPRESSION_TYPE;
+  private static int pvrzIndex              = DEFAULT_PVRZ_INDEX;
 
   private JButton bOK, bCancel, bDefaults, bTransparencyHelp;
   private JComboBox<String> cbBamVersion, cbCompressionType;
@@ -87,20 +87,20 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   /** Attempts to load stored settings from disk. Falls back to default values. */
   public static void loadSettings(boolean force)
   {
-    if (!SettingsLoaded || force) {
+    if (!settingsLoaded || force) {
       Preferences prefs = Preferences.userNodeForPackage(ConvertToBam.class);
 
-      BamVersion = prefs.getInt(PREFS_BAMVERSION, DefaultBamVersion);
-      Path = prefs.get(PREFS_PATH, DefaultPath);
-      AutoClear = prefs.getBoolean(PREFS_AUTOCLEAR, DefaultAutoClear);
-      CloseOnExit = prefs.getBoolean(PREFS_CLOSEONEXIT, DefaultCloseOnExit);
-      TransparencyThreshold = prefs.getInt(PREFS_TRANSPARENCY, DefaultTransparencyThreshold);
-      CompressBam = prefs.getBoolean(PREFS_COMPRESSBAM, DefaultCompressBam);
-      CompressionType = prefs.getInt(PREFS_COMPRESSTYPE, DefaultCompressionType);
-      PvrzIndex = prefs.getInt(PREFS_PVRZINDEX, DefaultPvrzIndex);
+      bamVersion = prefs.getInt(PREFS_BAMVERSION, DEFAULT_BAM_VERSION);
+      path = prefs.get(PREFS_PATH, DEFAULT_PATH);
+      autoClear = prefs.getBoolean(PREFS_AUTOCLEAR, DEFAULT_AUTO_CLEAR);
+      closeOnExit = prefs.getBoolean(PREFS_CLOSEONEXIT, DEFAULT_CLOSE_ON_EXIT);
+      transparencyThreshold = prefs.getInt(PREFS_TRANSPARENCY, DEFAULT_TRANSPARENCY_THRESHOLD);
+      compressBam = prefs.getBoolean(PREFS_COMPRESSBAM, DEFAULT_COMPRESS_BAM);
+      compressionType = prefs.getInt(PREFS_COMPRESSTYPE, DEFAULT_COMPRESSION_TYPE);
+      pvrzIndex = prefs.getInt(PREFS_PVRZINDEX, DEFAULT_PVRZ_INDEX);
 
       validateSettings();
-      SettingsLoaded = true;
+      settingsLoaded = true;
     }
   }
 
@@ -110,43 +110,43 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
     validateSettings();
     Preferences prefs = Preferences.userNodeForPackage(ConvertToBam.class);
 
-    prefs.putInt(PREFS_BAMVERSION, BamVersion);
-    prefs.put(PREFS_PATH, Path);
-    prefs.putBoolean(PREFS_AUTOCLEAR, AutoClear);
-    prefs.putBoolean(PREFS_CLOSEONEXIT, CloseOnExit);
-    prefs.putInt(PREFS_TRANSPARENCY, TransparencyThreshold);
-    prefs.putBoolean(PREFS_COMPRESSBAM, CompressBam);
-    prefs.putInt(PREFS_COMPRESSTYPE, CompressionType);
-    prefs.putInt(PREFS_PVRZINDEX, PvrzIndex);
+    prefs.putInt(PREFS_BAMVERSION, bamVersion);
+    prefs.put(PREFS_PATH, path);
+    prefs.putBoolean(PREFS_AUTOCLEAR, autoClear);
+    prefs.putBoolean(PREFS_CLOSEONEXIT, closeOnExit);
+    prefs.putInt(PREFS_TRANSPARENCY, transparencyThreshold);
+    prefs.putBoolean(PREFS_COMPRESSBAM, compressBam);
+    prefs.putInt(PREFS_COMPRESSTYPE, compressionType);
+    prefs.putInt(PREFS_PVRZINDEX, pvrzIndex);
   }
 
   // Makes sure that all settings are valid.
   private static void validateSettings()
   {
-    BamVersion = Math.min(Math.max(BamVersion, ConvertToBam.VERSION_BAMV1), ConvertToBam.VERSION_BAMV2);
-    if (Path == null) Path = DefaultPath;
-    if (!Path.isEmpty() && !(new FileNI(Path)).isDirectory()) Path = DefaultPath;
-    TransparencyThreshold = Math.min(Math.max(TransparencyThreshold, 0), 100);
-    CompressionType = Math.min(Math.max(CompressionType, ConvertToBam.COMPRESSION_AUTO), ConvertToBam.COMPRESSION_DXT5);
-    PvrzIndex = Math.min(Math.max(PvrzIndex, 0), 99999);
+    bamVersion = Math.min(Math.max(bamVersion, ConvertToBam.VERSION_BAMV1), ConvertToBam.VERSION_BAMV2);
+    if (path == null) path = DEFAULT_PATH;
+    if (!path.isEmpty() && !(Files.isDirectory(FileManager.resolve(path)))) path = DEFAULT_PATH;
+    transparencyThreshold = Math.min(Math.max(transparencyThreshold, 0), 100);
+    compressionType = Math.min(Math.max(compressionType, ConvertToBam.COMPRESSION_AUTO), ConvertToBam.COMPRESSION_DXT5);
+    pvrzIndex = Math.min(Math.max(pvrzIndex, 0), 99999);
   }
 
   /** Returns the default BAM version index. */
-  public static int getBamVersion() { return BamVersion; }
+  public static int getBamVersion() { return bamVersion; }
   /** Returns the default path. */
-  public static String getPath() { return Path; }
+  public static String getPath() { return path; }
   /** Returns whether to automatically clear the current BAM after a successful conversion. */
-  public static boolean getAutoClear() { return AutoClear; }
+  public static boolean getAutoClear() { return autoClear; }
   /** Returns the default state for the "Close On Exit" checkbox. */
-  public static boolean getCloseOnExit() { return CloseOnExit; }
+  public static boolean getCloseOnExit() { return closeOnExit; }
   /** Returns the transparency threshold in percent. */
-  public static int getTransparencyThreshold() { return TransparencyThreshold; }
+  public static int getTransparencyThreshold() { return transparencyThreshold; }
   /** Returns the default state for "Compress BAM" checkbox (BAM v1). */
-  public static boolean getCompressBam() { return CompressBam; }
+  public static boolean getCompressBam() { return compressBam; }
   /** Returns the default compression type (BAM v2). */
-  public static int getCompressionType() { return CompressionType; }
+  public static int getCompressionType() { return compressionType; }
   /** Returns the default PVRZ index (BAM v2). */
-  public static int getPvrzIndex() { return PvrzIndex; }
+  public static int getPvrzIndex() { return pvrzIndex; }
 
 
   public BamOptionsDialog(ConvertToBam parent)
@@ -164,11 +164,11 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == miPathSet) {
-      String path = tfPath.getText();
-      if (path.isEmpty()) {
-        path = Profile.getGameRoot().toString();
+      Path path = FileManager.resolve(tfPath.getText());
+      if (!Files.isDirectory(path)) {
+        path = Profile.getGameRoot();
       }
-      File rootPath = ConvertToBam.getOpenPathName(this, "Select initial directory", path);
+      Path rootPath = ConvertToBam.getOpenPathName(this, "Select initial directory", path);
       if (rootPath != null) {
         tfPath.setText(rootPath.toString());
       }
@@ -206,8 +206,8 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   {
     if (event.getSource() == tfPath) {
       String path = tfPath.getText();
-      if (!path.isEmpty() && !(new FileNI(path)).isDirectory()) {
-        tfPath.setText(Path);
+      if (!path.isEmpty() && !Files.isDirectory(FileManager.resolve(path))) {
+        tfPath.setText(path);
       }
     }
   }
@@ -362,27 +362,27 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   // Applies the default settings to the dialog controls
   private void setDefaults()
   {
-    cbBamVersion.setSelectedIndex(DefaultBamVersion);
-    tfPath.setText(DefaultPath);
-    cbAutoClear.setSelected(DefaultAutoClear);
-    cbCloseOnExit.setSelected(DefaultCloseOnExit);
-    sTransparency.setValue(Integer.valueOf(DefaultTransparencyThreshold));
-    cbCompressBam.setSelected(DefaultCompressBam);
-    cbCompressionType.setSelectedIndex(DefaultCompressionType);
-    sPvrzIndex.setValue(Integer.valueOf(DefaultPvrzIndex));
+    cbBamVersion.setSelectedIndex(DEFAULT_BAM_VERSION);
+    tfPath.setText(DEFAULT_PATH);
+    cbAutoClear.setSelected(DEFAULT_AUTO_CLEAR);
+    cbCloseOnExit.setSelected(DEFAULT_CLOSE_ON_EXIT);
+    sTransparency.setValue(Integer.valueOf(DEFAULT_TRANSPARENCY_THRESHOLD));
+    cbCompressBam.setSelected(DEFAULT_COMPRESS_BAM);
+    cbCompressionType.setSelectedIndex(DEFAULT_COMPRESSION_TYPE);
+    sPvrzIndex.setValue(Integer.valueOf(DEFAULT_PVRZ_INDEX));
   }
 
   // Fetches the values from the dialog controls
   private void updateSettings()
   {
-    BamVersion = cbBamVersion.getSelectedIndex();
-    Path = tfPath.getText();
-    AutoClear = cbAutoClear.isSelected();
-    CloseOnExit = cbCloseOnExit.isSelected();
-    TransparencyThreshold = (Integer)sTransparency.getValue();
-    CompressBam = cbCompressBam.isSelected();
-    CompressionType = cbCompressionType.getSelectedIndex();
-    PvrzIndex = (Integer)sPvrzIndex.getValue();
+    bamVersion = cbBamVersion.getSelectedIndex();
+    path = tfPath.getText();
+    autoClear = cbAutoClear.isSelected();
+    closeOnExit = cbCloseOnExit.isSelected();
+    transparencyThreshold = (Integer)sTransparency.getValue();
+    compressBam = cbCompressBam.isSelected();
+    compressionType = cbCompressionType.getSelectedIndex();
+    pvrzIndex = (Integer)sPvrzIndex.getValue();
     validateSettings();
   }
 }

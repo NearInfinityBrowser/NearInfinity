@@ -16,7 +16,6 @@ import org.infinity.resource.are.AutomapNotePST;
 
 /**
  * Manages automap notes layer objects (both PST-specific and generic types).
- * @author argent77
  */
 public class LayerAutomap extends BasicLayer<LayerObject>
 {

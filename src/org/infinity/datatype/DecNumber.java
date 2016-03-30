@@ -6,32 +6,32 @@ package org.infinity.datatype;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.Locale;
 
 import org.infinity.resource.StructEntry;
-import org.infinity.util.DynamicArray;
 
 public class DecNumber extends Datatype implements InlineEditable, IsNumeric
 {
   private long number;
   private boolean signed;
 
-  public DecNumber(byte buffer[], int offset, int length, String name)
+  public DecNumber(ByteBuffer buffer, int offset, int length, String name)
   {
     this(null, buffer, offset, length, name, true);
   }
 
-  public DecNumber(byte buffer[], int offset, int length, String name, boolean signed)
+  public DecNumber(ByteBuffer buffer, int offset, int length, String name, boolean signed)
   {
     this(null, buffer, offset, length, name, signed);
   }
 
-  public DecNumber(StructEntry parent, byte buffer[], int offset, int length, String name)
+  public DecNumber(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
   {
     this(parent, buffer, offset, length, name, true);
   }
 
-  public DecNumber(StructEntry parent, byte buffer[], int offset, int length, String name, boolean signed)
+  public DecNumber(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, boolean signed)
   {
     super(parent, offset, length, name);
     this.number = 0L;
@@ -69,28 +69,29 @@ public class DecNumber extends Datatype implements InlineEditable, IsNumeric
 // --------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
+    buffer.position(offset);
     switch (getSize()) {
       case 1:
         if (signed) {
-          number = (long)DynamicArray.getByte(buffer, offset);
+          number = buffer.get();
         } else {
-          number = (long)DynamicArray.getUnsignedByte(buffer, offset);
+          number = buffer.get() & 0xff;
         }
         break;
       case 2:
         if (signed) {
-          number = (long)DynamicArray.getShort(buffer, offset);
+          number = buffer.getShort();
         } else {
-          number = (long)DynamicArray.getUnsignedShort(buffer, offset);
+          number = buffer.getShort() & 0xffff;
         }
         break;
       case 4:
         if (signed) {
-          number = (long)DynamicArray.getInt(buffer, offset);
+          number = buffer.getInt();
         } else {
-          number = (long)DynamicArray.getUnsignedInt(buffer, offset);
+          number = buffer.getInt() & 0xffffffff;
         }
         break;
       default:

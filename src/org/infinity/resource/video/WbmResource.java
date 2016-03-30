@@ -11,9 +11,11 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -31,7 +33,8 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.FileDeletionHook;
+import org.infinity.util.io.StreamUtils;
 
 public final class WbmResource implements Resource, Closeable, ActionListener
 {
@@ -40,7 +43,7 @@ public final class WbmResource implements Resource, Closeable, ActionListener
 
   private JPanel panel;
   private JButton bPlayExternal;
-  private File videoFile;
+  private Path videoFile;
   private boolean isTempFile;
 
   public WbmResource(ResourceEntry entry)
@@ -65,7 +68,7 @@ public final class WbmResource implements Resource, Closeable, ActionListener
         }
         if (videoFile != null) {
           try {
-            Desktop.getDesktop().open(videoFile);
+            Desktop.getDesktop().open(videoFile.toFile());
           } catch (Exception e) {
             bPlayExternal.setEnabled(false);
             WindowBlocker.blockWindow(false);
@@ -99,8 +102,12 @@ public final class WbmResource implements Resource, Closeable, ActionListener
   @Override
   public void close() throws Exception
   {
-    if (videoFile != null && isTempFile) {
-      videoFile.delete();
+    try {
+      // first attempt to delete temporary video file
+      if (videoFile != null && Files.isRegularFile(videoFile) && isTempFile) {
+        Files.delete(videoFile);
+      }
+    } catch (Exception e) {
     }
   }
 
@@ -133,42 +140,45 @@ public final class WbmResource implements Resource, Closeable, ActionListener
 // --------------------- End Interface Viewable ---------------------
 
   // Returns a (temporary) file based on the current WBM resource
-  private File getVideoFile()
+  private Path getVideoFile()
   {
-    File retVal = null;
+    Path retVal = null;
     if (entry instanceof FileResourceEntry) {
-      retVal = ((FileResourceEntry)entry).getActualFile();
+      retVal = ((FileResourceEntry)entry).getActualPath();
       isTempFile = false;
     } else {
-      String tempDir = System.getProperty("java.io.tmpdir");
-      File outFile = new FileNI(tempDir, entry.getResourceName());
-      if (outFile.isFile()) {
-        retVal = outFile;
-        retVal.deleteOnExit();
-      } else if (!outFile.exists()) {
-        InputStream is = null;
-        FileOutputStream os = null;
-        try {
-          try {
-            is = entry.getResourceDataAsStream();
-            os = new FileOutputStream(outFile);
-            byte[] buffer = new byte[65536];
-            int size;
-            while ((size = is.read(buffer)) > 0) {
-              os.write(buffer, 0, size);
-            }
-          } finally {
-            if (os != null) { os.close(); os = null; }
-            if (is != null) { is.close(); is = null; }
-          }
-          retVal = outFile;
-          retVal.deleteOnExit();
-        } catch (Exception e) {
-          retVal = null;
-          e.printStackTrace();
-        }
+      String fileName = entry.getResourceName();
+      String fileBase, fileExt;
+      int p = fileName.lastIndexOf('.');
+      if (p > 0) {
+        fileBase = fileName.substring(0, p);
+        fileExt = fileName.substring(p);
+      } else {
+        fileBase = fileName;
+        fileExt = ".wbm";
       }
-      isTempFile = true;
+      try {
+        Path outFile = Files.createTempFile(fileBase + "-", fileExt);
+        if (Files.isRegularFile(outFile)) {
+          try (InputStream is = entry.getResourceDataAsStream()) {
+            try (OutputStream os = StreamUtils.getOutputStream(outFile, true)) {
+              byte[] buffer = new byte[8192];
+              int size;
+              while ((size = is.read(buffer)) > 0) {
+                os.write(buffer, 0, size);
+              }
+            }
+            retVal = outFile;
+          }
+        } else {
+          throw new IOException("Could not create temp file");
+        }
+        isTempFile = true;
+        FileDeletionHook.getInstance().registerFile(retVal);
+      } catch (Exception e) {
+        e.printStackTrace();
+        retVal = null;
+      }
     }
     return retVal;
   }

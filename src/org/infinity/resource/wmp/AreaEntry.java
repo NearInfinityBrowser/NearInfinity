@@ -4,6 +4,8 @@
 
 package org.infinity.resource.wmp;
 
+import java.nio.ByteBuffer;
+
 import javax.swing.JComponent;
 
 import org.infinity.datatype.DecNumber;
@@ -43,7 +45,7 @@ final class AreaEntry extends AbstractStruct implements HasViewerTabs
   private static final String[] s_flag = {"No flags set", "Visible", "Reveal from linked area",
                                           "Can be visited", "Has been visited"};
 
-  AreaEntry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  AreaEntry(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, WMP_AREA + " " + nr, buffer, offset);
   }
@@ -77,7 +79,7 @@ final class AreaEntry extends AbstractStruct implements HasViewerTabs
 // --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, WMP_AREA_CURRENT, "ARE"));
     addField(new ResourceRef(buffer, offset + 8, WMP_AREA_ORIGINAL, "ARE"));
@@ -101,7 +103,7 @@ final class AreaEntry extends AbstractStruct implements HasViewerTabs
     return offset + 240;
   }
 
-  void readLinks(byte[] buffer, DecNumber linkOffset) throws Exception
+  void readLinks(ByteBuffer buffer, DecNumber linkOffset) throws Exception
   {
     DecNumber northStart = (DecNumber)getAttribute(WMP_AREA_FIRST_LINK_NORTH);
     DecNumber northCount = (DecNumber)getAttribute(WMP_AREA_NUM_LINKS_NORTH);

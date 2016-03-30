@@ -8,6 +8,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -23,7 +24,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
-import org.infinity.util.DynamicArray;
+import org.infinity.util.io.StreamUtils;
 
 public final class GraphicsResource implements Resource, ActionListener
 {
@@ -101,48 +102,42 @@ public final class GraphicsResource implements Resource, ActionListener
 
   private void init() throws Exception
   {
-    byte[] data = entry.getResourceData();
+    ByteBuffer buffer = entry.getResourceBuffer();
     // Checking signature
     boolean isBMP = false;
-    if ("BM".equals(new String(data, 0, 2))) {
+    if ("BM".equals(StreamUtils.readString(buffer, 0, 2))) {
       isBMP = true;
     }
 
     image = null;
     if (isBMP) {
-      DynamicArray.getInt(data, 2); // Size
-      DynamicArray.getInt(data, 6); // Reserved
-      int rasteroff = DynamicArray.getInt(data, 10);
+      int rasteroff = buffer.getInt(10);
 
-      DynamicArray.getInt(data, 14); // Headersize
-      int width = DynamicArray.getInt(data, 18);
-      int height = DynamicArray.getInt(data, 22);
-      DynamicArray.getShort(data, 26); // Planes
-      int bitcount = (int)DynamicArray.getShort(data, 28);
-      int compression = DynamicArray.getInt(data, 30);
+      int width = buffer.getInt(18);
+      int height = buffer.getInt(22);
+      int bitcount = buffer.getShort(28);
+      int compression = buffer.getInt(30);
       if ((compression == 0 || compression == 3) && bitcount <= 32) {
-        DynamicArray.getInt(data, 34); // Comprsize
-        DynamicArray.getInt(data, 38); // Xpixprm
-        DynamicArray.getInt(data, 42); // Ypixprm
-        int colsUsed = DynamicArray.getInt(data, 46); // Colorsused
-        DynamicArray.getInt(data, 50); // Colorsimp
+        int colsUsed = buffer.getInt(46); // Colorsused
 
         if (bitcount <= 8) {
-          if (colsUsed == 0)
+          if (colsUsed == 0) {
             colsUsed = 1 << bitcount;
+          }
           int palSize = 4 * colsUsed;
-          palette = new Palette(data, rasteroff - palSize, palSize);
+          palette = new Palette(buffer, rasteroff - palSize, palSize);
         }
 
         int bytesprline = bitcount * width / 8;
         int padded = 4 - bytesprline % 4;
-        if (padded == 4)
+        if (padded == 4) {
           padded = 0;
+        }
 
         image = ColorConvert.createCompatibleImage(width, height, bitcount >= 32);
         int offset = rasteroff;
         for (int y = height - 1; y >= 0; y--) {
-          setPixels(data, offset, bitcount, bytesprline, y, palette);
+          setPixels(buffer, offset, bitcount, bytesprline, y, palette);
           offset += bytesprline + padded;
         }
       }
@@ -157,35 +152,35 @@ public final class GraphicsResource implements Resource, ActionListener
     }
   }
 
-  private void setPixels(byte data[], int offset, int bitcount, int width, int y, Palette palette)
+  private void setPixels(ByteBuffer buffer, int offset, int bitcount, int width, int y, Palette palette)
   {
     if (bitcount == 4) {
       int pix = 0;
       for (int x = 0; x < width; x++) {
-        int color = (int)data[offset + x];
-        if (color < 0)
-          color += (int)Math.pow((double)2, (double)8);
-        int color1 = color >> 4 & 0x0f;
+        int color = buffer.get(offset + x) & 0xff;
+        int color1 = (color >> 4) & 0x0f;
         image.setRGB(pix++, y, palette.getColor(color1));
         int color2 = color & 0x0f;
         image.setRGB(pix++, y, palette.getColor(color2));
       }
     }
     else if (bitcount == 8) {
-      for (int x = 0; x < width; x++)
-        image.setRGB(x, y, palette.getColor((int)data[offset + x]));
+      for (int x = 0; x < width; x++) {
+        image.setRGB(x, y, palette.getColor(buffer.get(offset + x) & 0xff));
+      }
     }
     else if (bitcount == 24) {
       for (int x = 0; x < width / 3; x++) {
-        byte[] color = {data[offset + 3 * x], data[offset + 3 * x + 1], data[offset + 3 * x + 2], 0};
-        image.setRGB(x, y, DynamicArray.getInt(color, 0));
+        int rgb = (buffer.get(offset + 3*x + 2) & 0xff) << 16;
+        rgb |= (buffer.get(offset + 3*x + 1) & 0xff) << 8;
+        rgb |= buffer.get(offset + 3*x) & 0xff;
+        image.setRGB(x, y, rgb);
       }
     }
     else if (bitcount == 32) {
       for (int x = 0; x < width / 4; x++) {
-        byte[] color = {data[offset + 4 * x], data[offset + 4 * x + 1],
-            data[offset + 4 * x + 2], data[offset + 4 * x + 3]};
-        image.setRGB(x, y, DynamicArray.getInt(color, 0));
+        int rgb = buffer.getInt(offset + 4*x);
+        image.setRGB(x, y, rgb);
       }
     }
   }

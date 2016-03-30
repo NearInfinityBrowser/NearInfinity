@@ -20,7 +20,6 @@ import com.jcraft.jorbis.Info;
 
 /**
  * Decodes Ogg Vorbis encoded audio data into uncompressed PCM WAV audio data.
- * @author argent77
  */
 
 public class OggBuffer extends AudioBuffer

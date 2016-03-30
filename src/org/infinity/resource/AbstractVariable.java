@@ -4,10 +4,13 @@
 
 package org.infinity.resource;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.FloatNumber;
 import org.infinity.datatype.TextString;
+import org.infinity.util.io.StreamUtils;
 
 public class AbstractVariable extends AbstractStruct implements AddRemovable
 {
@@ -26,15 +29,17 @@ public class AbstractVariable extends AbstractStruct implements AddRemovable
 
   protected AbstractVariable() throws Exception
   {
-    super(null, VAR, new byte[84], 0);
+    super(null, VAR, StreamUtils.getByteBuffer(84), 0);
   }
 
-  protected AbstractVariable(AbstractStruct superStruct, byte[] buffer, int offset, int nr) throws Exception
+  protected AbstractVariable(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr)
+      throws Exception
   {
     super(superStruct, VAR + " " + nr, buffer, offset);
   }
 
-  protected AbstractVariable(AbstractStruct superStruct, String name, byte[] buffer, int offset) throws Exception
+  protected AbstractVariable(AbstractStruct superStruct, String name, ByteBuffer buffer, int offset)
+      throws Exception
   {
     super(superStruct, name, buffer, offset);
   }
@@ -50,7 +55,7 @@ public class AbstractVariable extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 32, VAR_NAME));
     addField(new Bitmap(buffer, offset + 32, 2, VAR_TYPE, s_type));

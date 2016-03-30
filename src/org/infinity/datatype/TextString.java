@@ -6,26 +6,26 @@ package org.infinity.datatype;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
+import java.nio.ByteBuffer;
 
 import org.infinity.resource.StructEntry;
-import org.infinity.util.DynamicArray;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.Misc;
+import org.infinity.util.io.StreamUtils;
 
 public final class TextString extends Datatype implements InlineEditable, IsTextual
 {
-  private final byte bytes[];
+  private final ByteBuffer buffer;
   private String text;
 
-  public TextString(byte buffer[], int offset, int length, String name)
+  public TextString(ByteBuffer buffer, int offset, int length, String name)
   {
     this(null, buffer, offset, length, name);
   }
 
-  public TextString(StructEntry parent, byte buffer[], int offset, int length, String name)
+  public TextString(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
   {
     super(parent, offset, length, name);
-    bytes = new byte[length];
+    this.buffer = StreamUtils.getByteBuffer(length);
     read(buffer, offset);
   }
 
@@ -50,14 +50,15 @@ public final class TextString extends Datatype implements InlineEditable, IsText
   public void write(OutputStream os) throws IOException
   {
     if (text != null) {
-      byte[] buf = text.getBytes(Charset.forName("windows-1252"));
-      int len = Math.min(buf.length, bytes.length);
-      System.arraycopy(buf, 0, bytes, 0, len);
-      if (len < bytes.length) {
-        bytes[len] = 0;
+      byte[] buf = text.getBytes(Misc.CHARSET_DEFAULT);
+      buffer.position(0);
+      buffer.put(buf, 0, Math.min(buf.length, buffer.limit()));
+      while (buffer.remaining() > 0) {
+        buffer.put((byte)0);
       }
     }
-    FileWriterNI.writeBytes(os, bytes);
+    buffer.position(0);
+    StreamUtils.writeBytes(os, buffer);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -65,9 +66,9 @@ public final class TextString extends Datatype implements InlineEditable, IsText
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
-    System.arraycopy(buffer, offset, bytes, 0, getSize());
+    StreamUtils.copyBytes(buffer, offset, this.buffer, 0, getSize());
     text = null;
 
     return offset + getSize();
@@ -81,7 +82,8 @@ public final class TextString extends Datatype implements InlineEditable, IsText
   public String getText()
   {
     if (text == null) {
-      text = DynamicArray.getString(bytes, 0, bytes.length);
+      buffer.position(0);
+      text = StreamUtils.readString(buffer, buffer.limit());
     }
     return text;
   }

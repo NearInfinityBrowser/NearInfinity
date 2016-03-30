@@ -9,19 +9,19 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import org.infinity.resource.StructEntry;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.io.StreamUtils;
 
 
 public class FloatNumber extends Datatype implements InlineEditable
 {
   private double value;
 
-  public FloatNumber(byte buffer[], int offset, int length, String name)
+  public FloatNumber(ByteBuffer buffer, int offset, int length, String name)
   {
     this(null, buffer, offset, length, name);
   }
 
-  public FloatNumber(StructEntry parent, byte buffer[], int offset, int length, String name)
+  public FloatNumber(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
   {
     super(parent, offset, length, name);
     value = 0.0;
@@ -53,7 +53,7 @@ public class FloatNumber extends Datatype implements InlineEditable
   @Override
   public void write(OutputStream os) throws IOException
   {
-    FileWriterNI.writeBytes(os, toByteArray(value, getSize()));
+    StreamUtils.writeBytes(os, toByteBuffer(value, getSize()));
   }
 
 //--------------------- End Interface Writeable ---------------------
@@ -61,7 +61,7 @@ public class FloatNumber extends Datatype implements InlineEditable
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
     switch (getSize()) {
       case 4:
@@ -90,52 +90,36 @@ public class FloatNumber extends Datatype implements InlineEditable
 
 
   // Converts byte array of specified length into a double value
-  private static double toFloatNumber(byte[] buffer, int offset, int length)
+  private static double toFloatNumber(ByteBuffer buffer, int offset, int length)
   {
     if (length == 4 || length == 8) {
-      byte[] tmp = new byte[length];
-      System.arraycopy(buffer, offset, tmp, 0, length);
-      reverseByteOrder(tmp, 0, length);
+      buffer.position(offset);
       switch (length) {
         case 4:
-          return ByteBuffer.wrap(tmp).getFloat();
+          return buffer.getFloat();
         case 8:
-          return ByteBuffer.wrap(tmp).getDouble();
+          return buffer.getDouble();
       }
     }
     return 0.0;
   }
 
   // Converts double value into byte array of specified length
-  private static byte[] toByteArray(double value, int length)
+  private static ByteBuffer toByteBuffer(double value, int length)
   {
     if (length == 4 || length == 8) {
-      byte[] buffer = new byte[length];
+      ByteBuffer buffer = StreamUtils.getByteBuffer(length);
       switch (length) {
         case 4:
-          ByteBuffer.wrap(buffer).putFloat((float)value);
+          buffer.putFloat((float)value);
           break;
         case 8:
-          ByteBuffer.wrap(buffer).putDouble(value);
+          buffer.putDouble(value);
           break;
       }
-      reverseByteOrder(buffer, 0, length);
+      buffer.position(0);
       return buffer;
     }
     return null;
-  }
-
-  // Toggles between big endian <-> little endian order of bytes
-  private static boolean reverseByteOrder(byte[] buffer, int offset, int length)
-  {
-    if (buffer != null && (length == 4 || length == 8)) {
-      for (int i = offset, j = offset + length - 1; i < j; i++, j--) {
-        byte tmp = buffer[i];
-        buffer[i] = buffer[j];
-        buffer[j] = tmp;
-      }
-      return true;
-    }
-    return false;
   }
 }

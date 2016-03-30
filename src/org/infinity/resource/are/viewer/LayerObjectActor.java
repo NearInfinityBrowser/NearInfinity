@@ -12,7 +12,6 @@ import org.infinity.resource.AbstractStruct;
 
 /**
  * Base class for layer type: Actor
- * @author argent77
  */
 public abstract class LayerObjectActor extends LayerObject
 {

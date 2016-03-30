@@ -4,8 +4,8 @@
 
 package org.infinity.resource;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.EnumMap;
 import java.util.List;
 
@@ -34,12 +34,13 @@ import org.infinity.datatype.UnsignDecNumber;
 import org.infinity.datatype.UpdateListener;
 import org.infinity.resource.are.Actor;
 import org.infinity.resource.itm.ItmResource;
-import org.infinity.util.DynamicArray;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.StringResource;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
+import org.infinity.util.io.ByteBufferOutputStream;
+import org.infinity.util.io.StreamUtils;
 
 public final class EffectFactory
 {
@@ -598,28 +599,27 @@ public final class EffectFactory
   /**
    * Returns the data associated with the specified structure entry.
    * @param entry The structure entry to fetch data from.
-   * @return Data as byte array.
+   * @return Data as ByteBuffer object.
    */
-  public static byte[] getEntryData(StructEntry entry)
+  public static ByteBuffer getEntryData(StructEntry entry)
   {
-    ByteArrayOutputStream os = new ByteArrayOutputStream();
-    if (entry != null) {
-      try {
-        entry.write(os);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+    ByteBuffer bb = StreamUtils.getByteBuffer(entry.getSize());
+    try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(bb)) {
+      entry.write(bbos);
+    } catch (IOException e) {
+      e.printStackTrace();
+      return null;
     }
-    return os.toByteArray();
+    return bb;
   }
 
   /**
    * Convenience function to retrieve data associated with a structure entry within struct.
    * @param struct The structure that contains the structure entry
    * @param id Indicates which effect field to process.
-   * @return Data as byte array
+   * @return Data as ByteBuffer object
    */
-  public static byte[] getEntryData(AbstractStruct struct, EffectEntry id)
+  public static ByteBuffer getEntryData(AbstractStruct struct, EffectEntry id)
   {
     if (struct != null) {
       try {
@@ -1608,12 +1608,13 @@ public final class EffectFactory
     return s_poricon;
   }
 
-  public int makeEffectStruct(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+  public int makeEffectStruct(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> s,
                               int effectType, boolean isV1) throws Exception
   {
     if (buffer != null && offset >= 0 && s != null && effectType >= 0) {
-      int param1 = DynamicArray.getInt(buffer, offset);
-      int param2 = DynamicArray.getInt(buffer, offset + 4);
+      buffer.position(offset);
+      int param1 = buffer.getInt();
+      int param2 = buffer.getInt();
 
       // setting param1 & param2
       String restype = makeEffectParams(parent, buffer, offset, s, effectType, isV1);
@@ -1637,7 +1638,7 @@ public final class EffectFactory
   }
 
 
-  private String makeEffectParams(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+  private String makeEffectParams(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> s,
                                   int effectType, boolean isV1)
   {
     final int initSize = s.size();
@@ -1669,11 +1670,11 @@ public final class EffectFactory
     return restype;
   }
 
-  private String makeEffectParamsGeneric(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
-                                         int effectType, boolean isV1)
+  private String makeEffectParamsGeneric(Datatype parent, ByteBuffer buffer, int offset,
+                                         List<StructEntry> s, int effectType, boolean isV1)
   {
     String restype = null;
-    boolean isTobEx = (Boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX);
+    boolean isTobEx = Profile.getProperty(Profile.Key.IS_GAME_TOBEX);
 
     switch (effectType) {
       case 0: // AC bonus
@@ -2131,7 +2132,7 @@ public final class EffectFactory
       case 57: // Change alignment
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new IdsBitmap(buffer, offset + 4, 4, "Alignment",
-                            (String)Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT)));
+                            Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT)));
         break;
 
       case 58: // Dispel effects
@@ -2227,7 +2228,7 @@ public final class EffectFactory
       {
         final String[] ids = new String[]{"EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS",
                                           "SPECIFIC.IDS", "GENDER.IDS",
-                                          (String)Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT)};
+                                          Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT)};
         IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4, IdsTargetType.DEFAULT_NAME_TYPE, ids);
         s.add(param2.createIdsValueFromType(buffer));
         s.add(param2);
@@ -2859,7 +2860,7 @@ public final class EffectFactory
     return restype;
   }
 
-  private String makeEffectParamsBG1(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+  private String makeEffectParamsBG1(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> s,
                                      int effectType, boolean isV1)
   {
     String restype = null;
@@ -2893,11 +2894,11 @@ public final class EffectFactory
     return restype;
   }
 
-  private String makeEffectParamsBG2(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+  private String makeEffectParamsBG2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> s,
                                      int effectType, boolean isV1)
   {
     String restype = null;
-    boolean isTobEx = (Boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX);
+    boolean isTobEx = Profile.getProperty(Profile.Key.IS_GAME_TOBEX);
 
     switch (effectType) {
       case 61: // Creature RGB color fade
@@ -3553,7 +3554,7 @@ public final class EffectFactory
       case 328: // Set state
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-          int special = DynamicArray.getInt(buffer, offset + 0x28);
+          int special = buffer.getInt(offset + 0x28);
           if (special == 1) {
             s.add(new IdsBitmap(buffer, offset + 4, 4, "State", "SPLSTATE.IDS"));
           } else {
@@ -3819,7 +3820,7 @@ public final class EffectFactory
     return restype;
   }
 
-  private String makeEffectParamsPST(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+  private String makeEffectParamsPST(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> s,
                                      int effectType, boolean isV1)
   {
     String restype = null;
@@ -3956,7 +3957,7 @@ public final class EffectFactory
     return restype;
   }
 
-  private String makeEffectParamsIWD(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+  private String makeEffectParamsIWD(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> s,
                                      int effectType, boolean isV1)
   {
     String restype = null;
@@ -4225,7 +4226,7 @@ public final class EffectFactory
     return restype;
   }
 
-  private String makeEffectParamsIWD2(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+  private String makeEffectParamsIWD2(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> s,
                                       int effectType, boolean isV1)
   {
     String restype = null;
@@ -4611,7 +4612,7 @@ public final class EffectFactory
     return restype;
   }
 
-  private void makeEffectParamsDefault(byte[] buffer, int offset, List<StructEntry> s)
+  private void makeEffectParamsDefault(ByteBuffer buffer, int offset, List<StructEntry> s)
   {
     if (s != null) {
       s.add(new DecNumber(buffer, offset, 4, EFFECT_PARAMETER_1));
@@ -4619,7 +4620,7 @@ public final class EffectFactory
     }
   }
 
-  private int makeEffectCommon1(byte[] buffer, int offset, List<StructEntry> s, boolean isV1)
+  private int makeEffectCommon1(ByteBuffer buffer, int offset, List<StructEntry> s, boolean isV1)
   {
     if (isV1) {
       s.add(new HashBitmap(buffer, offset, 1, EFFECT_TIMING_MODE, m_duration, false));
@@ -4646,7 +4647,7 @@ public final class EffectFactory
     return offset;
   }
 
-  private int makeEffectResource(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+  private int makeEffectResource(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> s,
                                  int effectType, String resourceType, int param1, int param2)
   {
     if (resourceType == null) {
@@ -4666,7 +4667,7 @@ public final class EffectFactory
     return offset;
   }
 
-  private int makeEffectCommon2(byte[] buffer, int offset, List<StructEntry> s, boolean isV1)
+  private int makeEffectCommon2(ByteBuffer buffer, int offset, List<StructEntry> s, boolean isV1)
   {
     String[] save_type = getSaveType();
     if (isV1) {
@@ -4702,7 +4703,7 @@ public final class EffectFactory
     return offset;
   }
 
-  private int makeEffectParam25(Datatype parent, byte buffer[], int offset, List<StructEntry> s,
+  private int makeEffectParam25(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> s,
                                 int effectType, String resourceType, int param1, int param2)
   {
     boolean isIWDEE = (Profile.getGame() == Profile.Game.IWDEE);

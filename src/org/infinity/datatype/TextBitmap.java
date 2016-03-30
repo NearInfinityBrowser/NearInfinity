@@ -9,7 +9,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
+import java.nio.ByteBuffer;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -23,8 +23,8 @@ import org.infinity.gui.StructViewer;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
-import org.infinity.util.DynamicArray;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.Misc;
+import org.infinity.util.io.StreamUtils;
 
 public final class TextBitmap extends Datatype implements Editable, IsTextual
 {
@@ -33,13 +33,13 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
   private JTable table;
   private String text;
 
-  public TextBitmap(byte buffer[], int offset, int length, String name, String ids[], String names[])
+  public TextBitmap(ByteBuffer buffer, int offset, int length, String name, String[] ids, String[] names)
   {
     this(null, buffer, offset, length, name, ids, names);
   }
 
-  public TextBitmap(StructEntry parent, byte buffer[], int offset, int length, String name,
-                    String ids[], String names[])
+  public TextBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
+                    String[] ids, String[] names)
   {
     super(parent, offset, length, name);
     read(buffer, offset);
@@ -118,7 +118,7 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
   @Override
   public void write(OutputStream os) throws IOException
   {
-    FileWriterNI.writeString(os, text, getSize());
+    StreamUtils.writeString(os, text, getSize());
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -126,9 +126,10 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
-    text = DynamicArray.getString(buffer, offset, getSize(), Charset.forName("US-ASCII"));
+    buffer.position(offset);
+    text = StreamUtils.readString(buffer, getSize(), Misc.CHARSET_ASCII);
 
     // filling missing characters with spaces
     if (text.length() < getSize()) {

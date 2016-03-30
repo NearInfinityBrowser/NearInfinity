@@ -24,7 +24,6 @@ import org.infinity.resource.vertex.Vertex;
 
 /**
  * Common base class for specific layer types.
- * @author argent77
  */
 public abstract class LayerObject
 {

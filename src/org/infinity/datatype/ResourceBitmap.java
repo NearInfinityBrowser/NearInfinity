@@ -11,9 +11,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +33,6 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.DynamicArray;
 
 /**
  * Datatype for selecting resource entries, constructed from a predefined list of key/value pairs.
@@ -70,19 +70,19 @@ public class ResourceBitmap extends Datatype
   private TextListPanel list;
   private long value;
 
-  public ResourceBitmap(StructEntry parent, byte[] buffer, int offset, int length, String name,
+  public ResourceBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
       List<RefEntry> resources)
   {
     this(parent, buffer, offset, length, name, resources, null, null);
   }
 
-  public ResourceBitmap(StructEntry parent, byte[] buffer, int offset, int length, String name,
+  public ResourceBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
       List<RefEntry> resources, String defLabel)
   {
     this(parent, buffer, offset, length, name, resources, defLabel, null);
   }
 
-  public ResourceBitmap(StructEntry parent, byte[] buffer, int offset, int length, String name,
+  public ResourceBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
                         List<RefEntry> resources, String defLabel, String fmt)
   {
     super(parent, offset, length, name);
@@ -240,17 +240,18 @@ public class ResourceBitmap extends Datatype
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
+    buffer.position(offset);
     switch (getSize()) {
       case 1:
-        value = (long)DynamicArray.getUnsignedByte(buffer, offset);
+        value = buffer.get() & 0xff;
         break;
       case 2:
-        value = (long)DynamicArray.getUnsignedShort(buffer, offset);
+        value = buffer.getShort() & 0xffff;
         break;
       case 4:
-        value = DynamicArray.getUnsignedInt(buffer, offset);
+        value = buffer.getInt() & 0xffffffff;
         break;
       default:
         throw new IllegalArgumentException();
@@ -350,7 +351,7 @@ public class ResourceBitmap extends Datatype
       this(value, ref, search, null);
     }
 
-    public RefEntry(long value, String ref, String search, List<File> searchDirs)
+    public RefEntry(long value, String ref, String search, List<Path> searchDirs)
     {
       this.value = value;
       this.entry = (ref.lastIndexOf('.') > 0) ? ResourceFactory.getResourceEntry(ref, true, searchDirs) : null;

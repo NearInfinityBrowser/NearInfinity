@@ -7,7 +7,6 @@ package org.infinity.resource.are.viewer;
 
 /**
  * The base class for structures that can hold a unique identifier and their data.
- * @author argent77
  */
 public abstract class BasicResource
 {

@@ -14,7 +14,8 @@ import java.awt.event.MouseListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -56,9 +57,6 @@ import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileWriterNI;
-import org.infinity.util.io.PrintWriterNI;
 
 public final class DialogChecker implements Runnable, ActionListener, ListSelectionListener, ChangeListener
 {
@@ -106,12 +104,12 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
       fc.setDialogTitle("Save result");
-      fc.setSelectedFile(new FileNI("result.txt"));
+      fc.setSelectedFile(new File(fc.getCurrentDirectory(), "result.txt"));
       if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
-        File output = fc.getSelectedFile();
-        if (output.exists()) {
+        Path output = fc.getSelectedFile().toPath();
+        if (Files.exists(output)) {
           String[] options = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(resultFrame, output + " exists. Overwrite?",
                                            "Save result", JOptionPane.YES_NO_OPTION,
@@ -119,18 +117,16 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
             return;
           }
         }
-        try {
-          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
-          pw.println("Result of triggers & actions check");
+        try (BufferedWriter bw = Files.newBufferedWriter(output)) {
+          bw.write("Result of triggers & actions check"); bw.newLine();
           if (table == errorTable) {
-            pw.println("Number of errors: " + table.getRowCount());
+            bw.write("Number of errors: " + table.getRowCount()); bw.newLine();
           } else {
-            pw.println("Number of warnings: " + table.getRowCount());
+            bw.write("Number of warnings: " + table.getRowCount()); bw.newLine();
           }
           for (int i = 0; i < table.getRowCount(); i++) {
-            pw.println(table.getTableItemAt(i).toString());
+            bw.write(table.getTableItemAt(i).toString()); bw.newLine();
           }
-          pw.close();
           JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output,
                                         "Save complete", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException ioe) {

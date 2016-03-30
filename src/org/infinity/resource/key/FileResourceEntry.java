@@ -4,30 +4,34 @@
 
 package org.infinity.resource.key;
 
-import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.Locale;
 
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.util.io.FileInputStreamNI;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileReaderNI;
+import org.infinity.util.io.ByteBufferInputStream;
+import org.infinity.util.io.StreamUtils;
 
 public final class FileResourceEntry extends ResourceEntry
 {
   private final boolean override;
-  private File file;
+  private Path file;
 
-  public FileResourceEntry(File file)
+  public FileResourceEntry(Path file)
   {
     this(file, false);
   }
 
-  public FileResourceEntry(File file, boolean override)
+  public FileResourceEntry(Path file, boolean override)
   {
     this.file = file;
     this.override = override;
@@ -36,43 +40,57 @@ public final class FileResourceEntry extends ResourceEntry
   @Override
   public String toString()
   {
-    return file.getName().toUpperCase(Locale.ENGLISH);
+    return file.getFileName().toString().toUpperCase(Locale.ENGLISH);
   }
 
-  public void deleteFile()
+  public void deleteFile() throws IOException
   {
-    file.delete();
+    Files.delete(file);
   }
 
   @Override
-  public File getActualFile(boolean ignoreoverride)
+  public Path getActualPath(boolean ignoreOverride)
   {
     return file;
   }
 
   @Override
+  public long getResourceSize(boolean ignoreOverride)
+  {
+    try {
+      return Files.size(file);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return -1L;
+  }
+
+  @Override
   public String getExtension()
   {
-    return file.getName().substring(file.getName().lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH);
+    String name = file.getFileName().toString();
+    return name.substring(name.lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH);
   }
 
   @Override
-  public byte[] getResourceData(boolean ignoreoverride) throws IOException
+  public ByteBuffer getResourceBuffer(boolean ignoreOverride) throws IOException
   {
-    InputStream is = new BufferedInputStream(new FileInputStreamNI(file));
-    byte buffer[] = FileReaderNI.readBytes(is, (int)file.length());
-    is.close();
-    return buffer;
+    try (SeekableByteChannel ch = Files.newByteChannel(file, StandardOpenOption.READ)) {
+      ByteBuffer bb = StreamUtils.getByteBuffer((int)ch.size());
+      ch.read(bb);
+      bb.position(0);
+      return bb;
+    }
   }
 
   @Override
-  public InputStream getResourceDataAsStream(boolean ignoreoverride) throws IOException
+  public InputStream getResourceDataAsStream(boolean ignoreOverride) throws IOException
   {
-    return new BufferedInputStream(new FileInputStreamNI(file));
+    return new ByteBufferInputStream(getResourceBuffer(ignoreOverride));
   }
 
   @Override
-  public int[] getResourceInfo(boolean ignoreoverride)
+  public int[] getResourceInfo(boolean ignoreOverride)
   {
     return getLocalFileInfo(file);
   }
@@ -80,22 +98,21 @@ public final class FileResourceEntry extends ResourceEntry
   @Override
   public String getResourceName()
   {
-    return file.getName();
+    return file.getFileName().toString();
   }
 
   @Override
   public String getTreeFolder()
   {
-    if (BrowserMenuBar.getInstance() != null &&
-        BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_THREE &&
+    if ((BrowserMenuBar.getInstance() != null) &&
+        (BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_THREE) &&
         hasOverride() &&
-        ResourceFactory.getKeyfile().getExtensionType(getExtension()) != -1)
+        (ResourceFactory.getKeyfile().getExtensionType(getExtension()) != -1)) {
       return getExtension();
-    else {
-      if (hasOverride()) {
+    } else if (hasOverride()) {
         return Profile.getOverrideFolderName();
-      }
-      return file.getParentFile().getName();
+    } else {
+      return file.getParent().getFileName().toString();
     }
   }
 
@@ -105,11 +122,15 @@ public final class FileResourceEntry extends ResourceEntry
     return override;
   }
 
-  public void renameFile(String newname)
+  public void renameFile(String newName, boolean overwrite) throws IOException
   {
-    File newFile = new FileNI(file.getParentFile(), newname);
-    file.renameTo(newFile);
-    file = newFile;
+    Path basePath = file.getParent();
+    CopyOption[] options = new CopyOption[overwrite ? 2 : 1];
+    options[0] = StandardCopyOption.ATOMIC_MOVE;
+    if (overwrite) {
+      options[1] = StandardCopyOption.REPLACE_EXISTING;
+    }
+    file = Files.move(file, basePath.resolve(newName), options);
   }
 }
 

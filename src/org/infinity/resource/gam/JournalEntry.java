@@ -4,6 +4,8 @@
 
 package org.infinity.resource.gam;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HashBitmap;
@@ -14,6 +16,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
 import org.infinity.util.LongIntegerHashMap;
+import org.infinity.util.io.StreamUtils;
 
 public final class JournalEntry extends AbstractStruct implements AddRemovable
 {
@@ -37,10 +40,10 @@ public final class JournalEntry extends AbstractStruct implements AddRemovable
 
   JournalEntry() throws Exception
   {
-    super(null, GAM_JOURNAL, new byte[12], 0);
+    super(null, GAM_JOURNAL, StreamUtils.getByteBuffer(12), 0);
   }
 
-  JournalEntry(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  JournalEntry(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, GAM_JOURNAL + " " + number, buffer, offset);
   }
@@ -56,7 +59,7 @@ public final class JournalEntry extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new StringRef(buffer, offset, GAM_JOURNAL_TEXT));
     addField(new DecNumber(buffer, offset + 4, 4, GAM_JOURNAL_TIME));

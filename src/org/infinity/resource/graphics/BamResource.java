@@ -28,7 +28,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
+import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -76,8 +77,8 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IntegerHashMap;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public class BamResource implements Resource, Closeable, Writeable, ActionListener,
                                     PropertyChangeListener, ChangeListener, IDataChangedListener
@@ -140,12 +141,11 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
  public void close() throws Exception
  {
    if (isRawModified()) {
-     File output = null;
+     Path output = null;
      if (entry instanceof BIFFResourceEntry) {
-       output = FileNI.getFile(Profile.getRootFolders(),
-                               Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
+       output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
      } else if (entry instanceof FileResourceEntry) {
-       output = entry.getActualFile();
+       output = entry.getActualPath();
      }
 
      if (output != null) {
@@ -169,7 +169,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
  @Override
  public void write(OutputStream os) throws IOException
  {
-   FileWriterNI.writeBytes(os, hexViewer.getData());
+   StreamUtils.writeBytes(os, hexViewer.getData());
  }
 
 //--------------------- End Interface Writeable ---------------------
@@ -247,8 +247,8 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
         } else {
           // decompress existing BAMC V1 and save as BAM V1
           try {
-            byte data[] = Compressor.decompress(entry.getResourceData());
-            ResourceFactory.exportResource(entry, data, entry.toString(),
+            ByteBuffer buffer = Compressor.decompress(entry.getResourceBuffer());
+            ResourceFactory.exportResource(entry, buffer, entry.toString(),
                                            panelMain.getTopLevelAncestor());
           } catch (Exception e) {
             e.printStackTrace();
@@ -267,18 +267,18 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
         } else {
           // compress existing BAM V1 and save as BAMC V1
           try {
-            byte data[] = Compressor.compress(entry.getResourceData(), "BAMC", "V1  ");
-            ResourceFactory.exportResource(entry, data, entry.toString(), panelMain.getTopLevelAncestor());
+            ByteBuffer buffer = Compressor.compress(entry.getResourceBuffer(), "BAMC", "V1  ");
+            ResourceFactory.exportResource(entry, buffer, entry.toString(), panelMain.getTopLevelAncestor());
           } catch (Exception e) {
             e.printStackTrace();
           }
         }
       }
     } else if (event.getSource() == miExportFramesPNG) {
-      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
       fc.setDialogTitle("Export BAM frames");
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      fc.setSelectedFile(new FileNI(fc.getCurrentDirectory(), entry.toString().replace(".BAM", "")));
+      fc.setSelectedFile(new File(fc.getCurrentDirectory(), entry.toString().replace(".BAM", "")));
 
       // Output graphics format depends on BAM type
       while (fc.getChoosableFileFilters().length > 0) {
@@ -292,7 +292,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
       fc.setFileFilter(fc.getChoosableFileFilters()[0]);
 
       if (fc.showSaveDialog(panelMain.getTopLevelAncestor()) == JFileChooser.APPROVE_OPTION) {
-        String filePath = fc.getSelectedFile().getParent();
+        Path filePath = fc.getSelectedFile().toPath().getParent();
         String fileName = fc.getSelectedFile().getName();
         String fileExt = null;
         String format = ((FileNameExtensionFilter)fc.getFileFilter()).getExtensions()[0].toLowerCase(Locale.ENGLISH);
@@ -343,7 +343,8 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
         }
         if (bamData != null) {
           if (bamData.length > 0) {
-            ResourceFactory.exportResource(entry, bamData, entry.toString(), panelMain.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(bamData),
+                                           entry.toString(), panelMain.getTopLevelAncestor());
           } else {
             JOptionPane.showMessageDialog(panelMain.getTopLevelAncestor(),
                                           "Export has been cancelled." + entry, "Information",
@@ -748,15 +749,16 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
    * @param enableTransparency Specifies whether to consider transparent pixels.
    * @return A status message describing the result of the operation (can be null).
    */
-  public static String exportFrames(BamDecoder decoder, String filePath, String fileBase,
+  public static String exportFrames(BamDecoder decoder, Path filePath, String fileBase,
                                      String fileExt, String format, boolean enableTransparency)
   {
     if (decoder == null) {
       return null;
     }
 
-    if (filePath == null)
-      filePath = ".";
+    if (filePath == null) {
+      filePath = FileManager.resolve("").toAbsolutePath();
+    }
     if (format == null || format.isEmpty() ||
         !("png".equalsIgnoreCase(format) || "bmp".equalsIgnoreCase(format))) {
       format = "png";
@@ -782,7 +784,8 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
           if (image != null) {
             decoder.frameGet(control, i, image);
             try {
-              ImageIO.write(image, format, new FileNI(filePath, fileBase + fileIndex + fileExt));
+              Path file = filePath.resolve(fileBase + fileIndex + fileExt);
+              ImageIO.write(image, format, file.toFile());
               counter++;
             } catch (IOException e) {
               failCounter++;
@@ -838,7 +841,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
   }
 
   // Exports frames as graphics, specified by "format"
-  private void exportFrames(String filePath, String fileBase, String fileExt, String format)
+  private void exportFrames(Path filePath, String fileBase, String fileExt, String format)
   {
     String msg = null;
     WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
@@ -1077,7 +1080,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
       // main header
       byte[] header = new byte[0x18];
       DynamicArray buf = DynamicArray.wrap(header, DynamicArray.ElementType.BYTE);
-      buf.put(0x00, "BAM V1  ".getBytes(Charset.forName("US-ASCII")));
+      buf.put(0x00, "BAM V1  ".getBytes());
       buf.putShort(0x08, (short)frameCount);
       buf.putByte(0x0a, (byte)cycleCount);
       buf.putByte(0x0b, (byte)0);   // compressed color index

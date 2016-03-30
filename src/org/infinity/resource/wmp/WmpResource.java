@@ -6,6 +6,7 @@ package org.infinity.resource.wmp;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import javax.swing.JComponent;
 import javax.swing.JTabbedPane;
@@ -101,7 +102,7 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
 // --------------------- End Interface Writeable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));

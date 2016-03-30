@@ -6,6 +6,7 @@ package org.infinity.resource.gam;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -265,7 +266,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     TextString version = new TextString(buffer, offset + 4, 4, COMMON_VERSION);
@@ -475,8 +476,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
         HexNumber offEOS = new HexNumber(buffer, offset, 4, GAM_OFFSET_END_OF_UNKNOWN_STRUCTURE);
         addField(offEOS);
         offset += 4;
-        int unknownSize = (offEOS.getValue() > buffer.length - 4) ?
-                              buffer.length - offset - 4 : offEOS.getValue() - offset;
+        int unknownSize = (offEOS.getValue() > buffer.limit() - 4) ?
+                              buffer.limit() - offset - 4 : offEOS.getValue() - offset;
         addField(new Unknown(buffer, offset, unknownSize, GAM_UNKNOWN_STRUCTURE));
         offset += unknownSize;
         addField(new Unknown(buffer, offset, 4));
@@ -496,7 +497,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
         HexNumber offEOS = new HexNumber(buffer, offset, 4, GAM_OFFSET_END_OF_UNKNOWN_STRUCTURE);
         addField(offEOS);
         offset += 4;
-        int unknownSize = offEOS.getValue() > buffer.length ? buffer.length - offset : offEOS.getValue() - offset;
+        int unknownSize = offEOS.getValue() > buffer.limit() ? buffer.limit() - offset : offEOS.getValue() - offset;
         addField(new Unknown(buffer, offset, unknownSize, GAM_UNKNOWN_STRUCTURE));
         offset += unknownSize;
       }

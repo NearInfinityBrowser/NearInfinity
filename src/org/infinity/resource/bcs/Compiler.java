@@ -4,6 +4,7 @@
 
 package org.infinity.resource.bcs;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +30,7 @@ import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.Misc;
+import org.infinity.util.io.StreamUtils;
 
 public final class Compiler
 {
@@ -183,8 +185,8 @@ public final class Compiler
     if (bafEntry == null) {
       throw new NullPointerException();
     }
-    byte[] data = bafEntry.getResourceData();
-    this.source = (data.length > 0) ? new String(data) : "";
+    ByteBuffer buffer = bafEntry.getResourceBuffer();
+    this.source = StreamUtils.readString(buffer, buffer.limit());
     reset();
   }
 
@@ -738,22 +740,11 @@ public final class Compiler
   {
     try {
       if (value.length() > 2 && value.substring(0, 2).equalsIgnoreCase("0x")) {
-        long nr = Long.parseLong(value.substring(2), 16);
-        if (nr >= 2147483648L)
-          nr -= 4294967296L;
-        return String.valueOf(nr);
-      }
-      else {
-      // XXX: What is the purpose of this?
-      // Maybe unsigned -> signed conversion?
-      // Why not simply cast it to (int)?
-        long nr = Long.parseLong(value);
-        if (nr >= 2147483648L) {
-          nr -= 4294967296L;
-          return String.valueOf(nr);
-        }
-        else
-          return value;
+        int nr = Integer.parseInt(value.substring(2), 16);
+        return Integer.toString(nr);
+      } else {
+        int nr = Integer.parseInt(value);
+        return Integer.toString(nr);
       }
     } catch (NumberFormatException e) {
     }
@@ -780,9 +771,7 @@ public final class Compiler
         }
         nr += idsentry.getID();
       }
-      if (nr >= 2147483648L)
-        nr -= 4294967296L;
-      return String.valueOf(nr);
+      return Integer.toString((int)nr);
     }
     else {
       String error = value + " not found in " + idsmap;
@@ -1292,7 +1281,7 @@ public final class Compiler
     {
       if (entry != null) {
         try {
-          AreResource.addScriptNames(scriptNamesAre, entry.getResourceData());
+          AreResource.addScriptNames(scriptNamesAre, entry.getResourceBuffer());
         }
         catch (Exception e) {
         }

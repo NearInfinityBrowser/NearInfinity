@@ -14,7 +14,6 @@ import org.infinity.resource.are.SpawnPoint;
 
 /**
  * Manages spawn point layer objects.
- * @author argent77
  */
 public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
 {

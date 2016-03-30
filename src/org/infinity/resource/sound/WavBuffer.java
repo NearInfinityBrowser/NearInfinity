@@ -12,7 +12,6 @@ import org.infinity.util.DynamicArray;
 
 /**
  * Loads and provides access to uncompressed PCM WAV audio data.
- * @author argent77
  */
 public class WavBuffer extends AudioBuffer
 {

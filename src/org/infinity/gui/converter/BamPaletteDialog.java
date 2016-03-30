@@ -17,10 +17,10 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -49,11 +49,10 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
-import org.infinity.util.io.FileInputStreamNI;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * A dialog for managing BAM v1 palette entries.
- * @author argent77
  */
 class BamPaletteDialog extends JDialog
     implements FocusListener, ActionListener, ChangeListener, ColorGrid.MouseOverListener
@@ -241,38 +240,29 @@ class BamPaletteDialog extends JDialog
   }
 
   /** Loads the palette from the specified file resource into the specified palette slot. */
-  public void loadExternalPalette(int type, File paletteFile) throws Exception
+  public void loadExternalPalette(int type, Path paletteFile) throws Exception
   {
     if (type != TYPE_EXTERNAL && type != TYPE_GENERATED) {
       throw new Exception("Internal error: Invalid palette slot specified!");
     }
 
     // fetching file signature
-    if (paletteFile != null && paletteFile.exists()) {
-      FileInputStream fis = null;
+    if (paletteFile != null && Files.isRegularFile(paletteFile)) {
       byte[] signature = new byte[8];
-      try {
-        fis = new FileInputStreamNI(paletteFile);
-        try {
-          fis.read(signature);
-        } finally {
-          if (fis != null) {
-            fis.close();
-            fis = null;
-          }
-        }
+      try (InputStream is = StreamUtils.getInputStream(paletteFile)) {
+        is.read(signature);
       } catch (IOException e) {
-        throw new Exception("Error reading from file " + paletteFile.getName());
+        throw new Exception("Error reading from file " + paletteFile.getFileName());
       }
 
       // fetching palette data
       int[] palette = null;
-      if ("BM".equals(new String(signature, 0, 2, Charset.forName("US-ASCII")))) {
+      if ("BM".equals(new String(signature, 0, 2))) {
         palette = ColorConvert.loadPaletteBMP(paletteFile);
-      } else if ("RIFF".equals(new String(signature, 0, 4, Charset.forName("US-ASCII")))) {
+      } else if ("RIFF".equals(new String(signature, 0, 4))) {
         palette = ColorConvert.loadPalettePAL(paletteFile);
       } else {
-        String s = new String(signature, Charset.forName("US-ASCII"));
+        String s = new String(signature);
         if ("BAM V1  ".equals(s) || "BAMCV1  ".equals(s)) {
           palette = ColorConvert.loadPaletteBAM(paletteFile);
         } else {
@@ -290,7 +280,7 @@ class BamPaletteDialog extends JDialog
           palettes[type][i] = 0;
         }
       } else {
-        throw new Exception("No palette found in file " + paletteFile.getName());
+        throw new Exception("No palette found in file " + paletteFile.getFileName());
       }
     } else {
       throw new Exception("File does not exist.");
@@ -419,7 +409,7 @@ class BamPaletteDialog extends JDialog
       miPaletteClear.setEnabled(false);
       lInfoType.setText(PaletteTypeInfo[currentPaletteType]);
     } else if (event.getSource() == miPaletteSet) {
-      File[] files = ConvertToBam.getOpenFileName(this, "Load palette from", null, false, ConvertToBam.getPaletteFilters(), 0);
+      Path[] files = ConvertToBam.getOpenFileName(this, "Load palette from", null, false, ConvertToBam.getPaletteFilters(), 0);
       if (files != null && files.length > 0) {
         try {
           loadExternalPalette(TYPE_EXTERNAL, files[0]);

@@ -23,7 +23,6 @@ import org.infinity.util.IdsMapEntry;
 /**
  * A token maker that turns text into a linked list of {@code Token}s
  * for syntax highlighting Infinity Engine BCS scripts.
- * @author argent77
  */
 public class BCSTokenMaker extends AbstractTokenMaker
 {

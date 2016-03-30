@@ -4,13 +4,14 @@
 
 package org.infinity.util;
 
-import java.nio.charset.Charset;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * Parses Infinity Engine INI files.
@@ -95,42 +96,23 @@ public class IniMap
   private void init(ResourceEntry entry, boolean ignoreComments)
   {
     // reading and storing unprocessed lines of text
-    List<String> lines = new ArrayList<String>();
+    String[] lines = null;
     if (entry != null) {
       try {
-        byte[] data = entry.getResourceData();
-        int ofs = 0;
-        int start = 0;
-        while (ofs < data.length) {
-          byte b = data[ofs];
-          if (b == 0x0d || b == 0x0a) { // newline
-            String s = new String(data, start, ofs - start, Charset.forName("windows-1252"));
-            lines.add(s.trim());
-            if (b == 0x0d && ofs+1 < data.length && data[ofs+1] == 0x0a) {
-              ofs++;
-            }
-            start = ofs;
-          }
-          ofs++;
-        }
-
-        // adding last line if available
-        if (ofs > start) {
-          String s = new String(data, start, ofs - start, Charset.forName("windows-1252"));
-          lines.add(s.trim());
-        }
+        ByteBuffer bb = entry.getResourceBuffer();
+        lines = StreamUtils.readString(bb, bb.limit(), Misc.CHARSET_DEFAULT).split("\r?\n");
       } catch (Exception e) {
         e.printStackTrace();
+        return;
       }
     }
-
 
     // parsing lines
     String curSection = null;
     int curSectionLine = 0;
     List<IniMapEntry> section = new ArrayList<IniMapEntry>();
-    for (int i = 0, count = lines.size(); i < count; i++) {
-      final String line = lines.get(i);
+    for (int i = 0, count = lines.length; i < count; i++) {
+      final String line = lines[i].trim();
       if (Pattern.matches("^\\[.+\\]$", line)) {  // new section found
         // storing content of previous section
         if (curSection != null || section.size() > 0) {

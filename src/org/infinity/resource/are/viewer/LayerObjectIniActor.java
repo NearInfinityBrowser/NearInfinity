@@ -23,7 +23,6 @@ import org.infinity.util.IniMapSection;
 
 /**
  * Handles specific layer type: INI/Actor
- * @author argent77
  */
 public class LayerObjectIniActor extends LayerObjectActor
 {

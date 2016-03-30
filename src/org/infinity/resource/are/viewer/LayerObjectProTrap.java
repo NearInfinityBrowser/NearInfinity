@@ -20,7 +20,6 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
 
 /**
  * Handles specific layer type: ARE/Projectile Trap
- * @author argent77
  */
 public class LayerObjectProTrap extends LayerObject
 {

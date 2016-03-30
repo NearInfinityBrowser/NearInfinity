@@ -4,6 +4,8 @@
 
 package org.infinity.resource.gam;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 
@@ -12,13 +14,13 @@ final class UnknownSection3 extends AbstractStruct
   // GAM/Unknown-specific field labels
   public static final String GAM_UNKNOWN  = "Unknown section";
 
-  UnknownSection3(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  UnknownSection3(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception
   {
     super(superStruct, GAM_UNKNOWN, buffer, offset);
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new Unknown(buffer, offset, 24));
     return offset + 24;

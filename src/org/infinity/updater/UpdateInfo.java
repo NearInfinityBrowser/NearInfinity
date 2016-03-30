@@ -5,13 +5,12 @@
 package org.infinity.updater;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -23,6 +22,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.infinity.util.Pair;
+import org.infinity.util.io.StreamUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
@@ -106,10 +106,10 @@ public class UpdateInfo
    * @return {@code true} if the file content conforms to the update.xml specification,
    *         {@code false} otherwise.
    */
-  public static boolean isValidXml(File f)
+  public static boolean isValidXml(Path f)
   {
-    try {
-      return isValidXml(new FileInputStream(f), f.getParentFile().getAbsolutePath());
+    try (InputStream is = StreamUtils.getInputStream(f)) {
+      return isValidXml(is, f.getParent().toAbsolutePath().toString());
     } catch (IOException e) {
     }
     return false;
@@ -150,9 +150,11 @@ public class UpdateInfo
    * Read update information from the specified file.
    * @param f The file containing update information in XML format.
    */
-  public UpdateInfo(File f) throws Exception
+  public UpdateInfo(Path f) throws Exception
   {
-    parseXml(new FileInputStream(f), f.getParentFile().getAbsolutePath());
+    try (InputStream is = StreamUtils.getInputStream(f)) {
+      parseXml(is, f.getParent().toAbsolutePath().toString());
+    }
   }
 
   /**

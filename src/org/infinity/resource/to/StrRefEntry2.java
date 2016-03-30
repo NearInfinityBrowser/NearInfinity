@@ -4,9 +4,12 @@
 
 package org.infinity.resource.to;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.HexNumber;
 import org.infinity.datatype.StringRef;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.util.io.StreamUtils;
 
 public class StrRefEntry2 extends AbstractStruct
 {
@@ -17,21 +20,21 @@ public class StrRefEntry2 extends AbstractStruct
 
   public StrRefEntry2() throws Exception
   {
-    super(null, TOH_STRREF, new byte[8], 0);
+    super(null, TOH_STRREF, StreamUtils.getByteBuffer(8), 0);
   }
 
-  public StrRefEntry2(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public StrRefEntry2(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, TOH_STRREF + " " + nr, buffer, offset);
   }
 
-  public StrRefEntry2(AbstractStruct superStruct, String name, byte[] buffer, int offset) throws Exception
+  public StrRefEntry2(AbstractStruct superStruct, String name, ByteBuffer buffer, int offset) throws Exception
   {
     super(superStruct, name, buffer, offset);
   }
 
   @Override
-  public int read(byte[] buffer, int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new StringRef(buffer, offset, TOH_STRREF_OVERRIDDEN));
     addField(new HexNumber(buffer, offset + 4, 4, TOH_STRREF_OFFSET_STRING));

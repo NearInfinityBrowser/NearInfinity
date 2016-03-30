@@ -4,6 +4,7 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.infinity.resource.ResourceFactory;
@@ -13,12 +14,12 @@ import org.infinity.resource.text.PlainTextResource;
 
 public final class SpawnResourceRef extends ResourceRef
 {
-  public SpawnResourceRef(byte h_buffer[], int offset, String name)
+  public SpawnResourceRef(ByteBuffer h_buffer, int offset, String name)
   {
     this(null, h_buffer, offset, name);
   }
 
-  public SpawnResourceRef(StructEntry parent, byte h_buffer[], int offset, String name)
+  public SpawnResourceRef(StructEntry parent, ByteBuffer h_buffer, int offset, String name)
   {
     super(parent, h_buffer, offset, name, "CRE");
   }

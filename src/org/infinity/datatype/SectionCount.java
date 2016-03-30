@@ -4,18 +4,20 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.StructEntry;
 
 public final class SectionCount extends DecNumber
 {
   private final Class<? extends StructEntry> section;
 
-  public SectionCount(byte buffer[], int offset, int length, String desc, Class<? extends StructEntry> section)
+  public SectionCount(ByteBuffer buffer, int offset, int length, String desc, Class<? extends StructEntry> section)
   {
     this(null, buffer, offset, length, desc, section);
   }
 
-  public SectionCount(StructEntry parent, byte buffer[], int offset, int length, String desc,
+  public SectionCount(StructEntry parent, ByteBuffer buffer, int offset, int length, String desc,
                       Class<? extends StructEntry> section)
   {
     super(parent, buffer, offset, length, desc);

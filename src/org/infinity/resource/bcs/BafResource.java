@@ -10,11 +10,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Set;
@@ -50,10 +53,9 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.Decryptor;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileOutputStreamNI;
-import org.infinity.util.io.FileWriterNI;
-import org.infinity.util.io.PrintWriterNI;
+import org.infinity.util.Misc;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public class BafResource implements TextResource, Writeable, Closeable, ItemListener, ActionListener,
                                     DocumentListener
@@ -85,13 +87,11 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   public BafResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
-    byte data[] = entry.getResourceData();
-    if (data.length == 0)
-      text = "";
-    else if (data[0] == -1)
-      text = Decryptor.decrypt(data, 2, data.length);
-    else
-      text = new String(data);
+    ByteBuffer buffer = entry.getResourceBuffer();
+    if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
+      buffer = Decryptor.decrypt(buffer, 2);
+    }
+    text = StreamUtils.readString(buffer, buffer.limit());
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -194,7 +194,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       }
     } else if (buttonPanel.getControlByType(CtrlSaveScript) == event.getSource()) {
       if (chooser == null) {
-        chooser = new JFileChooser(Profile.getGameRoot());
+        chooser = new JFileChooser(Profile.getGameRoot().toFile());
         chooser.setDialogTitle("Save source code");
         chooser.setFileFilter(new javax.swing.filechooser.FileFilter()
         {
@@ -211,14 +211,12 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
           }
         });
       }
-      chooser.setSelectedFile(
-              new FileNI(entry.toString().substring(0, entry.toString().indexOf((int)'.')) + ".BCS"));
+      chooser.setSelectedFile(new File(StreamUtils.replaceFileExtension(entry.toString(), "BCS")));
       int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
       if (returnval == JFileChooser.APPROVE_OPTION) {
-        try {
-          PrintWriter pw = new PrintWriterNI(new FileOutputStreamNI(chooser.getSelectedFile()));
-          pw.println(codeText.getText());
-          pw.close();
+        try (BufferedWriter bw = Files.newBufferedWriter(chooser.getSelectedFile().toPath())) {
+          bw.write(codeText.getText().replaceAll("\r?\n", Misc.LINE_SEPARATOR));
+          bw.newLine();
           JOptionPane.showMessageDialog(panel, "File saved to \"" + chooser.getSelectedFile().toString() +
                                                '\"', "Save completed", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
@@ -241,13 +239,12 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   public void close() throws Exception
   {
     if (sourceChanged) {
-      File output;
-      if (entry instanceof BIFFResourceEntry)
-        output =
-            FileNI.getFile(Profile.getRootFolders(),
-                 Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
-      else
-        output = entry.getActualFile();
+      Path output;
+      if (entry instanceof BIFFResourceEntry) {
+        output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
+      } else {
+        output = entry.getActualPath();
+      }
       String options[] = {"Save changes", "Discard changes", "Cancel"};
       int result = JOptionPane.showOptionDialog(panel, "Save changes to " + output + '?', "Resource changed",
                                                 JOptionPane.YES_NO_CANCEL_OPTION,
@@ -498,7 +495,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   public void write(OutputStream os) throws IOException
   {
     if (sourceText == null) {
-      FileWriterNI.writeString(os, text, text.length());
+      StreamUtils.writeString(os, text, text.length());
     } else {
       sourceText.write(new OutputStreamWriter(os));
     }

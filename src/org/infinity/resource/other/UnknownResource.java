@@ -13,10 +13,11 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
+// import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -50,8 +51,8 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public final class UnknownResource implements Resource, Closeable, Writeable, ActionListener,
                                               ChangeListener, DocumentListener, CaretListener,
@@ -94,12 +95,11 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
  public void close() throws Exception
  {
    if (isTextModified() || isRawModified()) {
-     File output = null;
+     Path output = null;
      if (entry instanceof BIFFResourceEntry) {
-       output = FileNI.getFile(Profile.getRootFolders(),
-                               Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
+       output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
      } else if (entry instanceof FileResourceEntry) {
-       output = entry.getActualFile();
+       output = entry.getActualPath();
      }
 
      if (output != null) {
@@ -271,9 +271,9 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
   public void write(OutputStream os) throws IOException
   {
     if (tabbedPane.getSelectedIndex() == TAB_TEXT) {
-      FileWriterNI.writeString(os, editor.getText(), editor.getText().length(), textCharset);
+      StreamUtils.writeString(os, editor.getText(), editor.getText().length(), textCharset);
     } else {
-      FileWriterNI.writeBytes(os, hexViewer.getData());
+      StreamUtils.writeBytes(os, hexViewer.getData());
     }
   }
 
@@ -449,7 +449,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
           boolean success = false;
           try {
             // try to determine character encoding format of text data
-            final byte[] data = isRawModified() ? hexViewer.getData() : entry.getResourceData();
+            final byte[] data = isRawModified() ? hexViewer.getData() : StreamUtils.toArray(entry.getResourceBuffer());
             textCharset = Misc.detectCharset(data);
             editor.setText(new String(data, textCharset));
             editor.setCaretPosition(0);

@@ -31,7 +31,6 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 /**
  * Color filter: adjust brightness, contrast and gamma.
- * @author argent77
  */
 public class BamFilterColorBCG extends BamFilterBaseColor
     implements ChangeListener, ActionListener

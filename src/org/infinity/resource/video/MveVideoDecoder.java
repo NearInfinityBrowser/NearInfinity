@@ -13,11 +13,10 @@ import java.util.Arrays;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.video.MveDecoder.MveInfo;
 import org.infinity.resource.video.MveDecoder.MveSegment;
-import org.infinity.util.io.FileReaderNI;
+import org.infinity.util.Misc;
 
 /**
  * Decodes a single 8x8 pixel block of video data. (Internally used by MveDecoder)
- * @author argent77
  */
 public class MveVideoDecoder
 {
@@ -405,8 +404,8 @@ public class MveVideoDecoder
   private void decode8_05(int startX, int startY, MveSegment segment)
   {
     // block is copied from nearby (all directions) of previous buffer - long ranged
-    int x = FileReaderNI.signExtend(segment.getBits(8), 8);
-    int y = FileReaderNI.signExtend(segment.getBits(8), 8);
+    int x = Misc.signExtend(segment.getBits(8), 8);
+    int y = Misc.signExtend(segment.getBits(8), 8);
     copyBlock8x8(prevBuffer, startX + x, startY + y, startX, startY);
   }
 
@@ -750,8 +749,8 @@ public class MveVideoDecoder
   private void decode16_05(int startX, int startY, MveSegment segment)
   {
     // block is copied from nearby (all directions) of previous buffer - long ranged
-    int x = FileReaderNI.signExtend(segment.getBits(8), 8);
-    int y = FileReaderNI.signExtend(segment.getBits(8), 8);
+    int x = Misc.signExtend(segment.getBits(8), 8);
+    int y = Misc.signExtend(segment.getBits(8), 8);
     copyBlock8x8(prevBuffer, startX + x, startY + y, startX, startY);
   }
 

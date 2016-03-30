@@ -10,13 +10,13 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.io.FileReaderNI;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * Common base class for handling BAM resources.
- * @author argent77
  */
 public abstract class BamDecoder
 {
@@ -46,8 +46,8 @@ public abstract class BamDecoder
       try {
         InputStream is = bamEntry.getResourceDataAsStream();
         if (is != null) {
-          String signature = FileReaderNI.readString(is, 4);
-          String version = FileReaderNI.readString(is, 4);
+          String signature = StreamUtils.readString(is, 4);
+          String version = StreamUtils.readString(is, 4);
           is.close();
           if ("BAMC".equals(signature)) {
             retVal = Type.BAMC;
@@ -144,7 +144,7 @@ public abstract class BamDecoder
   public abstract void reload();
 
   /** Returns the raw data of the BAM resource. */
-  public abstract byte[] getResourceData();
+  public abstract ByteBuffer getResourceBuffer();
 
   /** Returns the total number of available frames. */
   public abstract int frameCount();

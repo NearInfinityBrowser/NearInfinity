@@ -9,7 +9,6 @@ import java.awt.Point;
 
 /**
  * Required by the AnimatedLayerItem class to properly draw graphical data.
- * @author argent77
  */
 public interface BasicAnimationProvider
 {

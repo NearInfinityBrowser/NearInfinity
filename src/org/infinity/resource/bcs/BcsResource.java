@@ -10,11 +10,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -53,16 +55,13 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ScriptReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.Decryptor;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileOutputStreamNI;
-import org.infinity.util.io.FileWriterNI;
-import org.infinity.util.io.PrintWriterNI;
+import org.infinity.util.Misc;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public final class BcsResource implements TextResource, Writeable, Closeable, ActionListener, ItemListener,
                                           DocumentListener
 {
-  private static final boolean DEBUG = false;
-
   // for decompile panel
   private static final ButtonPanel.Control CtrlCompile    = ButtonPanel.Control.CUSTOM_1;
   private static final ButtonPanel.Control CtrlErrors     = ButtonPanel.Control.CUSTOM_2;
@@ -89,13 +88,11 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
   public BcsResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
-    byte data[] = entry.getResourceData();
-    if (data.length == 0)
-      text = "";
-    else if (data[0] == -1)
-      text = Decryptor.decrypt(data, 2, data.length);
-    else
-      text = new String(data);
+    ByteBuffer buffer = entry.getResourceBuffer();
+    if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
+      buffer = Decryptor.decrypt(buffer, 2);
+    }
+    text = StreamUtils.readString(buffer, buffer.limit());
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -109,26 +106,12 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       ButtonPopupMenu bpmErrors = (ButtonPopupMenu)bpDecompile.getControlByType(CtrlErrors);
       ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)bpDecompile.getControlByType(CtrlWarnings);
       Compiler compiler = new Compiler(sourceText.getText());
-      try {
-        if (DEBUG) {
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI("bcs_org.txt"));
-          write(bos);
-          bos.close();
-        }
-        codeText.setText(compiler.getCode());
-        codeText.setCaretPosition(0);
-        bCompile.setEnabled(false);
-        bDecompile.setEnabled(false);
-        sourceChanged = false;
-        codeChanged = true;
-        if (DEBUG) {
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI("bcs_new.txt"));
-          write(bos);
-          bos.close();
-        }
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+      codeText.setText(compiler.getCode());
+      codeText.setCaretPosition(0);
+      bCompile.setEnabled(false);
+      bDecompile.setEnabled(false);
+      sourceChanged = false;
+      codeChanged = true;
       iexportscript.setEnabled(compiler.getErrors().size() == 0);
       SortedMap<Integer, String> errorMap = compiler.getErrors();
       SortedMap<Integer, String> warningMap = compiler.getWarnings();
@@ -225,13 +208,11 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       } else if (result == 2 || result == JOptionPane.CLOSED_OPTION)
         throw new Exception("Save aborted");
     } else if (codeChanged) {
-      File output;
+      Path output;
       if (entry instanceof BIFFResourceEntry) {
-        output =
-            FileNI.getFile(Profile.getRootFolders(),
-                 Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
+        output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
       } else {
-        output = entry.getActualFile();
+        output = entry.getActualPath();
       }
       String options[] = {"Save changes", "Discard changes", "Cancel"};
       int result = JOptionPane.showOptionDialog(panel, "Save changes to " + output + '?', "Resource changed",
@@ -329,7 +310,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       ButtonPopupMenu bpmExport = (ButtonPopupMenu)event.getSource();
       if (bpmExport.getSelectedItem() == iexportsource) {
         if (chooser == null) {
-          chooser = new JFileChooser(Profile.getGameRoot());
+          chooser = new JFileChooser(Profile.getGameRoot().toFile());
           chooser.setDialogTitle("Export source");
           chooser.setFileFilter(new FileFilter()
           {
@@ -346,14 +327,12 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
             }
           });
         }
-        chooser.setSelectedFile(
-                new FileNI(entry.toString().substring(0, entry.toString().indexOf((int)'.')) + ".BAF"));
+        chooser.setSelectedFile(new File(StreamUtils.replaceFileExtension(entry.toString(), "BAF")));
         int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
         if (returnval == JFileChooser.APPROVE_OPTION) {
-          try {
-            PrintWriter pw = new PrintWriterNI(new FileOutputStreamNI(chooser.getSelectedFile()));
-            pw.println(sourceText.getText());
-            pw.close();
+          try (BufferedWriter bw = Files.newBufferedWriter(chooser.getSelectedFile().toPath())) {
+            bw.write(sourceText.getText().replaceAll("\r?\n", Misc.LINE_SEPARATOR));
+            bw.newLine();
             JOptionPane.showMessageDialog(panel, "File saved to \"" + chooser.getSelectedFile().toString() +
                                                  '\"', "Export complete", JOptionPane.INFORMATION_MESSAGE);
           } catch (IOException e) {
@@ -541,10 +520,11 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
   @Override
   public void write(OutputStream os) throws IOException
   {
-    if (codeText == null)
-      FileWriterNI.writeString(os, text, text.length());
-    else
-      FileWriterNI.writeString(os, codeText.getText(), codeText.getText().length());
+    if (codeText == null) {
+      StreamUtils.writeString(os, text, text.length());
+    } else {
+      StreamUtils.writeString(os, codeText.getText(), codeText.getText().length());
+    }
   }
 
 // --------------------- End Interface Writeable ---------------------

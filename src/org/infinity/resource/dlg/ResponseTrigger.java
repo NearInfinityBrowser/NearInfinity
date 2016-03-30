@@ -4,6 +4,8 @@
 
 package org.infinity.resource.dlg;
 
+import java.nio.ByteBuffer;
+
 public final class ResponseTrigger extends AbstractCode
 {
   // DLG/ResponseTrigger-specific field labels
@@ -16,7 +18,7 @@ public final class ResponseTrigger extends AbstractCode
     super(DLG_RESPONSETRIGGER);
   }
 
-  ResponseTrigger(byte buffer[], int offset, int count)
+  ResponseTrigger(ByteBuffer buffer, int offset, int count)
   {
     super(buffer, offset, DLG_RESPONSETRIGGER + " " + count);
     this.nr = count;

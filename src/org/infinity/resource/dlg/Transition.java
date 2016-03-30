@@ -4,12 +4,15 @@
 
 package org.infinity.resource.dlg;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public final class Transition extends AbstractStruct implements AddRemovable
 {
@@ -30,10 +33,10 @@ public final class Transition extends AbstractStruct implements AddRemovable
 
   Transition() throws Exception
   {
-    super(null, DLG_TRANS, new byte[32], 0);
+    super(null, DLG_TRANS, StreamUtils.getByteBuffer(32), 0);
   }
 
-  Transition(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  Transition(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, DLG_TRANS + " " + nr, buffer, offset);
     this.nr = nr;
@@ -98,7 +101,7 @@ public final class Transition extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new Flag(buffer, offset, 4, DLG_TRANS_FLAGS, s_flag));
     addField(new StringRef(buffer, offset + 4, DLG_TRANS_TEXT));

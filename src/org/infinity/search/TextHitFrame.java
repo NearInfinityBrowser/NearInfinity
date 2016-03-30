@@ -14,7 +14,8 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,9 +44,6 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileWriterNI;
-import org.infinity.util.io.PrintWriterNI;
 
 final class TextHitFrame extends ChildFrame implements ActionListener, ListSelectionListener
 {
@@ -148,25 +146,24 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser chooser = new JFileChooser(Profile.getGameRoot());
+      JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
       chooser.setDialogTitle("Save search result");
-      chooser.setSelectedFile(new FileNI("result.txt"));
+      chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "result.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-        File output = chooser.getSelectedFile();
-        if (output.exists()) {
+        Path output = chooser.getSelectedFile().toPath();
+        if (Files.exists(output)) {
           String options[] = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?",
                                            "Save result", JOptionPane.YES_NO_OPTION,
                                            JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
             return;
         }
-        try {
-          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
-          pw.println("Searched for: " + query);
-          pw.println("Number of hits: " + table.getRowCount());
-          for (int i = 0; i < table.getRowCount(); i++)
-            pw.println(table.getTableItemAt(i).toString());
-          pw.close();
+        try (BufferedWriter bw = Files.newBufferedWriter(output)) {
+          bw.write("Searched for: " + query); bw.newLine();
+          bw.write("Number of hits: " + table.getRowCount()); bw.newLine();
+          for (int i = 0; i < table.getRowCount(); i++) {
+            bw.write(table.getTableItemAt(i).toString()); bw.newLine();
+          }
           JOptionPane.showMessageDialog(this, "Result saved to " + output, "Save complete",
                                         JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {

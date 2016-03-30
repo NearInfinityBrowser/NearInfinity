@@ -33,10 +33,13 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -44,7 +47,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -112,7 +114,8 @@ import org.infinity.util.IniMapSection;
 import org.infinity.util.Misc;
 import org.infinity.util.Pair;
 import org.infinity.util.SimpleListModel;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public class ConvertToBam extends ChildFrame
   implements ActionListener, PropertyChangeListener, FocusListener, ChangeListener,
@@ -156,7 +159,7 @@ public class ConvertToBam extends ChildFrame
   static final int BAM_ORIGINAL = 0;    // the original unprocessed frames list
   static final int BAM_FINAL    = 1;    // final frames list including palette and/or post-processor
 
-  private static String currentPath;
+  private static Path currentPath;
 
   // Global BamDecoder instance for managing frames and cycles
   private final PseudoBamDecoder bamDecoder = new PseudoBamDecoder();
@@ -212,7 +215,7 @@ public class ConvertToBam extends ChildFrame
   private boolean isPreviewModified, isPreviewPlaying;
   private double currentFps;
   private int pmCur, pmMax;
-  private String bamOutputFileName;
+  private Path bamOutputFile;
 
 
   /** Validates numberString and modifies it to fit into the specified limits. */
@@ -280,17 +283,16 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Returns a list of files that can be specified in an "Open file" dialog. */
-  public static File[] getOpenFileName(Component parent, String title, String rootPath,
+  public static Path[] getOpenFileName(Component parent, String title, Path rootPath,
                                        boolean selectMultiple,
                                        FileNameExtensionFilter[] filters, int filterIndex)
   {
-    if (rootPath == null || rootPath.isEmpty()) {
+    if (rootPath == null) {
       rootPath = currentPath;
     }
-    JFileChooser fc = new JFileChooser(rootPath);
-    File file = new FileNI(rootPath);
-    if (!file.isDirectory()) {
-        fc.setSelectedFile(file);
+    JFileChooser fc = new JFileChooser(rootPath.toFile());
+    if (!Files.isDirectory(rootPath)) {
+        fc.setSelectedFile(rootPath.toFile());
     }
     if (title == null) {
       title = selectMultiple ? "Select file(s)" : "Select file";
@@ -310,12 +312,17 @@ public class ConvertToBam extends ChildFrame
     if (fc.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
       if (selectMultiple) {
         if (fc.getSelectedFiles().length > 0) {
-          currentPath = fc.getSelectedFiles()[0].getParent();
+          currentPath = fc.getSelectedFiles()[0].toPath().getParent();
         }
-        return fc.getSelectedFiles();
+        File[] files = fc.getSelectedFiles();
+        Path[] paths = new Path[files.length];
+        for (int i = 0; i < files.length; i++) {
+          paths[i] = files[i].toPath();
+        }
+        return paths;
       } else {
-        currentPath = fc.getSelectedFile().getParent();
-        return new File[]{fc.getSelectedFile()};
+        currentPath = fc.getSelectedFile().toPath().getParent();
+        return new Path[]{fc.getSelectedFile().toPath()};
       }
     } else {
       return null;
@@ -323,12 +330,12 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Returns a path name from a "Select path" dialog. */
-  public static File getOpenPathName(Component parent, String title, String rootPath)
+  public static Path getOpenPathName(Component parent, String title, Path rootPath)
   {
-    if (rootPath == null || rootPath.isEmpty()) {
+    if (rootPath == null) {
       rootPath = currentPath;
     }
-    JFileChooser fc = new JFileChooser(rootPath);
+    JFileChooser fc = new JFileChooser(rootPath.toFile());
     if (title == null) {
       title = "Select folder";
     }
@@ -336,24 +343,23 @@ public class ConvertToBam extends ChildFrame
     fc.setDialogType(JFileChooser.OPEN_DIALOG);
     fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     if (fc.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
-      currentPath = fc.getSelectedFile().toString();
-      return fc.getSelectedFile();
+      currentPath = fc.getSelectedFile().toPath();
+      return currentPath;
     } else {
       return null;
     }
   }
 
   /** Returns a filename that can be specified in a "Save file" dialog */
-  public static File getSaveFileName(Component parent, String title, String rootPath,
+  public static Path getSaveFileName(Component parent, String title, Path rootPath,
                                      FileNameExtensionFilter[] filters, int filterIndex)
   {
-    if (rootPath == null || rootPath.isEmpty()) {
+    if (rootPath == null) {
       rootPath = currentPath;
     }
-    JFileChooser fc = new JFileChooser(rootPath);
-    File file = new FileNI(rootPath);
-    if (!file.isDirectory()) {
-        fc.setSelectedFile(file);
+    JFileChooser fc = new JFileChooser(rootPath.toFile());
+    if (!Files.isDirectory(rootPath)) {
+        fc.setSelectedFile(rootPath.toFile());
     }
     if (title == null) {
       title = "Specify filename";
@@ -370,34 +376,12 @@ public class ConvertToBam extends ChildFrame
       }
     }
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
-      currentPath = fc.getSelectedFile().getParent();
-      return fc.getSelectedFile();
+      currentPath = fc.getSelectedFile().toPath().getParent();
+      return fc.getSelectedFile().toPath();
     } else {
       return null;
     }
   }
-
-  /** Sets a new file extension to the specified filename string. */
-  public static String setFileExtension(String fileName, String extension)
-  {
-    if (fileName != null && !fileName.isEmpty()) {
-      int pos = fileName.lastIndexOf('.');
-      if (pos > 0) {
-        // make sure our 'dot' belongs to the file's extension
-        if (pos > fileName.lastIndexOf(File.separatorChar)) {
-          if (fileName.substring(pos+1).equalsIgnoreCase(extension)) {
-            return fileName;
-          }
-          fileName = fileName.substring(0, pos);
-        }
-      }
-      if (extension != null && !extension.isEmpty()) {
-        fileName = fileName + "." + extension;
-      }
-    }
-    return fileName;
-  }
-
 
   public ConvertToBam()
   {
@@ -444,10 +428,10 @@ public class ConvertToBam extends ChildFrame
     return cbVersion.getSelectedIndex();
   }
 
-  /** Returns the BAM output filename. */
-  public String getBamOutput()
+  /** Returns the BAM output file. */
+  public Path getBamOutput()
   {
-    return bamOutputFileName;
+    return bamOutputFile;
   }
 
   /** Returns whether BAM v1 output is compressed. */
@@ -509,11 +493,11 @@ public class ConvertToBam extends ChildFrame
     } else if (event.getSource() == bConvert) {
       if (workerConvert == null) {
         final String msg = "BAM output file already exists. Overwrite?";
-        File file = null;
+        Path file = null;
         do {
           file = setBamOutput();
           if (file != null) {
-            if (!file.exists() ||
+            if (!Files.exists(file) ||
                 JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
                                                                         JOptionPane.YES_NO_OPTION,
                                                                         JOptionPane.QUESTION_MESSAGE)) {
@@ -915,9 +899,10 @@ public class ConvertToBam extends ChildFrame
     setIconImage(Icons.getImage(Icons.ICON_APPLICATION_16));
     BamOptionsDialog.loadSettings(false);
 
-    currentPath = BamOptionsDialog.getPath();
-    if (currentPath.isEmpty()) {
-      currentPath = Profile.getGameRoot().toString();
+    if (BamOptionsDialog.getPath().isEmpty()) {
+      currentPath = Profile.getGameRoot();
+    } else {
+      currentPath = FileManager.resolve(BamOptionsDialog.getPath());
     }
 
     // initializing frame image lists
@@ -959,7 +944,7 @@ public class ConvertToBam extends ChildFrame
     i = bOptions.getInsets();
     bOptions.setMargin(new Insets(i.top + 1, i.left, i.bottom + 1, i.right));
     cbCloseOnExit = new JCheckBox("Close dialog after conversion", BamOptionsDialog.getCloseOnExit());
-    bamOutputFileName = "";
+    bamOutputFile = null;
     bConvert = new JButton("Save output file...");
     bConvert.addActionListener(this);
     i = bConvert.getInsets();
@@ -2276,7 +2261,7 @@ public class ConvertToBam extends ChildFrame
   // Action for "Add..."->"Add file(s)...": adds image files to the frames list
   public void framesAddFiles()
   {
-    File[] files = getOpenFileName(this, "Choose file(s) to add", null, true, getGraphicsFilters(), 0);
+    Path[] files = getOpenFileName(this, "Choose file(s) to add", null, true, getGraphicsFilters(), 0);
     if (files != null) {
       try {
         WindowBlocker.blockWindow(this, true);
@@ -2303,7 +2288,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   // Called by framesAddLauncher. Can also be called directly. Makes use of a progress monitor if available.
-  public void framesAdd(File[] files)
+  public void framesAdd(Path[] files)
   {
     if (files != null) {
       ResourceEntry[] entries = new ResourceEntry[files.length];
@@ -2395,7 +2380,7 @@ public class ConvertToBam extends ChildFrame
 
   // Specific: Adds the specified source BAM to the frames list.
   // Returns the BamDecoder object of the source BAM, or null on error
-  public BamDecoder framesAddBam(int listIndex, File file)
+  public BamDecoder framesAddBam(int listIndex, Path file)
   {
     return framesAddBam(listIndex, new FileResourceEntry(file));
   }
@@ -2476,7 +2461,7 @@ public class ConvertToBam extends ChildFrame
       PseudoBamFrameEntry fe2 = getBamDecoder(BAM_ORIGINAL).getFrameInfo(listIndex);
       ResourceEntry entry = decoder.getResourceEntry();
       if (entry instanceof FileResourceEntry) {
-        fe2.setOption(BAM_FRAME_OPTION_PATH, entry.getActualFile().getPath());
+        fe2.setOption(BAM_FRAME_OPTION_PATH, entry.getActualPath().toString());
       } else {
         fe2.setOption(BAM_FRAME_OPTION_PATH, BAM_FRAME_PATH_BIFF + entry.getResourceName());
       }
@@ -2489,7 +2474,7 @@ public class ConvertToBam extends ChildFrame
     return -1;
   }
 
-  private boolean framesAddImage(int listIndex, File file, int frameIndex)
+  private boolean framesAddImage(int listIndex, Path file, int frameIndex)
   {
     if (file != null) {
       return framesAddImage(listIndex, new FileResourceEntry(file), frameIndex);
@@ -2564,7 +2549,7 @@ public class ConvertToBam extends ChildFrame
           // setting required extra options
           PseudoBamFrameEntry fe2 = modelFrames.getDecoder().getFrameInfo(listIndex + curFrameIdx);
           if (entry instanceof FileResourceEntry) {
-            fe2.setOption(BAM_FRAME_OPTION_PATH, entry.getActualFile().getPath());
+            fe2.setOption(BAM_FRAME_OPTION_PATH, entry.getActualPath().toString());
           } else {
             fe2.setOption(BAM_FRAME_OPTION_PATH, BAM_FRAME_PATH_BIFF + entry.getResourceName());
           }
@@ -2577,6 +2562,7 @@ public class ConvertToBam extends ChildFrame
           curFrameIdx++;
         }
       } catch (Exception e) {
+        retVal = false;
         e.printStackTrace();
       }
     }
@@ -2586,12 +2572,12 @@ public class ConvertToBam extends ChildFrame
   // Action for "Import BAM file...": loads a complete frames/cycles structure
   public void framesImportBamFile()
   {
-    File[] files = getOpenFileName(this, "Import BAM file", null, false,
+    Path[] files = getOpenFileName(this, "Import BAM file", null, false,
                                    new FileNameExtensionFilter[]{getBamFilter()}, 0);
     if (files != null && files.length > 0) {
       try {
         WindowBlocker.blockWindow(this, true);
-        framesImportBam(new FileNI(setFileExtension(files[0].toString(), "BAM")));
+        framesImportBam(StreamUtils.replaceFileExtension(files[0], "BAM"));
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
@@ -2614,7 +2600,7 @@ public class ConvertToBam extends ChildFrame
   }
 
   // Specific: Loads the whole frames/cycles structure from the specified BAM file
-  public void framesImportBam(File file)
+  public void framesImportBam(Path file)
   {
     framesImportBam(new FileResourceEntry(file));
   }
@@ -2676,27 +2662,27 @@ public class ConvertToBam extends ChildFrame
     framesAddFolder(getOpenPathName(this, "Select folder", null));
   }
 
-  public void framesAddFolder(File path)
+  public void framesAddFolder(Path path)
   {
-    if (path != null && path.isDirectory()) {
+    if (path != null && Files.isDirectory(path)) {
       // preparing list of valid files
       FileNameExtensionFilter filters = getGraphicsFilters()[0];
-      File[] files = path.listFiles();
-      List<File> validFiles = new ArrayList<File>();
-      for (int i = 0; i < files.length; i++) {
-        if (files[i] != null && files[i].isFile() && filters.accept(files[i])) {
-          validFiles.add(files[i]);
+      List<Path> validFiles = new ArrayList<>();
+      try (DirectoryStream<Path> dstream = Files.newDirectoryStream(path)) {
+        for (final Path file: dstream) {
+          if (Files.isRegularFile(file) && filters.accept(file.toFile())) {
+            validFiles.add(file);
+          }
         }
-      }
-      files = new File[validFiles.size()];
-      for (int i = 0; i < validFiles.size(); i++) {
-        files[i] = validFiles.get(i);
+      } catch (IOException e) {
+        e.printStackTrace();
+        return;
       }
 
       // adding entries to frames list
       try {
         WindowBlocker.blockWindow(this, true);
-        framesAdd(files);
+        framesAdd(validFiles.toArray(new Path[validFiles.size()]));
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
@@ -3715,17 +3701,17 @@ public class ConvertToBam extends ChildFrame
   }
 
   // Specify a BAM output file
-  private File setBamOutput()
+  private Path setBamOutput()
   {
-    String rootPath = null;
-    if (!bamOutputFileName.isEmpty()) {
-      rootPath = bamOutputFileName;
+    Path rootPath = null;
+    if (bamOutputFile != null) {
+      rootPath = FileManager.resolve(bamOutputFile);
     }
-    File outFile = getSaveFileName(this, "Specify output file", rootPath,
+    Path outFile = getSaveFileName(this, "Specify output file", rootPath,
                                    new FileNameExtensionFilter[]{getBamFilter()}, 0);
     if (outFile != null) {
-      outFile = new FileNI(setFileExtension(outFile.toString(), "BAM"));
-      bamOutputFileName = outFile.toString();
+      outFile = StreamUtils.replaceFileExtension(outFile, "BAM");
+      bamOutputFile = outFile;
     }
 
     return outFile;
@@ -4873,7 +4859,6 @@ public class ConvertToBam extends ChildFrame
     private static final char SEPARATOR_FRAME     = ':';        // used in frame source definition to separate frame name from index
     private static final char SEPARATOR_NUMBER    = ',';        // number separator for cycle definitions or center point data
     private static final int VERSION              = 1;          // supported file version
-    private static final String LINEBREAK         = System.getProperty("line.separator");
     private static final String QUESTION_EXPORT   = "What do you want to export?";
     private static final String QUESTION_IMPORT   = "What do you want to import?";
 
@@ -4893,22 +4878,6 @@ public class ConvertToBam extends ChildFrame
     private static FileNameExtensionFilter getIniFilter()
     {
       return new FileNameExtensionFilter("INI files (*.ini)", "ini");
-    }
-
-    /** Ensures that the filename of the returned File object has the specified file extension. */
-    private static File ensureFileExtension(File file, String ext)
-    {
-      String path = file.getPath();
-      int idx = path.lastIndexOf('.');
-      if (idx >= 0) {
-        String fileExt = path.substring(idx + 1);
-        if (!fileExt.equalsIgnoreCase(ext)) {
-          file = new FileNI(path.substring(0, idx + 1) + ext);
-        }
-      } else {
-        file = new FileNI(file.getPath() + "." + ext);
-      }
-      return file;
     }
 
     public Exporter(ConvertToBam bam)
@@ -4950,8 +4919,8 @@ public class ConvertToBam extends ChildFrame
       resetData();
 
       // trying to determine default output filename
-      String root = getDefaultIniName("data.ini");
-      File outFile = getSaveFileName(bam, "Export BAM session", root,
+      Path root = getDefaultIniName("data.ini");
+      Path outFile = getSaveFileName(bam, "Export BAM session", root,
                                      new FileNameExtensionFilter[]{getIniFilter()}, 0);
       if (outFile != null) {
         if (getSelection(true)) {
@@ -4974,7 +4943,7 @@ public class ConvertToBam extends ChildFrame
     {
       resetData();
 
-      File[] files = getOpenFileName(bam, "Import BAM session", null, false,
+      Path[] files = getOpenFileName(bam, "Import BAM session", null, false,
                                      new FileNameExtensionFilter[]{getIniFilter()}, 0);
       if (files != null && files.length > 0) {
         if (loadData(files[0], silent)) {
@@ -4992,7 +4961,7 @@ public class ConvertToBam extends ChildFrame
     }
 
     // Loads data from the specified file without user-interaction and optionally without feedback.
-    private boolean loadData(File inFile, boolean silent)
+    private boolean loadData(Path inFile, boolean silent)
     {
       if (inFile != null) {
         IniMap ini = new IniMap(new FileResourceEntry(inFile));
@@ -5071,8 +5040,8 @@ public class ConvertToBam extends ChildFrame
               throw new Exception("Frame source path not found at line " + (entry.getLine() + 1));
             }
           } else {
-            File file = new FileNI(value);
-            if (!file.isFile()) {
+            Path file = FileManager.resolve(value);
+            if (!Files.isRegularFile(file)) {
               throw new Exception("Frame source path not found at line " + (entry.getLine() + 1));
             }
           }
@@ -5203,7 +5172,7 @@ public class ConvertToBam extends ChildFrame
         public final BamDecoder.BamControl control;
         public final IndexColorModel cm;
         // image-specific
-        public final File file;
+        public final Path file;
 
         public SourceData(BamDecoder decoder)
         {
@@ -5220,7 +5189,7 @@ public class ConvertToBam extends ChildFrame
           this.file = null;
         }
 
-        public SourceData(File image)
+        public SourceData(Path image)
         {
           this.isBam = false;
           this.decoder = null;
@@ -5262,8 +5231,8 @@ public class ConvertToBam extends ChildFrame
               resource = ResourceFactory.getResourceEntry(value);
             }
           } else {
-            File file = new FileNI(value);
-            if (file.isFile()) {
+            Path file = FileManager.resolve(value);
+            if (Files.isRegularFile(file)) {
               resource = new FileResourceEntry(file);
             }
           }
@@ -5293,7 +5262,7 @@ public class ConvertToBam extends ChildFrame
             if (BamDecoder.isValid(frame.entry)) {
               data = new SourceData(BamDecoder.loadBam(frame.entry));
             } else {
-              data = new SourceData(frame.entry.getActualFile());
+              data = new SourceData(frame.entry.getActualPath());
             }
             sourceMap.put(frame.entry, data);
           }
@@ -5477,46 +5446,46 @@ public class ConvertToBam extends ChildFrame
     }
 
     // Saves data to specified INI file without user-interaction and optionally without feedback.
-    private boolean saveData(File outFile, boolean silent)
+    private boolean saveData(Path outFile, boolean silent)
     {
       boolean retVal = false;
       if (outFile != null) {
         StringBuilder sb = new StringBuilder();
 
         // creating global section
-        sb.append('[').append(SECTION_GLOBAL).append(']').append(LINEBREAK);
-        sb.append(KEY_VERSION).append('=').append(VERSION).append(LINEBREAK);
-        sb.append(LINEBREAK);
+        sb.append('[').append(SECTION_GLOBAL).append(']').append(Misc.LINE_SEPARATOR);
+        sb.append(KEY_VERSION).append('=').append(VERSION).append(Misc.LINE_SEPARATOR);
+        sb.append(Misc.LINE_SEPARATOR);
 
         // creating frames section
         if (isFramesSelected()) {
-          sb.append('[').append(SECTION_FRAMES).append(']').append(LINEBREAK);
+          sb.append('[').append(SECTION_FRAMES).append(']').append(Misc.LINE_SEPARATOR);
           for (int i = 0; i < bam.modelFrames.getSize(); i++) {
             PseudoBamFrameEntry entry = bam.modelFrames.getElementAt(i);
             String path = entry.getOption(BAM_FRAME_OPTION_PATH).toString();
             int index = ((Number)entry.getOption(BAM_FRAME_OPTION_SOURCE_INDEX)).intValue();
             sb.append(Integer.toString(i)).append('=').append(path);
             sb.append(SEPARATOR_FRAME).append(Integer.toString(index));
-            sb.append(LINEBREAK);
+            sb.append(Misc.LINE_SEPARATOR);
           }
-          sb.append(LINEBREAK);
+          sb.append(Misc.LINE_SEPARATOR);
         }
 
         // creating center section
         if (isCenterSelected()) {
-          sb.append('[').append(SECTION_CENTER).append(']').append(LINEBREAK);
+          sb.append('[').append(SECTION_CENTER).append(']').append(Misc.LINE_SEPARATOR);
           for (int i = 0; i < bam.modelFrames.getSize(); i++) {
             PseudoBamFrameEntry entry = bam.modelFrames.getElementAt(i);
             sb.append(Integer.toString(i)).append('=');
             sb.append(entry.getCenterX()).append(SEPARATOR_NUMBER).append(entry.getCenterY());
-            sb.append(LINEBREAK);
+            sb.append(Misc.LINE_SEPARATOR);
           }
-          sb.append(LINEBREAK);
+          sb.append(Misc.LINE_SEPARATOR);
         }
 
         // creating cycles section
         if (isCyclesSelected()) {
-          sb.append('[').append(SECTION_CYCLES).append(']').append(LINEBREAK);
+          sb.append('[').append(SECTION_CYCLES).append(']').append(Misc.LINE_SEPARATOR);
           for (int i = 0; i < bam.modelCycles.getSize(); i++) {
             PseudoBamCycleEntry entry = bam.modelCycles.getElementAt(i);
             sb.append(Integer.toString(i)).append('=');
@@ -5526,27 +5495,25 @@ public class ConvertToBam extends ChildFrame
               }
               sb.append(entry.get(j));
             }
-            sb.append(LINEBREAK);
+            sb.append(Misc.LINE_SEPARATOR);
           }
-          sb.append(LINEBREAK);
+          sb.append(Misc.LINE_SEPARATOR);
         }
 
         // creating filters section
         if (isFiltersSelected()) {
-          sb.append('[').append(SECTION_FILTERS).append(']').append(LINEBREAK);
+          sb.append('[').append(SECTION_FILTERS).append(']').append(Misc.LINE_SEPARATOR);
           for (int i = 0; i < bam.modelFilters.getSize(); i++) {
             BamFilterBase filter = bam.modelFilters.getElementAt(i);
-            sb.append(KEY_FILTER_NAME).append(i).append('=').append(filter.getName()).append(LINEBREAK);
-            sb.append(KEY_FILTER_CONFIG).append(i).append('=').append(filter.getConfiguration()).append(LINEBREAK);
+            sb.append(KEY_FILTER_NAME).append(i).append('=').append(filter.getName()).append(Misc.LINE_SEPARATOR);
+            sb.append(KEY_FILTER_CONFIG).append(i).append('=').append(filter.getConfiguration()).append(Misc.LINE_SEPARATOR);
           }
-          sb.append(LINEBREAK);
+          sb.append(Misc.LINE_SEPARATOR);
         }
 
         // writing data to disk
-        FileWriter w = null;
-        try {
-          w = new FileWriter(outFile);
-          w.write(sb.toString());
+        try (BufferedWriter bw = Files.newBufferedWriter(outFile)) {
+          bw.write(sb.toString());
           if (!silent) {
             JOptionPane.showMessageDialog(bam, "Export completed.", "Message",
                                           JOptionPane.INFORMATION_MESSAGE);
@@ -5557,15 +5524,6 @@ public class ConvertToBam extends ChildFrame
           if (!silent) {
             JOptionPane.showMessageDialog(bam, "Error exporting BAM session.", "Error",
                                           JOptionPane.ERROR_MESSAGE);
-          }
-        } finally {
-          if (w != null) {
-            try {
-              w.close();
-            } catch (IOException e) {
-              e.printStackTrace();
-            }
-            w = null;
           }
         }
       }
@@ -5612,9 +5570,9 @@ public class ConvertToBam extends ChildFrame
     }
 
     // Attempts to determine a fitting default name for the ini file.
-    private String getDefaultIniName(String defaultName)
+    private Path getDefaultIniName(String defaultName)
     {
-      String retVal = null;
+      Path retVal = null;
       if (bam.modelFrames.getSize() > 0) {
         String name = bam.modelFrames.getElementAt(0).getOption(PseudoBamDecoder.OPTION_STRING_LABEL).toString();
         if (name != null) {
@@ -5622,14 +5580,14 @@ public class ConvertToBam extends ChildFrame
             name = name.substring(0, name.indexOf(':'));
           }
           if (!name.isEmpty()) {
-            File file = new File(ConvertToBam.currentPath, name);
-            retVal = ensureFileExtension(file, "ini").getPath().toLowerCase(Locale.ENGLISH);
+            Path file = ConvertToBam.currentPath.resolve(name);
+            retVal = StreamUtils.replaceFileExtension(file, "ini");
           }
         }
       }
       if (retVal == null) {
-        File file = new FileNI(ConvertToBam.currentPath, defaultName);
-        retVal = ensureFileExtension(file, "ini").getPath();
+        Path file = ConvertToBam.currentPath.resolve(defaultName);
+        retVal = StreamUtils.replaceFileExtension(file, "ini");
       }
 
       return retVal;

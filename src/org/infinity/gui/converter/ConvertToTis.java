@@ -22,10 +22,9 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -61,8 +60,8 @@ import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.util.BinPack2D;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IntegerHashMap;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileOutputStreamNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public class ConvertToTis extends ChildFrame
     implements ActionListener, PropertyChangeListener, ChangeListener, FocusListener, KeyListener
@@ -127,7 +126,7 @@ public class ConvertToTis extends ChildFrame
     int dstOfs = 0;   // current start offset for write operations
 
     // writing header data
-    System.arraycopy("TIS V1  ".getBytes(Charset.forName("US-ASCII")), 0, dst, 0, 8);
+    System.arraycopy("TIS V1  ".getBytes(), 0, dst, 0, 8);
     DynamicArray.putInt(dst, 8, tileCount);
     DynamicArray.putInt(dst, 12, 0x1400);
     DynamicArray.putInt(dst, 16, 0x18);
@@ -222,27 +221,15 @@ public class ConvertToTis extends ChildFrame
       }
 
       // writing TIS file to disk
-      BufferedOutputStream bos = null;
-      try {
-        try {
-          bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(tisFileName)));
-          bos.write(dst);
-          bos.close();
-          bos = null;
-        } catch (IOException e) {
-          // error handling
-          if (bos != null) {
-            bos.close();
-            bos = null;
-          }
-          e.printStackTrace();
-          result.add(null);
-          result.add("Error writing TIS file to disk.");
-          return false;
-        }
+      Path tisFilePath = FileManager.resolve(tisFileName);
+      try (OutputStream os = StreamUtils.getOutputStream(tisFilePath, true)) {
+        os.write(dst);
       } catch (Exception e) {
-        // non-critical error
+        // error handling
         e.printStackTrace();
+        result.add(null);
+        result.add("Error writing TIS file to disk.");
+        return false;
       }
     } finally {
       // some cleaning up
@@ -323,7 +310,7 @@ public class ConvertToTis extends ChildFrame
       }
 
       // writing header data
-      System.arraycopy("TIS V1  ".getBytes(Charset.forName("US-ASCII")), 0, dst, 0, 8);
+      System.arraycopy("TIS V1  ".getBytes(), 0, dst, 0, 8);
       DynamicArray.putInt(dst, 8, tileCount);
       DynamicArray.putInt(dst, 12, 0x0c);
       DynamicArray.putInt(dst, 16, 0x18);
@@ -389,27 +376,15 @@ public class ConvertToTis extends ChildFrame
       }
 
       // writing TIS file to disk
-      BufferedOutputStream bos = null;
-      try {
-        try {
-          bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(tisFileName)));
-          bos.write(dst);
-          bos.close();
-          bos = null;
-        } catch (IOException e) {
-          // error handling
-          if (bos != null) {
-            bos.close();
-            bos = null;
-          }
-          e.printStackTrace();
-          result.add(null);
-          result.add("Error writing TIS file to disk.");
-          return false;
-        }
+      Path tisFilePath = FileManager.resolve(tisFileName);
+      try (OutputStream os = StreamUtils.getOutputStream(tisFilePath, true)) {
+        os.write(dst);
       } catch (Exception e) {
-        // non-critical error
+        // error handling
         e.printStackTrace();
+        result.add(null);
+        result.add("Error writing TIS file to disk.");
+        return false;
       }
 
       // generating PVRZ files
@@ -440,14 +415,9 @@ public class ConvertToTis extends ChildFrame
   public static String createValidTisName(String tisFilename, int tisVersion)
   {
     // extracting file path and filename without extension
-    File outFile = new FileNI(tisFilename);
-    String outPath = outFile.getParent();
-    if (outPath == null) {
-      outPath = "";
-    } else if (outPath.charAt(outPath.length() - 1) != File.separatorChar) {
-      outPath = outPath + File.separator;
-    }
-    String outNameBase = outFile.getName();
+    Path outFile = FileManager.resolve(tisFilename).toAbsolutePath();
+    Path outPath = outFile.getParent();
+    String outNameBase = outFile.getFileName().toString();
     if (outNameBase == null || outNameBase.isEmpty() || outNameBase.charAt(0) == '.') {
       outNameBase = "OUTPUT";
     }
@@ -471,7 +441,7 @@ public class ConvertToTis extends ChildFrame
       }
     }
 
-    return outPath + outNameBase + ".TIS";
+    return outPath.resolve(outNameBase + ".TIS").toString();
   }
 
 
@@ -488,42 +458,23 @@ public class ConvertToTis extends ChildFrame
     return filters;
   }
 
-  // sets a new file extension to the specified filename string
-  private static String setFileExtension(String fileName, String extension)
-  {
-    if (fileName != null && !fileName.isEmpty()) {
-      int pos = fileName.lastIndexOf('.');
-      if (pos > 0) {
-        // make sure our 'dot' belongs to the file's extension
-        if (pos > fileName.lastIndexOf(File.separatorChar)) {
-          fileName = fileName.substring(0, pos);
-        }
-      }
-      if (extension != null && !extension.isEmpty()) {
-        fileName = fileName + "." + extension;
-      }
-    }
-    return fileName;
-  }
-
   // generates a PVRZ filename based on the specified parameters
   private static String generatePvrzName(String tisFileName, int page)
   {
-    File tisFile = new FileNI(tisFileName);
-    String path = tisFile.getParent();
-    if (path == null) {
-      path = "";
-    } else if (path.charAt(path.length() - 1) != File.separatorChar) {
-      path = path + File.separator;
-    }
-    String tisNameBase = tisFile.getName();
+    Path tisFile = FileManager.resolve(tisFileName);
+    Path tisPath = tisFile.getParent();
+    String tisNameBase = tisFile.getFileName().toString();
     if (tisNameBase.lastIndexOf('.') > 0) {
       tisNameBase = tisNameBase.substring(0, tisNameBase.lastIndexOf('.'));
     }
     if (Pattern.matches(".{2,7}", tisNameBase)) {
       String pvrzName = String.format("%1$s%2$s%3$02d.PVRZ", tisNameBase.substring(0, 1),
                                       tisNameBase.substring(2, tisNameBase.length()), page);
-      return path + pvrzName;
+      if (tisPath != null) {
+        return tisPath.resolve(pvrzName).toString();
+      } else {
+        return pvrzName;
+      }
     }
     return "";
   }
@@ -587,27 +538,15 @@ public class ConvertToTis extends ChildFrame
         pvrz = Compressor.compress(pvrz, 0, pvrz.length, true);
 
         // writing PVRZ to disk
-        BufferedOutputStream bos = null;
-        try {
-          try {
-            bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(pvrzName)));
-            bos.write(pvrz);
-            bos.close();
-            bos = null;
-          } catch (IOException e) {
-            // critical error
-            if (bos != null) {
-              bos.close();
-              bos = null;
-            }
-            e.printStackTrace();
-            result.add(null);
-            result.add(String.format("Error writing PVRZ file \"%1$s\" to disk.", pvrzName));
-            return false;
-          }
+        Path pvrzPath = FileManager.resolve(pvrzName);
+        try (OutputStream os = StreamUtils.getOutputStream(pvrzPath, true)) {
+          os.write(pvrz);
         } catch (Exception e) {
-          // non-critical error
+          // critical error
           e.printStackTrace();
+          result.add(null);
+          result.add(String.format("Error writing PVRZ file \"%1$s\" to disk.", pvrzName));
+          return false;
         }
         pvrz = null;
       } catch (Exception e) {
@@ -647,13 +586,13 @@ public class ConvertToTis extends ChildFrame
     if (event.getSource() == bConvert) {
       if (workerConvert == null) {
         final String msg = "TIS output file already exists. Overwrite?";
-        File file = null;
+        Path file = null;
         do {
           if (!tfOutput.getText().isEmpty()) {
-            file = new FileNI(tfOutput.getText());
+            file = FileManager.resolve(tfOutput.getText());
           }
           if (file != null) {
-            if (!file.exists() ||
+            if (!Files.exists(file) ||
                 JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
                                                                         JOptionPane.YES_NO_OPTION,
                                                                         JOptionPane.QUESTION_MESSAGE)) {
@@ -687,12 +626,12 @@ public class ConvertToTis extends ChildFrame
       }
       fc.setFileFilter(filters[0]);
       if (!tfInput.getText().isEmpty()) {
-        fc.setSelectedFile(new FileNI(tfInput.getText()));
+        fc.setSelectedFile(FileManager.resolve(tfInput.getText()).toFile());
       }
       int ret = fc.showOpenDialog(this);
       if (ret == JFileChooser.APPROVE_OPTION) {
-        File file = fc.getSelectedFile();
-        currentDir = file.getParent();
+        Path file = fc.getSelectedFile().toPath();
+        currentDir = file.getParent().toString();
         inFileName = file.toString();
         tfInput.setText(inFileName);
         validateInput(tfInput.getText());
@@ -701,7 +640,7 @@ public class ConvertToTis extends ChildFrame
         }
       }
     } else if (event.getSource() == bOutput) {
-      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
       fc.setDialogTitle("Specify output filename");
       fc.setDialogType(JFileChooser.SAVE_DIALOG);
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -710,16 +649,16 @@ public class ConvertToTis extends ChildFrame
       fc.setFileFilter(filter);
       String fileName = tfOutput.getText();
       if (fileName.isEmpty() && !tfInput.getText().isEmpty()) {
-        File f = new FileNI(tfInput.getText());
-        if (f.exists() && f.isFile()) {
+        Path f = FileManager.resolve(tfInput.getText());
+        if (Files.isRegularFile(f)) {
           fileName = createValidTisName(tfInput.getText(), getTisVersion());
         }
       }
-      fc.setSelectedFile(new FileNI(fileName));
+      fc.setSelectedFile(FileManager.resolve(fileName).toFile());
       int ret = fc.showSaveDialog(this);
       while (ret == JFileChooser.APPROVE_OPTION) {
         currentDir = fc.getSelectedFile().getParent();
-        String orig = setFileExtension(fc.getSelectedFile().toString(), "TIS");
+        String orig = StreamUtils.replaceFileExtension(fc.getSelectedFile().toString(), "TIS");
         String fixed = createValidTisName(orig, getTisVersion());
         if (!orig.equalsIgnoreCase(fixed)) {
           ret = JOptionPane.showConfirmDialog(this,
@@ -1036,8 +975,8 @@ public class ConvertToTis extends ChildFrame
   {
     boolean ret = false;
     if (!getInputFile().isEmpty()) {
-      File f = new FileNI(getInputFile());
-      ret = f.exists() && f.isFile();
+      Path f = FileManager.resolve(getInputFile());
+      ret = Files.isRegularFile(f);
     }
     return ret;
   }
@@ -1092,9 +1031,9 @@ public class ConvertToTis extends ChildFrame
     boolean isValid = false;
     inFileName = inputFile;
     if (inFileName != null && !inFileName.isEmpty()) {
-      File f = new FileNI(inFileName);
-      if (f.exists() && f.isFile()) {
-        Dimension dimImage = ColorConvert.getImageDimension(inFileName);
+      Path f = FileManager.resolve(inFileName);
+      if (Files.isRegularFile(f)) {
+        Dimension dimImage = ColorConvert.getImageDimension(f);
         if (dimImage.width >= 0 && (dimImage.width % 64) == 0 &&
             dimImage.height >= 0 && (dimImage.height % 64) == 0) {
           tileCount = (dimImage.width * dimImage.height) / 4096;
@@ -1132,8 +1071,8 @@ public class ConvertToTis extends ChildFrame
     List<String> ret = new Vector<String>(2);
 
     // validating input file
-    File inFile = new FileNI(inFileName);
-    if (!inFile.exists() || !inFile.isFile()) {
+    Path inFile = FileManager.resolve(inFileName);
+    if (!Files.isRegularFile(inFile)) {
       ret.add(null);
       ret.add(String.format("Input file \"%1$s\" does not exist.", inFileName));
       return ret;
@@ -1142,7 +1081,7 @@ public class ConvertToTis extends ChildFrame
     // loading source image
     BufferedImage srcImage = null;
     try {
-      srcImage = ColorConvert.toBufferedImage(ImageIO.read(inFile), true);
+      srcImage = ColorConvert.toBufferedImage(ImageIO.read(inFile.toFile()), true);
     } catch (Exception e) {
     }
     if (srcImage == null) {
@@ -1152,7 +1091,7 @@ public class ConvertToTis extends ChildFrame
     }
 
     // fetching remaining settings
-    String outFileName = setFileExtension(tfOutput.getText(), "TIS");
+    String outFileName = StreamUtils.replaceFileExtension(tfOutput.getText(), "TIS");
     int maxTileCount = (srcImage.getWidth()*srcImage.getHeight()) / 4096;
     int tileCount = Math.max(1, Math.min(getTileCount(), maxTileCount));
     int tisVersion = getTisVersion();

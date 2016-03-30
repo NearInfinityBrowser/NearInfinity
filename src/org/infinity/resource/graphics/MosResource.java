@@ -15,7 +15,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.nio.charset.Charset;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -48,6 +48,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IntegerHashMap;
+import org.infinity.util.io.StreamUtils;
 
 public class MosResource implements Resource, ActionListener, PropertyChangeListener
 {
@@ -101,9 +102,9 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
         if (mosType == MosDecoder.Type.MOSC) {
           // decompress existing MOSC V1 and save as MOS V1
           try {
-            byte[] data = entry.getResourceData();
-            data = Compressor.decompress(data);
-            ResourceFactory.exportResource(entry, data, entry.toString(), panel.getTopLevelAncestor());
+            ByteBuffer buffer = entry.getResourceBuffer();
+            buffer = Compressor.decompress(buffer);
+            ResourceFactory.exportResource(entry, buffer, entry.toString(), panel.getTopLevelAncestor());
           } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
@@ -121,9 +122,9 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
       } else if (mosType == MosDecoder.Type.MOSV1) {
         // compress existing MOS V1 and save as MOSC V1
         try {
-          byte[] data = entry.getResourceData();
-          data = Compressor.compress(data, "MOSC", "V1  ");
-          ResourceFactory.exportResource(entry, data, entry.toString(), panel.getTopLevelAncestor());
+          ByteBuffer buffer = entry.getResourceBuffer();
+          buffer = Compressor.compress(buffer, "MOSC", "V1  ");
+          ResourceFactory.exportResource(entry, buffer, entry.toString(), panel.getTopLevelAncestor());
         } catch (Exception e) {
           e.printStackTrace();
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
@@ -145,7 +146,8 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
           WindowBlocker.blockWindow(false);
         }
         if (bRet) {
-          ResourceFactory.exportResource(entry, os.toByteArray(), fileName, panel.getTopLevelAncestor());
+          ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(os.toByteArray()),
+                                         fileName, panel.getTopLevelAncestor());
         } else {
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                         "Error while exporting " + entry, "Error",
@@ -186,7 +188,8 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
         }
         if (mosData != null) {
           if (mosData.length > 0) {
-            ResourceFactory.exportResource(entry, mosData, entry.toString(), panel.getTopLevelAncestor());
+            ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(mosData),
+                                           entry.toString(), panel.getTopLevelAncestor());
           } else {
             JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
                                           "Export has been cancelled." + entry, "Information",
@@ -364,7 +367,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
       int tableOfs = palOfs + tileCount*1024;
       int dataOfs = tableOfs + tileCount*4;
       buf = new byte[dataOfs + width*height];
-      System.arraycopy("MOS V1  ".getBytes(Charset.forName("US-ASCII")), 0, buf, 0, 8);
+      System.arraycopy("MOS V1  ".getBytes(), 0, buf, 0, 8);
       DynamicArray.putShort(buf, 8, (short)width);
       DynamicArray.putShort(buf, 10, (short)height);
       DynamicArray.putShort(buf, 12, (short)cols);

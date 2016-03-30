@@ -20,7 +20,6 @@ import org.infinity.resource.are.AreResource;
 
 /**
  * Manages background animation layer objects.
- * @author argent77
  */
 public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
 {

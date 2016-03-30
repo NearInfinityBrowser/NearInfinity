@@ -4,10 +4,13 @@
 
 package org.infinity.resource.gam;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public class StoredLocation extends AbstractStruct implements AddRemovable
 {
@@ -19,15 +22,15 @@ public class StoredLocation extends AbstractStruct implements AddRemovable
 
   StoredLocation() throws Exception
   {
-    super(null, GAM_LOC, new byte[12], 0);
+    super(null, GAM_LOC, StreamUtils.getByteBuffer(12), 0);
   }
 
-  StoredLocation(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  StoredLocation(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     this(superStruct, GAM_LOC, buffer, offset, nr);
   }
 
-  StoredLocation(AbstractStruct superStruct, String name, byte buffer[], int offset, int nr) throws Exception
+  StoredLocation(AbstractStruct superStruct, String name, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, name + " " + nr, buffer, offset);
   }
@@ -43,7 +46,7 @@ public class StoredLocation extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, GAM_LOC_AREA, "ARE"));
     addField(new DecNumber(buffer, offset + 8, 2, GAM_LOC_LOCATION_X));

@@ -24,8 +24,6 @@ import tv.porst.jhexview.IColormap;
 
 /**
  * Defines color schemes for specific resource types to be used in JHexView components.
- *
- * @author argent77
  */
 public class BasicColorMap implements IColormap
 {

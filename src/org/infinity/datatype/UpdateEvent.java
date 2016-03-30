@@ -10,7 +10,6 @@ import org.infinity.resource.AbstractStruct;
 
 /**
  * Used in conjunction with {@code org.infinity.datatype.Editable}'s updateValue() method.
- * @author argent77
  */
 public class UpdateEvent extends EventObject
 {

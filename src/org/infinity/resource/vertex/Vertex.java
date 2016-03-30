@@ -4,11 +4,13 @@
 
 package org.infinity.resource.vertex;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public class Vertex extends AbstractStruct implements AddRemovable
 {
@@ -19,15 +21,15 @@ public class Vertex extends AbstractStruct implements AddRemovable
 
   public Vertex() throws Exception
   {
-    super(null, VERTEX, new byte[4], 0, 2);
+    super(null, VERTEX, StreamUtils.getByteBuffer(4), 0, 2);
   }
 
-  Vertex(AbstractStruct superStruct, String name, byte buffer[], int offset) throws Exception
+  Vertex(AbstractStruct superStruct, String name, ByteBuffer buffer, int offset) throws Exception
   {
     super(superStruct, name, buffer, offset, 2);
   }
 
-  public Vertex(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public Vertex(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, VERTEX + " " + nr, buffer, offset, 2);
   }
@@ -43,7 +45,7 @@ public class Vertex extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
     addField(new DecNumber(buffer, offset, 2, VERTEX_X));
     addField(new DecNumber(buffer, offset + 2, 2, VERTEX_Y));

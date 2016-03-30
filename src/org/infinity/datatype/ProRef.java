@@ -4,6 +4,7 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -20,32 +21,32 @@ public final class ProRef extends ResourceBitmap
   private static final ArrayList<RefEntry> proMissileList = new ArrayList<RefEntry>();
   private static final ArrayList<RefEntry> proList = new ArrayList<RefEntry>();
 
-  public ProRef(byte[] buffer, int offset, String name)
+  public ProRef(ByteBuffer buffer, int offset, String name)
   {
     this(null, buffer, offset, 2, name, true);
   }
 
-  public ProRef(byte[] buffer, int offset, String name, boolean useMissile)
+  public ProRef(ByteBuffer buffer, int offset, String name, boolean useMissile)
   {
     this(null, buffer, offset, 2, name, useMissile);
   }
 
-  public ProRef(StructEntry parent, byte[] buffer, int offset, String name)
+  public ProRef(StructEntry parent, ByteBuffer buffer, int offset, String name)
   {
     this(parent, buffer, offset, 2, name, true);
   }
 
-  public ProRef(StructEntry parent, byte[] buffer, int offset, String name, boolean useMissile)
+  public ProRef(StructEntry parent, ByteBuffer buffer, int offset, String name, boolean useMissile)
   {
     this(parent, buffer, offset, 2, name, useMissile);
   }
 
-  public ProRef(byte[] buffer, int offset, int size, String name)
+  public ProRef(ByteBuffer buffer, int offset, int size, String name)
   {
     this(null, buffer, offset, size, name, true);
   }
 
-  public ProRef(StructEntry parent, byte[] buffer, int offset, int size, String name, boolean useMissile)
+  public ProRef(StructEntry parent, ByteBuffer buffer, int offset, int size, String name, boolean useMissile)
   {
     super(parent, buffer, offset, size, name, createRefList(useMissile), null, useMissile ? FMT_NAME_REF_VALUE : FMT_REF_VALUE);
   }

@@ -22,10 +22,9 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -60,8 +59,8 @@ import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.util.BinPack2D;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IntegerHashMap;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileOutputStreamNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public class ConvertToMos extends ChildFrame
     implements ActionListener, PropertyChangeListener, ChangeListener, FocusListener
@@ -118,7 +117,7 @@ public class ConvertToMos extends ChildFrame
     int tableOfs = palOfs + tileCount*1024;
     int dataOfs = tableOfs + tileCount*4;
     byte[] dst = new byte[dataOfs + width*height];
-    System.arraycopy("MOS V1  ".getBytes(Charset.forName("US-ASCII")), 0, dst, 0, 8);
+    System.arraycopy("MOS V1  ".getBytes(), 0, dst, 0, 8);
     DynamicArray.putShort(dst, 8, (short)width);
     DynamicArray.putShort(dst, 10, (short)height);
     DynamicArray.putShort(dst, 12, (short)cols);
@@ -226,27 +225,14 @@ public class ConvertToMos extends ChildFrame
       }
 
       // writing MOS file to disk
-      BufferedOutputStream bos = null;
-      try {
-        try {
-          bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(mosFileName)));
-          bos.write(dst);
-          bos.close();
-          bos = null;
-        } catch (IOException e) {
-          // error handling
-          if (bos != null) {
-            bos.close();
-            bos = null;
-          }
-          e.printStackTrace();
-          result.add(null);
-          result.add("Error writing TIS file to disk.");
-          return false;
-        }
+      Path mosFile = FileManager.resolve(mosFileName);
+      try (OutputStream os = StreamUtils.getOutputStream(mosFile, true)) {
+        os.write(dst);
       } catch (Exception e) {
-        // non-critical error
         e.printStackTrace();
+        result.add(null);
+        result.add("Error writing TIS file to disk.");
+        return false;
       }
     } finally {
       // some cleaning up
@@ -370,7 +356,7 @@ public class ConvertToMos extends ChildFrame
       int dstOfs = 0;
 
       // writing MOS header and data
-      System.arraycopy("MOS V2  ".getBytes(Charset.forName("US-ASCII")), 0, dst, 0, 8);
+      System.arraycopy("MOS V2  ".getBytes(), 0, dst, 0, 8);
       DynamicArray.putInt(dst, 8, width);
       DynamicArray.putInt(dst, 12, height);
       DynamicArray.putInt(dst, 16, entryList.size());
@@ -388,32 +374,19 @@ public class ConvertToMos extends ChildFrame
       }
 
       // writing MOS file to disk
-      BufferedOutputStream bos = null;
-      try {
-        try {
-          bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(mosFileName)));
-          bos.write(dst);
-          bos.close();
-          bos = null;
-        } catch (IOException e) {
-          // error handling
-          if (bos != null) {
-            bos.close();
-            bos = null;
-          }
-          e.printStackTrace();
-          result.add(null);
-          result.add("Error writing MOS file to disk.");
-          return false;
-        }
+      Path mosFile = FileManager.resolve(mosFileName);
+      try (OutputStream os = StreamUtils.getOutputStream(mosFile, true)) {
+        os.write(dst);
       } catch (Exception e) {
-        // non-critical error
         e.printStackTrace();
+        result.add(null);
+        result.add("Error writing MOS file to disk.");
+        return false;
       }
       dst = null;
 
       // generating PVRZ files
-      if (!createPvrzPages(new FileNI(mosFileName).getParent(), img, dxtType, pageList, entryList,
+      if (!createPvrzPages(mosFile.getParent(), img, dxtType, pageList, entryList,
                            result, progress)) {
         return false;
       }
@@ -444,35 +417,14 @@ public class ConvertToMos extends ChildFrame
     return filters;
   }
 
-  // sets a new file extension to the specified filename string
-  private static String setFileExtension(String fileName, String extension)
-  {
-    if (fileName != null && !fileName.isEmpty()) {
-      int pos = fileName.lastIndexOf('.');
-      if (pos > 0) {
-        // make sure our 'dot' belongs to the file's extension
-        if (pos > fileName.lastIndexOf(File.separatorChar)) {
-          fileName = fileName.substring(0, pos);
-        }
-      }
-      if (extension != null && !extension.isEmpty()) {
-        fileName = fileName + "." + extension;
-      }
-    }
-    return fileName;
-  }
-
   // generates PVRZ textures
-  private static boolean createPvrzPages(String path, BufferedImage img, DxtEncoder.DxtType dxtType,
+  private static boolean createPvrzPages(Path path, BufferedImage img, DxtEncoder.DxtType dxtType,
                                          List<BinPack2D> gridList, List<MosEntry> entryList,
                                          List<String> result, ProgressMonitor progress)
   {
     // preparing variables
-    if (path == null)
-      path = "";
-    if (!path.isEmpty()) {
-      if (path.charAt(path.length() - 1) != File.separatorChar)
-        path = path + File.separator;
+    if (path == null) {
+      path = FileManager.resolve("").toAbsolutePath();
     }
     int dxtCode = (dxtType == DxtEncoder.DxtType.DXT5) ? 11 : 7;
     byte[] output = new byte[DxtEncoder.calcImageSize(1024, 1024, dxtType)];
@@ -503,7 +455,7 @@ public class ConvertToMos extends ChildFrame
         progress.setNote(String.format(note, curProgress, pageMax - pageMin + 1));
         curProgress++;
       }
-      String pvrzName = path + String.format("MOS%1$04d.PVRZ", i);
+      Path pvrzFile = path.resolve(String.format("MOS%04d.PVRZ", i));
       BinPack2D packer = gridList.get(i - pageMin);
       packer.shrinkBin(true);
 
@@ -539,33 +491,19 @@ public class ConvertToMos extends ChildFrame
         pvrz = Compressor.compress(pvrz, 0, pvrz.length, true);
 
         // writing PVRZ to disk
-        BufferedOutputStream bos = null;
-        try {
-          try {
-            bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(pvrzName)));
-            bos.write(pvrz);
-            bos.close();
-            bos = null;
-          } catch (IOException e) {
-            // critical error
-            if (bos != null) {
-              bos.close();
-              bos = null;
-            }
-            e.printStackTrace();
-            result.add(null);
-            result.add(String.format("Error writing PVRZ file \"%1$s\" to disk.", pvrzName));
-            return false;
-          }
+        try (OutputStream os = StreamUtils.getOutputStream(pvrzFile, true)) {
+          os.write(pvrz);
         } catch (Exception e) {
-          // non-critical error
           e.printStackTrace();
+          result.add(null);
+          result.add(String.format("Error writing PVRZ file \"%s\" to disk.", pvrzFile));
+          return false;
         }
         pvrz = null;
       } catch (Exception e) {
         e.printStackTrace();
         result.add(null);
-        result.add(String.format("Error while generating PVRZ files:\n%1$s", e.getMessage()));
+        result.add(String.format("Error while generating PVRZ files:\n%s", e.getMessage()));
         return false;
       }
     }
@@ -599,15 +537,15 @@ public class ConvertToMos extends ChildFrame
     if (event.getSource() == bConvert) {
       if (workerConvert == null) {
         final String msg = "MOS output file already exists. Overwrite?";
-        File file = null;
+        Path file = null;
         do {
           if (tabPane.getSelectedIndex() == 0 && !tfOutputV1.getText().isEmpty()) {
-            file = new FileNI(tfOutputV1.getText());
+            file = FileManager.resolve(tfOutputV1.getText());
           } else if (tabPane.getSelectedIndex() == 1 & !tfOutputV2.getText().isEmpty()) {
-            file = new FileNI(tfOutputV2.getText());
+            file = FileManager.resolve(tfOutputV2.getText());
           }
           if (file != null) {
-            if (!file.exists() ||
+            if (!Files.exists(file) ||
                 JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
                                                                         JOptionPane.YES_NO_OPTION,
                                                                         JOptionPane.QUESTION_MESSAGE)) {
@@ -632,12 +570,14 @@ public class ConvertToMos extends ChildFrame
       hideWindow();
     } else if (event.getSource() == bInputV1 || event.getSource() == bInputV2) {
       String fileName = tfInputV1.getText().isEmpty() ? currentDir : tfInputV1.getText();
-      if ((fileName = getImageFileName(new FileNI(fileName))) != null) {
-        currentDir = (new FileNI(fileName)).getParent();
+      Path file = FileManager.resolve(fileName).toAbsolutePath();
+      if ((fileName = getImageFileName(file)) != null) {
+        file = FileManager.resolve(fileName).toAbsolutePath();
+        currentDir = file.getParent().toString();
         tfInputV1.setText(fileName);
         tfInputV2.setText(fileName);
         if (tfOutputV1.getText().isEmpty()) {
-          fileName = setFileExtension(fileName, "MOS");
+          fileName = StreamUtils.replaceFileExtension(fileName, "MOS");
           tfOutputV1.setText(fileName);
           tfOutputV2.setText(fileName);
         }
@@ -645,8 +585,10 @@ public class ConvertToMos extends ChildFrame
       }
     } else if (event.getSource() == bOutputV1 || event.getSource() == bOutputV2) {
       String fileName = tfOutputV1.getText().isEmpty() ? currentDir : tfOutputV1.getText();
-      if ((fileName = getMosFileName(new FileNI(fileName))) != null) {
-        currentDir = (new FileNI(fileName)).getParent();
+      Path file = FileManager.resolve(fileName).toAbsolutePath();
+      if ((fileName = getMosFileName(file)) != null) {
+        file = FileManager.resolve(fileName).toAbsolutePath();
+        currentDir = file.getParent().toString();
         tfOutputV1.setText(fileName);
         tfOutputV2.setText(fileName);
       }
@@ -964,8 +906,8 @@ public class ConvertToMos extends ChildFrame
   {
     boolean ret = false;
     if (!tfInputV1.getText().isEmpty() && !tfOutputV1.getText().isEmpty()) {
-      File f = new FileNI(tfInputV1.getText());
-      ret = f.exists() && f.isFile();
+      Path file = FileManager.resolve(tfInputV1.getText());
+      ret = Files.isRegularFile(file);
     }
     return ret;
   }
@@ -992,9 +934,9 @@ public class ConvertToMos extends ChildFrame
     return String.format("Resulting in MOS%1$04d.PVRZ, MOS%2$04d.PVRZ, ...", index, index+1);
   }
 
-  private String getImageFileName(File path)
+  private String getImageFileName(Path path)
   {
-    JFileChooser fc = new JFileChooser(path);
+    JFileChooser fc = new JFileChooser(path.toFile());
     fc.setDialogTitle("Select input graphics file");
     fc.setDialogType(JFileChooser.OPEN_DIALOG);
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -1011,9 +953,9 @@ public class ConvertToMos extends ChildFrame
     }
   }
 
-  private String getMosFileName(File path)
+  private String getMosFileName(Path path)
   {
-    JFileChooser fc = new JFileChooser(path);
+    JFileChooser fc = new JFileChooser(path.toFile());
     fc.setDialogTitle("Specify output filename");
     fc.setDialogType(JFileChooser.SAVE_DIALOG);
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -1033,8 +975,8 @@ public class ConvertToMos extends ChildFrame
     List<String> result = new Vector<String>(2);
 
     // validating input file
-    File inFile = new FileNI(tfInputV1.getText());
-    if (!inFile.exists() || !inFile.isFile()) {
+    Path inFile = FileManager.resolve(tfInputV1.getText());
+    if (!Files.isRegularFile(inFile)) {
       result.add(null);
       result.add(String.format("Input file \"%1$s\" does not exist.", tfInputV1.getText()));
       return result;
@@ -1043,7 +985,7 @@ public class ConvertToMos extends ChildFrame
     // loading source image
     BufferedImage srcImage = null;
     try {
-      srcImage = ColorConvert.toBufferedImage(ImageIO.read(inFile), true);
+      srcImage = ColorConvert.toBufferedImage(ImageIO.read(inFile.toFile()), true);
     } catch (Exception e) {
     }
     if (srcImage == null) {

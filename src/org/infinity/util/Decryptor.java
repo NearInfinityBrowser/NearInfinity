@@ -4,6 +4,10 @@
 
 package org.infinity.util;
 
+import java.nio.ByteBuffer;
+
+import org.infinity.util.io.StreamUtils;
+
 public final class Decryptor
 {
   private static final char[] key = {
@@ -14,16 +18,17 @@ public final class Decryptor
     0xa5, 0x95, 0xba, 0x99, 0x87, 0xd2, 0x9d, 0xe3, 0x91, 0xba, 0x90, 0xca
   };
 
-  public static String decrypt(byte buffer[], int offset, int bytesread)
+  public static ByteBuffer decrypt(ByteBuffer buffer, int offset)
   {
-    int decoff = 0;
-    byte chars[] = new byte[bytesread - offset];
-    for (int i = offset; i < bytesread; i++) {
-      chars[i - offset] = (byte)(256 + (int)buffer[i] ^ key[decoff++]);
-      if (decoff == key.length)
-        decoff = 0;
+    int decOff = 0;
+    int size = buffer.limit() - buffer.position();
+    ByteBuffer outBuffer = StreamUtils.getByteBuffer(size);
+    for (int i = offset, len = buffer.limit(); i < len; i++) {
+      outBuffer.put((byte)(256 + buffer.get(i) ^ key[decOff]));
+      decOff = (decOff + 1) % key.length;
     }
-    return new String(chars);
+    outBuffer.position(0);
+    return outBuffer;
   }
 
   private Decryptor(){}

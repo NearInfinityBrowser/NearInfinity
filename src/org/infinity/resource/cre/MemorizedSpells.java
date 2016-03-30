@@ -4,11 +4,14 @@
 
 package org.infinity.resource.cre;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public final class MemorizedSpells extends AbstractStruct implements AddRemovable
 {
@@ -21,10 +24,10 @@ public final class MemorizedSpells extends AbstractStruct implements AddRemovabl
 
   MemorizedSpells() throws Exception
   {
-    super(null, CRE_MEMORIZED, new byte[12], 0);
+    super(null, CRE_MEMORIZED, StreamUtils.getByteBuffer(12), 0);
   }
 
-  MemorizedSpells(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  MemorizedSpells(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception
   {
     super(superStruct, CRE_MEMORIZED, buffer, offset);
   }
@@ -40,7 +43,7 @@ public final class MemorizedSpells extends AbstractStruct implements AddRemovabl
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, CRE_MEMORIZED_RESREF, "SPL"));
     addField(new Bitmap(buffer, offset + 8, 2, CRE_MEMORIZED_MEMORIZATION, s_mem));

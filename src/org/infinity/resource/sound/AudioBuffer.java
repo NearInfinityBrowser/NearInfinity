@@ -5,13 +5,12 @@
 package org.infinity.resource.sound;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * Abstract base class provides access to uncompressed PCM WAV audio data.
- * @author argent77
  */
 public abstract class AudioBuffer
 {
@@ -28,7 +27,7 @@ public abstract class AudioBuffer
   public AudioBuffer(ResourceEntry entry, AudioOverride override) throws Exception
   {
     if (entry != null) {
-      convert(entry.getResourceData(), 0, override);
+      convert(StreamUtils.toArray(entry.getResourceBuffer()), 0, override);
     } else
       throw new NullPointerException();
   }
@@ -99,7 +98,7 @@ public abstract class AudioBuffer
     int chunkSize = 36 + totalSize;
 
     // writing header data
-    ByteBuffer bb = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN);
+    ByteBuffer bb = StreamUtils.getByteBuffer(44);
     bb.putInt(ID_CHUNK);
     bb.putInt(chunkSize);
     bb.putInt(ID_FORMAT);
@@ -123,7 +122,6 @@ public abstract class AudioBuffer
   /**
    * Use to override autodetected properties of the source audio format.
    * Audio buffers are not required to honor the properties defined in the AudioOverride object.
-   * @author argent77
    */
   public static class AudioOverride
   {

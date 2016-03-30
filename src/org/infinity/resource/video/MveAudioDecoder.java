@@ -13,7 +13,6 @@ import org.infinity.resource.video.MveDecoder.MveSegment;
 
 /**
  * Decodes a single frame of audio data. (Internally used by MveDecoder)
- * @author argent77
  */
 public class MveAudioDecoder
 {

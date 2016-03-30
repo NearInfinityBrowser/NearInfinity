@@ -16,7 +16,6 @@ import javax.swing.SwingConstants;
 
 /**
  * A component that displays an image. Provides support for scaling and filtering.
- * @author argent77
  */
 public class RenderCanvas extends JComponent implements SwingConstants
 {

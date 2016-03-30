@@ -4,6 +4,8 @@
 
 package org.infinity.resource.gam;
 
+import java.nio.ByteBuffer;
+
 import javax.swing.JComponent;
 
 import org.infinity.datatype.Bitmap;
@@ -26,6 +28,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.Actor;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.util.LongIntegerHashMap;
+import org.infinity.util.io.StreamUtils;
 
 public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRemovable, AddRemovable
 {
@@ -101,21 +104,15 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
 
   PartyNPC() throws Exception
   {
-    super(null, GAM_NPC,
-          (Profile.getEngine() == Profile.Engine.BG1 ||
-          Profile.getEngine() == Profile.Engine.BG2 ||
-          Profile.isEnhancedEdition()) ? new byte[352] :
-          (Profile.getEngine() == Profile.Engine.PST) ? new byte[360] :
-          (Profile.getEngine() == Profile.Engine.IWD2) ? new byte[832] : new byte[384],
-          0);
+    super(null, GAM_NPC, createEmptyBuffer(), 0);
   }
 
-  PartyNPC(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  PartyNPC(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, GAM_NPC + " " + nr, buffer, offset);
   }
 
-  PartyNPC(AbstractStruct superStruct, String name, byte[] buffer, int offset) throws Exception
+  PartyNPC(AbstractStruct superStruct, String name, ByteBuffer buffer, int offset) throws Exception
   {
     super(superStruct, name, buffer, offset);
   }
@@ -213,14 +210,14 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new HashBitmap(buffer, offset, 2, GAM_NPC_SELECTION_STATE, m_selected));
     addField(new HashBitmap(buffer, offset + 2, 2, GAM_NPC_PARTY_POSITION, partyOrder));
     HexNumber creOffset = new HexNumber(buffer, offset + 4, 4, GAM_NPC_OFFSET_CRE);
     addField(creOffset);
     addField(new DecNumber(buffer, offset + 8, 4, GAM_NPC_CRE_SIZE));
-    if (buffer[offset + 12] == 0x2A) {
+    if (buffer.get(offset + 12) == 0x2A) {
       addField(new TextString(buffer, offset + 12, 8, GAM_NPC_CHARACTER));
     } else {
       addField(new ResourceRef(buffer, offset + 12, GAM_NPC_CHARACTER, "CRE"));
@@ -418,7 +415,7 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
     return offset;
   }
 
-  private int readCharStats(byte buffer[], int offset)
+  private int readCharStats(ByteBuffer buffer, int offset)
   {
     addField(new StringRef(buffer, offset, GAM_NPC_STAT_FOE_VANQUISHED));
     addField(new DecNumber(buffer, offset + 4, 4, GAM_NPC_STAT_XP_FOE_VANQUISHED));
@@ -448,6 +445,23 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
                                    String.format(GAM_NPC_STAT_FAV_WEAPON_COUNT_FMT, i+1)));
     }
     return offset + 116;
+  }
+
+  protected static ByteBuffer createEmptyBuffer()
+  {
+    int size = 0;
+    if (Profile.getEngine() == Profile.Engine.BG1 ||
+        Profile.getEngine() == Profile.Engine.BG2 ||
+        Profile.isEnhancedEdition()) {
+      size = 352;
+    } else if (Profile.getEngine() == Profile.Engine.PST) {
+      size = 360;
+    } else if (Profile.getEngine() == Profile.Engine.IWD2) {
+      size = 832;
+    } else {
+      size = 384;
+    }
+    return StreamUtils.getByteBuffer(size);
   }
 }
 

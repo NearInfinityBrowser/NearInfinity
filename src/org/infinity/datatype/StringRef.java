@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -33,7 +34,6 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.StringReferenceSearcher;
-import org.infinity.util.DynamicArray;
 import org.infinity.util.StringResource;
 
 public final class StringRef extends Datatype implements Editable, IsNumeric, IsTextual, ActionListener
@@ -54,12 +54,12 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
     this.value = value;
   }
 
-  public StringRef(byte buffer[], int offset, String name)
+  public StringRef(ByteBuffer buffer, int offset, String name)
   {
     this(null, buffer, offset, name);
   }
 
-  public StringRef(StructEntry parent, byte buffer[], int offset, String name)
+  public StringRef(StructEntry parent, ByteBuffer buffer, int offset, String name)
   {
     super(parent, offset, 4, name);
     read(buffer, offset);
@@ -80,11 +80,11 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
       List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
       for (int i = 0; i < frames.size(); i++) {
         StringEditor e = (StringEditor)frames.get(i);
-        if (e.getFile().equals(StringResource.getFile()))
+        if (e.getPath().equals(StringResource.getPath()))
           editor = e;
       }
       if (editor == null)
-        new StringEditor(StringResource.getFile(), Integer.parseInt(tfRefNr.getText()));
+        new StringEditor(StringResource.getPath(), Integer.parseInt(tfRefNr.getText()));
       else {
         editor.setVisible(true);
         editor.showEntry(Integer.parseInt(tfRefNr.getText()));
@@ -223,9 +223,10 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
-    value = DynamicArray.getInt(buffer, offset);
+    buffer.position(offset);
+    value = buffer.getInt();
 
     return offset + getSize();
   }

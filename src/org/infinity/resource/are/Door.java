@@ -4,6 +4,8 @@
 
 package org.infinity.resource.are;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
@@ -23,6 +25,7 @@ import org.infinity.resource.vertex.ClosedVertexImpeded;
 import org.infinity.resource.vertex.OpenVertex;
 import org.infinity.resource.vertex.OpenVertexImpeded;
 import org.infinity.resource.vertex.Vertex;
+import org.infinity.util.io.StreamUtils;
 
 public final class Door extends AbstractStruct implements AddRemovable, HasVertices, HasAddRemovable
 {
@@ -84,10 +87,10 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
 
   public Door() throws Exception
   {
-    super(null, ARE_DOOR, new byte[200], 0);
+    super(null, ARE_DOOR, StreamUtils.getByteBuffer(200), 0);
   }
 
-  public Door(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public Door(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, ARE_DOOR + " " + nr, buffer, offset);
   }
@@ -130,7 +133,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
 // --------------------- Begin Interface HasVertices ---------------------
 
   @Override
-  public void readVertices(byte buffer[], int offset) throws Exception
+  public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
     DecNumber firstVertex = (DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_OPEN);
     DecNumber numVertices = (DecNumber)getAttribute(ARE_DOOR_NUM_VERTICES_OPEN);
@@ -210,7 +213,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 32, ARE_DOOR_NAME));
     addField(new TextString(buffer, offset + 32, 8, ARE_DOOR_ID));

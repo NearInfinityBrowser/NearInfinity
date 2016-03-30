@@ -7,6 +7,7 @@ package org.infinity.gui.hexview;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -14,6 +15,7 @@ import java.util.List;
 
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.io.StreamUtils;
 
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.IDataChangedListener;
@@ -22,8 +24,6 @@ import tv.porst.jhexview.IDataProvider;
 /**
  * Provides data as byte array from the associated AbstractStruct instance to be used in
  * JHexView components.
- *
- * @author argent77
  */
 public class StructuredDataProvider implements IDataProvider
 {
@@ -202,7 +202,7 @@ public class StructuredDataProvider implements IDataProvider
                 System.arraycopy(data, srcOfs, buffer, dstOfs, len);
 
                 // loading data into the structure
-                entry.read(buffer, 0);
+                entry.read(StreamUtils.getByteBuffer(buffer), 0);
                 hasChanged = true;
               }
             } catch (IOException ioe) {
@@ -323,7 +323,7 @@ public class StructuredDataProvider implements IDataProvider
     public void write(OutputStream os) throws IOException {}
 
     @Override
-    public int read(byte[] buffer, int offset) throws Exception { return offset; }
+    public int read(ByteBuffer buffer, int offset) throws Exception { return offset; }
 
     @Override
     public void copyNameAndOffset(StructEntry fromEntry) {}
@@ -341,7 +341,7 @@ public class StructuredDataProvider implements IDataProvider
     public int getSize() { return 0; }
 
     @Override
-    public byte[] getDataBuffer() { return new byte[0]; }
+    public ByteBuffer getDataBuffer() { return StreamUtils.getByteBuffer(0); }
 
     @Override
     public List<StructEntry> getStructChain() { return null; }

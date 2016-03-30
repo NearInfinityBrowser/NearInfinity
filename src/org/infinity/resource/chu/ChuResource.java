@@ -6,6 +6,7 @@ package org.infinity.resource.chu;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +24,6 @@ import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.DynamicArray;
 import org.infinity.util.Pair;
 
 public final class ChuResource extends AbstractStruct implements Resource, HasViewerTabs //, HasAddRemovable
@@ -188,7 +188,7 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     initData(buffer, offset);
 
@@ -262,12 +262,12 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   }
 
   // initialize data required to reconstruct the original resource on save
-  private void initData(byte[] buffer, int offset)
+  private void initData(ByteBuffer buffer, int offset)
   {
     // loading header data
-    numPanels = DynamicArray.getInt(buffer, offset + 8);
-    ofsControls = DynamicArray.getInt(buffer, offset + 12);
-    ofsPanels = DynamicArray.getInt(buffer, offset + 16);
+    numPanels = buffer.getInt(offset + 8);
+    ofsControls = buffer.getInt(offset + 12);
+    ofsPanels = buffer.getInt(offset + 16);
     if (numPanels > 0) {
       sizePanels = Math.abs(ofsControls - ofsPanels) / numPanels;
     } else {
@@ -278,9 +278,10 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
     // loading controls data
     numControls = 0;
     int curOfs = ofsPanels;
+    int skip = (sizePanels == 36) ? 8 : 0;
     for (int i = 0; i < numPanels; i++) {
-      int numCtrl = DynamicArray.getShort(buffer, curOfs + 14);
-      int startIdx = DynamicArray.getShort(buffer, curOfs + 24);
+      int numCtrl = buffer.getShort(curOfs + skip + 14);
+      int startIdx = buffer.getShort(curOfs + skip + 24);
       numControls = Math.max(numControls, startIdx + numCtrl);
       curOfs += sizePanels;
     }
@@ -292,13 +293,13 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
     }
     int ofs = 0, len = 0;
     for (int i = 0; i < numControls; i++, curOfs += 8) {
-      ofs = DynamicArray.getInt(buffer, curOfs);
-      len = DynamicArray.getInt(buffer, curOfs + 4);
+      ofs = buffer.getInt(curOfs);
+      len = buffer.getInt(curOfs + 4);
       listControls.add(new Pair<Integer>(Integer.valueOf(ofs), Integer.valueOf(len)));
     }
 
     // adding virtual entry for determining the true size of the last control entry
-    ofs = Math.max(ofs + len, buffer.length);
+    ofs = Math.max(ofs + len, buffer.limit());
     listControls.add(new Pair<Integer>(Integer.valueOf(ofs), Integer.valueOf(0)));
   }
 }

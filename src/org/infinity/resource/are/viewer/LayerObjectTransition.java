@@ -17,7 +17,6 @@ import org.infinity.resource.are.AreResource;
 
 /**
  * Handles specific layer type: ARE/Map transition
- * @author argent77
  */
 public class LayerObjectTransition extends LayerObject
 {

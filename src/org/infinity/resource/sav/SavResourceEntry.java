@@ -4,88 +4,95 @@
 
 package org.infinity.resource.sav;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
+import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.Locale;
 import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 
 import org.infinity.resource.Writeable;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.DynamicArray;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.io.ByteBufferInputStream;
+import org.infinity.util.io.ByteBufferOutputStream;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * Specialized ResourceEntry class for compressed entries in SAV resources.
  */
 public class SavResourceEntry extends ResourceEntry implements Writeable
 {
-  private final String filename;
+  private final String fileName;
   private int offset;
   private int comprLength;
   private int uncomprLength;
-  private byte cdata[];
+  private ByteBuffer cdata;
 
-  public SavResourceEntry(byte buffer[], int offset)
+  public SavResourceEntry(ByteBuffer buffer, int offset)
   {
     this.offset = offset;
-    int fileNameLength = DynamicArray.getInt(buffer, offset);
-    filename = new String(buffer, offset + 4, fileNameLength - 1);
+    int fileNameLength = buffer.getInt(offset);
+    fileName = StreamUtils.readString(buffer, offset + 4, fileNameLength - 1);
     offset += 4 + fileNameLength;
-    uncomprLength = DynamicArray.getInt(buffer, offset);
-    comprLength = DynamicArray.getInt(buffer, offset + 4);
-    cdata = Arrays.copyOfRange(buffer, offset + 8, offset + 8 + comprLength);
+    uncomprLength = buffer.getInt(offset);
+    comprLength = buffer.getInt(offset + 4);
+    cdata = StreamUtils.getByteBuffer(comprLength);
+    StreamUtils.copyBytes(buffer, offset + 8, cdata, 0, comprLength);
   }
 
   public SavResourceEntry(ResourceEntry entry) throws Exception
   {
     comprLength = 0;
     uncomprLength = 0;
-    filename = entry.toString();
-    byte udata[] = entry.getResourceData(true);
+    fileName = entry.toString();
+    byte[] udata = StreamUtils.toArray(entry.getResourceBuffer(true));
     if (udata.length == 0) {
       uncomprLength = 0;
       comprLength = 8;;
-      cdata = new byte[]{0x78, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01};
-    }
-    else {
-      cdata = new byte[udata.length * 2];
+      udata = new byte[]{0x78, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01};
+    } else {
+      cdata = StreamUtils.getByteBuffer(udata.length * 2);
+      try (DeflaterOutputStream dos = new DeflaterOutputStream(new ByteBufferOutputStream(cdata),
+                                                               new Deflater(Deflater.BEST_COMPRESSION))) {
+        dos.write(udata);
+        dos.finish();
+      }
+      cdata.flip();
       uncomprLength = udata.length;
-      Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
-      deflater.setInput(udata);
-      deflater.finish();
-      int clength = deflater.deflate(cdata);
-      cdata = Arrays.copyOfRange(cdata, 0, clength);
-      comprLength = clength;
+      comprLength = cdata.limit();
+//      Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
+//      deflater.setInput(udata);
+//      deflater.finish();
+//      int clength = deflater.deflate(cdata.array());
+//      cdata.limit(clength);
+//      comprLength = clength;
     }
   }
 
   public int getEndOffset()
   {
-    return offset + filename.length() + 13 + cdata.length;
+    return offset + fileName.length() + 13 + cdata.limit();
   }
 
   @Override
   public String toString()
   {
-    return filename;
+    return fileName;
   }
 
   @Override
   public String getResourceName()
   {
-    return filename;
+    return fileName;
   }
 
   @Override
   public String getExtension()
   {
-    return filename.substring(filename.lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH);
+    return fileName.substring(fileName.lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH);
   }
 
   @Override
@@ -103,15 +110,16 @@ public class SavResourceEntry extends ResourceEntry implements Writeable
   @Override
   public int[] getResourceInfo(boolean ignoreoverride) throws Exception
   {
-    if (filename.toUpperCase(Locale.ENGLISH).endsWith(".TIS")) {
+    if (fileName.toUpperCase(Locale.ENGLISH).endsWith(".TIS")) {
       try {
-        byte data[] = decompress();
-        if (!new String(data, 0, 4).equalsIgnoreCase("TIS ")) {
-          int tilesize = 64 * 64 + 4 * 256;
-          int tilecount = uncomprLength / tilesize;
-          return new int[]{tilecount, tilesize};
+        ByteBuffer data = decompress();
+        if (!StreamUtils.readString(data, 0, 4).equalsIgnoreCase("TIS ")) {
+          int tileCount= data.getInt(0);
+          int tileSize = data.getInt(4);
+          return new int[]{tileCount, tileSize};
+        } else {
+          return new int[]{data.getInt(8), data.getInt(12)};
         }
-        return new int[]{DynamicArray.getInt(data, 8), DynamicArray.getInt(data, 12)};
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -121,7 +129,7 @@ public class SavResourceEntry extends ResourceEntry implements Writeable
   }
 
   @Override
-  public byte[] getResourceData(boolean ignoreoverride) throws Exception
+  public ByteBuffer getResourceBuffer(boolean ignoreoverride) throws Exception
   {
     return decompress();
   }
@@ -129,32 +137,51 @@ public class SavResourceEntry extends ResourceEntry implements Writeable
   @Override
   public InputStream getResourceDataAsStream(boolean ignoreoverride) throws Exception
   {
-    return new BufferedInputStream(new ByteArrayInputStream(decompress()));
+    return new ByteBufferInputStream(decompress());
   }
 
   @Override
-  public File getActualFile(boolean ignoreoverride)
+  public Path getActualPath(boolean ignoreoverride)
   {
     return null;
   }
 
-  public byte[] decompress() throws Exception
+  @Override
+  public long getResourceSize(boolean ignoreOverride)
+  {
+    try {
+      int[] info = getResourceInfo();
+      if (info != null) {
+        if (info.length == 1) {
+          return info[0];
+        } else if (info.length > 1) {
+          return info[0]*info[1] + 0x18;
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return -1L;
+  }
+
+  public ByteBuffer decompress() throws Exception
   {
     Inflater inflater = new Inflater();
     byte udata[] = new byte[uncomprLength];
-    inflater.setInput(cdata);
+    inflater.setInput(cdata.array());
     inflater.inflate(udata);
-    return udata;
+    return StreamUtils.getByteBuffer(udata);
   }
 
   @Override
   public void write(OutputStream os) throws IOException
   {
-    FileWriterNI.writeInt(os, filename.length() + 1);
-    FileWriterNI.writeString(os, filename, filename.length());
-    FileWriterNI.writeByte(os, (byte)0);
-    FileWriterNI.writeInt(os, uncomprLength);
-    FileWriterNI.writeInt(os, comprLength);
-    FileWriterNI.writeBytes(os, cdata);
+    StreamUtils.writeInt(os, fileName.length() + 1);
+    StreamUtils.writeString(os, fileName, fileName.length());
+    StreamUtils.writeByte(os, (byte)0);
+    StreamUtils.writeInt(os, uncomprLength);
+    StreamUtils.writeInt(os, comprLength);
+    cdata.position(0);
+    StreamUtils.writeBytes(os, cdata);
   }
 }

@@ -5,10 +5,10 @@
 package org.infinity.resource;
 
 import java.awt.Component;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,7 +33,9 @@ import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.ByteBufferOutputStream;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public abstract class AbstractStruct extends AbstractTableModel implements StructEntry, Viewable, Closeable
 {
@@ -44,8 +46,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public static final String COMMON_UNUSED        = "Unused";
   public static final String COMMON_UNUSED_BYTES  = "Unused bytes?";
 
-//  private static final boolean CONSISTENCY_CHECK = false;
-//  private static final boolean DEBUG_MESSAGES = false;
   private List<StructEntry> list;
   private AbstractStruct superStruct;
   private Map<Class<? extends StructEntry>, SectionCount> countmap;
@@ -66,8 +66,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
           structEntry.getOffset() == datatype.getOffset() && structEntry != datatype &&
           structEntry != modifiedStruct) {
         structEntry.setOffset(structEntry.getOffset() + amount);
-//        if (DEBUG_MESSAGES && superStruct.getSuperStruct() == null && structEntry instanceof AbstractStruct)
-//          System.out.println("Adjusting " + structEntry.getName() + " by " + amount);
       }
       if (structEntry instanceof AbstractStruct)
         adjustEntryOffsets((AbstractStruct)structEntry, modifiedStruct, datatype, amount);
@@ -82,8 +80,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
         SectionOffset sOffset = (SectionOffset)o;
         if (sOffset.getValue() + superStruct.getExtraOffset() > datatype.getOffset()) {
           sOffset.incValue(amount);
-//          if (DEBUG_MESSAGES)
-//            System.out.println("Adjusting section offset " + sOffset.getName() + " by " + amount);
         }
         else if (sOffset.getValue() + superStruct.getExtraOffset() == datatype.getOffset()) {
           if (amount > 0 &&
@@ -91,8 +87,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
                 Profile.getEngine() == Profile.Engine.IWD2 &&
                 superStruct instanceof CreResource)) {
             sOffset.incValue(amount);
-//            if (DEBUG_MESSAGES)
-//              System.out.println("Adjusting section offset " + sOffset.getName() + " by " + amount);
           }
         }
       }
@@ -108,11 +102,11 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     this.entry = entry;
     list = new ArrayList<StructEntry>();
     name = entry.toString();
-    byte buffer[] = entry.getResourceData();
-    endoffset = read(buffer, 0);
+    ByteBuffer bb = entry.getResourceBuffer();
+    endoffset = read(bb, 0);
     if (this instanceof HasAddRemovable && !list.isEmpty()) {// Is this enough?
       Collections.sort(list); // This way we can writeField out in the order in list - sorted by offset
-      fixHoles(buffer);
+      fixHoles((ByteBuffer)bb.position(0));
       initAddStructMaps();
     }
   }
@@ -125,13 +119,13 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     list = new ArrayList<StructEntry>(listSize);
   }
 
-  protected AbstractStruct(AbstractStruct superStruct, String name, byte buffer[], int startoffset)
+  protected AbstractStruct(AbstractStruct superStruct, String name, ByteBuffer buffer, int startoffset)
           throws Exception
   {
     this(superStruct, name, buffer, startoffset, 10);
   }
 
-  protected AbstractStruct(AbstractStruct superStruct, String name, byte buffer[], int startoffset,
+  protected AbstractStruct(AbstractStruct superStruct, String name, ByteBuffer buffer, int startoffset,
                            int listSize) throws Exception
   {
     this(superStruct, name, startoffset, listSize);
@@ -153,24 +147,25 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public void close() throws Exception
   {
     if (structChanged && viewer != null && this instanceof Resource && superStruct == null) {
-      File output;
-      if (entry instanceof BIFFResourceEntry)
-        output =
-            FileNI.getFile(Profile.getRootFolders(),
-                 Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
-      else
-        output = entry.getActualFile();
+      Path outPath;
+      if (entry instanceof BIFFResourceEntry) {
+        outPath = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
+      } else {
+        outPath = entry.getActualPath();
+      }
       String options[] = {"Save changes", "Discard changes", "Cancel"};
-      int result = JOptionPane.showOptionDialog(viewer, "Save changes to " + output + '?', "Resource changed",
+      int result = JOptionPane.showOptionDialog(viewer, "Save changes to " + outPath + '?', "Resource changed",
                                                 JOptionPane.YES_NO_CANCEL_OPTION,
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0)
+      if (result == 0) {
         ResourceFactory.saveResource((Resource)this, viewer.getTopLevelAncestor());
-      else if (result != 1)
+      } else if (result != 1) {
         throw new Exception("Save aborted");
+      }
     }
-    if (viewer != null)
+    if (viewer != null) {
       viewer.close();
+    }
   }
 
 // --------------------- End Interface Closeable ---------------------
@@ -241,15 +236,16 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   }
 
   @Override
-  public byte[] getDataBuffer()
+  public ByteBuffer getDataBuffer()
   {
-    ByteArrayOutputStream os = new ByteArrayOutputStream(getSize());
-    try {
-      writeFlatList(os);
+    ByteBuffer bb = ByteBuffer.allocate(getSize());
+    try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(bb)) {
+      writeFlatList(bbos);
     } catch (IOException e) {
       e.printStackTrace();
     }
-    return os.toByteArray();
+    bb.position(0);
+    return bb;
   }
 
   @Override
@@ -468,9 +464,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
         }
       }
     }
-//    if (DEBUG_MESSAGES)
-//      System.out.println(
-//              "Added " + addedEntry.getName() + " at " + Integer.toHexString(addedEntry.getOffset()));
     if (addedEntry instanceof AbstractStruct) {
       AbstractStruct addedStruct = (AbstractStruct)addedEntry;
       addedStruct.realignStructOffsets();
@@ -495,8 +488,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       superStruct.datatypeAddedInChild(this, addedEntry);
     setStructChanged(true);
     fireTableRowsInserted(index, index);
-//    if (CONSISTENCY_CHECK && topStruct instanceof Resource)
-//      topStruct.testStruct();
     return index;
   }
 
@@ -819,8 +810,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
     if (topStruct instanceof Resource)
       topStruct.endoffset -= removedEntry.getSize();
-//    if (DEBUG_MESSAGES)
-//      System.out.println("Removing: " + removedEntry.getName());
     adjustEntryOffsets(topStruct, this, removedEntry, -removedEntry.getSize());
     adjustSectionOffsets(topStruct, removedEntry, -removedEntry.getSize());
     datatypeRemoved(removedEntry);
@@ -828,8 +817,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       superStruct.datatypeRemovedInChild(this, removedEntry);
     fireTableRowsDeleted(index, index);
     setStructChanged(true);
-//    if (CONSISTENCY_CHECK && topStruct instanceof Resource)
-//      topStruct.testStruct();
   }
 
   /**
@@ -865,20 +852,31 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return null;
   }
 
-  public byte[] removeFromList(StructEntry startFromEntry, int numBytes) throws IOException
+  public ByteBuffer removeFromList(StructEntry startFromEntry, int numBytes) throws IOException
   {
     int startindex = list.indexOf(startFromEntry) + 1;
     int endindex = startindex;
     int len = 0;
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    while (len < numBytes) {
-      StructEntry e = list.get(endindex++);
-      len += e.getSize();
-      e.write(baos);
+    // getting total size
+    int maxLen = 0;
+    for (int i = startindex, cnt = list.size(); i < cnt && maxLen < numBytes; i++) {
+      maxLen += list.get(i).getSize();
     }
-    for (int i = endindex - 1; i >= startindex; i--)
+    // filling buffer
+    ByteBuffer bb = StreamUtils.getByteBuffer(maxLen);
+    try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(bb)) {
+      while (len < maxLen) {
+        StructEntry e = list.get(endindex++);
+        len += e.getSize();
+        e.write(bbos);
+      }
+    }
+    // discard entries
+    for (int i = endindex - 1; i >= startindex; i--) {
       list.remove(i);
-    return baos.toByteArray();
+    }
+    bb.position(0);
+    return bb;
   }
 
   public void setListEntry(int index, StructEntry structEntry)
@@ -1015,7 +1013,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       superStruct.datatypeRemovedInChild(child, datatype);
   }
 
-  private void fixHoles(byte buffer[])
+  private void fixHoles(ByteBuffer buffer)
   {
     int offset = startoffset;
     List<StructEntry> flatList = getFlatList();
@@ -1032,11 +1030,11 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       // Using max() as shared data regions may confuse the hole detection algorithm
       offset = Math.max(offset, se.getOffset() + se.getSize());
     }
-    if (endoffset < buffer.length) { // Does this break anything?
-      list.add(new Unknown(buffer, endoffset, buffer.length - endoffset, COMMON_UNUSED_BYTES));
+    if (endoffset < buffer.limit()) { // Does this break anything?
+      list.add(new Unknown(buffer, endoffset, buffer.limit() - endoffset, COMMON_UNUSED_BYTES));
       System.out.println("Hole: " + name + " off: " + Integer.toHexString(offset) + "h len: " +
-                         (buffer.length - endoffset));
-      endoffset = buffer.length;
+                         (buffer.limit() - endoffset));
+      endoffset = buffer.limit();
     }
   }
 

@@ -8,9 +8,9 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -60,8 +60,6 @@ import org.infinity.search.SearchMaster;
 import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
 import org.infinity.util.StringResource;
-import org.infinity.util.io.FileWriterNI;
-import org.infinity.util.io.PrintWriterNI;
 
 public final class StringUseChecker implements Runnable, ListSelectionListener, SearchClient, ActionListener
 {
@@ -231,28 +229,27 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
   public void actionPerformed(ActionEvent e)
   {
     if (e.getSource() == save) {
-      JFileChooser c = new JFileChooser(Profile.getGameRoot());
+      JFileChooser c = new JFileChooser(Profile.getGameRoot().toFile());
       c.setDialogTitle("Save result");
       if (c.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
-        File output = c.getSelectedFile();
-        if (output.exists()) {
+        Path output = c.getSelectedFile().toPath();
+        if (Files.exists(output)) {
           String[] options = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(resultFrame, output + "exists. Overwrite?",
                                            "Save result",JOptionPane.YES_NO_OPTION,
                                            JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
             return;
         }
-        try {
-          PrintWriter w = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
-          w.println("Searched for unused strings");
-          w.println("Number of hits: "  + table.getRowCount());
-          w.println("");
+        try (BufferedWriter bw = Files.newBufferedWriter(output)) {
+          bw.write("Searched for unused strings"); bw.newLine();
+          bw.write("Number of hits: "  + table.getRowCount()); bw.newLine();
+          bw.newLine();
           for (int i = 0; i < table.getRowCount(); i++) {
-            w.println("StringRef: " + table.getTableItemAt(i).getObjectAt(1) + " /* " +
-                      table.getTableItemAt(i).toString().replaceAll("\r\n", System.getProperty("line.separator")) +
-                      " */");
+            bw.write("StringRef: " + table.getTableItemAt(i).getObjectAt(1) + " /* " +
+                     table.getTableItemAt(i).toString().replaceAll("\r\n", Misc.LINE_SEPARATOR) +
+                " */");
+            bw.newLine();
           }
-          w.close();
           JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output, "Save complete",
                                         JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException ex) {

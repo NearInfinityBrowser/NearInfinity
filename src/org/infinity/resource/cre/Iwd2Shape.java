@@ -4,11 +4,14 @@
 
 package org.infinity.resource.cre;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.IwdRef;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public final class Iwd2Shape extends AbstractStruct implements AddRemovable
 {
@@ -20,10 +23,10 @@ public final class Iwd2Shape extends AbstractStruct implements AddRemovable
 
   public Iwd2Shape() throws Exception
   {
-    super(null, CRE_SHAPE, new byte[16], 0);
+    super(null, CRE_SHAPE, StreamUtils.getByteBuffer(16), 0);
   }
 
-  public Iwd2Shape(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  public Iwd2Shape(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception
   {
     super(superStruct, CRE_SHAPE, buffer, offset);
   }
@@ -39,7 +42,7 @@ public final class Iwd2Shape extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new IwdRef(buffer, offset, CRE_SHAPE_RESREF, "LISTSHAP.2DA"));
     addField(new DecNumber(buffer, offset + 4, 4, CRE_SHAPE_NUM_MEMORIZABLE));

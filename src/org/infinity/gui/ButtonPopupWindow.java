@@ -41,7 +41,6 @@ import javax.swing.border.BevelBorder;
 /**
  * Provides a button component that pops up an associated window when the button is pressed.
  * It works similar to {@code ButtonPopupMenu}.
- * @author argent77
  */
 public class ButtonPopupWindow extends JButton
 {

@@ -18,11 +18,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.charset.Charset;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -53,13 +55,13 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.util.SimpleListModel;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileOutputStreamNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public class ConvertToBmp extends ChildFrame
     implements ActionListener, FocusListener, PropertyChangeListener
 {
-  private static String currentPath = Profile.getGameRoot().toString();
+  private static Path currentPath = Profile.getGameRoot();
 
   private SimpleListModel<String> modelInputFiles;
   private JList<String> listInputFiles;
@@ -87,17 +89,17 @@ public class ConvertToBmp extends ChildFrame
   }
 
   // returns a selection of files
-  private static File[] getOpenFileName(Component parent, String title, String rootPath,
+  private static Path[] getOpenFileName(Component parent, String title, Path rootPath,
                                         boolean selectMultiple,
                                         FileNameExtensionFilter[] filters, int filterIndex)
   {
-    if (rootPath == null || rootPath.isEmpty()) {
+    if (rootPath == null) {
       rootPath = currentPath;
     }
-    JFileChooser fc = new JFileChooser(rootPath);
-    File file = new FileNI(rootPath);
-    if (!file.isDirectory()) {
-        fc.setSelectedFile(file);
+    Path file = FileManager.resolve(rootPath);
+    JFileChooser fc = new JFileChooser(file.toFile());
+    if (!Files.isDirectory(file)) {
+        fc.setSelectedFile(file.toFile());
     }
     if (title == null) {
       title = selectMultiple ? "Select file(s)" : "Select file";
@@ -117,12 +119,18 @@ public class ConvertToBmp extends ChildFrame
     if (fc.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
       if (selectMultiple) {
         if (fc.getSelectedFiles().length > 0) {
-          currentPath = fc.getSelectedFiles()[0].getParent();
+          currentPath = fc.getSelectedFiles()[0].toPath().getParent();
         }
-        return fc.getSelectedFiles();
+        File[] files = fc.getSelectedFiles();
+        Path[] paths = new Path[files.length];
+        for (int i = 0; i < files.length; i++) {
+          paths[i] = files[i].toPath();
+        }
+        return paths;
       } else {
-        currentPath = fc.getSelectedFile().getParent();
-        return new File[]{fc.getSelectedFile()};
+        file = fc.getSelectedFile().toPath();
+        currentPath = file.getParent();
+        return new Path[]{file.getFileName()};
       }
     } else {
       return null;
@@ -130,12 +138,12 @@ public class ConvertToBmp extends ChildFrame
   }
 
   // returns a path name
-  private static File getOpenPathName(Component parent, String title, String rootPath)
+  private static Path getOpenPathName(Component parent, String title, Path rootPath)
   {
-    if (rootPath == null || rootPath.isEmpty()) {
+    if (rootPath == null) {
       rootPath = currentPath;
     }
-    JFileChooser fc = new JFileChooser(rootPath);
+    JFileChooser fc = new JFileChooser(rootPath.toFile());
     if (title == null) {
       title = "Select folder";
     }
@@ -143,32 +151,11 @@ public class ConvertToBmp extends ChildFrame
     fc.setDialogType(JFileChooser.OPEN_DIALOG);
     fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     if (fc.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
-      currentPath = fc.getSelectedFile().toString();
-      return fc.getSelectedFile();
+      currentPath = fc.getSelectedFile().toPath();
+      return fc.getSelectedFile().toPath();
     } else {
       return null;
     }
-  }
-
-  // sets a new file extension to the specified filename string
-  private static String setFileExtension(String fileName, String extension)
-  {
-    if (fileName != null && !fileName.isEmpty()) {
-      int pos = fileName.lastIndexOf('.');
-      if (pos > 0) {
-        // make sure our 'dot' belongs to the file's extension
-        if (pos > fileName.lastIndexOf(File.separatorChar)) {
-          if (fileName.substring(pos+1).equalsIgnoreCase(extension)) {
-            return fileName;
-          }
-          fileName = fileName.substring(0, pos);
-        }
-      }
-      if (extension != null && !extension.isEmpty()) {
-        fileName = fileName + "." + extension;
-      }
-    }
-    return fileName;
   }
 
 
@@ -470,12 +457,11 @@ public class ConvertToBmp extends ChildFrame
   }
 
   // checks for valid graphics file
-  private boolean isValidInput(File file)
+  private boolean isValidInput(Path file)
   {
     boolean result = false;
     if (file != null) {
-      try {
-        ImageInputStream iis = ImageIO.createImageInputStream(file);
+      try (ImageInputStream iis = ImageIO.createImageInputStream(file.toFile())) {
         final Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
         if (readers.hasNext()) {
           result = true;
@@ -489,15 +475,15 @@ public class ConvertToBmp extends ChildFrame
 
   private void inputAdd()
   {
-    String rootPath = null;
+    Path rootPath = null;
     if (!modelInputFiles.isEmpty()) {
-      rootPath = new FileNI(modelInputFiles.get(modelInputFiles.size() - 1)).toString();
+      rootPath = FileManager.resolve(modelInputFiles.get(modelInputFiles.size() - 1));
     }
-    File[] files = getOpenFileName(this, "Choose file(s)", rootPath, true, getGraphicsFilters(), 0);
+    Path[] files = getOpenFileName(this, "Choose file(s)", rootPath, true, getGraphicsFilters(), 0);
     if (files != null) {
       List<String> skippedFiles = new ArrayList<String>();
       int idx = listInputFiles.getSelectedIndex() + 1;
-      for (final File file: files) {
+      for (final Path file: files) {
         if (isValidInput(file)) {
           modelInputFiles.addElement(file.toString());
           idx++;
@@ -529,29 +515,35 @@ public class ConvertToBmp extends ChildFrame
 
   private void inputAddFolder()
   {
-    String rootPath = null;
+    Path rootPath = null;
     if (!modelInputFiles.isEmpty()) {
-      rootPath = new FileNI(modelInputFiles.get(modelInputFiles.size() - 1)).toString();
+      rootPath = FileManager.resolve(modelInputFiles.get(modelInputFiles.size() - 1));
     }
-    File path = getOpenPathName(this, "Choose folder", rootPath);
-    if (path != null && path.exists() && path.isDirectory()) {
+    Path path = getOpenPathName(this, "Choose folder", rootPath);
+    if (path != null && Files.isDirectory(path)) {
       // adding all files in the directory
       FileNameExtensionFilter[] filters = getGraphicsFilters();
-      File[] fileList = path.listFiles();
       List<String> skippedFiles = new ArrayList<String>();
       int idx = listInputFiles.getSelectedIndex() + 1;
-      for (final File file: fileList) {
-        for (final FileNameExtensionFilter filter: filters) {
-          if (file != null && file.isFile() && filter.accept(file)) {
-            if (isValidInput(file)) {
-              modelInputFiles.addElement(file.toString());
-              idx++;
-            } else {
-              skippedFiles.add(file.toString());
+      try (DirectoryStream<Path> dstream = Files.newDirectoryStream(path)) {
+        for (final Path file: dstream) {
+          for (final FileNameExtensionFilter filter: filters) {
+            if (Files.isRegularFile(file) && filter.accept(file.toFile())) {
+              if (isValidInput(file)) {
+                modelInputFiles.addElement(file.toString());
+                idx++;
+              } else {
+                skippedFiles.add(file.toString());
+              }
+              break;
             }
-            break;
           }
         }
+      } catch (IOException e) {
+        JOptionPane.showMessageDialog(this, "Unable to read files from the specified folder.",
+                                      "Error", JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
+        return;
       }
       listInputFiles.setSelectedIndex(idx - 1);
       listInputFiles.requestFocus();
@@ -604,11 +596,11 @@ public class ConvertToBmp extends ChildFrame
 
   private void setOutput()
   {
-    String rootPath = null;
+    Path rootPath = null;
     if (!tfOutput.getText().isEmpty()) {
-      rootPath = tfOutput.getText();
+      rootPath = FileManager.resolve(tfOutput.getText());
     }
-    File path = getOpenPathName(this, "Select output directory", rootPath);
+    Path path = getOpenPathName(this, "Select output directory", rootPath);
     if (path != null) {
       tfOutput.setText(path.toString());
       updateStatus();
@@ -639,11 +631,11 @@ public class ConvertToBmp extends ChildFrame
         progress.setProgress(progressIdx++);
 
         // 1. prepare data
-        File inFile = new FileNI(modelInputFiles.get(i));
-        File outFile= new FileNI(outPath, setFileExtension(inFile.getName(), "BMP"));
-        if (outFile.exists()) {
+        Path inFile = FileManager.resolve(modelInputFiles.get(i));
+        Path outFile = FileManager.resolve(outPath, StreamUtils.replaceFileExtension(inFile.getFileName().toString(), "BMP"));
+        if (Files.exists(outFile)) {
           if (cbOverwrite.getSelectedIndex() == 0) {          // ask
-            String msg = String.format("File %1$s already exists. Overwrite?", outFile.getName());
+            String msg = String.format("File %1$s already exists. Overwrite?", outFile.getFileName());
             int ret = JOptionPane.showConfirmDialog(this, msg, "Overwrite?", JOptionPane.YES_NO_CANCEL_OPTION);
             if (ret == JOptionPane.NO_OPTION) {
               skipped++;
@@ -662,7 +654,7 @@ public class ConvertToBmp extends ChildFrame
 
         Image img = null;
         try {
-          img = ImageIO.read(inFile);
+          img = ImageIO.read(inFile.toFile());
         } catch (Exception e) {
           failed++;
           img = null;
@@ -700,7 +692,7 @@ public class ConvertToBmp extends ChildFrame
   }
 
   // creates a 32-bit BMP files that is compatible with BG(2)EE
-  private boolean writeBMP(Image srcImage, File file, boolean hasAlpha)
+  private boolean writeBMP(Image srcImage, Path file, boolean hasAlpha)
   {
     if (srcImage != null && file != null) {
       BufferedImage image = ColorConvert.toBufferedImage(srcImage, true);
@@ -734,10 +726,10 @@ public class ConvertToBmp extends ChildFrame
       int sizeBitmapHeader = hasAlpha ? 124 : 40;
       int headerSize = sizeFileHeader + sizeBitmapHeader;
       int fileSize = headerSize + (bytesPerLine + fillBytes)*image.getHeight();
-      ByteBuffer buffer = ByteBuffer.allocate(headerSize).order(ByteOrder.LITTLE_ENDIAN);
+      ByteBuffer buffer = StreamUtils.getByteBuffer(headerSize);
 
       // file header
-      buffer.put("BM".getBytes(Charset.forName("US-ASCII")));   // File type ("BM")
+      buffer.put("BM".getBytes());          // File type ("BM")
       buffer.putInt(fileSize);              // total file size
       buffer.putInt(0);                     // reserved
       buffer.putInt(sizeFileHeader+sizeBitmapHeader);   // start of pixel data
@@ -758,7 +750,7 @@ public class ConvertToBmp extends ChildFrame
         buffer.putInt(0x0000ff00);          // green bitmask
         buffer.putInt(0x000000ff);          // blue bitmask
         buffer.putInt(0xff000000);          // alpha bitmask
-        buffer.put("BGRs".getBytes(Charset.forName("US-ASCII")));   // color space type
+        buffer.put("BGRs".getBytes());      // color space type
         byte[] zero = new byte[16*4];
         Arrays.fill(zero, (byte)0);
         buffer.put(zero);                   // remaining fields are empty
@@ -766,49 +758,35 @@ public class ConvertToBmp extends ChildFrame
       }
 
       // writing BMP pixel data in ARGB format (upside down)
-      BufferedOutputStream bos = null;
-      try {
-        try {
-          bos = new BufferedOutputStream(new FileOutputStreamNI(file));
+      try (OutputStream os = StreamUtils.getOutputStream(file, true)) {
+        // writing header
+        os.write(buffer.array());
 
-          // writing header
-          bos.write(buffer.array());
-
-          // writing pixel data
-          final int transThreshold = 0x20;
-          byte[] row = new byte[bytesPerLine+fillBytes];
-          int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-          for(int y = image.getHeight() - 1; y >= 0; y--) {
-            for (int i = 0, idx = y*image.getWidth(); i < bytesPerLine; i += bytesPerPixel, idx++) {
-              if (!hasAlpha && (pixels[idx] >>> 24) < transThreshold) {
-                pixels[idx] = 0x00ff00;   // transparent pixels are translated into RGB(0, 255, 0)
-              }
-              row[i+0] = (byte)(pixels[idx] & 0xff);
-              row[i+1] = (byte)((pixels[idx] >>> 8) & 0xff);
-              row[i+2] = (byte)((pixels[idx] >>> 16) & 0xff);
-              if (hasAlpha) {
-                row[i+3] = (byte)((pixels[idx] >>> 24) & 0xff);
-              }
+        // writing pixel data
+        final int transThreshold = 0x20;
+        byte[] row = new byte[bytesPerLine+fillBytes];
+        int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+        for(int y = image.getHeight() - 1; y >= 0; y--) {
+          for (int i = 0, idx = y*image.getWidth(); i < bytesPerLine; i += bytesPerPixel, idx++) {
+            if (!hasAlpha && (pixels[idx] >>> 24) < transThreshold) {
+              pixels[idx] = 0x00ff00;   // transparent pixels are translated into RGB(0, 255, 0)
             }
-            // adding alignment bytes
-            for (int i = 0; i < fillBytes; i++) {
-              row[bytesPerLine+i] = (byte)0;
+            row[i+0] = (byte)(pixels[idx] & 0xff);
+            row[i+1] = (byte)((pixels[idx] >>> 8) & 0xff);
+            row[i+2] = (byte)((pixels[idx] >>> 16) & 0xff);
+            if (hasAlpha) {
+              row[i+3] = (byte)((pixels[idx] >>> 24) & 0xff);
             }
-            bos.write(row);
           }
-
-          bos.close();
-          bos = null;
-          return true;
-        } catch (Exception e) {
-          e.printStackTrace();
-          if (bos != null) {
-            bos.close();
-            bos = null;
+          // adding alignment bytes
+          for (int i = 0; i < fillBytes; i++) {
+            row[bytesPerLine+i] = (byte)0;
           }
+          os.write(row);
         }
+        return true;
       } catch (Exception e) {
-        bos = null;
+        e.printStackTrace();
       }
     }
     return false;

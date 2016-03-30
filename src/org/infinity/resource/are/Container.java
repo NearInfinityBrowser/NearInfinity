@@ -4,6 +4,8 @@
 
 package org.infinity.resource.are;
 
+import java.nio.ByteBuffer;
+
 import javax.swing.JComponent;
 
 import org.infinity.datatype.Bitmap;
@@ -22,6 +24,7 @@ import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.vertex.Vertex;
+import org.infinity.util.io.StreamUtils;
 
 public final class Container extends AbstractStruct implements AddRemovable, HasVertices, HasViewerTabs,
                                                                HasAddRemovable
@@ -64,10 +67,10 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 
   public Container() throws Exception
   {
-    super(null, ARE_CONTAINER, new byte[192], 0);
+    super(null, ARE_CONTAINER, StreamUtils.getByteBuffer(192), 0);
   }
 
-  public Container(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public Container(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, ARE_CONTAINER + " " + nr, buffer, offset);
   }
@@ -138,7 +141,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 // --------------------- Begin Interface HasVertices ---------------------
 
   @Override
-  public void readVertices(byte buffer[], int offset) throws Exception
+  public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
     int firstVertex = ((DecNumber)getAttribute(ARE_CONTAINER_FIRST_VERTEX_INDEX)).getValue();
     int numVertices = ((DecNumber)getAttribute(ARE_CONTAINER_NUM_VERTICES)).getValue();
@@ -187,7 +190,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     }
   }
 
-  public void readItems(byte buffer[], int offset) throws Exception
+  public void readItems(ByteBuffer buffer, int offset) throws Exception
   {
     int firstIndex = ((DecNumber)getAttribute(ARE_CONTAINER_FIRST_ITEM_INDEX)).getValue();
     int numItems = ((DecNumber)getAttribute(ARE_CONTAINER_NUM_ITEMS)).getValue();
@@ -216,7 +219,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 32, ARE_CONTAINER_NAME));
     addField(new DecNumber(buffer, offset + 32, 2, ARE_CONTAINER_LOCATION_X));

@@ -8,7 +8,6 @@ import org.infinity.resource.graphics.BamDecoder;
 
 /**
  * A structure to hold a unique identifier and the associated BAM animation.
- * @author argent77
  */
 public class ResourceAnimation extends BasicResource
 {

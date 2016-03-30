@@ -26,7 +26,9 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -55,17 +57,15 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.key.FileResourceEntry;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileReaderNI;
-import org.infinity.util.io.FileWriterNI;
-import org.infinity.util.io.PrintWriterNI;
+import org.infinity.util.Misc;
+import org.infinity.util.io.FileManager;
 
 final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelectionListener
 {
   private final JButton bOpen = new JButton("Open selected", Icons.getIcon(Icons.ICON_OPEN_16));
   private final JButton bSelectDir = new JButton(Icons.getIcon(Icons.ICON_OPEN_16));
   private final JCheckBox cbIgnoreWarnings = new JCheckBox("Ignore compiler warnings", true);
-  private final JFileChooser fc = new JFileChooser(Profile.getGameRoot());
+  private final JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
   private final JLabel compZone = new JLabel("Compiler drop zone (BAF)", JLabel.CENTER);
   private final JLabel decompZone = new JLabel("Decompiler drop zone (BCS/BS)", JLabel.CENTER);
   private final JLabel statusMsg = new JLabel(" Drag and drop files or folders into the zones");
@@ -237,68 +237,75 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
 
 // --------------------- End Interface ListSelectionListener ---------------------
 
-  private SortedMap<Integer, String> compileFile(File file)
+  private SortedMap<Integer, String> compileFile(Path file)
   {
-    try {
-      BufferedReader br = new BufferedReader(new FileReaderNI(file));
-      StringBuffer source = new StringBuffer();
+    StringBuffer source = new StringBuffer();
+    try (BufferedReader br = Files.newBufferedReader(file)) {
       String line = br.readLine();
       while (line != null) {
         source.append(line).append('\n');
         line = br.readLine();
       }
-      br.close();
-      Compiler compiler = new Compiler(source.toString());
-      String compiled = compiler.getCode();
-      SortedMap<Integer, String> errors = compiler.getErrors();
-      SortedMap<Integer, String> warnings = compiler.getWarnings();
-      if (!cbIgnoreWarnings.isSelected())
-        errors.putAll(warnings);
-      if (errors.size() == 0) {
-        String filename = file.getName();
-        filename = filename.substring(0, filename.lastIndexOf((int)'.'));
-        if (rbSaveBCS.isSelected())
-          filename += ".BCS";
-        else
-          filename += ".BS";
-        File output;
-        if (rbOrigDir.isSelected())
-          output = new FileNI(file.getParent(), filename);
-        else
-          output = new FileNI(tfOtherDir.getText(), filename);
-        PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
-        pw.print(compiled);
-        pw.close();
-      }
-      return errors;
     } catch (IOException e) {
       e.printStackTrace();
       return null;
     }
+    Compiler compiler = new Compiler(source.toString());
+    String compiled = compiler.getCode();
+    SortedMap<Integer, String> errors = compiler.getErrors();
+    SortedMap<Integer, String> warnings = compiler.getWarnings();
+    if (!cbIgnoreWarnings.isSelected()) {
+      errors.putAll(warnings);
+    }
+    if (errors.size() == 0) {
+      String filename = file.getFileName().toString();
+      filename = filename.substring(0, filename.lastIndexOf((int)'.'));
+      if (rbSaveBCS.isSelected()) {
+        filename += ".BCS";
+      } else {
+        filename += ".BS";
+      }
+      Path output;
+      if (rbOrigDir.isSelected()) {
+        output = file.getParent().resolve(filename);
+      } else {
+        output = FileManager.resolve(tfOtherDir.getText(), filename);
+      }
+      try (BufferedWriter bw = Files.newBufferedWriter(output)) {
+        bw.write(compiled);
+      } catch (IOException e) {
+        e.printStackTrace();
+        return null;
+      }
+    }
+    return errors;
   }
 
-  private boolean decompileFile(File file)
+  private boolean decompileFile(Path file)
   {
-    try {
-      BufferedReader br = new BufferedReader(new FileReaderNI(file));
-      StringBuffer code = new StringBuffer();
+    StringBuffer code = new StringBuffer();
+    try (BufferedReader br = Files.newBufferedReader(file)) {
       String line = br.readLine();
       while (line != null) {
         code.append(line).append('\n');
         line = br.readLine();
       }
-      br.close();
-      String filename = file.getName();
-      filename = filename.substring(0, filename.lastIndexOf((int)'.')) + ".BAF";
-      File output;
-      if (rbOrigDir.isSelected())
-        output = new FileNI(file.getParent(), filename);
-      else
-        output = new FileNI(tfOtherDir.getText(), filename);
-      PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
-      Decompiler decompiler = new Decompiler(code.toString(), Decompiler.ScriptType.BCS, true);
-      pw.println(decompiler.getSource());
-      pw.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+      return false;
+    }
+    String filename = file.getFileName().toString();
+    filename = filename.substring(0, filename.lastIndexOf((int)'.')) + ".BAF";
+    Path output;
+    if (rbOrigDir.isSelected()) {
+      output = file.getParent().resolve(filename);
+    } else {
+      output = FileManager.resolve(tfOtherDir.getText(), filename);
+    }
+    Decompiler decompiler = new Decompiler(code.toString(), Decompiler.ScriptType.BCS, true);
+    try (BufferedWriter bw = Files.newBufferedWriter(output)) {
+      bw.write(decompiler.getSource().replaceAll("\r?\n", Misc.LINE_SEPARATOR));
+      bw.newLine();
     } catch (IOException e) {
       e.printStackTrace();
       return false;
@@ -314,44 +321,55 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     int ok = 0, failed = 0;
     if (component == compZone) {
       for (int i = 0; i < files.size(); i++) {
-        File file = files.get(i);
-        if (file.isDirectory()) {
-          File f[] = file.listFiles();
-          for (final File newVar : f)
-            files.add(newVar);
+        Path file = files.get(i).toPath();
+        if (Files.isDirectory(file)) {
+          try (DirectoryStream<Path> dstream = Files.newDirectoryStream(file)) {
+            for (final Path p: dstream) {
+              files.add(p.toFile());
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
         }
-        else if (file.toString().toUpperCase(Locale.ENGLISH).endsWith("BAF")) {
+        else if (file.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".BAF")) {
           SortedMap<Integer, String> errors = compileFile(file);
-          if (errors == null)
+          if (errors == null) {
             failed++;
-          else {
-            if (errors.size() == 0)
+          } else {
+            if (errors.size() == 0) {
               ok++;
-            else {
-              for (final Integer lineNr : errors.keySet())
+            } else {
+              for (final Integer lineNr : errors.keySet()) {
                 table.addTableItem(new CompileError(file, lineNr.intValue(), errors.get(lineNr)));
+              }
               failed++;
             }
           }
         }
       }
-      if (failed > 0)
+      if (failed > 0) {
         tabbedPane.setSelectedIndex(1);
+      }
     }
     else if (component == decompZone) {
       for (int i = 0; i < files.size(); i++) {
-        File file = files.get(i);
-        if (file.isDirectory()) {
-          File f[] = file.listFiles();
-          for (final File newVar : f)
-            files.add(newVar);
+        Path file = files.get(i).toPath();
+        if (Files.isDirectory(file)) {
+          try (DirectoryStream<Path> dstream = Files.newDirectoryStream(file)) {
+            for (final Path p: dstream) {
+              files.add(p.toFile());
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
         }
-        else if (file.toString().toUpperCase(Locale.ENGLISH).endsWith("BCS") ||
-                 file.toString().toUpperCase(Locale.ENGLISH).endsWith("BS")) {
-          if (decompileFile(file))
+        else if (file.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".BCS") ||
+                 file.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".BS")) {
+          if (decompileFile(file)) {
             ok++;
-          else
+          } else {
             failed++;
+          }
         }
       }
     }
@@ -426,7 +444,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     private final Integer linenr;
     private final String error;
 
-    private CompileError(File file, int linenr, String error)
+    private CompileError(Path file, int linenr, String error)
     {
       resourceEntry = new FileResourceEntry(file);
       this.linenr = new Integer(linenr);

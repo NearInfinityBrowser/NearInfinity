@@ -4,6 +4,8 @@
 
 package org.infinity.resource.wed;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.HexNumber;
@@ -14,6 +16,7 @@ import org.infinity.datatype.TextString;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasAddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
@@ -33,10 +36,10 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
 
   public Door() throws Exception
   {
-    super(null, WED_DOOR, new byte[26], 0);
+    super(null, WED_DOOR, StreamUtils.getByteBuffer(26), 0);
   }
 
-  public Door(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  public Door(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, WED_DOOR + " " + number, buffer, offset);
   }
@@ -89,7 +92,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
     return (DecNumber)getAttribute(WED_DOOR_TILEMAP_LOOKUP_INDEX);
   }
 
-  public void readVertices(byte buffer[], int offset) throws Exception
+  public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
     for (int i = 0; i < getFieldCount(); i++) {
       Object o = getField(i);
@@ -125,7 +128,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 8, WED_DOOR_NAME));
     addField(new Bitmap(buffer, offset + 8, 2, WED_DOOR_IS_DOOR, s_noyes));

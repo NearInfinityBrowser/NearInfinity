@@ -28,7 +28,6 @@ import org.infinity.util.Misc;
 
 /**
  * Transform filter: rotates each frame by a specified amount.
- * @author argent77
  */
 public class BamFilterTransformRotate extends BamFilterBaseTransform implements ActionListener
 {

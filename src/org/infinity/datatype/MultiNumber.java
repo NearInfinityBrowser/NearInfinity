@@ -11,6 +11,7 @@ import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -27,11 +28,9 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
-import org.infinity.util.DynamicArray;
 
 /**
  * A Number object consisting of multiple values of a given number of bits.
- * @author argent77
  */
 public class MultiNumber extends Datatype implements Editable, IsNumeric
 {
@@ -49,7 +48,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
    * @param numValues Number of values to consider. Supported range: [1, length*8/numBits]
    * @param valueNames List of individual field names for each contained value.
    */
-  public MultiNumber(byte[] buffer, int offset, int length, String name,
+  public MultiNumber(ByteBuffer buffer, int offset, int length, String name,
                      int numBits, int numValues, String[] valueNames)
   {
     this(null, buffer, offset, length, name, numBits, numValues, valueNames);
@@ -66,7 +65,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
    * @param numValues Number of values to consider. Supported range: [1, length*8/numBits]
    * @param valueNames List of individual field names for each contained value.
    */
-  public MultiNumber(StructEntry parent, byte[] buffer, int offset, int length, String name,
+  public MultiNumber(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
                      int numBits, int numValues, String[] valueNames)
   {
     super(offset, length, name);
@@ -157,20 +156,22 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
+    buffer.position(offset);
     switch (getSize()) {
       case 1:
-        value = DynamicArray.getByte(buffer, offset);
+        value = buffer.get();
         break;
       case 2:
-        value = DynamicArray.getShort(buffer, offset);
+        value = buffer.getShort();
         break;
       case 3:
-        value = DynamicArray.getInt24(buffer, offset);
+        value = buffer.getInt() & 0xffffff;
+        value <<= 8; value >>= 8; // sign-extend
         break;
       case 4:
-        value = DynamicArray.getInt(buffer, offset);
+        value = buffer.getInt();
         break;
       default:
         throw new IllegalArgumentException();

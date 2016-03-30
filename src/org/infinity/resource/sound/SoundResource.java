@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.nio.ByteBuffer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -32,10 +33,10 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.WavReferenceSearcher;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * Handles all kinds of supported single track audio files.
- * @author argent77
  */
 public class SoundResource implements Resource, ActionListener, ItemListener, Closeable, Runnable
 {
@@ -87,10 +88,11 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
         ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
       } else if (bpmExport.getSelectedItem() == miConvert) {
         String fileName = entry.toString();
-        if (fileName.lastIndexOf('.') > 0)
+        if (fileName.lastIndexOf('.') > 0) {
           fileName = fileName.substring(0, fileName.lastIndexOf('.')) + ".WAV";
-        ResourceFactory.exportResource(entry, audioBuffer.getAudioData(), fileName,
-                                       panel.getTopLevelAncestor());
+        }
+        ByteBuffer buffer = StreamUtils.getByteBuffer(audioBuffer.getAudioData());
+        ResourceFactory.exportResource(entry, buffer, fileName, panel.getTopLevelAncestor());
       }
     }
   }

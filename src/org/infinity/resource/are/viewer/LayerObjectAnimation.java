@@ -7,6 +7,7 @@ package org.infinity.resource.are.viewer;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.Point;
+import java.nio.ByteBuffer;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
@@ -28,12 +29,10 @@ import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.DynamicArray;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.FileManager;
 
 /**
  * Handles specific layer type: ARE/Background Animation
- * @author argent77
  */
 public class LayerObjectAnimation extends LayerObject
 {
@@ -373,24 +372,24 @@ public class LayerObjectAnimation extends LayerObject
     if (bmpFile != null && !bmpFile.isEmpty()) {
       ResourceEntry entry = ResourceFactory.getResourceEntry(bmpFile);
       if (entry == null) {
-        entry = new FileResourceEntry(new FileNI(bmpFile));
+        entry = new FileResourceEntry(FileManager.resolve(bmpFile));
       }
       if (entry != null) {
         try {
-          byte[] data = entry.getResourceData();
-          if (data != null && data.length > 1078) {
-            boolean isBMP = (DynamicArray.getUnsignedShort(data, 0) == 0x4D42);   // 'BM'
-            int palOfs = DynamicArray.getInt(data, 0x0e);
-            int bpp = DynamicArray.getShort(data, 0x1c);
+          ByteBuffer buffer = entry.getResourceBuffer();
+          if (buffer != null && buffer.limit() > 1078) {
+            boolean isBMP = (buffer.getShort(0) == 0x4D42);   // 'BM'
+            int palOfs = buffer.getInt(0x0e);
+            int bpp = buffer.getShort(0x1c);
             if (isBMP && palOfs >= 0x28 && bpp == 8) {
               int ofs = 0x0e + palOfs;
               retVal = new int[256];
               for (int i = 0; i < 256; i++) {
-                retVal[i] = DynamicArray.getInt(data, ofs + i*4);
+                retVal[i] = buffer.getInt(ofs + i*4);
               }
             }
           }
-          data = null;
+          buffer = null;
         } catch (Exception e) {
         }
       }

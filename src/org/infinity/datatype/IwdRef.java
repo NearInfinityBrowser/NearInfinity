@@ -4,6 +4,7 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -17,12 +18,12 @@ public final class IwdRef extends ResourceBitmap
 {
   private static final String NONE = "None";
 
-  public IwdRef(byte buffer[], int offset, String name, String idsFile)
+  public IwdRef(ByteBuffer buffer, int offset, String name, String idsFile)
   {
     this(null, buffer, offset, name, idsFile);
   }
 
-  public IwdRef(StructEntry parent, byte buffer[], int offset, String name, String idsFile)
+  public IwdRef(StructEntry parent, ByteBuffer buffer, int offset, String name, String idsFile)
   {
     super(parent, buffer, offset, 4, name, createIwdRefList(idsFile), NONE, FMT_REF_NAME);
   }

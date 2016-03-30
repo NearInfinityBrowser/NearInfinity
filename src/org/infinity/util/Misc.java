@@ -18,7 +18,15 @@ import javax.swing.JComponent;
  */
 public class Misc
 {
-  public static final Charset DEFAULT_CHARSET = Charset.forName("iso-8859-1");
+  /** The default ANSI charset. */
+  public static final Charset CHARSET_DEFAULT = Charset.forName("windows-1252");
+  /** The UTF-8 charset. */
+  public static final Charset CHARSET_UTF8    = Charset.forName("UTF-8");
+  /** The US-ASCII charset. */
+  public static final Charset CHARSET_ASCII   = Charset.forName("US-ASCII");
+
+  /** Returns the line separator string which is used by the current operating system. */
+  public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
   /** Compares the string representation of the specified objects, ignoring case considerations. */
   public static final Comparator<Object> IgnoreCaseComparator = new Comparator<Object>() {
@@ -36,74 +44,28 @@ public class Misc
   };
 
   /**
-   * Replaces any file extension with the specified one.
-   * @param fileName The original filename.
-   * @param newExt The new file extension (specified without period).
-   * @return The modified filename.
-   */
-  public static String replaceFileExtension(String fileName, String newExt)
-  {
-    if (fileName != null) {
-      newExt = (newExt == null) ? "" : "." + newExt;
-      int pos = fileName.lastIndexOf('.');
-      if (pos >= 0) {
-        fileName = fileName.substring(0, pos) + newExt;
-      } else {
-        fileName = fileName + newExt;
-      }
-    }
-    return fileName;
-  }
-
-  /**
-   * Replaces the file extension only if the old extension matches oldExt.
-   * @param fileName The original filename.
-   * @param oldExt The file extension to replace (specified without period).
-   * @param newExt The new file extension (specified without period).
-   * @return The modified filename.
-   */
-  public static String replaceFileExtension(String fileName, String oldExt, String newExt)
-  {
-    if (fileName != null) {
-      if (oldExt == null) {
-        oldExt = "";
-      }
-      newExt = (newExt == null) ? "" : "." + newExt;
-      int pos = fileName.lastIndexOf('.');
-      if (pos >= 0) {
-        if (fileName.substring(pos+1).equalsIgnoreCase(oldExt)) {
-          fileName = fileName.substring(0, pos) + newExt;
-        }
-      } else if (oldExt.isEmpty()) {
-        fileName = fileName + newExt;
-      }
-    }
-    return fileName;
-  }
-
-  /**
    * Attempts to detect the character set of the text data in the specified byte buffer.
    * @param data Text data as byte array.
-   * @return The detected character set or the ANSI charset "iso-8859-1"
+   * @return The detected character set or the ANSI charset "windows-1252"
    *         if autodetection was not successful.
    */
   public static Charset detectCharset(byte[] data)
   {
-    return detectCharset(data, DEFAULT_CHARSET);
+    return detectCharset(data, CHARSET_DEFAULT);
   }
 
   /**
    * Attempts to detect the character set of the text data in the specified byte buffer.
    * @param data Text data as byte array.
    * @param defaultCharset The default charset to return if autodetection is not successful.
-   *                       (Default: ISO-8859-1)
+   *                       (Default: windows-1252)
    * @return The detected character set or {@code defaultCharset}
    *         if autodetection was not successful.
    */
   public static Charset detectCharset(byte[] data, Charset defaultCharset)
   {
     if (defaultCharset == null) {
-      defaultCharset = DEFAULT_CHARSET;
+      defaultCharset = CHARSET_DEFAULT;
     }
 
     Charset retVal = null;
@@ -214,6 +176,57 @@ public class Misc
         array[i] = swap64(array[i]);
       }
     }
+  }
+
+  /** Converts a short value into a byte array (little-endian). */
+  public static final byte[] shortToArray(short value)
+  {
+    return new byte[]{(byte)(value & 0xff),
+                      (byte)((value >> 8) & 0xff)};
+  }
+
+  /** Converts an int value into a byte array (little-endian). */
+  public static final byte[] intToArray(int value)
+  {
+    return new byte[]{(byte)(value & 0xff),
+                      (byte)((value >> 8) & 0xff),
+                      (byte)((value >> 16) & 0xff),
+                      (byte)((value >> 24) & 0xff)};
+  }
+
+  /** Converts a long value into a byte array (little-endian). */
+  public static final byte[] longToArray(long value)
+  {
+    return new byte[]{(byte)(value & 0xffL),
+                      (byte)((value >> 8) & 0xffL),
+                      (byte)((value >> 16) & 0xffL),
+                      (byte)((value >> 24) & 0xffL),
+                      (byte)((value >> 32) & 0xffL),
+                      (byte)((value >> 40) & 0xffL),
+                      (byte)((value >> 48) & 0xffL),
+                      (byte)((value >> 56) & 0xffL)};
+  }
+
+  /**
+   * Sign-extends the specified {@code int} value consisting of the specified number of significant bits.
+   * @param value The {@code int} value to sign-extend.
+   * @param bits Size of {@code value} in bits.
+   * @return A sign-extended version of {@code value}.
+   */
+  public static final int signExtend(int value, int bits)
+  {
+    return (value << (32 - bits)) >> (32 - bits);
+  }
+
+  /**
+   * Sign-extends the specified {@code long} value consisting of the specified number of significant bits.
+   * @param value The {@code long} value to sign-extend.
+   * @param bits Size of {@code value} in bits.
+   * @return A sign-extended version of {@code value}.
+   */
+  public static final long signExtend(long value, int bits)
+  {
+    return (value << (64 - bits)) >> (64 - bits);
   }
 
 

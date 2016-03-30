@@ -4,6 +4,8 @@
 
 package org.infinity.resource.other;
 
+import java.nio.ByteBuffer;
+
 import javax.swing.JButton;
 import javax.swing.JComponent;
 
@@ -19,6 +21,7 @@ import org.infinity.resource.Closeable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.io.StreamUtils;
 
 public final class FntResource extends AbstractStruct implements Resource, Closeable, HasViewerTabs
 {
@@ -41,7 +44,7 @@ public final class FntResource extends AbstractStruct implements Resource, Close
   }
 
   @Override
-  public int read(byte[] buffer, int startoffset) throws Exception
+  public int read(ByteBuffer buffer, int startoffset) throws Exception
   {
     String resName = getResourceEntry().getResourceName();
     if (resName.lastIndexOf('.') > 0)
@@ -49,10 +52,11 @@ public final class FntResource extends AbstractStruct implements Resource, Close
 
     byte[] b = new byte[8];
     System.arraycopy(resName.getBytes(), 0, b, 0, resName.length());
+    ByteBuffer buf = StreamUtils.getByteBuffer(b);
     addField(new DecNumber(buffer, startoffset, 4, FNT_NUM_EXTRA_LETTERS));
-    addField(new ResourceRef(b, 0, FNT_LETTERS, "BAM"));
-    addField(new ResourceRef(b, 0, FNT_EXTRA_LETTERS, "BMP"));
-    return buffer.length;
+    addField(new ResourceRef(buf, 0, FNT_LETTERS, "BAM"));
+    addField(new ResourceRef(buf, 0, FNT_EXTRA_LETTERS, "BMP"));
+    return buffer.limit();
   }
 
   //--------------------- Begin Interface HasViewerTabs ---------------------

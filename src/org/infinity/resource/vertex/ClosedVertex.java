@@ -4,7 +4,10 @@
 
 package org.infinity.resource.vertex;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.AbstractStruct;
+import org.infinity.util.io.StreamUtils;
 
 public final class ClosedVertex extends Vertex
 {
@@ -13,10 +16,10 @@ public final class ClosedVertex extends Vertex
 
   public ClosedVertex() throws Exception
   {
-    super(null, VERTEX_CLOSED, new byte[4], 0);
+    super(null, VERTEX_CLOSED, StreamUtils.getByteBuffer(4), 0);
   }
 
-  public ClosedVertex(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public ClosedVertex(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, VERTEX_CLOSED + " " + nr, buffer, offset);
   }

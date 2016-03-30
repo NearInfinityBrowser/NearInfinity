@@ -4,6 +4,8 @@
 
 package org.infinity.resource.gam;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
@@ -25,13 +27,13 @@ public final class ModronMazeEntry extends AbstractStruct
   private static final String[] s_traps = {"TrapA", "TrapB", "TrapC"};
   private static final String[] s_walls = {"None", "East", "West", "North", "South"};
 
-  public ModronMazeEntry(AbstractStruct superStruct, byte[] buffer, int offset, int nr) throws Exception
+  public ModronMazeEntry(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, GAM_MAZE_ENTRY + " " + nr, buffer, offset);
   }
 
   @Override
-  public int read(byte[] buffer, int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new DecNumber(buffer, offset, 4, GAM_MAZE_ENTRY_OVERRIDE));
     addField(new Bitmap(buffer, offset + 4, 4, GAM_MAZE_ENTRY_ACCESSIBLE, s_noyes));

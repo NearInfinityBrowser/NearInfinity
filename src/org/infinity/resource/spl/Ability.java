@@ -4,6 +4,8 @@
 
 package org.infinity.resource.spl;
 
+import java.nio.ByteBuffer;
+
 import javax.swing.JComponent;
 
 import org.infinity.datatype.Bitmap;
@@ -22,6 +24,7 @@ import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.util.io.StreamUtils;
 
 public final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasViewerTabs
 {
@@ -36,10 +39,10 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
 
   Ability() throws Exception
   {
-    super(null, SPL_ABIL, new byte[40], 0);
+    super(null, SPL_ABIL, StreamUtils.getByteBuffer(40), 0);
   }
 
-  Ability(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  Ability(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, SPL_ABIL + " " + number, buffer, offset);
   }
@@ -107,7 +110,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
 // --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Bitmap(buffer, offset, 1, ABILITY_TYPE, s_type));

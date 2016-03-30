@@ -10,7 +10,7 @@ import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
+import java.nio.ByteBuffer;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -22,31 +22,32 @@ import org.infinity.gui.StructViewer;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.io.StreamUtils;
 
 public class Unknown extends Datatype implements Editable, IsBinary
 {
   protected InfinityTextArea textArea;
-  protected byte[] data;
+  protected ByteBuffer buffer;
 
-  public Unknown(byte[] buffer, int offset, int length)
+  public Unknown(ByteBuffer buffer, int offset, int length)
   {
     this(null, buffer, offset, length, AbstractStruct.COMMON_UNKNOWN);
   }
 
-  public Unknown(StructEntry parent, byte[] buffer, int offset, int length)
+  public Unknown(StructEntry parent, ByteBuffer buffer, int offset, int length)
   {
     this(parent, buffer, offset, length, AbstractStruct.COMMON_UNKNOWN);
   }
 
-  public Unknown(byte[] buffer, int offset, int length, String name)
+  public Unknown(ByteBuffer buffer, int offset, int length, String name)
   {
     this(null, buffer, offset, length, name);
   }
 
-  public Unknown(StructEntry parent, byte[] buffer, int offset, int length, String name)
+  public Unknown(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
   {
     super(parent, offset, length, name);
+    this.buffer = StreamUtils.getByteBuffer(length);
     read(buffer, offset);
   }
 
@@ -55,7 +56,7 @@ public class Unknown extends Datatype implements Editable, IsBinary
   @Override
   public JComponent edit(ActionListener container)
   {
-    if (data != null && data.length > 0) {
+    if (buffer.limit() > 0) {
       JButton bUpdate;
       if (textArea == null) {
         textArea = new InfinityTextArea(15, 5, true);
@@ -109,16 +110,15 @@ public class Unknown extends Datatype implements Editable, IsBinary
   public boolean updateValue(AbstractStruct struct)
   {
     String value = textArea.getText().trim();
-    value = value.replace('\n', ' ');
-    value = value.replace('\r', ' ');
+    value = value.replaceAll("\r?\n", " ");
     int index = value.indexOf((int)' ');
     while (index != -1) {
       value = value.substring(0, index) + value.substring(index + 1);
       index = value.indexOf((int)' ');
     }
-    if (value.length() != 2 * data.length)
+    if (value.length() != 2 * buffer.limit())
       return false;
-    byte newdata[] = new byte[data.length];
+    byte[] newdata = new byte[buffer.limit()];
     for (int i = 0; i < newdata.length; i++) {
       String bytechars = value.substring(2 * i, 2 * i + 2);
       try {
@@ -127,7 +127,8 @@ public class Unknown extends Datatype implements Editable, IsBinary
         return false;
       }
     }
-    data = newdata;
+    buffer.position(0);
+    buffer.get(newdata);
 
     // notifying listeners
     fireValueUpdated(new UpdateEvent(this, struct));
@@ -143,7 +144,8 @@ public class Unknown extends Datatype implements Editable, IsBinary
   @Override
   public void write(OutputStream os) throws IOException
   {
-    FileWriterNI.writeBytes(os, data);
+    buffer.position(0);
+    StreamUtils.writeBytes(os, buffer);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -151,9 +153,9 @@ public class Unknown extends Datatype implements Editable, IsBinary
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
-    data = Arrays.copyOfRange(buffer, offset, offset + getSize());
+    StreamUtils.copyBytes(buffer, offset, this.buffer, 0, getSize());
 
     return offset + getSize();
   }
@@ -163,9 +165,12 @@ public class Unknown extends Datatype implements Editable, IsBinary
 //--------------------- Begin Interface IsBinary ---------------------
 
   @Override
-  public byte[] getData()
+  public ByteBuffer getData()
   {
-    return Arrays.copyOf(data, data.length);
+    buffer.position(0);
+    ByteBuffer bb = StreamUtils.getByteBuffer(buffer.remaining());
+    buffer.put(bb);
+    return bb;
   }
 
 //--------------------- End Interface IsBinary ---------------------
@@ -173,10 +178,12 @@ public class Unknown extends Datatype implements Editable, IsBinary
   @Override
   public String toString()
   {
-    if (data != null && data.length > 0) {
-      StringBuffer sb = new StringBuffer(3 * data.length + 1);
-      for (final byte d : data) {
-        String text = Integer.toHexString((int)d & 0xff);
+    if (buffer.limit() > 0) {
+      StringBuffer sb = new StringBuffer(3 * buffer.limit() + 1);
+      buffer.position(0);
+      while (buffer.remaining() > 0) {
+        int v = buffer.get() & 0xff;
+        String text = Integer.toHexString(v);
         if (text.length() < 2) {
           sb.append('0');
         }

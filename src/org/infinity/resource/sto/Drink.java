@@ -4,11 +4,14 @@
 
 package org.infinity.resource.sto;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.StringRef;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public final class Drink extends AbstractStruct implements AddRemovable
 {
@@ -20,10 +23,10 @@ public final class Drink extends AbstractStruct implements AddRemovable
 
   Drink() throws Exception
   {
-    super(null, STO_DRINK, new byte[20], 0);
+    super(null, STO_DRINK, StreamUtils.getByteBuffer(20), 0);
   }
 
-  Drink(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  Drink(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, STO_DRINK + " " + number, buffer, offset);
   }
@@ -39,7 +42,7 @@ public final class Drink extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new Unknown(buffer, offset, 8));
     addField(new StringRef(buffer, offset + 8, STO_DRINK_NAME));

@@ -4,6 +4,8 @@
 
 package org.infinity.resource.are;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AbstractVariable;
 
@@ -14,7 +16,7 @@ public class Variable extends AbstractVariable
     super();
   }
 
-  Variable(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  Variable(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, buffer, offset, number);
   }

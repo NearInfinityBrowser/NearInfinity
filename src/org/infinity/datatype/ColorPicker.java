@@ -19,6 +19,7 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import javax.swing.BorderFactory;
@@ -35,7 +36,6 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.graphics.ColorConvert;
-import org.infinity.util.DynamicArray;
 
 
 /** Implements a RGB color picker control. */
@@ -61,23 +61,23 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
   private int value;
 
   /** Initializing color picker with the most commonly used color format {@code Format.XRGB}. */
-  public ColorPicker(byte[] buffer, int offset, String name)
+  public ColorPicker(ByteBuffer buffer, int offset, String name)
   {
     this(null, buffer, offset, name, Format.XRGB);
   }
 
   /** Initializing color picker with the most commonly used color format {@code Format.XRGB}. */
-  public ColorPicker(StructEntry parent, byte[] buffer, int offset, String name)
+  public ColorPicker(StructEntry parent, ByteBuffer buffer, int offset, String name)
   {
     this(parent, buffer, offset, name, Format.XRGB);
   }
 
-  public ColorPicker(byte[] buffer, int offset, String name, Format fmt)
+  public ColorPicker(ByteBuffer buffer, int offset, String name, Format fmt)
   {
     this(null, buffer, offset, name, fmt);
   }
 
-  public ColorPicker(StructEntry parent, byte[] buffer, int offset, String name, Format fmt)
+  public ColorPicker(StructEntry parent, ByteBuffer buffer, int offset, String name, Format fmt)
   {
     super(parent, offset, 4, name);
     switch (fmt) {
@@ -295,9 +295,10 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
-    value = DynamicArray.getInt(buffer, offset);
+    buffer.position(offset);
+    value = buffer.getInt();
     tmpRed = getRed(value);
     tmpGreen = getGreen(value);
     tmpBlue = getBlue(value);

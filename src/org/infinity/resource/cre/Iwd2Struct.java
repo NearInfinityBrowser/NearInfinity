@@ -4,6 +4,8 @@
 
 package org.infinity.resource.cre;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
@@ -22,7 +24,7 @@ public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
   private final DecNumber count;
   private final int type;
 
-  public Iwd2Struct(AbstractStruct superStruct, byte buffer[], int offset, DecNumber count, String name,
+  public Iwd2Struct(AbstractStruct superStruct, ByteBuffer buffer, int offset, DecNumber count, String name,
                     int type) throws Exception
   {
     super(superStruct, name, offset, count.getValue() + 2);
@@ -102,7 +104,7 @@ public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
   }
 
   @Override
-  public int read(byte buffer[], int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
     return -1;
   }

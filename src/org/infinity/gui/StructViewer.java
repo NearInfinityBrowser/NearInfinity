@@ -26,7 +26,7 @@ import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
-import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -87,6 +87,8 @@ import org.infinity.search.DialogStateReferenceSearcher;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.Pair;
 import org.infinity.util.StructClipboard;
+import org.infinity.util.io.ByteBufferOutputStream;
+import org.infinity.util.io.StreamUtils;
 
 public final class StructViewer extends JPanel implements ListSelectionListener, ActionListener,
                                                           ItemListener, ChangeListener, TableModelListener,
@@ -1124,26 +1126,29 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   {
     StructEntry entry = struct.getField(index);
     if (!isCachedStructEntry(entry.getOffset())) setCachedStructEntry(entry);
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ByteBuffer bb = StreamUtils.getByteBuffer(entry.getSize());
     try {
-      entry.write(baos);
+      try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(bb)) {
+        entry.write(bbos);
+      }
+      bb.position(0);
       StructEntry newentry;
       if (menuitem == miToHex) {
-        newentry = new Unknown(baos.toByteArray(), 0, entry.getSize(), entry.getName());
+        newentry = new Unknown(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToBin) {
-        newentry = new UnknownBinary(baos.toByteArray(), 0, entry.getSize(), entry.getName());
+        newentry = new UnknownBinary(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToDec) {
-        newentry = new UnknownDecimal(baos.toByteArray(), 0, entry.getSize(), entry.getName());
+        newentry = new UnknownDecimal(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToInt) {
-        newentry = new DecNumber(baos.toByteArray(), 0, entry.getSize(), entry.getName());
+        newentry = new DecNumber(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToString) {
-        newentry = new TextString(baos.toByteArray(), 0, entry.getSize(), entry.getName());
+        newentry = new TextString(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miReset) {
         newentry = removeCachedStructEntry(entry.getOffset());
         if (newentry == null || !(newentry instanceof Readable)) {
           newentry = entry;
         } else {
-          ((Readable)newentry).read(baos.toByteArray(), 0);
+          ((Readable)newentry).read(bb, 0);
         }
       } else {
         throw new NullPointerException();

@@ -12,6 +12,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +25,6 @@ import org.infinity.gui.TextListPanel;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
-import org.infinity.util.DynamicArray;
 import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.ObjectString;
 
@@ -35,25 +35,25 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
   private TextListPanel list;
   private long value;
 
-  public HashBitmap(byte buffer[], int offset, int length, String name,
+  public HashBitmap(ByteBuffer buffer, int offset, int length, String name,
                     LongIntegerHashMap<? extends Object> idsmap)
   {
     this(null, buffer, offset, length, name, idsmap, true);
   }
 
-  public HashBitmap(byte buffer[], int offset, int length, String name,
+  public HashBitmap(ByteBuffer buffer, int offset, int length, String name,
                     LongIntegerHashMap<? extends Object> idsmap, boolean sortByName)
   {
     this(null, buffer, offset, length, name, idsmap, sortByName);
   }
 
-  public HashBitmap(StructEntry parent, byte buffer[], int offset, int length, String name,
+  public HashBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
                     LongIntegerHashMap<? extends Object> idsmap)
   {
     this(parent, buffer, offset, length, name, idsmap, true);
   }
 
-  public HashBitmap(StructEntry parent, byte buffer[], int offset, int length, String name,
+  public HashBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
                     LongIntegerHashMap<? extends Object> idsmap, boolean sortByName)
   {
     super(parent, offset, length, name);
@@ -163,17 +163,18 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
+    buffer.position(offset);
     switch (getSize()) {
       case 1:
-        value = (long)DynamicArray.getUnsignedByte(buffer, offset);
+        value = buffer.get() & 0xff;
         break;
       case 2:
-        value = (long)DynamicArray.getUnsignedShort(buffer, offset);
+        value = buffer.getShort() & 0xffff;
         break;
       case 4:
-        value = DynamicArray.getUnsignedInt(buffer, offset);
+        value = buffer.getInt() & 0xffffffff;
         break;
       default:
         throw new IllegalArgumentException();

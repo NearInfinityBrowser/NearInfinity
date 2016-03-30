@@ -4,18 +4,20 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.StructEntry;
 
 public final class SectionOffset extends HexNumber
 {
   private final Class<? extends StructEntry> section;
 
-  public SectionOffset(byte buffer[], int offset, String desc, Class<? extends StructEntry> section)
+  public SectionOffset(ByteBuffer buffer, int offset, String desc, Class<? extends StructEntry> section)
   {
     this(null, buffer, offset, desc, section);
   }
 
-  public SectionOffset(StructEntry parent, byte buffer[], int offset, String desc,
+  public SectionOffset(StructEntry parent, ByteBuffer buffer, int offset, String desc,
                        Class<? extends StructEntry> section)
   {
     super(parent, buffer, offset, 4, desc);

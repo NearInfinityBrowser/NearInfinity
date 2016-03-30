@@ -7,6 +7,7 @@ package org.infinity.resource.sound;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.AudioBuffer.AudioOverride;
 import org.infinity.util.DynamicArray;
+import org.infinity.util.io.StreamUtils;
 
 public class AudioFactory
 {
@@ -37,7 +38,7 @@ public class AudioFactory
   {
     if (entry != null) {
       try {
-        return getAudioBuffer(entry.getResourceData(), 0, override);
+        return getAudioBuffer(StreamUtils.toArray(entry.getResourceBuffer()), 0, override);
       } catch (Exception e) {
         e.printStackTrace();
         return null;
@@ -107,7 +108,7 @@ public class AudioFactory
   {
     if (entry != null) {
       try {
-        return convertAudio(entry.getResourceData(), 0, override);
+        return convertAudio(StreamUtils.toArray(entry.getResourceBuffer()), 0, override);
       } catch (Exception e) {
         e.printStackTrace();
         return null;

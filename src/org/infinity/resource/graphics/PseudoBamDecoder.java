@@ -17,9 +17,9 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.nio.charset.Charset;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,13 +32,12 @@ import org.infinity.gui.converter.ConvertToPvrz;
 import org.infinity.util.BinPack2D;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.Pair;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileOutputStreamNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * A decoder that takes individual images as input and simulates a BAM structure.
  * Furthermore, this class provides methods for manipulating the frame and cycle structure.
- * @author argent77
  */
 public class PseudoBamDecoder extends BamDecoder
 {
@@ -374,9 +373,9 @@ public class PseudoBamDecoder extends BamDecoder
   }
 
   @Override
-  public byte[] getResourceData()
+  public ByteBuffer getResourceBuffer()
   {
-    return new byte[0];
+    return StreamUtils.getByteBuffer(0);
   }
 
   @Override
@@ -634,14 +633,14 @@ public class PseudoBamDecoder extends BamDecoder
    * @return {@code true} if the export was successfull, {@code false} otherwise.
    * @throws Exception If an unrecoverable error occured.
    */
-  public boolean exportBamV1(String fileName, ProgressMonitor progress, int curProgress) throws Exception
+  public boolean exportBamV1(Path fileName, ProgressMonitor progress, int curProgress) throws Exception
   {
     final int FrameEntrySize = 12;
     final int CycleEntrySize = 4;
 
     if (!listFrames.isEmpty() && !listCycles.isEmpty()) {
       // sanity checks
-      if (fileName == null || fileName.isEmpty()) {
+      if (fileName == null) {
         throw new Exception("Invalid filename specified.");
       }
       if (listFrames.size() > 65535) {
@@ -791,7 +790,7 @@ public class PseudoBamDecoder extends BamDecoder
       }
 
       byte[] bamData = new byte[bamSize];
-      System.arraycopy("BAM V1  ".getBytes(Charset.forName("US-ASCII")), 0, bamData, 0, 8);
+      System.arraycopy("BAM V1  ".getBytes(), 0, bamData, 0, 8);
       DynamicArray.putShort(bamData, 0x08, (short)listFrames.size());
       DynamicArray.putByte(bamData, 0x0a, (byte)listCycles.size());
       DynamicArray.putByte(bamData, 0x0b, (byte)rleIndex);
@@ -848,16 +847,8 @@ public class PseudoBamDecoder extends BamDecoder
       }
 
       // writing BAM to disk
-      try {
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(fileName)));
-        try {
-          bos.write(bamData);
-        } finally {
-          if (bos != null) {
-            bos.close();
-            bos = null;
-          }
-        }
+      try (OutputStream os = StreamUtils.getOutputStream(fileName, true)) {
+        os.write(bamData);
       } catch (Exception e) {
         e.printStackTrace();
         throw e;
@@ -880,7 +871,7 @@ public class PseudoBamDecoder extends BamDecoder
    * @return {@code true} if the export was successful, {@code false} otherwise.
    * @throws Exception If an unrecoverable error occured.
    */
-  public boolean exportBamV2(String fileName, DxtEncoder.DxtType dxtType, int pvrzIndex,
+  public boolean exportBamV2(Path fileName, DxtEncoder.DxtType dxtType, int pvrzIndex,
                               ProgressMonitor progress, int curProgress) throws Exception
   {
     final int FrameEntrySize = 12;
@@ -889,7 +880,7 @@ public class PseudoBamDecoder extends BamDecoder
 
     if (!listFrames.isEmpty() && !listCycles.isEmpty()) {
       // sanity checks
-      if (fileName == null || fileName.isEmpty()) {
+      if (fileName == null) {
         throw new Exception("Invalid filename specified.");
       }
       if (dxtType != DxtEncoder.DxtType.DXT1 && dxtType != DxtEncoder.DxtType.DXT5) {
@@ -900,12 +891,7 @@ public class PseudoBamDecoder extends BamDecoder
       }
 
       // preparing output path for PVRZ files
-      String pvrzFilePath;
-      if (fileName.lastIndexOf(File.separatorChar) >= 0) {
-        pvrzFilePath = fileName.substring(0, fileName.lastIndexOf(File.separatorChar));
-      } else {
-        pvrzFilePath = "";
-      }
+      Path pvrzFilePath = fileName.toAbsolutePath().getParent();
       List<FrameDataV2> listFrameData = new ArrayList<FrameDataV2>(listFrames.size());
       List<BinPack2D> listGrid = new ArrayList<BinPack2D>();
 
@@ -965,7 +951,7 @@ public class PseudoBamDecoder extends BamDecoder
       byte[] bamData = new byte[bamSize];
 
       // writing main header
-      System.arraycopy("BAM V2  ".getBytes(Charset.forName("US-ASCII")), 0, bamData, 0, 8);
+      System.arraycopy("BAM V2  ".getBytes(), 0, bamData, 0, 8);
       DynamicArray.putInt(bamData, 0x08, listFrameEntries.size());
       DynamicArray.putInt(bamData, 0x0c, listCycleData.size());
       DynamicArray.putInt(bamData, 0x10, listFrameDataBlocks.size());
@@ -1014,16 +1000,8 @@ public class PseudoBamDecoder extends BamDecoder
       }
 
       // writing BAM to disk
-      try {
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(fileName)));
-        try {
-          bos.write(bamData);
-        } finally {
-          if (bos != null) {
-            bos.close();
-            bos = null;
-          }
-        }
+      try (OutputStream os = StreamUtils.getOutputStream(fileName, true)) {
+        os.write(bamData);
       } catch (Exception e) {
         e.printStackTrace();
         throw e;
@@ -1275,17 +1253,12 @@ public class PseudoBamDecoder extends BamDecoder
   }
 
   // Creates all PVRZ files defined in the method arguments.
-  private boolean createPvrzPages(String path, DxtEncoder.DxtType dxtType, List<BinPack2D> gridList,
+  private boolean createPvrzPages(Path path, DxtEncoder.DxtType dxtType, List<BinPack2D> gridList,
                                   List<FrameDataV2> framesList, ProgressMonitor progress,
                                   int curProgress) throws Exception
   {
     if (path == null) {
-      path = "";
-    }
-    if(!path.isEmpty()) {
-      if (path.charAt(path.length() - 1) != File.separatorChar) {
-        path += File.separatorChar;
-      }
+      path = FileManager.resolve("");
     }
     int dxtCode = (dxtType == DxtEncoder.DxtType.DXT5) ? 11 : 7;
     byte[] output = new byte[DxtEncoder.calcImageSize(1024, 1024, dxtType)];
@@ -1315,7 +1288,7 @@ public class PseudoBamDecoder extends BamDecoder
         curProgress++;
       }
 
-      String pvrzName = path + String.format("MOS%1$04d.PVRZ", i);
+      Path pvrzName = path.resolve(String.format("MOS%1$04d.PVRZ", i));
       BinPack2D packer = gridList.get(i - pageMin);
       packer.shrinkBin(true);
 
@@ -1359,19 +1332,11 @@ public class PseudoBamDecoder extends BamDecoder
         pvrz = Compressor.compress(pvrz, 0, pvrz.length, true);
 
         // writing PVRZ to disk
-        BufferedOutputStream bos = null;
-        try {
-          bos = new BufferedOutputStream(new FileOutputStreamNI(new FileNI(pvrzName)));
-          bos.write(pvrz);
-          bos.close();
-          bos = null;
+        try (OutputStream os = StreamUtils.getOutputStream(pvrzName, true)) {
+          os.write(pvrz);
         } catch (Exception e) {
-          e.printStackTrace();
           errorMsg = String.format("Error writing PVRZ file \"%1$s\" to disk.", pvrzName);
-          if (bos != null) {
-            bos.close();
-            bos = null;
-          }
+          e.printStackTrace();
         }
         textureData = null;
         pvrz = null;

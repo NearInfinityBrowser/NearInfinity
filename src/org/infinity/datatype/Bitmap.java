@@ -12,6 +12,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +25,6 @@ import org.infinity.gui.TextListPanel;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
-import org.infinity.util.DynamicArray;
 
 public class Bitmap extends Datatype implements Editable, IsNumeric
 {
@@ -33,12 +33,12 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
   private TextListPanel list;
   private int value;
 
-  public Bitmap(byte[] buffer, int offset, int length, String name, String[] table)
+  public Bitmap(ByteBuffer buffer, int offset, int length, String name, String[] table)
   {
     this(null, buffer, offset, length, name, table);
   }
 
-  public Bitmap(StructEntry parent, byte[] buffer, int offset, int length, String name, String[] table)
+  public Bitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, String[] table)
   {
     super(parent, offset, length, name);
     this.table = table;
@@ -138,17 +138,18 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
+    buffer.position(offset);
     switch (getSize()) {
       case 1:
-        value = (int)DynamicArray.getByte(buffer, offset);
+        value = buffer.get();
         break;
       case 2:
-        value = (int)DynamicArray.getShort(buffer, offset);
+        value = buffer.getShort();
         break;
       case 4:
-        value = DynamicArray.getInt(buffer, offset);
+        value = buffer.getInt();
         break;
       default:
         throw new IllegalArgumentException();

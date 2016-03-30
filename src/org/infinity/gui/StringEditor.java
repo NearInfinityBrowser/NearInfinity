@@ -13,17 +13,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -57,15 +57,8 @@ import org.infinity.resource.Profile;
 import org.infinity.search.SearchClient;
 import org.infinity.search.SearchMaster;
 import org.infinity.search.StringReferenceSearcher;
-import org.infinity.util.DynamicArray;
 import org.infinity.util.StringResource;
-import org.infinity.util.io.FileInputStreamNI;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileOutputStreamNI;
-import org.infinity.util.io.FileReaderNI;
-import org.infinity.util.io.FileWriterNI;
-import org.infinity.util.io.PrintWriterNI;
-import org.infinity.util.io.RandomAccessFileNI;
+import org.infinity.util.io.StreamUtils;
 
 public final class StringEditor extends ChildFrame implements ActionListener, ListSelectionListener, SearchClient,
                                                               ChangeListener, ItemListener
@@ -75,7 +68,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
   private static int entry_size = 26; // V1
   private final ButtonPopupMenu bfind;
   private final CardLayout cards = new CardLayout();
-  private final File stringfile;
+  private final Path stringPath;
   private final JButton badd = new JButton("Add", Icons.getIcon(Icons.ICON_ADD_16));
   private final JButton bdelete = new JButton("Delete", Icons.getIcon(Icons.ICON_REMOVE_16));
   private final JButton breread = new JButton("Revert", Icons.getIcon(Icons.ICON_UNDO_16));
@@ -98,17 +91,18 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
   private Unknown unknown;
   private int index_shown = -1, init_show;
 
-  public StringEditor(File stringfile, int init_show)
+  public StringEditor(Path stringPath, int init_show)
   {
-    super("Edit: " + stringfile);
+    super("Edit: " + stringPath);
     setIconImage(Icons.getIcon(Icons.ICON_EDIT_16).getImage());
-    this.stringfile = stringfile;
-    if (init_show >= 0)
+    this.stringPath = stringPath;
+    if (init_show >= 0) {
       this.init_show = init_show;
+    }
     StringResource.close();
 
-    JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Make sure you have a backup of " +
-                                                              stringfile.getName(),
+    JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                  "Make sure you have a backup of " + stringPath.getFileName(),
                                   "Warning", JOptionPane.WARNING_MESSAGE);
 
     tstrref.addActionListener(this);
@@ -202,17 +196,19 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     if (event.getSource() == tstrref) {
       try {
         int i = Integer.parseInt(tstrref.getText().trim());
-        if (i >= 0 && i < entries_count.getValue())
+        if (i >= 0 && i < entries_count.getValue()) {
           showEntry(i);
-        else
+        } else {
           JOptionPane.showMessageDialog(this, "Entry not found", "Error", JOptionPane.ERROR_MESSAGE);
+        }
       } catch (NumberFormatException e) {
         JOptionPane.showMessageDialog(this, "Not a number", "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
     else if (event.getSource() == bsave) {
-      if (index_shown != -1)
+      if (index_shown != -1) {
         updateEntry(index_shown);
+      }
       new Thread(new StrRefWriter()).start();
     }
     else if (event.getSource() == breread) {
@@ -220,8 +216,9 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       new Thread(new StrRefReader()).start();
     }
     else if (event.getActionCommand().equals(StructViewer.UPDATE_VALUE)) {
-      if (!editable.updateValue(null))
+      if (!editable.updateValue(null)) {
         JOptionPane.showMessageDialog(this, "Error updating value", "Error", JOptionPane.ERROR_MESSAGE);
+      }
       table.repaint();
     }
     else if (event.getSource() == badd) {
@@ -232,14 +229,16 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       }
     }
     else if (event.getSource() == bdelete) {
-      if (index_shown == entries_count.getValue() - 1)
+      if (index_shown == entries_count.getValue() - 1) {
         deleteLastEntry();
-      else
+      } else {
         JOptionPane.showMessageDialog(this, "You can only delete the last entry",
                                       "Error", JOptionPane.ERROR_MESSAGE);
+      }
     }
-    else if (event.getSource() == bexport)
+    else if (event.getSource() == bexport) {
       new Thread(new StrRefExporter()).start();
+    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -251,8 +250,9 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
   public void stateChanged(ChangeEvent event)
   {
     if (event.getSource() == slider) {
-      if (!slider.getValueIsAdjusting() && slider.getValue() != index_shown)
+      if (!slider.getValueIsAdjusting() && slider.getValue() != index_shown) {
         showEntry(slider.getValue());
+      }
     }
   }
 
@@ -267,13 +267,16 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     if (event.getSource() == bfind) {
       //      JMenuItem item = (JMenuItem)event.getItem();  // Should have worked!
       JMenuItem item = bfind.getSelectedItem();
-      if (item == ifindstring)
+      if (item == ifindstring) {
         SearchMaster.createAsFrame(this, "StringRef", this);
-      else if (item == ifindattribute)
+      }
+      else if (item == ifindattribute) {
         SearchMaster.createAsFrame(new AttributeSearcher(table.getSelectedRow()),
                                    entries[0].getValueAt(table.getSelectedRow(), 0).toString(), this);
-      else if (item == ifindref)
+      }
+      else if (item == ifindref) {
         new StringReferenceSearcher(index_shown, this);
+      }
     }
   }
 
@@ -304,8 +307,9 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
         cards.show(editpanel, "Edit");
         editable.select();
       }
-      else if (selected instanceof InlineEditable)
+      else if (selected instanceof InlineEditable) {
         cards.show(editpanel, "Empty");
+      }
     }
   }
 
@@ -317,10 +321,12 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
   @Override
   public String getText(int index)
   {
-    if (index < 0 || index >= entries_count.getValue())
+    if (index < 0 || index >= entries_count.getValue()) {
       return null;
-    if (index < entries.length)
+    }
+    if (index < entries.length) {
       return entries[index].string;
+    }
     StringEntry entry = added_entries.get(index - entries.length);
     return entry.string;
   }
@@ -333,29 +339,33 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
 // --------------------- End Interface SearchClient ---------------------
 
-  public File getFile()
+  public Path getPath()
   {
-    return stringfile;
+    return stringPath;
   }
 
   public void showEntry(int index)
   {
-    if (index < 0)
+    if (index < 0) {
       return;
-    if (index_shown != -1)
+    }
+    if (index_shown != -1) {
       updateEntry(index_shown);
+    }
     StringEntry entry;
-    if (index < entries.length)
+    if (index < entries.length) {
       entry = entries[index];
-    else
+    } else {
       entry = added_entries.get(index - entries.length);
+    }
     entry.fillList();
     tstrref.setText(String.valueOf(index));
     index_shown = index;
     slider.setValue(index);
     table.setModel(entry);
-    if (table.getColumnCount() == 3)
+    if (table.getColumnCount() == 3) {
       table.getColumnModel().getColumn(2).setPreferredWidth(6);
+    }
     tatext.setText(entry.string);
     tatext.setCaretPosition(0);
     cards.show(editpanel, "Empty");
@@ -366,10 +376,11 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
   private int addEntry(StringEntry entry)
   {
-    if (entries_count.getValue() < entries.length)
+    if (entries_count.getValue() < entries.length) {
       entries[entries_count.getValue()] = entry;
-    else
+    } else {
       added_entries.add(entry);
+    }
     entries_count.incValue(1);
     slider.setMaximum(entries_count.getValue() - 1);
     entries_offset.incValue(entry_size);
@@ -378,10 +389,11 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
   private void deleteLastEntry()
   {
-    if (added_entries.size() > 0)
+    if (added_entries.size() > 0) {
       added_entries.remove(added_entries.size() - 1);
-    else
+    } else {
       entries[entries_count.getValue() - 1] = null;
+    }
     entries_count.incValue(-1);
     index_shown = -1;
     slider.setMaximum(entries_count.getValue() - 1);
@@ -391,9 +403,9 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
   private void updateEntry(int index)
   {
-    if (index < entries.length)
+    if (index < entries.length) {
       entries[index].setString(tatext.getText());
-    else {
+    } else {
       StringEntry entry = added_entries.get(index - entries.length);
       entry.setString(tatext.getText());
     }
@@ -413,67 +425,65 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     {
       Charset charset = StringResource.getCharset();
       ProgressMonitor progress = null;
-      try {
-        BufferedInputStream bis = new BufferedInputStream(new FileInputStreamNI(stringfile));
-        signature = FileReaderNI.readString(bis, 4);
-        version = FileReaderNI.readString(bis, 4);
-        if (version.equals("V1  "))
-          unknown = new Unknown(FileReaderNI.readBytes(bis, 2), 0, 2);
-        else if (version.equals("V3.0")) {
-          unknown = new Unknown(FileReaderNI.readBytes(bis, 4), 0, 4); // LanguageID
-          entry_size = 40;
+      try (InputStream is = StreamUtils.getInputStream(stringPath)) {
+        signature = StreamUtils.readString(is, 4);
+        version = StreamUtils.readString(is, 4);
+        if (version.equals("V1  ")) {
+          unknown = new Unknown(StreamUtils.readBytes(is, 2), 0, 2);
         }
         else {
           JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Unsupported version: " + version,
                                         "Error", JOptionPane.ERROR_MESSAGE);
           throw new IOException();
         }
-        entries_count = new DecNumber(FileReaderNI.readBytes(bis, 4), 0, 4, "# entries");
-        entries_offset = new DecNumber(FileReaderNI.readBytes(bis, 4), 0, 4, "Entries offset");
+        entries_count = new DecNumber(StreamUtils.readBytes(is, 4), 0, 4, "# entries");
+        entries_offset = new DecNumber(StreamUtils.readBytes(is, 4), 0, 4, "Entries offset");
 
         entries = new StringEntry[entries_count.getValue()];
         progress = new ProgressMonitor(NearInfinity.getInstance(), "Reading strings...", null,
                                        0, 2 * entries_count.getValue());
         progress.setMillisToDecideToPopup(100);
         for (int i = 0; i < entries_count.getValue(); i++) {
-          entries[i] = new StringEntry(FileReaderNI.readBytes(bis, entry_size), charset);
+          entries[i] = new StringEntry(StreamUtils.readBytes(is, entry_size), charset);
           progress.setProgress(i + 1);
           if (progress.isCanceled()) {
             entries = null;
-            bis.close();
             return;
           }
         }
-        bis.close();
+      } catch (Throwable e) {
+        entries = null;
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(editor,
+                                      "Error reading " + stringPath.getFileName() + '\n' + e.toString(),
+                                      "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
 
-        RandomAccessFile ranfile = new RandomAccessFileNI(stringfile, "r");
+      try (SeekableByteChannel ch = Files.newByteChannel(stringPath)) {
+        ByteBuffer buffer = StreamUtils.getByteBuffer((int)ch.size());
+        if (ch.read(buffer) < ch.size()) {
+          throw new IOException();
+        }
+        buffer.position(0);
         for (int i = 0; i < entries.length; i++) {
-          entries[i].readString(ranfile, entries_offset.getValue());
+          entries[i].readString(buffer, entries_offset.getValue());
           progress.setProgress(i + 1 + entries_count.getValue());
           if (progress.isCanceled()) {
             entries = null;
-            bis.close();
             return;
           }
         }
-        ranfile.close();
         slider.setMaximum(entries_count.getValue() - 1);
         slider.addChangeListener(editor);
         showEntry(init_show);
         setVisible(true);
-      } catch (Exception e) {
-        progress.close();
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(editor, "Error reading " + stringfile.getName() + '\n' +
-                                              e.getMessage(),
-                                      "Error", JOptionPane.ERROR_MESSAGE);
-        entries = null;
-      } catch (Error err) {
+      } catch (Throwable t) {
         progress.close();
         entries = null;
-        err.printStackTrace();
-        JOptionPane.showMessageDialog(editor, "Error reading " + stringfile.getName() + '\n' +
-                                              err.toString(),
+        t.printStackTrace();
+        JOptionPane.showMessageDialog(editor,
+                                      "Error reading " + stringPath.getFileName() + '\n' + t.getMessage(),
                                       "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
@@ -494,13 +504,13 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       bsave.setEnabled(false);
       breread.setEnabled(false);
       badd.setEnabled(false);
-      JFileChooser chooser = new JFileChooser(Profile.getGameRoot());
-      chooser.setDialogTitle("Export " + stringfile.getName());
-      chooser.setSelectedFile(new FileNI("dialog.txt"));
+      JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
+      chooser.setDialogTitle("Export " + stringPath.getFileName());
+      chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "dialog.txt"));
       int returnval = chooser.showSaveDialog(editor);
       if (returnval == JFileChooser.APPROVE_OPTION) {
-        File output = chooser.getSelectedFile();
-        if (output.exists()) {
+        Path output = chooser.getSelectedFile().toPath();
+        if (Files.exists(output)) {
           String options[] = {"Overwrite", "Cancel"};
           int result = JOptionPane.showOptionDialog(editor, output + " exists. Overwrite?",
                                                     "Save resource", JOptionPane.YES_NO_OPTION,
@@ -517,27 +527,27 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
           ProgressMonitor progress = new ProgressMonitor(editor, "Writing file...", null, 0,
                                                          entries_count.getValue());
           progress.setMillisToDecideToPopup(100);
-          PrintWriter pw = new PrintWriterNI(new BufferedWriter(new FileWriterNI(output)));
-          for (int i = 0; i < entries.length; i++) {
-            if (entries[i] != null) {
-              pw.println(i + ":");
-              pw.println(entries[i].string);
-              pw.println();
+          try (BufferedWriter writer = Files.newBufferedWriter(output, StringResource.getCharset())) {
+            for (int i = 0; i < entries.length; i++) {
+              if (entries[i] != null) {
+                writer.write(i + ":"); writer.newLine();
+                writer.write(entries[i].string); writer.newLine();
+                writer.newLine();
+              }
+              progress.setProgress(i + 1);
             }
-            progress.setProgress(i + 1);
+            for (int i = 0; i < added_entries.size(); i++) {
+              StringEntry entry = added_entries.get(i);
+              writer.write(i + entries.length + ":"); writer.newLine();
+              writer.write(entry.string); writer.newLine();
+              writer.newLine();
+              progress.setProgress(entries.length + i + 1);
+            }
           }
-          for (int i = 0; i < added_entries.size(); i++) {
-            StringEntry entry = added_entries.get(i);
-            pw.println(i + entries.length + ":");
-            pw.println(entry.string);
-            pw.println();
-            progress.setProgress(entries.length + i + 1);
-          }
-          pw.close();
           JOptionPane.showMessageDialog(editor, "File exported to " + output,
                                         "Export complete", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
-          JOptionPane.showMessageDialog(editor, "Error writing " + output.getName(),
+          JOptionPane.showMessageDialog(editor, "Error writing " + output.getFileName(),
                                         "Error", JOptionPane.ERROR_MESSAGE);
         }
       }
@@ -563,71 +573,79 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       bsave.setEnabled(false);
       breread.setEnabled(false);
       badd.setEnabled(false);
-      try {
-        if (stringfile.exists()) {
-          String options[] = {"Overwrite", "Cancel"};
-          int result = JOptionPane.showOptionDialog(editor, stringfile + " exists. Overwrite?",
-                                                    "Save resource", JOptionPane.YES_NO_OPTION,
-                                                    JOptionPane.WARNING_MESSAGE, null,
-                                                    options, options[0]);
-          if (result == 1 || result == JOptionPane.CLOSED_OPTION) {
-            bexport.setEnabled(true);
-            bsave.setEnabled(true);
-            breread.setEnabled(true);
-            badd.setEnabled(true);
-            return;
-          }
+      if (Files.exists(stringPath)) {
+        String options[] = {"Overwrite", "Cancel"};
+        int result = JOptionPane.showOptionDialog(editor, stringPath + " exists. Overwrite?",
+                                                  "Save resource", JOptionPane.YES_NO_OPTION,
+                                                  JOptionPane.WARNING_MESSAGE, null,
+                                                  options, options[0]);
+        if (result == 1 || result == JOptionPane.CLOSED_OPTION) {
+          bexport.setEnabled(true);
+          bsave.setEnabled(true);
+          breread.setEnabled(true);
+          badd.setEnabled(true);
+          return;
         }
+      }
 
-        StringResource.close();
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(stringfile));
-        FileWriterNI.writeString(bos, signature, 4);
-        FileWriterNI.writeString(bos, version, 4);
-        unknown.write(bos);
-        entries_count.write(bos);
-        entries_offset.write(bos);
+      StringResource.close();
+      ProgressMonitor progress = null;
+      try (OutputStream os = StreamUtils.getOutputStream(stringPath, true)) {
+        StreamUtils.writeString(os, signature, 4);
+        StreamUtils.writeString(os, version, 4);
+        unknown.write(os);
+        entries_count.write(os);
+        entries_offset.write(os);
 
         int offset = 0;
-        for (final StringEntry entry : entries)
-          if (entry != null)
+        for (final StringEntry entry : entries) {
+          if (entry != null) {
             offset += entry.update(offset);
-        for (int i = 0; i < added_entries.size(); i++)
+          }
+        }
+        for (int i = 0; i < added_entries.size(); i++) {
           offset += added_entries.get(i).update(offset);
+        }
 
-        ProgressMonitor progress = new ProgressMonitor(editor, "Writing file...", null,
-                                                       0, 2 * entries_count.getValue());
+        progress = new ProgressMonitor(editor, "Writing file...", null, 0, 2 * entries_count.getValue());
         progress.setMillisToDecideToPopup(100);
         for (int i = 0; i < entries.length; i++) {
-          if (entries[i] != null)
-            entries[i].write(bos);
+          if (entries[i] != null) {
+            entries[i].write(os);
+          }
           progress.setProgress(i + 1);
         }
         for (int i = 0; i < added_entries.size(); i++) {
-          added_entries.get(i).write(bos);
+          added_entries.get(i).write(os);
           progress.setProgress(entries.length + i + 1);
         }
 
         for (int i = 0; i < entries.length; i++) {
-          if (entries[i] != null)
-            entries[i].writeString(bos);
+          if (entries[i] != null) {
+            entries[i].writeString(os);
+          }
           progress.setProgress(i + 1 + entries_count.getValue());
         }
         for (int i = 0; i < added_entries.size(); i++) {
-          added_entries.get(i).writeString(bos);
+          added_entries.get(i).writeString(os);
           progress.setProgress(entries_count.getValue() + entries.length + i + 1);
         }
-        bos.close();
-
-        JOptionPane.showMessageDialog(editor, "File written successfully",
-                                      "Save complete", JOptionPane.INFORMATION_MESSAGE);
-        bsave.setEnabled(true);
-        breread.setEnabled(true);
-        bexport.setEnabled(true);
-        badd.setEnabled(true);
       } catch (IOException e) {
-        JOptionPane.showMessageDialog(editor, "Error writing " + stringfile.getName(),
+        JOptionPane.showMessageDialog(editor, "Error writing " + stringPath.getFileName(),
                                       "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+      } finally {
+        if (progress != null) {
+          progress.close();
+          progress = null;
+        }
       }
+      JOptionPane.showMessageDialog(editor, "File written successfully",
+                                    "Save complete", JOptionPane.INFORMATION_MESSAGE);
+      bsave.setEnabled(true);
+      breread.setEnabled(true);
+      bexport.setEnabled(true);
+      badd.setEnabled(true);
     }
   }
 
@@ -637,34 +655,28 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
   {
     private int doffset, dlength;
     private String string = "";
-    private byte data[];
+    private ByteBuffer buffer;
     private Charset charset;
 
     private StringEntry() throws Exception
     {
-      super(null, null, new byte[entry_size], 0);
+      super(null, null, StreamUtils.getByteBuffer(entry_size), 0);
       this.charset = StringResource.getCharset();
     }
 
-    StringEntry(byte buffer[], Charset charset) throws Exception
+    StringEntry(ByteBuffer buffer, Charset charset) throws Exception
     {
       super(null, null, buffer, 0);
       this.charset = (charset != null) ? charset : StringResource.getCharset();
     }
 
     @Override
-    public int read(byte buffer[], int offset) throws Exception
+    public int read(ByteBuffer buffer, int offset) throws Exception
     {
-      if (version.equals("V1  ")) {
-        data = Arrays.copyOfRange(buffer, offset, offset + 18);
-        doffset = DynamicArray.getInt(buffer, offset + 18);
-        dlength = DynamicArray.getInt(buffer, offset + 22);
-      }
-      else if (version.equals("V3.0")) {
-        data = Arrays.copyOfRange(buffer, offset, offset + 40);
-        doffset = DynamicArray.getInt(buffer, offset + 28);
-        dlength = DynamicArray.getInt(buffer, offset + 32);
-      }
+      this.buffer = StreamUtils.getByteBuffer(18);
+      StreamUtils.copyBytes(buffer, offset, this.buffer, 0, this.buffer.limit());
+      doffset = buffer.getInt(offset + 0x12);
+      dlength = buffer.getInt(offset + 0x16);
       return offset + entry_size;
     }
 
@@ -672,26 +684,22 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     {
       try {
         if (getFieldCount() == 0) {
-          if (version.equals("V1  ")) {
-            addField(new Flag(data, 0, 2, "Flags", s_flags));
-            addField(new ResourceRef(data, 2, "Associated sound", "WAV"));
-            addField(new DecNumber(data, 10, 4, "Volume variance"));
-            addField(new DecNumber(data, 14, 4, "Pitch variance"));
-          } else {
-            throw new Exception("Unsupported or invalid dialog.tlk version");
-          }
-          data = null;
+          buffer.position(0);
+          addField(new Flag(buffer, 0, 2, "Flags", s_flags));
+          addField(new ResourceRef(buffer, 2, "Associated sound", "WAV"));
+          addField(new DecNumber(buffer, 10, 4, "Volume variance"));
+          addField(new DecNumber(buffer, 14, 4, "Pitch variance"));
+          buffer = null;
         }
       } catch (Exception e) {
-        data = null;
+        buffer = null;
         e.printStackTrace();
       }
     }
 
-    public void readString(RandomAccessFile ranfile, int baseoffset) throws IOException
+    public void readString(ByteBuffer buffer, int baseoffset) throws IOException
     {
-      ranfile.seek((long)(baseoffset + doffset));
-      string = FileReaderNI.readString(ranfile, dlength, charset);
+      string = StreamUtils.readString(buffer, baseoffset + doffset, dlength, charset);
     }
 
     public int update(int newoffset)
@@ -705,35 +713,19 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     public void write(OutputStream os) throws IOException
     {
       // Update must be called first
-      if (version.equals("V1  ")) {
-        if (getFieldCount() == 0)
-          os.write(data);
-        else
-          super.write(os);
-        FileWriterNI.writeInt(os, doffset);
-        FileWriterNI.writeInt(os, dlength);
+      if (getFieldCount() == 0) {
+        buffer.position(0);
+        StreamUtils.writeBytes(os, buffer);
+      } else {
+        super.write(os);
       }
-      else if (version.equals("V3.0")) {
-        if (getFieldCount() == 0) {
-          os.write(data, 0, 28);
-          FileWriterNI.writeInt(os, doffset);
-          FileWriterNI.writeInt(os, dlength);
-          os.write(data, 36, 4);
-        }
-        else {
-          getField(0).write(os);
-          getField(1).write(os);
-          getField(2).write(os);
-          FileWriterNI.writeInt(os, doffset);
-          FileWriterNI.writeInt(os, dlength);
-          getField(3).write(os);
-        }
-      }
+      StreamUtils.writeInt(os, doffset);
+      StreamUtils.writeInt(os, dlength);
     }
 
     public void writeString(OutputStream os) throws IOException
     {
-      FileWriterNI.writeString(os, string, dlength, charset);
+      StreamUtils.writeString(os, string, dlength, charset);
     }
 
     private void setString(String newstring)

@@ -23,6 +23,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownServiceException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
@@ -81,9 +84,9 @@ public class Utils
       URL url = classType.getProtectionDomain().getCodeSource().getLocation();
       if (url != null) {
         try {
-          File file = new File(url.toURI().getSchemeSpecificPart());
-          if (file.exists()) {
-            return file.getPath();
+          Path file = Paths.get(url.toURI());
+          if (Files.exists(file)) {
+            return file.toString();
           }
         } catch (URISyntaxException e) {
         }
@@ -711,37 +714,38 @@ public class Utils
     return bRet;
   }
 
-  /**
-   * Executes the specified JAR file with optional parameters and working directory.
-   * @param jar The JAR file to execute.
-   * @param params Parameter list. Can be {@code null}.
-   * @param dir An optional working directory. Can be {@code null}.
-   * @return The Process instance of the executed JAR file or {@code null} on error.
-   */
-  public static Process executeJar(String jar, String params, String dir)
-  {
-    if (jar != null && !jar.isEmpty()) {
-      StringBuilder sb = new StringBuilder();
-      sb.append(JAVA_EXECUTABLE).append(" ");
-      sb.append("-jar ");
-      sb.append(jar).append(" ");
-      if (params != null && !params.isEmpty()) {
-        sb.append(params);
-      }
-      File file = null;
-      if (dir != null && !dir.isEmpty()) {
-        file = new File(dir);
-        if (!file.isDirectory()) {
-          file = null;
-        }
-      }
-      try {
-        return Runtime.getRuntime().exec(sb.toString(), null, file);
-      } catch (IOException e) {
-      }
-    }
-    return null;
-  }
+// TODO: remove?
+//  /**
+//   * Executes the specified JAR file with optional parameters and working directory.
+//   * @param jar The JAR file to execute.
+//   * @param params Parameter list. Can be {@code null}.
+//   * @param dir An optional working directory. Can be {@code null}.
+//   * @return The Process instance of the executed JAR file or {@code null} on error.
+//   */
+//  public static Process executeJar(String jar, String params, String dir)
+//  {
+//    if (jar != null && !jar.isEmpty()) {
+//      StringBuilder sb = new StringBuilder();
+//      sb.append(JAVA_EXECUTABLE).append(" ");
+//      sb.append("-jar ");
+//      sb.append(jar).append(" ");
+//      if (params != null && !params.isEmpty()) {
+//        sb.append(params);
+//      }
+//      File file = null;
+//      if (dir != null && !dir.isEmpty()) {
+//        file = new File(dir);
+//        if (!file.isDirectory()) {
+//          file = null;
+//        }
+//      }
+//      try {
+//        return Runtime.getRuntime().exec(sb.toString(), null, file);
+//      } catch (IOException e) {
+//      }
+//    }
+//    return null;
+//  }
 
   /** Convenience method for converting a String into an Integer. */
   static int toNumber(String value, int defValue)

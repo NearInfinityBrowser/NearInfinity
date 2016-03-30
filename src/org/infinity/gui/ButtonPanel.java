@@ -19,7 +19,6 @@ import org.infinity.icon.Icons;
 /**
  * Encapsulates a flexible button panel that can be used to streamline the bottom panel present
  * in almost all resource views.
- * @author argent77
  */
 public class ButtonPanel extends JPanel
 {

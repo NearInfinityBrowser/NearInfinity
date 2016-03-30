@@ -15,7 +15,10 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 import java.io.File;
+import java.io.IOException;
 import java.nio.ByteOrder;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedList;
 
 import javax.swing.BorderFactory;
@@ -43,7 +46,6 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
-import org.infinity.util.io.FileNI;
 import org.monte.media.AudioFormatKeys;
 import org.monte.media.Format;
 import org.monte.media.FormatKeys;
@@ -292,7 +294,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
   private static void exportAsAvi(ResourceEntry inEntry, Window parent)
   {
     if (inEntry != null) {
-      JFileChooser fc = new JFileChooser(Profile.getGameRoot());
+      JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
       fc.setDialogTitle("Export MVE as AVI");
       String name = inEntry.getResourceName();
       if (name.lastIndexOf('.') > 0) {
@@ -300,7 +302,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
       } else {
         name = name + ".avi";
       }
-      fc.setSelectedFile(new FileNI(name));
+      fc.setSelectedFile(new File(fc.getCurrentDirectory(), name));
       fc.setDialogType(JFileChooser.SAVE_DIALOG);
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
       if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
@@ -317,7 +319,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
         if (!cancelled) {
           try {
             WindowBlocker.blockWindow(parent, true);
-            convertAvi(inEntry, fc.getSelectedFile(), parent, false);
+            convertAvi(inEntry, fc.getSelectedFile().toPath(), parent, false);
           } finally {
             WindowBlocker.blockWindow(parent, false);
           }
@@ -327,8 +329,15 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     }
   }
 
-  public static boolean convertAvi(ResourceEntry inEntry, File outFile, Window parent, boolean silent)
+  public static boolean convertAvi(ResourceEntry inEntry, Path outFile, Window parent, boolean silent)
   {
+    if (inEntry == null || outFile == null) {
+      if (!silent) {
+        JOptionPane.showMessageDialog(parent, "No input or output file specified.", "Error",
+                                      JOptionPane.ERROR_MESSAGE);
+      }
+      return false;
+    }
     Format videoFormat = new Format(VideoFormatKeys.EncodingKey, VideoFormatKeys.ENCODING_AVI_MJPG,
                                     VideoFormatKeys.DepthKey, 24,
                                     VideoFormatKeys.QualityKey, 1.0f);
@@ -362,7 +371,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
           }
         }
 
-        writer = new AVIWriter(outFile);
+        writer = new AVIWriter(outFile.toFile());
 
         // initializing video track
         int rate = 1000000;
@@ -446,8 +455,12 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
               writer.close();
               writer = null;
             }
-            if (outFile.isFile()) {
-              outFile.delete();
+            if (Files.isRegularFile(outFile)) {
+              try {
+                Files.delete(outFile);
+              } catch (IOException e) {
+                e.printStackTrace();
+              }
             }
             JOptionPane.showMessageDialog(parent, "Conversion has been cancelled.",
                                           "Information", JOptionPane.INFORMATION_MESSAGE);

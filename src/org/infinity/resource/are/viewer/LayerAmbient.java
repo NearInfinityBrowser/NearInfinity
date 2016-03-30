@@ -16,7 +16,6 @@ import org.infinity.resource.are.AreResource;
 
 /**
  * Manages ambient sound layer objects (including global and local ambient sounds).
- * @author argent77
  */
 public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
 {

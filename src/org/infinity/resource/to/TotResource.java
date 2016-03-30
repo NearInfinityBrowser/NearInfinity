@@ -4,6 +4,8 @@
 
 package org.infinity.resource.to;
 
+import java.nio.ByteBuffer;
+
 import javax.swing.JComponent;
 
 import org.infinity.datatype.Unknown;
@@ -62,11 +64,11 @@ public final class TotResource extends AbstractStruct implements Resource, HasVi
 //--------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
-    if (buffer != null && buffer.length > 0) {
+    if (buffer != null && buffer.limit() > 0) {
       // TODO: fetch number of valid string entries from associated TOH resource
-      for (int i = 0; offset + 524 <= buffer.length; i++) {
+      for (int i = 0; offset + 524 <= buffer.limit(); i++) {
         StringEntry entry = new StringEntry(this, buffer, offset, i);
         offset = entry.getEndOffset();
         addField(entry);

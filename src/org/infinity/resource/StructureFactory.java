@@ -5,9 +5,13 @@
 package org.infinity.resource;
 
 import java.awt.Window;
-import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Locale;
 
 import javax.swing.JFileChooser;
@@ -17,9 +21,10 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.infinity.gui.NewChrSettings;
 import org.infinity.gui.NewProSettings;
 import org.infinity.gui.NewResSettings;
+import org.infinity.util.Misc;
 import org.infinity.util.ResourceStructure;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileOutputStreamNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 // Create different pre-initialized IE game resources from scratch and writes them to disk.
 public final class StructureFactory
@@ -70,49 +75,59 @@ public final class StructureFactory
   public void newResource(ResType type, Window parent)
   {
     // use most appropriate initial folder for each file type
-    File savedir = null;
+    Path savePath = null;
     switch (type) {
       case RES_BIO:
       case RES_CHR:
       case RES_RES:
-        savedir = FileNI.getFile(Profile.getRootFolders(), "Characters");
-        if (!savedir.exists()) {
-          savedir = FileNI.getFile(Profile.getGameRoot(), Profile.getOverrideFolderName());
+      {
+        List<Path> roots = new ArrayList<>();
+        if (Profile.isEnhancedEdition()) {
+          roots.add(Profile.getHomeRoot());
+          roots.add(Profile.getGameRoot());
+          roots.add(Profile.getLanguageRoot());
+        } else {
+          roots.add(Profile.getGameRoot());
+        }
+        savePath = FileManager.query(roots, "Characters");
+        if (!Files.isDirectory(savePath)) {
+          savePath = FileManager.queryExisting(Profile.getGameRoot(), Profile.getOverrideFolderName());
         }
         break;
+      }
       default:
-        savedir = FileNI.getFile(Profile.getGameRoot(), Profile.getOverrideFolderName());
+        savePath = FileManager.queryExisting(Profile.getGameRoot(), Profile.getOverrideFolderName());
         break;
     }
-    if (savedir == null || !savedir.exists()) {
-      savedir = Profile.getGameRoot();
+    if (savePath == null || !Files.isDirectory(savePath) ) {
+      savePath = Profile.getGameRoot();
     }
-    JFileChooser fc = new JFileChooser(savedir);
+    JFileChooser fc = new JFileChooser(savePath.toFile());
     String title = "Create new " + resExt.get(type) + " resource";
     fc.setDialogTitle(title);
     fc.setFileFilter(new FileNameExtensionFilter(resExt.get(type) + " files", resExt.get(type).toLowerCase(Locale.ENGLISH)));
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    fc.setSelectedFile(new FileNI(fc.getCurrentDirectory(), "UNTITLED." + resExt.get(type)));
+    fc.setSelectedFile(new File(fc.getCurrentDirectory(), "UNTITLED." + resExt.get(type)));
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
-      File output = fc.getSelectedFile();
-      boolean fileExists = output.exists();
-      if (fileExists) {
+      Path outFile = fc.getSelectedFile().toPath();
+      if (Files.exists(outFile)) {
         final String options[] = {"Overwrite", "Cancel"};
-        if (JOptionPane.showOptionDialog(parent, output + "exists. Overwrite?", title, JOptionPane.YES_NO_OPTION,
+        if (JOptionPane.showOptionDialog(parent, outFile + "exists. Overwrite?", title, JOptionPane.YES_NO_OPTION,
                                          JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
           return;
       }
       try {
         try {
-          ResourceStructure struct = createStructure(type, output.getName(), parent);
+          ResourceStructure struct = createStructure(type, outFile.getFileName().toString(), parent);
           if (struct != null) {
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
-            struct.write(bos);
-            bos.close();
-            JOptionPane.showMessageDialog(parent, "File " + output + " created successfully.",
+            try (OutputStream os = StreamUtils.getOutputStream(outFile, true)) {
+              struct.write(os);
+            }
+            JOptionPane.showMessageDialog(parent, "File " + outFile + " created successfully.",
                                           title, JOptionPane.INFORMATION_MESSAGE);
-          } else
+          } else {
             unsupported();
+          }
         } catch (StructureException e) {
           switch (e.getReason()) {
             case UNSUPPORTED_TYPE:
@@ -127,7 +142,7 @@ public final class StructureFactory
           }
         }
       } catch (Exception e) {
-        JOptionPane.showMessageDialog(parent, "Error while creating " + output.getName(),
+        JOptionPane.showMessageDialog(parent, "Error while creating " + outFile.getFileName(),
                                       title, JOptionPane.ERROR_MESSAGE);
         e.printStackTrace();
       }
@@ -166,7 +181,7 @@ public final class StructureFactory
   private ResourceStructure create2DA() throws StructureException
   {
     ResourceStructure s_2da = new ResourceStructure();
-    final String s = "2DA V1.0\r\n0\r\n        COLUMN1\r\nROW1    0\r\n"; //.replaceAll("\r\n", System.getProperty("line.separator"));
+    final String s = normalizeString("2DA V1.0\n0\n        COLUMN1\nROW1    0\n");
     s_2da.add(ResourceStructure.ID_STRING, s);
 
     return s_2da;
@@ -180,11 +195,11 @@ public final class StructureFactory
     if (fileBase.length() > 8)
       fileBase = fileBase.substring(0, 8);
 
-    boolean isV91 = (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ARE_V91);
+    boolean isV91 = Profile.getProperty(Profile.Key.IS_SUPPORTED_ARE_V91);
     s_are.add(ResourceStructure.ID_STRING, 4, "AREA");      // Signature
     s_are.add(ResourceStructure.ID_STRING, 4, isV91 ? "V9.1" : "V1.0");   // Version
     s_are.add(ResourceStructure.ID_RESREF, fileBase);       // Area WED (replaced with actual WED filename)
-    s_are.add(ResourceStructure.ID_ARRAY, isV91 ? 84 : 68);     // block of zero
+    s_are.add(ResourceStructure.ID_BUFFER, isV91 ? 84 : 68);  // block of zero
     int ofs = isV91 ? 0x12c : 0x11c;
     s_are.add(ResourceStructure.ID_DWORD, ofs);             // Actors offset
     s_are.add(ResourceStructure.ID_DWORD);                  // 2x zero
@@ -200,7 +215,7 @@ public final class StructureFactory
     s_are.add(ResourceStructure.ID_DWORD);                  // 2x zero
     s_are.add(ResourceStructure.ID_DWORD, ofs);             // Ambients offset
     s_are.add(ResourceStructure.ID_DWORD, ofs);             // Variables offset
-    s_are.add(ResourceStructure.ID_ARRAY, 20);              // block of zeros
+    s_are.add(ResourceStructure.ID_BUFFER, 20);             // block of zeros
     s_are.add(ResourceStructure.ID_DWORD, ofs);             // Explored bitmask offset
     s_are.add(ResourceStructure.ID_DWORD);                  // zero
     s_are.add(ResourceStructure.ID_DWORD, ofs);             // Doors offset
@@ -218,11 +233,11 @@ public final class StructureFactory
       s_are.add(ResourceStructure.ID_DWORD, ofs, 0);
     }
     s_are.add(ResourceStructure.ID_DWORD, 0);               // PST: Automap notes offset
-    s_are.add(ResourceStructure.ID_ARRAY, 80);              // block of zeros
+    s_are.add(ResourceStructure.ID_BUFFER, 80);             // block of zeros
     // Song section
-    s_are.add(ResourceStructure.ID_ARRAY, 144);             // block of zeros
+    s_are.add(ResourceStructure.ID_BUFFER, 144);            // block of zeros
     // Rest interruptions section
-    s_are.add(ResourceStructure.ID_ARRAY, 228);             // block of zeros
+    s_are.add(ResourceStructure.ID_BUFFER, 228);            // block of zeros
 
     return s_are;
   }
@@ -230,7 +245,7 @@ public final class StructureFactory
   private ResourceStructure createBAF() throws StructureException
   {
     ResourceStructure s_baf = new ResourceStructure();
-    final String s = "// Empty BCS script" + System.getProperty("line.separator");
+    final String s = "// Empty BCS script" + Misc.LINE_SEPARATOR;
     s_baf.add(ResourceStructure.ID_STRING, s);
 
     return s_baf;
@@ -239,7 +254,7 @@ public final class StructureFactory
   private ResourceStructure createBCS() throws StructureException
   {
     ResourceStructure s_bcs = new ResourceStructure();
-    final String s = "SC\r\nSC\r\n";
+    final String s = normalizeString("SC\nSC\n");
     s_bcs.add(ResourceStructure.ID_STRING, s);
 
     return s_bcs;
@@ -269,11 +284,11 @@ public final class StructureFactory
       }
       s_chr.add(ResourceStructure.ID_DWORD, s_cre.size());        // Length of the CRE structure
       if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_CHR_V22)) {
-        s_chr.add(ResourceStructure.ID_ARRAY, 500);               // block of zeros
+        s_chr.add(ResourceStructure.ID_BUFFER, 500);              // block of zeros
       } else {
-        s_chr.add(ResourceStructure.ID_ARRAY, 52);                // block of zeros
+        s_chr.add(ResourceStructure.ID_BUFFER, 52);               // block of zeros
       }
-      s_chr.add(ResourceStructure.ID_ARRAY, s_cre.size(), s_cre.getBytes());    // CRE structure
+      s_chr.add(ResourceStructure.ID_BUFFER, s_cre.size(), s_cre.getBuffer());  // CRE structure
 
       return s_chr;
     } else
@@ -300,49 +315,49 @@ public final class StructureFactory
     s_cre.add(ResourceStructure.ID_STRING, 4, version[idx]);  // Version
     s_cre.add(ResourceStructure.ID_STRREF, -1);               // Long name strref
     s_cre.add(ResourceStructure.ID_STRREF, -1);               // Short name strref
-    s_cre.add(ResourceStructure.ID_ARRAY, 28);                // block of zeros
-    s_cre.add(ResourceStructure.ID_ARRAY, 8,
+    s_cre.add(ResourceStructure.ID_BUFFER, 28);               // block of zeros
+    s_cre.add(ResourceStructure.ID_BUFFER, 8,
         new byte[]{30, 37, 57, 12, 23, 28, 0, 1});            // Color indices and EFF structure version
-    s_cre.add(ResourceStructure.ID_ARRAY, 112);               // block of zeros
+    s_cre.add(ResourceStructure.ID_BUFFER, 112);              // block of zeros
     if (idx == 2) {
-      s_cre.add(ResourceStructure.ID_ARRAY, 8);               // block of zeros
+      s_cre.add(ResourceStructure.ID_BUFFER, 8);              // block of zeros
     }
     for (int i = 0, size = (idx == 2) ? 64 : 100; i < size; i++) {
       s_cre.add(ResourceStructure.ID_DWORD, -1);              // Char-related strrefs
     }
     if (idx == 2) {
-      s_cre.add(ResourceStructure.ID_ARRAY, 182);             // block of zeros
+      s_cre.add(ResourceStructure.ID_BUFFER, 182);            // block of zeros
     }
-    s_cre.add(ResourceStructure.ID_ARRAY, 4,
-        new byte[]{0, 0, 0, 1});                              // last byte: Gender
+    s_cre.add(ResourceStructure.ID_BUFFER, 4,
+        new byte[]{0, 0, 0, 1});                             // last byte: Gender
     if (idx == 3) {
-      s_cre.add(ResourceStructure.ID_ARRAY, 172);             // block of zeros
+      s_cre.add(ResourceStructure.ID_BUFFER, 172);            // block of zeros
     } else if (idx == 2) {
-      s_cre.add(ResourceStructure.ID_ARRAY, 298);             // block of zeros
+      s_cre.add(ResourceStructure.ID_BUFFER, 298);            // block of zeros
     } else if (idx == 1) {
-      s_cre.add(ResourceStructure.ID_ARRAY, 92);              // block of zeros
+      s_cre.add(ResourceStructure.ID_BUFFER, 92);             // block of zeros
     } else {
-      s_cre.add(ResourceStructure.ID_ARRAY, 68);              // block of zeros
+      s_cre.add(ResourceStructure.ID_BUFFER, 68);             // block of zeros
     }
     if (idx == 1) {
       s_cre.add(ResourceStructure.ID_DWORD, 0x3d8);           // Overlays offset
-      s_cre.add(ResourceStructure.ID_ARRAY, 136);             // block of zeros
+      s_cre.add(ResourceStructure.ID_BUFFER, 136);            // block of zeros
     }
     s_cre.add(ResourceStructure.ID_WORD, -1);                 // Global identifier
     s_cre.add(ResourceStructure.ID_WORD, -1);                 // Local identifier
-    s_cre.add(ResourceStructure.ID_ARRAY, 32);                // block of zeros
+    s_cre.add(ResourceStructure.ID_BUFFER, 32);               // block of zeros
     if (idx == 2) {
-      s_cre.add(ResourceStructure.ID_ARRAY, 6);               // block of zeros
+      s_cre.add(ResourceStructure.ID_BUFFER, 6);              // block of zeros
     }
     if (idx == 2) {
       for (int i = 0; i < 63; i++) {
         s_cre.add(ResourceStructure.ID_DWORD, 0x62e + i*8);   // Spell levels offsets
       }
-      s_cre.add(ResourceStructure.ID_ARRAY, 252);             // blocks of zeros
+      s_cre.add(ResourceStructure.ID_BUFFER, 252);            // blocks of zeros
       for (int i = 0; i < 9; i++) {
         s_cre.add(ResourceStructure.ID_DWORD, 0x826 + i*8);   // Domain spells offsets
       }
-      s_cre.add(ResourceStructure.ID_ARRAY, 36);              // blocks of zeros
+      s_cre.add(ResourceStructure.ID_BUFFER, 36);             // blocks of zeros
       for (int i = 0; i < 3; i++) {
         s_cre.add(ResourceStructure.ID_DWORD, 0x86e + i*8);   // Spell levels offsets
         s_cre.add(ResourceStructure.ID_DWORD);                // zero
@@ -351,7 +366,7 @@ public final class StructureFactory
       s_cre.add(ResourceStructure.ID_DWORD, 0x886);           // Item offset
       s_cre.add(ResourceStructure.ID_DWORD);                  // zero
       s_cre.add(ResourceStructure.ID_DWORD, 0x886);           // Effects offset
-      s_cre.add(ResourceStructure.ID_ARRAY, 612);             // block of zeros
+      s_cre.add(ResourceStructure.ID_BUFFER, 612);            // block of zeros
     } else {
       s_cre.add(ResourceStructure.ID_DWORD, ofs[idx]);        // Known spells offset
       s_cre.add(ResourceStructure.ID_DWORD);                  // zero
@@ -363,7 +378,7 @@ public final class StructureFactory
       s_cre.add(ResourceStructure.ID_DWORD, ofs[idx]);        // Item offset
       s_cre.add(ResourceStructure.ID_DWORD);                  // zero
       s_cre.add(ResourceStructure.ID_DWORD, ofs[idx]);        // Effects offset
-      s_cre.add(ResourceStructure.ID_ARRAY, 12);              // block of zeros
+      s_cre.add(ResourceStructure.ID_BUFFER, 12);             // block of zeros
     }
     for (int i = 0; i < count[idx]; i++)                      // item slots
       s_cre.add(ResourceStructure.ID_WORD, -1);
@@ -380,7 +395,7 @@ public final class StructureFactory
     s_eff.add(ResourceStructure.ID_STRING, 4, "V2.0");    // Version
     s_eff.add(ResourceStructure.ID_STRING, 4, "EFF ");    // Signature 2
     s_eff.add(ResourceStructure.ID_STRING, 4, "V2.0");    // Version 2
-    s_eff.add(ResourceStructure.ID_ARRAY, 256);           // block of zeros
+    s_eff.add(ResourceStructure.ID_BUFFER, 256);          // block of zeros
 
     return s_eff;
   }
@@ -388,7 +403,7 @@ public final class StructureFactory
   private ResourceStructure createIDS() throws StructureException
   {
     ResourceStructure s_ids = new ResourceStructure();
-    final String s = "1\r\n0 Identifier1\r\n";
+    final String s = normalizeString("1\n0 Identifier1\n");
     s_ids.add(ResourceStructure.ID_STRING, s);
 
     return s_ids;
@@ -396,8 +411,9 @@ public final class StructureFactory
 
   private ResourceStructure createINI() throws StructureException
   {
+    // TODO: distinguish between games
     ResourceStructure s_ini = new ResourceStructure();
-    final String s = "[locals]\r\n\r\n[spawn_main]\r\n";
+    final String s = normalizeString("[locals]\n\n[spawn_main]\n");
     s_ini.add(ResourceStructure.ID_STRING, s);
 
     return s_ini;
@@ -421,19 +437,19 @@ public final class StructureFactory
     s_itm.add(ResourceStructure.ID_STRING, 4, version[idx]);    // Version
     s_itm.add(ResourceStructure.ID_STRREF, -1);                 // Unidentified name
     s_itm.add(ResourceStructure.ID_STRREF, -1);                 // Identified name
-    s_itm.add(ResourceStructure.ID_ARRAY, 64);                  // block of zeros
+    s_itm.add(ResourceStructure.ID_BUFFER, 64);                 // block of zeros
     s_itm.add(ResourceStructure.ID_STRREF, -1);                 // Unidentified description
     s_itm.add(ResourceStructure.ID_STRREF, -1);                 // Identified description
-    s_itm.add(ResourceStructure.ID_ARRAY, 12);                  // block of zeros
+    s_itm.add(ResourceStructure.ID_BUFFER, 12);                 // block of zeros
     s_itm.add(ResourceStructure.ID_DWORD, ofs[idx]);            // Abilities offset
     s_itm.add(ResourceStructure.ID_WORD);                       // zero
     s_itm.add(ResourceStructure.ID_DWORD, ofs[idx]);            // Effects offset
     if (idx == 1) {
-      s_itm.add(ResourceStructure.ID_ARRAY, 12);                // block of zeros
+      s_itm.add(ResourceStructure.ID_BUFFER, 12);               // block of zeros
       s_itm.add(ResourceStructure.ID_STRREF, -1);               // Conversable label
-      s_itm.add(ResourceStructure.ID_ARRAY, count[idx] - 16);   // block of zeros
+      s_itm.add(ResourceStructure.ID_BUFFER, count[idx] - 16);  // block of zeros
     } else {
-      s_itm.add(ResourceStructure.ID_ARRAY, count[idx]);        // block of zeros
+      s_itm.add(ResourceStructure.ID_BUFFER, count[idx]);       // block of zeros
     }
 
     return s_itm;
@@ -448,7 +464,7 @@ public final class StructureFactory
       s_pro.add(ResourceStructure.ID_STRING, 4, "PRO ");        // Signature
       s_pro.add(ResourceStructure.ID_STRING, 4, "V1.0");        // Version
       s_pro.add(ResourceStructure.ID_WORD, type);               // Projectile type
-      s_pro.add(ResourceStructure.ID_ARRAY, type*256 - 10);     // block of zeros
+      s_pro.add(ResourceStructure.ID_BUFFER, type*256 - 10);    // block of zeros
 
       return s_pro;
     } else
@@ -480,20 +496,20 @@ public final class StructureFactory
     s_spl.add(ResourceStructure.ID_STRING, 4, version[idx]);  // Version
     s_spl.add(ResourceStructure.ID_STRREF, -1);               // Unidentified spell name
     s_spl.add(ResourceStructure.ID_STRREF, -1);               // Identified spell name
-    s_spl.add(ResourceStructure.ID_ARRAY, 40);                // block of zeros
+    s_spl.add(ResourceStructure.ID_BUFFER, 40);               // block of zeros
     if (Profile.getEngine() == Profile.Engine.PST || Profile.getEngine() == Profile.Engine.IWD) {
       s_spl.add(ResourceStructure.ID_WORD, 1);                // always set?
     } else {
       s_spl.add(ResourceStructure.ID_WORD, 0);                // zero
     }
-    s_spl.add(ResourceStructure.ID_ARRAY, 22);                // block of zeros
+    s_spl.add(ResourceStructure.ID_BUFFER, 22);               // block of zeros
     s_spl.add(ResourceStructure.ID_STRREF, -1);               // Unidentified spell description
     s_spl.add(ResourceStructure.ID_STRREF, -1);               // Identified spell description
-    s_spl.add(ResourceStructure.ID_ARRAY, 12);                // block of zeros
+    s_spl.add(ResourceStructure.ID_BUFFER, 12);               // block of zeros
     s_spl.add(ResourceStructure.ID_DWORD, ofs[idx]);          // Abilities offset
     s_spl.add(ResourceStructure.ID_WORD);                     // block of zeros
     s_spl.add(ResourceStructure.ID_DWORD, ofs[idx]);          // Effects offset
-    s_spl.add(ResourceStructure.ID_ARRAY, count[idx]);        // block of zeros
+    s_spl.add(ResourceStructure.ID_BUFFER, count[idx]);       // block of zeros
 
     return s_spl;
   }
@@ -535,15 +551,15 @@ public final class StructureFactory
     s_sto.add(ResourceStructure.ID_STRING, 4, version[idx]);    // Version
     s_sto.add(ResourceStructure.ID_DWORD);                      // zero
     s_sto.add(ResourceStructure.ID_STRREF, -1);                 // name
-    s_sto.add(ResourceStructure.ID_ARRAY, 28);                  // block of zeros
+    s_sto.add(ResourceStructure.ID_BUFFER, 28);                 // block of zeros
     s_sto.add(ResourceStructure.ID_DWORD, ofs[idx]);            // Items purchased offset
     s_sto.add(ResourceStructure.ID_DWORD);                      // zero
     s_sto.add(ResourceStructure.ID_DWORD, ofs[idx]);            // Items for sale offset
-    s_sto.add(ResourceStructure.ID_ARRAY, 20);                  // block of zeros
+    s_sto.add(ResourceStructure.ID_BUFFER, 20);                 // block of zeros
     s_sto.add(ResourceStructure.ID_DWORD, ofs[idx]);            // Drinks offset
-    s_sto.add(ResourceStructure.ID_ARRAY, 32);                  // block of zeros
+    s_sto.add(ResourceStructure.ID_BUFFER, 32);                 // block of zeros
     s_sto.add(ResourceStructure.ID_DWORD, ofs[idx]);            // Cures offset
-    s_sto.add(ResourceStructure.ID_ARRAY, count[idx]);          // block of zeros
+    s_sto.add(ResourceStructure.ID_BUFFER, count[idx]);         // block of zeros
 
     return s_sto;
   }
@@ -566,7 +582,7 @@ public final class StructureFactory
     ResourceStructure s_vvc = new ResourceStructure();
     s_vvc.add(ResourceStructure.ID_STRING, 4, "VVC ");    // Signature
     s_vvc.add(ResourceStructure.ID_STRING, 4, "V1.0");    // Version
-    s_vvc.add(ResourceStructure.ID_ARRAY, 484);           // block of zeros
+    s_vvc.add(ResourceStructure.ID_BUFFER, 484);          // block of zeros
 
     return s_vvc;
   }
@@ -583,7 +599,7 @@ public final class StructureFactory
     s_wed.add(ResourceStructure.ID_DWORD, 0xac);          // Doors offset
     s_wed.add(ResourceStructure.ID_DWORD, 0xac);          // Door tilemap loopup offset
     for (int i = 0; i < 5; i++) {                         // 5x Overlays
-      s_wed.add(ResourceStructure.ID_ARRAY, 16);
+      s_wed.add(ResourceStructure.ID_BUFFER, 16);
       s_wed.add(ResourceStructure.ID_DWORD, 0xac);
       s_wed.add(ResourceStructure.ID_DWORD, 0xac);
     }
@@ -601,7 +617,7 @@ public final class StructureFactory
     ResourceStructure s_wfx = new ResourceStructure();
     s_wfx.add(ResourceStructure.ID_STRING, 4, "WFX ");    // Signature
     s_wfx.add(ResourceStructure.ID_STRING, 4, "V1.0");    // Version
-    s_wfx.add(ResourceStructure.ID_ARRAY, 256);           // block of zeros
+    s_wfx.add(ResourceStructure.ID_BUFFER, 256);          // block of zeros
 
     return s_wfx;
   }
@@ -615,14 +631,14 @@ public final class StructureFactory
     s_wmp.add(ResourceStructure.ID_DWORD, 0x10);          // Worldmap entries offset
 
     s_wmp.add(ResourceStructure.ID_RESREF);               // Background MOS
-    s_wmp.add(ResourceStructure.ID_ARRAY, 12);            // block of zeros
+    s_wmp.add(ResourceStructure.ID_BUFFER, 12);           // block of zeros
     s_wmp.add(ResourceStructure.ID_STRREF, -1);           // Area name
-    s_wmp.add(ResourceStructure.ID_ARRAY, 12);            // block of zeros
+    s_wmp.add(ResourceStructure.ID_BUFFER, 12);           // block of zeros
     s_wmp.add(ResourceStructure.ID_DWORD, 0x0c8);         // Area entries offset
     s_wmp.add(ResourceStructure.ID_DWORD, 0x0c8);         // Area link entries offset
     s_wmp.add(ResourceStructure.ID_DWORD);                // zero
     s_wmp.add(ResourceStructure.ID_RESREF);               // Map icons
-    s_wmp.add(ResourceStructure.ID_ARRAY, 128);           // block of zeros
+    s_wmp.add(ResourceStructure.ID_BUFFER, 128);          // block of zeros
 
     return s_wmp;
   }
@@ -665,6 +681,15 @@ public final class StructureFactory
         return name.substring(0, idx);
     }
     return name;
+  }
+
+
+private String normalizeString(String s)
+  {
+    if (s != null) {
+      return s.replaceAll("\r?\n", Misc.LINE_SEPARATOR);
+    }
+    return "";
   }
 
 

@@ -4,6 +4,7 @@
 
 package org.infinity.resource.bcs;
 
+import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -19,6 +20,7 @@ import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.StringResource;
+import org.infinity.util.io.StreamUtils;
 
 public final class Decompiler
 {
@@ -63,8 +65,8 @@ public final class Decompiler
     }
     this.scriptType = type;
     this.generateErrors = generateErrors;
-    byte[] data = bcsEntry.getResourceData();
-    this.code = (data.length > 0) ? new String(data) : "";
+    ByteBuffer buffer = bcsEntry.getResourceBuffer();
+    this.code = StreamUtils.readString(buffer, buffer.limit());
   }
 
   public Decompiler(String code, boolean generateErrors)
@@ -105,8 +107,8 @@ public final class Decompiler
     if (bcsEntry == null) {
       throw new NullPointerException();
     }
-    byte[] data = bcsEntry.getResourceData();
-    this.code = (data.length > 0) ? new String(data) : "";
+    ByteBuffer buffer = bcsEntry.getResourceBuffer();
+    this.code = StreamUtils.readString(buffer, buffer.limit());
     reset();
   }
 
@@ -577,7 +579,7 @@ public final class Decompiler
           }
           StringBuilder temp = new StringBuilder();
           for (int bit = 0; nr > 0 && bit < 32; bit++) {
-            long bitnr = (long)Math.pow((double)2, (double)bit);
+            long bitnr = 1L << bit;
             if ((nr & bitnr) == bitnr) {
               entry = map.getValue(bitnr);
               if (entry != null) {

@@ -12,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.regex.PatternSyntaxException;
 
 import javax.swing.JButton;
@@ -23,7 +24,6 @@ import javax.swing.JPanel;
 import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
-import org.infinity.util.DynamicArray;
 
 public class Flag extends Datatype implements Editable, IsNumeric, ActionListener
 {
@@ -36,12 +36,12 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
   private JCheckBox[] checkBoxes;
   private long value;
 
-  Flag(byte buffer[], int offset, int length, String name)
+  Flag(ByteBuffer buffer, int offset, int length, String name)
   {
     this(null, buffer, offset, length, name);
   }
 
-  Flag(StructEntry parent, byte buffer[], int offset, int length, String name)
+  Flag(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
   {
     super(parent, offset, length, name);
     read(buffer, offset);
@@ -52,7 +52,7 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
    *               Optionally you can combine flag descriptions with tool tips, using the defaul
    *               separator char ';'.
    */
-  public Flag(byte buffer[], int offset, int length, String name, String[] stable)
+  public Flag(ByteBuffer buffer, int offset, int length, String name, String[] stable)
   {
     this(null, buffer, offset, length, name, stable);
   }
@@ -63,7 +63,7 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
    *               separator char.
    * @param separator Character that can be used to split flag description and tool tip.
    */
-  public Flag(byte buffer[], int offset, int length, String name, String[] stable, char separator)
+  public Flag(ByteBuffer buffer, int offset, int length, String name, String[] stable, char separator)
   {
     this(null, buffer, offset, length, name, stable, separator);
   }
@@ -73,7 +73,7 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
    *               Optionally you can combine flag descriptions with tool tips, using the defaul
    *               separator char ';'.
    */
-  public Flag(StructEntry parent, byte buffer[], int offset, int length, String name, String[] stable)
+  public Flag(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, String[] stable)
   {
     this(parent, buffer, offset, length, name, stable, ';');
   }
@@ -84,7 +84,7 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
    *               separator char.
    * @param separator Character that can be used to split flag description and tool tip.
    */
-  public Flag(StructEntry parent, byte buffer[], int offset, int length, String name, String[] stable,
+  public Flag(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, String[] stable,
               char separator)
   {
     this(parent, buffer, offset, length, name);
@@ -206,17 +206,18 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
+    buffer.position(offset);
     switch (getSize()) {
       case 1:
-        value = (long)DynamicArray.getUnsignedByte(buffer, offset);
+        value = buffer.get() & 0xff;
         break;
       case 2:
-        value = (long)DynamicArray.getUnsignedShort(buffer, offset);
+        value = buffer.getShort() & 0xffff;
         break;
       case 4:
-        value = DynamicArray.getUnsignedInt(buffer, offset);
+        value = buffer.getInt() & 0xffffffff;
         break;
       default:
         throw new IllegalArgumentException();
@@ -253,7 +254,7 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
 
   public boolean isFlagSet(int i)
   {
-    long bitnr = (long)Math.pow((double)2, (double)i);
+    long bitnr = 1L << i;
     return (value & bitnr) == bitnr;
   }
 

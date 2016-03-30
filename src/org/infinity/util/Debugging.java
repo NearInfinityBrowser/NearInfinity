@@ -6,7 +6,6 @@ package org.infinity.util;
 
 /**
  * Collection of static methods for debugging and profiling needs.
- * @author argent77
  */
 public class Debugging
 {

@@ -11,7 +11,6 @@ import java.util.Map.Entry;
  *
  * @param <K> The type of key.
  * @param <V> The type of value.
- * @author argent77
  */
 public class MapEntry<K, V> implements Entry<K, V>
 {

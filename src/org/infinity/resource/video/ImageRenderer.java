@@ -22,7 +22,6 @@ import org.infinity.gui.RenderCanvas;
 /**
  * A component optimized to display rapidly changing graphics data (e.g. videos, animations),
  * providing support for scaling (with and without aspect ratio preservation) and filtering.
- * @author argent77
  */
 public class ImageRenderer extends JComponent implements VideoBuffer, ComponentListener, SwingConstants
 {

@@ -6,6 +6,7 @@ package org.infinity.resource.itm;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -225,13 +226,14 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
 
   private StructHexViewer hexViewer;
 
-  public static String getSearchString(byte buffer[])
+  public static String getSearchString(ByteBuffer buffer)
   {
-//    return new StringRef(buffer, 12, "").toString();
     String name = new StringRef(buffer, 12, "").toString().trim();
-    if (name.equals("") || name.equalsIgnoreCase("No such index"))
+    if (name.equals("") || name.equalsIgnoreCase("No such index")) {
       return new StringRef(buffer, 8, "").toString().trim();
-    return name;
+    } else {
+      return name;
+    }
   }
 
   public ItmResource(ResourceEntry entry) throws Exception
@@ -422,7 +424,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, 0, 4, COMMON_SIGNATURE));
     TextString version = new TextString(buffer, 4, 4, COMMON_VERSION);

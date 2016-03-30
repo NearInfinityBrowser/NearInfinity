@@ -13,10 +13,10 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,9 +40,8 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.BIFFWriter;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileOutputStreamNI;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public final class BIFFEditor implements ActionListener, ListSelectionListener, Runnable
 {
@@ -78,8 +77,9 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bcancel)
+    if (event.getSource() == bcancel) {
       editframe.close();
+    }
     else if (event.getSource() == bsave) {
       editframe.close();
       String s_format = (String)cbformat.getSelectedItem();
@@ -91,23 +91,24 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       new Thread(this).start();
     }
     else if (event.getSource() == btobif) {
-      bsave.setEnabled(true);
       Object selected[] = overridetable.getSelectedValues();
       for (final Object value : selected) {
         if (biftable.addTableLine(value))
           overridetable.removeTableLine(value);
       }
+      bsave.setEnabled(!biftable.isEmpty());
     }
     else if (event.getSource() == bfrombif) {
-      bsave.setEnabled(true);
       Object selected[] = biftable.getSelectedValues();
       for (final Object value : selected) {
         if (overridetable.addTableLine(value))
           biftable.removeTableLine(value);
       }
+      bsave.setEnabled(!biftable.isEmpty());
     }
-    else if (event.getSource() == cbformat)
-      bsave.setEnabled(true);
+    else if (event.getSource() == cbformat) {
+      bsave.setEnabled(!biftable.isEmpty());
+    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -136,42 +137,42 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     BifSaveProgress progress = new BifSaveProgress();
     blocker.setBlocked(true);
     // 1: Delete old entries from keyfile
-    for (int i = 0; i < origbiflist.size(); i++)
+    for (int i = 0; i < origbiflist.size(); i++) {
       ResourceFactory.getResources().removeResourceEntry(origbiflist.get(i));
+    }
     progress.setProgress(1, true);
 
-    try {
-      // 2: Extract files from BIF (if applicable)
-      List<ResourceEntry> overrideBif = overridetable.getValueList(BIFFEditorTable.TYPE_BIF);
-      for (int i = 0; i < overrideBif.size(); i++) {
-        ResourceEntry entry = overrideBif.get(i);
-        File file = FileNI.getFile(Profile.getRootFolders(),
-                                   Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
-        OutputStream os = new BufferedOutputStream(new FileOutputStreamNI(file));
-        FileWriterNI.writeBytes(os, entry.getResourceData(true));
-        os.close();
-        FileResourceEntry fileEntry = new FileResourceEntry(file, true);
-        ResourceFactory.getResources().addResourceEntry(fileEntry, fileEntry.getTreeFolder());
+    // 2: Extract files from BIF (if applicable)
+    List<ResourceEntry> overrideBif = overridetable.getValueList(BIFFEditorTable.TYPE_BIF);
+    for (int i = 0; i < overrideBif.size(); i++) {
+      ResourceEntry entry = overrideBif.get(i);
+      Path file = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
+      try (OutputStream os = StreamUtils.getOutputStream(file, true)) {
+        StreamUtils.writeBytes(os, entry.getResourceBuffer(true));
+      } catch (Exception e) {
+        progress.setProgress(2, false);
+        JOptionPane.showMessageDialog(editframe, "Error while extracting files from " + bifentry,
+                                      "Error", JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
+        blocker.setBlocked(false);
+        return;
       }
-      progress.setProgress(2, true);
-    } catch (Exception e) {
-      progress.setProgress(2, false);
-      JOptionPane.showMessageDialog(editframe, "Error while extracting files from " + bifentry,
-                                    "Error", JOptionPane.ERROR_MESSAGE);
-      e.printStackTrace();
-      blocker.setBlocked(false);
-      return;
+      FileResourceEntry fileEntry = new FileResourceEntry(file, true);
+      ResourceFactory.getResources().addResourceEntry(fileEntry, fileEntry.getTreeFolder());
     }
+    progress.setProgress(2, true);
 
     // 3: Write new BIF
     BIFFWriter biffwriter = new BIFFWriter(bifentry, format);
     List<ResourceEntry> bifBif = biftable.getValueList(BIFFEditorTable.TYPE_BIF);
-    for (int i = 0; i < bifBif.size(); i++)
+    for (int i = 0; i < bifBif.size(); i++) {
       biffwriter.addResource(bifBif.get(i), true); // Ignore overrides
+    }
     List<ResourceEntry> tobif = biftable.getValueList(BIFFEditorTable.TYPE_NEW);
     tobif.addAll(biftable.getValueList(BIFFEditorTable.TYPE_UPD));
-    for (int i = 0; i < tobif.size(); i++)
+    for (int i = 0; i < tobif.size(); i++) {
       biffwriter.addResource(tobif.get(i), false);
+    }
     try {
       biffwriter.write();
       progress.setProgress(3, true);
@@ -185,18 +186,25 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     }
 
     // 4: Delete old files from override
-    for (int i = 0; i < tobif.size(); i++)
-      FileNI.getFile(Profile.getRootFolders(),
-               Profile.getOverrideFolderName() + File.separatorChar + tobif.get(i).toString()).delete();
+    for (int i = 0; i < tobif.size(); i++) {
+      Path file = FileManager.queryExisting(Profile.getRootFolders(), Profile.getOverrideFolderName(),
+                                            tobif.get(i).toString());
+      if (file != null && Files.isRegularFile(file)) {
+        try {
+          Files.delete(file);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
     progress.setProgress(4, true);
 
     // 5: Add new OverrideResourceEntries (ResourceEntries deleted from BIF)
     origbiflist.removeAll(biftable.getValueList(BIFFEditorTable.TYPE_BIF));
     origbiflist.removeAll(overridetable.getValueList(BIFFEditorTable.TYPE_BIF));
     for (int i = 0; i < origbiflist.size(); i++) {
-      File file = FileNI.getFile(Profile.getRootFolders(),
-                           Profile.getOverrideFolderName() + File.separatorChar +
-                           origbiflist.get(i).toString());
+      Path file = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(),
+                                    origbiflist.get(i).toString());
       FileResourceEntry fileEntry = new FileResourceEntry(file, true);
       ResourceFactory.getResources().addResourceEntry(fileEntry, fileEntry.getTreeFolder());
     }
@@ -230,16 +238,19 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     pane.setLayout(gbl);
 
     for (final ResourceEntry entry : ResourceFactory.getResources().getResourceEntries()) {
-      if (entry instanceof FileResourceEntry && entry.hasOverride() && entry.toString().length() < 13 &&
-          ResourceFactory.getKeyfile().getExtensionType(entry.getExtension()) != -1)
+      if ((entry instanceof FileResourceEntry || entry.hasOverride()) &&
+          StreamUtils.splitFileName(entry.toString())[1].length() <= 8 &&
+          ResourceFactory.getKeyfile().getExtensionType(entry.getExtension()) != -1) {
         overridetable.addEntry(entry, BIFFEditorTable.TYPE_NEW);
+      }
       else if (bifentry.getIndex() != -1 && entry instanceof BIFFResourceEntry) {
         BIFFResourceEntry bentry = (BIFFResourceEntry)entry;
         if (bentry.getBIFFEntry() == bifentry) {
           biftable.addEntry(bentry, BIFFEditorTable.TYPE_BIF);
           origbiflist.add(bentry);
-          if (bentry.hasOverride())
+          if (bentry.hasOverride()) {
             overridetable.addEntry(entry, BIFFEditorTable.TYPE_UPD);
+          }
         }
       }
     }
@@ -276,14 +287,15 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     }
     cbformat = new JComboBox<>(formats.toArray(new String[formats.size()]));
     cbformat.addActionListener(this);
-    if (format != BIFF)
+    if (format != BIFF) {
       cbformat.setSelectedIndex(1);
-    else
+    } else {
       cbformat.setSelectedIndex(0);
+    }
     JPanel bpanel3 = new JPanel(new FlowLayout(FlowLayout.LEFT));
     bpanel3.add(new JLabel("Format: "));
     bpanel3.add(cbformat);
-    cbformat.setEnabled(false); // Temporary while I figure things out
+//    cbformat.setEnabled(false); // Temporary while I figure things out
 
     btobif.addActionListener(this);
     bfrombif.addActionListener(this);

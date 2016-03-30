@@ -4,6 +4,8 @@
 
 package org.infinity.resource.var;
 
+import java.nio.ByteBuffer;
+
 import javax.swing.JComponent;
 
 import org.infinity.gui.StructViewer;
@@ -81,9 +83,9 @@ public final class VarResource extends AbstractStruct implements Resource, HasAd
 //--------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
-    int count = buffer.length / 44;
+    int count = buffer.limit() / 44;
     for (int i = 0; i < count; i++)
       addField(new Entry(this, buffer, offset + i * 44, i));
     return offset + count * 44;

@@ -18,7 +18,6 @@ import org.fife.ui.rsyntaxtextarea.folding.FoldType;
 /**
  * A fold parser for BCS scripts. It supports folding of multiline comments
  * and IF/END blocks.
- * @author argent77
  */
 public class BCSFoldParser implements FoldParser
 {

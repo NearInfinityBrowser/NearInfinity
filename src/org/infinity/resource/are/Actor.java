@@ -4,6 +4,8 @@
 
 package org.infinity.resource.are;
 
+import java.nio.ByteBuffer;
+
 import javax.swing.JComponent;
 
 import org.infinity.datatype.Bitmap;
@@ -22,6 +24,7 @@ import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.util.io.StreamUtils;
 
 public final class Actor extends AbstractStruct implements AddRemovable, HasViewerTabs, HasAddRemovable
 {
@@ -76,10 +79,10 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
 
   public Actor() throws Exception
   {
-    super(null, ARE_ACTOR, new byte[272], 0);
+    super(null, ARE_ACTOR, StreamUtils.getByteBuffer(272), 0);
   }
 
-  public Actor(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public Actor(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, ARE_ACTOR + " " + nr, buffer, offset);
   }
@@ -179,7 +182,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 32, ARE_ACTOR_NAME));
     addField(new DecNumber(buffer, offset + 32, 2, ARE_ACTOR_POS_X));
@@ -219,7 +222,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
       addField(new ResourceRef(buffer, offset + 112, ARE_ACTOR_SCRIPT_DEFAULT, "BCS"));
       addField(new ResourceRef(buffer, offset + 120, ARE_ACTOR_SCRIPT_SPECIFICS, "BCS"));
     }
-    if (buffer[offset + 128] == 0x2a) { // *
+    if (buffer.get(offset + 128) == 0x2a) { // *
       addField(new TextString(buffer, offset + 128, 8, ARE_ACTOR_CHARACTER));
     }
     else {

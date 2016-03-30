@@ -26,7 +26,6 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
 /**
  * Handles specific layer type: ARE/Ambient Sound and Ambient Sound Range
  * Note: Ambient returns two layer items: 0=icon, 1=range (if available)
- * @author argent77
  */
 public class LayerObjectAmbient extends LayerObject
 {

@@ -4,10 +4,13 @@
 
 package org.infinity.resource.key;
 
-import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.HashSet;
 import java.util.Locale;
 
@@ -26,9 +29,7 @@ import org.infinity.resource.pro.ProResource;
 import org.infinity.resource.spl.SplResource;
 import org.infinity.resource.sto.StoResource;
 import org.infinity.search.SearchOptions;
-import org.infinity.util.DynamicArray;
-import org.infinity.util.io.FileInputStreamNI;
-import org.infinity.util.io.FileReaderNI;
+import org.infinity.util.io.StreamUtils;
 
 public abstract class ResourceEntry implements Comparable<ResourceEntry>
 {
@@ -42,31 +43,51 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
 
   private String searchString;
 
-  static int[] getLocalFileInfo(File file)
+  static int[] getLocalFileInfo(Path file)
   {
-    try {
-      InputStream is = new BufferedInputStream(new FileInputStreamNI(file));
-      byte[] data = null;
-      try {
-        data = FileReaderNI.readBytes(is, 16);
-      } finally {
-        is.close();
-      }
-      if (data != null) {
-        String sig = new String(data, 0, 4);
-        String ver = new String(data, 4, 4);
-        if ("TIS ".equals(sig) && "V1  ".equals(ver)) {
-          return new int[]{ DynamicArray.getInt(data, 8), DynamicArray.getInt(data, 12) };
-        } else if (file.getName().toUpperCase(Locale.ENGLISH).endsWith(".TIS")) {
-          int tileSize = 64 * 64 + 4 * 256;
-          int tileCount = (int)file.length() / tileSize;
-          return new int[]{ tileCount, tileSize };
-        } else {
-          return new int[]{ (int)file.length() };
+    if (file != null && Files.isRegularFile(file)) {
+      try (SeekableByteChannel ch = Files.newByteChannel(file, StandardOpenOption.READ)) {
+        ByteBuffer bb = StreamUtils.getByteBuffer((int)ch.size());
+        if (ch.read(bb) < ch.size()) {
+          throw new IOException();
         }
+        bb.position(0);
+
+        String sig, ver;
+        if (bb.remaining() >= 8) {
+          byte[] buf = new byte[4];
+          bb.get(buf);
+          sig = new String(buf);
+          bb.get(buf);
+          ver = new String(buf);
+        } else {
+          sig = ver = "";
+        }
+        if ("TIS ".equals(sig) && "V1  ".equals(ver)) {
+          if (bb.limit() > 16) {
+            int v1 = bb.getInt(8);
+            int v2 = bb.getInt(12);
+            return new int[]{ v1, v2 };
+          } else {
+            throw new IOException("Unexpected end of file");
+          }
+        } else if (file.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".TIS")) {
+          int tileSize = 0;
+          if (bb.remaining() > 16) {
+            tileSize = bb.getInt(12);
+          }
+          if (tileSize > 0) {
+            int tileCount = bb.limit() / tileSize;
+            return new int[]{ tileCount, tileSize };
+          } else {
+            throw new Exception("Invalid TIS tile size");
+          }
+        } else {
+          return new int[]{ (int)ch.size() };
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-    } catch (IOException e) {
-      e.printStackTrace();
     }
     return null;
   }
@@ -96,10 +117,10 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
 
 // --------------------- End Interface Comparable ---------------------
 
-  public File getActualFile()
+  public Path getActualPath()
   {
-    return getActualFile(
-            NearInfinity.getInstance() != null && BrowserMenuBar.getInstance().ignoreOverrides());
+    return getActualPath((NearInfinity.getInstance() != null) &&
+                         BrowserMenuBar.getInstance().ignoreOverrides());
   }
 
   public ImageIcon getIcon()
@@ -107,22 +128,28 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
     return ResourceFactory.getKeyfile().getIcon(getExtension());
   }
 
-  public byte[] getResourceData() throws Exception
+  public long getResourceSize()
   {
-    return getResourceData(
-            NearInfinity.getInstance() != null && BrowserMenuBar.getInstance().ignoreOverrides());
+    return getResourceSize((NearInfinity.getInstance() != null) &&
+                           BrowserMenuBar.getInstance().ignoreOverrides());
+  }
+
+  public ByteBuffer getResourceBuffer() throws Exception
+  {
+    return getResourceBuffer((NearInfinity.getInstance() != null) &&
+                             BrowserMenuBar.getInstance().ignoreOverrides());
   }
 
   public InputStream getResourceDataAsStream() throws Exception
   {
-    return getResourceDataAsStream(
-            NearInfinity.getInstance() != null && BrowserMenuBar.getInstance().ignoreOverrides());
+    return getResourceDataAsStream((NearInfinity.getInstance() != null) &&
+                                   BrowserMenuBar.getInstance().ignoreOverrides());
   }
 
   public int[] getResourceInfo() throws Exception
   {
-    return getResourceInfo(
-            NearInfinity.getInstance() != null && BrowserMenuBar.getInstance().ignoreOverrides());
+    return getResourceInfo((NearInfinity.getInstance() != null) &&
+                           BrowserMenuBar.getInstance().ignoreOverrides());
   }
 
   public String getSearchString()
@@ -130,18 +157,21 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
     if (searchString == null) {
       try {
         String extension = getExtension();
-        if (extension.equalsIgnoreCase("CRE"))
-          searchString = CreResource.getSearchString(getResourceData());
-        else if (extension.equalsIgnoreCase("ITM"))
-          searchString = ItmResource.getSearchString(getResourceData());
-        else if (extension.equalsIgnoreCase("SPL"))
-          searchString = SplResource.getSearchString(getResourceData());
-        else if (extension.equalsIgnoreCase("STO"))
-          searchString = StoResource.getSearchString(getResourceData());
+        if (extension.equalsIgnoreCase("CRE")) {
+          searchString = CreResource.getSearchString(getResourceBuffer());
+        } else if (extension.equalsIgnoreCase("ITM")) {
+          searchString = ItmResource.getSearchString(getResourceBuffer());
+        } else if (extension.equalsIgnoreCase("SPL")) {
+          searchString = SplResource.getSearchString(getResourceBuffer());
+        } else if (extension.equalsIgnoreCase("STO")) {
+          searchString = StoResource.getSearchString(getResourceBuffer());
+        }
       } catch (Exception e) {
-        if (NearInfinity.getInstance() != null && !BrowserMenuBar.getInstance().ignoreReadErrors())
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error reading " + toString(), "Error",
-                                        JOptionPane.ERROR_MESSAGE);
+        if ((NearInfinity.getInstance() != null) &&
+            !BrowserMenuBar.getInstance().ignoreReadErrors()) {
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error reading " + toString(),
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+        }
         searchString = "Error";
         e.printStackTrace();
       }
@@ -187,15 +217,17 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
     return !skippedExtensions.contains(getExtension().toUpperCase(Locale.ENGLISH));
   }
 
-  protected abstract File getActualFile(boolean ignoreoverride);
+  protected abstract Path getActualPath(boolean ignoreOverride);
+
+  public abstract long getResourceSize(boolean ignoreOverride);
 
   public abstract String getExtension();
 
-  public abstract byte[] getResourceData(boolean ignoreoverride) throws Exception;
+  public abstract ByteBuffer getResourceBuffer(boolean ignoreOverride) throws Exception;
 
-  protected abstract InputStream getResourceDataAsStream(boolean ignoreoverride) throws Exception;
+  public abstract InputStream getResourceDataAsStream(boolean ignoreOverride) throws Exception;
 
-  public abstract int[] getResourceInfo(boolean ignoreoverride) throws Exception;
+  public abstract int[] getResourceInfo(boolean ignoreOverride) throws Exception;
 
   public abstract String getResourceName();
 

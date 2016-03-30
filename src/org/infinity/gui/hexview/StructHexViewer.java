@@ -17,9 +17,10 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
-import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,9 +75,8 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileOutputStreamNI;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.HexViewEvent;
@@ -91,8 +91,6 @@ import tv.porst.jhexview.JHexView;
  * A hex viewer and editor component designed to be used as separate tab in resource viewers.
  *
  * Not implemented: proper support for AbstractAction (changes in referenced text blocks are ignored)
- *
- * @author argent77
  */
 public class StructHexViewer extends JPanel implements IHexViewListener, IDataChangedListener,
                                                  ActionListener, ChangeListener, Closeable
@@ -266,32 +264,38 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       // XXX: Ugly hack: mimicking ResourceFactory.saveResource()
       IDataProvider dataProvider = getHexView().getData();
       ResourceEntry entry = getStruct().getResourceEntry();
-      File output;
+      Path outPath;
       if (entry instanceof BIFFResourceEntry) {
-        output = FileNI.getFile(Profile.getRootFolders(),
-                                Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
-        File override = FileNI.getFile(Profile.getRootFolders(), Profile.getOverrideFolderName());
-        if (!override.exists()) {
-          override.mkdir();
+        Path overridePath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName());
+        if (!Files.isDirectory(overridePath)) {
+          try {
+            Files.createDirectory(overridePath);
+          } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Unable to create override folder.",
+                                          "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+            return;
+          }
         }
+        outPath = FileManager.query(overridePath, entry.toString());
         ((BIFFResourceEntry)entry).setOverride(true);
       } else {
-        output = entry.getActualFile();
+        outPath = entry.getActualPath();
       }
-
-      if (output != null && output.exists()) {
+      if (Files.exists(outPath)) {
+        outPath = outPath.toAbsolutePath();
         String options[] = {"Overwrite", "Cancel"};
-        if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?", "Save resource",
-                                         JOptionPane.YES_NO_OPTION,
-                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 0) {
+        if (JOptionPane.showOptionDialog(this, outPath + " exists. Overwrite?", "Save resource",
+                                         JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+                                         null, options, options[0]) == 0) {
           if (BrowserMenuBar.getInstance().backupOnSave()) {
             try {
-              File bakFile = new FileNI(output.getCanonicalPath() + ".bak");
-              if (bakFile.isFile()) {
-                bakFile.delete();
+              Path bakPath = outPath.getParent().resolve(outPath.getFileName() + ".bak");
+              if (Files.isRegularFile(bakPath)) {
+                Files.delete(bakPath);
               }
-              if (!bakFile.exists()) {
-                output.renameTo(bakFile);
+              if (!Files.exists(bakPath)) {
+                Files.move(outPath, bakPath);
               }
             } catch (IOException e) {
               e.printStackTrace();
@@ -304,19 +308,17 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
 
       try {
         byte[] buffer = dataProvider.getData(0, dataProvider.getDataLength());
-        try {
+        try (OutputStream os = StreamUtils.getOutputStream(outPath, true)) {
           // make sure that nothing interferes with the writing process
           getHexView().setEnabled(false);
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStreamNI(output));
-          FileWriterNI.writeBytes(bos, buffer);
-          bos.close();
+          StreamUtils.writeBytes(os, buffer);
         } finally {
           getHexView().setEnabled(true);
         }
         buffer = null;
         getStruct().setStructChanged(false);
         getHexView().clearModified();
-        JOptionPane.showMessageDialog(this, "File saved to \"" + output.getAbsolutePath() + '\"',
+        JOptionPane.showMessageDialog(this, "File saved to \"" + outPath.toAbsolutePath() + '\"',
                                       "Save complete", JOptionPane.INFORMATION_MESSAGE);
       } catch (IOException e) {
         JOptionPane.showMessageDialog(this, "Error while saving " + getStruct().getResourceEntry().toString(),

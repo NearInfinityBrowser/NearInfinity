@@ -4,9 +4,11 @@
 
 package org.infinity.resource.are;
 
+import java.nio.ByteBuffer;
+
 public interface HasVertices
 {
-  void readVertices(byte buffer[], int offset) throws Exception;
+  void readVertices(ByteBuffer buffer, int offset) throws Exception;
 
   int updateVertices(int offset, int number);
 }

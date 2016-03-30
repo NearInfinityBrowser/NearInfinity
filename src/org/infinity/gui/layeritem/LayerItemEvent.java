@@ -8,7 +8,6 @@ import java.util.EventObject;
 
 /**
  * Used in AbstractLayerItem and subclasses.
- * @author argent77
  */
 public class LayerItemEvent extends EventObject
 {

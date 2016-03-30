@@ -8,7 +8,6 @@ package org.infinity.util;
  * A simple Pair class to store arbitrary objects A and B.
  * Both objects must share a common base class.
  * @param <V> The common base class for both objects.
- * @author argent77
  */
 public class Pair<V> implements Cloneable
 {

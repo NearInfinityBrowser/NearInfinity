@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.ColorPicker;
@@ -104,7 +105,7 @@ final class Control extends AbstractStruct // implements AddRemovable
 
   private final int size;
 
-  Control(AbstractStruct superStruct, byte buffer[], int offset, int number, int size) throws Exception
+  Control(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number, int size) throws Exception
   {
     super(superStruct, CHU_CONTROL + " " + number, buffer, offset);
     this.size = size;
@@ -122,7 +123,7 @@ final class Control extends AbstractStruct // implements AddRemovable
 // --------------------- End Interface Writeable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
     addField(new HexNumber(buffer, offset, 4, CHU_CONTROL_OFFSET));
     addField(new HexNumber(buffer, offset + 4, 4, CHU_CONTROL_LENGTH));
@@ -161,7 +162,7 @@ final class Control extends AbstractStruct // implements AddRemovable
   }
 
 
-  public int readControl(byte buffer[])
+  public int readControl(ByteBuffer buffer)
   {
     int offset = ((HexNumber)getAttribute(CHU_CONTROL_OFFSET)).getValue();
     int endOffset = offset + getControlSize();

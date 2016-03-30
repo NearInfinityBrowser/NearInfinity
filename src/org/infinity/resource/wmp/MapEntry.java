@@ -4,6 +4,8 @@
 
 package org.infinity.resource.wmp;
 
+import java.nio.ByteBuffer;
+
 import javax.swing.JComponent;
 
 import org.infinity.datatype.DecNumber;
@@ -37,7 +39,7 @@ final class MapEntry extends AbstractStruct implements HasViewerTabs
 
   private static final String[] s_flag = {"No flags set", "Colored icon", "Ignore palette"};
 
-  MapEntry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  MapEntry(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, WMP_MAP + " " + nr, buffer, offset);
   }
@@ -71,7 +73,7 @@ final class MapEntry extends AbstractStruct implements HasViewerTabs
 // --------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, WMP_MAP_RESREF, "MOS"));
     addField(new DecNumber(buffer, offset + 8, 4, WMP_MAP_WIDTH));

@@ -31,7 +31,6 @@ package org.infinity.resource.graphics;
 
 /**
  * Encodes pixel data into the DXT1/DXT3/DXT5 format.
- * @author argent77
  */
 public final class DxtEncoder
 {

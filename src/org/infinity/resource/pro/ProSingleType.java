@@ -4,6 +4,8 @@
 
 package org.infinity.resource.pro;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.ColorValue;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
@@ -14,6 +16,7 @@ import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.util.LongIntegerHashMap;
+import org.infinity.util.io.StreamUtils;
 
 public final class ProSingleType extends AbstractStruct implements AddRemovable
 {
@@ -53,11 +56,11 @@ public final class ProSingleType extends AbstractStruct implements AddRemovable
 
   public ProSingleType() throws Exception
   {
-    super(null, PRO_SINGLE, new byte[256], 0);
+    super(null, PRO_SINGLE, StreamUtils.getByteBuffer(256), 0);
     setOffset(256);
   }
 
-  public ProSingleType(AbstractStruct superStruct, byte[] buffer, int offset) throws Exception
+  public ProSingleType(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception
   {
     super(superStruct, PRO_SINGLE, buffer, offset);
   }
@@ -73,7 +76,7 @@ public final class ProSingleType extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new Flag(buffer, offset, 4, PRO_SINGLE_FLAGS, s_flags));
     addField(new ResourceRef(buffer, offset + 4, PRO_SINGLE_PRO_ANIMATION, "BAM"));

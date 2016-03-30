@@ -23,7 +23,6 @@ import org.infinity.resource.vertex.OpenVertex;
 
 /**
  * Handles specific layer type: ARE/Door
- * @author argent77
  */
 public class LayerObjectDoor extends LayerObject
 {

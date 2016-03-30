@@ -4,6 +4,8 @@
 
 package org.infinity.resource.dlg;
 
+import java.nio.ByteBuffer;
+
 public final class Action extends AbstractCode
 {
   // DLG/Action-specific field labels
@@ -16,7 +18,7 @@ public final class Action extends AbstractCode
     super(DLG_ACTION);
   }
 
-  public Action(byte buffer[], int offset, int count)
+  public Action(ByteBuffer buffer, int offset, int count)
   {
     super(buffer, offset, DLG_ACTION + " " + count);
     this.nr = count;

@@ -4,6 +4,7 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -34,7 +35,7 @@ public class IdsTargetType extends Bitmap
   /**
    * Constructs an IDS type field with the default list of IDS entries.
    */
-  public IdsTargetType(byte[] buffer, int offset, int size)
+  public IdsTargetType(ByteBuffer buffer, int offset, int size)
   {
     this(null, buffer, offset, size, null, -1, null, false);
   }
@@ -42,7 +43,7 @@ public class IdsTargetType extends Bitmap
   /**
    * Constructs an IDS type field with the default list of IDS entries.
    */
-  public IdsTargetType(StructEntry parent, byte[] buffer, int offset, int size)
+  public IdsTargetType(StructEntry parent, ByteBuffer buffer, int offset, int size)
   {
     this(parent, buffer, offset, size, null, -1, null, false);
   }
@@ -50,7 +51,7 @@ public class IdsTargetType extends Bitmap
   /**
    * Constructs an IDS type field with the default list of IDS entries.
    */
-  public IdsTargetType(byte[] buffer, int offset, int size, String name)
+  public IdsTargetType(ByteBuffer buffer, int offset, int size, String name)
   {
     this(null, buffer, offset, size, name, -1, null, false);
   }
@@ -58,7 +59,7 @@ public class IdsTargetType extends Bitmap
   /**
    * Constructs an IDS type field with the default list of IDS entries.
    */
-  public IdsTargetType(StructEntry parent, byte[] buffer, int offset, int size, String name)
+  public IdsTargetType(StructEntry parent, ByteBuffer buffer, int offset, int size, String name)
   {
     this(parent, buffer, offset, size, name, -1, null, false);
   }
@@ -69,7 +70,7 @@ public class IdsTargetType extends Bitmap
    * @param targetActor If {@code true}, Enhanced Editions will use index 10 for
    *                    Actor's name strrefs and index 11 for Actor's script name.
    */
-  public IdsTargetType(byte[] buffer, int offset, int size, String name, String secondIds,
+  public IdsTargetType(ByteBuffer buffer, int offset, int size, String name, String secondIds,
                        boolean targetActor)
   {
     this(null, buffer, offset, size, name, -1, secondIds, targetActor);
@@ -81,7 +82,7 @@ public class IdsTargetType extends Bitmap
    * @param targetActor If {@code true}, Enhanced Editions will use index 10 for
    *                    Actor's name strrefs and index 11 for Actor's script name.
    */
-  public IdsTargetType(StructEntry parent, byte[] buffer, int offset, int size, String name,
+  public IdsTargetType(StructEntry parent, ByteBuffer buffer, int offset, int size, String name,
                        String secondIds, boolean targetActor)
   {
     this(parent, buffer, offset, size, name, -1, secondIds, targetActor);
@@ -94,7 +95,7 @@ public class IdsTargetType extends Bitmap
    * @param targetActor If {@code true}, Enhanced Editions will use index 10 for
    *                    Actor's name strrefs and index 11 for Actor's script name.
    */
-  public IdsTargetType(byte[] buffer, int offset, int size, String name, int idx, String secondIds,
+  public IdsTargetType(ByteBuffer buffer, int offset, int size, String name, int idx, String secondIds,
                        boolean targetActor)
   {
     this(null, buffer, offset, size, name, idx, secondIds, targetActor);
@@ -107,7 +108,7 @@ public class IdsTargetType extends Bitmap
    * @param targetActor If {@code true}, Enhanced Editions will use index 10 for
    *                    Actor's name strrefs and index 11 for Actor's script name.
    */
-  public IdsTargetType(StructEntry parent, byte[] buffer, int offset, int size, String name, int idx,
+  public IdsTargetType(StructEntry parent, ByteBuffer buffer, int offset, int size, String name, int idx,
                        String secondIds, boolean targetActor)
   {
     super(parent, buffer, offset, size, createFieldName(name, idx, DEFAULT_NAME_TYPE),
@@ -117,7 +118,7 @@ public class IdsTargetType extends Bitmap
   }
 
   /** Constructs an IDS type field with the specified list of IDS resource names. */
-  public IdsTargetType(byte[] buffer, int offset, int size, String name, String[] ids)
+  public IdsTargetType(ByteBuffer buffer, int offset, int size, String name, String[] ids)
   {
     super(buffer, offset, size, createFieldName(name, -1, DEFAULT_NAME_TYPE),
           (ids != null) ? ids : createIdsTypeTable(null, false));
@@ -137,7 +138,7 @@ public class IdsTargetType extends Bitmap
       for (int i = 0, size = list.size(); i < size; i++) {
         StructEntry entry = list.get(i);
         if (entry.getOffset() == valueOffset && entry instanceof Datatype) {
-          byte[] buffer = ((Datatype)entry).getDataBuffer();
+          ByteBuffer buffer = ((Datatype)entry).getDataBuffer();
           StructEntry newEntry = createIdsValueFromType(buffer, 0);
           newEntry.setOffset(valueOffset);
           list.set(i, newEntry);
@@ -156,7 +157,7 @@ public class IdsTargetType extends Bitmap
    * Creates a fully initialized StructEntry object for IDS value, based on the currently selected
    * IDS type. Offset and size values will be derived from the data of this IDS type field.
    */
-  public StructEntry createIdsValueFromType(byte[] buffer)
+  public StructEntry createIdsValueFromType(ByteBuffer buffer)
   {
     return createIdsValueFromType(buffer, getOffset() - getSize(), getSize(), null);
   }
@@ -165,7 +166,7 @@ public class IdsTargetType extends Bitmap
    * Creates a fully initialized StructEntry object for IDS value, based on the currently selected
    * IDS type. Returns a DecNumber object for unsupported IDS types.
    */
-  public StructEntry createIdsValueFromType(byte[] buffer, int offset)
+  public StructEntry createIdsValueFromType(ByteBuffer buffer, int offset)
   {
     return createIdsValueFromType(buffer, offset, getSize(), null);
   }
@@ -174,7 +175,7 @@ public class IdsTargetType extends Bitmap
    * Creates a fully initialized StructEntry object for IDS value, based on the currently selected
    * IDS type. Returns a DecNumber object for unsupported IDS types.
    */
-  public StructEntry createIdsValueFromType(byte[] buffer, int offset, int size, String name)
+  public StructEntry createIdsValueFromType(ByteBuffer buffer, int offset, int size, String name)
   {
     int value = getValue();
     String type = getString(value);
@@ -189,7 +190,7 @@ public class IdsTargetType extends Bitmap
     return new DecNumber(buffer, offset, size, createFieldName(name, index, DEFAULT_NAME_UNUSED));
   }
 
-  public StructEntry createResourceFromType(byte[] buffer, int offset)
+  public StructEntry createResourceFromType(ByteBuffer buffer, int offset)
   {
     return createResourceFromType(buffer, offset, null);
   }
@@ -199,7 +200,7 @@ public class IdsTargetType extends Bitmap
    * selected IDS type. Only index 11 (Actor's script name) is currently supported.
    * Returns an Unknown object otherwise.
    */
-  public StructEntry createResourceFromType(byte[] buffer, int offset, String name)
+  public StructEntry createResourceFromType(ByteBuffer buffer, int offset, String name)
   {
     int value = getValue();
     String type = getString(value);
@@ -238,7 +239,7 @@ public class IdsTargetType extends Bitmap
     }
     String[] retVal = Arrays.copyOf(DEFAULT_IDS_LIST, len);
     retVal[2] = (secondIds != null) ? secondIds : DEFAULT_SECOND_IDS;
-    retVal[8] = (String)Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT);
+    retVal[8] = Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT);
     if (Profile.isEnhancedEdition()) {
       retVal[9] = "KIT.IDS";
       if (targetActor) {

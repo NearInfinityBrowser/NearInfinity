@@ -26,7 +26,6 @@ import org.infinity.resource.cre.CreResource;
 
 /**
  * Handles specific layer type: ARE/Actor
- * @author argent77
  */
 public class LayerObjectAreActor extends LayerObjectActor
 {

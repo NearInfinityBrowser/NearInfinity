@@ -4,6 +4,8 @@
 
 package org.infinity.resource.src;
 
+import java.nio.ByteBuffer;
+
 import javax.swing.JComponent;
 
 import org.infinity.datatype.SectionCount;
@@ -85,7 +87,7 @@ public final class SrcResource extends AbstractStruct implements Resource, HasAd
 //--------------------- End Interface HasViewerTabs ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     SectionCount entry_count = new SectionCount(buffer, offset, 4, SRC_NUM_ENTRIES, Entry.class);
     addField(entry_count);

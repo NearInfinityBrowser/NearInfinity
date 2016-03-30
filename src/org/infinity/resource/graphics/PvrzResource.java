@@ -31,6 +31,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
+import org.infinity.util.io.StreamUtils;
 
 public class PvrzResource implements Resource, ActionListener, Closeable
 {
@@ -63,7 +64,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
         String fileName = entry.toString().replace(".PVRZ", ".PNG");
         BufferedImage image = getImage();
         if (ImageIO.write(image, "png", os)) {
-          ResourceFactory.exportResource(entry, os.toByteArray(),
+          ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(os.toByteArray()),
                                          fileName, panel.getTopLevelAncestor());
         } else {
           JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),

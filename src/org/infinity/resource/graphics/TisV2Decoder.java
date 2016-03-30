@@ -10,20 +10,19 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.nio.ByteBuffer;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.DynamicArray;
 
 /**
  * Handles new PVRZ-based TIS resources.
- * @author argent77
  */
 public class TisV2Decoder extends TisDecoder
 {
   private static final int HeaderSize = 24;   // Size of the TIS header
 
-  private byte[] tisData;
+  private ByteBuffer tisBuffer;
   private int tileCount, tileSize;
   private String pvrzNameBase;
   private BufferedImage workingCanvas;
@@ -53,7 +52,7 @@ public class TisV2Decoder extends TisDecoder
   {
     int ofs = getTileOffset(tileIdx);
     if (ofs > 0) {
-      return DynamicArray.getInt(tisData, ofs);
+      return tisBuffer.getInt(ofs);
     } else {
       return -1;
     }
@@ -78,7 +77,7 @@ public class TisV2Decoder extends TisDecoder
   public void close()
   {
     PvrDecoder.flushCache();
-    tisData = null;
+    tisBuffer = null;
     tileCount = 0;
     tileSize = 0;
     pvrzNameBase = "";
@@ -95,9 +94,9 @@ public class TisV2Decoder extends TisDecoder
   }
 
   @Override
-  public byte[] getResourceData()
+  public ByteBuffer getResourceBuffer()
   {
-    return tisData;
+    return tisBuffer;
   }
 
   @Override
@@ -166,7 +165,7 @@ public class TisV2Decoder extends TisDecoder
         if (tileSize != 12) {
           throw new Exception("Invalid tile size: " + tileSize);
         }
-        tisData = getResourceEntry().getResourceData();
+        tisBuffer = getResourceEntry().getResourceBuffer();
 
         String name = getResourceEntry().getResourceName();
         int idx = name.lastIndexOf('.');
@@ -248,9 +247,9 @@ public class TisV2Decoder extends TisDecoder
   {
     int ofs = getTileOffset(tileIdx);
     if (ofs > 0) {
-      int page = DynamicArray.getInt(tisData, ofs);
-      int x = DynamicArray.getInt(tisData, ofs+4);
-      int y = DynamicArray.getInt(tisData, ofs+8);
+      int page = tisBuffer.getInt(ofs);
+      int x = tisBuffer.getInt(ofs+4);
+      int y = tisBuffer.getInt(ofs+8);
       PvrDecoder decoder = getPVR(page);
       if (decoder != null || page == -1) {
         // removing old content

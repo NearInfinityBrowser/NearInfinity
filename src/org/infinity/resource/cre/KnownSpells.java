@@ -4,11 +4,14 @@
 
 package org.infinity.resource.cre;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public final class KnownSpells extends AbstractStruct implements AddRemovable
 {
@@ -22,10 +25,10 @@ public final class KnownSpells extends AbstractStruct implements AddRemovable
 
   KnownSpells() throws Exception
   {
-    super(null, CRE_KNOWN, new byte[12], 0);
+    super(null, CRE_KNOWN, StreamUtils.getByteBuffer(12), 0);
   }
 
-  KnownSpells(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  KnownSpells(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, CRE_KNOWN + " " + number, buffer, offset);
   }
@@ -41,7 +44,7 @@ public final class KnownSpells extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, CRE_KNOWN_RESREF, "SPL"));
     addField(new DecNumber(buffer, offset + 8, 2, CRE_KNOWN_LEVEL));

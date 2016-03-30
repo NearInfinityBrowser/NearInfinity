@@ -22,8 +22,8 @@ import org.infinity.resource.Viewable;
 
 /**
  * Represents a game resource structure visually as a shape.
- * @author argent77
- */ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListener
+ */
+public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListener
 {
   private static final Color DefaultColor = Color.BLACK;
 

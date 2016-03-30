@@ -4,10 +4,13 @@
 
 package org.infinity.resource.sto;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Bitmap;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
 import org.infinity.resource.itm.ItmResource;
+import org.infinity.util.io.StreamUtils;
 
 public final class Purchases extends Bitmap implements AddRemovable
 {
@@ -16,12 +19,12 @@ public final class Purchases extends Bitmap implements AddRemovable
 
   Purchases()
   {
-    super(new byte[4], 0, 4, STO_PURCHASES,
+    super(StreamUtils.getByteBuffer(4), 0, 4, STO_PURCHASES,
           ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V11)) ? ItmResource.s_categories11
                                                                        : ItmResource.s_categories);
   }
 
-  Purchases(byte buffer[], int offset, int number)
+  Purchases(ByteBuffer buffer, int offset, int number)
   {
     super(buffer, offset, 4, STO_PURCHASES + " " + number,
           ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V11)) ? ItmResource.s_categories11

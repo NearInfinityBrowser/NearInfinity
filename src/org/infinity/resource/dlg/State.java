@@ -4,10 +4,13 @@
 
 package org.infinity.resource.dlg;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.StringRef;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public final class State extends AbstractStruct implements AddRemovable
 {
@@ -22,10 +25,10 @@ public final class State extends AbstractStruct implements AddRemovable
 
   State() throws Exception
   {
-    super(null, DLG_STATE, new byte[16], 0);
+    super(null, DLG_STATE, StreamUtils.getByteBuffer(16), 0);
   }
 
-  State(AbstractStruct superStruct, byte buffer[], int offset, int count) throws Exception
+  State(AbstractStruct superStruct, ByteBuffer buffer, int offset, int count) throws Exception
   {
     super(superStruct, DLG_STATE + " " + count, buffer, offset);
     nr = count;
@@ -67,7 +70,7 @@ public final class State extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
     addField(new StringRef(buffer, offset, DLG_STATE_RESPONSE));
     addField(new DecNumber(buffer, offset + 4, 4, DLG_STATE_FIRST_RESPONSE_INDEX));

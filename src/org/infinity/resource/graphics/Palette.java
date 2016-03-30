@@ -4,42 +4,40 @@
 
 package org.infinity.resource.graphics;
 
-import org.infinity.util.DynamicArray;
+import java.nio.ByteBuffer;
+
+import org.infinity.util.io.StreamUtils;
 
 final class Palette
 {
-  private final int[] colors;
+  private final ByteBuffer colors;
 
-  public static int getColor(byte buffer[], int offset, byte index)
+  public static int getColor(ByteBuffer buffer, int offset, int index)
   {
-    if (index < 0)
-      return DynamicArray.getInt(buffer, offset + (256 + (int)index) * 4);
-    return DynamicArray.getInt(buffer, offset + (int)index * 4);
+    index = Math.max(0, Math.min(255, index));
+    return buffer.getInt(offset + index * 4);
   }
 
-  Palette(byte buffer[], int offset, int length)
+  Palette(ByteBuffer buffer, int offset, int length)
   {
-    colors = new int[length / 4];
-    for (int i = 0; i < colors.length; i++)
-      colors[i] = DynamicArray.getInt(buffer, offset + i * 4);
+    colors = StreamUtils.getByteBuffer(length);
+    StreamUtils.copyBytes(buffer, offset, colors, 0, length);
   }
 
   public int getColor(int index)
   {
-    if (index < 0)
-      return colors[index + 256];
-    return colors[index];
+    index = Math.max(0, Math.min(255, index));
+    return colors.getInt(index*4);
   }
 
   public short[] getColorBytes(int index)
   {
-    byte bytes[] = DynamicArray.convertInt(getColor(index));
-    short shorts[] = new short[bytes.length];
-    for (int i = 0; i < bytes.length; i++) {
-      shorts[i] = (short)bytes[i];
-      if (shorts[i] < 0)
-        shorts[i] += (short)256;
-    }
+    index = Math.max(0, Math.min(255, index));
+    int offset = index * 4;
+    short[] shorts = { (short)(colors.get(offset) & 0xff),
+                       (short)(colors.get(offset+1) & 0xff),
+                       (short)(colors.get(offset+2) & 0xff),
+                       (short)(colors.get(offset+3) & 0xff) };
     return shorts;
   }
 }

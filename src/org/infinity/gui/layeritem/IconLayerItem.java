@@ -25,7 +25,6 @@ import org.infinity.resource.graphics.ColorConvert;
 
 /**
  * Represents a game resource structure visually as a bitmap icon.
- * @author argent77
  */
 public class IconLayerItem extends AbstractLayerItem implements LayerItemListener
 {

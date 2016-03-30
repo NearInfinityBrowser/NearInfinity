@@ -9,17 +9,18 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.DynamicArray;
+import org.infinity.util.io.StreamUtils;
 
 public class MosV1Decoder extends MosDecoder
 {
   private static final int BlockDimension = 64;   // default block dimension
   private static final int HeaderSize = 24;
 
-  private byte[] mosData;
+  private ByteBuffer mosBuffer;
   private int width, height, cols, rows, ofsPalette, ofsLookup, ofsData;
   private boolean transparencyEnabled;
   private int[] workingPalette;           // storage space for palettes
@@ -97,7 +98,7 @@ public class MosV1Decoder extends MosDecoder
         int maxSize = (buffer.length < 256) ? buffer.length : 256;
         boolean transSet = false;
         for (int i = 0; i < maxSize; i++, ofs += 4) {
-          int color = 0xff000000 | DynamicArray.getInt(mosData, ofs);
+          int color = 0xff000000 | mosBuffer.getInt(ofs);
           if (transparencyEnabled && !transSet && (color & 0x00ffffff) == 0x0000ff00) {
             color &= 0x00ffffff;
           }
@@ -140,7 +141,8 @@ public class MosV1Decoder extends MosDecoder
       if (ofs > 0) {
         int size = getBlockWidth(blockIdx)*getBlockHeight(blockIdx);
         int maxSize = (buffer.length < size) ? buffer.length : size;
-        System.arraycopy(mosData, ofs, buffer, 0, maxSize);
+        mosBuffer.position(ofs);
+        mosBuffer.get(buffer, 0, maxSize);
         return true;
       }
     }
@@ -151,7 +153,7 @@ public class MosV1Decoder extends MosDecoder
   @Override
   public void close()
   {
-    mosData = null;
+    mosBuffer = null;
     width = height = cols = rows = 0;
     ofsPalette = ofsLookup = ofsData = 0;
     lastBlockIndex = -1;
@@ -169,9 +171,9 @@ public class MosV1Decoder extends MosDecoder
   }
 
   @Override
-  public byte[] getResourceData()
+  public ByteBuffer getResourceBuffer()
   {
-    return mosData;
+    return mosBuffer;
   }
 
   @Override
@@ -340,14 +342,14 @@ public class MosV1Decoder extends MosDecoder
 
     if (getResourceEntry() != null) {
       try {
-        mosData = getResourceEntry().getResourceData();
-        String signature = DynamicArray.getString(mosData, 0x00, 4);
-        String version = DynamicArray.getString(mosData, 0x04, 4);
+        mosBuffer = getResourceEntry().getResourceBuffer();
+        String signature = StreamUtils.readString(mosBuffer, 0, 4);
+        String version = StreamUtils.readString(mosBuffer, 4, 4);
         if ("MOSC".equals(signature)) {
           setType(Type.MOSC);
-          mosData = Compressor.decompress(mosData);
-          signature = DynamicArray.getString(mosData, 0x00, 4);
-          version = DynamicArray.getString(mosData, 0x04, 4);
+          mosBuffer = Compressor.decompress(mosBuffer);
+          signature = StreamUtils.readString(mosBuffer, 0, 4);
+          version = StreamUtils.readString(mosBuffer, 4, 4);
         } else if ("MOS ".equals(signature) && "V1  ".equals(version)) {
           setType(Type.MOSV1);
         } else {
@@ -359,24 +361,24 @@ public class MosV1Decoder extends MosDecoder
         }
 
         // evaluating header data
-        width = DynamicArray.getUnsignedShort(mosData, 0x08);
+        width = mosBuffer.getShort(8) & 0xffff;
         if (width <= 0) {
           throw new Exception("Invalid MOS width: " + width);
         }
-        height = DynamicArray.getUnsignedShort(mosData, 0x0a);
+        height = mosBuffer.getShort(0x0a) & 0xffff;
         if (height <= 0) {
           throw new Exception("Invalid MOS height: " + height);
         }
-        cols = DynamicArray.getUnsignedShort(mosData, 0x0c);
-        rows = DynamicArray.getUnsignedShort(mosData, 0x0e);
+        cols = mosBuffer.getShort(0x0c);
+        rows = mosBuffer.getShort(0x0e);
         if (cols <= 0 || rows <= 0) {
           throw new Exception("Invalid number of data blocks: " + (cols*rows));
         }
-        int blockSize = DynamicArray.getInt(mosData, 0x10);
+        int blockSize = mosBuffer.getInt(0x10);
         if (blockSize != BlockDimension) {
           throw new Exception("Invalid block size: " + blockSize);
         }
-        ofsPalette = DynamicArray.getInt(mosData, 0x14);
+        ofsPalette = mosBuffer.getInt(0x14);
         if (ofsPalette < HeaderSize) {
           throw new Exception("Invalid palette offset: " + ofsPalette);
         }
@@ -395,7 +397,7 @@ public class MosV1Decoder extends MosDecoder
   // Returns if a valid MOS has been initialized
   private boolean isInitialized()
   {
-    return (mosData != null && cols > 0 && rows > 0 && width > 0 && height >0);
+    return (mosBuffer != null && cols > 0 && rows > 0 && width > 0 && height >0);
   }
 
   // Returns whether the specified block index is valid
@@ -408,7 +410,7 @@ public class MosV1Decoder extends MosDecoder
   private int getBlockOffset(int blockIdx)
   {
     if (isValidBlock(blockIdx)) {
-      return ofsData + DynamicArray.getInt(mosData, ofsLookup + (blockIdx << 2));
+      return ofsData + mosBuffer.getInt(ofsLookup + (blockIdx << 2));
     }
     return -1;
   }
@@ -500,7 +502,7 @@ public class MosV1Decoder extends MosDecoder
         // drawing new content
         while (srcOfs < maxSrcOfs && dstOfs < maxDstOfs) {
           for (int x = 0; x < w; x++, srcOfs++, dstOfs++) {
-            buffer[dstOfs] = workingPalette[mosData[srcOfs] & 0xff];
+            buffer[dstOfs] = workingPalette[mosBuffer.get(srcOfs) & 0xff];
           }
           dstOfs += BlockDimension - w;
         }

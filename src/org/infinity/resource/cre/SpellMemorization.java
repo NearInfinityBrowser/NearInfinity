@@ -4,6 +4,8 @@
 
 package org.infinity.resource.cre;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.HexNumber;
@@ -11,6 +13,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.io.StreamUtils;
 
 public final class SpellMemorization extends AbstractStruct implements AddRemovable, HasAddRemovable
 {
@@ -27,10 +30,10 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
 
   SpellMemorization() throws Exception
   {
-    super(null, CRE_MEMORIZATION, new byte[16], 0);
+    super(null, CRE_MEMORIZATION, StreamUtils.getByteBuffer(16), 0);
   }
 
-  SpellMemorization(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  SpellMemorization(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, CRE_MEMORIZATION + " " + nr, buffer, offset);
   }
@@ -83,7 +86,7 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
   }
 
   @Override
-  public int read(byte buffer[], int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
     addField(new DecNumber(buffer, offset, 2, CRE_MEMORIZATION_LEVEL));
     addField(new DecNumber(buffer, offset + 2, 2, CRE_MEMORIZATION_NUM_MEMORIZABLE_TOTAL));
@@ -94,7 +97,7 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
     return offset + 16;
   }
 
-  public void readMemorizedSpells(byte buffer[], int offset) throws Exception
+  public void readMemorizedSpells(ByteBuffer buffer, int offset) throws Exception
   {
     DecNumber firstSpell = (DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_TABLE_INDEX);
     DecNumber numSpell = (DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_COUNT);

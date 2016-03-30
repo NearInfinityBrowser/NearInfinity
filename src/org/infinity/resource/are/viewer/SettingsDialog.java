@@ -48,7 +48,6 @@ import org.infinity.util.SimpleListModel;
 
 /**
  * A settings dialog for the area viewer.
- * @author argent77
  */
 public class SettingsDialog extends JDialog
   implements ActionListener, ListSelectionListener

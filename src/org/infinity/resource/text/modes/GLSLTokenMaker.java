@@ -60,7 +60,7 @@ import org.fife.ui.rsyntaxtextarea.TokenImpl;
  *       with any other {@code TokenMaker} instance.</li>
  * </ul>
  *
- * @author Robert Futrell, argent77
+ * @author Robert Futrell
  * @version 0.1
  *
  */

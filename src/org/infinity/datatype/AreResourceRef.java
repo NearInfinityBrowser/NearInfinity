@@ -4,6 +4,8 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -20,19 +22,20 @@ public final class AreResourceRef extends ResourceRef
   // IDW2: SNDsfx.BIF
   // PST: sound.BIF
 
-  public AreResourceRef(byte h_buffer[], int offset, String name, AreResource are)
+  public AreResourceRef(ByteBuffer h_buffer, int offset, String name, AreResource are)
   {
     this(null, h_buffer, offset, name, are);
   }
 
-  public AreResourceRef(StructEntry parent, byte h_buffer[], int offset, String name, AreResource are)
+  public AreResourceRef(StructEntry parent, ByteBuffer h_buffer, int offset, String name, AreResource are)
   {
     super(parent, h_buffer, offset, name, "WAV");
-    ResourceEntry res = ResourceFactory.getResourceEntry(
-            ((ResourceRef)are.getAttribute(AreResource.ARE_WED_RESOURCE)).getResourceName());
+    ResourceEntry res = ResourceFactory.getResourceEntry(((ResourceRef)are
+        .getAttribute(AreResource.ARE_WED_RESOURCE)).getResourceName());
     String wedBIFF = "_dummy";
-    if (res instanceof BIFFResourceEntry)
+    if (res instanceof BIFFResourceEntry) {
       wedBIFF = ((BIFFResourceEntry)res).getBIFFEntry().toString();
+    }
     if (Profile.getEngine() == Profile.Engine.BG1) {
       legalBIFs = new String[]{wedBIFF, "data/sfxsound.bif", "data/cresound.bif"};
     } else if (Profile.getEngine() == Profile.Engine.BG2) {

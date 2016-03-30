@@ -4,6 +4,8 @@
 
 package org.infinity.resource.are;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.AreResourceRef;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
@@ -40,13 +42,13 @@ public final class Song extends AbstractStruct // implements AddRemovable
   public static final String[] s_reverb = {"None", "Small room", "Medium room",
                                            "Large room", "Outside", "Dungeon"};
 
-  Song(AbstractStruct superStruct, byte buffer[], int offset) throws Exception
+  Song(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception
   {
     super(superStruct, ARE_SONGS, buffer, offset);
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new Song2daBitmap(buffer, offset, 4, ARE_SONGS_DAY));
     addField(new Song2daBitmap(buffer, offset + 4, 4, ARE_SONGS_NIGHT));

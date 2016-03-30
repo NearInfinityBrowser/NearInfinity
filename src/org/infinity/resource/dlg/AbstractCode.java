@@ -13,6 +13,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.SortedMap;
 
@@ -41,7 +42,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.bcs.Compiler;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.io.StreamUtils;
 
 public abstract class AbstractCode extends Datatype
     implements Editable, IsTextual, AddRemovable, ActionListener, DocumentListener, ItemListener
@@ -66,15 +67,15 @@ public abstract class AbstractCode extends Datatype
 
   AbstractCode(String name)
   {
-    this(new byte[8], 0, name);
+    this(StreamUtils.getByteBuffer(8), 0, name);
     text = "";
   }
 
-  AbstractCode(byte buffer[], int offset, String nane)
+  AbstractCode(ByteBuffer buffer, int offset, String nane)
   {
     super(offset, 8, nane);
     read(buffer, offset);
-    text = (len.getValue() > 0) ? new String(buffer, off.getValue(), len.getValue()) : "";
+    text = (len.getValue() > 0) ? StreamUtils.readString(buffer, off.getValue(), len.getValue()) : "";
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -301,7 +302,7 @@ public abstract class AbstractCode extends Datatype
 // --------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
     off = new DecNumber(buffer, offset, 4, DLG_CODE_OFFSET);
     len = new DecNumber(buffer, offset + 4, 4, DLG_CODE_LENGTH);
@@ -331,7 +332,7 @@ public abstract class AbstractCode extends Datatype
     flatList.add(off);
     flatList.add(len);
     try {
-      TextString ts = new TextString(text.getBytes(), 0, len.getValue(), DLG_CODE_TEXT);
+      TextString ts = new TextString(StreamUtils.getByteBuffer(text.getBytes()), 0, len.getValue(), DLG_CODE_TEXT);
       ts.setOffset(off.getValue());
       flatList.add(ts);
     } catch (Exception e) {
@@ -358,7 +359,7 @@ public abstract class AbstractCode extends Datatype
 
   public void writeString(OutputStream os) throws IOException
   {
-    FileWriterNI.writeString(os, text, len.getValue());
+    StreamUtils.writeString(os, text, len.getValue());
   }
 
   private void highlightLine(int linenr)

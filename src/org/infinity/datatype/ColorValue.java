@@ -14,6 +14,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -30,7 +31,6 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.graphics.GraphicsResource;
-import org.infinity.util.DynamicArray;
 
 public final class ColorValue extends Datatype implements Editable, IsNumeric, ChangeListener, ActionListener
 {
@@ -76,12 +76,12 @@ public final class ColorValue extends Datatype implements Editable, IsNumeric, C
     }
   }
 
-  public ColorValue(byte buffer[], int offset, int length, String name)
+  public ColorValue(ByteBuffer buffer, int offset, int length, String name)
   {
     this(null, buffer, offset, length, name);
   }
 
-  public ColorValue(StructEntry parent, byte buffer[], int offset, int length, String name)
+  public ColorValue(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
   {
     super(parent, offset, length, name);
     read(buffer, offset);
@@ -95,10 +95,11 @@ public final class ColorValue extends Datatype implements Editable, IsNumeric, C
     if (event.getSource() == tfield) {
       try {
         int newnumber = Integer.parseInt(tfield.getText());
-        if (newnumber < Math.pow((double)2, (double)(8 * getSize())))
+        if (newnumber < (1L << (8*getSize()))) {
           shownnumber = newnumber;
-        else
+        } else {
           tfield.setText(String.valueOf(shownnumber));
+        }
       } catch (NumberFormatException e) {
         tfield.setText(String.valueOf(shownnumber));
       }
@@ -198,8 +199,9 @@ public final class ColorValue extends Datatype implements Editable, IsNumeric, C
   {
     try {
       int newnumber = Integer.parseInt(tfield.getText());
-      if (newnumber >= Math.pow((double)2, (double)(8 * getSize())))
+      if (newnumber >= (1L << (8*getSize()))) {
         return false;
+      }
       number = newnumber;
       shownnumber = number;
       setColors();
@@ -230,17 +232,18 @@ public final class ColorValue extends Datatype implements Editable, IsNumeric, C
 //--------------------- Begin Interface Readable ---------------------
 
   @Override
-  public int read(byte[] buffer, int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
+    buffer.position(offset);
     switch (getSize()) {
       case 1:
-        number = (int)DynamicArray.getUnsignedByte(buffer, offset);
+        number = buffer.get();
         break;
       case 2:
-        number = (int)DynamicArray.getUnsignedShort(buffer, offset);
+        number = buffer.getShort();
         break;
       case 4:
-        number = DynamicArray.getInt(buffer, offset);
+        number = buffer.getInt();
         break;
       default:
         throw new IllegalArgumentException();

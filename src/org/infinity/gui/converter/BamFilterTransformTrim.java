@@ -29,7 +29,6 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 /**
  * Transform filter: automatically trims excess space from each frame.
- * @author argent77
  */
 public class BamFilterTransformTrim extends BamFilterBaseTransform
     implements ActionListener, ChangeListener

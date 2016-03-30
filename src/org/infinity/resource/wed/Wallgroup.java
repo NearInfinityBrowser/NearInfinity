@@ -4,9 +4,12 @@
 
 package org.infinity.resource.wed;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public final class Wallgroup extends AbstractStruct implements AddRemovable
 {
@@ -17,10 +20,10 @@ public final class Wallgroup extends AbstractStruct implements AddRemovable
 
   public Wallgroup() throws Exception
   {
-    super(null, WED_WALLGROUP, new byte[4], 0);
+    super(null, WED_WALLGROUP, StreamUtils.getByteBuffer(4), 0);
   }
 
-  public Wallgroup(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public Wallgroup(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, WED_WALLGROUP + " " + nr, buffer, offset, 2);
   }
@@ -43,7 +46,7 @@ public final class Wallgroup extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset)
+  public int read(ByteBuffer buffer, int offset)
   {
     addField(new DecNumber(buffer, offset, 2, WED_WALLGROUP_POLYGON_INDEX));
     addField(new DecNumber(buffer, offset + 2, 2, WED_WALLGROUP_NUM_POLYGONS));

@@ -27,7 +27,6 @@ import org.infinity.resource.wed.WedResource;
 
 /**
  * Handles specific layer type: WED/Door Polygon
- * @author argent77
  */
 public class LayerObjectDoorPoly extends LayerObject
 {

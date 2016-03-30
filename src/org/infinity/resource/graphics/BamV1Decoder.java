@@ -10,17 +10,17 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.DynamicArray;
+import org.infinity.util.io.StreamUtils;
 
 
 /**
  * Handles BAM v1 resources (both BAMC and uncompressed BAM V1).
- * @author argent77
  */
 public class BamV1Decoder extends BamDecoder
 {
@@ -38,7 +38,7 @@ public class BamV1Decoder extends BamDecoder
   private final BamV1FrameEntry defaultFrameInfo = new BamV1FrameEntry(null, 0);
 
   private BamV1Control defaultControl;
-  private byte[] bamData;   // contains the raw (uncompressed) data of the BAM resource
+  private ByteBuffer bamBuffer;   // contains the raw (uncompressed) data of the BAM resource
   private int[] bamPalette;    // BAM palette
   private int rleIndex;     // color index for RLE compressed pixels
 
@@ -73,7 +73,7 @@ public class BamV1Decoder extends BamDecoder
   @Override
   public void close()
   {
-    bamData = null;
+    bamBuffer = null;
     bamPalette = null;
     listFrames.clear();
     listCycles.clear();
@@ -83,7 +83,7 @@ public class BamV1Decoder extends BamDecoder
   @Override
   public boolean isOpen()
   {
-    return (bamData != null);
+    return (bamBuffer != null);
   }
 
   @Override
@@ -93,9 +93,9 @@ public class BamV1Decoder extends BamDecoder
   }
 
   @Override
-  public byte[] getResourceData()
+  public ByteBuffer getResourceBuffer()
   {
-    return bamData;
+    return bamBuffer;
   }
 
   @Override
@@ -166,14 +166,14 @@ public class BamV1Decoder extends BamDecoder
 
     if (getResourceEntry() != null) {
       try {
-        bamData = getResourceEntry().getResourceData();
-        String signature = DynamicArray.getString(bamData, 0x00, 4);
-        String version = DynamicArray.getString(bamData, 0x04, 4);
+        bamBuffer = getResourceEntry().getResourceBuffer();
+        String signature = StreamUtils.readString(bamBuffer, 0, 4);
+        String version = StreamUtils.readString(bamBuffer, 4, 4);
         if ("BAMC".equals(signature)) {
           setType(Type.BAMC);
-          bamData = Compressor.decompress(bamData);
-          signature = DynamicArray.getString(bamData, 0x00, 4);
-          version = DynamicArray.getString(bamData, 0x04, 4);
+          bamBuffer = Compressor.decompress(bamBuffer);
+          signature = StreamUtils.readString(bamBuffer, 00, 4);
+          version = StreamUtils.readString(bamBuffer, 4, 4);
         } else if ("BAM ".equals(signature) && "V1  ".equals(version)) {
           setType(Type.BAMV1);
         } else {
@@ -185,24 +185,24 @@ public class BamV1Decoder extends BamDecoder
         }
 
         // evaluating header data
-        int framesCount = DynamicArray.getUnsignedShort(bamData, 0x08);
+        int framesCount = bamBuffer.getShort(8) & 0xffff;
         if (framesCount <= 0) {
           throw new Exception("Invalid number of frames");
         }
-        int cyclesCount = DynamicArray.getUnsignedByte(bamData, 0x0a);
+        int cyclesCount = bamBuffer.get(0x0a) & 0xff;
         if (cyclesCount <= 0) {
           throw new Exception("Invalid number of cycles");
         }
-        rleIndex = DynamicArray.getUnsignedByte(bamData, 0x0b);
-        int ofsFrames = DynamicArray.getInt(bamData, 0x0c);
+        rleIndex = bamBuffer.get(0x0b) & 0xff;
+        int ofsFrames = bamBuffer.getInt(0x0c);
         if (ofsFrames < 0x18) {
           throw new Exception("Invalid frames offset");
         }
-        int ofsPalette = DynamicArray.getInt(bamData, 0x10);
+        int ofsPalette = bamBuffer.getInt(0x10);
         if (ofsPalette < 0x18) {
           throw new Exception("Invalid palette offset");
         }
-        int ofsLookup = DynamicArray.getInt(bamData, 0x14);
+        int ofsLookup = bamBuffer.getInt(0x14);
         if (ofsLookup < 0x18) {
           throw new Exception("Invalid frame lookup table offset");
         }
@@ -210,15 +210,15 @@ public class BamV1Decoder extends BamDecoder
         int ofs = ofsFrames;
         // initializing frames
         for (int i = 0; i < framesCount; i++) {
-          listFrames.add(new BamV1FrameEntry(bamData, ofs));
+          listFrames.add(new BamV1FrameEntry(bamBuffer, ofs));
           ofs += 0x0c;
         }
 
         // initializing cycles
         for (int i = 0; i < cyclesCount; i++) {
-          int cnt = DynamicArray.getUnsignedShort(bamData, ofs);
-          int idx = DynamicArray.getUnsignedShort(bamData, ofs+2);
-          listCycles.add(new CycleEntry(bamData, ofsLookup, cnt, idx));
+          int cnt = bamBuffer.getShort(ofs) & 0xffff;
+          int idx = bamBuffer.getShort(ofs+2) & 0xffff;
+          listCycles.add(new CycleEntry(bamBuffer, ofsLookup, cnt, idx));
           ofs += 0x04;
         }
 
@@ -227,7 +227,7 @@ public class BamV1Decoder extends BamDecoder
         int alphaMask = Profile.isEnhancedEdition() ? 0 : 0xff000000;
         boolean alphaUsed = false;  // determines whether alpha is actually used
         for (int i = 0; i < 256; i++) {
-          bamPalette[i] = alphaMask | DynamicArray.getInt(bamData, ofsPalette + 4*i);
+          bamPalette[i] = alphaMask | bamBuffer.getInt(ofsPalette + 4*i);
           alphaUsed |= (bamPalette[i] & 0xff000000) != 0;
         }
         if (!alphaUsed) {
@@ -305,10 +305,10 @@ public class BamV1Decoder extends BamDecoder
               if (bufferI != null) bufferI[dstOfs] = color;
             }
           } else {
-            pixel = bamData[srcOfs++];
+            pixel = bamBuffer.get(srcOfs++);
             color = palette[pixel & 0xff];
             if (isCompressed && (pixel & 0xff) == rleIndex) {
-              count = bamData[srcOfs++] & 0xff;
+              count = bamBuffer.get(srcOfs++) & 0xff;
             }
             if (x < maxWidth) {
               if (bufferB != null) bufferB[dstOfs] = pixel;
@@ -345,15 +345,15 @@ public class BamV1Decoder extends BamDecoder
     private int width, height, centerX, centerY, ofsData;
     private boolean compressed;
 
-    private BamV1FrameEntry(byte[] buffer, int ofs)
+    private BamV1FrameEntry(ByteBuffer buffer, int ofs)
     {
-      if (buffer != null && ofs + 12 <= buffer.length) {
-        width = DynamicArray.getUnsignedShort(buffer, ofs + 0);
-        height = DynamicArray.getUnsignedShort(buffer, ofs + 2);
-        centerX = DynamicArray.getShort(buffer, ofs + 4);
-        centerY = DynamicArray.getShort(buffer, ofs + 6);
-        ofsData = DynamicArray.getInt(buffer, ofs + 8) & 0x7fffffff;
-        compressed = (DynamicArray.getInt(buffer, ofs + 8) & 0x80000000) == 0;
+      if (buffer != null && ofs + 12 <= buffer.limit()) {
+        width = buffer.getShort(ofs + 0) & 0xffff;
+        height = buffer.getShort(ofs + 2) & 0xffff;
+        centerX = buffer.getShort(ofs + 4);
+        centerY = buffer.getShort(ofs + 6);
+        ofsData = buffer.getInt(ofs + 8) & 0x7fffffff;
+        compressed = (buffer.getInt(ofs + 8) & 0x80000000) == 0;
       } else {
         width = height = centerX = centerY = ofsData = 0;
         compressed = false;
@@ -727,15 +727,15 @@ public class BamV1Decoder extends BamDecoder
      * @param idxCount Number of frame indices in this cycle
      * @param idxLookup Index into frame lookup table of first frame in this cycle
      */
-    private CycleEntry(byte[] buffer, int ofsLookup, int idxCount, int idxLookup)
+    private CycleEntry(ByteBuffer buffer, int ofsLookup, int idxCount, int idxLookup)
     {
       if (buffer != null && idxCount >= 0 && idxLookup >= 0 &&
-          ofsLookup + 2*(idxLookup+idxCount) <= buffer.length) {
+          ofsLookup + 2*(idxLookup+idxCount) <= buffer.limit()) {
         indexCount = idxCount;
         lookupIndex = idxLookup;
         frames = new int[indexCount];
         for (int i = 0; i < indexCount; i++) {
-          frames[i] = DynamicArray.getShort(buffer, ofsLookup + 2*(lookupIndex+i));
+          frames[i] = buffer.getShort(ofsLookup + 2*(lookupIndex+i));
         }
       } else {
         frames = new int[0];

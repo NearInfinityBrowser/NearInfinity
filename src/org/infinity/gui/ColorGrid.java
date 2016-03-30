@@ -27,7 +27,6 @@ import javax.swing.event.ChangeListener;
 
 /**
  * Implements a grid of selectable color indices.
- * @author argent77
  */
 public class ColorGrid extends JPanel implements MouseListener, MouseMotionListener
 {

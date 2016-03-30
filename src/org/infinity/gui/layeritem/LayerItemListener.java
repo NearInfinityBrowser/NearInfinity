@@ -8,8 +8,6 @@ import java.util.EventListener;
 
 /**
  * Used in AbstractLayerItem
- * @author argent77
- *
  */
 public interface LayerItemListener extends EventListener
 {

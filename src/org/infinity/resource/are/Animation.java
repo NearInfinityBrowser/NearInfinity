@@ -4,6 +4,8 @@
 
 package org.infinity.resource.are;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
@@ -12,6 +14,7 @@ import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
+import org.infinity.util.io.StreamUtils;
 
 public final class Animation extends AbstractStruct implements AddRemovable
 {
@@ -46,10 +49,10 @@ public final class Animation extends AbstractStruct implements AddRemovable
 
   Animation() throws Exception
   {
-    super(null, ARE_ANIMATION, new byte[76], 0);
+    super(null, ARE_ANIMATION, StreamUtils.getByteBuffer(76), 0);
   }
 
-  Animation(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  Animation(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, ARE_ANIMATION + " " + number, buffer, offset);
   }
@@ -65,7 +68,7 @@ public final class Animation extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 32, ARE_ANIMATION_NAME));
     addField(new DecNumber(buffer, offset + 32, 2, ARE_ANIMATION_LOCATION_X));

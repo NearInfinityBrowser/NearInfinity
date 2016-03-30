@@ -4,6 +4,7 @@
 
 package org.infinity.resource;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SecTypeBitmap;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
+import org.infinity.util.io.StreamUtils;
 
 public final class Effect2 extends AbstractStruct implements AddRemovable
 {
@@ -54,7 +56,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
                                             "Non-magical ability", "Trigger/Contingency", "Non-combat ability"};
   public static final String[] s_restype = {"None", "Spell", "Item"};
 
-  public static int readCommon(List<StructEntry> list, byte[] buffer, int offset)
+  public static int readCommon(List<StructEntry> list, ByteBuffer buffer, int offset)
   {
     list.add(new PriTypeBitmap(buffer, offset, 4, EFFECT_PRIMARY_TYPE));
     list.add(new Unknown(buffer, offset + 4, 4));
@@ -101,10 +103,10 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
 
   public Effect2() throws Exception
   {
-    super(null, EFFECT, new byte[264], 0);
+    super(null, EFFECT, StreamUtils.getByteBuffer(264), 0);
   }
 
-  public Effect2(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  public Effect2(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, EFFECT + " " + number, buffer, offset);
   }
@@ -120,7 +122,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));

@@ -16,8 +16,6 @@ import org.infinity.resource.wed.WedResource;
 
 /**
  * Common base class for layer-specific managers.
- * @author argent77
- *
  */
 public abstract class BasicLayer<E extends LayerObject>
 {

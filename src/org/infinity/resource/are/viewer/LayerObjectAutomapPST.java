@@ -19,7 +19,6 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
 
 /**
  * Handles specific layer type: ARE/Automap Note (PST-specific)
- * @author argent77
  */
 public class LayerObjectAutomapPST extends LayerObject
 {

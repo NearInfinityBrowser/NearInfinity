@@ -19,10 +19,10 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.IndexColorModel;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -45,12 +45,11 @@ import org.infinity.gui.ColorGrid.MouseOverEvent;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 import org.infinity.util.Misc;
-import org.infinity.util.io.FileInputStreamNI;
+import org.infinity.util.io.StreamUtils;
 
 // TODO: change filter to display the palette in the state after applying previous filters (if any)
 /**
  * Color filter: adjust palette entries (for BAM v1 only).
- * @author argent77
  */
 public class BamFilterColorReplace extends BamFilterBaseColor implements ActionListener
 {
@@ -280,38 +279,31 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
     }
 
     /** Loads the palette from the specified file resource into the color grid component. */
-    public void loadPalette(File paletteFile) throws Exception
+    public void loadPalette(Path paletteFile) throws Exception
     {
-      if (paletteFile != null && paletteFile.isFile()) {
-        FileInputStream fis = null;
+      if (paletteFile != null && Files.isRegularFile(paletteFile)) {
         byte[] signature = new byte[8];
-        try {
-          fis = new FileInputStreamNI(paletteFile);
-          fis.read(signature);
+        try (InputStream is = StreamUtils.getInputStream(paletteFile)) {
+          is.read(signature);
         } catch (IOException e) {
-          throw new Exception("Error reading from file " + paletteFile.getName());
-        } finally {
-          if (fis != null) {
-            fis.close();
-            fis = null;
-          }
+          throw new Exception("Error reading from file " + paletteFile.getFileName());
         }
 
         // fetching palette data
         int[] palette = null;
-        if ("BM".equals(new String(signature, 0, 2, Charset.forName("US-ASCII")))) {
+        if ("BM".equals(new String(signature, 0, 2))) {
           palette = ColorConvert.loadPaletteBMP(paletteFile);
-        } else if ("RIFF".equals(new String(signature, 0, 4, Charset.forName("US-ASCII")))) {
+        } else if ("RIFF".equals(new String(signature, 0, 4))) {
           palette = ColorConvert.loadPalettePAL(paletteFile);
         } else {
-          String sig = new String(signature, 0, 4, Charset.forName("US-ASCII"));
-          String ver = new String(signature, 4, 4, Charset.forName("US-ASCII"));
+          String sig = new String(signature, 0, 4);
+          String ver = new String(signature, 4, 4);
           if ("BAM ".equals(sig) || "BAMC".equals(sig)) {
             if ("V1  ".equals(ver)) {
               palette = ColorConvert.loadPaletteBAM(paletteFile);
             } else {
               throw new Exception(String.format("BAM file \"%1$s\" does not contain palette data.",
-                                                paletteFile.getName()));
+                                                paletteFile.getFileName()));
             }
           } else {
             // Photoshop ACT files don't have a header
@@ -323,7 +315,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
         if (palette != null && palette.length > 0) {
           loadPalette(palette);
         } else {
-          throw new Exception("No palette found in file " + paletteFile.getName());
+          throw new Exception("No palette found in file " + paletteFile.getFileName());
         }
       } else {
         throw new Exception("File does not exist.");
@@ -372,7 +364,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       } else if (event.getSource() == bClose) {
         close();
       } else if (event.getSource() == bLoadPalette) {
-        File[] files = ConvertToBam.getOpenFileName(this, "Load palette from", null, false, ConvertToBam.getPaletteFilters(), 0);
+        Path[] files = ConvertToBam.getOpenFileName(this, "Load palette from", null, false, ConvertToBam.getPaletteFilters(), 0);
         if (files != null && files.length > 0) {
           try {
             loadPalette(files[0]);

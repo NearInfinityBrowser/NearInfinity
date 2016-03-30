@@ -4,7 +4,10 @@
 
 package org.infinity.resource.wed;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.AbstractStruct;
+import org.infinity.util.io.StreamUtils;
 
 public final class ClosedPolygon extends Polygon
 {
@@ -13,10 +16,10 @@ public final class ClosedPolygon extends Polygon
 
   public ClosedPolygon() throws Exception
   {
-    super(null, WED_POLY_CLOSED, new byte[18], 0);
+    super(null, WED_POLY_CLOSED, StreamUtils.getByteBuffer(18), 0);
   }
 
-  public ClosedPolygon(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public ClosedPolygon(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, WED_POLY_CLOSED + " " + nr, buffer, offset);
   }

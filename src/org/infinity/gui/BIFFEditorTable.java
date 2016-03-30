@@ -188,6 +188,11 @@ final class BIFFEditorTable extends JPanel implements ActionListener
     return list;
   }
 
+  public boolean isEmpty()
+  {
+    return tablemodel.getEntries().isEmpty();
+  }
+
   public void removeTableLine(Object o)
   {
     tablemodel.remove((BifEditorTableLine)o);

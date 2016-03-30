@@ -6,6 +6,8 @@ package org.infinity.resource.wed;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -30,7 +32,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.util.ArrayUtil;
-import org.infinity.util.DynamicArray;
+import org.infinity.util.Misc;
 
 public final class WedResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
@@ -190,7 +192,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     int startOffset = offset;
 
@@ -238,7 +240,9 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
     HexNumber offsets[] = new HexNumber[]{offsetOverlays, offsetHeader2, offsetDoors, offsetDoortile,
                                           offsetPolygons, offsetWallgroups, offsetPolytable,
-                                          new HexNumber(DynamicArray.convertInt(buffer.length - startOffset),
+                                          new HexNumber(ByteBuffer.wrap(Misc
+                                                          .intToArray(buffer.limit() - startOffset))
+                                                              .order(ByteOrder.LITTLE_ENDIAN),
                                                         0, 4, "")};
     Arrays.sort(offsets, new Comparator<HexNumber>()
     {

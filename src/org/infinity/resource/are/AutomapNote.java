@@ -4,12 +4,15 @@
 
 package org.infinity.resource.are;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.StringRef;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public final class AutomapNote extends AbstractStruct implements AddRemovable
 {
@@ -28,10 +31,10 @@ public final class AutomapNote extends AbstractStruct implements AddRemovable
 
   AutomapNote() throws Exception
   {
-    super(null, ARE_AUTOMAP, new byte[52], 0);
+    super(null, ARE_AUTOMAP, StreamUtils.getByteBuffer(52), 0);
   }
 
-  AutomapNote(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  AutomapNote(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, ARE_AUTOMAP + " " + number, buffer, offset);
   }
@@ -47,7 +50,7 @@ public final class AutomapNote extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new DecNumber(buffer, offset, 2, ARE_AUTOMAP_LOCATION_X));
     addField(new DecNumber(buffer, offset + 2, 2, ARE_AUTOMAP_LOCATION_Y));

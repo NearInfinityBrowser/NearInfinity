@@ -8,6 +8,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -31,7 +32,7 @@ public final class PltResource implements Resource, ActionListener
   private static final ButtonPanel.Control CtrlColorList = ButtonPanel.Control.CUSTOM_1;
 
   private final ResourceEntry entry;
-  private final byte[] buffer;
+  private final ByteBuffer buffer;
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private RenderCanvas rcCanvas;
@@ -40,7 +41,7 @@ public final class PltResource implements Resource, ActionListener
   public PltResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
-    buffer = entry.getResourceData();
+    buffer = entry.getResourceBuffer();
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -116,29 +117,29 @@ public final class PltResource implements Resource, ActionListener
         palette = null;
       }
     }
-    new String(buffer, 0, 4); // Signature
-    new String(buffer, 4, 4); // Version
-    DynamicArray.getInt(buffer, 8); // Unknown 1
-    DynamicArray.getInt(buffer, 12); // Unknown 2
-    int width = DynamicArray.getInt(buffer, 16);
-    int height = DynamicArray.getInt(buffer, 20);
+    int width = buffer.getInt(16);
+    int height = buffer.getInt(20);
     int offset = 24;
-    BufferedImage image = ColorConvert.createCompatibleImage(width, height, false);
+    BufferedImage image = ColorConvert.createCompatibleImage(width, height, true);
     for (int y = height - 1; y >= 0; y--) {
       for (int x = 0; x < width; x++) {
-        short colorIndex = DynamicArray.getUnsignedByte(buffer, offset++);
-        short paletteIndex = DynamicArray.getUnsignedByte(buffer, offset++);
-        if (palette == null)
+        short colorIndex = (short)(buffer.get(offset++) & 0xff);
+        short paletteIndex = (short)(buffer.get(offset++) & 0xff);
+        if (palette == null) {
+          short alpha = (short)((colorIndex == 255) ? 0 : 255);
           image.setRGB(x, y, DynamicArray.getInt(new byte[]{(byte)colorIndex, (byte)colorIndex,
-                                                            (byte)colorIndex, 0}, 0));
-        else {
+                                                            (byte)colorIndex, (byte)alpha}, 0));
+        } else {
           short colors[] = palette.getColorBytes((int)paletteIndex);
           double factor = (double)colorIndex / 256.0;
-          for (int i = 0; i < 3; i++)
+          for (int i = 0; i < 3; i++) {
             colors[i] = (short)((double)colors[i] * factor);
+          }
+          colors[3] = (short)((colors[0] == 0 && colors[1] >= 254 && colors[2] == 0) ? 0 : 255);
           image.setRGB(x, y, DynamicArray.getInt(new byte[]{(byte)colors[0],
                                                             (byte)colors[1],
-                                                            (byte)colors[2], 0}, 0));
+                                                            (byte)colors[2],
+                                                            (byte)colors[3]}, 0));
         }
       }
     }

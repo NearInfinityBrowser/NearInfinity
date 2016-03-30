@@ -31,7 +31,6 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 /**
  * ColorFilter: adjust hue, saturation and lightness.
- * @author argent77
  */
 public class BamFilterColorHSL extends BamFilterBaseColor
     implements ChangeListener, ActionListener

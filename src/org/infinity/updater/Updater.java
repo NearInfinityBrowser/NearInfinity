@@ -4,13 +4,14 @@
 
 package org.infinity.updater;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -21,6 +22,7 @@ import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
 
 import org.infinity.NearInfinity;
+import org.infinity.util.io.FileManager;
 
 /**
  * Provides functions for checking, downloading and updating new versions of Near Infinity.
@@ -190,10 +192,13 @@ public class Updater
   static String getJarFileHash()
   {
     String path = Utils.getJarFileName(NearInfinity.class);
-    if (path != null && !path.isEmpty() && (new File(path)).isFile()) {
-      try {
-        return Utils.generateMD5Hash(new FileInputStream(path));
-      } catch (IOException e) {
+    if (path != null && !path.isEmpty()) {
+      Path jarPath = FileManager.resolve(path);
+      if (Files.isRegularFile(jarPath)) {
+        try {
+          return Utils.generateMD5Hash(new FileInputStream(path));
+        } catch (IOException e) {
+        }
       }
     }
     return "";

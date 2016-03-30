@@ -20,9 +20,10 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Enumeration;
@@ -89,7 +90,7 @@ import org.infinity.util.MassExporter;
 import org.infinity.util.ObjectString;
 import org.infinity.util.Pair;
 import org.infinity.util.StringResource;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.FileManager;
 
 public final class BrowserMenuBar extends JMenuBar
 {
@@ -395,6 +396,11 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionIgnoreReadErrors.isSelected();
   }
 
+  public boolean cacheBIFFs()
+  {
+    return optionsMenu.optionCacheBiffs.isSelected();
+  }
+
   public void resourceEntrySelected(ResourceEntry entry)
   {
     fileMenu.resourceEntrySelected(entry);
@@ -424,7 +430,7 @@ public final class BrowserMenuBar extends JMenuBar
    * @param keyPath The path to the game's chitin.key.
    * @return The bookmark name of a matching game or {@code null} otherwise.
    */
-  public String getBookmarkName(File keyFile)
+  public String getBookmarkName(Path keyFile)
   {
     Bookmark bookmark = gameMenu.getBookmarkOf(keyFile);
     return (bookmark != null) ? bookmark.getName() : null;
@@ -654,10 +660,10 @@ public final class BrowserMenuBar extends JMenuBar
       if (name != null) {
         name = name.trim();
         if (name.isEmpty()) {
-          name = (String)Profile.getProperty(Profile.Key.GET_GAME_TITLE);
+          name = Profile.getProperty(Profile.Key.GET_GAME_TITLE);
         }
         Profile.Game game = Profile.getGame();
-        String path = Profile.getChitinKey().getAbsolutePath();
+        String path = Profile.getChitinKey().toAbsolutePath().toString();
         Bookmark b = new Bookmark(name, game, path, this);
 
         // check whether to replace existing bookmark
@@ -746,10 +752,10 @@ public final class BrowserMenuBar extends JMenuBar
     }
 
     /** Attempts to find a bookmarked game using specified key file path. */
-    public Bookmark getBookmarkOf(File keyFile)
+    public Bookmark getBookmarkOf(Path keyFile)
     {
       if (keyFile != null) {
-        String path = keyFile.getAbsolutePath();
+        String path = keyFile.toAbsolutePath().toString();
         for (Iterator<Bookmark> iter = bookmarkList.iterator(); iter.hasNext();) {
           Bookmark bookmark = iter.next();
           if (bookmark.getPath().equalsIgnoreCase(path)) {
@@ -779,8 +785,8 @@ public final class BrowserMenuBar extends JMenuBar
           }
         }
         if (selected != -1) {
-          File keyFile = new FileNI(bookmarkList.get(selected).getPath());
-          if (!keyFile.isFile()) {
+          Path keyFile = FileManager.resolve(bookmarkList.get(selected).getPath());
+          if (!Files.isRegularFile(keyFile)) {
             JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                                           bookmarkList.get(selected).getPath() + " could not be found",
                                           "Open game failed", JOptionPane.ERROR_MESSAGE);
@@ -798,8 +804,8 @@ public final class BrowserMenuBar extends JMenuBar
           }
         }
         if (selected != -1) {
-          File keyFile = new FileNI(recentList.get(selected).getPath());
-          if (!keyFile.isFile()) {
+          Path keyFile = FileManager.resolve(recentList.get(selected).getPath());
+          if (!Files.isRegularFile(keyFile)) {
             JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                                           recentList.get(selected).getPath() + " could not be found",
                                           "Open game failed", JOptionPane.ERROR_MESSAGE);
@@ -1060,9 +1066,9 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void gameLoaded()
     {
-      File iniFile = (File)Profile.getProperty(Profile.Key.GET_GAME_INI_FILE);
-      if (iniFile != null && iniFile.isFile()) {
-        editIni.setText(iniFile.getName());
+      Path iniFile = Profile.getProperty(Profile.Key.GET_GAME_INI_FILE);
+      if (iniFile != null && Files.isRegularFile(iniFile)) {
+        editIni.setText(iniFile.getFileName().toString());
         editIni.setEnabled(true);
         editIni.setToolTipText("Edit " + iniFile.toString());
       } else {
@@ -1071,7 +1077,8 @@ public final class BrowserMenuBar extends JMenuBar
         editIni.setToolTipText("Ini file not available");
       }
       editString2.setEnabled(Profile.getProperty(Profile.Key.GET_GAME_DIALOGF_FILE) != null);
-      editVarVar.setEnabled(FileNI.getFile(Profile.getRootFolders(), "VAR.VAR").isFile());
+      Path varFile = FileManager.queryExisting(Profile.getRootFolders(), "VAR.VAR");
+      editVarVar.setEnabled(varFile != null && Files.isRegularFile(varFile));
       if (editString2.isEnabled()) {
         editString2.setToolTipText("");
       } else {
@@ -1092,36 +1099,41 @@ public final class BrowserMenuBar extends JMenuBar
         List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
         for (int i = 0; i < frames.size(); i++) {
           StringEditor e = (StringEditor)frames.get(i);
-          if (e.getFile().equals(StringResource.getFile()))
+          if (e.getPath().equals(StringResource.getPath())) {
             editor = e;
+          }
         }
-        if (editor == null)
-          new StringEditor(StringResource.getFile(), 0);
-        else
+        if (editor == null) {
+          new StringEditor(StringResource.getPath(), 0);
+        } else {
           editor.setVisible(true);
+        }
       }
       else if (event.getSource() == editString2) {
         StringEditor editor = null;
-        File file = (File)Profile.getProperty(Profile.Key.GET_GAME_DIALOGF_FILE);
+        Path file = Profile.getProperty(Profile.Key.GET_GAME_DIALOGF_FILE);
         List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
         for (int i = 0; i < frames.size(); i++) {
           StringEditor e = (StringEditor)frames.get(i);
-          if (e.getFile().equals(file))
+          if (e.getPath().equals(file)) {
             editor = e;
+          }
         }
-        if (editor == null)
+        if (editor == null) {
           new StringEditor(file, 0);
-        else
+        } else {
           editor.setVisible(true);
+        }
       }
       else if (event.getSource() == editVarVar) {
         new ViewFrame(NearInfinity.getInstance(),
                       ResourceFactory.getResource(
                               new FileResourceEntry(
-                                  FileNI.getFile(Profile.getRootFolders(), "VAR.VAR"))));
+                                  FileManager.queryExisting(Profile.getRootFolders(), "VAR.VAR"))));
       }
-      else if (event.getSource() == editBIFF)
+      else if (event.getSource() == editBIFF) {
         new BIFFEditor();
+      }
     }
   }
 
@@ -1565,6 +1577,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_BACKUPONSAVE             = "BackupOnSave";
     private static final String OPTION_IGNOREOVERRIDE           = "IgnoreOverride";
     private static final String OPTION_IGNOREREADERRORS         = "IgnoreReadErrors";
+    private static final String OPTION_CACHEBIFFS               = "CacheBiffs";
     private static final String OPTION_AUTOCHECK_BCS            = "AutocheckBCS";
     private static final String OPTION_CACHEOVERRIDE            = "CacheOverride";
     private static final String OPTION_CHECKSCRIPTNAMES         = "CheckScriptNames";
@@ -1639,7 +1652,7 @@ public final class BrowserMenuBar extends JMenuBar
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride;
     private JCheckBoxMenuItem optionIgnoreReadErrors, optionAutocheckBCS, optionCacheOverride;
     private JCheckBoxMenuItem optionCheckScriptNames, optionShowStrrefs, optionDlgShowIcons,
-                              optionShowHexColored;
+                              optionShowHexColored, optionCacheBiffs;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
     private String languageDefinition;
@@ -1667,6 +1680,11 @@ public final class BrowserMenuBar extends JMenuBar
       optionIgnoreReadErrors =
           new JCheckBoxMenuItem("Ignore Read Errors", getPrefs().getBoolean(OPTION_IGNOREREADERRORS, false));
       add(optionIgnoreReadErrors);
+      optionCacheBiffs =
+          new JCheckBoxMenuItem("Cache BIFF files", getPrefs().getBoolean(OPTION_CACHEBIFFS, true));
+      optionCacheBiffs.setToolTipText("Enable this option to generate lookup structures " +
+                                      "to speed up opening BIFFed resources.");
+      add(optionCacheBiffs);
       optionShowOffset =
           new JCheckBoxMenuItem("Show Hex Offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETS, false));
       add(optionShowOffset);
@@ -2010,9 +2028,8 @@ public final class BrowserMenuBar extends JMenuBar
       mLanguageMenu.add(rbmi);
 
       if (Profile.isEnhancedEdition()) {
-        List<?> languages = (List<?>)Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE);
-        for (Iterator<?> iter = languages.iterator(); iter.hasNext();) {
-          String lang = (String)iter.next();
+        List<String> languages = Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE);
+        for (final String lang: languages) {
           String langName = getDisplayLanguage(lang);
           if (!langName.equalsIgnoreCase(lang)) {
             rbmi = createLanguageMenuItem(lang, String.format("%1$s (%2$s)", langName, lang),
@@ -2250,6 +2267,7 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_BACKUPONSAVE, optionBackupOnSave.isSelected());
       getPrefs().putBoolean(OPTION_IGNOREOVERRIDE, optionIgnoreOverride.isSelected());
       getPrefs().putBoolean(OPTION_IGNOREREADERRORS, optionIgnoreReadErrors.isSelected());
+      getPrefs().putBoolean(OPTION_CACHEBIFFS, optionCacheBiffs.isSelected());
       getPrefs().putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());
       getPrefs().putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
       getPrefs().putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
@@ -2436,12 +2454,12 @@ public final class BrowserMenuBar extends JMenuBar
     {
       if (newLanguage != null) {
         // switch language and refresh resources
-        String oldLanguage = (String)Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_NAME);
+        String oldLanguage = Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_NAME);
         String oldLangName = getDisplayLanguage(oldLanguage);
         String newLanguageCode;
         if (newLanguage.equalsIgnoreCase(LANGUAGE_AUTODETECT)) {
           // "Autodetect" must be converted into an actual language code before proceeding
-          newLanguageCode = ResourceFactory.autodetectGameLanguage((File)Profile.getProperty(Profile.Key.GET_GAME_INI_FILE));
+          newLanguageCode = ResourceFactory.autodetectGameLanguage(Profile.getProperty(Profile.Key.GET_GAME_INI_FILE));
         } else {
           newLanguageCode = newLanguage;
         }
@@ -2597,7 +2615,8 @@ public final class BrowserMenuBar extends JMenuBar
     public void loadDebugColorScheme(String fileName)
     {
       if (NearInfinity.isDebug()) {
-        if (fileName != null && !fileName.isEmpty() && (new FileNI(fileName)).isFile()) {
+        if (fileName != null && !fileName.isEmpty() &&
+            Files.isRegularFile(FileManager.resolve(fileName))) {
           // adding specified file reference to list
           DEBUGCOLORSCHEME = fileName;
           optionTextDebugColorSchemeSelect
@@ -2614,7 +2633,8 @@ public final class BrowserMenuBar extends JMenuBar
     public String getDebugColorScheme()
     {
       if (NearInfinity.isDebug() && optionTextDebugColorSchemeEnabled.isSelected()) {
-        if (DEBUGCOLORSCHEME != null && (new FileNI(DEBUGCOLORSCHEME)).isFile()) {
+        if (DEBUGCOLORSCHEME != null &&
+            Files.isRegularFile(FileManager.resolve(DEBUGCOLORSCHEME))) {
           return DEBUGCOLORSCHEME;
         }
       }
@@ -2681,17 +2701,17 @@ public final class BrowserMenuBar extends JMenuBar
         }
       } else if (event.getSource() == optionTextDebugColorSchemeSelect) {
         // Debug: loading external color scheme file
-        File file = null;
+        Path file = null;
         if (DEBUGCOLORSCHEME != null) {
-          file = new FileNI(DEBUGCOLORSCHEME);
-          if (!file.isFile()) {
+          file = FileManager.resolve(DEBUGCOLORSCHEME);
+          if (!Files.isRegularFile(file)) {
             file = null;
           }
         }
-        String rootPath = (file != null) ? file.getParent() : Profile.getGameRoot().toString();
-        JFileChooser fc = new JFileChooser(rootPath);
+        Path rootPath = (file != null) ? file.getParent() : Profile.getGameRoot();
+        JFileChooser fc = new JFileChooser(rootPath.toFile());
         if (file != null) {
-          fc.setSelectedFile(file);
+          fc.setSelectedFile(file.toFile());
         }
         fc.setDialogTitle("Select color scheme file");
         fc.setDialogType(JFileChooser.OPEN_DIALOG);
@@ -3095,7 +3115,7 @@ public final class BrowserMenuBar extends JMenuBar
         throw new NullPointerException();
       }
       if (name == null || name.trim().isEmpty()) {
-        name = (String)Profile.getProperty(Profile.Key.GET_GLOBAL_GAME_TITLE, game);
+        name = Profile.getProperty(Profile.Key.GET_GLOBAL_GAME_TITLE, game);
       }
       this.name = name;
       this.game = game;
@@ -3141,7 +3161,7 @@ public final class BrowserMenuBar extends JMenuBar
     public JMenuItem getMenuItem() { return item; }
 
     /** Returns whether the bookmark points to an existing game installation. */
-    public boolean isEnabled() { return (new FileNI(path)).isFile(); }
+    public boolean isEnabled() { return (Files.isRegularFile(FileManager.resolve(path))); }
 
     /** Returns ActionListener used by the associated menu item. */
     public ActionListener getActionListener() { return listener; }
@@ -3237,7 +3257,7 @@ public final class BrowserMenuBar extends JMenuBar
     public RecentGame(Profile.Game game, String path, int index, ActionListener listener)
     {
       if (game == null || game == Profile.Game.Unknown ||
-          path == null || !(new FileNI(path)).isFile()) {
+          path == null || !Files.isRegularFile(FileManager.resolve(path))) {
         throw new NullPointerException();
       }
       this.game = game;
@@ -3252,9 +3272,9 @@ public final class BrowserMenuBar extends JMenuBar
     {
       if (index >= 0) {
         return String.format("%1$d  %2$s", index+1,
-                             (String)Profile.getProperty(Profile.Key.GET_GLOBAL_GAME_TITLE, game));
+                             Profile.getProperty(Profile.Key.GET_GLOBAL_GAME_TITLE, game));
       } else {
-        return (String)Profile.getProperty(Profile.Key.GET_GLOBAL_GAME_TITLE, game);
+        return Profile.getProperty(Profile.Key.GET_GLOBAL_GAME_TITLE, game);
       }
     }
 

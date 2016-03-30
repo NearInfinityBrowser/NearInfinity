@@ -4,8 +4,9 @@
 
 package org.infinity.resource.gam;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.Profile;
 
 public final class NonPartyNPC extends PartyNPC
 {
@@ -14,16 +15,10 @@ public final class NonPartyNPC extends PartyNPC
 
   NonPartyNPC() throws Exception
   {
-    super(null, GAM_EXNPC,
-          (Profile.getEngine() == Profile.Engine.BG1 ||
-          Profile.getEngine() == Profile.Engine.BG2 ||
-          Profile.isEnhancedEdition()) ? new byte[352] :
-          (Profile.getEngine() == Profile.Engine.PST) ? new byte[360] :
-          (Profile.getEngine() == Profile.Engine.IWD2) ? new byte[832] : new byte[384],
-          0);
+    super(null, GAM_EXNPC, createEmptyBuffer(), 0);
   }
 
-  NonPartyNPC(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  NonPartyNPC(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, GAM_EXNPC + " " + nr, buffer, offset);
   }

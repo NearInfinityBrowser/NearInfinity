@@ -29,7 +29,6 @@ import org.infinity.resource.graphics.ColorConvert;
 
 /**
  * Represents a game resource structure visually as a bitmap animation.
- * @author argent77
  */
 public class AnimatedLayerItem extends AbstractLayerItem
     implements LayerItemListener, ActionListener, PropertyChangeListener

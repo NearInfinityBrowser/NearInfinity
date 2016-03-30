@@ -4,6 +4,7 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
 import java.util.Locale;
 
 import org.infinity.resource.ResourceFactory;
@@ -18,12 +19,12 @@ public class Summon2daBitmap extends HashBitmap
   private static final String TableName = "SMTABLES.2DA";
   private static final LongIntegerHashMap<String> summonMap = new LongIntegerHashMap<String>();
 
-  public Summon2daBitmap(byte[] buffer, int offset, int length, String name)
+  public Summon2daBitmap(ByteBuffer buffer, int offset, int length, String name)
   {
     this(null, buffer, offset, length, name);
   }
 
-  public Summon2daBitmap(StructEntry parent, byte[] buffer, int offset, int length, String name)
+  public Summon2daBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
   {
     super(parent, buffer, offset, length, name, getSummonTable());
   }

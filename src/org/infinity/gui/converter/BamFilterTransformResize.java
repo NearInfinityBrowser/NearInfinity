@@ -38,7 +38,6 @@ import org.infinity.util.Misc;
 
 /**
  * Transform filter: adjust the size of the BAM frames.
- * @author argent77
  */
 public class BamFilterTransformResize extends BamFilterBaseTransform
     implements ActionListener, ChangeListener

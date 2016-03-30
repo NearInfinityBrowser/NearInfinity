@@ -4,6 +4,8 @@
 
 package org.infinity.resource.wed;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.HexNumber;
@@ -28,7 +30,7 @@ public final class Overlay extends AbstractStruct // implements AddRemovable, Ha
 
   public static final String[] s_movement = {"Default", "Disable rendering", "Alternate rendering"};
 
-  public Overlay(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  public Overlay(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, WED_OVERLAY + " " + number, buffer, offset);
   }
@@ -45,7 +47,7 @@ public final class Overlay extends AbstractStruct // implements AddRemovable, Ha
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     DecNumber width = new DecNumber(buffer, offset, 2, WED_OVERLAY_WIDTH);
     addField(width);

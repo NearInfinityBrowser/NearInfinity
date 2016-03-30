@@ -4,6 +4,8 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.StructEntry;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
@@ -11,12 +13,12 @@ import org.infinity.util.LongIntegerHashMap;
 
 public final class IdsFlag extends Flag
 {
-  public IdsFlag(byte buffer[], int offset, int length, String name, String resource)
+  public IdsFlag(ByteBuffer buffer, int offset, int length, String name, String resource)
   {
     this(null, buffer, offset, length, name, resource);
   }
 
-  public IdsFlag(StructEntry parent, byte buffer[], int offset, int length, String name, String resource)
+  public IdsFlag(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, String resource)
   {
     super(parent, buffer, offset, length, name);
     LongIntegerHashMap<IdsMapEntry> idsmap = IdsMapCache.get(resource).getMap();

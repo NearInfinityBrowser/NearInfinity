@@ -26,6 +26,7 @@ import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
+import org.infinity.util.io.StreamUtils;
 
 public class SongReferenceSearcher extends AbstractReferenceSearcher
 {
@@ -109,7 +110,7 @@ public class SongReferenceSearcher extends AbstractReferenceSearcher
     songEntry = targetEntry;
 
     songId = -1L;
-    Song2daBitmap songBitmap = new Song2daBitmap(new byte[4], 0, 4);
+    Song2daBitmap songBitmap = new Song2daBitmap(StreamUtils.getByteBuffer(4), 0, 4);
     List<RefEntry> resList = songBitmap.getResourceList();
     for (final RefEntry refEntry: resList) {
       ResourceEntry entry = refEntry.getResourceEntry();

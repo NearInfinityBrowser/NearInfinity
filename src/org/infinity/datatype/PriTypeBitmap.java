@@ -4,6 +4,7 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
 import java.util.Locale;
 
 import org.infinity.resource.ResourceFactory;
@@ -34,12 +35,12 @@ public class PriTypeBitmap extends HashBitmap
     }
   }
 
-  public PriTypeBitmap(byte buffer[], int offset, int length, String name)
+  public PriTypeBitmap(ByteBuffer buffer, int offset, int length, String name)
   {
     this(null, buffer, offset, length, name);
   }
 
-  public PriTypeBitmap(StructEntry parent, byte buffer[], int offset, int length, String name)
+  public PriTypeBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
   {
     super(parent, buffer, offset, length, name, getTypeTable());
   }

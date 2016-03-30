@@ -38,7 +38,6 @@ import org.infinity.resource.wed.WedResource;
 
 /**
  * Specialized renderer for drawing tileset-based graphics data.
- * @author argent77
  */
 public class TilesetRenderer extends RenderCanvas
 {
@@ -580,7 +579,7 @@ public class TilesetRenderer extends RenderCanvas
     release(false);
 
     // resetting states
-    blendedOverlays = (Boolean)Profile.getProperty(Profile.Key.IS_TILESET_STENCILED);
+    blendedOverlays = Profile.getProperty(Profile.Key.IS_TILESET_STENCILED);
     lighting = ViewerConstants.LIGHTING_DAY;
 
     // loading map data

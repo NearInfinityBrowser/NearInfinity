@@ -31,7 +31,6 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 /**
  * Color filter: adjust color balance for red, green, blue individually.
- * @author argent77
  */
 public class BamFilterColorBalance extends BamFilterBaseColor
     implements ChangeListener, ActionListener

@@ -7,7 +7,6 @@ package org.infinity.resource.video;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,11 +15,10 @@ import java.util.Vector;
 import javax.sound.sampled.AudioFormat;
 
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.io.FileReaderNI;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * Decodes a MVE video resource.
- * @author argent77
  */
 public class MveDecoder
 {
@@ -178,7 +176,7 @@ public class MveDecoder
     byte[] buf = new byte[MVE_SIGNATURE.length()];
     if (info.mveInput.read(buf) < buf.length)
       throw new Exception("Unexpected end of file");
-    if (!Arrays.equals(MVE_SIGNATURE.getBytes(Charset.forName("US-ASCII")), buf))
+    if (!Arrays.equals(MVE_SIGNATURE.getBytes(), buf))
       throw new Exception("Invalid MVE signature found");
 
     // 2. initializing MveChunk structure
@@ -539,7 +537,6 @@ public class MveDecoder
 
   /**
    * Storage class for MVE related data.
-   * @author argent77
    */
   public static class MveInfo
   {
@@ -782,9 +779,9 @@ public class MveDecoder
           curChunkType = nextChunkType;
           while (curSize < curChunkSize) {
             try {
-              int segmentSize = FileReaderNI.readUnsignedShort(in);
-              short segmentOpcode = FileReaderNI.readUnsignedByte(in);
-              short segmentVersion = FileReaderNI.readUnsignedByte(in);
+              int segmentSize = StreamUtils.readUnsignedShort(in);
+              short segmentOpcode = StreamUtils.readUnsignedByte(in);
+              short segmentVersion = StreamUtils.readUnsignedByte(in);
               curSize += 4;
               MveSegment segment = new MveSegment(in, segmentSize, segmentOpcode, segmentVersion);
               segments.add(segment);
@@ -810,8 +807,8 @@ public class MveDecoder
           nextChunkSize = nextChunkType = MVE_CHUNK_NONE;
         } else {
           try {
-            nextChunkSize = FileReaderNI.readUnsignedShort(in);
-            nextChunkType = FileReaderNI.readUnsignedShort(in);
+            nextChunkSize = StreamUtils.readUnsignedShort(in);
+            nextChunkType = StreamUtils.readUnsignedShort(in);
           } catch (IOException e) {
             e.printStackTrace();
             return false;

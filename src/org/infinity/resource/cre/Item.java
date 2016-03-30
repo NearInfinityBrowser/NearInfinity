@@ -4,6 +4,8 @@
 
 package org.infinity.resource.cre;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
@@ -12,6 +14,7 @@ import org.infinity.datatype.UnsignDecNumber;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
+import org.infinity.util.io.StreamUtils;
 
 public final class Item extends AbstractStruct implements AddRemovable
 {
@@ -29,10 +32,10 @@ public final class Item extends AbstractStruct implements AddRemovable
 
   public Item() throws Exception
   {
-    super(null, CRE_ITEM, new byte[20], 0);
+    super(null, CRE_ITEM, StreamUtils.getByteBuffer(20), 0);
   }
 
-  public Item(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public Item(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, CRE_ITEM + " " + nr, buffer, offset);
   }
@@ -48,7 +51,7 @@ public final class Item extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, CRE_ITEM_RESREF, "ITM"));
     if (Profile.isEnhancedEdition()) {

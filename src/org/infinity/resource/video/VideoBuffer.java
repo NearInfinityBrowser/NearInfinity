@@ -8,7 +8,6 @@ import java.awt.Image;
 
 /**
  * Methods required to work with chained image buffers.
- * @author argent77
  */
 public interface VideoBuffer
 {

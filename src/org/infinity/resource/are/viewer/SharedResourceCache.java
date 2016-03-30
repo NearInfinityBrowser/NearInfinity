@@ -10,7 +10,6 @@ import java.util.Iterator;
 
 /**
  * A global storage class that caches data objects of supported types associated with a unique key.
- * @author argent77
  */
 public class SharedResourceCache
 {

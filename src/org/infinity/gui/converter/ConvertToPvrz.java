@@ -16,9 +16,10 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
@@ -50,15 +51,15 @@ import org.infinity.resource.graphics.Compressor;
 import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.SimpleListModel;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileOutputStreamNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public class ConvertToPvrz extends ChildFrame implements ActionListener, PropertyChangeListener
 {
   private static String currentDir = Profile.getGameRoot().toString();
 
-  private JList<File> lInputList;
-  private SimpleListModel<File> lInputModel;
+  private JList<Path> lInputList;
+  private SimpleListModel<Path> lInputModel;
   private JButton bConvert, bCancel;
   private JButton bInputAdd, bInputAddFolder, bInputRemove, bInputRemoveAll;
   private JButton bTargetDir, bCompressionHelp;
@@ -186,7 +187,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
           currentDir = files[0].getParent();
           // add to list box
           for (final File f: files) {
-            lInputModel.addElement(f);
+            lInputModel.addElement(f.toPath());
           }
         }
       }
@@ -208,7 +209,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
           for (final File file: fileList) {
             for (final FileNameExtensionFilter filter: filters) {
               if (file != null && file.isFile() && filter.accept(file)) {
-                lInputModel.addElement(file);
+                lInputModel.addElement(file.toPath());
                 break;
               }
             }
@@ -231,7 +232,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
       fc.setDialogTitle("Choose target directory");
       fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
       if (!tfTargetDir.getText().isEmpty()) {
-        fc.setSelectedFile(new FileNI(tfTargetDir.getText()));
+        fc.setSelectedFile(FileManager.resolve(tfTargetDir.getText()).toFile());
       }
       int ret = fc.showOpenDialog(this);
       if (ret == JFileChooser.APPROVE_OPTION) {
@@ -241,14 +242,6 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
       fc = null;
       bConvert.setEnabled(isReady());
     } else if (event.getSource() == bCompressionHelp) {
-//      final String helpMsg =
-//          "\"DXT1\" provides the highest compression ratio. It supports only 1 bit alpha\n" +
-//          "(i.e. either no or full transparency) and is the preferred type for TIS or MOS resources.\n\n" +
-//          "\"DXT3\" provides an average compression ratio. It preserves sharp alpha transitions\n" +
-//          "and is not presently used by the EE games.\n\n" +
-//          "\"DXT5\" provides the same compression ratio as DXT3. It features interpolated\n" +
-//          "alpha transitions and is the preferred type for BAM resources.\n\n" +
-//          "\"Auto\" selects the most appropriate compression type based on the input data.";
       final String helpMsg =
           "\"DXT1\" provides the highest compression ratio. It supports only 1 bit alpha\n" +
           "(i.e. either no or full transparency) and is the preferred type for TIS or MOS resources.\n\n" +
@@ -351,7 +344,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     pInputCtrl.add(pInputAdd, BorderLayout.WEST);
     pInputCtrl.add(pInputRemove, BorderLayout.EAST);
 
-    lInputModel = new SimpleListModel<File>();
+    lInputModel = new SimpleListModel<>();
     lInputList = new JList<>(lInputModel);
     lInputList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     JScrollPane scroll = new JScrollPane(lInputList);
@@ -479,11 +472,11 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
   }
 
   // checks graphics input file properties
-  private static boolean isValidInput(File inFile)
+  private static boolean isValidInput(Path inFile)
   {
-    boolean result = (inFile != null) && inFile.exists() && inFile.isFile();
+    boolean result = (inFile != null && Files.isRegularFile(inFile));
     if (result) {
-      Dimension d = ColorConvert.getImageDimension(inFile.toString());
+      Dimension d = ColorConvert.getImageDimension(inFile);
       if (d == null || d.width <= 0 || d.width > 1024 || d.height <= 0 || d.height > 1024) {
         result = false;
       }
@@ -509,10 +502,11 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
       case 2:  dxt = 5; break;
     }
 
-    String targetDir = ".";
-    if (tfTargetDir.getText() != null && !tfTargetDir.getText().isEmpty())
-      targetDir = tfTargetDir.getText();
-    if (!targetDir.isEmpty() && !new FileNI(targetDir).isDirectory()) {
+    Path targetPath = FileManager.resolve("");
+    if (tfTargetDir.getText() != null && !tfTargetDir.getText().isEmpty()) {
+      targetPath = FileManager.resolve(tfTargetDir.getText());
+    }
+    if (!Files.isDirectory(targetPath)) {
       List<String> l = new Vector<String>(2);
       l.add(null);
       l.add("Invalid target directory specified. No conversion takes place.");
@@ -525,7 +519,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
       l.add("No source file(s) specified. No conversion takes place.");
       return l;
     }
-    File[] inputFiles = new File[lInputModel.size()];
+    Path[] inputFiles = new Path[lInputModel.size()];
     for (int i = 0; i < lInputModel.size(); i++) {
       inputFiles[i] = lInputModel.get(i);
     }
@@ -549,9 +543,9 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         progress.setNote(String.format(note, progressIndex+1, progressMax));
         progressIndex += progressInc;
       }
-      File inFile = inputFiles[fileIdx];
+      Path inFile = inputFiles[fileIdx];
       if (isValidInput(inFile)) {
-        String inFileName = inFile.getName();
+        String inFileName = inFile.getFileName().toString();
 
         // generating output filename
         String outFileName = null;
@@ -561,10 +555,10 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         } else {
           outFileName = inFileName + ".PVRZ";
         }
-        File outFile = new FileNI(targetDir, outFileName);
+        Path outFile = targetPath.resolve(outFileName);
 
         // handling overwrite existing file
-        if (outFile.exists()) {
+        if (Files.exists(outFile)) {
           if (skip) {
             skippedFiles++;
             continue;
@@ -581,7 +575,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         // loading source image data
         BufferedImage srcImg = null;
         try {
-          srcImg = ColorConvert.toBufferedImage(ImageIO.read(inFile), true);
+          srcImg = ColorConvert.toBufferedImage(ImageIO.read(inFile.toFile()), true);
         } catch (Exception e) {
         }
         if (srcImg == null) {
@@ -692,19 +686,11 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         System.arraycopy(header, 0, pvrz, 0, header.length);
         System.arraycopy(output, 0, pvrz, header.length, output.length);
         pvrz = Compressor.compress(pvrz, 0, pvrz.length, true);
-        BufferedOutputStream bos = null;
-        try {
-          bos = new BufferedOutputStream(new FileOutputStreamNI(outFile));
-          bos.write(pvrz);
-          bos.close();
+        try (OutputStream os = StreamUtils.getOutputStream(outFile, true)) {
+          os.write(pvrz);
         } catch (Exception e) {
           errors++;
           e.printStackTrace();
-          try {
-            if (bos != null)
-              bos.close();
-          } catch (IOException e2) {
-          }
         }
 
         // cleaning up

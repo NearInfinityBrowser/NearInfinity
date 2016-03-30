@@ -28,7 +28,6 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 /**
  * Color filter: swaps individual color channels.
- * @author argent77
  */
 public class BamFilterColorSwap extends BamFilterBaseColor
     implements ChangeListener, ActionListener

@@ -61,6 +61,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
       font = Font.createFont(Font.TRUETYPE_FONT, is);
     } catch (Exception e) {
       font = null;
+      e.printStackTrace();
       throw new Exception("Invalid TTF resource");
     }
 

@@ -4,7 +4,10 @@
 
 package org.infinity.resource.wed;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.AbstractStruct;
+import org.infinity.util.io.StreamUtils;
 
 public final class WallPolygon extends Polygon
 {
@@ -13,10 +16,10 @@ public final class WallPolygon extends Polygon
 
   public WallPolygon() throws Exception
   {
-    super(null, WED_POLY_WALL, new byte[18], 0);
+    super(null, WED_POLY_WALL, StreamUtils.getByteBuffer(18), 0);
   }
 
-  public WallPolygon(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public WallPolygon(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, WED_POLY_WALL + " " + nr, buffer, offset);
   }

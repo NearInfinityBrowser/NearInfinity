@@ -4,6 +4,8 @@
 
 package org.infinity.resource.are;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.IdsBitmap;
 import org.infinity.datatype.ProRef;
@@ -11,6 +13,7 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionOffset;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public final class ProTrap extends AbstractStruct implements AddRemovable
 {
@@ -30,10 +33,10 @@ public final class ProTrap extends AbstractStruct implements AddRemovable
 
   ProTrap() throws Exception
   {
-    super(null, ARE_PROTRAP, new byte[28], 0);
+    super(null, ARE_PROTRAP, StreamUtils.getByteBuffer(28), 0);
   }
 
-  ProTrap(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  ProTrap(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, ARE_PROTRAP + " " + number, buffer, offset);
   }
@@ -49,7 +52,7 @@ public final class ProTrap extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, ARE_PROTRAP_TRAP, "PRO"));
     SectionOffset ofsEffects = new SectionOffset(buffer, offset + 8, ARE_PROTRAP_OFFSET_EFFECTS, null);

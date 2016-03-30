@@ -4,12 +4,15 @@
 
 package org.infinity.resource.are;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 public final class TiledObject extends AbstractStruct implements AddRemovable
 {
@@ -27,10 +30,10 @@ public final class TiledObject extends AbstractStruct implements AddRemovable
 
   TiledObject() throws Exception
   {
-    super(null, ARE_TILED, new byte[108], 0);
+    super(null, ARE_TILED, StreamUtils.getByteBuffer(108), 0);
   }
 
-  TiledObject(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  TiledObject(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, ARE_TILED + " " + number, buffer, offset);
   }
@@ -46,7 +49,7 @@ public final class TiledObject extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 32, ARE_TILED_NAME));
     addField(new TextString(buffer, offset + 32, 8, ARE_TILED_ID));

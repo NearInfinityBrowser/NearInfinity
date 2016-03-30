@@ -15,18 +15,19 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
-import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.EOFException;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.Writer;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.imageio.ImageIO;
@@ -64,14 +65,11 @@ import org.infinity.resource.graphics.MosV1Decoder;
 import org.infinity.resource.graphics.PvrDecoder;
 import org.infinity.resource.graphics.TisDecoder;
 import org.infinity.resource.graphics.TisResource;
-import org.infinity.resource.key.BIFFArchive;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.AudioFactory;
 import org.infinity.resource.video.MveResource;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileOutputStreamNI;
-import org.infinity.util.io.FileWriterNI;
-import org.infinity.util.io.PrintWriterNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public final class MassExporter extends ChildFrame implements ActionListener, ListSelectionListener,
                                                               Runnable
@@ -86,6 +84,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JButton bExport = new JButton("Export", Icons.getIcon(Icons.ICON_EXPORT_16));
   private final JButton bCancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
   private final JButton bDirectory = new JButton(Icons.getIcon(Icons.ICON_OPEN_16));
+  private final JCheckBox cbIncludeExtraDirs = new JCheckBox("Include extra folders", true);
   private final JCheckBox cbDecompile = new JCheckBox("Decompile scripts", true);
   private final JCheckBox cbDecrypt = new JCheckBox("Decrypt text files", true);
   private final JCheckBox cbConvertWAV = new JCheckBox("Convert sounds", true);
@@ -97,11 +96,11 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private final JCheckBox cbExtractFramesBAM = new JCheckBox("Export BAM frames as ", false);
   private final JCheckBox cbExportMVEasAVI = new JCheckBox("Export MVE as AVI", false);
   private final JCheckBox cbOverwrite = new JCheckBox("Overwrite existing files", false);
-  private final JFileChooser fc = new JFileChooser(Profile.getGameRoot());
+  private final JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
   private final JComboBox<String> cbExtractFramesBAMFormat = new JComboBox<>(new String[]{"PNG", "BMP"});
   private final JList<String> listTypes = new JList<>(TYPES);
   private final JTextField tfDirectory = new JTextField(20);
-  private File outputDir;
+  private Path outputPath;
   private List<String> selectedTypes;
   private ProgressMonitor progress;
   private int progressIndex;
@@ -125,6 +124,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     cbConvertToPNG.setToolTipText("Caution: Selecting both MOS and TIS may overwrite or skip some files!");
     cbExtractFramesBAM.setToolTipText("Note: Frames of each BAM resource are exported into separate subfolders.");
     cbConvertTisVersion.setToolTipText("Caution: Conversion may take a long time. Files may be renamed to conform to naming scheme for PVRZ-based TIS files.");
+    cbIncludeExtraDirs.setToolTipText("Include extra folders, such as \"Characters\" or \"Portraits\", except savegames.");
 
     JPanel leftPanel = new JPanel(new BorderLayout());
     leftPanel.add(new JLabel("File types to export:"), BorderLayout.NORTH);
@@ -151,32 +151,35 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     bottomRightPanel.add(new JLabel("Options:"), gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbConvertWAV, gbc);
+    bottomRightPanel.add(cbIncludeExtraDirs, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 2, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbConvertCRE, gbc);
+    bottomRightPanel.add(cbConvertWAV, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 3, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbDecompile, gbc);
+    bottomRightPanel.add(cbConvertCRE, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 4, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbDecrypt, gbc);
+    bottomRightPanel.add(cbDecompile, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 5, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbDecompress, gbc);
+    bottomRightPanel.add(cbDecrypt, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 6, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbConvertToPNG, gbc);
+    bottomRightPanel.add(cbDecompress, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 7, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(pTisConvert, gbc);
+    bottomRightPanel.add(cbConvertToPNG, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 8, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(pBamFrames, gbc);
+    bottomRightPanel.add(pTisConvert, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 9, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
-    bottomRightPanel.add(cbExportMVEasAVI, gbc);
+    bottomRightPanel.add(pBamFrames, gbc);
     gbc = ViewerUtil.setGBC(gbc, 0, 10, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
+    bottomRightPanel.add(cbExportMVEasAVI, gbc);
+    gbc = ViewerUtil.setGBC(gbc, 0, 11, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0);
     bottomRightPanel.add(cbOverwrite, gbc);
 
@@ -228,14 +231,21 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     if (event.getSource() == bExport) {
       selectedTypes = listTypes.getSelectedValuesList();
-      outputDir = new FileNI(tfDirectory.getText());
-      outputDir.mkdirs();
+      outputPath = FileManager.resolve(tfDirectory.getText());
+      try {
+        Files.createDirectories(outputPath);
+      } catch (IOException e) {
+        JOptionPane.showMessageDialog(this, "Unable to create target directory.",
+                                      "Error", JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
+        return;
+      }
       setVisible(false);
       new Thread(this).start();
     }
-    else if (event.getSource() == bCancel)
+    else if (event.getSource() == bCancel) {
       setVisible(false);
-    else if (event.getSource() == bDirectory) {
+    } else if (event.getSource() == bDirectory) {
       if (fc.showDialog(this, "Select") == JFileChooser.APPROVE_OPTION)
         tfDirectory.setText(fc.getSelectedFile().toString());
       bExport.setEnabled(listTypes.getSelectedIndices().length > 0 && tfDirectory.getText().length() > 0);
@@ -262,9 +272,24 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   public void run()
   {
     try {
+      List<Path> extraDirs = new ArrayList<>();
+      if (cbIncludeExtraDirs.isSelected()) {
+        // do not include savegame folders
+        extraDirs.addAll(Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS));
+        int idx = 0;
+        while (idx < extraDirs.size()) {
+          String s = extraDirs.get(idx).getFileName().toString().toUpperCase(Locale.ENGLISH);
+          if (s.contains("SAVE")) {
+            extraDirs.remove(idx);
+          } else {
+            idx++;
+          }
+        }
+      }
+
       selectedFiles = new ArrayList<ResourceEntry>(1000);
       for (final String newVar : selectedTypes) {
-        selectedFiles.addAll(ResourceFactory.getResources(newVar));
+        selectedFiles.addAll(ResourceFactory.getResources(newVar, extraDirs));
       }
 
       // executing multithreaded search
@@ -304,9 +329,11 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       }
 
       if (isCancelled) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Mass export aborted", "Info", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Mass export aborted",
+                                      "Info", JOptionPane.INFORMATION_MESSAGE);
       } else {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Mass export completed", "Info", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Mass export completed",
+                                      "Info", JOptionPane.INFORMATION_MESSAGE);
       }
     } finally {
       advanceProgress(true);
@@ -342,101 +369,72 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     }
   }
 
-  private void exportText(ResourceEntry entry, File output) throws Exception
+  private void exportText(ResourceEntry entry, Path output) throws Exception
   {
-    byte data[] = entry.getResourceData();
-    if (data[0] == -1) {
-      data = Decryptor.decrypt(data, 2, data.length).getBytes();
-    }
-    OutputStream os = null;
-    try {
+    ByteBuffer bb = entry.getResourceBuffer();
+    if (bb.limit() > 0) {
+      if (bb.limit() > 1 && bb.getShort(0) == -1) {
+        bb = Decryptor.decrypt(bb, 2);
+      }
       // Keep trying. File may be in use by another thread.
-      os = tryOpenOutputStream(output, 10, 100);
-      FileWriterNI.writeBytes(os, data);
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      if (os != null) {
-        os.close();
+      try (OutputStream os = tryOpenOutputStream(output, 10, 100)) {
+        StreamUtils.writeBytes(os, bb);
       }
     }
   }
 
-  private void exportDecompiledScript(ResourceEntry entry, File output) throws Exception
+  private void exportDecompiledScript(ResourceEntry entry, Path output) throws Exception
   {
-    output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "BAF"));
-    if (output.exists() && !cbOverwrite.isSelected()) {
+    output = output.getParent().resolve(StreamUtils.replaceFileExtension(output.getFileName().toString(), "BAF"));
+    if (Files.exists(output) && !cbOverwrite.isSelected()) {
       return;
     }
-    byte data[] = entry.getResourceData();
-    if (data.length > 0) {
-      if (data[0] == -1) {
-        data = Decryptor.decrypt(data, 2, data.length).getBytes();
+    ByteBuffer bb = entry.getResourceBuffer();
+    if (bb.limit() > 0) {
+      if (bb.limit() > 1 && bb.getShort(0) == -1) {
+        bb = Decryptor.decrypt(bb, 2);
       }
-      Decompiler decompiler = new Decompiler(new String(data), false);
+      Decompiler decompiler = new Decompiler(StreamUtils.readString(bb, bb.limit()), false);
       String script = decompiler.getSource();
-      PrintWriter pw = null;
-      try {
-        // Keep trying. File may be in use by another thread.
-        Writer w = tryOpenOutputWriter(output, 10, 100);
-        pw = new PrintWriterNI(w);
-        pw.println(script);
-      } catch (Exception e) {
-        e.printStackTrace();
-      } finally {
-        if (pw != null) {
-          pw.close();
-        }
-      }
-    }
-  }
-
-  private void decompressBamMos(ResourceEntry entry, File output) throws Exception
-  {
-    byte data[] = entry.getResourceData();
-    String signature = new String(data, 0, 4);
-    if (signature.equalsIgnoreCase("BAMC") || signature.equalsIgnoreCase("MOSC")) {
-      data = Compressor.decompress(data);
-    }
-    OutputStream os = null;
-    try {
       // Keep trying. File may be in use by another thread.
-      os = tryOpenOutputStream(output, 10, 100);
-      FileWriterNI.writeBytes(os, data);
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      if (os != null) {
-        os.close();
+      try (BufferedWriter bw = new BufferedWriter(tryOpenOutputWriter(output, 10, 100))) {
+        bw.write(script.replaceAll("\r?\n", Misc.LINE_SEPARATOR));
+        bw.newLine();
       }
     }
   }
 
-  private void decompressWav(ResourceEntry entry, File output) throws Exception
+  private void decompressBamMos(ResourceEntry entry, Path output) throws Exception
   {
-    byte[] buffer = AudioFactory.convertAudio(entry);
-    if (buffer != null) {
-      OutputStream os = null;
-      try {
-        // Keep trying. File may be in use by another thread.
-        os = tryOpenOutputStream(output, 10, 100);
-        FileWriterNI.writeBytes(os, buffer);
-      } catch (IOException e) {
-        e.printStackTrace();
-      } finally {
-        if (os != null) {
-          os.close();
-        }
-        buffer = null;
+    ByteBuffer bb = entry.getResourceBuffer();
+    if (bb.limit() > 0) {
+      String sig = StreamUtils.readString(bb, 4);
+      if (sig.equals("BAMC") || sig.equals("MOSC")) {
+        bb = Compressor.decompress(bb);
+      }
+      // Keep trying. File may be in use by another thread.
+      try (OutputStream os = tryOpenOutputStream(output, 10, 100)) {
+        StreamUtils.writeBytes(os, bb);
       }
     }
   }
 
-  private void mosToPng(ResourceEntry entry, File output) throws Exception
+  private void decompressWav(ResourceEntry entry, Path output) throws Exception
   {
-    if (entry != null && entry.getExtension().equalsIgnoreCase("MOS") && output != null) {
-      output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "PNG"));
-      if (output.exists() && !cbOverwrite.isSelected()) {
+    ByteBuffer buffer = StreamUtils.getByteBuffer(AudioFactory.convertAudio(entry));
+    if (buffer != null && buffer.limit() > 0) {
+      // Keep trying. File may be in use by another thread.
+      try (OutputStream os = tryOpenOutputStream(output, 10, 100)) {
+        StreamUtils.writeBytes(os, buffer);
+      }
+    }
+  }
+
+  private void mosToPng(ResourceEntry entry, Path output) throws Exception
+  {
+    if (entry != null && entry.getExtension().equalsIgnoreCase("MOS")) {
+      output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.toString(), "PNG"));
+      if (Files.exists(output) && !cbOverwrite.isSelected()) {
         return;
       }
 
@@ -447,7 +445,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         }
         RenderedImage image = ColorConvert.toBufferedImage(decoder.getImage(), true);
         try {
-          ImageIO.write(image, "png", output);
+          ImageIO.write(image, "png", output.toFile());
         } finally {
           image = null;
         }
@@ -457,11 +455,11 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     }
   }
 
-  private void pvrzToPng(ResourceEntry entry, File output) throws Exception
+  private void pvrzToPng(ResourceEntry entry, Path output) throws Exception
   {
-    if (entry != null && entry.getExtension().equalsIgnoreCase("PVRZ") && output != null) {
-      output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "PNG"));
-      if (output.exists() && !cbOverwrite.isSelected()) {
+    if (entry != null && entry.getExtension().equalsIgnoreCase("PVRZ")) {
+      output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.toString(), "PNG"));
+      if (Files.exists(output) && !cbOverwrite.isSelected()) {
         return;
       }
 
@@ -469,7 +467,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       if (decoder != null) {
         RenderedImage image = decoder.decode();
         try {
-          ImageIO.write(image, "png", output);
+          ImageIO.write(image, "png", output.toFile());
         } finally {
           image = null;
         }
@@ -479,11 +477,11 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     }
   }
 
-  private void tisToPng(ResourceEntry entry, File output) throws Exception
+  private void tisToPng(ResourceEntry entry, Path output) throws Exception
   {
-    if (entry != null && entry.getExtension().equalsIgnoreCase("TIS") && output != null) {
-      output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "PNG"));
-      if (output.exists() && !cbOverwrite.isSelected()) {
+    if (entry != null && entry.getExtension().equalsIgnoreCase("TIS")) {
+      output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.toString(), "PNG"));
+      if (Files.exists(output) && !cbOverwrite.isSelected()) {
         return;
       }
 
@@ -511,7 +509,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
             g.dispose();
             g = null;
           }
-          ImageIO.write(image, "png", output);
+          ImageIO.write(image, "png", output.toFile());
         } finally {
           tile = null;
           image = null;
@@ -522,42 +520,44 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     }
   }
 
-  private void extractBamFrames(ResourceEntry entry, File output) throws Exception
+  private void extractBamFrames(ResourceEntry entry, Path output) throws Exception
   {
     String format = (cbExtractFramesBAMFormat.getSelectedIndex() == 0) ? "png" : "bmp";
-    String filePath = output.getParent();
-    String fileName = output.getName();
+    Path filePath = output.getParent();
+    String fileName = output.getFileName().toString();
     int extIdx = fileName.lastIndexOf('.');
     String fileBase = (extIdx >= 0) ? fileName.substring(0, extIdx) : fileName;
     String fileExt = "." + format;
 
     // creating subfolder for frames
-    File dir = new FileNI(filePath, fileBase);
-    if (!dir.exists()) {
-      if (!dir.mkdir()) {
-        String msg = String.format("Error creating folder \"%1$s\". Skipping file \"%2$s\".",
+    Path path = filePath.resolve(fileBase);
+    if (!Files.exists(path)) {
+      try {
+        Files.createDirectory(path);
+      } catch (IOException e) {
+        String msg = String.format("Error creating folder \"%s\". Skipping file \"%s\".",
                                    fileBase, fileName);
         System.err.println(msg);
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Error", JOptionPane.ERROR_MESSAGE);
         return;
       }
-    } else if (!dir.isDirectory()) {
-      String msg = String.format("Folder \"%1$s\" can not be created. Skipping file \"%2$s\".",
+    } else if (!Files.isDirectory(path)) {
+      String msg = String.format("Folder \"%s\" can not be created. Skipping file \"%s\".",
                                  fileBase, fileName);
       System.err.println(msg);
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Error", JOptionPane.ERROR_MESSAGE);
       return;
     }
-    filePath = dir.getPath();
+    filePath = path;
 
     BamDecoder decoder = BamDecoder.loadBam(entry);
     BamResource.exportFrames(decoder, filePath, fileBase, fileExt, format, true);
   }
 
-  private void chrToCre(ResourceEntry entry, File output) throws Exception
+  private void chrToCre(ResourceEntry entry, Path output) throws Exception
   {
-    output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "CRE"));
-    if (output.exists() && !cbOverwrite.isSelected()) {
+    output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.toString(), "CRE"));
+    if (Files.exists(output) && !cbOverwrite.isSelected()) {
       return;
     }
     CreResource crefile = new CreResource(entry);
@@ -565,43 +565,25 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     while (!flatList.get(0).toString().equals("CRE ")) {
       flatList.remove(0);
     }
-    OutputStream os = null;
-    try {
-      // Keep trying. File may be in use by another thread.
-      os = tryOpenOutputStream(output, 10, 100);
+    // Keep trying. File may be in use by another thread.
+    try (OutputStream os = tryOpenOutputStream(output, 10, 100)) {
       for (int i = 0; i < flatList.size(); i++) {
         ((Writeable)flatList.get(i)).write(os);
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      if (os != null) {
-        os.close();
       }
     }
   }
 
-  private void exportResource(ResourceEntry entry, File output) throws Exception
+  private void exportResource(ResourceEntry entry, Path output) throws Exception
   {
     if (entry != null && output != null) {
-      InputStream is = null;
-      try {
-        is = entry.getResourceDataAsStream();
+      try (InputStream is = entry.getResourceDataAsStream()) {
         int[] info = entry.getResourceInfo();
         int size = info[0];
-        byte[] tileheader = null;
-        boolean isTis = false, isTisV2 = false;
-        if (entry.getExtension().equalsIgnoreCase("TIS")) {
-          isTis = true;
-          size *= info[1];
-          if (!entry.hasOverride()) {
-            tileheader = BIFFArchive.getTisHeader(info[0], info[1]);
-          } else {
-            tileheader = new byte[24];
-            is.read(tileheader);
-          }
-          isTisV2 = (DynamicArray.getInt(tileheader, 12) == 0x0c);
+        if (info.length > 1) {
+          size = size*info[1] + 0x18;
         }
+        boolean isTis = (info.length > 1);
+        boolean isTisV2 = isTis && (info[1] == 0x0c);
 
         if (isTis && cbConvertTisVersion.isSelected() &&
             isTisV2 == false && cbConvertTisList.getSelectedIndex() == 1) {
@@ -612,33 +594,13 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           TisResource tis = new TisResource(entry);
           tis.convertToPaletteTis(output, false);
         } else if (size >= 0) {
-          OutputStream os = null;
-          try {
-            // Keep trying. File may be in use by another thread.
-            os = tryOpenOutputStream(output, 10, 100);
-            if (tileheader != null) {
-              os.write(tileheader);
-            }
-            byte[] buffer = new byte[65536];
-            while (size > 0) {
-              int bytesRead = is.read(buffer, 0, Math.min(size, buffer.length));
-              if (bytesRead < 0) {
-                throw new EOFException();
-              }
-              os.write(buffer, 0, bytesRead);
-              size -= bytesRead;
-            }
-          } catch (Exception e) {
-            e.printStackTrace();
-          } finally {
-            if (os != null) {
-              os.close();
+          // Keep trying. File may be in use by another thread.
+          try (OutputStream os = tryOpenOutputStream(output, 10, 100)) {
+            int bytesWritten = (int)StreamUtils.writeBytes(os, is, size);
+            if (bytesWritten < size) {
+              throw new EOFException(entry.toString() + ": " + bytesWritten + " of " + size + " bytes written");
             }
           }
-        }
-      } finally {
-        if (is != null) {
-          is.close();
         }
       }
     }
@@ -648,9 +610,10 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private void export(ResourceEntry entry)
   {
     try {
-      File output = new FileNI(outputDir, entry.toString());
-      if (output.exists() && !cbOverwrite.isSelected())
+      Path output = outputPath.resolve(entry.toString());
+      if (Files.exists(output) && !cbOverwrite.isSelected()) {
         return;
+      }
       if ((entry.getExtension().equalsIgnoreCase("IDS") ||
            entry.getExtension().equalsIgnoreCase("2DA") ||
            entry.getExtension().equalsIgnoreCase("BIO") ||
@@ -699,8 +662,8 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         decompressWav(entry, output);
       }
       else if (entry.getExtension().equalsIgnoreCase("MVE") && cbExportMVEasAVI.isSelected()) {
-        output = new FileNI(outputDir, Misc.replaceFileExtension(entry.toString(), "avi"));
-        if (output.exists() && !cbOverwrite.isSelected()) {
+        output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.toString(), "avi"));
+        if (Files.exists(output) && !cbOverwrite.isSelected()) {
           return;
         }
         MveResource.convertAvi(entry, output, null, true);
@@ -709,12 +672,13 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         exportResource(entry, output);
       }
     } catch (Exception e) {
+      System.err.println("Error in resource: " + entry.toString());
       e.printStackTrace();
     }
   }
 
   // Attempts to open "output" as stream to the specified file "numAttempts' time with "delayAttempts" ms delay inbetween.
-  private OutputStream tryOpenOutputStream(File output, int numAttempts, int delayAttempts) throws Exception
+  private OutputStream tryOpenOutputStream(Path output, int numAttempts, int delayAttempts) throws Exception
   {
     if (output != null) {
       numAttempts = Math.max(1, numAttempts);
@@ -722,7 +686,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       OutputStream os = null;
       while (os == null) {
         try {
-          os = new BufferedOutputStream(new FileOutputStreamNI(output));
+          os = StreamUtils.getOutputStream(output, true);
         } catch (FileNotFoundException fnfe) {
           os = null;
           if (--numAttempts == 0) {
@@ -737,7 +701,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   }
 
   // Attempts to open "output" as writer to the specified file "numAttempts' time with "delayAttempts" ms delay inbetween.
-  private Writer tryOpenOutputWriter(File output, int numAttempts, int delayAttempts) throws Exception
+  private Writer tryOpenOutputWriter(Path output, int numAttempts, int delayAttempts) throws Exception
   {
     if (output != null) {
       numAttempts = Math.max(1, numAttempts);
@@ -745,7 +709,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       Writer w = null;
       while (w == null) {
         try {
-          w = new BufferedWriter(new FileWriterNI(output));
+          w = Files.newBufferedWriter(output);
         } catch (FileNotFoundException fnfe) {
           w = null;
           if (--numAttempts == 0) {

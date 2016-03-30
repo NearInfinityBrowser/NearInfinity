@@ -4,6 +4,8 @@
 
 package org.infinity.resource.are;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
@@ -18,6 +20,7 @@ import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.vertex.Vertex;
+import org.infinity.util.io.StreamUtils;
 
 public final class ITEPoint extends AbstractStruct implements AddRemovable, HasVertices, HasAddRemovable
 {
@@ -65,10 +68,10 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
 
   public ITEPoint() throws Exception
   {
-    super(null, ARE_TRIGGER, new byte[196], 0);
+    super(null, ARE_TRIGGER, StreamUtils.getByteBuffer(196), 0);
   }
 
-  public ITEPoint(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  public ITEPoint(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, ARE_TRIGGER + " " + number, buffer, offset);
   }
@@ -110,7 +113,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
 // --------------------- Begin Interface HasVertices ---------------------
 
   @Override
-  public void readVertices(byte buffer[], int offset) throws Exception
+  public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
     int firstVertex = ((DecNumber)getAttribute(ARE_TRIGGER_FIRST_VERTEX_INDEX)).getValue();
     int numVertices = ((DecNumber)getAttribute(ARE_TRIGGER_NUM_VERTICES)).getValue();
@@ -153,7 +156,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 32, ARE_TRIGGER_NAME));
     addField(new Bitmap(buffer, offset + 32, 2, ARE_TRIGGER_TYPE, s_type));

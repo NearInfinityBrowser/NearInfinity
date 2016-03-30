@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.Collections;
 
 import org.infinity.datatype.Bitmap;
@@ -19,6 +20,7 @@ import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnsignDecNumber;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.io.StreamUtils;
 
 final class Window extends AbstractStruct // implements AddRemovable
 {
@@ -41,10 +43,10 @@ final class Window extends AbstractStruct // implements AddRemovable
 
   Window() throws Exception
   {
-    super(null, CHU_WINDOW_PANEL, new byte[36], 0);
+    super(null, CHU_WINDOW_PANEL, StreamUtils.getByteBuffer(36), 0);
   }
 
-  Window(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  Window(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, CHU_WINDOW_PANEL + " " + nr, buffer, offset);
   }
@@ -123,7 +125,7 @@ final class Window extends AbstractStruct // implements AddRemovable
     return ((ResourceRef)getAttribute(CHU_WINDOW_BACKGROUND)).getResourceName();
   }
 
-  public int readControls(byte buffer[]) throws Exception
+  public int readControls(ByteBuffer buffer) throws Exception
   {
     int numctrl = (int)((UnsignDecNumber)getAttribute(CHU_WINDOW_NUM_CONTROLS)).getValue();
     int first = (int)((UnsignDecNumber)getAttribute(CHU_WINDOW_FIRST_CONTROL_INDEX)).getValue();
@@ -160,7 +162,7 @@ final class Window extends AbstractStruct // implements AddRemovable
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     if (getChu().getPanelSize() == 36) {
       addField(new TextString(buffer, offset, 8, CHU_WINDOW_NAME), 0);

@@ -18,7 +18,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -164,41 +165,40 @@ public final class GameProperties extends ChildFrame implements ActionListener
     String s;
 
     // Entry: game type
-    s = (String)Profile.getProperty(Profile.Key.GET_GAME_TITLE);
+    s = Profile.getProperty(Profile.Key.GET_GAME_TITLE);
     l = new JLabel("Game type:");
     tf = createReadOnlyField(s, true);
     listControls.add(new Pair<JComponent>(l, tf));
 
     // Entry: profile name
-    s = (String)Profile.getProperty(Profile.Key.GET_GAME_DESC);
+    s = Profile.getProperty(Profile.Key.GET_GAME_DESC);
     l = new JLabel("Profile name:");
     tf = createReadOnlyField((s != null) ? s : "n/a", true);
     listControls.add(new Pair<JComponent>(l, tf));
 
     // Entry: game folder
-    s = ((File)Profile.getProperty(Profile.Key.GET_GAME_ROOT_FOLDER)).toString();
+    s = (Profile.getGameRoot()).toString();
     l = new JLabel("Game folder:");
     tf = createReadOnlyField(s, true);
     listControls.add(new Pair<JComponent>(l, tf));
     if (Profile.isEnhancedEdition()) {
       // Entry: home folder
-      s = ((File)Profile.getProperty(Profile.Key.GET_GAME_HOME_FOLDER)).toString();
+      s = Profile.getHomeRoot().toString();
       l = new JLabel("Home folder:");
       tf = createReadOnlyField(s, true);
       listControls.add(new Pair<JComponent>(l, tf));
 
       // Entry: available languages
-      List<?> languages = (List<?>)Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE);
+      List<String> languages = Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE);
       StringBuilder sb = new StringBuilder();
-      s = ResourceFactory.autodetectGameLanguage((File)Profile.getProperty(Profile.Key.GET_GAME_INI_FILE));
+      s = ResourceFactory.autodetectGameLanguage(Profile.getProperty(Profile.Key.GET_GAME_INI_FILE));
       if (s != null) {
         sb.append(String.format("Autodetect (%1$s)", getLanguageName(s)));
       }
       if (languages != null) {
-        for (Iterator<?> iter = languages.iterator(); iter.hasNext();) {
-          s = (String)iter.next();
-          if (s != null && !s.isEmpty()) {
-            sb.append(String.format(", %1$s", getLanguageName(s)));
+        for (final String lang: languages) {
+          if (lang != null && !lang.isEmpty()) {
+            sb.append(String.format(", %1$s", getLanguageName(lang)));
           }
         }
       }
@@ -207,7 +207,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
       listControls.add(new Pair<JComponent>(l, tf));
 
       // Entry: language
-      s = getLanguageName((String)Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_NAME));
+      s = getLanguageName(Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_NAME));
       l = new JLabel("Current language:");
       tf = createReadOnlyField(s, true);
       listControls.add(new Pair<JComponent>(l, tf));
@@ -221,14 +221,14 @@ public final class GameProperties extends ChildFrame implements ActionListener
     // Entry: game's ini file
     l = new JLabel("Game's INI file:");
     JPanel pIni = new JPanel(new GridBagLayout());
-    File iniFile = (File)Profile.getProperty(Profile.Key.GET_GAME_INI_FILE);
+    Path iniFile = Profile.getProperty(Profile.Key.GET_GAME_INI_FILE);
     tf = createReadOnlyField(iniFile.toString(), true);
     gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pIni.add(tf, gbc);
     bEdit.setMargin(new Insets(2, 4, 2, 4));
     bEdit.addActionListener(this);
-    bEdit.setEnabled(iniFile.isFile());
+    bEdit.setEnabled(iniFile != null && Files.isRegularFile(iniFile));
     gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pIni.add(bEdit, gbc);

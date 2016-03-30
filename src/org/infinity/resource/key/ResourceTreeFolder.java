@@ -67,9 +67,12 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     folders.add(folder);
   }
 
-  public void addResourceEntry(ResourceEntry entry)
+  public void addResourceEntry(ResourceEntry entry, boolean overwrite)
   {
     if (entry.isVisible()) {
+      if (!overwrite && resourceEntries.contains(entry)) {
+        return;
+      }
       resourceEntries.add(entry);
     }
   }

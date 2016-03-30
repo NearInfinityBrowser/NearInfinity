@@ -4,6 +4,7 @@
 
 package org.infinity.search;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -18,8 +19,8 @@ import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
-import org.infinity.util.DynamicArray;
 import org.infinity.util.Pair;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * Stores a list of search options specified in SearchResource (Extended search) for use in the
@@ -517,8 +518,8 @@ public class SearchOptions
         if (entry instanceof IsTextual) {
           s2 = ((IsTextual)entry).getText();
         } else if (entry instanceof Unknown) {
-          byte[] buf = ((Unknown)entry).getData();
-          s2 = DynamicArray.getString(buf, 0, buf.length);
+          ByteBuffer buf = ((Unknown)entry).getData();
+          s2 = StreamUtils.readString(buf, 0, buf.limit());
         } else {
           return false;
         }

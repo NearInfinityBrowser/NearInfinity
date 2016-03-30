@@ -14,7 +14,6 @@ import org.infinity.resource.are.Container;
 
 /**
  * Manages container layer objects.
- * @author argent77
  */
 public class LayerContainer extends BasicLayer<LayerObjectContainer>
 {

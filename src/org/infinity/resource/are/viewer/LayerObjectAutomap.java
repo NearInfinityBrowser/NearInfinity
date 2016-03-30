@@ -6,7 +6,8 @@ package org.infinity.resource.are.viewer;
 
 import java.awt.Image;
 import java.awt.Point;
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
@@ -30,11 +31,10 @@ import org.infinity.resource.to.StringEntry;
 import org.infinity.resource.to.StringEntry2;
 import org.infinity.resource.to.TohResource;
 import org.infinity.resource.to.TotResource;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.FileManager;
 
 /**
  * Handles specific layer type: ARE/Automap Note (except for PST)
- * @author argent77
  */
 public class LayerObjectAutomap extends LayerObject
 {
@@ -128,12 +128,12 @@ public class LayerObjectAutomap extends LayerObject
           try {
             int srcStrref = ((StringRef)note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT)).getValue();
             if (srcStrref > 0) {
-              String path = getParentStructure().getResourceEntry().getActualFile().toString();
+              String path = getParentStructure().getResourceEntry().getActualPath().toString();
               path = path.replace(getParentStructure().getResourceEntry().getResourceName(), "");
               if (Profile.isEnhancedEdition()) {
                 // processing new TOH structure
-                File tohFile = new FileNI(path, "DEFAULT.TOH");
-                if (tohFile.exists()) {
+                Path tohFile = FileManager.resolve(path, "DEFAULT.TOH");
+                if (Files.exists(tohFile)) {
                   FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
                   TohResource toh = new TohResource(tohEntry);
                   SectionOffset so = (SectionOffset)toh.getAttribute(TohResource.TOH_OFFSET_ENTRIES);
@@ -158,9 +158,9 @@ public class LayerObjectAutomap extends LayerObject
                 }
               } else {
                 // processing legacy TOH/TOT structures
-                File tohFile = new FileNI(path, "DEFAULT.TOH");
-                File totFile = new FileNI(path, "DEFAULT.TOT");
-                if (tohFile.exists() && totFile.exists()) {
+                Path tohFile = FileManager.resolve(path, "DEFAULT.TOH");
+                Path totFile = FileManager.resolve(path, "DEFAULT.TOT");
+                if (Files.exists(tohFile) && Files.exists(totFile)) {
                   FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
                   FileResourceEntry totEntry = new FileResourceEntry(totFile);
                   TohResource toh = new TohResource(tohEntry);

@@ -9,7 +9,6 @@ import org.infinity.util.DynamicArray;
 
 /**
  * Decodes ACM encoded audio data into uncompressed PCM WAV audio data.
- * @author argent77
  */
 public class AcmBuffer extends AudioBuffer
 {

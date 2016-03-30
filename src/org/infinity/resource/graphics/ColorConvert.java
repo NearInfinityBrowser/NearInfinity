@@ -17,10 +17,10 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.IndexColorModel;
 import java.awt.image.VolatileImage;
 import java.awt.image.WritableRaster;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -33,12 +33,10 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
 import org.infinity.util.DynamicArray;
-import org.infinity.util.io.FileInputStreamNI;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.StreamUtils;
 
 /**
  * Contains a set of color-related static methods (little endian order only).
- * @author argent77
  */
 public class ColorConvert
 {
@@ -187,11 +185,10 @@ public class ColorConvert
    * @param fileName The image filename.
    * @return The image dimensions.
    */
-  public static Dimension getImageDimension(String fileName)
+  public static Dimension getImageDimension(Path fileName)
   {
     Dimension d = new Dimension();
-    try {
-      ImageInputStream iis = ImageIO.createImageInputStream(new FileNI(fileName));
+    try (ImageInputStream iis = ImageIO.createImageInputStream(StreamUtils.getInputStream(fileName))) {
       final Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
       if (readers.hasNext()) {
         ImageReader reader = readers.next();
@@ -203,7 +200,6 @@ public class ColorConvert
           reader.dispose();
         }
       }
-      iis.close();
     } catch (Exception e) {
       d.width = d.height = 0;
     }
@@ -428,50 +424,41 @@ public class ColorConvert
    * @return The palette as ARGB integers.
    * @throws Exception on error.
    */
-  public static int[] loadPaletteBMP(File file) throws Exception
+  public static int[] loadPaletteBMP(Path file) throws Exception
   {
-    if (file != null && file.exists()) {
-      FileInputStream fis = null;
-      try {
-        fis = new FileInputStreamNI(file);
-        try {
-          byte[] signature = new byte[8];
-          fis.read(signature);
-          if ("BM".equals(new String(signature, 0, 2, Charset.forName("US-ASCII")))) {
-            // extracting palette from BMP file
-            byte[] header = new byte[54];
-            System.arraycopy(signature, 0, header, 0, signature.length);
-            fis.read(header, signature.length, header.length - signature.length);
-            if (DynamicArray.getInt(header, 0x0e) == 0x28 &&      // correct BMP header size
-                DynamicArray.getInt(header, 0x12) > 0 &&          // valid width
-                DynamicArray.getInt(header, 0x16) > 0 &&          // valid height
-                (DynamicArray.getShort(header, 0x1c) == 4 ||      // either 4bpp
-                 DynamicArray.getInt(header, 0x1c) == 8) &&       // or 8bpp
-                DynamicArray.getInt(header, 0x1e) == 0) {         // no special encoding
-              int bpp = DynamicArray.getUnsignedShort(header, 0x1c);
-              int colorCount = 1 << bpp;
-              byte[] palette = new byte[colorCount*4];
-              fis.read(palette);
-              int[] retVal = new int[colorCount];
-              for (int i =0; i < colorCount; i++) {
-                retVal[i] = DynamicArray.getInt(palette, i << 2) & 0x00ffffff;
-              }
-              return retVal;
-            } else {
-              throw new Exception("Error loading palette from BMP file " + file.getName());
+    if (file != null && Files.isRegularFile(file)) {
+      try (InputStream is = StreamUtils.getInputStream(file)) {
+        byte[] signature = new byte[8];
+        is.read(signature);
+        if ("BM".equals(new String(signature, 0, 2))) {
+          // extracting palette from BMP file
+          byte[] header = new byte[54];
+          System.arraycopy(signature, 0, header, 0, signature.length);
+          is.read(header, signature.length, header.length - signature.length);
+          if (DynamicArray.getInt(header, 0x0e) == 0x28 &&      // correct BMP header size
+              DynamicArray.getInt(header, 0x12) > 0 &&          // valid width
+              DynamicArray.getInt(header, 0x16) > 0 &&          // valid height
+              (DynamicArray.getShort(header, 0x1c) == 4 ||      // either 4bpp
+               DynamicArray.getInt(header, 0x1c) == 8) &&       // or 8bpp
+              DynamicArray.getInt(header, 0x1e) == 0) {         // no special encoding
+            int bpp = DynamicArray.getUnsignedShort(header, 0x1c);
+            int colorCount = 1 << bpp;
+            byte[] palette = new byte[colorCount*4];
+            is.read(palette);
+            int[] retVal = new int[colorCount];
+            for (int i =0; i < colorCount; i++) {
+              retVal[i] = DynamicArray.getInt(palette, i << 2) & 0x00ffffff;
             }
+            return retVal;
           } else {
-            throw new Exception("Invalid BMP file " + file.getName());
+            throw new Exception("Error loading palette from BMP file " + file.getFileName());
           }
-        } finally {
-          if (fis != null) {
-            fis.close();
-            fis = null;
-          }
+        } else {
+          throw new Exception("Invalid BMP file " + file.getFileName());
         }
       } catch (IOException e) {
         e.printStackTrace();
-        throw new Exception("Unable to read BMP file " + file.getName());
+        throw new Exception("Unable to read BMP file " + file.getFileName());
       }
     } else {
       throw new Exception("File does not exist.");
@@ -484,51 +471,41 @@ public class ColorConvert
    * @return The palette as ARGB integers.
    * @throws Exception on error.
    */
-  public static int[] loadPalettePAL(File file) throws Exception
+  public static int[] loadPalettePAL(Path file) throws Exception
   {
-    if (file != null && file.exists()) {
-      FileInputStream fis = null;
-      try {
-        fis = new FileInputStreamNI(file);
-        try {
-          byte[] signature = new byte[8];
-          fis.read(signature);
-          if ("RIFF".equals(new String(signature, 0, 4, Charset.forName("US-ASCII")))) {
-            // extracting palette from Windows palette file
-            byte[] signature2 = new byte[8];
-            fis.read(signature2);
-            if ("PAL data".equals(new String(signature2, Charset.forName("US-ASCII")))) {
-              byte[] header = new byte[8];
-              fis.read(header);
-              int numColors = DynamicArray.getUnsignedShort(header, 6);
-              if (numColors >= 2 && numColors <= 256) {
-                byte[] palData = new byte[numColors << 2];
-                fis.read(palData);
-                int[] retVal = new int[numColors];
-                for (int i = 0; i < numColors; i++) {
-                  int col = DynamicArray.getInt(palData, i << 2);
-                  retVal[i] = ((col << 16) & 0xff0000) | (col & 0x00ff00) | ((col >> 16) & 0x0000ff);
-                }
-                return retVal;
-              } else {
-                throw new Exception("Invalid number of color entries in Windows palette file " + file.getName());
+    if (file != null && Files.isRegularFile(file)) {
+      try (InputStream is = StreamUtils.getInputStream(file)) {
+        byte[] signature = new byte[8];
+        is.read(signature);
+        if ("RIFF".equals(new String(signature, 0, 4))) {
+          // extracting palette from Windows palette file
+          byte[] signature2 = new byte[8];
+          is.read(signature2);
+          if ("PAL data".equals(new String(signature2))) {
+            byte[] header = new byte[8];
+            is.read(header);
+            int numColors = DynamicArray.getUnsignedShort(header, 6);
+            if (numColors >= 2 && numColors <= 256) {
+              byte[] palData = new byte[numColors << 2];
+              is.read(palData);
+              int[] retVal = new int[numColors];
+              for (int i = 0; i < numColors; i++) {
+                int col = DynamicArray.getInt(palData, i << 2);
+                retVal[i] = ((col << 16) & 0xff0000) | (col & 0x00ff00) | ((col >> 16) & 0x0000ff);
               }
+              return retVal;
             } else {
-              throw new Exception("Error loading palette from Windows palette file " + file.getName());
+              throw new Exception("Invalid number of color entries in Windows palette file " + file.getFileName());
             }
           } else {
-            throw new Exception("Invalid Windows palette file " + file.getName());
+            throw new Exception("Error loading palette from Windows palette file " + file.getFileName());
           }
-
-        } finally {
-          if (fis != null) {
-            fis.close();
-            fis = null;
-          }
+        } else {
+          throw new Exception("Invalid Windows palette file " + file.getFileName());
         }
       } catch (IOException e) {
         e.printStackTrace();
-        throw new Exception("Unable to read Windows palette file " + file.getName());
+        throw new Exception("Unable to read Windows palette file " + file.getFileName());
       }
     } else {
       throw new Exception("File does not exist.");
@@ -541,35 +518,26 @@ public class ColorConvert
    * @return The palette as ARGB integers.
    * @throws Exception on error.
    */
-  public static int[] loadPaletteACT(File file) throws Exception
+  public static int[] loadPaletteACT(Path file) throws Exception
   {
-    if (file != null && file.exists()) {
-      FileInputStream fis = null;
-      try {
-        fis = new FileInputStreamNI(file);
-        try {
-          int size = (int)file.length();
-          if (size == 768) {
-            byte[] palData = new byte[size];
-            fis.read(palData);
-            int count = size / 3;
-            int[] retVal = new int[count];
-            for (int ofs = 0, i = 0; i < count; i++, ofs += 3) {
-              retVal[i] = ((palData[ofs] & 0xff) << 16) | ((palData[ofs+1] & 0xff) << 8) | (palData[ofs+2] & 0xff);
-            }
-            return retVal;
-          } else {
-            throw new Exception("Invalid Adobe Photoshop palette file " + file.getName());
+    if (file != null && Files.isRegularFile(file)) {
+      try (InputStream is = StreamUtils.getInputStream(file)) {
+        int size = (int)Files.size(file);
+        if (size == 768) {
+          byte[] palData = new byte[size];
+          is.read(palData);
+          int count = size / 3;
+          int[] retVal = new int[count];
+          for (int ofs = 0, i = 0; i < count; i++, ofs += 3) {
+            retVal[i] = ((palData[ofs] & 0xff) << 16) | ((palData[ofs+1] & 0xff) << 8) | (palData[ofs+2] & 0xff);
           }
-        } finally {
-          if (fis != null) {
-            fis.close();
-            fis = null;
-          }
+          return retVal;
+        } else {
+          throw new Exception("Invalid Adobe Photoshop palette file " + file.getFileName());
         }
       } catch (IOException e) {
         e.printStackTrace();
-        throw new Exception("Unable to read Adobe Photoshop palette file " + file.getName());
+        throw new Exception("Unable to read Adobe Photoshop palette file " + file.getFileName());
       }
     } else {
       throw new Exception("File does not exist.");
@@ -582,46 +550,37 @@ public class ColorConvert
    * @return The palette as ARGB integers.
    * @throws Exception on error.
    */
-  public static int[] loadPaletteBAM(File file) throws Exception
+  public static int[] loadPaletteBAM(Path file) throws Exception
   {
-    if (file != null && file.exists()) {
-      FileInputStream fis = null;
-      try {
-        fis = new FileInputStreamNI(file);
-        try {
-          byte[] signature = new byte[8];
-          fis.read(signature);
-          String s = new String(signature, Charset.forName("US-ASCII"));
-          if ("BAM V1  ".equals(s) || "BAMCV1  ".equals(s)) {
-            byte[] bamData = new byte[(int)file.length()];
-            System.arraycopy(signature, 0, bamData, 0, signature.length);
-            fis.read(bamData, signature.length, bamData.length - signature.length);
-            if ("BAMCV1  ".equals(s)) {
-              bamData = Compressor.decompress(bamData);
+    if (file != null && Files.isRegularFile(file)) {
+      try (InputStream is = StreamUtils.getInputStream(file)) {
+        byte[] signature = new byte[8];
+        is.read(signature);
+        String s = new String(signature);
+        if ("BAM V1  ".equals(s) || "BAMCV1  ".equals(s)) {
+          byte[] bamData = new byte[(int)Files.size(file)];
+          System.arraycopy(signature, 0, bamData, 0, signature.length);
+          is.read(bamData, signature.length, bamData.length - signature.length);
+          if ("BAMCV1  ".equals(s)) {
+            bamData = Compressor.decompress(bamData);
+          }
+          // extracting palette from BAM v1 file
+          int ofs = DynamicArray.getInt(bamData, 0x10);
+          if (ofs >= 0x18 && ofs < bamData.length - 1024) {
+            int[] retVal = new int[256];
+            for (int i = 0; i < 256; i++) {
+              retVal[i] = DynamicArray.getInt(bamData, ofs+(i << 2)) & 0x00ffffff;
             }
-            // extracting palette from BAM v1 file
-            int ofs = DynamicArray.getInt(bamData, 0x10);
-            if (ofs >= 0x18 && ofs < bamData.length - 1024) {
-              int[] retVal = new int[256];
-              for (int i = 0; i < 256; i++) {
-                retVal[i] = DynamicArray.getInt(bamData, ofs+(i << 2)) & 0x00ffffff;
-              }
-              return retVal;
-            } else {
-              throw new Exception("Error loading palette from BAM file " + file.getName());
-            }
+            return retVal;
           } else {
-            throw new Exception("Unsupport file type.");
+            throw new Exception("Error loading palette from BAM file " + file.getFileName());
           }
-        } finally {
-          if (fis != null) {
-            fis.close();
-            fis = null;
-          }
+        } else {
+          throw new Exception("Unsupport file type.");
         }
       } catch (IOException e) {
         e.printStackTrace();
-        throw new Exception("Unable to read BAM file " + file.getName());
+        throw new Exception("Unable to read BAM file " + file.getFileName());
       }
     } else {
       throw new Exception("File does not exist.");

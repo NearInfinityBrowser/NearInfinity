@@ -6,6 +6,7 @@ package org.infinity.resource.dlg;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import javax.swing.JComponent;
 import javax.swing.event.ChangeEvent;
@@ -190,7 +191,7 @@ public final class DlgResource extends AbstractStruct
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     TextString version = new TextString(buffer, offset + 4, 4, COMMON_VERSION);

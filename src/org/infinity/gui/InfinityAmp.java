@@ -12,9 +12,9 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -38,6 +38,7 @@ import org.infinity.resource.mus.Entry;
 import org.infinity.resource.sound.AudioBuffer;
 import org.infinity.resource.sound.AudioPlayer;
 import org.infinity.util.SimpleListModel;
+import org.infinity.util.io.StreamUtils;
 
 public final class InfinityAmp extends ChildFrame
                                 implements ActionListener, ListSelectionListener, Runnable, Closeable
@@ -262,12 +263,14 @@ public void run()
  private void playMus(ResourceEntry musEntry)
  {
    try {
-     StringTokenizer tokenizer = new StringTokenizer(new String(musEntry.getResourceData()), "\r\n");
-     String dir = tokenizer.nextToken().trim();
-     int count = Integer.valueOf(tokenizer.nextToken().trim()).intValue();
+     ByteBuffer bb = musEntry.getResourceBuffer();
+     String[] lines = StreamUtils.readString(bb, bb.limit()).split("\r?\n");
+     int idx = 0;
+     String dir = lines[idx++].trim();
+     int count = Integer.parseInt(lines[idx++].trim());
      entryList.clear();
      for (int i = 0; i < count; i++) {
-       entryList.add(new Entry(musEntry, dir, entryList, tokenizer.nextToken().trim(), i));
+       entryList.add(new Entry(musEntry, dir, entryList, lines[idx++].trim(), i));
      }
      for (final Entry entry : entryList) {
        entry.init();

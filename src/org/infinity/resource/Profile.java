@@ -4,20 +4,20 @@
 
 package org.infinity.resource;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
 import org.infinity.NearInfinity;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.FileManager;
 
 /**
  * Provides engine- and game-specific properties of the currently opened Infinity Engine game.<br>
@@ -37,8 +37,8 @@ public final class Profile
     STRING,
     /** Property data is of type {@link java.util.List}. */
     LIST,
-    /** Property data is of type {@link java.io.File}. */
-    FILE,
+    /** Property data is of type {@link java.nio.file.Path}. */
+    PATH,
     /** Property data is of any custom data type. */
     OBJECT,
   }
@@ -110,6 +110,8 @@ public final class Profile
     GET_GLOBAL_GAMES,
     /** Property: ({@code String}) The name of the override folder ("{@code Override}"). */
     GET_GLOBAL_OVERRIDE_NAME,
+    /** Property: ({@code String}) The name of the parent language folder in Enhanced Edition games ("{@code Lang}"). */
+    GET_GLOBAL_LANG_NAME,
     /** Property: ({@code String}) Returns "{@code dialog.tlk}". */
     GET_GLOBAL_DIALOG_NAME,
     /** Property: ({@code String}) Returns "{@code dialogf.tlk}". */
@@ -120,10 +122,10 @@ public final class Profile
     GET_GLOBAL_GAME_TITLE,
     /** Property: ({@code List<String>}) Returns a list of extra folders for the specified game.
      *            Extra parameter: Desired {@link Game}. */
-    GET_GLOBAL_EXTRA_FOLDERS,
+    GET_GLOBAL_EXTRA_FOLDER_NAMES,
     /** Property: ({@code String}) Returns the game's home folder name.
      *            Extra parameter: Desired <em>Enhanced Edition</em> {@link Game}. */
-    GET_GLOBAL_HOME_FOLDER,
+    GET_GLOBAL_HOME_FOLDER_NAME,
 
     // Properties set at runtime
     /** Property: ({@link Game}) Game identifier. */
@@ -139,26 +141,32 @@ public final class Profile
     /** Property: ({@code List<String>}) List of available languages as language code
      *            for the current game. (Enhanced Editions only) */
     GET_GAME_LANG_FOLDER_NAMES_AVAILABLE,
-    /** Property: ({@code List<File>}) List of valid root folder, sorted by priority in descending order. */
-    GET_GAME_FOLDERS,
-    /** Property: ({@code File}) Game's root folder. */
+    /** Property: ({@code List<Path>}) List of valid root folder, sorted by priority in descending order. */
+    GET_GAME_ROOT_FOLDERS_AVAILABLE,
+    /** Property: ({@code Path}) Game's root folder. */
     GET_GAME_ROOT_FOLDER,
-    /** Property: ({@code File}) Game's home folder. (Enhanced Editions only) */
+    /** Property: ({@code List<Path>}) List of available DLC root folders. (Enhanced Editions only) */
+    GET_GAME_DLC_FOLDERS_AVAILABLE,
+    /** Property: ({@code Path}) Game's home folder. (Enhanced Editions only) */
     GET_GAME_HOME_FOLDER,
-    /** Property: ({@code File}) Game's language folder. (Enhanced Editions only) */
+    /** Property: ({@code Path}) Game's language folder. (Enhanced Editions only) */
     GET_GAME_LANG_FOLDER,
-    /** Property: ({@code List<File>}) List of available game language folders. (Enhanced Editions only) */
+    /** Property: ({@code List<Path>}) List of available game language folders. (Enhanced Editions only) */
     GET_GAME_LANG_FOLDERS_AVAILABLE,
-    /** Property: ({@code File}) Game's language root folder (where the actual language subfolder reside).
+    /** Property: ({@code Path}) Game's language root folder (where the actual language subfolder reside).
      *            (Enhanced Editions only) */
     GET_GAME_LANG_FOLDER_BASE,
-    /** Property: ({@code List<File>}) List of override folders to search for game resources,
+    /** Property: ({@code List<Path>}) List of override folders to search for game resources,
      *            sorted by priority in ascending order. */
     GET_GAME_OVERRIDE_FOLDERS,
-    /** Property: ({@code List<String>}) List of extra folders containing game-related resources,
+    /** Property: ({@code List<String>}) List of extra folder names containing game-related resources,
      *            sorted alphabetically in ascending order. */
+    GET_GAME_EXTRA_FOLDER_NAMES,
+    /** Property: ({@code List<Path>}) List of extra folders containing game-related resources,
+     *            sorted by root folder priority (in descending order) and
+     *            alphabetically in ascending order. */
     GET_GAME_EXTRA_FOLDERS,
-    /** Property: ({@code File}) The game's chitin.key. */
+    /** Property: ({@code Path}) The game's chitin.key. */
     GET_GAME_CHITIN_KEY,
     /** Property: ({@code String}) Title of the game. */
     GET_GAME_TITLE,
@@ -167,14 +175,14 @@ public final class Profile
     GET_GAME_DESC,
     /** Property: ({@code String}) Name of the game's ini file. */
     GET_GAME_INI_NAME,
-    /** Property: ({@code File}) Path of the game's ini file. */
+    /** Property: ({@code Path}) Path of the game's ini file. */
     GET_GAME_INI_FILE,
-    /** Property: ({@code File}) Path to the currently selected {@code dialog.tlk}. */
+    /** Property: ({@code Path}) Path to the currently selected {@code dialog.tlk}. */
     GET_GAME_DIALOG_FILE,
-    /** Property: ({@code File}) Path to the currently selected female {@code dialogf.tlk}.
+    /** Property: ({@code Path}) Path to the currently selected female {@code dialogf.tlk}.
      *            Returns {@code null} if the language does not require a dialogf.tlk. */
     GET_GAME_DIALOGF_FILE,
-    /** Property: ({@code List<File>}) Unsorted list of extra folders containing BIFF archives.
+    /** Property: ({@code List<Path>}) Unsorted list of extra folders containing BIFF archives.
      *            (Non-Enhanced Editions only) */
     GET_GAME_BIFF_FOLDERS,
     /** Property: ({@code Boolean}) Is game an Enhanced Edition game? */
@@ -377,9 +385,9 @@ public final class Profile
 
     // initializing extra folders for each supported game
     final String[] PST_EXTRA_FOLDERS = { "Music", "Save", "Temp" };
-    final String[] BG_EXTRA_FOLDERS = { "Characters", "MPSave", "Music", "Portraits", "Save", "Screenshots",
+    final String[] BG_EXTRA_FOLDERS = { "Characters", "MPSave", "Music", "Portraits", "Save",
                                         "Scripts", "ScrnShot", "Sounds", "Temp", "TempSave" };
-    final String[] EE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "Movies", "MPSave", "MPBPSave",
+    final String[] EE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "Movies", "MPBPSave", "MPSave",
                                         "MPSODSave", "Music", "Portraits", "Save", "Sounds", "ScrnShot",
                                         "Scripts", "SODSave", "Temp", "TempSave" };
     GAME_EXTRA_FOLDERS.put(Game.Unknown, Arrays.asList(BG_EXTRA_FOLDERS));
@@ -432,7 +440,7 @@ public final class Profile
    * @param keyFile Full path to the chitin.key of the opened game.
    * @return {@code true} if the game has been initialized successfully, {@code false} otherwise.
    */
-  public static boolean openGame(File keyFile)
+  public static boolean openGame(Path keyFile)
   {
     return openGame(keyFile, null);
   }
@@ -443,7 +451,7 @@ public final class Profile
    * @param desc An optional description associated with the game.
    * @return {@code true} if the game has been initialized successfully, {@code false} otherwise.
    */
-  public static boolean openGame(File keyFile, String desc)
+  public static boolean openGame(Path keyFile, String desc)
   {
     try {
       closeGame();
@@ -495,7 +503,7 @@ public final class Profile
    * @param key The unique key identifying the property.
    * @return The data of the property, or {@code null} if not available.
    */
-  public static Object getProperty(Key key)
+  public static <T> T getProperty(Key key)
   {
     return getProperty(key, null);
   }
@@ -507,7 +515,7 @@ public final class Profile
    *              Specify {@code null} to always return the parent structure of the property.
    * @return The data of the property, or {@code null} if not available.
    */
-  public static Object getProperty(Key key, Object param)
+  public static <T> T getProperty(Key key, Object param)
   {
     Property prop = getEntry(key);
     if (prop != null) {
@@ -515,20 +523,14 @@ public final class Profile
         return prop.getData();
       } else {
         // handling properties which require an additional parameter
+        EnumMap<?, T> map = null;
         switch (key) {
           case GET_GLOBAL_GAME_TITLE:
+          case GET_GLOBAL_EXTRA_FOLDER_NAMES:
+          case GET_GLOBAL_HOME_FOLDER_NAME:
             if (param instanceof Game) {
-              return ((EnumMap<?, ?>)prop.getData()).get(param);
-            }
-            break;
-          case GET_GLOBAL_EXTRA_FOLDERS:
-            if (param instanceof Game) {
-              return ((EnumMap<?, ?>)prop.getData()).get(param);
-            }
-            break;
-          case GET_GLOBAL_HOME_FOLDER:
-            if (param instanceof Game) {
-              return ((EnumMap<?, ?>)prop.getData()).get(param);
+              map = prop.getData();
+              return map.get(param);
             }
             break;
           default:
@@ -585,7 +587,7 @@ public final class Profile
    */
   public static String getOverrideFolderName()
   {
-    return (String)getProperty(Key.GET_GLOBAL_OVERRIDE_NAME);
+    return getProperty(Key.GET_GLOBAL_OVERRIDE_NAME);
   }
 
   /**
@@ -620,61 +622,80 @@ public final class Profile
 
   /**
    * Returns the game's root folder.
-   * @return The game's root folder as File object.
+   * @return The game's root folder as {@link Path} object.
    */
-  public static File getGameRoot()
+  public static Path getGameRoot()
   {
-    return (File)getProperty(Key.GET_GAME_ROOT_FOLDER);
+    return getProperty(Key.GET_GAME_ROOT_FOLDER);
   }
 
   /**
    * Returns the game's home folder. A Non-enhanced Edition game will always return the game's
    * root folder instead.
-   * @return The game's home folder as File object.
+   * @return The game's home folder as {@link Path} object.
    */
-  public static File getHomeRoot()
+  public static Path getHomeRoot()
   {
     Object ret = getProperty(Key.GET_GAME_HOME_FOLDER);
-    return (ret instanceof File) ? (File)ret : getGameRoot();
+    return (ret instanceof Path) ? (Path)ret : getGameRoot();
   }
 
   /**
-   * Returns the game's language folder (where the dialog.tlk is located).
+   * Returns the game's language folder (where the effective dialog.tlk is located).
    * A Non-enhanced Edition game will always return the game's root folder instead.
-   * @return The game's language folder as File object.
+   * @return The game's effective language folder as @{link Path} object.
    */
-  public static File getLanguageRoot()
+  public static Path getLanguageRoot()
   {
     Object ret = getProperty(Key.GET_GAME_LANG_FOLDER);
-    return (ret instanceof File) ? (File)ret : getGameRoot();
+    return (ret instanceof Path) ? (Path)ret : getGameRoot();
   }
 
   /**
-   * Returns all available root folders of the game as a list of File objects
-   * (which includes the home and language root for Enhanced Edition games).
-   * @return A list of File objects specifying the game's root folders.
+   * Returns all available root folders of the game as a list of {@link Path} objects, sorted by
+   * priority in descending order.
+   * (which includes the home, language and optional DLC roots for Enhanced Edition games).
+   * @return A list of {@code Path} objects specifying the game's root folders.
    */
-  @SuppressWarnings("unchecked")
-  public static List<File> getRootFolders()
+  public static List<Path> getRootFolders()
   {
-    List<?> ret = (List<?>)getProperty(Key.GET_GAME_FOLDERS);
-    if (ret instanceof List) {
-      return (List<File>)ret;
-    } else {
-      List<File> list = new ArrayList<File>();
-      list.add(getGameRoot());
-      return list;
+    return getProperty(Key.GET_GAME_ROOT_FOLDERS_AVAILABLE);
+  }
+
+  /**
+   * Returns a list of override folders supported by the current game, sorted by priority
+   * in ascending order.
+   * @param includeExtraFolders Whether to include extra folders that are treated
+   *                            as override folders by the current game.
+   * @return List of {@link Path} objects for all available override folders.
+   */
+  public static List<Path> getOverrideFolders(boolean includeExtraFolders)
+  {
+    List<Path> ret = getProperty(Key.GET_GAME_OVERRIDE_FOLDERS);
+    if (ret != null && !includeExtraFolders) {
+      String overrideName = getProperty(Key.GET_GLOBAL_OVERRIDE_NAME);
+      List<Path> overrides = new ArrayList<>();
+      for (final Path path: ret) {
+        if (path.getFileName().toString().equalsIgnoreCase(overrideName)) {
+          overrides.add(path);
+        }
+      }
+      ret = overrides;
     }
+    if (ret == null) {
+      ret = new ArrayList<>();
+    }
+    return ret;
   }
 
   /**
    * Returns the full path to the chitin.key of the currently open game.
-   * @return The full path of the chitin.key as File object.
+   * @return The full path of the chitin.key as {@link Path} object.
    */
-  public static File getChitinKey()
+  public static Path getChitinKey()
   {
     Object ret = getProperty(Key.GET_GAME_CHITIN_KEY);
-    return (ret instanceof File) ? (File)ret : null;
+    return (ret instanceof Path) ? (Path)ret : null;
   }
 
   /**
@@ -685,21 +706,20 @@ public final class Profile
   public static boolean updateGameLanguage(String language)
   {
     if (isEnhancedEdition() && language != null) {
-      List<?> languages = (List<?>)getProperty(Key.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE);
-      for (Iterator<?> iter = languages.iterator(); iter.hasNext();) {
-        String curLang = (String)iter.next();
+      List<String> languages = getProperty(Key.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE);
+      for (final String curLang: languages) {
         if (curLang.equalsIgnoreCase(language)) {
           instance.initRootDirs();
           instance.initOverrides();
           // updating language names and folders
           updateProperty(Key.GET_GAME_LANG_FOLDER_NAME, curLang);
-          File langPath = new FileNI((File)getProperty(Key.GET_GAME_LANG_FOLDER_BASE), curLang);
+          Path langPath = FileManager.query((Path)getProperty(Key.GET_GAME_LANG_FOLDER_BASE), curLang);
           updateProperty(Key.GET_GAME_LANG_FOLDER, langPath);
           // updating dialog.tlks
-          updateProperty(Key.GET_GAME_DIALOG_FILE, new FileNI(langPath, (String)getProperty(Key.GET_GLOBAL_DIALOG_NAME)));
-          File femaleTlkFile = new FileNI(langPath, (String)getProperty(Key.GET_GLOBAL_DIALOG_NAME_FEMALE));
-          if (femaleTlkFile.isFile()) {
-            addProperty(Key.GET_GAME_DIALOGF_FILE, Type.FILE, femaleTlkFile);
+          updateProperty(Key.GET_GAME_DIALOG_FILE, FileManager.query(langPath, getProperty(Key.GET_GLOBAL_DIALOG_NAME)));
+          Path femaleTlkFile = FileManager.query(langPath, getProperty(Key.GET_GLOBAL_DIALOG_NAME_FEMALE));
+          if (Files.isRegularFile(femaleTlkFile)) {
+            addProperty(Key.GET_GAME_DIALOGF_FILE, Type.PATH, femaleTlkFile);
           } else {
             updateProperty(Key.GET_GAME_DIALOGF_FILE, null);
           }
@@ -888,8 +908,8 @@ public final class Profile
     }
     addEntry(Key.GET_GLOBAL_GAMES, Type.LIST, gameList);
     addEntry(Key.GET_GLOBAL_GAME_TITLE, Type.STRING, GAME_TITLE);
-    addEntry(Key.GET_GLOBAL_EXTRA_FOLDERS, Type.LIST, GAME_EXTRA_FOLDERS);
-    addEntry(Key.GET_GLOBAL_HOME_FOLDER, Type.STRING, GAME_HOME_FOLDER);
+    addEntry(Key.GET_GLOBAL_EXTRA_FOLDER_NAMES, Type.LIST, GAME_EXTRA_FOLDERS);
+    addEntry(Key.GET_GLOBAL_HOME_FOLDER_NAME, Type.STRING, GAME_HOME_FOLDER);
 
     // setting default override folder name
     addEntry(Key.GET_GLOBAL_OVERRIDE_NAME, Type.STRING, "Override");
@@ -902,9 +922,9 @@ public final class Profile
   // Attempts to determine home folder name from the game's "engine.lua" file if available
   private static String getLuaHomeFolderName(Game game)
   {
-    File gameRoot = (File)getProperty(Key.GET_GAME_ROOT_FOLDER);
+    Path gameRoot = getGameRoot();
     if (gameRoot != null) {
-      File lua = new FileNI(gameRoot, "engine.lua");
+      Path lua = FileManager.queryExisting(gameRoot, "engine.lua");
       String name = getLuaValue(lua, "engine_name", "Infinity Engine - Enhanced Edition", true);
       if (name != null) {
         return name.replace('"', ' ').trim();
@@ -919,12 +939,12 @@ public final class Profile
   }
 
   // Returns the value of the Lua script entry specified by key
-  private static String getLuaValue(File file, String key, String defaultValue, boolean ifLuaExists)
+  private static String getLuaValue(Path file, String key, String defaultValue, boolean ifLuaExists)
   {
     String retVal = ifLuaExists ? null : defaultValue;
-    if (file != null && file.isFile() && key != null && !key.trim().isEmpty()) {
+    if (file != null && Files.isRegularFile(file) && key != null && !key.trim().isEmpty()) {
       retVal = defaultValue;
-      try (Stream<String> lines = Files.lines(Paths.get(file.getPath()), StandardCharsets.UTF_8)) {
+      try (Stream<String> lines = Files.lines(file, StandardCharsets.UTF_8)) {
         for (Iterator<String> iter = lines.iterator(); iter.hasNext();) {
           String line = iter.next();
           int sep = line.indexOf('=');
@@ -970,17 +990,17 @@ public final class Profile
     return retVal;
   }
 
-  private Profile(File keyFile, String desc) throws Exception
+  private Profile(Path keyFile, String desc) throws Exception
   {
     init(keyFile, desc);
   }
 
   // Initializes profile
-  private void init(File keyFile, String desc) throws Exception
+  private void init(Path keyFile, String desc) throws Exception
   {
     if (keyFile == null) {
       throw new Exception("No chitin.key specified");
-    } else if (!keyFile.isFile()) {
+    } else if (!Files.isRegularFile(keyFile)) {
       throw new Exception(keyFile.toString() + " does not exist");
     }
 
@@ -989,26 +1009,26 @@ public final class Profile
     }
 
     // adding chitin.key path
-    addEntry(Key.GET_GAME_CHITIN_KEY, Type.FILE, keyFile);
+    addEntry(Key.GET_GAME_CHITIN_KEY, Type.PATH, keyFile);
 
     // adding game's root folder and name
-    File rootDir = keyFile.getAbsoluteFile().getParentFile();
-    addEntry(Key.GET_GAME_ROOT_FOLDER, Type.FILE, rootDir);
-    addEntry(Key.GET_GAME_ROOT_FOLDER_NAME, Type.STRING, rootDir.getName());
+    Path rootDir = keyFile.toAbsolutePath().getParent();
+    addEntry(Key.GET_GAME_ROOT_FOLDER, Type.PATH, rootDir);
+    addEntry(Key.GET_GAME_ROOT_FOLDER_NAME, Type.STRING, rootDir.getFileName().toString());
 
     // first attempt to determine home directory for current game
     String home = getLuaHomeFolderName(null);
-    File homeDir = null;
+    Path homeDir = null;
     if (home != null) {
       addEntry(Key.GET_GAME_HOME_FOLDER_NAME, Type.STRING, home);
       homeDir = ResourceFactory.getHomeRoot();
       if (homeDir != null) {
-        addEntry(Key.GET_GAME_HOME_FOLDER, Type.FILE, homeDir);
+        addEntry(Key.GET_GAME_HOME_FOLDER, Type.PATH, homeDir);
       }
     }
 
-    // TODO: initializing additional content provided as DLCs
-//     initDlc(rootDir, homeDir);
+    // first attempt to initialize DLC content
+    addEntry(Key.GET_GAME_DLC_FOLDERS_AVAILABLE, Type.LIST, initDlc(rootDir, homeDir));
 
     initGame();
   }
@@ -1018,62 +1038,63 @@ public final class Profile
     // Main game detection
     Game game;
 
-    File gameRoot = (File)getProperty(Key.GET_GAME_ROOT_FOLDER);
-    if (new FileNI(gameRoot, "movies/howseer.wbm").isFile()) {
+    Path gameRoot = getGameRoot();
+    if (FileManager.queryExisting(gameRoot, "movies/howseer.wbm") != null) {
       game = Game.IWDEE;
       // Note: baldur.ini is initialized later
-    } else if (new FileNI(gameRoot, "movies/pocketzz.wbm").isFile()) {
-      if (new FileNI(gameRoot, "override/EET.flag").isFile() ||
-          new FileNI(gameRoot, "data/eetTU00.bif").isFile()) {
+    } else if (FileManager.queryExisting(gameRoot, "movies/pocketzz.wbm") != null) {
+      if ((FileManager.queryExisting(gameRoot, "override/EET.flag") != null) ||
+          (FileManager.queryExisting(gameRoot, "data/eetTU00.bif") != null)) {
         game = Game.EET;
       } else {
         game = Game.BG2EE;
       }
       // Note: baldur.ini is initialized later
-    } else if (new FileNI(gameRoot, "movies/sodcin01.wbm").isFile()) {  // TODO: add check for files in DLC archive
+    } else if (FileManager.queryExisting(gameRoot, "movies/sodcin01.wbm") != null) {
       game = Game.BG1SoD;
       // Note: baldur.ini is initialized later
-    } else if (new FileNI(gameRoot, "movies/bgenter.wbm").isFile()) {
+    } else if (FileManager.queryExisting(gameRoot, "movies/bgenter.wbm") != null) {
       game = Game.BG1EE;
       // Note: baldur.ini is initialized later
-    } else if (new FileNI(gameRoot, "torment.exe").isFile() &&
-               !(new FileNI(gameRoot, "movies/sigil.wbm").isFile())) {
+    } else if ((FileManager.queryExisting(gameRoot, "torment.exe") != null) &&
+               (FileManager.queryExisting(gameRoot, "movies/sigil.wbm") == null)) {
       game = Game.PST;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "torment.ini");
-      addEntry(Key.GET_GAME_INI_FILE, Type.FILE, new FileNI(gameRoot, (String)getProperty(Key.GET_GAME_INI_NAME)));
-    } else if (new FileNI(gameRoot, "idmain.exe").isFile() &&
-               !(new FileNI(gameRoot, "movies/howseer.wbm").isFile())) {
+      addEntry(Key.GET_GAME_INI_FILE, Type.PATH, FileManager.queryExisting(gameRoot, getProperty(Key.GET_GAME_INI_NAME)));
+    } else if ((FileManager.queryExisting(gameRoot, "idmain.exe") != null) &&
+               (FileManager.queryExisting(gameRoot, "movies/howseer.wbm") == null)) {
       game = Game.IWD;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "icewind.ini");
-      addEntry(Key.GET_GAME_INI_FILE, Type.FILE, new FileNI(gameRoot, (String)getProperty(Key.GET_GAME_INI_NAME)));
-    } else if (new FileNI(gameRoot, "iwd2.exe").isFile() &&
-               new FileNI(gameRoot, "Data/Credits.mve").isFile()) {
+      addEntry(Key.GET_GAME_INI_FILE, Type.PATH, FileManager.queryExisting(gameRoot, getProperty(Key.GET_GAME_INI_NAME)));
+    } else if ((FileManager.queryExisting(gameRoot, "iwd2.exe") != null) &&
+               (FileManager.queryExisting(gameRoot, "Data/Credits.mve") != null)) {
       game = Game.IWD2;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "icewind2.ini");
-      addEntry(Key.GET_GAME_INI_FILE, Type.FILE, new FileNI(gameRoot, (String)getProperty(Key.GET_GAME_INI_NAME)));
-    } else if (new FileNI(gameRoot, "baldur.exe").isFile() &&
-               new FileNI(gameRoot, "BGConfig.exe").isFile()) {
+      addEntry(Key.GET_GAME_INI_FILE, Type.PATH, FileManager.queryExisting(gameRoot, getProperty(Key.GET_GAME_INI_NAME)));
+    } else if ((FileManager.queryExisting(gameRoot, "baldur.exe") != null) &&
+               (FileManager.queryExisting(gameRoot, "BGConfig.exe") != null)) {
       game = Game.BG2SoA;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
-      addEntry(Key.GET_GAME_INI_FILE, Type.FILE, new FileNI(gameRoot, (String)getProperty(Key.GET_GAME_INI_NAME)));
-    } else if (new FileNI(gameRoot, "movies/graphsim.mov").isFile() || // Mac BG1 detection hack
-               (new FileNI(gameRoot, "baldur.exe").isFile() && new FileNI(gameRoot, "Config.exe").isFile())) {
+      addEntry(Key.GET_GAME_INI_FILE, Type.PATH, FileManager.queryExisting(gameRoot, getProperty(Key.GET_GAME_INI_NAME)));
+    } else if ((FileManager.queryExisting(gameRoot, "movies/graphsim.mov") != null) || // Mac BG1 detection hack
+               ((FileManager.queryExisting(gameRoot, "baldur.exe") != null) &&
+                (FileManager.queryExisting(gameRoot, "Config.exe") != null))) {
       game = Game.BG1;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
-      addEntry(Key.GET_GAME_INI_FILE, Type.FILE, new FileNI(gameRoot, (String)getProperty(Key.GET_GAME_INI_NAME)));
-    } else if (new FileNI(gameRoot, "bg1tutu.exe").isFile()) {
+      addEntry(Key.GET_GAME_INI_FILE, Type.PATH, FileManager.queryExisting(gameRoot, getProperty(Key.GET_GAME_INI_NAME)));
+    } else if (FileManager.queryExisting(gameRoot, "bg1tutu.exe") != null) {
       game = Game.Tutu;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
-      addEntry(Key.GET_GAME_INI_FILE, Type.FILE, new FileNI(gameRoot, (String)getProperty(Key.GET_GAME_INI_NAME)));
+      addEntry(Key.GET_GAME_INI_FILE, Type.PATH, FileManager.queryExisting(gameRoot, getProperty(Key.GET_GAME_INI_NAME)));
     } else {
       // game == Game.Unknown
       game = Game.Unknown;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
-      addEntry(Key.GET_GAME_INI_FILE, Type.FILE, new FileNI(gameRoot, (String)getProperty(Key.GET_GAME_INI_NAME)));
+      addEntry(Key.GET_GAME_INI_FILE, Type.PATH, FileManager.queryExisting(gameRoot, getProperty(Key.GET_GAME_INI_NAME)));
     }
     // adding priliminary game type into storage
     addEntry(Key.GET_GAME_TYPE, Type.OBJECT, game);
-    addEntry(Key.GET_GAME_EXTRA_FOLDERS, Type.LIST, GAME_EXTRA_FOLDERS.get(game));
+    addEntry(Key.GET_GAME_EXTRA_FOLDER_NAMES, Type.LIST, GAME_EXTRA_FOLDERS.get(game));
 
     // determining game engine
     initGameEngine();
@@ -1082,9 +1103,9 @@ public final class Profile
     addEntry(Key.IS_ENHANCED_EDITION, Type.BOOLEAN, Boolean.valueOf(getEngine() == Engine.EE));
 
     if (isEnhancedEdition()) {
-      File langDir = new FileNI(gameRoot, "lang");
-      if (langDir.isDirectory()) {
-        addEntry(Key.GET_GAME_LANG_FOLDER_BASE, Type.FILE, langDir);
+      Path langDir = FileManager.queryExisting(gameRoot, "lang");
+      if (langDir != null && Files.isDirectory(langDir)) {
+        addEntry(Key.GET_GAME_LANG_FOLDER_BASE, Type.PATH, langDir);
       }
     }
 
@@ -1098,21 +1119,26 @@ public final class Profile
     }
 
     initRootDirs();
+    initExtraFolders();
 
     // initializing dialog.tlk and dialogf.tlk
-    File tlk = FileNI.getFile((List<?>)getProperty(Key.GET_GAME_FOLDERS),
-                              (String)getProperty(Key.GET_GLOBAL_DIALOG_NAME));
-    if (tlk != null && tlk.isFile()) {
-      addEntry(Key.GET_GAME_DIALOG_FILE, Type.FILE, tlk);
+    Path tlk = FileManager.queryExisting(getRootFolders(), getProperty(Key.GET_GLOBAL_DIALOG_NAME));
+    if (tlk != null && Files.isRegularFile(tlk)) {
+      addEntry(Key.GET_GAME_DIALOG_FILE, Type.PATH, tlk);
     }
-    tlk = FileNI.getFile((List<?>)getProperty(Key.GET_GAME_FOLDERS),
-                         (String)getProperty(Key.GET_GLOBAL_DIALOG_NAME_FEMALE));
-    if (tlk != null && tlk.isFile()) {
-      addEntry(Key.GET_GAME_DIALOGF_FILE, Type.FILE, tlk);
+    Path tlkf = FileManager.queryExisting(getRootFolders(), getProperty(Key.GET_GLOBAL_DIALOG_NAME_FEMALE));
+    if (tlkf != null && Files.isRegularFile(tlkf)) {
+      addEntry(Key.GET_GAME_DIALOGF_FILE, Type.PATH, tlkf);
+    }
+
+    // initializing list of folders containing BIFF archives
+    List<Path> biffDirs = ResourceFactory.getBIFFDirs();
+    if (biffDirs != null && !biffDirs.isEmpty()) {
+      addEntry(Key.GET_GAME_BIFF_FOLDERS, Type.LIST, biffDirs);
     }
 
     // Initializing resource structure
-    ResourceFactory.openGame((File)getProperty(Key.GET_GAME_CHITIN_KEY));
+    ResourceFactory.openGame(getChitinKey());
 
     // Expansion pack detection
     if (game == Game.IWD && ResourceFactory.resourceExists("HOWDRAG.MVE")) {
@@ -1136,12 +1162,6 @@ public final class Profile
     // updating game type
     addEntry(Key.GET_GAME_TYPE, Type.OBJECT, game);
     addEntry(Key.GET_GAME_TITLE, Type.STRING, GAME_TITLE.get(game));
-
-    // initializing list of folders containing BIFF archives
-    List<File> biffDirs = ResourceFactory.getBIFFDirs();
-    if (biffDirs != null && !biffDirs.isEmpty()) {
-      addEntry(Key.GET_GAME_BIFF_FOLDERS, Type.LIST, biffDirs);
-    }
 
     // initializing list of available override folders
     initOverrides();
@@ -1198,9 +1218,10 @@ public final class Profile
   private void initIniFile(String... iniFiles)
   {
     if (iniFiles != null) {
-      File homeRoot = ResourceFactory.getHomeRoot();
+      Path homeRoot = ResourceFactory.getHomeRoot();
       for (int i = 0; i < iniFiles.length; i++) {
-        if (new FileNI(homeRoot, iniFiles[i]).isFile()) {
+        Path ini = FileManager.queryExisting(homeRoot, iniFiles[i]);
+        if (ini != null && Files.isRegularFile(ini)) {
           addEntry(Key.GET_GAME_INI_NAME, Type.STRING, iniFiles[i]);
           break;
         }
@@ -1213,28 +1234,36 @@ public final class Profile
   {
     // Considering three (or four) different root folders to locate game resources
     // Note: Order of the root directories is important. FileNI will take the first one available.
-    File homeRoot = ResourceFactory.getHomeRoot();
-    String language = ResourceFactory.fetchGameLanguage(new FileNI(homeRoot, (String)getProperty(Key.GET_GAME_INI_NAME)));
-    File langRoot = FileNI.getFile((File)getProperty(Key.GET_GAME_LANG_FOLDER_BASE), language);
-    if (!langRoot.isDirectory()) {
+    Path gameRoot = getGameRoot();
+    Path homeRoot = ResourceFactory.getHomeRoot();
+    String language = ResourceFactory.fetchGameLanguage(FileManager.queryExisting(homeRoot, getProperty(Key.GET_GAME_INI_NAME)));
+    Path langRoot = FileManager.queryExisting((Path)getProperty(Key.GET_GAME_LANG_FOLDER_BASE), language);
+    if (langRoot != null && !Files.isDirectory(langRoot)) {
       langRoot = null;
     }
     // fallback language added if selected language is non-english
     String languageDef = ResourceFactory.fetchGameLanguage(null);
-    File langRootDef = FileNI.getFile((File)getProperty(Key.GET_GAME_LANG_FOLDER_BASE), languageDef);
+    Path langRootDef = FileManager.queryExisting((Path)getProperty(Key.GET_GAME_LANG_FOLDER_BASE), languageDef);
     if (languageDef.equals(language)) {
       langRootDef = null;
     }
 
-    List<File> listRoots = new ArrayList<File>();
+    // adding available roots in order of priority (highest first)
+    List<Path> listRoots = new ArrayList<>();
+    if (homeRoot != null) {
+      addEntry(Key.GET_GAME_HOME_FOLDER, Type.PATH, homeRoot);
+      addEntry(Key.GET_GAME_INI_FILE, Type.PATH, FileManager.queryExisting(homeRoot, getProperty(Key.GET_GAME_INI_NAME)));
+      listRoots.add(homeRoot);
+    }
+
     if (langRoot != null) {
       addEntry(Key.GET_GAME_LANG_FOLDER_NAME, Type.STRING, language);
-      addEntry(Key.GET_GAME_LANG_FOLDER, Type.FILE, langRoot);
-      List<File> langPaths = ResourceFactory.getAvailableGameLanguages();
+      addEntry(Key.GET_GAME_LANG_FOLDER, Type.PATH, langRoot);
+      List<Path> langPaths = ResourceFactory.getAvailableGameLanguages();
       addEntry(Key.GET_GAME_LANG_FOLDERS_AVAILABLE, Type.LIST, langPaths);
       List<String> languages = new ArrayList<String>(langPaths.size());
-      for (Iterator<File> iter = langPaths.iterator(); iter.hasNext();) {
-        languages.add(iter.next().getName());
+      for (final Path path: langPaths) {
+        languages.add(path.getFileName().toString());
       }
       addEntry(Key.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE, Type.LIST, languages);
       listRoots.add(langRoot);
@@ -1242,45 +1271,90 @@ public final class Profile
     if (langRootDef != null) {
       listRoots.add(langRootDef);
     }
-    if (homeRoot != null) {
-      addEntry(Key.GET_GAME_HOME_FOLDER, Type.FILE, homeRoot);
-      addEntry(Key.GET_GAME_INI_FILE, Type.FILE, new FileNI(homeRoot, (String)getProperty(Key.GET_GAME_INI_NAME)));
-      listRoots.add(homeRoot);
+
+    // adding available DLC root folders
+    List<Path> dlcRoots = initDlc(gameRoot, homeRoot);
+    addEntry(Key.GET_GAME_DLC_FOLDERS_AVAILABLE, Type.LIST, dlcRoots);
+    for (final Path path: dlcRoots) {
+      listRoots.add(path);
     }
-    listRoots.add((File)getProperty(Key.GET_GAME_ROOT_FOLDER));
-    addEntry(Key.GET_GAME_FOLDERS, Type.FILE, listRoots);
+
+    listRoots.add(gameRoot);
+
+    addEntry(Key.GET_GAME_ROOT_FOLDERS_AVAILABLE, Type.PATH, listRoots);
+  }
+
+  // Initializes extra folders containing resources
+  private void initExtraFolders()
+  {
+    List<Path> pathList = new ArrayList<>();
+    List<Path> rootPaths = getRootFolders();
+    List<String> extraFolders = getProperty(Key.GET_GAME_EXTRA_FOLDER_NAMES);
+    for (final Path root: rootPaths) {
+      List<Path> list = new ArrayList<>(extraFolders.size());
+      for (final String folder: extraFolders) {
+        Path path = FileManager.queryExisting(root, folder);
+        if (path != null && Files.isDirectory(path)) {
+          list.add(path);
+        }
+      }
+      Collections.sort(list);
+      pathList.addAll(list);
+    }
+    addEntry(Key.GET_GAME_EXTRA_FOLDERS, Type.LIST, pathList);
   }
 
   // Initializes supported override folders used by specific games
   private void initOverrides()
   {
-    List<File> list = new ArrayList<File>();
+    List<Path> list = new ArrayList<>();
     if (isEnhancedEdition()) {
-      File gameRoot = (File)getProperty(Key.GET_GAME_ROOT_FOLDER);
-      File homeRoot = (File)getProperty(Key.GET_GAME_HOME_FOLDER);
-      File langRoot = (File)getProperty(Key.GET_GAME_LANG_FOLDER);
-      list.add(new FileNI(homeRoot, "Movies"));
-      list.add(new FileNI(homeRoot, "Characters"));
-      list.add(new FileNI(homeRoot, "Portraits"));
-      list.add(new FileNI(homeRoot, "Sounds"));
-      list.add(new FileNI(homeRoot, "Scripts"));
-      list.add(new FileNI(homeRoot, "Override"));
-      list.add(new FileNI(langRoot, "Override"));
-      list.add(new FileNI(langRoot, "Movies"));
-      list.add(new FileNI(gameRoot, "Movies"));
-      list.add(new FileNI(gameRoot, "Characters"));
-      list.add(new FileNI(gameRoot, "Portraits"));
-      list.add(new FileNI(langRoot, "Sounds"));
-      list.add(new FileNI(gameRoot, "Sounds"));
-      list.add(new FileNI(gameRoot, "Scripts"));
-      list.add(new FileNI(gameRoot, "Override"));
+      // preparations
+      Path gameRoot = getGameRoot();;
+      // relative language path based on game root
+      String langFolder = gameRoot.relativize(getLanguageRoot()).toString();
+      Path homeRoot = getHomeRoot();
+      List<Path> dlcRoots = getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE);
+
+      // putting all root folders into a list ordered by priority (lowest first)
+      List<Path> gameRoots = new ArrayList<>();
+      gameRoots.add(gameRoot);
+      for (final Path path: dlcRoots) {
+        gameRoots.add(path);
+      }
+      gameRoots.add(homeRoot);
+
+      // registering override paths
+      for (final Path root: gameRoots) {
+        Path path = FileManager.queryExisting(root, "Override");
+        if (path != null) { list.add(path); }
+        path = FileManager.queryExisting(root, "Scripts");
+        if (path != null) { list.add(path); }
+        path = FileManager.queryExisting(root, "Sounds");
+        if (path != null) { list.add(path); }
+        path = FileManager.queryExisting(root, langFolder, "Sounds");
+        if (path != null) { list.add(path); }
+        path = FileManager.queryExisting(root, "Portraits");
+        if (path != null) { list.add(path); }
+        path = FileManager.queryExisting(root, "Characters");
+        if (path != null) { list.add(path); }
+        path = FileManager.queryExisting(root, "Movies");
+        if (path != null) { list.add(path); }
+        path = FileManager.queryExisting(root, langFolder, "Movies");
+        if (path != null) { list.add(path); }
+      }
     } else {
-      File gameRoot = (File)getProperty(Key.GET_GAME_ROOT_FOLDER);
-      list.add(new FileNI(gameRoot, "Characters"));
-      list.add(new FileNI(gameRoot, "Portraits"));
-      list.add(new FileNI(gameRoot, "Sounds"));
-      list.add(new FileNI(gameRoot, "Scripts"));
-      list.add(new FileNI(gameRoot, "Override"));
+      Path root = getGameRoot();
+      Path path = FileManager.queryExisting(root, "Override");
+      if (path != null) { list.add(path); }
+      path = FileManager.queryExisting(root, "Scripts");
+      if (path != null) { list.add(path); }
+      path = FileManager.queryExisting(root, "Sounds");
+      if (path != null) { list.add(path); }
+      path = FileManager.queryExisting(root, "Portraits");
+      if (path != null) { list.add(path); }
+      path = FileManager.queryExisting(root, "Characters");
+      if (path != null) { list.add(path); }
     }
     addEntry(Key.GET_GAME_OVERRIDE_FOLDERS, Type.LIST, list);
   }
@@ -1296,13 +1370,13 @@ public final class Profile
     addEntry(Key.IS_SUPPORTED_ACM, Type.BOOLEAN, Boolean.valueOf(true));
 
     addEntry(Key.IS_SUPPORTED_ARE_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
-                                                  engine == Engine.IWD || engine == Engine.PST ||
-                                                  engine == Engine.EE || engine == Engine.Unknown));
+                                                      engine == Engine.IWD || engine == Engine.PST ||
+                                                      engine == Engine.EE || engine == Engine.Unknown));
     addEntry(Key.IS_SUPPORTED_ARE_V91, Type.BOOLEAN, (engine == Engine.IWD2));
 
     addEntry(Key.IS_SUPPORTED_BAM_V1, Type.BOOLEAN, Boolean.valueOf(true));
     addEntry(Key.IS_SUPPORTED_BAMC_V1, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD ||
-                                                  engine == Engine.IWD2 || engine == Engine.EE));
+                                                      engine == Engine.IWD2 || engine == Engine.EE));
     addEntry(Key.IS_SUPPORTED_BAM_V2, Type.BOOLEAN, isEnhancedEdition());
 
     addEntry(Key.IS_SUPPORTED_BCS, Type.BOOLEAN, Boolean.valueOf(true));
@@ -1314,7 +1388,7 @@ public final class Profile
     addEntry(Key.IS_SUPPORTED_BIK, Type.BOOLEAN, (engine == Engine.IWD2));
 
     addEntry(Key.IS_SUPPORTED_BIO, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
-                                              engine == Engine.EE || engine == Engine.Unknown));
+                                                  engine == Engine.EE || engine == Engine.Unknown));
 
     addEntry(Key.IS_SUPPORTED_BMP_PAL, Type.BOOLEAN, Boolean.valueOf(true));
     addEntry(Key.IS_SUPPORTED_BMP_ALPHA, Type.BOOLEAN, isEnhancedEdition());
@@ -1327,7 +1401,7 @@ public final class Profile
     addEntry(Key.IS_SUPPORTED_CHU, Type.BOOLEAN, Boolean.valueOf(true));
 
     addEntry(Key.IS_SUPPORTED_CRE_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
-                                                  engine == Engine.EE || engine == Engine.Unknown));
+                                                      engine == Engine.EE || engine == Engine.Unknown));
     addEntry(Key.IS_SUPPORTED_CRE_V12, Type.BOOLEAN, (engine == Engine.PST));
     addEntry(Key.IS_SUPPORTED_CRE_V22, Type.BOOLEAN, (engine == Engine.IWD2));
     addEntry(Key.IS_SUPPORTED_CRE_V90, Type.BOOLEAN, (engine == Engine.IWD));
@@ -1335,13 +1409,13 @@ public final class Profile
     addEntry(Key.IS_SUPPORTED_DLG, Type.BOOLEAN, Boolean.valueOf(true));
 
     addEntry(Key.IS_SUPPORTED_EFF, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
-                                              engine == Engine.IWD || engine == Engine.EE ||
-                                              engine == Engine.Unknown));
+                                                  engine == Engine.IWD || engine == Engine.EE ||
+                                                  engine == Engine.Unknown));
 
     addEntry(Key.IS_SUPPORTED_FNT, Type.BOOLEAN, isEnhancedEdition());
 
     addEntry(Key.IS_SUPPORTED_GAM_V11, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.IWD ||
-                                                  engine == Engine.PST || engine == Engine.Unknown));
+                                                      engine == Engine.PST || engine == Engine.Unknown));
     addEntry(Key.IS_SUPPORTED_GAM_V20, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
     addEntry(Key.IS_SUPPORTED_GAM_V21, Type.BOOLEAN, (game == Game.BG2ToB || engine == Engine.EE));
     addEntry(Key.IS_SUPPORTED_GAM_V22, Type.BOOLEAN, (engine == Engine.IWD2));
@@ -1353,11 +1427,11 @@ public final class Profile
     addEntry(Key.IS_SUPPORTED_IDS, Type.BOOLEAN, Boolean.valueOf(true));
 
     addEntry(Key.IS_SUPPORTED_INI, Type.BOOLEAN, (engine == Engine.IWD || engine == Engine.IWD2 ||
-                                              engine == Engine.PST || game == Game.IWDEE));
+                                                  engine == Engine.PST || engine == Engine.EE));
 
     addEntry(Key.IS_SUPPORTED_ITM_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
-                                                  engine == Engine.IWD || engine == Engine.EE ||
-                                                  engine == Engine.Unknown));
+                                                    engine == Engine.IWD || engine == Engine.EE ||
+                                                    engine == Engine.Unknown));
     addEntry(Key.IS_SUPPORTED_ITM_V11, Type.BOOLEAN, (engine == Engine.PST));
     addEntry(Key.IS_SUPPORTED_ITM_V20, Type.BOOLEAN, (engine == Engine.IWD2));
 
@@ -1369,7 +1443,7 @@ public final class Profile
 
     addEntry(Key.IS_SUPPORTED_MOS_V1, Type.BOOLEAN, Boolean.valueOf(true));
     addEntry(Key.IS_SUPPORTED_MOSC_V1, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD ||
-                                                  engine == Engine.IWD2 || engine == Engine.EE));
+                                                      engine == Engine.IWD2 || engine == Engine.EE));
     addEntry(Key.IS_SUPPORTED_MOS_V2, Type.BOOLEAN, isEnhancedEdition());
 
     addEntry(Key.IS_SUPPORTED_MUS, Type.BOOLEAN, Boolean.valueOf(true));
@@ -1392,8 +1466,8 @@ public final class Profile
     addEntry(Key.IS_SUPPORTED_SAV, Type.BOOLEAN, Boolean.valueOf(true));
 
     addEntry(Key.IS_SUPPORTED_SPL_V1, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
-                                                 engine == Engine.IWD || engine == Engine.PST ||
-                                                 engine == Engine.EE || engine == Engine.Unknown));
+                                                     engine == Engine.IWD || engine == Engine.PST ||
+                                                     engine == Engine.EE || engine == Engine.Unknown));
     addEntry(Key.IS_SUPPORTED_SPL_V2, Type.BOOLEAN, (engine == Engine.IWD2));
 
     addEntry(Key.IS_SUPPORTED_SQL, Type.BOOLEAN, isEnhancedEdition());
@@ -1403,7 +1477,7 @@ public final class Profile
     addEntry(Key.IS_SUPPORTED_SRC_IWD2, Type.BOOLEAN, (engine == Engine.IWD2));
 
     addEntry(Key.IS_SUPPORTED_STO_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
-                                                  engine == Engine.EE || engine == Engine.Unknown));
+                                                      engine == Engine.EE || engine == Engine.Unknown));
     addEntry(Key.IS_SUPPORTED_STO_V11, Type.BOOLEAN, (engine == Engine.PST));
     addEntry(Key.IS_SUPPORTED_STO_V90, Type.BOOLEAN, (engine == Engine.IWD || engine == Engine.IWD2));
 
@@ -1454,19 +1528,20 @@ public final class Profile
 
     // Has TobEx been installed?
     if (engine == Engine.BG2) {
-      File tobexIni = new FileNI((File)getProperty(Key.GET_GAME_ROOT_FOLDER), "TobEx_ini/TobExCore.ini");
-      addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, tobexIni.isFile());
+      Path tobexIni = FileManager.query(getGameRoot(), "TobEx_ini/TobExCore.ini");
+      addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, Files.isRegularFile(tobexIni));
     } else {
       addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, Boolean.FALSE);
     }
   }
 
-//  // Initialize additional content in form of zipped archives
-//  private void initDlc(File rootDir, File homeDir)
-//  {
-//    File[] archives = ZippedGame.getZippedGames(rootDir, homeDir);
-//    // TODO
-//  }
+  // TODO: Registers available DLCs and returns them as list of root paths
+  private List<Path> initDlc(Path rootDir, Path homeDir)
+  {
+    List<Path> retVal = new ArrayList<>();
+
+    return retVal;
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 
@@ -1498,7 +1573,8 @@ public final class Profile
     public Type getType() { return type; }
 
     /** Returns the actual data of this property. */
-    public Object getData() { return data; }
+    @SuppressWarnings("unchecked")
+    public <T> T getData() { return (T)data; }
 
     /** Sets new data value of this property. Returns the previous data. */
     public Object setData(Object newValue) { Object retVal = data; data = newValue; return retVal; }

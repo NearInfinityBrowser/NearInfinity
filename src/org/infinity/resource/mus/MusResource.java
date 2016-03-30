@@ -11,9 +11,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -44,8 +45,8 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SongReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public final class MusResource implements Closeable, TextResource, ActionListener, Writeable, ItemListener,
                                           DocumentListener
@@ -65,7 +66,8 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   public MusResource(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
-    text = new String(entry.getResourceData());
+    ByteBuffer buffer = entry.getResourceBuffer();
+    text = StreamUtils.readString(buffer, buffer.limit());
     resourceChanged = false;
   }
 
@@ -95,13 +97,11 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   {
     lastIndex = tabbedPane.getSelectedIndex();
     if (resourceChanged) {
-      File output;
+      Path output;
       if (entry instanceof BIFFResourceEntry) {
-        output =
-            FileNI.getFile(Profile.getRootFolders(),
-                 Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
+        output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
       } else {
-        output = entry.getActualFile();
+        output = entry.getActualPath();
       }
       String options[] = {"Save changes", "Discard changes", "Cancel"};
       int result = JOptionPane.showOptionDialog(panel, "Save changes to " + output + '?', "Resource changed",
@@ -255,10 +255,11 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   @Override
   public void write(OutputStream os) throws IOException
   {
-    if (editor == null)
-      FileWriterNI.writeString(os, text, text.length());
-    else
-      FileWriterNI.writeString(os, editor.getText(), editor.getText().length());
+    if (editor == null) {
+      StreamUtils.writeString(os, text, text.length());
+    } else {
+      StreamUtils.writeString(os, editor.getText(), editor.getText().length());
+    }
   }
 
 // --------------------- End Interface Writeable ---------------------

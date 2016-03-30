@@ -4,6 +4,8 @@
 
 package org.infinity.resource.wmp;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.AbstractStruct;
 
 class AreaLinkWest extends AreaLink
@@ -16,7 +18,7 @@ class AreaLinkWest extends AreaLink
     super(WMP_LINK_WEST);
   }
 
-  AreaLinkWest(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  AreaLinkWest(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, buffer, offset, WMP_LINK_WEST + " " + number);
   }

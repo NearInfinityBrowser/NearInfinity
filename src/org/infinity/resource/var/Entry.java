@@ -4,10 +4,13 @@
 
 package org.infinity.resource.var;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.TextString;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.util.io.StreamUtils;
 
 final class Entry extends AbstractStruct implements AddRemovable
 {
@@ -19,10 +22,10 @@ final class Entry extends AbstractStruct implements AddRemovable
 
   Entry() throws Exception
   {
-    super(null, VAR_ENTRY, new byte[44], 0);
+    super(null, VAR_ENTRY, StreamUtils.getByteBuffer(44), 0);
   }
 
-  Entry(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  Entry(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, VAR_ENTRY + " " + nr, buffer, offset);
   }
@@ -38,7 +41,7 @@ final class Entry extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 8, VAR_ENTRY_TYPE));
     addField(new TextString(buffer, offset + 8, 32, VAR_ENTRY_NAME));

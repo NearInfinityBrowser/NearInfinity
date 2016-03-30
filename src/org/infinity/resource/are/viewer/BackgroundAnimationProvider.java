@@ -21,7 +21,6 @@ import org.infinity.resource.graphics.ColorConvert;
 
 /**
  * Implements functionality for properly displaying background animations.
- * @author argent77
  */
 public class BackgroundAnimationProvider implements BasicAnimationProvider
 {

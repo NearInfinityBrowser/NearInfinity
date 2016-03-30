@@ -22,7 +22,6 @@ import org.infinity.resource.wed.WedResource;
 
 /**
  * Handles specific layer type: ARE/Wall Polygon
- * @author argent77
  */
 public class LayerObjectWallPoly extends LayerObject
 {

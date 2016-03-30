@@ -22,6 +22,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +46,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.io.FileNI;
+import org.infinity.util.io.FileManager;
 
 public final class OpenFileFrame extends ChildFrame implements ActionListener
 {
@@ -206,8 +208,9 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
       tfExternalName.setEnabled(false);
       bExternalBrowse.setEnabled(false);
     }
-    else if (event.getSource() == tfExternalName)
-      openExternalFile(this, new FileNI(tfExternalName.getText()));
+    else if (event.getSource() == tfExternalName) {
+      openExternalFile(this, FileManager.resolve(tfExternalName.getText()));
+    }
     else if (event.getSource() == bExternalBrowse) {
       if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION)
         tfExternalName.setText(fc.getSelectedFile().toString());
@@ -219,22 +222,24 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
       NearInfinity.getInstance().showResourceEntry(entry);
     }
     else if (event.getSource() == bOpenNew) {
-      if (!cbStayOpen.isSelected())
+      if (!cbStayOpen.isSelected()) {
         setVisible(false);
-      if (rbInternal.isSelected())
+      }
+      if (rbInternal.isSelected()) {
         new ViewFrame(this,
                       ResourceFactory.getResource((ResourceEntry)lpInternal.getSelectedValue()));
-      else
-        openExternalFile(this, new FileNI(tfExternalName.getText()));
+      } else {
+        openExternalFile(this, FileManager.resolve(tfExternalName.getText()));
+      }
     }
   }
 
 // --------------------- End Interface ActionListener ---------------------
 
   /** Attempts to open the specified external game resource. */
-  public static void openExternalFile(Component parent, File file)
+  public static void openExternalFile(Component parent, Path file)
   {
-    if (!file.exists()) {
+    if (!Files.exists(file)) {
       JOptionPane.showMessageDialog(parent, '\"' + file.toString() + "\" not found",
                                     "Error", JOptionPane.ERROR_MESSAGE);
     } else {
@@ -298,7 +303,7 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
       if (files != null) {
         for (final File file: files) {
           if (file != null && !file.isDirectory()) {
-            openExternalFile(OpenFileFrame.this, file);
+            openExternalFile(OpenFileFrame.this, file.toPath());
           }
         }
       }

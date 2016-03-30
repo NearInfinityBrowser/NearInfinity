@@ -10,10 +10,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -43,8 +44,8 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.Decryptor;
-import org.infinity.util.io.FileNI;
-import org.infinity.util.io.FileWriterNI;
+import org.infinity.util.io.FileManager;
+import org.infinity.util.io.StreamUtils;
 
 public final class PlainTextResource implements TextResource, Writeable, ActionListener, ItemListener,
                                                 DocumentListener, Closeable
@@ -67,12 +68,11 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   public PlainTextResource(ResourceEntry entry, int highlightedLine) throws Exception
   {
     this.entry = entry;
-    byte data[] = entry.getResourceData();
-    if (data != null && data.length > 1 && data[0] == -1) {
-      text = Decryptor.decrypt(data, 2, data.length);
-    } else {
-      text = new String(data);
+    ByteBuffer buffer = entry.getResourceBuffer();
+    if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
+      buffer = Decryptor.decrypt(buffer, 2);
     }
+    text = StreamUtils.readString(buffer, buffer.limit());
     this.highlightedLine = highlightedLine;
   }
 
@@ -106,21 +106,21 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   public void close() throws Exception
   {
     if (resourceChanged) {
-      File output;
-      if (entry instanceof BIFFResourceEntry)
-        output =
-            FileNI.getFile(Profile.getRootFolders(),
-                 Profile.getOverrideFolderName() + File.separatorChar + entry.toString());
-      else
-        output = entry.getActualFile();
+      Path output;
+      if (entry instanceof BIFFResourceEntry) {
+        output = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName(), entry.toString());
+      } else {
+        output = entry.getActualPath();
+      }
       String options[] = {"Save changes", "Discard changes", "Cancel"};
       int result = JOptionPane.showOptionDialog(panel, "Save changes to " + output + '?', "Resource changed",
                                                 JOptionPane.YES_NO_CANCEL_OPTION,
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0)
+      if (result == 0) {
         ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
-      else if (result != 1)
+      } else if (result != 1) {
         throw new Exception("Save aborted");
+      }
     }
   }
 
@@ -280,7 +280,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   public void write(OutputStream os) throws IOException
   {
     if (editor == null) {
-      FileWriterNI.writeString(os, text, text.length());
+      StreamUtils.writeString(os, text, text.length());
     } else {
       editor.write(new OutputStreamWriter(os));
     }

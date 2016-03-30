@@ -15,7 +15,6 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 /**
  * The base class for BAM converter effects filters.
- * @author argent77
  */
 public abstract class BamFilterBase
 {

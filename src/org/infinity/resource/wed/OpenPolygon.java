@@ -4,7 +4,10 @@
 
 package org.infinity.resource.wed;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.AbstractStruct;
+import org.infinity.util.io.StreamUtils;
 
 public final class OpenPolygon extends Polygon
 {
@@ -13,10 +16,10 @@ public final class OpenPolygon extends Polygon
 
   public OpenPolygon() throws Exception
   {
-    super(null, WED_POLY_OPEN, new byte[18], 0);
+    super(null, WED_POLY_OPEN, StreamUtils.getByteBuffer(18), 0);
   }
 
-  public OpenPolygon(AbstractStruct superStruct, byte buffer[], int offset, int nr) throws Exception
+  public OpenPolygon(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
   {
     super(superStruct, WED_POLY_OPEN + " " + nr, buffer, offset);
   }

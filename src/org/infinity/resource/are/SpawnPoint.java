@@ -4,6 +4,8 @@
 
 package org.infinity.resource.are;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
@@ -13,6 +15,7 @@ import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
+import org.infinity.util.io.StreamUtils;
 
 public final class SpawnPoint extends AbstractStruct implements AddRemovable
 {
@@ -44,10 +47,10 @@ public final class SpawnPoint extends AbstractStruct implements AddRemovable
 
   SpawnPoint() throws Exception
   {
-    super(null, ARE_SPAWN, new byte[200], 0);
+    super(null, ARE_SPAWN, StreamUtils.getByteBuffer(200), 0);
   }
 
-  SpawnPoint(AbstractStruct superStruct, byte buffer[], int offset, int number) throws Exception
+  SpawnPoint(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
   {
     super(superStruct, ARE_SPAWN + " " + number, buffer, offset);
   }
@@ -63,7 +66,7 @@ public final class SpawnPoint extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 32, ARE_SPAWN_NAME));
     addField(new DecNumber(buffer, offset + 32, 2, ARE_SPAWN_LOCATION_X));

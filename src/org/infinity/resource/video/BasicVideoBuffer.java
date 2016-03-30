@@ -12,7 +12,6 @@ import org.infinity.resource.graphics.ColorConvert;
 
 /**
  * Basic implementation of the BufferedRenderer interface.
- * @author argent77
  */
 public class BasicVideoBuffer implements VideoBuffer
 {

@@ -7,6 +7,7 @@ package org.infinity.resource.are;
 import java.awt.Component;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -38,10 +39,10 @@ import org.infinity.resource.are.viewer.AreaViewer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.search.SearchOptions;
-import org.infinity.util.DynamicArray;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.io.StreamUtils;
 
 public final class AreResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
@@ -125,71 +126,72 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   private StructHexViewer hexViewer;
   private AreaViewer areaViewer;
 
-  public static void addScriptNames(Set<String> scriptNames, byte buffer[])
+  public static void addScriptNames(Set<String> scriptNames, ByteBuffer buffer)
   {
     int offset = 0;
-    if (new String(buffer, 4, 4).equalsIgnoreCase("V9.1"))
+    if (StreamUtils.readString(buffer, 4, 4).equalsIgnoreCase("V9.1"))
       offset = 16;
 
     // Actors
-    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 84),
-                   (int)DynamicArray.getShort(buffer, offset + 88), 272, true);
+    addScriptNames(scriptNames, buffer, buffer.getInt(offset + 84),
+                   buffer.getShort(offset + 88), 272, true);
 
     // ITEPoints
-    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 92),
-                   (int)DynamicArray.getShort(buffer, offset + 90), 196);
+    addScriptNames(scriptNames, buffer, buffer.getInt(offset + 92),
+                   buffer.getShort(offset + 90), 196);
 
     // Spawnpoints
-    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 96),
-                   DynamicArray.getInt(buffer, offset + 100), 200);
+    addScriptNames(scriptNames, buffer, buffer.getInt(offset + 96),
+                   buffer.getInt(offset + 100), 200);
 
     // Entrances
-//    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 104),
-//                   DynamicArray.getInt(buffer, offset + 108), 104);
+//    addScriptNames(scriptNames, buffer, buffer.getInt(offset + 104),
+//                   buffer.getInt(offset + 108), 104);
 
     // Containers
-    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 112),
-                   (int)DynamicArray.getShort(buffer, offset + 116), 192);
+    addScriptNames(scriptNames, buffer, buffer.getInt(offset + 112),
+                   buffer.getShort(offset + 116), 192);
 
     // Ambients
-    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 132),
-                   (int)DynamicArray.getShort(buffer, offset + 130), 212);
+    addScriptNames(scriptNames, buffer, buffer.getInt(offset + 132),
+                   buffer.getShort(offset + 130), 212);
 
     // Variables
-//    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 136),
-//                   DynamicArray.getInt(buffer, offset + 140), 84);
+//    addScriptNames(scriptNames, buffer, buffer.getInt(offset + 136),
+//                   buffer.getInt(offset + 140), 84);
 
     // Doors
-    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 168),
-                   DynamicArray.getInt(buffer, offset + 164), 200);
+    addScriptNames(scriptNames, buffer, buffer.getInt(offset + 168),
+                   buffer.getInt(offset + 164), 200);
 
     // Animations
-    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 176),
-                   DynamicArray.getInt(buffer, offset + 172), 76);
+    addScriptNames(scriptNames, buffer, buffer.getInt(offset + 176),
+                   buffer.getInt(offset + 172), 76);
 
     // Tiled objects
-    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 184),
-                   DynamicArray.getInt(buffer, offset + 180), 108);
+    addScriptNames(scriptNames, buffer, buffer.getInt(offset + 184),
+                   buffer.getInt(offset + 180), 108);
 
     // Rest spawn
 //    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 192), 1, 228);
   }
 
-  private static void addScriptNames(Set<String> scriptNames, byte buffer[], int offset, int count, int size)
+  private static void addScriptNames(Set<String> scriptNames, ByteBuffer buffer, int offset,
+                                     int count, int size)
   {
     addScriptNames(scriptNames, buffer, offset, count, size, false);
   }
 
-  private static void addScriptNames(Set<String> scriptNames, byte buffer[], int offset, int count,
-                                     int size, boolean checkOverride)
+  private static void addScriptNames(Set<String> scriptNames, ByteBuffer buffer, int offset,
+                                     int count, int size, boolean checkOverride)
   {
     for (int i = 0; i < count; i++) {
       int curOfs = offset + i*size;
       // Bit 3 of "Flags" field determines whether to override the actor's script name
-      if (!checkOverride || ((buffer[curOfs + 40] & 8) == 8)) {
+      if (!checkOverride || ((buffer.get(curOfs + 40) & 8) == 8)) {
         StringBuilder sb = new StringBuilder(32);
         for (int j = 0; j < 32; j++) {
-          byte b = buffer[curOfs + j];
+          byte b = buffer.get(curOfs + j);
           if (b == 0x00) {
             break;
           } else if (b != 0x20) { // Space
@@ -422,7 +424,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   }
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     TextString version = new TextString(buffer, offset + 4, 4, COMMON_VERSION);

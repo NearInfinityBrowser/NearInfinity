@@ -4,6 +4,7 @@
 
 package org.infinity.resource.vef;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.io.StreamUtils;
 
 public class AbstractComponent extends AbstractStruct implements AddRemovable
 {
@@ -25,10 +27,10 @@ public class AbstractComponent extends AbstractStruct implements AddRemovable
 
   protected AbstractComponent(String label) throws Exception
   {
-    super(null, label, new byte[224], 0);
+    super(null, label, StreamUtils.getByteBuffer(224), 0);
   }
 
-  protected AbstractComponent(AbstractStruct superStruct, byte[] buffer, int offset, String label) throws Exception
+  protected AbstractComponent(AbstractStruct superStruct, ByteBuffer buffer, int offset, String label) throws Exception
   {
     super(superStruct, label, buffer, offset);
   }
@@ -44,7 +46,7 @@ public class AbstractComponent extends AbstractStruct implements AddRemovable
 //--------------------- End Interface AddRemovable ---------------------
 
   @Override
-  public int read(byte buffer[], int offset) throws Exception
+  public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new DecNumber(buffer, offset, 4, VEF_COMP_TICKS_START));
     addField(new Unknown(buffer, offset + 4, 4));

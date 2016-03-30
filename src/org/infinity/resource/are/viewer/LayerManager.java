@@ -14,7 +14,6 @@ import org.infinity.resource.wed.WedResource;
 
 /**
  * Manages all layer objects of a single ARE map.
- * @author argent77
  */
 public final class LayerManager
 {

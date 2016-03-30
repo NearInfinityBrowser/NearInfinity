@@ -4,6 +4,7 @@
 
 package org.infinity.gui.hexview;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -16,8 +17,6 @@ import tv.porst.jhexview.IDataProvider;
 /**
  * Provides data as byte array from the associated ResourceEntry instance to be used in
  * JHexView components.
- *
- * @author argent77
  */
 public class ResourceDataProvider implements IDataProvider
 {
@@ -55,13 +54,13 @@ public class ResourceDataProvider implements IDataProvider
 
     if (length > 0) {
       try {
-        byte[] buffer = getResourceEntry().getResourceData();
+        ByteBuffer bb = getResourceEntry().getResourceBuffer();
         byte[] retVal = new byte[length];
         for (int i = 0; i < length; i++) {
           if (isModifiedData((int)offset+i)) {
             retVal[i] = getModifiedData((int)offset+i);
           } else {
-            retVal[i] = buffer[(int)offset+i];
+            retVal[i] = bb.get((int)offset+i);
           }
         }
         return retVal;
@@ -78,9 +77,9 @@ public class ResourceDataProvider implements IDataProvider
     if (size < 0) {
       size = 0;
       try {
-        byte[] buffer = getResourceEntry().getResourceData();
-        if (buffer != null) {
-          size = buffer.length;
+        long resSize = getResourceEntry().getResourceSize();
+        if (resSize >= 0) {
+          size = (int)resSize;
         }
       } catch (Exception e) {
         e.printStackTrace();

@@ -5,6 +5,7 @@
 package org.infinity.resource.vef;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,12 +24,12 @@ public final class VefType extends Bitmap
   public static final String[] s_restype = {"WAV", "VVC/BAM", "VEF/VVC/BAM"};
   private static int buf_size = 8;
 
-  public VefType(byte buffer[], int offset, int length)
+  public VefType(ByteBuffer buffer, int offset, int length)
   {
     this(null, buffer, offset, length);
   }
 
-  public VefType(StructEntry parent, byte buffer[], int offset, int length)
+  public VefType(StructEntry parent, ByteBuffer buffer, int offset, int length)
   {
     super(parent, buffer, offset, length, VEF_TYPE, s_restype);
   }
@@ -56,7 +57,7 @@ public final class VefType extends Bitmap
 
   // --------------------- End Interface Editable ---------------------
 
-  public int readAttributes(byte buffer[], int off, List<StructEntry> list)
+  public int readAttributes(ByteBuffer buffer, int off, List<StructEntry> list)
   {
     switch (getValue()) {
     case 0:

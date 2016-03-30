@@ -8,7 +8,6 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 
 /**
  * The base class for filters that manipulate on frame level.
- * @author argent77
  */
 public abstract class BamFilterBaseTransform extends BamFilterBase
 {

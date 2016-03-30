@@ -4,16 +4,18 @@
 
 package org.infinity.datatype;
 
+import java.nio.ByteBuffer;
+
 import org.infinity.resource.StructEntry;
 
 public class HexNumber extends DecNumber
 {
-  public HexNumber(byte buffer[], int offset, int length, String desc)
+  public HexNumber(ByteBuffer buffer, int offset, int length, String desc)
   {
     this(null, buffer, offset, length, desc);
   }
 
-  public HexNumber(StructEntry parent, byte buffer[], int offset, int length, String desc)
+  public HexNumber(StructEntry parent, ByteBuffer buffer, int offset, int length, String desc)
   {
     super(parent, buffer, offset, length, desc);
   }
