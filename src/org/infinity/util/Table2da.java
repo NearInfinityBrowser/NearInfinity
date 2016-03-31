@@ -51,7 +51,7 @@ public class Table2da
   /** Returns number of columns, including header column. */
   public int getColCount()
   {
-    return table.isEmpty() ? 0 : table.get(0).size();
+    return table.isEmpty() ? header.size() : table.get(0).size();
   }
 
   /** Returns number of rows, including header row. */
@@ -87,7 +87,7 @@ public class Table2da
   /** Returns whether table contains any data. */
   public boolean isEmpty()
   {
-    return table.isEmpty();
+    return table.isEmpty() && header.isEmpty();
   }
 
   /** Returns the default value of the table. */
@@ -106,7 +106,7 @@ public class Table2da
 
     try {
       PlainTextResource text = new PlainTextResource(entry);
-      String[] lines = text.getText().split("\\r?\\n");
+      String[] lines = text.getText().split("\r?\n");
       if (lines.length >= 2) {
         int minSize = 0;
 
