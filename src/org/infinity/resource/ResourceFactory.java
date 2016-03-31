@@ -837,23 +837,25 @@ public final class ResourceFactory
     treeModel = new ResourceTreeModel();
 
     // Get resources from keyfile
+    NearInfinity.advanceProgress("Loading BIFF resources...");
     keyfile.addBIFFResourceEntries(treeModel);
     StringResource.init(Profile.getProperty(Profile.Key.GET_GAME_DIALOG_FILE));
 
     // Add resources from extra folders
+    NearInfinity.advanceProgress("Loading extra resources...");
     List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
     for (final Path path: extraPaths) {
       if (Files.isDirectory(path)) {
-        treeModel.addDirectory((ResourceTreeFolder)treeModel.getRoot(), path);
+        treeModel.addDirectory((ResourceTreeFolder)treeModel.getRoot(), path, false);
       }
     }
 
+    NearInfinity.advanceProgress("Loading override resources...");
     boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
                                   BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
     String overrideFolder = Profile.getOverrideFolderName();
-    List<Path> rootPaths = Profile.getRootFolders();
-    for (final Path root: rootPaths) {
-      Path overridePath = FileManager.query(root, overrideFolder);
+    List<Path> overridePaths = Profile.getOverrideFolders(false);
+    for (final Path overridePath: overridePaths) {
       if (Files.isDirectory(overridePath)) {
         try (DirectoryStream<Path> dstream = Files.newDirectoryStream(overridePath)) {
           for (final Path path: dstream) {
@@ -861,12 +863,12 @@ public final class ResourceFactory
               ResourceEntry entry = getResourceEntry(path.getFileName().toString());
               if (entry == null) {
                 FileResourceEntry fileEntry = new FileResourceEntry(path);
-                treeModel.addResourceEntry(fileEntry, fileEntry.getTreeFolder());
+                treeModel.addResourceEntry(fileEntry, fileEntry.getTreeFolder(), true);
               } else if (entry instanceof BIFFResourceEntry) {
                 ((BIFFResourceEntry)entry).setOverride(true);
                 if (overrideInOverride) {
                   treeModel.removeResourceEntry(entry, entry.getExtension());
-                  treeModel.addResourceEntry(new FileResourceEntry(path, true), overrideFolder);
+                  treeModel.addResourceEntry(new FileResourceEntry(path, true), overrideFolder, true);
                 }
               }
             }
@@ -975,7 +977,7 @@ public final class ResourceFactory
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), entry.toString() + " copied to " + outFile,
                                     "Copy complete", JOptionPane.INFORMATION_MESSAGE);
       ResourceEntry newEntry = new FileResourceEntry(outFile, !entry.getExtension().equalsIgnoreCase("bs"));
-      treeModel.addResourceEntry(newEntry, newEntry.getTreeFolder());
+      treeModel.addResourceEntry(newEntry, newEntry.getTreeFolder(), true);
       treeModel.sort();
       NearInfinity.getInstance().showResourceEntry(newEntry);
     } catch (Exception e) {

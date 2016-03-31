@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -43,7 +44,9 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
+import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.filechooser.FileFilter;
@@ -120,7 +123,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private Viewable viewable;
   private ButtonPopupWindow bpwQuickSearch;
   private int tablePanelHeight;
-
+  private ProgressMonitor pmProgress;
+  private int progressIndex;
 
   public static boolean isDebug()
   {
@@ -189,19 +193,13 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     System.out.format("Display help:      java -jar %1$s -help", jarFile).println();
   }
 
-  private static boolean reloadFactory(boolean refreshonly)
+  /** Advances the progress monitor by one step with optional note. */
+  public static void advanceProgress(String note)
   {
-    boolean retVal = false;
-    clearCache();
-    Path keyFile = refreshonly ? Profile.getChitinKey() : findKeyfile();
-    if (keyFile != null) {
-      EffectFactory.init();
-      retVal = Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
-      if (retVal) {
-        Compiler.restartCompiler();
-      }
+    if (getInstance() != null && getInstance().pmProgress != null) {
+      getInstance().pmProgress.setNote((note != null) ? note: "");
+      getInstance().pmProgress.setProgress(++getInstance().progressIndex);
     }
-    return retVal;
   }
 
   public static void main(String args[])
@@ -280,23 +278,43 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     } else {
       lastDir = prefs.get(LAST_GAMEDIR, null);
     }
+
+    final Path keyFile;
     Path path;
     if (Files.isRegularFile(path = FileManager.resolve(KEYFILENAME))) {
-      Path keyFile = path;
-      Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+      keyFile = path;
     } else if (lastDir != null && Files.isRegularFile(path = FileManager.resolve(lastDir, KEYFILENAME))) {
-      Path keyFile = path;
-      Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+      keyFile = path;
     } else {
-      Path keyFile = findKeyfile();
-      if (keyFile == null) {
-        System.exit(10);
-      }
-      Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+      keyFile = findKeyfile();
+    }
+    if (keyFile == null) {
+      System.exit(10);
     }
 
-    BrowserMenuBar.getInstance().gameLoaded(Profile.Game.Unknown, null);
-    Compiler.restartCompiler();
+    showProgress("Starting Near Infinity", 6);
+    SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+      @Override
+      protected Void doInBackground() throws Exception
+      {
+        Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+
+        advanceProgress("Initializing GUI...");
+        BrowserMenuBar.getInstance().gameLoaded(Profile.Game.Unknown, null);
+        Compiler.restartCompiler();
+
+        return null;
+      }
+    };
+    try {
+      worker.execute();
+      worker.get();
+    } catch (InterruptedException | ExecutionException e) {
+      e.printStackTrace();
+      System.exit(10);
+    } finally {
+      hideProgress();
+    }
 
     addWindowListener(new WindowAdapter()
     {
@@ -760,16 +778,52 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return retVal;
   }
 
+  private static boolean reloadFactory(boolean refreshonly)
+  {
+    boolean retVal = false;
+    clearCache();
+    Path keyFile = refreshonly ? Profile.getChitinKey() : findKeyfile();
+    if (keyFile != null) {
+      EffectFactory.init();
+      retVal = Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+      if (retVal) {
+        Compiler.restartCompiler();
+      }
+    }
+    return retVal;
+  }
+
   // Central method for clearing cached data
   private static void clearCache()
   {
-    ResourceFactory.getKeyfile().closeBIFFFiles();
+    if (ResourceFactory.getKeyfile() != null) {
+      ResourceFactory.getKeyfile().closeBIFFFiles();
+    }
     IdsMapCache.clearCache();
     IniMapCache.clearCache();
     Table2daCache.clearCache();
     SearchFrame.clearCache();
     StringResource.close();
     ProRef.clearCache();
+  }
+
+  private static void showProgress(String msg, int max)
+  {
+    if (getInstance() != null && getInstance().pmProgress == null) {
+      getInstance().pmProgress = new ProgressMonitor(null, msg, "   ", 0, max);
+      getInstance().pmProgress.setMillisToDecideToPopup(0);
+      getInstance().pmProgress.setMillisToPopup(0);
+      getInstance().progressIndex = 0;
+      getInstance().pmProgress.setProgress(++getInstance().progressIndex);
+    }
+  }
+
+  private static void hideProgress()
+  {
+    if (getInstance() != null && getInstance().pmProgress != null) {
+      getInstance().pmProgress.close();
+      getInstance().pmProgress = null;
+    }
   }
 
   private void storePreferences()

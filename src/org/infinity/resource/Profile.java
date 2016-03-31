@@ -157,7 +157,7 @@ public final class Profile
      *            (Enhanced Editions only) */
     GET_GAME_LANG_FOLDER_BASE,
     /** Property: ({@code List<Path>}) List of override folders to search for game resources,
-     *            sorted by priority in ascending order. */
+     *            sorted by priority in descending order. */
     GET_GAME_OVERRIDE_FOLDERS,
     /** Property: ({@code List<String>}) List of extra folder names containing game-related resources,
      *            sorted alphabetically in ascending order. */
@@ -664,7 +664,7 @@ public final class Profile
 
   /**
    * Returns a list of override folders supported by the current game, sorted by priority
-   * in ascending order.
+   * in descending order.
    * @param includeExtraFolders Whether to include extra folders that are treated
    *                            as override folders by the current game.
    * @return List of {@link Path} objects for all available override folders.
@@ -1118,8 +1118,14 @@ public final class Profile
       initIniFile("baldur.lua", "baldur.ini");
     }
 
+    // initializing available root directories
     initRootDirs();
+
+    // initializing extra folders containing resources
     initExtraFolders();
+
+    // initializing list of available override folders
+    initOverrides();
 
     // initializing dialog.tlk and dialogf.tlk
     Path tlk = FileManager.queryExisting(getRootFolders(), getProperty(Key.GET_GLOBAL_DIALOG_NAME));
@@ -1162,9 +1168,6 @@ public final class Profile
     // updating game type
     addEntry(Key.GET_GAME_TYPE, Type.OBJECT, game);
     addEntry(Key.GET_GAME_TITLE, Type.STRING, GAME_TITLE.get(game));
-
-    // initializing list of available override folders
-    initOverrides();
 
     // initializing supported resource types
     initResourceTypes();
@@ -1310,9 +1313,13 @@ public final class Profile
     List<Path> list = new ArrayList<>();
     if (isEnhancedEdition()) {
       // preparations
-      Path gameRoot = getGameRoot();;
-      // relative language path based on game root
+      Path gameRoot = getGameRoot();
+      // relative language paths based on game root
       String langFolder = gameRoot.relativize(getLanguageRoot()).toString();
+      String langFolderDef = gameRoot.relativize(getLanguageRoot().getParent().resolve("en_US")).toString();
+      if (langFolder.equalsIgnoreCase(langFolderDef)) {
+        langFolderDef = null;
+      }
       Path homeRoot = getHomeRoot();
       List<Path> dlcRoots = getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE);
 
@@ -1323,37 +1330,52 @@ public final class Profile
         gameRoots.add(path);
       }
       gameRoots.add(homeRoot);
+      Collections.reverse(gameRoots);
 
       // registering override paths
       for (final Path root: gameRoots) {
-        Path path = FileManager.queryExisting(root, "Override");
+        Path path = FileManager.queryExisting(root, langFolder, "Movies");
         if (path != null) { list.add(path); }
-        path = FileManager.queryExisting(root, "Scripts");
-        if (path != null) { list.add(path); }
-        path = FileManager.queryExisting(root, "Sounds");
-        if (path != null) { list.add(path); }
-        path = FileManager.queryExisting(root, langFolder, "Sounds");
-        if (path != null) { list.add(path); }
-        path = FileManager.queryExisting(root, "Portraits");
+        if (langFolderDef != null) {
+          path = FileManager.queryExisting(root, langFolderDef, "Movies");
+          if (path != null) { list.add(path); }
+        }
+        path = FileManager.queryExisting(root, "Movies");
         if (path != null) { list.add(path); }
         path = FileManager.queryExisting(root, "Characters");
         if (path != null) { list.add(path); }
-        path = FileManager.queryExisting(root, "Movies");
+        path = FileManager.queryExisting(root, "Portraits");
         if (path != null) { list.add(path); }
-        path = FileManager.queryExisting(root, langFolder, "Movies");
+        path = FileManager.queryExisting(root, langFolder, "Sounds");
+        if (path != null) { list.add(path); }
+        if (langFolderDef != null) {
+          path = FileManager.queryExisting(root, langFolderDef, "Sounds");
+          if (path != null) { list.add(path); }
+        }
+        path = FileManager.queryExisting(root, langFolder, "Fonts");
+        if (path != null) { list.add(path); }
+        path = FileManager.queryExisting(root, "Sounds");
+        if (path != null) { list.add(path); }
+        path = FileManager.queryExisting(root, "Scripts");
+        if (path != null) { list.add(path); }
+        path = FileManager.queryExisting(root, langFolder, "Override");
+        if (path != null) { list.add(path); }
+        path = FileManager.queryExisting(root, "Override");
         if (path != null) { list.add(path); }
       }
     } else {
       Path root = getGameRoot();
-      Path path = FileManager.queryExisting(root, "Override");
+      Path path = FileManager.queryExisting(root, "Movies");
       if (path != null) { list.add(path); }
-      path = FileManager.queryExisting(root, "Scripts");
-      if (path != null) { list.add(path); }
-      path = FileManager.queryExisting(root, "Sounds");
+      path = FileManager.queryExisting(root, "Characters");
       if (path != null) { list.add(path); }
       path = FileManager.queryExisting(root, "Portraits");
       if (path != null) { list.add(path); }
-      path = FileManager.queryExisting(root, "Characters");
+      path = FileManager.queryExisting(root, "Sounds");
+      if (path != null) { list.add(path); }
+      path = FileManager.queryExisting(root, "Scripts");
+      if (path != null) { list.add(path); }
+      path = FileManager.queryExisting(root, "Override");
       if (path != null) { list.add(path); }
     }
     addEntry(Key.GET_GAME_OVERRIDE_FOLDERS, Type.LIST, list);

@@ -7,7 +7,6 @@ package org.infinity.resource.key;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -105,8 +104,6 @@ public final class Keyfile
       if (ch.read(buffer) < ch.size()) {
         throw new IOException();
       }
-      buffer.position(0);
-      buffer.order(ByteOrder.LITTLE_ENDIAN);
       String sig = StreamUtils.readString(buffer, 0, 4);
       String ver = StreamUtils.readString(buffer, 4, 4);
       if (!sig.equals(KEY_SIGNATURE) || !ver.equals(KEY_VERSION)) {
@@ -132,7 +129,6 @@ public final class Keyfile
       if (ch.read(buffer) < ch.size()) {
         throw new IOException();
       }
-      buffer.order(ByteOrder.LITTLE_ENDIAN);
       String sig = StreamUtils.readString(buffer, 0, 4);
       String ver = StreamUtils.readString(buffer, 4, 4);
       if (!sig.equals(KEY_SIGNATURE) || !ver.equals(KEY_VERSION)) {
@@ -296,7 +292,7 @@ public final class Keyfile
       throw new IOException();
     }
     for (final BIFFResourceEntry entry: resEntries) {
-      treemodel.addResourceEntry(entry, entry.getExtension());
+      treemodel.addResourceEntry(entry, entry.getExtension(), true);
     }
     if (BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().cacheBIFFs()) {
       cacheBIFFs();

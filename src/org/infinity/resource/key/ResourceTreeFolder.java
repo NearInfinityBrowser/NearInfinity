@@ -7,10 +7,13 @@ package org.infinity.resource.key;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 {
-  private final List<ResourceEntry> resourceEntries = new ArrayList<ResourceEntry>();
+  private final SortedSet<ResourceEntry> resourceEntries =
+      Collections.synchronizedSortedSet(new TreeSet<ResourceEntry>());
   private final List<ResourceTreeFolder> folders = new ArrayList<ResourceTreeFolder>();
   private final ResourceTreeFolder parentFolder;
   private final String folderName;
@@ -44,19 +47,18 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 
   public List<ResourceEntry> getResourceEntries()
   {
-    return Collections.unmodifiableList(resourceEntries);
+    return Collections.unmodifiableList(new ArrayList<>(resourceEntries));
   }
 
   public List<ResourceEntry> getResourceEntries(String type)
   {
     List<ResourceEntry> list = new ArrayList<ResourceEntry>();
-    for (int i = 0; i < resourceEntries.size(); i++) {
-      ResourceEntry entry = resourceEntries.get(i);
-      if (entry.getExtension().equalsIgnoreCase(type))
+    for (final ResourceEntry entry: resourceEntries) {
+      if (entry.getExtension().equalsIgnoreCase(type)) {
         list.add(entry);
+      }
     }
-    for (int i = 0; i < folders.size(); i++) {
-      ResourceTreeFolder folder = folders.get(i);
+    for (final ResourceTreeFolder folder: folders) {
       list.addAll(folder.getResourceEntries(type));
     }
     return list;
@@ -70,8 +72,8 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
   public void addResourceEntry(ResourceEntry entry, boolean overwrite)
   {
     if (entry.isVisible()) {
-      if (!overwrite && resourceEntries.contains(entry)) {
-        return;
+      if (overwrite) {
+        resourceEntries.remove(entry);
       }
       resourceEntries.add(entry);
     }
@@ -79,9 +81,21 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 
   public Object getChild(int index)
   {
-    if (index < folders.size())
-      return folders.get(index);
-    return resourceEntries.get(index - folders.size());
+    if (index >= 0) {
+      if (index < folders.size()) {
+        return folders.get(index);
+      }
+
+      index -= folders.size();
+      if (index < resourceEntries.size()) {
+        for (final ResourceEntry entry: resourceEntries) {
+          if (index-- == 0) {
+            return entry;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   public int getChildCount()
@@ -96,9 +110,17 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 
   public int getIndexOfChild(Object node)
   {
-    if (node instanceof ResourceTreeFolder)
+    if (node instanceof ResourceTreeFolder) {
       return folders.indexOf(node);
-    return folders.size() + resourceEntries.indexOf(node);
+    }
+    int index = folders.size();
+    for (final ResourceEntry entry: resourceEntries) {
+      if (entry.equals(node)) {
+        return index;
+      }
+      index++;
+    }
+    return -1;
   }
 
   public ResourceTreeFolder getParentFolder()
@@ -118,10 +140,10 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 
   public void sortChildren()
   {
-    Collections.sort(resourceEntries);
     Collections.sort(folders);
-    for (int i = 0; i < folders.size(); i++)
-      folders.get(i).sortChildren();
+    for (final ResourceTreeFolder folder: folders) {
+      folder.sortChildren();
+    }
   }
 }
 

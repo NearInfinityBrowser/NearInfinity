@@ -91,7 +91,7 @@ public final class ResourceTreeModel implements TreeModel
 
 // --------------------- End Interface TreeModel ---------------------
 
-  public void addDirectory(ResourceTreeFolder parentFolder, Path directory)
+  public void addDirectory(ResourceTreeFolder parentFolder, Path directory, boolean overwrite)
   {
     try (DirectoryStream<Path> dstream = Files.newDirectoryStream(directory)) {
       Iterator<Path> iter = dstream.iterator();
@@ -106,9 +106,9 @@ public final class ResourceTreeModel implements TreeModel
         while (iter.hasNext()) {
           final Path path = iter.next();
           if (Files.isDirectory(path)) {
-            addDirectory(folder, path);
+            addDirectory(folder, path, overwrite);
           } else {
-            folder.addResourceEntry(new FileResourceEntry(path), true);
+            folder.addResourceEntry(new FileResourceEntry(path), overwrite);
           }
         }
       }
@@ -118,7 +118,7 @@ public final class ResourceTreeModel implements TreeModel
     }
   }
 
-  public void addResourceEntry(ResourceEntry entry, String folderName)
+  public void addResourceEntry(ResourceEntry entry, String folderName, boolean overwrite)
   {
     ResourceTreeFolder folder = folders.get(folderName);
     if (folder == null) {
@@ -126,7 +126,7 @@ public final class ResourceTreeModel implements TreeModel
       folders.put(folderName, folder);
       root.addFolder(folder);
     }
-    folder.addResourceEntry(entry, true);
+    folder.addResourceEntry(entry, overwrite);
     if (entry.isVisible()) {
       entries.put(entry.getResourceName().toUpperCase(Locale.ENGLISH), entry);
     }
@@ -190,6 +190,28 @@ public final class ResourceTreeModel implements TreeModel
     } else {
       return null;
     }
+  }
+
+  public List<ResourceEntry> removeDirectory(ResourceTreeFolder parentFolder, String folderName)
+  {
+    List<ResourceEntry> retVal = new ArrayList<>();
+    if (folderName != null) {
+      if (parentFolder == null) {
+        parentFolder = root;
+      }
+
+      ResourceTreeFolder folder = getFolder(parentFolder, folderName);
+      if (folder != null) {
+        List<ResourceEntry> entries = folder.getResourceEntries();
+        for (final ResourceEntry entry: entries) {
+          folder.removeResourceEntry(entry);
+        }
+        parentFolder.removeFolder(folder);
+        folders.remove(folder.folderName());
+        retVal.addAll(entries);
+      }
+    }
+    return retVal;
   }
 
   public void removeResourceEntry(ResourceEntry entry)
