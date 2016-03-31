@@ -1477,14 +1477,9 @@ public final class CreResource extends AbstractStruct
       addField(new MultiNumber(buffer, offset + 108, 1, CRE_PROFICIENCY_AXE, 3, 2, s_profLabels));
       addField(new MultiNumber(buffer, offset + 109, 1, CRE_PROFICIENCY_MISSILE, 3, 2, s_profLabels));
       if (Profile.isEnhancedEdition()) {
-        if (Profile.getGame() == Profile.Game.BG1SoD || Profile.getGame() == Profile.Game.BG2EE ||
-            Profile.getGame() == Profile.Game.IWDEE) {
-          addField(new Unknown(buffer, offset + 110, 7));
-          addField(new Bitmap(buffer, offset + 117, 1, CRE_NIGHTMARE_MODE, s_noyes));
-          addField(new UnsignDecNumber(buffer, offset + 118, 1, CRE_TRANSLUCENCY));
-        } else {
-          addField(new Unknown(buffer, offset + 110, 9));
-        }
+        addField(new Unknown(buffer, offset + 110, 7));
+        addField(new Bitmap(buffer, offset + 117, 1, CRE_NIGHTMARE_MODE, s_noyes));
+        addField(new UnsignDecNumber(buffer, offset + 118, 1, CRE_TRANSLUCENCY));
         addField(new DecNumber(buffer, offset + 119, 1, CRE_REPUTATION_MOD_KILLED));
         addField(new DecNumber(buffer, offset + 120, 1, CRE_REPUTATION_MOD_JOIN));
         addField(new DecNumber(buffer, offset + 121, 1, CRE_REPUTATION_MOD_LEAVE));

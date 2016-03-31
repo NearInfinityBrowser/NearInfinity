@@ -102,12 +102,6 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       "Normal windows", "Party AI disabled", "", "", "", "Fullscreen mode", "",
       "Console hidden", "Automap notes hidden"};
   public static final String[] s_version_bg1 = {"Restrict XP to BG1 limit", "Restrict XP to TotSC limit"};
-  public static final String[] s_version = {
-      "Restrict XP to BG1 limit", "Restrict XP to TotSC limit", "Restrict XP to SoA limit",
-      "Unknown", "SoA active", "ToB active"};
-  public static final String[] s_version_iwdee = {
-      "Restrict XP to BG1 limit", "Restrict XP to TotSC limit", "Restrict XP to SoA limit",
-      "Icewind Dale", "Icewind Dale: HoW only", "ToB active"};
   public static final String[] s_familiar_owner = {
       "Party member 0", "Party member 1", "Party member 2", "Party member 3",
       "Party member 4", "Party member 5"};
@@ -355,13 +349,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       addField(new DecNumber(buffer, offset + 84, 4, GAM_REPUTATION));
       addField(new ResourceRef(buffer, offset + 88, GAM_CURRENT_AREA, "ARE"));
       addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, s_configuration));
-
-      if (Profile.getGame() == Profile.Game.IWDEE) {
-        addField(new Bitmap(buffer, offset + 100, 4, GAM_SAVE_VERSION, s_version_iwdee));   // to be confirmed
-      } else {
-        addField(new Bitmap(buffer, offset + 100, 4, GAM_SAVE_VERSION, s_version));
-      }
-
+      addField(new DecNumber(buffer, offset + 100, 4, GAM_SAVE_VERSION));
       offFamiliar = new SectionOffset(buffer, offset + 104, GAM_OFFSET_FAMILIAR_INFO, Familiar.class);
       addField(offFamiliar);
       offLocation = new SectionOffset(buffer, offset + 108, GAM_OFFSET_STORED_LOCATIONS, StoredLocation.class);

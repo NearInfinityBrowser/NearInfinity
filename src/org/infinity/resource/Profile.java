@@ -1494,8 +1494,7 @@ public final class Profile
 
     addEntry(Key.IS_SUPPORTED_PVRZ, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(Key.IS_SUPPORTED_RES, Type.BOOLEAN, (engine == Engine.IWD || engine == Engine.IWD2 ||
-                                              game == Game.IWDEE));
+    addEntry(Key.IS_SUPPORTED_RES, Type.BOOLEAN, (engine == Engine.IWD || engine == Engine.IWD2));
 
     addEntry(Key.IS_SUPPORTED_SAV, Type.BOOLEAN, Boolean.valueOf(true));
 

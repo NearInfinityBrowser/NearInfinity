@@ -205,6 +205,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
       case BG1EE:
       case BG1SoD:
       case BG2EE:
+      case EET:
         gameType = GameType.BG2;
         break;
       case IWD:

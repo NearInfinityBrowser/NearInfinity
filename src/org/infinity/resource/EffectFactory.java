@@ -782,7 +782,7 @@ public final class EffectFactory
   private static boolean updateOpcode328(AbstractStruct struct) throws Exception
   {
     if (struct != null) {
-      if (Profile.getGame() == Profile.Game.IWDEE) {
+      if (Profile.isEnhancedEdition()) {
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 328) {   // effect type "Set State" (328)
           int special = ((Bitmap)getEntry(struct, EffectEntry.IDX_SPECIAL)).getValue();
@@ -805,9 +805,8 @@ public final class EffectFactory
   public EffectFactory()
   {
     s_effname = null;
-    switch (Profile.getGame()) {
+    switch (Profile.getEngine()) {
       case BG1:
-      case BG1TotSC:
         s_effname = new String[]{
             // 0..9
             "AC bonus", "Modify attacks per round", "Cure sleep", "Berserk", "Cure berserk",
@@ -887,10 +886,7 @@ public final class EffectFactory
             "Increase attack speed factor", "Casting level bonus"};
         break;
 
-      case BG2SoA:
-      case BG2ToB:
-      case Tutu:
-      case BGT:
+      case BG2:
       case Unknown: // Default list
         s_effname = new String[]{
             // 0..9
@@ -1021,11 +1017,7 @@ public final class EffectFactory
             "Stoneskin protection", "Remove animation", "Rest", "Haste 2", "Ex: Set stat"};
         break;
 
-      case BG1EE:
-      case BG1SoD:
-      case BG2EE:
-      case EET:
-      case IWDEE:
+      case EE:
         s_effname = new String[]{
             // 0..9
             "AC bonus", "Modify attacks per round", "Cure sleep", "Berserk", "Cure berserk",
@@ -1264,8 +1256,6 @@ public final class EffectFactory
         break;
 
       case IWD:
-      case IWDHoW:
-      case IWDHowToTLM:
         s_effname = new String[]{
             // 0..9
             "AC bonus", "Modify attacks per round", "Cure sleep", "Berserk", "Cure berserk",
@@ -4706,8 +4696,6 @@ public final class EffectFactory
   private int makeEffectParam25(Datatype parent, ByteBuffer buffer, int offset, List<StructEntry> s,
                                 int effectType, String resourceType, int param1, int param2)
   {
-    boolean isIWDEE = (Profile.getGame() == Profile.Game.IWDEE);
-
     if (Profile.isEnhancedEdition()) {
       switch (effectType) {
         case 12:    // Damage
@@ -4738,11 +4726,7 @@ public final class EffectFactory
           break;
 
         case 218: // Stoneskin effect
-          if (isIWDEE) {
-            s.add(new Bitmap(buffer, offset, 4, "Icon", getIconDescArray()));
-          } else {
-            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
-          }
+          s.add(new Bitmap(buffer, offset, 4, "Icon", getIconDescArray()));
           break;
 
         case 232:   // Cast spell on condition
@@ -4763,48 +4747,28 @@ public final class EffectFactory
           break;
 
         case 328:   // Set state (BGEE/IWDEE)
-          if (isIWDEE) {
-            Bitmap bmp = new Bitmap(buffer, offset, 4, "Mode", new String[]{"IWD mode", "IWD2 mode"});
-            s.add(bmp);
-            if (parent != null && parent instanceof UpdateListener) {
-              bmp.addUpdateListener((UpdateListener)parent);
-            }
-          } else {
-            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
+          Bitmap bmp = new Bitmap(buffer, offset, 4, "Mode", new String[]{"IWD mode", "IWD2 mode"});
+          s.add(bmp);
+          if (parent != null && parent instanceof UpdateListener) {
+            bmp.addUpdateListener((UpdateListener)parent);
           }
           break;
 
         case 331:
-          if (isIWDEE) {
-            s.add(new Bitmap(buffer, offset, 4, "Mode",
-                             new String[]{"Use dice", "Use dice", "Use caster level"}));
-          } else {
-            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
-          }
+          s.add(new Bitmap(buffer, offset, 4, "Mode",
+                           new String[]{"Use dice", "Use dice", "Use caster level"}));
           break;
 
         case 333:   // Static charge
-          if (isIWDEE) {
-            s.add(new DecNumber(buffer, offset, 4, "Delay"));
-          } else {
-            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
-          }
+          s.add(new DecNumber(buffer, offset, 4, "Delay"));
           break;
 
         case 335: // Seven eyes
-          if (isIWDEE) {
-            s.add(new DecNumber(buffer, offset, 4, "Eye group"));
-          } else {
-            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
-          }
+          s.add(new DecNumber(buffer, offset, 4, "Eye group"));
           break;
 
         case 339:   // Alter visual animation effect
-          if (isIWDEE) {
-            s.add(new DecNumber(buffer, offset, 4, "Range"));
-          } else {
-            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
-          }
+          s.add(new DecNumber(buffer, offset, 4, "Range"));
           break;
 
         case 344: // Enchantment vs. creature type
