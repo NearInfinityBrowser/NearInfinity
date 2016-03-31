@@ -14,9 +14,14 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Stream;
 
 import org.infinity.NearInfinity;
+import org.infinity.resource.key.ResourceTreeFolder;
+import org.infinity.resource.key.ResourceTreeModel;
+import org.infinity.util.Table2da;
+import org.infinity.util.Table2daCache;
 import org.infinity.util.io.FileManager;
 
 /**
@@ -387,26 +392,29 @@ public final class Profile
     final String[] PST_EXTRA_FOLDERS = { "Music", "Save", "Temp" };
     final String[] BG_EXTRA_FOLDERS = { "Characters", "MPSave", "Music", "Portraits", "Save",
                                         "Scripts", "ScrnShot", "Sounds", "Temp", "TempSave" };
-    final String[] EE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "Movies", "MPBPSave", "MPSave",
-                                        "MPSODSave", "Music", "Portraits", "Save", "Sounds", "ScrnShot",
-                                        "Scripts", "SODSave", "Temp", "TempSave" };
-    GAME_EXTRA_FOLDERS.put(Game.Unknown, Arrays.asList(BG_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.BG1, Arrays.asList(BG_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.BG1TotSC, Arrays.asList(BG_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.BG2SoA, Arrays.asList(BG_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.BG2ToB, Arrays.asList(BG_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.Tutu, Arrays.asList(BG_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.BGT, Arrays.asList(BG_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.PST, Arrays.asList(PST_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.IWD, Arrays.asList(BG_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.IWDHoW, Arrays.asList(BG_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.IWDHowToTLM, Arrays.asList(BG_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.IWD2, Arrays.asList(BG_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.BG1EE, Arrays.asList(EE_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.BG1SoD, Arrays.asList(EE_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.BG2EE, Arrays.asList(EE_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.IWDEE, Arrays.asList(EE_EXTRA_FOLDERS));
-    GAME_EXTRA_FOLDERS.put(Game.EET, Arrays.asList(EE_EXTRA_FOLDERS));
+    final String[] EE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "Movies", "MPBPSave",
+                                        "MPSave", "Music", "Portraits", "Save", "Sounds",
+                                        "ScrnShot", "Scripts", "Temp", "TempSave" };
+//    final String[] EE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "Movies", "MPBPSave", "MPSave",
+//                                        "MPSODSave", "Music", "Portraits", "Save", "Sounds", "ScrnShot",
+//                                        "Scripts", "SODSave", "Temp", "TempSave" };
+    GAME_EXTRA_FOLDERS.put(Game.Unknown, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BG1, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BG1TotSC, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BG2SoA, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BG2ToB, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.Tutu, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BGT, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.PST, new ArrayList<>(Arrays.asList(PST_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.IWD, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.IWDHoW, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.IWDHowToTLM, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.IWD2, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BG1EE, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BG1SoD, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BG2EE, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.IWDEE, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.EET, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
 
     // initializing home folder names for Enhanced Edition games
     GAME_HOME_FOLDER.put(Game.BG1EE, "Baldur's Gate - Enhanced Edition");
@@ -1304,7 +1312,11 @@ public final class Profile
       Collections.sort(list);
       pathList.addAll(list);
     }
-    addEntry(Key.GET_GAME_EXTRA_FOLDERS, Type.LIST, pathList);
+    if (getProperty(Key.GET_GAME_EXTRA_FOLDERS) != null) {
+      updateProperty(Key.GET_GAME_EXTRA_FOLDERS, pathList);
+    } else {
+      addEntry(Key.GET_GAME_EXTRA_FOLDERS, Type.LIST, pathList);
+    }
   }
 
   // Initializes supported override folders used by specific games
@@ -1554,6 +1566,83 @@ public final class Profile
       addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, Files.isRegularFile(tobexIni));
     } else {
       addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, Boolean.FALSE);
+    }
+
+    // Add campaign-specific extra folders
+    initCampaigns();
+  }
+
+  // Adds any campaign-specific save folders to the resource tree (EE only)
+  private void initCampaigns()
+  {
+    final String campaign = "CAMPAIGN.2DA";
+    if (isEnhancedEdition() && ResourceFactory.resourceExists(campaign)) {
+      Table2da table = Table2daCache.get(campaign);
+      if (table == null || table.getRowCount() == 0) {
+        return;
+      }
+
+      // getting correct column
+      final String saveColName = "SAVE_DIR";  // default column name
+      int col = 12;   // default column index
+      for (int i = 0; i < table.getColCount(); i++) {
+        if (saveColName.equalsIgnoreCase(table.getHeader(i))) {
+          col = i;
+          break;
+        }
+      }
+      if (col >= table.getColCount()) {
+        return;
+      }
+
+      // getting save folder names
+      List<String> extraNames = getProperty(Key.GET_GAME_EXTRA_FOLDER_NAMES);
+      boolean available = false;
+      for (int row = 0; row < table.getRowCount(); row++) {
+        String save = table.get(row, col);
+        if (save != null && !save.isEmpty()) {
+          save = Character.toUpperCase(save.charAt(0)) + save.substring(1).toLowerCase(Locale.ENGLISH);
+          String mpsave = "MP" + save;
+          boolean checkSave = false, checkMPSave = false;
+          for (final String s: extraNames) {
+            checkSave |= save.equalsIgnoreCase(s);
+            checkMPSave |= mpsave.equalsIgnoreCase(s);
+            if (checkSave && checkMPSave) {
+              break;
+            }
+          }
+          if (!checkSave) {
+            available = true;
+            extraNames.add(save);
+          }
+          if (!checkMPSave) {
+            available = true;
+            extraNames.add(mpsave);
+          }
+        }
+      }
+
+      if (available) {
+        // updating extra folder name and path list
+        Collections.sort(extraNames);
+        updateProperty(Key.GET_GAME_EXTRA_FOLDER_NAMES, extraNames);
+        initExtraFolders();
+
+        // adding new paths to resource tree
+        ResourceTreeModel model = ResourceFactory.getResources();
+        if (model != null) {
+          List<Path> extraDirs = getProperty(Key.GET_GAME_EXTRA_FOLDERS);
+          for (final Path path: extraDirs) {
+            if (Files.isDirectory(path)) {
+              String folderName = path.getFileName().toString();
+              if (model.getFolder(folderName) == null) {
+                model.addDirectory((ResourceTreeFolder)model.getRoot(), path, false);
+              }
+            }
+          }
+          model.sort();
+        }
+      }
     }
   }
 
