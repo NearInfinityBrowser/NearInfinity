@@ -3786,8 +3786,8 @@ public final class EffectFactory
 
       case 365: // Make unselectable
         if (Profile.isEnhancedEdition()) {
-          s.add(new Bitmap(buffer, offset, 4, "Disable AI?", s_noyes));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Disable dialogue?", s_noyes));
+          s.add(new Bitmap(buffer, offset, 4, "Disable dialogue?", s_yesno));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Disable AI?", s_yesno));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -4826,7 +4826,7 @@ public final class EffectFactory
           break;
 
         case 365: // Make unselectable
-          s.add(new Bitmap(buffer, offset, 4, "Disable purple selection color?", s_noyes));
+          s.add(new Bitmap(buffer, offset, 4, "Use purple selection color?", s_yesno));
           break;
 
         case 366: // Apply spell on movement
