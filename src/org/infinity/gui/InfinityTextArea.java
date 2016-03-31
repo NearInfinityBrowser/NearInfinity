@@ -313,25 +313,36 @@ public class InfinityTextArea extends RSyntaxTextArea
 
       Path schemeFile = FileManager.resolve(schemePath);
       boolean isExternal = (NearInfinity.isDebug() && (Files.isRegularFile(schemeFile)));
-      InputStream is;
-      if (isExternal) {
-        try {
-          is = StreamUtils.getInputStream(schemeFile);
-        } catch (IOException e) {
-          is = ClassLoader.getSystemResourceAsStream(SchemeNone);
-          e.printStackTrace();
-        }
-      } else {
-        is = ClassLoader.getSystemResourceAsStream(schemePath);
-      }
-      if (is != null) {
-        try {
-          Theme theme = Theme.load(is);
-          if (theme != null) {
-            theme.apply(edit);
+      InputStream is = null;
+      try {
+        if (isExternal) {
+          try {
+            is = StreamUtils.getInputStream(schemeFile);
+          } catch (IOException e) {
+            is = ClassLoader.getSystemResourceAsStream(SchemeNone);
+            e.printStackTrace();
           }
-        } catch (IOException e) {
-          e.printStackTrace();
+        } else {
+          is = ClassLoader.getSystemResourceAsStream(schemePath);
+        }
+        if (is != null) {
+          try {
+            Theme theme = Theme.load(is);
+            if (theme != null) {
+              theme.apply(edit);
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+      } finally {
+        if (is != null) {
+          try {
+            is.close();
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+          is = null;
         }
       }
 
