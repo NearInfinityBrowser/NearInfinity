@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,7 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.Decryptor;
+import org.infinity.util.Misc;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -72,7 +74,13 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
       buffer = Decryptor.decrypt(buffer, 2);
     }
-    text = StreamUtils.readString(buffer, buffer.limit());
+    Charset cs = null;
+    if (BrowserMenuBar.getInstance() != null) {
+      cs = Charset.forName(BrowserMenuBar.getInstance().getSelectedCharset());
+    } else {
+      cs = Misc.CHARSET_DEFAULT;
+    }
+    text = StreamUtils.readString(buffer, buffer.limit(), cs);
     this.highlightedLine = highlightedLine;
   }
 
