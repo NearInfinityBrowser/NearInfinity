@@ -275,7 +275,7 @@ public class OpenResourceDialog extends JDialog
     resources.clear();
     for (int i = 0; i < extensions.length; i++) {
       List<ResourceEntry> list = new ArrayList<ResourceEntry>();
-      String data = extensions[i].getObject().toString();
+      String data = extensions[i].getObject();
       String[] ext = null;
       if (data.isEmpty()) {
         ext = Profile.getAvailableResourceTypes();

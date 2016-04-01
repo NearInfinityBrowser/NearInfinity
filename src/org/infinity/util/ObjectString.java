@@ -190,10 +190,11 @@ public class ObjectString implements CharSequence, Comparable<ObjectString>
     return string;
   }
 
-  /** Returns associated object. */
-  public Object getObject()
+  /** Returns the associated object. */
+  @SuppressWarnings("unchecked")
+  public <T> T getObject()
   {
-    return object;
+    return (T)object;
   }
 
   /**

@@ -2910,7 +2910,7 @@ public final class BrowserMenuBar extends JMenuBar
           int top = (i > 0) ? 4 : 0;
           JLabel lTitle = new JLabel(currentLinks[i].getString() + ":");
           lTitle.setFont(font);
-          String link = currentLinks[i].getObject().toString();
+          String link = currentLinks[i].getObject();
           JLabel lLink = ViewerUtil.createUrlLabel(link);
           lLink.setFont(font);
           gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
@@ -2939,7 +2939,7 @@ public final class BrowserMenuBar extends JMenuBar
         gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                                 GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
         pLinks.add(label, gbc);
-        String link = originalLink.getObject().toString();
+        String link = originalLink.getObject();
         label = ViewerUtil.createUrlLabel(link);
         label.setFont(font);
         gbc = ViewerUtil.setGBC(gbc, 1, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
@@ -2955,7 +2955,7 @@ public final class BrowserMenuBar extends JMenuBar
         FontMetrics fm = getFontMetrics(font);
         double maxWidth = 0.0;
         for (int i = 0; i < currentLinks.length; i++) {
-          String s = currentLinks[i].getString() + ": " + currentLinks[i].getObject().toString();
+          String s = currentLinks[i].getString() + ": " + currentLinks[i].getObject();
           maxWidth = Math.max(maxWidth, fm.getStringBounds(s, getGraphics()).getWidth());
         }
 
