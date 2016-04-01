@@ -95,7 +95,3 @@ actively maintained anymore.
 To maximise compatibility with available systems, NI's code base is using the
 feature set of a specific Java version. You can find the currently supported
 version by inspecting the variable `JAVA_VERSION` in `src/org/infinity/NearInfinity.java`.
-
-To allow NI to run in case-sensitive environments, you have to use
-specialised classes if you want to access local files or directories.
-You can find them in the package `org.infinity.util.io`.
