@@ -275,7 +275,11 @@ public class DlcFileSystem extends FileSystem
     } finally {
       endRead();
     }
-    return new DlcFileAttributes(folder);
+    if (folder != null) {
+      return new DlcFileAttributes(folder);
+    } else {
+      return null;
+    }
   }
 
   boolean exists(byte[] path) throws IOException
