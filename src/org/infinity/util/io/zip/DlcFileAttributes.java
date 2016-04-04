@@ -1,37 +1,6 @@
 // Near Infinity - An Infinity Engine Browser and Editor
 // Copyright (C) 2001 - 2005 Jon Olav Hauglid
 // See LICENSE.txt for license information
-//
-// ----------------------------------------------------------------------------
-//
-// Copyright (c) 2007, 2011, Oracle and/or its affiliates. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions
-// are met:
-//
-//   - Redistributions of source code must retain the above copyright
-//     notice, this list of conditions and the following disclaimer.
-//
-//   - Redistributions in binary form must reproduce the above copyright
-//     notice, this list of conditions and the following disclaimer in the
-//     documentation and/or other materials provided with the distribution.
-//
-//   - Neither the name of Oracle nor the names of its
-//     contributors may be used to endorse or promote products derived
-//     from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-// IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package org.infinity.util.io.zip;
 
@@ -45,47 +14,41 @@ import java.util.Formatter;
  */
 public class DlcFileAttributes implements BasicFileAttributes
 {
-  private final DlcFileSystem.Entry e;
+  private final ZipNode folder;
 
-  DlcFileAttributes(DlcFileSystem.Entry e)
+  DlcFileAttributes(ZipNode folder)
   {
-    this.e = e;
+    this.folder = folder;
   }
 
   @Override
   public FileTime lastModifiedTime()
   {
-    return FileTime.fromMillis(e.mtime);
+    return FileTime.fromMillis(folder.getCentral().mtime);
   }
 
   @Override
   public FileTime lastAccessTime()
   {
-    if (e.atime != -1) {
-      return FileTime.fromMillis(e.atime);
-    }
-    return null;
+    return FileTime.fromMillis(folder.getCentral().atime);
   }
 
   @Override
   public FileTime creationTime()
   {
-    if (e.ctime != -1) {
-      return FileTime.fromMillis(e.ctime);
-    }
-    return null;
+    return FileTime.fromMillis(folder.getCentral().ctime);
   }
 
   @Override
   public boolean isRegularFile()
   {
-    return !e.isDir();
+    return !folder.isDirectory();
   }
 
   @Override
   public boolean isDirectory()
   {
-    return e.isDir();
+    return folder.isDirectory();
   }
 
   @Override
@@ -103,45 +66,46 @@ public class DlcFileAttributes implements BasicFileAttributes
   @Override
   public long size()
   {
-    return e.size;
+    return folder.getCentral().sizeUncompressed;
   }
 
   @Override
   public Object fileKey()
   {
-    return null;
+    return folder;
   }
 
-
-  ///////// zip entry attributes ///////////
+  // --------------- zip specific attributes ---------------
 
   public long compressedSize()
   {
-    return e.csize;
+    return folder.getCentral().sizeCompressed;
   }
 
   public long crc()
   {
-    return e.crc;
+    return folder.getCentral().crc32;
   }
 
   public int method()
   {
-    return e.method;
+    return folder.getCentral().compression;
   }
 
   public byte[] extra()
   {
-    if (e.extra != null) {
-      return Arrays.copyOf(e.extra, e.extra.length);
+    byte[] data = folder.getCentral().extra;
+    if (data.length > 0) {
+      return Arrays.copyOf(data, data.length);
     }
     return null;
   }
 
   public byte[] comment()
   {
-    if (e.comment != null) {
-      return Arrays.copyOf(e.comment, e.comment.length);
+    byte[] data = folder.getCentral().comment;
+    if (data.length > 0) {
+      return Arrays.copyOf(data, data.length);
     }
     return null;
   }
