@@ -733,7 +733,17 @@ public final class ResourceFactory
   {
     instance = this;
     try {
+      // initializing primary key file
       this.keyfile = new Keyfile(keyFile);
+
+      // adding DLC key files if available
+      List<Path> keyList = Profile.getProperty(Profile.Key.GET_GAME_DLC_KEYS_AVAILABLE);
+      if (keyList != null) {
+        for (final Path key: keyList) {
+          this.keyfile.addKeyfile(key);
+        }
+      }
+
       loadResourcesInternal();
     } catch (Exception e) {
       JOptionPane.showMessageDialog(null, "No Infinity Engine game found", "Error",
@@ -838,7 +848,7 @@ public final class ResourceFactory
 
     // Get resources from keyfile
     NearInfinity.advanceProgress("Loading BIFF resources...");
-    keyfile.addBIFFResourceEntries(treeModel);
+    keyfile.populateResourceTree(treeModel);
     StringResource.init(Profile.getProperty(Profile.Key.GET_GAME_DIALOG_FILE));
 
     // Add resources from extra folders
@@ -1014,6 +1024,20 @@ public final class ResourceFactory
       ((BIFFResourceEntry)entry).setOverride(true);
     } else {
       outPath = entry.getActualPath();
+      // extra step for saving resources from a read-only medium (such as DLCs)
+      if (!FileManager.isDefaultFileSystem(outPath)) {
+        outPath = Profile.getGameRoot().resolve(outPath.subpath(0, outPath.getNameCount()).toString());
+        if (outPath != null && !Files.exists(outPath.getParent())) {
+          try {
+            Files.createDirectories(outPath.getParent());
+          } catch (IOException e) {
+            JOptionPane.showMessageDialog(parent, "Unable to create folder: " + outPath.getParent(),
+                                          "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+            return false;
+          }
+        }
+      }
     }
     if (Files.exists(outPath)) {
       outPath = outPath.toAbsolutePath();

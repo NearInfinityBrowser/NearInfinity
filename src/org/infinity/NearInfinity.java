@@ -87,6 +87,7 @@ import org.infinity.util.IdsMapCache;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.StringResource;
 import org.infinity.util.Table2daCache;
+import org.infinity.util.io.DlcManager;
 import org.infinity.util.io.FileManager;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
@@ -666,6 +667,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     if (removeViewable()) {
       ChildFrame.closeWindows();
       storePreferences();
+      clearCache();
       System.exit(0);
     }
   }
@@ -799,6 +801,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     if (ResourceFactory.getKeyfile() != null) {
       ResourceFactory.getKeyfile().closeBIFFFiles();
     }
+    DlcManager.close();
     IdsMapCache.clearCache();
     IniMapCache.clearCache();
     Table2daCache.clearCache();

@@ -16,17 +16,21 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
+import org.infinity.util.Misc;
+
 public final class ResourceTreeModel implements TreeModel
 {
-  private final List<TreeModelListener> treeModelListeners = new ArrayList<TreeModelListener>();
-  private final Map<String, ResourceEntry> entries = new HashMap<String, ResourceEntry>(25000);
-  private final Map<String, ResourceTreeFolder> folders = new HashMap<String, ResourceTreeFolder>();
+  private final List<TreeModelListener> treeModelListeners = new ArrayList<>();
+  private final Map<String, ResourceEntry> entries = new HashMap<>(25000);
+//  private final Map<String, ResourceTreeFolder> folders = new HashMap<>();
+  private final Map<String, ResourceTreeFolder> folders = new TreeMap<>(Misc.getIgnoreCaseComparator());
   private final ResourceTreeFolder root = new ResourceTreeFolder(null, "");
 
   public ResourceTreeModel()
@@ -96,13 +100,7 @@ public final class ResourceTreeModel implements TreeModel
     try (DirectoryStream<Path> dstream = Files.newDirectoryStream(directory)) {
       Iterator<Path> iter = dstream.iterator();
       if (iter.hasNext()) {
-        ResourceTreeFolder folder = getFolder(parentFolder, directory.getFileName().toString());
-        if (folder == null) {
-          folder = new ResourceTreeFolder(parentFolder, directory.getFileName().toString());
-          folders.put(directory.getFileName().toString(), folder);
-          parentFolder.addFolder(folder);
-        }
-
+        ResourceTreeFolder folder = addFolder(parentFolder, directory.getFileName().toString());
         while (iter.hasNext()) {
           final Path path = iter.next();
           if (Files.isDirectory(path)) {
@@ -120,12 +118,7 @@ public final class ResourceTreeModel implements TreeModel
 
   public void addResourceEntry(ResourceEntry entry, String folderName, boolean overwrite)
   {
-    ResourceTreeFolder folder = folders.get(folderName);
-    if (folder == null) {
-      folder = new ResourceTreeFolder(root, folderName);
-      folders.put(folderName, folder);
-      root.addFolder(folder);
-    }
+    ResourceTreeFolder folder = addFolder(folderName);
     folder.addResourceEntry(entry, overwrite);
     if (entry.isVisible()) {
       entries.put(entry.getResourceName().toUpperCase(Locale.ENGLISH), entry);
@@ -134,13 +127,22 @@ public final class ResourceTreeModel implements TreeModel
 
   public List<BIFFResourceEntry> getBIFFResourceEntries()
   {
+    return getBIFFResourceEntries(null);
+  }
+
+  public List<BIFFResourceEntry> getBIFFResourceEntries(Path keyFile)
+  {
     List<BIFFResourceEntry> list = new ArrayList<BIFFResourceEntry>();
     for (int i = 0; i < root.getFolders().size(); i++) {
       List<ResourceEntry> entries = root.getFolders().get(i).getResourceEntries();
       for (int j = 0; j < entries.size(); j++) {
         ResourceEntry o = entries.get(j);
-        if (o instanceof BIFFResourceEntry)
-          list.add((BIFFResourceEntry)o);
+        if (o instanceof BIFFResourceEntry) {
+          BIFFResourceEntry bre = (BIFFResourceEntry)o;
+          if (keyFile == null || bre.getKeyfile().equals(keyFile)) {
+            list.add((BIFFResourceEntry)o);
+          }
+        }
       }
     }
     return list;
@@ -163,6 +165,39 @@ public final class ResourceTreeModel implements TreeModel
   public ResourceTreeFolder getFolder(String text)
   {
     return folders.get(text);
+  }
+
+  /**
+   * Adds a folder of specified name to the root folder if not yet existing.
+   * Returns the new or existing folder
+   */
+  public ResourceTreeFolder addFolder(String folderName)
+  {
+    return addFolder(root, folderName);
+  }
+
+  /**
+   * Adds a folder of specified name to the parent folder if not yet existing.
+   * Returns the new or existing folder
+   */
+  public ResourceTreeFolder addFolder(ResourceTreeFolder parent, String folderName)
+  {
+    if (folderName != null) {
+      if (parent == null) {
+        parent = root;
+      }
+      ResourceTreeFolder folder = getFolder(parent, folderName);
+      if (folder == null) {
+        if (folderName.length() > 0) {
+          folderName = Character.toUpperCase(folderName.charAt(0)) + folderName.substring(1);
+        }
+        folder = new ResourceTreeFolder(parent, folderName);
+        folders.put(folderName, folder);
+        parent.addFolder(folder);
+      }
+      return folder;
+    }
+    return null;
   }
 
   public TreePath getPathToNode(ResourceEntry entry)

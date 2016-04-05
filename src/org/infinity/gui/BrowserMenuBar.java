@@ -1062,7 +1062,10 @@ public final class BrowserMenuBar extends JMenuBar
       add(editIni);
       editVarVar = makeMenuItem("Var.var", KeyEvent.VK_V, Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16), -1, this);
       add(editVarVar);
+      // TODO: reactive when fixed
       editBIFF = makeMenuItem("BIFF", KeyEvent.VK_B, Icons.getIcon(Icons.ICON_EDIT_16), KeyEvent.VK_E, this);
+      editBIFF.setToolTipText("Temporarily disabled");
+      editBIFF.setEnabled(false);
       add(editBIFF);
     }
 
@@ -1246,7 +1249,6 @@ public final class BrowserMenuBar extends JMenuBar
     private final JMenuItem toolCheckEffectsIndex;
     private final JMenuItem toolConvImageToBam, toolConvImageToBmp, toolConvImageToMos, toolConvImageToTis,
                             toolConvImageToPvrz;
-//    private JMenuItem toolBatchJob;
     private final JCheckBoxMenuItem toolConsole, toolClipBoard;
 
     private ToolsMenu()
@@ -1259,15 +1261,18 @@ public final class BrowserMenuBar extends JMenuBar
 
       addSeparator();
 
+      // TODO: reactivate when fixed
       toolCleanKeyfile =
           makeMenuItem("Keyfile Cleanup", KeyEvent.VK_K, Icons.getIcon(Icons.ICON_REFRESH_16), -1, this);
+      toolCleanKeyfile.setToolTipText("Temporarily disabled");
+      toolCleanKeyfile.setEnabled(false);
       add(toolCleanKeyfile);
 
       addSeparator();
 
       // *** Begin Check submenu ***
       JMenu checkMenu = new JMenu("Check");
-//      checkMenu.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
+      checkMenu.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
       checkMenu.setMnemonic('c');
       add(checkMenu);
 
@@ -1333,6 +1338,7 @@ public final class BrowserMenuBar extends JMenuBar
 
       // *** Begin Convert submenu ***
       JMenu convertMenu = new JMenu("Convert");
+      convertMenu.setIcon(Icons.getIcon(Icons.ICON_APPLICATION_16));
       convertMenu.setMnemonic('v');
       add(convertMenu);
 
@@ -1381,9 +1387,6 @@ public final class BrowserMenuBar extends JMenuBar
       toolConsole.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_MASK));
       toolConsole.addActionListener(this);
       add(toolConsole);
-
-//      toolBatchJob = makeMenuItem("Batch jobs", KeyEvent.VK_J, Icons.getIcon(Icons.ICON_HISTORY_16), KeyEvent.VK_J, this);
-//      add(toolBatchJob);
     }
 
     private static void cleanKeyfile()
@@ -1684,8 +1687,7 @@ public final class BrowserMenuBar extends JMenuBar
       add(optionIgnoreReadErrors);
       optionCacheBiffs =
           new JCheckBoxMenuItem("Cache BIFF files", getPrefs().getBoolean(OPTION_CACHEBIFFS, true));
-      optionCacheBiffs.setToolTipText("Enable this option to generate lookup structures " +
-                                      "to speed up opening BIFFed resources.");
+      optionCacheBiffs.setToolTipText("Enable this option to speed up opening BIFFed resources.");
       add(optionCacheBiffs);
       optionShowOffset =
           new JCheckBoxMenuItem("Show Hex Offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETS, false));

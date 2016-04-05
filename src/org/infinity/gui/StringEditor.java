@@ -58,6 +58,7 @@ import org.infinity.search.SearchClient;
 import org.infinity.search.SearchMaster;
 import org.infinity.search.StringReferenceSearcher;
 import org.infinity.util.StringResource;
+import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
 public final class StringEditor extends ChildFrame implements ActionListener, ListSelectionListener, SearchClient,
@@ -569,13 +570,39 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     @Override
     public void run()
     {
+      Path outFile = stringPath;
+
+      // Saving into DLC is not supported
+      if (!FileManager.isDefaultFileSystem(outFile)) {
+        boolean cancel = true;
+        String msg = "\"" + outFile.toString() + "\" is located within a write-protected archive." +
+                     "\nDo you want to export it to another location instead?";
+        int result = JOptionPane.showConfirmDialog(editor, msg, "Save resource",
+                                                   JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (result == JOptionPane.YES_OPTION) {
+          outFile = Profile.getGameRoot().resolve(outFile.getFileName().toString());
+          JFileChooser fc = new JFileChooser(outFile.getParent().toFile());
+          fc.setSelectedFile(outFile.toFile());
+          int ret = fc.showSaveDialog(editor);
+          if (ret == JFileChooser.APPROVE_OPTION) {
+            outFile = fc.getSelectedFile().toPath();
+            cancel = false;
+          }
+        }
+        if (cancel) {
+          JOptionPane.showMessageDialog(editor, "Operation cancelled.", "Information",
+                                        JOptionPane.INFORMATION_MESSAGE);
+          return;
+        }
+      }
+
       bexport.setEnabled(false);
       bsave.setEnabled(false);
       breread.setEnabled(false);
       badd.setEnabled(false);
-      if (Files.exists(stringPath)) {
+      if (Files.exists(outFile)) {
         String options[] = {"Overwrite", "Cancel"};
-        int result = JOptionPane.showOptionDialog(editor, stringPath + " exists. Overwrite?",
+        int result = JOptionPane.showOptionDialog(editor, outFile + " exists. Overwrite?",
                                                   "Save resource", JOptionPane.YES_NO_OPTION,
                                                   JOptionPane.WARNING_MESSAGE, null,
                                                   options, options[0]);
@@ -590,7 +617,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
 
       StringResource.close();
       ProgressMonitor progress = null;
-      try (OutputStream os = StreamUtils.getOutputStream(stringPath, true)) {
+      try (OutputStream os = StreamUtils.getOutputStream(outFile, true)) {
         StreamUtils.writeString(os, signature, 4);
         StreamUtils.writeString(os, version, 4);
         unknown.write(os);
@@ -631,7 +658,7 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
           progress.setProgress(entries_count.getValue() + entries.length + i + 1);
         }
       } catch (IOException e) {
-        JOptionPane.showMessageDialog(editor, "Error writing " + stringPath.getFileName(),
+        JOptionPane.showMessageDialog(editor, "Error writing " + outFile.getFileName(),
                                       "Error", JOptionPane.ERROR_MESSAGE);
         return;
       } finally {

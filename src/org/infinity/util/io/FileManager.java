@@ -199,6 +199,19 @@ public class FileManager
     return true;
   }
 
+  /**
+   * Returns whether the specified path points to a location on the default filesystem.
+   * @param path The patch to check.
+   * @return {@code true} if the path points to an existing or non-existing location on the
+   *         default filesystem. Returns {@code false} otherwise.
+   */
+  public static boolean isDefaultFileSystem(Path path)
+  {
+    if (path != null) {
+      return (path.getFileSystem().equals(FileSystems.getDefault()));
+    }
+    return false;
+  }
 
   private FileManager() {}
 

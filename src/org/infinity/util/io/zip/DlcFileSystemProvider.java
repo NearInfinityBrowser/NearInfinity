@@ -98,7 +98,8 @@ public class DlcFileSystemProvider extends FileSystemProvider
     synchronized (filesystems) {
       Path realPath = null;
       if (ensureFile(path)) {
-        realPath = path.toRealPath();
+        // XXX: Using LinkOption.NOFOLLOW_LINKS to prevent issues with Windows junctions
+        realPath = path.toRealPath(LinkOption.NOFOLLOW_LINKS);
         if (filesystems.containsKey(realPath)) {
           throw new FileSystemAlreadyExistsException();
         }
@@ -125,7 +126,8 @@ public class DlcFileSystemProvider extends FileSystemProvider
     synchronized (filesystems) {
       DlcFileSystem dlcfs = null;
       try {
-        dlcfs = filesystems.get(uriToPath(uri).toRealPath());
+        // XXX: Using LinkOption.NOFOLLOW_LINKS to prevent issues with Windows junctions
+        dlcfs = filesystems.get(uriToPath(uri).toRealPath(LinkOption.NOFOLLOW_LINKS));
       } catch (IOException ioe) {
         // ignore the ioe from toRealPath(), return FSNFE
       }

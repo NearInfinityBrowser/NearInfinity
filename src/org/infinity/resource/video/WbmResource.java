@@ -34,6 +34,7 @@ import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.FileDeletionHook;
+import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
 public final class WbmResource implements Resource, Closeable, ActionListener
@@ -143,7 +144,8 @@ public final class WbmResource implements Resource, Closeable, ActionListener
   private Path getVideoFile()
   {
     Path retVal = null;
-    if (entry instanceof FileResourceEntry) {
+    if (entry instanceof FileResourceEntry &&
+        FileManager.isDefaultFileSystem(((FileResourceEntry)entry).getActualPath())) {
       retVal = ((FileResourceEntry)entry).getActualPath();
       isTempFile = false;
     } else {

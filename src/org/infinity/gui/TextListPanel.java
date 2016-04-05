@@ -149,7 +149,7 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
   public void setValues(List<? extends Object> values)
   {
     if (this.sortValues) {
-      Collections.sort(values, Misc.IgnoreCaseComparator);
+      Collections.sort(values, Misc.getIgnoreCaseComparator());
     }
     listmodel.clear();
     for (int i = 0; i < values.size(); i++) {

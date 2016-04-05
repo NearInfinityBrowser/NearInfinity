@@ -7,6 +7,7 @@ package org.infinity.resource.key;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -229,7 +230,14 @@ public final class BIFFWriter
         StreamUtils.writeBytes(os, resourceEntry.getResourceBuffer(resources.get(resourceEntry).booleanValue()));
       }
       for (final ResourceEntry resourceEntry : tileResources.keySet()) {
-        StreamUtils.writeBytes(os, resourceEntry.getResourceBuffer(tileResources.get(resourceEntry).booleanValue()));
+        ByteBuffer buffer = resourceEntry.getResourceBuffer(tileResources.get(resourceEntry).booleanValue());
+        int info[] = resourceEntry.getResourceInfo(tileResources.get(resourceEntry).booleanValue());
+        int size = info[0]*info[1];
+        int toSkip = buffer.limit() - size;
+        if (toSkip > 0) {
+          buffer.position(toSkip);  // skipping TIS header
+        }
+        StreamUtils.writeBytes(os, buffer);
       }
     }
   }

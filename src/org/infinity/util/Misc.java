@@ -28,20 +28,25 @@ public class Misc
   /** Returns the line separator string which is used by the current operating system. */
   public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
-  /** Compares the string representation of the specified objects, ignoring case considerations. */
-  public static final Comparator<Object> IgnoreCaseComparator = new Comparator<Object>() {
-    @Override
-    public int compare(Object o1, Object o2)
-    {
-      return (o1.toString().compareToIgnoreCase(o2.toString()));
-    }
+  /**
+   * Returns a comparator that compares the string representation of the specified objects
+   * in a case-insensitive way. */
+  public static <T> Comparator<T> getIgnoreCaseComparator()
+  {
+    return new Comparator<T>() {
+      @Override
+      public int compare(T o1, T o2)
+      {
+        return (o1.toString().compareToIgnoreCase(o2.toString()));
+      }
 
-    @Override
-    public boolean equals(Object obj)
-    {
-      return toString().equalsIgnoreCase(obj.toString());
-    }
-  };
+      @Override
+      public boolean equals(Object obj)
+      {
+        return toString().equalsIgnoreCase(obj.toString());
+      }
+    };
+  }
 
   /**
    * Attempts to detect the character set of the text data in the specified byte buffer.

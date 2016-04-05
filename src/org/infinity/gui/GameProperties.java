@@ -188,6 +188,21 @@ public final class GameProperties extends ChildFrame implements ActionListener
       tf = createReadOnlyField(s, true);
       listControls.add(new Pair<JComponent>(l, tf));
 
+      // Entry: detected DLC
+      List<Path> dlcPaths = Profile.getProperty(Profile.Key.GET_GAME_DLC_FOLDERS_AVAILABLE);
+      if (dlcPaths != null && !dlcPaths.isEmpty()) {
+        StringBuilder sb = new StringBuilder();
+        for (final Path dlcPath: dlcPaths) {
+          if (sb.length() > 0) {
+            sb.append("; ");
+          }
+          sb.append(dlcPath.getFileSystem().toString());
+        }
+        l = new JLabel("DLC archives:");
+        tf = createReadOnlyField(sb.toString(), true);
+        listControls.add(new Pair<JComponent>(l, tf));
+      }
+
       // Entry: available languages
       List<String> languages = Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE);
       StringBuilder sb = new StringBuilder();
