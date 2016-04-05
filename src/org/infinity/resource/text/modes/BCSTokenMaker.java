@@ -7,6 +7,8 @@ package org.infinity.resource.text.modes;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.TreeSet;
 
 import javax.swing.text.Segment;
 
@@ -14,7 +16,6 @@ import org.fife.ui.rsyntaxtextarea.AbstractTokenMaker;
 import org.fife.ui.rsyntaxtextarea.RSyntaxUtilities;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMap;
-import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
@@ -64,85 +65,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
     IdsMap map;
 
     // symbolic names
-    List<String> idsFile = new ArrayList<String>();
-    if (Profile.getEngine() == Profile.Engine.BG1) {
-      idsFile.add("ALIGN.IDS");     idsFile.add("ALIGNMEN.IDS");  idsFile.add("ANIMATE.IDS");
-      idsFile.add("ASTYLES.IDS");   idsFile.add("BOOLEAN.IDS");   idsFile.add("CLASS.IDS");
-      idsFile.add("DAMAGES.IDS");   idsFile.add("EA.IDS");        idsFile.add("GENDER.IDS");
-      idsFile.add("GENERAL.IDS");   idsFile.add("GTIMES.IDS");    idsFile.add("HAPPY.IDS");
-      idsFile.add("HOTKEY.IDS");    idsFile.add("MFLAGS.IDS");    idsFile.add("RACE.IDS");
-      idsFile.add("REACTION.IDS");  idsFile.add("SCRLEV.IDS");    idsFile.add("SCROLL.IDS");
-      idsFile.add("SLOTS.IDS");     idsFile.add("SOUNDOFF.IDS");  idsFile.add("SPECIFIC.IDS");
-      idsFile.add("SPELL.IDS");     idsFile.add("STATE.IDS");     idsFile.add("STATS.IDS");
-      idsFile.add("TIME.IDS");      idsFile.add("TIMEODAY.IDS");  idsFile.add("WEATHER.IDS");
-    } else if (Profile.getEngine() == Profile.Engine.IWD) {
-      idsFile.add("ALIGN.IDS");     idsFile.add("ALIGNMEN.IDS");  idsFile.add("ANIMATE.IDS");
-      idsFile.add("ASTYLES.IDS");   idsFile.add("BITMODE.IDS");   idsFile.add("BOOLEAN.IDS");
-      idsFile.add("CLASS.IDS");     idsFile.add("DAMAGES.IDS");   idsFile.add("DIR.IDS");
-      idsFile.add("EA.IDS");        idsFile.add("EXTSTATE.IDS");  idsFile.add("GENDER.IDS");
-      idsFile.add("GENERAL.IDS");   idsFile.add("GTIMES.IDS");    idsFile.add("HAPPY.IDS");
-      idsFile.add("HELPTYPE.IDS");  idsFile.add("HOTKEY.IDS");    idsFile.add("MFLAGS.IDS");
-      idsFile.add("MUSICS.IDS");    idsFile.add("RACE.IDS");      idsFile.add("REACTION.IDS");
-      idsFile.add("SCHOOL.IDS");    idsFile.add("SCRLEV.IDS");    idsFile.add("SCROLL.IDS");
-      idsFile.add("SEQUENCE.IDS");  idsFile.add("SLOTS.IDS");     idsFile.add("SOUNDOFF.IDS");
-      idsFile.add("SPECIFIC.IDS");  idsFile.add("SPELL.IDS");     idsFile.add("SPLSTATE.IDS");
-      idsFile.add("STATE.IDS");     idsFile.add("STATMOD.IDS");   idsFile.add("STATS.IDS");
-      idsFile.add("TIME.IDS");      idsFile.add("TIMEODAY.IDS");  idsFile.add("WEATHER.IDS");
-    } else if (Profile.getEngine() == Profile.Engine.IWD2) {
-      idsFile.add("ALIGNMNT.IDS");  idsFile.add("ANIMATE.IDS");   idsFile.add("AREADIFF.IDS");
-      idsFile.add("AREAFLAG.IDS");  idsFile.add("ATTSTYL.IDS");   idsFile.add("BARDSONG.IDS");
-      idsFile.add("BITMODE.IDS");   idsFile.add("BOOLEAN.IDS");   idsFile.add("CLASS.IDS");
-      idsFile.add("CLASSMSK.IDS");  idsFile.add("CREAREFL.IDS");  idsFile.add("DAMAGES.IDS");
-      idsFile.add("DIFFLEVL.IDS");  idsFile.add("DIFFMODE.IDS");  idsFile.add("DIR.IDS");
-      idsFile.add("DOORFLAG.IDS");  idsFile.add("EA.IDS");        idsFile.add("FEATS.IDS");
-      idsFile.add("GENDER.IDS");    idsFile.add("GENERAL.IDS");   idsFile.add("GTIMES.IDS");
-      idsFile.add("HAPPY.IDS");     idsFile.add("HELPTYPE.IDS");  idsFile.add("HOTKEY.IDS");
-      idsFile.add("HPFLAGS.IDS");   idsFile.add("KIT.IDS");       idsFile.add("MFLAGS.IDS");
-      idsFile.add("MODAL.IDS");     idsFile.add("MUSIC.IDS");     idsFile.add("MUSICS.IDS");
-      idsFile.add("RACE.IDS");      idsFile.add("REACTION.IDS");  idsFile.add("SCEFFECT.IDS");
-      idsFile.add("SCHOOL.IDS");    idsFile.add("SCRLEV.IDS");    idsFile.add("SCROLL.IDS");
-      idsFile.add("SEQUENCE.IDS");  idsFile.add("SHEFFECT.IDS");  idsFile.add("SKILLS.IDS");
-      idsFile.add("SLOTS.IDS");     idsFile.add("SOUNDOFF.IDS");  idsFile.add("SPECIFIC.IDS");
-      idsFile.add("SPELL.IDS");     idsFile.add("SPLCAST.IDS");   idsFile.add("SPLSTATE.IDS");
-      idsFile.add("STATE.IDS");     idsFile.add("STATMOD.IDS");   idsFile.add("STATS.IDS");
-      idsFile.add("SUBRACE.IDS");   idsFile.add("TEAMBIT.IDS");   idsFile.add("TIME.IDS");
-      idsFile.add("TIMEODAY.IDS");  idsFile.add("WEATHER.IDS");
-    } else if (Profile.getEngine() == Profile.Engine.PST) {
-      idsFile.add("AITIME.IDS");    idsFile.add("ALIGN.IDS");     idsFile.add("ALIGNMEN.IDS");
-      idsFile.add("ANIMSTAT.IDS");  idsFile.add("ASTYLES.IDS");   idsFile.add("BITS.IDS");
-      idsFile.add("BONES.IDS");     idsFile.add("BOOLEAN.IDS");   idsFile.add("CLASS.IDS");
-      idsFile.add("CLOWNCLR.IDS");  idsFile.add("CLOWNRGE.IDS");  idsFile.add("DAMAGES.IDS");
-      idsFile.add("DELTA.IDS");     idsFile.add("DISGUISE.IDS");  idsFile.add("EA.IDS");
-      idsFile.add("EYESIGHT.IDS");  idsFile.add("FACTION.IDS");   idsFile.add("GENDER.IDS");
-      idsFile.add("GENERAL.IDS");   idsFile.add("GTIMES.IDS");    idsFile.add("HOTKEY.IDS");
-      idsFile.add("INTERNAL.IDS");  idsFile.add("KILLSTAT.IDS");  idsFile.add("MOVVAL.IDS");
-      idsFile.add("ORDER.IDS");     idsFile.add("RACE.IDS");      idsFile.add("REACTION.IDS");
-      idsFile.add("SCRLEV.IDS");    idsFile.add("SCROLL.IDS");    idsFile.add("SONGFLAG.IDS");
-      idsFile.add("SONGS.IDS");     idsFile.add("SOUNDOFF.IDS");  idsFile.add("SPECIFIC.IDS");
-      idsFile.add("SPELL.IDS");     idsFile.add("STATE.IDS");     idsFile.add("STATS.IDS");
-      idsFile.add("TEAM.IDS");      idsFile.add("TIME.IDS");      idsFile.add("TIMEODAY.IDS");
-      idsFile.add("WEATHER.IDS");   idsFile.add("WPROF.IDS");
-    } else {    // BG2, BGEE, BG2EE and unknown
-      idsFile.add("ALIGN.IDS");     idsFile.add("ALIGNMEN.IDS");  idsFile.add("ANIMATE.IDS");
-      idsFile.add("AREAFLAG.IDS");  idsFile.add("AREATYPE.IDS");  idsFile.add("ASTYLES.IDS");
-      idsFile.add("BOOLEAN.IDS");   idsFile.add("CLASS.IDS");     idsFile.add("DAMAGES.IDS");
-      idsFile.add("DIFFLEV.IDS");   idsFile.add("DMGTYPE.IDS");   idsFile.add("EA.IDS");
-      idsFile.add("GENDER.IDS");    idsFile.add("GENERAL.IDS");   idsFile.add("GTIMES.IDS");
-      idsFile.add("HAPPY.IDS");     idsFile.add("HOTKEY.IDS");    idsFile.add("JOURTYPE.IDS");
-      idsFile.add("KIT.IDS");       idsFile.add("MFLAGS.IDS");    idsFile.add("MODAL.IDS");
-      idsFile.add("RACE.IDS");      idsFile.add("REACTION.IDS");  idsFile.add("SCRLEV.IDS");
-      idsFile.add("SCROLL.IDS");    idsFile.add("SEQ.IDS");       idsFile.add("SHOUTIDS.IDS");
-      idsFile.add("SLOTS.IDS");     idsFile.add("SNDSLOT.IDS");   idsFile.add("SOUNDOFF.IDS");
-      idsFile.add("SPECIFIC.IDS");  idsFile.add("SPELL.IDS");     idsFile.add("STATE.IDS");
-      idsFile.add("STATS.IDS");     idsFile.add("TIME.IDS");      idsFile.add("TIMEODAY.IDS");
-      idsFile.add("WEATHER.IDS");
-      if (Profile.isEnhancedEdition()) {
-        idsFile.add("BUTTON.IDS");    idsFile.add("DIR.IDS");       idsFile.add("EXTSTATE.IDS");
-        idsFile.add("ITEMFLAG.IDS");  idsFile.add("MAPNOTES.IDS");  idsFile.add("MUSIC.IDS");
-        idsFile.add("SONGLIST.IDS");  idsFile.add("SPLSTATE.IDS");  idsFile.add("STATMOD.IDS");
-        idsFile.add("WMPFLAG.IDS");
-      }
-    }
+    List<String> idsFile = createIdsList();
     for (Iterator<String> iterIDS = idsFile.iterator(); iterIDS.hasNext();) {
       String ids = iterIDS.next();
       int type = ("SPELL.IDS".equalsIgnoreCase(ids)) ? TOKEN_SYMBOL_SPELL : TOKEN_SYMBOL;
@@ -666,5 +589,42 @@ public class BCSTokenMaker extends AbstractTokenMaker
       }
     }
     return null;
+  }
+
+  // Scans action and trigger definitions for referenced IDS files and returns them as a sorted list
+  private List<String> createIdsList()
+  {
+    final String[] files = { "ACTION.IDS", "TRIGGER.IDS" };
+
+    TreeSet<String> idsSet = new TreeSet<>();
+    for (final String idsFile: files) {
+      IdsMap map = IdsMapCache.get(idsFile);
+      if (map != null) {
+        for (final IdsMapEntry entry: map.getMap().values()) {
+          String[] params = entry.getParameters().split(",");
+          if (params != null) {
+            for (final String param: params) {
+              int p = param.lastIndexOf('*');
+              if (p >= 0 && p+1 < param.length()) {
+                String ids = param.substring(p+1).trim().toUpperCase(Locale.ENGLISH);
+                if (ids.length() > 0) {
+                  ids += ".IDS";
+                  if (ResourceFactory.resourceExists(ids)) {
+                    idsSet.add(ids);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    List<String> retVal = new ArrayList<>();
+    for (final String s: idsSet) {
+      retVal.add(s);
+    }
+
+    return retVal;
   }
 }
