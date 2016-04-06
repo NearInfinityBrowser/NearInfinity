@@ -237,7 +237,8 @@ public final class GameProperties extends ChildFrame implements ActionListener
     l = new JLabel("Game's INI file:");
     JPanel pIni = new JPanel(new GridBagLayout());
     Path iniFile = Profile.getProperty(Profile.Key.GET_GAME_INI_FILE);
-    tf = createReadOnlyField(iniFile.toString(), true);
+    s = (iniFile != null) ? iniFile.toString() : "n/a";
+    tf = createReadOnlyField(s, true);
     gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pIni.add(tf, gbc);
