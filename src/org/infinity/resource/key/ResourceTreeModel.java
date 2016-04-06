@@ -29,7 +29,6 @@ public final class ResourceTreeModel implements TreeModel
 {
   private final List<TreeModelListener> treeModelListeners = new ArrayList<>();
   private final Map<String, ResourceEntry> entries = new HashMap<>(25000);
-//  private final Map<String, ResourceTreeFolder> folders = new HashMap<>();
   private final Map<String, ResourceTreeFolder> folders = new TreeMap<>(Misc.getIgnoreCaseComparator());
   private final ResourceTreeFolder root = new ResourceTreeFolder(null, "");
 
@@ -48,16 +47,18 @@ public final class ResourceTreeModel implements TreeModel
   @Override
   public Object getChild(Object parent, int index)
   {
-    if (parent instanceof ResourceTreeFolder)
+    if (parent instanceof ResourceTreeFolder) {
       return ((ResourceTreeFolder)parent).getChild(index);
+    }
     return null;
   }
 
   @Override
   public int getChildCount(Object parent)
   {
-    if (parent instanceof ResourceTreeFolder)
+    if (parent instanceof ResourceTreeFolder) {
       return ((ResourceTreeFolder)parent).getChildCount();
+    }
     return 0;
   }
 
@@ -76,8 +77,9 @@ public final class ResourceTreeModel implements TreeModel
   @Override
   public int getIndexOfChild(Object parent, Object child)
   {
-    if (parent instanceof ResourceTreeFolder)
+    if (parent instanceof ResourceTreeFolder) {
       return ((ResourceTreeFolder)parent).getIndexOfChild(child);
+    }
     return -1;
   }
 
@@ -109,6 +111,15 @@ public final class ResourceTreeModel implements TreeModel
             folder.addResourceEntry(new FileResourceEntry(path), overwrite);
           }
         }
+        parentFolder.sortChildren(true);
+
+        TreePath path = getPathToNode(parentFolder);
+        TreeModelEvent event = new TreeModelEvent(this, path,
+                                                  new int[]{getIndexOfChild(parentFolder, folder)},
+                                                  new Object[]{folder});
+        for (int i = 0; i < treeModelListeners.size(); i++) {
+          treeModelListeners.get(i).treeNodesInserted(event);
+        }
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -116,13 +127,23 @@ public final class ResourceTreeModel implements TreeModel
     }
   }
 
-  public void addResourceEntry(ResourceEntry entry, String folderName, boolean overwrite)
+  public ResourceTreeFolder addResourceEntry(ResourceEntry entry, String folderName, boolean overwrite)
   {
     ResourceTreeFolder folder = addFolder(folderName);
     folder.addResourceEntry(entry, overwrite);
     if (entry.isVisible()) {
       entries.put(entry.getResourceName().toUpperCase(Locale.ENGLISH), entry);
+      folder.sortChildren(false);
+
+      TreePath path = getPathToNode(entry).getParentPath();
+      TreeModelEvent event = new TreeModelEvent(this, path,
+                                                new int[]{getIndexOfChild(folder, entry)},
+                                                new Object[]{entry});
+      for (int i = 0; i < treeModelListeners.size(); i++) {
+        treeModelListeners.get(i).treeNodesInserted(event);
+      }
     }
+    return folder;
   }
 
   public List<BIFFResourceEntry> getBIFFResourceEntries()
@@ -194,6 +215,15 @@ public final class ResourceTreeModel implements TreeModel
         folder = new ResourceTreeFolder(parent, folderName);
         folders.put(folderName, folder);
         parent.addFolder(folder);
+        parent.sortChildren(false);
+
+        TreePath path = getPathToNode(parent);
+        TreeModelEvent event = new TreeModelEvent(this, path,
+                                                  new int[]{getIndexOfChild(parent, folder)},
+                                                  new Object[]{folder});
+        for (int i = 0; i < treeModelListeners.size(); i++) {
+          treeModelListeners.get(i).treeNodesInserted(event);
+        }
       }
       return folder;
     }
@@ -202,7 +232,7 @@ public final class ResourceTreeModel implements TreeModel
 
   public TreePath getPathToNode(ResourceEntry entry)
   {
-    List<Object> path = new ArrayList<Object>(4);
+    List<Object> path = new ArrayList<>(4);
     path.add(entry);
     ResourceTreeFolder parent = folders.get(entry.getTreeFolder());
     while (parent != null) {
@@ -211,6 +241,20 @@ public final class ResourceTreeModel implements TreeModel
     }
     Collections.reverse(path);
     return new TreePath(path.toArray());
+  }
+
+  public TreePath getPathToNode(ResourceTreeFolder folder)
+  {
+    TreePath retVal = null;
+    if (folder != null) {
+      List<Object> path = new ArrayList<>(4);
+      while (folder != null) {
+        path.add(folder);
+        folder = folder.getParentFolder();
+      }
+      retVal = new TreePath(path.toArray());
+    }
+    return retVal;
   }
 
   public Collection<ResourceEntry> getResourceEntries()
@@ -257,8 +301,9 @@ public final class ResourceTreeModel implements TreeModel
   public void removeResourceEntry(ResourceEntry entry, String folder)
   {
     ResourceTreeFolder parent = folders.get(folder);
-    if (parent == null)
+    if (parent == null) {
       return;
+    }
     TreePath path = getPathToNode(entry).getParentPath();
     TreeModelEvent event = new TreeModelEvent(this, path, new int[]{getIndexOfChild(parent, entry)},
                                               new Object[]{entry});
@@ -268,40 +313,43 @@ public final class ResourceTreeModel implements TreeModel
       root.removeFolder(parent);
       folders.remove(parent.folderName());
     }
-    for (int i = 0; i < treeModelListeners.size(); i++)
+    for (int i = 0; i < treeModelListeners.size(); i++) {
       treeModelListeners.get(i).treeNodesRemoved(event);
+    }
   }
 
   public void resourceEntryChanged(FileResourceEntry entry)
   {
     TreePath parentPath = getPathToNode(entry).getParentPath();
     ResourceTreeFolder parentFolder = (ResourceTreeFolder)parentPath.getLastPathComponent();
-    TreeModelEvent event = new TreeModelEvent(this, parentPath, new int[]{
-      getIndexOfChild(parentFolder, entry)},
-                                              new Object[]{entry});
-    for (int i = 0; i < treeModelListeners.size(); i++)
+    TreeModelEvent event = new TreeModelEvent(this, parentPath,
+        new int[]{getIndexOfChild(parentFolder, entry)}, new Object[]{entry});
+    for (int i = 0; i < treeModelListeners.size(); i++) {
       treeModelListeners.get(i).treeNodesChanged(event);
+    }
   }
 
   public int size()
   {
     int size = 0;
-    for (int i = 0; i < root.getChildCount(); i++)
+    for (int i = 0; i < root.getChildCount(); i++) {
       size += ((ResourceTreeFolder)root.getChild(i)).getChildCount();
+    }
     return size;
   }
 
   public void sort()
   {
-    root.sortChildren();
+    root.sortChildren(true);
     fireTreeStructureChanged(new TreePath(new Object[]{root}));
   }
 
   private void fireTreeStructureChanged(TreePath changed)
   {
     TreeModelEvent event = new TreeModelEvent(this, changed);
-    for (int i = 0; i < treeModelListeners.size(); i++)
+    for (int i = 0; i < treeModelListeners.size(); i++) {
       treeModelListeners.get(i).treeStructureChanged(event);
+    }
   }
 }
 

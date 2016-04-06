@@ -402,9 +402,6 @@ public final class Profile
     final String[] EE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "Movies", "MPBPSave",
                                         "MPSave", "Music", "Portraits", "Save", "Sounds",
                                         "ScrnShot", "Scripts", "Temp", "TempSave" };
-//    final String[] EE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "Movies", "MPBPSave", "MPSave",
-//                                        "MPSODSave", "Music", "Portraits", "Save", "Sounds", "ScrnShot",
-//                                        "Scripts", "SODSave", "Temp", "TempSave" };
     GAME_EXTRA_FOLDERS.put(Game.Unknown, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.BG1, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.BG1TotSC, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));

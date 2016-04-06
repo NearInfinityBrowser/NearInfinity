@@ -133,11 +133,13 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     resourceEntries.remove(entry);
   }
 
-  public void sortChildren()
+  public void sortChildren(boolean recursive)
   {
     Collections.sort(folders);
-    for (final ResourceTreeFolder folder: folders) {
-      folder.sortChildren();
+    if (recursive) {
+      for (final ResourceTreeFolder folder: folders) {
+        folder.sortChildren(recursive);
+      }
     }
   }
 
