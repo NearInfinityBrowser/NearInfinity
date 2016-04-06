@@ -396,11 +396,6 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionIgnoreReadErrors.isSelected();
   }
 
-  public boolean cacheBIFFs()
-  {
-    return optionsMenu.optionCacheBiffs.isSelected();
-  }
-
   public void resourceEntrySelected(ResourceEntry entry)
   {
     fileMenu.resourceEntrySelected(entry);
@@ -1582,7 +1577,6 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_BACKUPONSAVE             = "BackupOnSave";
     private static final String OPTION_IGNOREOVERRIDE           = "IgnoreOverride";
     private static final String OPTION_IGNOREREADERRORS         = "IgnoreReadErrors";
-    private static final String OPTION_CACHEBIFFS               = "CacheBiffs";
     private static final String OPTION_AUTOCHECK_BCS            = "AutocheckBCS";
     private static final String OPTION_CACHEOVERRIDE            = "CacheOverride";
     private static final String OPTION_CHECKSCRIPTNAMES         = "CheckScriptNames";
@@ -1657,7 +1651,7 @@ public final class BrowserMenuBar extends JMenuBar
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride;
     private JCheckBoxMenuItem optionIgnoreReadErrors, optionAutocheckBCS, optionCacheOverride;
     private JCheckBoxMenuItem optionCheckScriptNames, optionShowStrrefs, optionDlgShowIcons,
-                              optionShowHexColored, optionCacheBiffs;
+                              optionShowHexColored;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
     private String languageDefinition;
@@ -1685,10 +1679,6 @@ public final class BrowserMenuBar extends JMenuBar
       optionIgnoreReadErrors =
           new JCheckBoxMenuItem("Ignore Read Errors", getPrefs().getBoolean(OPTION_IGNOREREADERRORS, false));
       add(optionIgnoreReadErrors);
-      optionCacheBiffs =
-          new JCheckBoxMenuItem("Cache BIFF files", getPrefs().getBoolean(OPTION_CACHEBIFFS, true));
-      optionCacheBiffs.setToolTipText("Enable this option to speed up opening BIFFed resources.");
-      add(optionCacheBiffs);
       optionShowOffset =
           new JCheckBoxMenuItem("Show Hex Offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETS, false));
       add(optionShowOffset);
@@ -2271,7 +2261,6 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_BACKUPONSAVE, optionBackupOnSave.isSelected());
       getPrefs().putBoolean(OPTION_IGNOREOVERRIDE, optionIgnoreOverride.isSelected());
       getPrefs().putBoolean(OPTION_IGNOREREADERRORS, optionIgnoreReadErrors.isSelected());
-      getPrefs().putBoolean(OPTION_CACHEBIFFS, optionCacheBiffs.isSelected());
       getPrefs().putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());
       getPrefs().putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
       getPrefs().putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());

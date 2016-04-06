@@ -24,7 +24,6 @@ import java.util.Set;
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.IntegerHashMap;
@@ -268,9 +267,7 @@ public class Keyfile
         treeModel.addResourceEntry(entry, entry.getExtension(), true);
       }
 
-      if (BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().cacheBIFFs()) {
-        cacheBIFFs();
-      }
+      cacheBIFFs();
     }
   }
 
