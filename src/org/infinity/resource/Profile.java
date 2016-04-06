@@ -1666,6 +1666,10 @@ public final class Profile
   {
     List<Path> retVal = new ArrayList<>();
 
+    if (homeDir == null) {  // assume original IE game or EE game without DLC support
+      return retVal;
+    }
+
     List<ObjectString> gameFolders = new ArrayList<>();
     // Getting potential DLC folders (search order is important)
     if (homeDir != null && Files.isDirectory(homeDir)) {

@@ -6,6 +6,8 @@ package org.infinity.util.io;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -127,9 +129,31 @@ public class DlcManager
       return null;
     }
 
-    try (InputStream is = StreamUtils.getInputStream(dlcFile)) {
-      if (StreamUtils.readInt(is) != 0x04034b50) {  // zip local file header signature
-        return null;
+    // checking first 3 LOC entries for compatibility
+    try (SeekableByteChannel ch = Files.newByteChannel(dlcFile)) {
+      ByteBuffer buffer = StreamUtils.getByteBuffer(30);
+      for (int i = 0; i < 3; i++) {
+        buffer.compact().position(0);
+        if (ch.read(buffer) != buffer.limit()) {
+          return null;
+        }
+        buffer.flip();
+        if (buffer.getInt(0) != 0x04034b50) {   // signature
+          return null;
+        }
+        if ((buffer.getShort(4) & 0xffff) > 20) { // version
+          return null;
+        }
+        if ((buffer.getShort(8) & 0xffff) != 0) { // compression
+          return null;
+        }
+        if (buffer.getInt(18) == -1 || buffer.getInt(22) == -1) { // contains zip64 header?
+          return null;
+        }
+        long skip = (long)buffer.getInt(18) & 0xffffffffL;
+        skip += (buffer.getShort(26) & 0xffff);
+        skip += (buffer.getShort(28) & 0xffff);
+        ch.position(ch.position() + skip);
       }
     } catch (Throwable t) {
       return null;
@@ -137,18 +161,20 @@ public class DlcManager
 
     FileSystemProvider provider = new DlcFileSystemProvider();
     FileSystem fs = null;
-    fs = provider.newFileSystem(dlcFile, null);
-    Path key = _queryKey(fs.getPath("/"));
-    if (key != null) {
-      return fs;
-    }
-
-    if (fs != null) {
-      try {
-        fs.close();
-      } catch (Throwable t) {
+    try {
+      fs = provider.newFileSystem(dlcFile, null);
+      Path key = _queryKey(fs.getPath("/"));
+      if (key != null) {
+        return fs;
       }
-      fs = null;
+    } catch (Throwable t) {
+      if (fs != null) {
+        try {
+          fs.close();
+        } catch (Throwable t2) {
+        }
+        fs = null;
+      }
     }
 
     return null;
