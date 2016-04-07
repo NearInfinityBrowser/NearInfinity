@@ -613,8 +613,15 @@ public final class ResourceFactory
   {
     List<Path> dirList = new ArrayList<>();
 
-    // fetching the CD folders in a game installation
-    if (!Profile.isEnhancedEdition()) {
+    if (Profile.isEnhancedEdition()) {
+      // adding supported base biff folders
+      Path langRoot = Profile.getLanguageRoot();
+      if (langRoot != null) {
+        dirList.add(langRoot);
+      }
+      dirList.add(Profile.getGameRoot());
+    } else {
+      // fetching the CD folders in a game installation
       Path iniFile = Profile.getProperty(Profile.Key.GET_GAME_INI_FILE);
       List<Path> rootFolders = Profile.getRootFolders();
       if (iniFile != null && Files.isRegularFile(iniFile)) {
