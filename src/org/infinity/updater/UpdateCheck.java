@@ -50,7 +50,6 @@ public class UpdateCheck extends JDialog
   private final JTextField tfNewVersion = new JTextField();
   private final JTextField tfNewDate = new JTextField();
   private final JTextField tfNewSize = new JTextField();
-  private final JButton bUpdate = new JButton("Update now");
   private final JButton bDownload = new JButton("Manual download");
   private final JButton bCancel = new JButton("Cancel");
   private final Listeners listeners = new Listeners();
@@ -156,11 +155,6 @@ public class UpdateCheck extends JDialog
       tfNewSize.setText("n/a");
     }
 
-    // TODO: to be implemented later
-    bUpdate.addActionListener(getListeners());
-    bUpdate.setEnabled(false);
-    bUpdate.setVisible(false);
-
     bDownload.addActionListener(getListeners());
     bDownload.setEnabled(getUpdateInfo().getRelease().getDownloadLink() != null);
 
@@ -244,6 +238,7 @@ public class UpdateCheck extends JDialog
       sb.append("</ul>");
       sb.append("</body></html>");
       viewer.setText(sb.toString());
+      viewer.setCaretPosition(0);
 
       // prevent viewer to screw up dialog dimensions
       viewer.setPreferredSize(new Dimension(100, 50));
@@ -284,14 +279,11 @@ public class UpdateCheck extends JDialog
     pButtons.add(new JPanel(), gbc);
     gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
-    pButtons.add(bUpdate, gbc);
+    pButtons.add(bDownload, gbc);
     gbc = ViewerUtil.setGBC(gbc, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
-    pButtons.add(bDownload, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
     pButtons.add(bCancel, gbc);
-    gbc = ViewerUtil.setGBC(gbc, 4, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+    gbc = ViewerUtil.setGBC(gbc, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
     pButtons.add(new JPanel(), gbc);
 
@@ -306,14 +298,6 @@ public class UpdateCheck extends JDialog
     pack();
     setMinimumSize(getPreferredSize());
     setLocationRelativeTo(getOwner());
-  }
-
-  // Triggers update process
-  private void updateNow()
-  {
-    // TODO: to be implemented later
-    retVal = UpdateAction.UPDATE;
-    setVisible(false);
   }
 
   // Opens download link in default browser
@@ -360,9 +344,7 @@ public class UpdateCheck extends JDialog
     @Override
     public void actionPerformed(ActionEvent e)
     {
-      if (e.getSource() == bUpdate) {
-        updateNow();
-      } else if (e.getSource() == bDownload) {
+      if (e.getSource() == bDownload) {
         download();
       } else if (e.getSource() == bCancel) {
         cancel();
