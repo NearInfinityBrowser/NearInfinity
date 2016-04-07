@@ -91,12 +91,12 @@ public final class StructureFactory
         }
         savePath = FileManager.query(roots, "Characters");
         if (!Files.isDirectory(savePath)) {
-          savePath = FileManager.queryExisting(Profile.getGameRoot(), Profile.getOverrideFolderName());
+          savePath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName());
         }
         break;
       }
       default:
-        savePath = FileManager.queryExisting(Profile.getGameRoot(), Profile.getOverrideFolderName());
+        savePath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName());
         break;
     }
     if (savePath == null || !Files.isDirectory(savePath) ) {

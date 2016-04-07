@@ -121,7 +121,7 @@ public final class BIFFWriter
 
   public void write() throws Exception
   {
-    Path biffPath = FileManager.queryExisting(Profile.getGameRoot(), "data");
+    Path biffPath = FileManager.query(Profile.getGameRoot(), "data");
     if (biffPath == null || !Files.isDirectory(biffPath)) {
       throw new Exception("No BIFF folder found.");
     }

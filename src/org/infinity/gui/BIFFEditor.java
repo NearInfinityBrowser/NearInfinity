@@ -187,8 +187,8 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
 
     // 4: Delete old files from override
     for (int i = 0; i < tobif.size(); i++) {
-      Path file = FileManager.queryExisting(Profile.getRootFolders(), Profile.getOverrideFolderName(),
-                                            tobif.get(i).toString());
+      Path file = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(),
+                                    tobif.get(i).toString());
       if (file != null && Files.isRegularFile(file)) {
         try {
           Files.delete(file);

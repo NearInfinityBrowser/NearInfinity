@@ -241,9 +241,11 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry>
       String[] fileNames = { fileName, StreamUtils.replaceFileExtension(fileName, "cbf") };
       for (final Path path: biffFolders) {
         for (final String biffName: fileNames) {
-          retVal = FileManager.queryExisting(path, biffName);
-          if (retVal != null) {
+          retVal = FileManager.query(path, biffName);
+          if (retVal != null && Files.isRegularFile(retVal)) {
             break;
+          } else {
+            retVal = null;
           }
         }
         if (retVal != null) {

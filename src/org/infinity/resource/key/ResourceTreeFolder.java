@@ -55,14 +55,12 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
   public List<ResourceEntry> getResourceEntries(String type)
   {
     List<ResourceEntry> list = new ArrayList<ResourceEntry>();
-    for (final ResourceEntry entry: resourceEntries) {
+    resourceEntries.forEach((entry) -> {
       if (entry.getExtension().equalsIgnoreCase(type)) {
         list.add(entry);
       }
-    }
-    for (final ResourceTreeFolder folder: folders) {
-      list.addAll(folder.getResourceEntries(type));
-    }
+    });
+    folders.forEach((folder) -> list.addAll(folder.getResourceEntries(type)));
     return list;
   }
 
@@ -137,9 +135,7 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
   {
     Collections.sort(folders);
     if (recursive) {
-      for (final ResourceTreeFolder folder: folders) {
-        folder.sortChildren(recursive);
-      }
+      folders.forEach((folder) -> folder.sortChildren(recursive));
     }
   }
 

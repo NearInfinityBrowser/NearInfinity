@@ -802,6 +802,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       ResourceFactory.getKeyfile().closeBIFFFiles();
     }
     DlcManager.close();
+    FileManager.reset();
     IdsMapCache.clearCache();
     IniMapCache.clearCache();
     Table2daCache.clearCache();
@@ -1016,12 +1017,12 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     public void run()
     {
       if (files != null) {
-        for (final File file: files) {
+        files.forEach((file) -> {
           Path path = file.toPath();
           if (Files.isRegularFile(path)) {
             OpenFileFrame.openExternalFile(NearInfinity.getInstance(), path);
           }
-        }
+        });
       }
     }
   }

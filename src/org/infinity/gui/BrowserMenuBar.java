@@ -94,7 +94,7 @@ import org.infinity.util.io.FileManager;
 
 public final class BrowserMenuBar extends JMenuBar
 {
-  public static final String VERSION = "v2.0-20160406-1";
+  public static final String VERSION = "v2.0-20160407";
   public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
@@ -1077,7 +1077,7 @@ public final class BrowserMenuBar extends JMenuBar
         editIni.setToolTipText("Ini file not available");
       }
       editString2.setEnabled(Profile.getProperty(Profile.Key.GET_GAME_DIALOGF_FILE) != null);
-      Path varFile = FileManager.queryExisting(Profile.getRootFolders(), "VAR.VAR");
+      Path varFile = FileManager.query(Profile.getRootFolders(), "VAR.VAR");
       editVarVar.setEnabled(varFile != null && Files.isRegularFile(varFile));
       if (editString2.isEnabled()) {
         editString2.setToolTipText("");
