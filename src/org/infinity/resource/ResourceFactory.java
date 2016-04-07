@@ -857,8 +857,8 @@ public final class ResourceFactory
     });
 
     NearInfinity.advanceProgress("Loading override resources...");
-    boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
-                                  BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
+    final boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
+                                        BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
     String overrideFolder = Profile.getOverrideFolderName();
     List<Path> overridePaths = Profile.getOverrideFolders(false);
     for (final Path overridePath: overridePaths) {
@@ -868,7 +868,7 @@ public final class ResourceFactory
             if (Files.isRegularFile(path)) {
               ResourceEntry entry = getResourceEntry(path.getFileName().toString());
               if (entry == null) {
-                FileResourceEntry fileEntry = new FileResourceEntry(path);
+                FileResourceEntry fileEntry = new FileResourceEntry(path, true);
                 treeModel.addResourceEntry(fileEntry, fileEntry.getTreeFolder(), true);
               } else if (entry instanceof BIFFResourceEntry) {
                 ((BIFFResourceEntry)entry).setOverride(true);
