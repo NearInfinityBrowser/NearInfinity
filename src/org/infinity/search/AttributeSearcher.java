@@ -182,25 +182,45 @@ public final class AttributeSearcher implements Runnable, ActionListener
       title = structEntry.getName() + " - not " + tfinput.getText();
     }
 
-    String term = tfinput.getText();
-    term = term.replaceAll("(\\W)", "\\\\$1");
-    term = cbwhole.isSelected() ? (".*\\b" + term + "\\b.*") : (".*" + term + ".*");
-    if (cbcase.isSelected()) {
-      regPattern = Pattern.compile(term, Pattern.DOTALL);
-    } else {
-      regPattern = Pattern.compile(term, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    }
-
     searchNumber = 0;
+    String term = tfinput.getText();
     if (structEntry instanceof DecNumber) {
+      // decimal and hexadecimal notation is supported
+      String s = term.toLowerCase(Locale.ENGLISH);
+      int radix = 0;
+      if (s.length() > 1) {
+        if (s.charAt(s.length() - 1) == 'h') {
+          s = s.substring(0, s.length() - 1).trim();
+          radix = 16;
+        } else if (s.matches("^-?0x[0-9a-f]+$")) {
+          if (s.charAt(0) == '-') {
+            s = '-' + s.substring(3).trim();
+          } else {
+            s = s.substring(2).trim();
+          }
+          radix = 16;
+        } else if (s.matches("^-?[0-9a-f]+$") && !s.matches("^-?[0-9]+$")) {
+          radix = 16;
+        } else {
+          s = s.trim();
+          radix = 10;
+        }
+      }
       try {
-        searchNumber = Integer.parseInt(tfinput.getText());
+        searchNumber = Integer.parseInt(s, radix);
       } catch (NumberFormatException e) {
         inputFrame.setVisible(true);
         JOptionPane.showMessageDialog(inputFrame, "Not a number", "Error", JOptionPane.ERROR_MESSAGE);
         inputFrame.toFront();
         return;
       }
+    }
+    term = term.replaceAll("(\\W)", "\\\\$1");
+    term = cbwhole.isSelected() ? (".*\\b" + term + "\\b.*") : (".*" + term + ".*");
+    if (cbcase.isSelected()) {
+      regPattern = Pattern.compile(term, Pattern.DOTALL);
+    } else {
+      regPattern = Pattern.compile(term, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     }
 
     try {
