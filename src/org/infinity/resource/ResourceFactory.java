@@ -437,7 +437,7 @@ public final class ResourceFactory
       if (searchExtraDirs && (entry == null)) {
         List<Path> extraFolders = Profile.getOverrideFolders(false);
         if (extraFolders != null) {
-          Path file = FileManager.queryExisting(extraFolders, resourceName);
+          Path file = FileManager.query(extraFolders, resourceName);
           if (file != null && Files.isRegularFile(file)) {
             entry = new FileResourceEntry(file);
           }
@@ -446,7 +446,7 @@ public final class ResourceFactory
 
       // checking custom folder list
       if (extraDirs != null && (entry == null)) {
-        Path file = FileManager.queryExisting(extraDirs, resourceName);
+        Path file = FileManager.query(extraDirs, resourceName);
         if (file != null && Files.isRegularFile(file)) {
           entry = new FileResourceEntry(file);
         }
@@ -515,17 +515,13 @@ public final class ResourceFactory
     if (Profile.isEnhancedEdition()) {
       Path langPath = Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_BASE);
       if (langPath != null && Files.isDirectory(langPath)) {
-        try {
-          DirectoryStream<Path> dstream = Files.newDirectoryStream(langPath,
-              (Path entry) -> {
-                return Files.isDirectory(entry) &&
-                       entry.getFileName().toString().matches("[a-z]{2}_[A-Z]{2}") &&
-                       Files.isRegularFile(FileManager.queryExisting(entry, Profile.getProperty(Profile.Key.GET_GLOBAL_DIALOG_NAME)));
-                });
-
-          for (final Path path: dstream) {
-            list.add(path);
-          }
+        try (DirectoryStream<Path> dstream = Files.newDirectoryStream(langPath,
+            (Path entry) -> {
+              return Files.isDirectory(entry) &&
+                     entry.getFileName().toString().matches("[a-z]{2}_[A-Z]{2}") &&
+                     Files.isRegularFile(FileManager.query(entry, Profile.getProperty(Profile.Key.GET_GLOBAL_DIALOG_NAME)));
+              })) {
+          dstream.forEach((path) -> list.add(path));
         } catch (IOException e) {
           e.printStackTrace();
         }
@@ -550,7 +546,7 @@ public final class ResourceFactory
               String lang = entries[2].replaceFirst("^[^']*'", "");
               lang = lang.replaceFirst("'.*$", "");
               if (lang.matches("[A-Za-z]{2}_[A-Za-z]{2}")) {
-                Path path = FileManager.queryExisting(Profile.getGameRoot(), "lang", lang);
+                Path path = FileManager.query(Profile.getGameRoot(), "lang", lang);
                 if (path != null && Files.isDirectory(path)) {
                   try {
                     // try to fetch the actual path name to ensure correct case
@@ -577,7 +573,7 @@ public final class ResourceFactory
     if (Profile.hasProperty(Profile.Key.GET_GAME_HOME_FOLDER_NAME)) {
       final Path EE_DOC_ROOT = FileSystemView.getFileSystemView().getDefaultDirectory().toPath();
       final String EE_DIR = Profile.getProperty(Profile.Key.GET_GAME_HOME_FOLDER_NAME);
-      Path userPath = FileManager.queryExisting(EE_DOC_ROOT, EE_DIR);
+      Path userPath = FileManager.query(EE_DOC_ROOT, EE_DIR);
       if (userPath != null && Files.isDirectory(userPath)) {
         return userPath;
       } else {
@@ -688,7 +684,7 @@ public final class ResourceFactory
       } else {
         // Using user-defined language
         if (lang.matches("[A-Za-z]{2}_[A-Za-z]{2}")) {
-          Path path = FileManager.queryExisting(Profile.getGameRoot(), "lang", lang);
+          Path path = FileManager.query(Profile.getGameRoot(), "lang", lang);
           if (path != null && Files.isDirectory(path)) {
             String retVal;
             try {
@@ -828,14 +824,14 @@ public final class ResourceFactory
 
   private Path getPathInternal(String fileName)
   {
-    Path file = FileManager.query(Profile.getRootFolders(), fileName);
-    if (Files.exists(file)) {
+    Path file = FileManager.queryExisting(Profile.getRootFolders(), fileName);
+    if (file != null) {
       return file;
     }
     List<Path> biffDirs = Profile.getProperty(Profile.Key.GET_GAME_BIFF_FOLDERS);
     for (final Path biffDir : biffDirs) {
-      file = FileManager.query(biffDir, fileName);
-      if (Files.exists(file)) {
+      file = FileManager.queryExisting(biffDir, fileName);
+      if (file != null) {
         return file;
       }
     }
@@ -854,11 +850,11 @@ public final class ResourceFactory
     // Add resources from extra folders
     NearInfinity.advanceProgress("Loading extra resources...");
     List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
-    for (final Path path: extraPaths) {
+    extraPaths.forEach((path) -> {
       if (Files.isDirectory(path)) {
         treeModel.addDirectory((ResourceTreeFolder)treeModel.getRoot(), path, false);
       }
-    }
+    });
 
     NearInfinity.advanceProgress("Loading override resources...");
     boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
@@ -868,7 +864,7 @@ public final class ResourceFactory
     for (final Path overridePath: overridePaths) {
       if (Files.isDirectory(overridePath)) {
         try (DirectoryStream<Path> dstream = Files.newDirectoryStream(overridePath)) {
-          for (final Path path: dstream) {
+          dstream.forEach((path) -> {
             if (Files.isRegularFile(path)) {
               ResourceEntry entry = getResourceEntry(path.getFileName().toString());
               if (entry == null) {
@@ -882,7 +878,7 @@ public final class ResourceFactory
                 }
               }
             }
-          }
+          });
         }
       }
     }
@@ -904,12 +900,12 @@ public final class ResourceFactory
     if (extraDirs == null) {
       extraDirs = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
     }
-    for (final Path path: extraDirs) {
+    extraDirs.forEach((path) -> {
       ResourceTreeFolder extraNode = treeModel.getFolder(path.getFileName().toString());
       if (extraNode != null) {
         list.addAll(extraNode.getResourceEntries(type));
       }
-    }
+    });
 
     // include override folders
     if (BrowserMenuBar.getInstance() != null && !BrowserMenuBar.getInstance().ignoreOverrides()) {

@@ -19,10 +19,15 @@ import java.util.Locale;
  */
 public class FileManager
 {
-  // Stores whether filesystems use case-sensitive filenames
-  private static final HashMap<FileSystem, Boolean> mapCaseSensitive = new HashMap<>();
-
   private static FileManager instance;
+
+  // Stores whether filesystems use case-sensitive filenames
+  private final HashMap<FileSystem, Boolean> mapCaseSensitive = new HashMap<>();
+
+  public static void reset()
+  {
+    instance = null;
+  }
 
   /**
    * Returns a {@link Path} object to the file of the specified path based on the
@@ -130,7 +135,7 @@ public class FileManager
   {
     if (path != null) {
       try {
-        return _resolve(false, FileSystems.getDefault().getPath(path, more));
+        return _resolve(FileSystems.getDefault().getPath(path, more));
       } catch (Throwable t) {
         t.printStackTrace();
       }
@@ -149,7 +154,7 @@ public class FileManager
   {
     if (path != null) {
       try {
-        return _resolve(true, FileSystems.getDefault().getPath(path, more));
+        return _resolveExisting(FileSystems.getDefault().getPath(path, more));
       } catch (Throwable t) {
         t.printStackTrace();
       }
@@ -167,7 +172,7 @@ public class FileManager
    */
   public static Path resolve(Path path)
   {
-    return _resolve(false, path);
+    return _resolve(path);
   }
 
   /**
@@ -178,7 +183,7 @@ public class FileManager
    */
   public static Path resolveExisting(Path path)
   {
-    return _resolve(true, path);
+    return _resolveExisting(path);
   }
 
   /**
@@ -292,12 +297,25 @@ public class FileManager
     }
 
     Path curPath = null;
+    boolean exists = false;
     try {
       for (final Path curRoot: rootPaths) {
-        Path relPath = curRoot.getFileSystem().getPath(path, more).normalize();
-        curPath = _resolve(mustExist, curRoot.resolve(relPath));
-        if (curPath != null && Files.exists(curPath)) {
-          break;
+        try {
+          Path relPath = curRoot.getFileSystem().getPath(path, more).normalize();
+          if (mustExist) {
+            curPath = _resolveExisting(curRoot.resolve(relPath));
+            if (curPath != null) {
+              exists = true;
+              break;
+            }
+          } else {
+            curPath = _resolve(curRoot.resolve(relPath));
+            if (curPath != null && Files.exists(curPath)) {
+              exists = true;
+              break;
+            }
+          }
+        } catch (Exception e) {
         }
       }
     } catch (Throwable t) {
@@ -305,7 +323,7 @@ public class FileManager
       t.printStackTrace();
     }
 
-    if (mustExist && curPath != null && !Files.exists(curPath)) {
+    if (mustExist && !exists) {
       curPath = null;
     }
 
@@ -322,7 +340,7 @@ public class FileManager
 
   // Attempts to find a path which matches an existing path on case-sensitive filesystems.
   // Simply returns "path" on case-insensitive filesystems.
-  private static Path _resolve(boolean mustExist, Path path)
+  private static Path _resolve(Path path)
   {
     Path retVal = path;
     if (path != null && isFileSystemCaseSensitive(path.getFileSystem())) {
@@ -357,11 +375,13 @@ public class FileManager
       }
     }
 
-    try {
-      if (mustExist && retVal != null && !Files.exists(retVal)) {
-        retVal = null;
-      }
-    } catch (Throwable t) {
+    return retVal;
+  }
+
+  private static Path _resolveExisting(Path path)
+  {
+    Path retVal = _resolve(path);
+    if (retVal != null && !Files.exists(retVal)) {
       retVal = null;
     }
 
@@ -373,7 +393,7 @@ public class FileManager
   {
     Boolean retVal = Boolean.TRUE;
     if (fs != null) {
-      retVal = mapCaseSensitive.get(fs);
+      retVal = getInstance().mapCaseSensitive.get(fs);
       if (retVal == null) {
         final char[] separators = { '/', '\\', ':' };
         final String name = "/tmp/aaaBBB";
@@ -384,7 +404,7 @@ public class FileManager
             Path path2 = path.getParent().resolve(path.getFileName().toString().toUpperCase(Locale.ENGLISH));
             Path path3 = path.getParent().resolve(path.getFileName().toString().toLowerCase(Locale.ENGLISH));
             retVal = Boolean.valueOf(!(path.equals(path2) && path.equals(path3)));
-            mapCaseSensitive.put(fs, retVal);
+            getInstance().mapCaseSensitive.put(fs, retVal);
             break;
           } catch (Throwable t) {
             retVal = Boolean.TRUE;

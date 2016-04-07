@@ -263,9 +263,7 @@ public class Keyfile
     if (treeModel != null) {
       init();
 
-      for (final BIFFResourceEntry entry: resourceEntries) {
-        treeModel.addResourceEntry(entry, entry.getExtension(), true);
-      }
+      resourceEntries.forEach((entry) -> treeModel.addResourceEntry(entry, entry.getExtension(), true));
 
       cacheBIFFs();
     }
@@ -328,11 +326,10 @@ public class Keyfile
       Set<BIFFEntry> toRemove = new HashSet<BIFFEntry>(biffList);
       // Determine BIFFs with no files in them
       List<BIFFResourceEntry> resourceEntries = loadResourceEntries(getKeyfile());
-      for (final BIFFResourceEntry entry: resourceEntries) {
-        toRemove.remove(entry.getBIFFEntry());
-      }
+      resourceEntries.forEach((entry) -> toRemove.remove(entry.getBIFFEntry()));
+
       // Delete these BIFFs
-      for (final BIFFEntry entry : toRemove) {
+      toRemove.forEach((entry) -> {
         Path file = entry.getPath();
         System.out.println("Deleting " + file);
         if (file != null) {
@@ -342,22 +339,20 @@ public class Keyfile
             e.printStackTrace();
           }
         }
-      }
+      });
 
       // Determine non-existant BIFFs
-      for (final BIFFEntry entry: biffList) {
+      biffList.forEach((entry) -> {
         if (entry.getPath() == null) {
           toRemove.add(entry);
         }
-      }
+      });
       if (toRemove.isEmpty()) {
         return false;
       }
 
       // Remove bogus BIFFs from keyfile
-      for (final BIFFEntry entry : toRemove) {
-        removeBIFFEntry(getKeyfile(), entry);
-      }
+      toRemove.forEach((entry) -> removeBIFFEntry(getKeyfile(), entry));
 
       return true;
     } catch (IOException e) {
@@ -441,8 +436,8 @@ public class Keyfile
       @Override
       public void run()
       {
-        for (final List<BIFFEntry> biffList: biffEntries.values()) {
-          for (final BIFFEntry entry: biffList) {
+        biffEntries.values().forEach((biffList) -> {
+          biffList.forEach((entry) -> {
             if (entry != null) {
               Path biffPath = entry.getPath();
               if (biffPath != null && Files.isRegularFile(biffPath)) {
@@ -453,8 +448,8 @@ public class Keyfile
                 }
               }
             }
-          }
-        }
+          });
+        });
       }
     });
   }
@@ -543,14 +538,14 @@ public class Keyfile
         }
 
         // processing BIFF entries
-        for (int i = 0; i < numBif; i++) {
-          biffList.add(new BIFFEntry(file, i, buffer, ofsBif + i*12));
+        for (int i = 0, ofs = ofsBif; i < numBif; i++, ofs += 12) {
+          biffList.add(new BIFFEntry(file, i, buffer, ofs));
         }
         biffEntries.put(file, biffList);
 
         // processing resource entries
-        for (int i = 0; i < numRes; i++) {
-          addResourceEntry(new BIFFResourceEntry(file, buffer, ofsRes + i*14, 8));
+        for (int i = 0, ofs = ofsRes; i < numRes; i++, ofs += 14) {
+          addResourceEntry(new BIFFResourceEntry(file, buffer, ofs, 8));
         }
       }
     }
@@ -592,14 +587,14 @@ public class Keyfile
 
     // Remove bogus BIFFResourceEntries
     ResourceTreeModel resources = ResourceFactory.getResources();
-    for (final BIFFResourceEntry resourceEntry : resources.getBIFFResourceEntries(keyFile)) {
+    resources.getBIFFResourceEntries(keyFile).forEach((resourceEntry) -> {
       if (resourceEntry.getBIFFEntry() == entry) {
         resources.removeResourceEntry(resourceEntry);
         resourceEntries.remove(resourceEntry);
       } else {
         resourceEntry.adjustSourceIndex(index);     // Update relevant BIFFResourceEntries
       }
-    }
+    });
 
     // Remove BIFFEntry
     biffList.remove(entry);

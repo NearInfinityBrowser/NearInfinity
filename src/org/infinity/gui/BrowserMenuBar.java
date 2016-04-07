@@ -1077,7 +1077,7 @@ public final class BrowserMenuBar extends JMenuBar
         editIni.setToolTipText("Ini file not available");
       }
       editString2.setEnabled(Profile.getProperty(Profile.Key.GET_GAME_DIALOGF_FILE) != null);
-      Path varFile = FileManager.queryExisting(Profile.getRootFolders(), "VAR.VAR");
+      Path varFile = FileManager.query(Profile.getRootFolders(), "VAR.VAR");
       editVarVar.setEnabled(varFile != null && Files.isRegularFile(varFile));
       if (editString2.isEnabled()) {
         editString2.setToolTipText("");

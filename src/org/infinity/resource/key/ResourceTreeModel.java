@@ -102,24 +102,23 @@ public final class ResourceTreeModel implements TreeModel
     try (DirectoryStream<Path> dstream = Files.newDirectoryStream(directory)) {
       Iterator<Path> iter = dstream.iterator();
       if (iter.hasNext()) {
-        ResourceTreeFolder folder = addFolder(parentFolder, directory.getFileName().toString());
-        while (iter.hasNext()) {
-          final Path path = iter.next();
+        final ResourceTreeFolder folder = addFolder(parentFolder, directory.getFileName().toString());
+        iter.forEachRemaining((path) -> {
           if (Files.isDirectory(path)) {
             addDirectory(folder, path, overwrite);
           } else {
             folder.addResourceEntry(new FileResourceEntry(path), overwrite);
           }
-        }
+        });
         parentFolder.sortChildren(true);
 
-        TreePath path = getPathToNode(parentFolder);
-        TreeModelEvent event = new TreeModelEvent(this, path,
-                                                  new int[]{getIndexOfChild(parentFolder, folder)},
-                                                  new Object[]{folder});
-        for (int i = 0; i < treeModelListeners.size(); i++) {
-          treeModelListeners.get(i).treeNodesInserted(event);
-        }
+//        TreePath path = getPathToNode(parentFolder);
+//        TreeModelEvent event = new TreeModelEvent(this, path,
+//                                                  new int[]{getIndexOfChild(parentFolder, folder)},
+//                                                  new Object[]{folder});
+//        for (int i = 0; i < treeModelListeners.size(); i++) {
+//          treeModelListeners.get(i).treeNodesInserted(event);
+//        }
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -135,13 +134,13 @@ public final class ResourceTreeModel implements TreeModel
       entries.put(entry.getResourceName().toUpperCase(Locale.ENGLISH), entry);
       folder.sortChildren(false);
 
-      TreePath path = getPathToNode(entry).getParentPath();
-      TreeModelEvent event = new TreeModelEvent(this, path,
-                                                new int[]{getIndexOfChild(folder, entry)},
-                                                new Object[]{entry});
-      for (int i = 0; i < treeModelListeners.size(); i++) {
-        treeModelListeners.get(i).treeNodesInserted(event);
-      }
+//      TreePath path = getPathToNode(entry).getParentPath();
+//      TreeModelEvent event = new TreeModelEvent(this, path,
+//                                                new int[]{getIndexOfChild(folder, entry)},
+//                                                new Object[]{entry});
+//      for (int i = 0; i < treeModelListeners.size(); i++) {
+//        treeModelListeners.get(i).treeNodesInserted(event);
+//      }
     }
     return folder;
   }
@@ -217,13 +216,13 @@ public final class ResourceTreeModel implements TreeModel
         parent.addFolder(folder);
         parent.sortChildren(false);
 
-        TreePath path = getPathToNode(parent);
-        TreeModelEvent event = new TreeModelEvent(this, path,
-                                                  new int[]{getIndexOfChild(parent, folder)},
-                                                  new Object[]{folder});
-        for (int i = 0; i < treeModelListeners.size(); i++) {
-          treeModelListeners.get(i).treeNodesInserted(event);
-        }
+//        TreePath path = getPathToNode(parent);
+//        TreeModelEvent event = new TreeModelEvent(this, path,
+//                                                  new int[]{getIndexOfChild(parent, folder)},
+//                                                  new Object[]{folder});
+//        for (int i = 0; i < treeModelListeners.size(); i++) {
+//          treeModelListeners.get(i).treeNodesInserted(event);
+//        }
       }
       return folder;
     }
