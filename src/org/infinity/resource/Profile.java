@@ -194,7 +194,9 @@ public final class Profile
     /** Property: ({@code Path}) Path to the currently selected female {@code dialogf.tlk}.
      *            Returns {@code null} if the language does not require a dialogf.tlk. */
     GET_GAME_DIALOGF_FILE,
-    /** Property: ({@code List<Path>}) Unsorted list of folders containing BIFF archives. */
+    /** Property: ({@code List<Path>}) List of folders containing BIFF archives.
+     *            (Sorted by priority in descending order for Enhanced Editions,
+     *             sorted by entries found in ini file for non-enhanced games) */
     GET_GAME_BIFF_FOLDERS,
     /** Property: ({@code Boolean}) Is game an Enhanced Edition game? */
     IS_ENHANCED_EDITION,
