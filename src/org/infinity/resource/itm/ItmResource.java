@@ -456,7 +456,6 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     }
     addField(new DecNumber(buffer, 36, 2, ITM_MIN_LEVEL));
     addField(new DecNumber(buffer, 38, 2, ITM_MIN_STRENGTH));
-//    addField(new Unknown(buffer, 39, 1));
     if (ResourceFactory.resourceExists("KIT.IDS")) {
       addField(new DecNumber(buffer, 40, 1, ITM_MIN_STRENGTH_BONUS));
       addField(new Flag(buffer, 41, 1, ITM_UNUSABLE_BY_1, s_kituse1));
@@ -465,7 +464,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       addField(new DecNumber(buffer, 44, 1, ITM_MIN_DEXTERITY));
       addField(new Flag(buffer, 45, 1, ITM_UNUSABLE_BY_3, s_kituse3));
       addField(new DecNumber(buffer, 46, 1, ITM_MIN_WISDOM));
-      addField(new Flag(buffer, 47, 1, ITM_UNUSABLE_BY_1, s_kituse4));
+      addField(new Flag(buffer, 47, 1, ITM_UNUSABLE_BY_4, s_kituse4));
       addField(new DecNumber(buffer, 48, 1, ITM_MIN_CONSTITUTION));
       if (ResourceFactory.resourceExists("PROFTYPE.IDS")) {
         addField(new IdsBitmap(buffer, 49, 1, ITM_WEAPON_PROFICIENCY, "PROFTYPE.IDS"));
@@ -479,14 +478,8 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       addField(new DecNumber(buffer, 44, 2, ITM_MIN_DEXTERITY));
       addField(new DecNumber(buffer, 46, 2, ITM_MIN_WISDOM));
       addField(new DecNumber(buffer, 48, 2, ITM_MIN_CONSTITUTION));
-//      addField(new Unknown(buffer, 41, 1));
-//      addField(new Unknown(buffer, 43, 1));
-//      addField(new Unknown(buffer, 45, 1));
-//      addField(new Unknown(buffer, 47, 1));
-//      addField(new Unknown(buffer, 49, 1));
     }
     addField(new DecNumber(buffer, 50, 2, ITM_MIN_CHARISMA));
-//    addField(new Unknown(buffer, 51, 1));
     addField(new DecNumber(buffer, 52, 4, ITM_PRICE));
     addField(new DecNumber(buffer, 56, 2, ITM_MAX_IN_STACK));
     addField(new ResourceRef(buffer, 58, ITM_ICON, "BAM"));
