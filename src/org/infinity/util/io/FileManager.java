@@ -414,7 +414,4 @@ public class FileManager
     }
     return retVal.booleanValue();
   }
-
-//-------------------------- INNER CLASSES --------------------------
-
 }

@@ -307,127 +307,130 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         return null;
       }
     };
+
     try {
-      worker.execute();
-      worker.get();
-    } catch (InterruptedException | ExecutionException e) {
-      e.printStackTrace();
-      System.exit(10);
+      try {
+        worker.execute();
+        worker.get();
+      } catch (InterruptedException | ExecutionException e) {
+        e.printStackTrace();
+        System.exit(10);
+      }
+
+      addWindowListener(new WindowAdapter()
+      {
+        @Override
+        public void windowClosing(WindowEvent event)
+        {
+          if (removeViewable()) {
+            storePreferences();
+            ChildFrame.closeWindows();
+            System.exit(0);
+          }
+        }
+      });
+      try {
+        LookAndFeelInfo info = BrowserMenuBar.getInstance().getLookAndFeel();
+        UIManager.setLookAndFeel(info.getClassName());
+        SwingUtilities.updateComponentTreeUI(this);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+
+      statusBar = new StatusBar();
+      ResourceTreeModel treemodel = ResourceFactory.getResources();
+      updateWindowTitle();
+      final String msg = String.format(STATUSBAR_TEXT_FMT,
+                                       Profile.getProperty(Profile.Key.GET_GAME_TITLE),
+                                       Profile.getGameRoot(), treemodel.size());
+      statusBar.setMessage(msg);
+      tree = new ResourceTree(treemodel);
+      tree.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+
+      JToolBar toolBar = new JToolBar("Navigation", JToolBar.HORIZONTAL);
+      JButton b;
+      toolBar.setRollover(true);
+      toolBar.setFloatable(false);
+      b = new JButton(Icons.getIcon(Icons.ICON_EXPAND_16));
+      b.addActionListener(this);
+      b.setActionCommand("Expand");
+      b.setToolTipText("Expand selected node");
+      b.setMargin(new Insets(4, 4, 4, 4));
+      toolBar.add(b);
+      b = new JButton(Icons.getIcon(Icons.ICON_COLLAPSE_16));
+      b.addActionListener(this);
+      b.setActionCommand("Collapse");
+      b.setToolTipText("Collapse selected node");
+      b.setMargin(new Insets(4, 4, 4, 4));
+      toolBar.add(b);
+      toolBar.addSeparator(new Dimension(8, 24));
+      b = new JButton(Icons.getIcon(Icons.ICON_EXPAND_ALL_24));
+      b.addActionListener(this);
+      b.setActionCommand("ExpandAll");
+      b.setToolTipText("Expand all");
+      b.setMargin(new Insets(0, 0, 0, 0));
+      toolBar.add(b);
+      b = new JButton(Icons.getIcon(Icons.ICON_COLLAPSE_ALL_24));
+      b.addActionListener(this);
+      b.setActionCommand("CollapseAll");
+      b.setToolTipText("Collapse all");
+      b.setMargin(new Insets(0, 0, 0, 0));
+      toolBar.add(b);
+      toolBar.addSeparator(new Dimension(8, 24));
+      bpwQuickSearch = new ButtonPopupWindow(Icons.getIcon(Icons.ICON_MAGNIFY_16));
+      bpwQuickSearch.setToolTipText("Find resource");
+      bpwQuickSearch.setMargin(new Insets(4, 4, 4, 4));
+      toolBar.add(bpwQuickSearch);
+      bpwQuickSearch.addPopupWindowListener(new PopupWindowListener() {
+
+        @Override
+        public void popupWindowWillBecomeVisible(PopupWindowEvent event)
+        {
+          // XXX: Working around a visual glitch in QuickSearch's JComboBox popup list
+          //      by creating new QuickSearch instances on activation
+          bpwQuickSearch.setContent(new QuickSearch(bpwQuickSearch, tree));
+
+          SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run()
+            {
+              Component c = bpwQuickSearch.getContent();
+              if (c != null) {
+                c.requestFocusInWindow();
+              }
+            }
+          });
+        }
+
+        @Override
+        public void popupWindowWillBecomeInvisible(PopupWindowEvent event)
+        {
+          SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run()
+            {
+              bpwQuickSearch.setContent(null);
+              tree.requestFocusInWindow();
+            }
+          });
+        }
+      });
+
+      JPanel leftPanel = new JPanel(new BorderLayout());
+      leftPanel.add(tree, BorderLayout.CENTER);
+      leftPanel.add(toolBar, BorderLayout.NORTH);
+
+      containerpanel = new JPanel(new BorderLayout());
+      spSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, containerpanel);
+      spSplitter.setBorder(BorderFactory.createEmptyBorder());
+      spSplitter.setDividerLocation(prefs.getInt(WINDOW_SPLITTER, 200));
+      Container pane = getContentPane();
+      pane.setLayout(new BorderLayout());
+      pane.add(spSplitter, BorderLayout.CENTER);
+      pane.add(statusBar, BorderLayout.SOUTH);
     } finally {
       hideProgress();
     }
-
-    addWindowListener(new WindowAdapter()
-    {
-      @Override
-      public void windowClosing(WindowEvent event)
-      {
-        if (removeViewable()) {
-          storePreferences();
-          ChildFrame.closeWindows();
-          System.exit(0);
-        }
-      }
-    });
-    try {
-      LookAndFeelInfo info = BrowserMenuBar.getInstance().getLookAndFeel();
-      UIManager.setLookAndFeel(info.getClassName());
-      SwingUtilities.updateComponentTreeUI(this);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-    statusBar = new StatusBar();
-    ResourceTreeModel treemodel = ResourceFactory.getResources();
-    updateWindowTitle();
-    final String msg = String.format(STATUSBAR_TEXT_FMT,
-                                     Profile.getProperty(Profile.Key.GET_GAME_TITLE),
-                                     Profile.getGameRoot(), treemodel.size());
-    statusBar.setMessage(msg);
-    tree = new ResourceTree(treemodel);
-    tree.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-
-    JToolBar toolBar = new JToolBar("Navigation", JToolBar.HORIZONTAL);
-    JButton b;
-    toolBar.setRollover(true);
-    toolBar.setFloatable(false);
-    b = new JButton(Icons.getIcon(Icons.ICON_EXPAND_16));
-    b.addActionListener(this);
-    b.setActionCommand("Expand");
-    b.setToolTipText("Expand selected node");
-    b.setMargin(new Insets(4, 4, 4, 4));
-    toolBar.add(b);
-    b = new JButton(Icons.getIcon(Icons.ICON_COLLAPSE_16));
-    b.addActionListener(this);
-    b.setActionCommand("Collapse");
-    b.setToolTipText("Collapse selected node");
-    b.setMargin(new Insets(4, 4, 4, 4));
-    toolBar.add(b);
-    toolBar.addSeparator(new Dimension(8, 24));
-    b = new JButton(Icons.getIcon(Icons.ICON_EXPAND_ALL_24));
-    b.addActionListener(this);
-    b.setActionCommand("ExpandAll");
-    b.setToolTipText("Expand all");
-    b.setMargin(new Insets(0, 0, 0, 0));
-    toolBar.add(b);
-    b = new JButton(Icons.getIcon(Icons.ICON_COLLAPSE_ALL_24));
-    b.addActionListener(this);
-    b.setActionCommand("CollapseAll");
-    b.setToolTipText("Collapse all");
-    b.setMargin(new Insets(0, 0, 0, 0));
-    toolBar.add(b);
-    toolBar.addSeparator(new Dimension(8, 24));
-    bpwQuickSearch = new ButtonPopupWindow(Icons.getIcon(Icons.ICON_MAGNIFY_16));
-    bpwQuickSearch.setToolTipText("Find resource");
-    bpwQuickSearch.setMargin(new Insets(4, 4, 4, 4));
-    toolBar.add(bpwQuickSearch);
-    bpwQuickSearch.addPopupWindowListener(new PopupWindowListener() {
-
-      @Override
-      public void popupWindowWillBecomeVisible(PopupWindowEvent event)
-      {
-        // XXX: Working around a visual glitch in QuickSearch's JComboBox popup list
-        //      by creating new QuickSearch instances on activation
-        bpwQuickSearch.setContent(new QuickSearch(bpwQuickSearch, tree));
-
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run()
-          {
-            Component c = bpwQuickSearch.getContent();
-            if (c != null) {
-              c.requestFocusInWindow();
-            }
-          }
-        });
-      }
-
-      @Override
-      public void popupWindowWillBecomeInvisible(PopupWindowEvent event)
-      {
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run()
-          {
-            bpwQuickSearch.setContent(null);
-            tree.requestFocusInWindow();
-          }
-        });
-      }
-    });
-
-    JPanel leftPanel = new JPanel(new BorderLayout());
-    leftPanel.add(tree, BorderLayout.CENTER);
-    leftPanel.add(toolBar, BorderLayout.NORTH);
-
-    containerpanel = new JPanel(new BorderLayout());
-    spSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, containerpanel);
-    spSplitter.setBorder(BorderFactory.createEmptyBorder());
-    spSplitter.setDividerLocation(prefs.getInt(WINDOW_SPLITTER, 200));
-    Container pane = getContentPane();
-    pane.setLayout(new BorderLayout());
-    pane.add(spSplitter, BorderLayout.CENTER);
-    pane.add(statusBar, BorderLayout.SOUTH);
 
     setSize(prefs.getInt(WINDOW_SIZEX, 930), prefs.getInt(WINDOW_SIZEY, 700));
     int centerX = (int)Toolkit.getDefaultToolkit().getScreenSize().getWidth() - getSize().width >> 1;
@@ -472,6 +475,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       }
     });
   }
+
 
 // --------------------- Begin Interface ActionListener ---------------------
 
