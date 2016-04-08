@@ -4668,10 +4668,7 @@ public final class EffectFactory
         s.add(new DecNumber(buffer, offset + 12, 4, EFFECT_SAVE_PENALTY));
       }
       else {
-        if ((Boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX)) {
-        } else {
-          s.add(new Flag(buffer, offset + 8, 4, EFFECT_SAVE_TYPE, save_type));
-        }
+        s.add(new Flag(buffer, offset + 8, 4, EFFECT_SAVE_TYPE, save_type));
         s.add(new DecNumber(buffer, offset + 12, 4, EFFECT_SAVE_BONUS));
       }
     } else {
