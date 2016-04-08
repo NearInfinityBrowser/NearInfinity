@@ -53,7 +53,6 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.nio.file.ProviderMismatchException;
 import java.nio.file.ReadOnlyFileSystemException;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.WatchEvent;
@@ -209,7 +208,7 @@ public class DlcPath implements Path
   public boolean startsWith(Path other)
   {
     final DlcPath o = checkPath(other);
-    if (o.isAbsolute() != this.isAbsolute() || o.path.length > this.path.length) {
+    if (o == null || o.isAbsolute() != this.isAbsolute() || o.path.length > this.path.length) {
       return false;
     }
     int olast = o.path.length;
@@ -516,7 +515,7 @@ public class DlcPath implements Path
       throw new NullPointerException();
     }
     if (!(path instanceof DlcPath)) {
-      throw new ProviderMismatchException();
+      return null;
     }
     return (DlcPath)path;
   }
