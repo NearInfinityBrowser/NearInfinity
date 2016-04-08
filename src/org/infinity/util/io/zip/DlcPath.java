@@ -53,6 +53,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.ProviderMismatchException;
 import java.nio.file.ReadOnlyFileSystemException;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.WatchEvent;
@@ -207,20 +208,24 @@ public class DlcPath implements Path
   @Override
   public boolean startsWith(Path other)
   {
+    try {
     final DlcPath o = checkPath(other);
-    if (o == null || o.isAbsolute() != this.isAbsolute() || o.path.length > this.path.length) {
-      return false;
-    }
-    int olast = o.path.length;
-    for (int i = 0; i < olast; i++) {
-      if (o.path[i] != this.path[i]) {
+      if (o.isAbsolute() != this.isAbsolute() || o.path.length > this.path.length) {
         return false;
       }
+      int olast = o.path.length;
+      for (int i = 0; i < olast; i++) {
+        if (o.path[i] != this.path[i]) {
+          return false;
+        }
+      }
+      olast--;
+      return (o.path.length == this.path.length) ||
+             (o.path[olast] == '/') ||
+             (this.path[olast + 1] == '/');
+    } catch (Exception e) {
     }
-    olast--;
-    return (o.path.length == this.path.length) ||
-           (o.path[olast] == '/') ||
-           (this.path[olast + 1] == '/');
+    return false;
   }
 
   @Override
@@ -232,27 +237,31 @@ public class DlcPath implements Path
   @Override
   public boolean endsWith(Path other)
   {
-    final DlcPath o = checkPath(other);
-    int olast = o.path.length - 1;
-    if (olast > 0 && o.path[olast] == '/') {
-      olast--;
-    }
-    int last = this.path.length - 1;
-    if (last > 0 && this.path[last] == '/') {
-      last--;
-    }
-    if (olast == -1) {  // o.path.length == 0
-      return last == -1;
-    }
-    if ((o.isAbsolute() && (!this.isAbsolute() || olast != last)) || (last < olast)) {
-      return false;
-    }
-    for (; olast >= 0; olast--, last--) {
-      if (o.path[olast] != this.path[last]) {
+    try {
+      final DlcPath o = checkPath(other);
+      int olast = o.path.length - 1;
+      if (olast > 0 && o.path[olast] == '/') {
+        olast--;
+      }
+      int last = this.path.length - 1;
+      if (last > 0 && this.path[last] == '/') {
+        last--;
+      }
+      if (olast == -1) {  // o.path.length == 0
+        return last == -1;
+      }
+      if ((o.isAbsolute() && (!this.isAbsolute() || olast != last)) || (last < olast)) {
         return false;
       }
+      for (; olast >= 0; olast--, last--) {
+        if (o.path[olast] != this.path[last]) {
+          return false;
+        }
+      }
+      return (o.path[olast + 1] == '/') || (last == -1) || (this.path[last] == '/');
+    } catch (Exception e) {
     }
-    return (o.path[olast + 1] == '/') || (last == -1) || (this.path[last] == '/');
+    return false;
   }
 
   @Override
@@ -515,7 +524,7 @@ public class DlcPath implements Path
       throw new NullPointerException();
     }
     if (!(path instanceof DlcPath)) {
-      return null;
+      throw new ProviderMismatchException();
     }
     return (DlcPath)path;
   }
