@@ -13,13 +13,11 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeMap;
 
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
@@ -100,8 +98,8 @@ public class Keyfile
   // Map of key file path => list of associated key files
   private final Map<Path, List<BIFFEntry>> biffEntries = new HashMap<>();
 
-  // Sorted set of effective BIFFResourceEntry objects
-  private final List<BIFFResourceEntry> resourceEntries = new SortedArrayList<>(Misc.getIgnoreCaseComparator());
+  // Sorted map of effective BIFFResourceEntry objects
+  private final TreeMap<String, BIFFResourceEntry> resourceEntries = new TreeMap<>(Misc.getIgnoreCaseComparator());
 
 
   public Keyfile(Path keyFile) throws IOException
@@ -263,7 +261,7 @@ public class Keyfile
     if (treeModel != null) {
       init();
 
-      resourceEntries.forEach((entry) -> treeModel.addResourceEntry(entry, entry.getExtension(), true));
+      resourceEntries.values().forEach((entry) -> treeModel.addResourceEntry(entry, entry.getExtension(), true));
 
       cacheBIFFs();
     }
@@ -318,49 +316,49 @@ public class Keyfile
     }
   }
 
-  public boolean cleanUp()
-  {
-    try {
-      closeBIFFFiles();
-      List<BIFFEntry> biffList = biffEntries.get(getKeyfile());
-      Set<BIFFEntry> toRemove = new HashSet<BIFFEntry>(biffList);
-      // Determine BIFFs with no files in them
-      List<BIFFResourceEntry> resourceEntries = loadResourceEntries(getKeyfile());
-      resourceEntries.forEach((entry) -> toRemove.remove(entry.getBIFFEntry()));
-
-      // Delete these BIFFs
-      toRemove.forEach((entry) -> {
-        Path file = entry.getPath();
-        System.out.println("Deleting " + file);
-        if (file != null) {
-          try {
-            Files.deleteIfExists(file);
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-        }
-      });
-
-      // Determine non-existant BIFFs
-      biffList.forEach((entry) -> {
-        if (entry.getPath() == null) {
-          toRemove.add(entry);
-        }
-      });
-      if (toRemove.isEmpty()) {
-        return false;
-      }
-
-      // Remove bogus BIFFs from keyfile
-      toRemove.forEach((entry) -> removeBIFFEntry(getKeyfile(), entry));
-
-      return true;
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-    return false;
-  }
+//  public boolean cleanUp()
+//  {
+//    try {
+//      closeBIFFFiles();
+//      List<BIFFEntry> biffList = biffEntries.get(getKeyfile());
+//      Set<BIFFEntry> toRemove = new HashSet<BIFFEntry>(biffList);
+//      // Determine BIFFs with no files in them
+//      List<BIFFResourceEntry> resourceEntries = loadResourceEntries(getKeyfile());
+//      resourceEntries.forEach((entry) -> toRemove.remove(entry.getBIFFEntry()));
+//
+//      // Delete these BIFFs
+//      toRemove.forEach((entry) -> {
+//        Path file = entry.getPath();
+//        System.out.println("Deleting " + file);
+//        if (file != null) {
+//          try {
+//            Files.deleteIfExists(file);
+//          } catch (IOException e) {
+//            e.printStackTrace();
+//          }
+//        }
+//      });
+//
+//      // Determine non-existant BIFFs
+//      biffList.forEach((entry) -> {
+//        if (entry.getPath() == null) {
+//          toRemove.add(entry);
+//        }
+//      });
+//      if (toRemove.isEmpty()) {
+//        return false;
+//      }
+//
+//      // Remove bogus BIFFs from keyfile
+//      toRemove.forEach((entry) -> removeBIFFEntry(getKeyfile(), entry));
+//
+//      return true;
+//    } catch (IOException e) {
+//      e.printStackTrace();
+//    }
+//
+//    return false;
+//  }
 
   public BIFFEntry[] getBIFFEntriesSorted()
   {
@@ -455,37 +453,37 @@ public class Keyfile
   }
 
   // Creates a list of ResourceEntry objects from the specified key file
-  private List<BIFFResourceEntry> loadResourceEntries(Path keyFile) throws IOException
-  {
-    if (keyFile == null) {
-      throw new NullPointerException();
-    }
-    if (!Files.isRegularFile(keyFile)) {
-      throw new IOException("Key file not found: " + keyFile);
-    }
-
-    try (SeekableByteChannel ch = Files.newByteChannel(keyFile, StandardOpenOption.READ)) {
-      ByteBuffer buffer = StreamUtils.getByteBuffer((int)ch.size());
-      if (ch.read(buffer) < ch.size()) {
-        throw new IOException("Error loading key file");
-      }
-
-      String sig = StreamUtils.readString(buffer, 0, 4);
-      String ver = StreamUtils.readString(buffer, 4, 4);
-      if (!sig.equals(KEY_SIGNATURE) || !ver.equals(KEY_VERSION)) {
-        throw new IOException("Unsupported key file: " + keyFile.toString());
-      }
-
-      int numRes = buffer.getInt(0x0c);
-      int ofsRes = buffer.getInt(0x14);
-
-      List<BIFFResourceEntry> retVal = new ArrayList<>(numRes);
-      for (int i = 0; i < numRes; i++) {
-        retVal.add(new BIFFResourceEntry(keyFile, buffer, ofsRes + i*14, 8));
-      }
-      return retVal;
-    }
-  }
+//  private List<BIFFResourceEntry> loadResourceEntries(Path keyFile) throws IOException
+//  {
+//    if (keyFile == null) {
+//      throw new NullPointerException();
+//    }
+//    if (!Files.isRegularFile(keyFile)) {
+//      throw new IOException("Key file not found: " + keyFile);
+//    }
+//
+//    try (SeekableByteChannel ch = Files.newByteChannel(keyFile, StandardOpenOption.READ)) {
+//      ByteBuffer buffer = StreamUtils.getByteBuffer((int)ch.size());
+//      if (ch.read(buffer) < ch.size()) {
+//        throw new IOException("Error loading key file");
+//      }
+//
+//      String sig = StreamUtils.readString(buffer, 0, 4);
+//      String ver = StreamUtils.readString(buffer, 4, 4);
+//      if (!sig.equals(KEY_SIGNATURE) || !ver.equals(KEY_VERSION)) {
+//        throw new IOException("Unsupported key file: " + keyFile.toString());
+//      }
+//
+//      int numRes = buffer.getInt(0x0c);
+//      int ofsRes = buffer.getInt(0x14);
+//
+//      List<BIFFResourceEntry> retVal = new ArrayList<>(numRes);
+//      for (int i = 0; i < numRes; i++) {
+//        retVal.add(new BIFFResourceEntry(keyFile, buffer, ofsRes + i*14, 8));
+//      }
+//      return retVal;
+//    }
+//  }
 
 
   // Creates or updates cached biff maps and entry tables
@@ -569,72 +567,38 @@ public class Keyfile
   {
     BIFFResourceEntry retVal = null;
     if (entry != null) {
-      int index = resourceEntries.indexOf(entry);
-      if (index >= 0) {
-        retVal = resourceEntries.remove(index);
-      }
-      resourceEntries.add(entry);
+      String key = entry.toString();
+      retVal = resourceEntries.get(key);
+      resourceEntries.put(key, entry);
     }
     return retVal;
   }
 
   // Removes the specified BIFF entry and associated resource entries from cache and resource tree
-  private void removeBIFFEntry(Path keyFile, BIFFEntry entry)
-  {
-    System.out.println("Removing " + entry);
-    List<BIFFEntry> biffList = biffEntries.get(keyFile);
-    int index = biffList.indexOf(entry);
-
-    // Remove bogus BIFFResourceEntries
-    ResourceTreeModel resources = ResourceFactory.getResources();
-    resources.getBIFFResourceEntries(keyFile).forEach((resourceEntry) -> {
-      if (resourceEntry.getBIFFEntry() == entry) {
-        resources.removeResourceEntry(resourceEntry);
-        resourceEntries.remove(resourceEntry);
-      } else {
-        resourceEntry.adjustSourceIndex(index);     // Update relevant BIFFResourceEntries
-      }
-    });
-
-    // Remove BIFFEntry
-    biffList.remove(entry);
-
-    // Update relevant BIFFEntries
-    for (int i = index; i < biffList.size(); i++) {
-      BIFFEntry e = biffList.get(i);
-      e.setIndex(i);
-    }
-  }
-
-//-------------------------- INNER CLASSES --------------------------
-
-  private static class SortedArrayList<T> extends ArrayList<T>
-  {
-    private final Comparator<T> comparator;
-
-    public SortedArrayList(Comparator<T> comparator)
-    {
-      super();
-      this.comparator = comparator;
-    }
-
-    @Override
-    public boolean add(T item)
-    {
-      int index = Collections.binarySearch(this, item, comparator);
-      if (index < 0) {
-        index = ~index;
-      }
-      super.add(index, item);
-      return true;
-    }
-
-    @Override
-    public int indexOf(Object o)
-    {
-      @SuppressWarnings("unchecked")
-      int index = Collections.binarySearch(this, (T)o, comparator);
-      return (index >= 0) ? index : -1;
-    }
-  }
+//  private void removeBIFFEntry(Path keyFile, BIFFEntry entry)
+//  {
+//    System.out.println("Removing " + entry);
+//    List<BIFFEntry> biffList = biffEntries.get(keyFile);
+//    int index = biffList.indexOf(entry);
+//
+//    // Remove bogus BIFFResourceEntries
+//    ResourceTreeModel resources = ResourceFactory.getResources();
+//    resources.getBIFFResourceEntries(keyFile).forEach((resourceEntry) -> {
+//      if (resourceEntry.getBIFFEntry() == entry) {
+//        resources.removeResourceEntry(resourceEntry);
+//        resourceEntries.remove(resourceEntry);
+//      } else {
+//        resourceEntry.adjustSourceIndex(index);     // Update relevant BIFFResourceEntries
+//      }
+//    });
+//
+//    // Remove BIFFEntry
+//    biffList.remove(entry);
+//
+//    // Update relevant BIFFEntries
+//    for (int i = index; i < biffList.size(); i++) {
+//      BIFFEntry e = biffList.get(i);
+//      e.setIndex(i);
+//    }
+//  }
 }

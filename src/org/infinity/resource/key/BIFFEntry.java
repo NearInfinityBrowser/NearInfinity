@@ -219,7 +219,7 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry>
     StreamUtils.writeString(os, getFileName(false), getFileNameLength());
   }
 
-  // Searches for the specified BIFF file
+  // Searches for the specified BIFF file based on root
   private static Path findBiffFile(Path root, int location, String fileName)
   {
     Path retVal = null;
@@ -227,6 +227,18 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry>
       List<Path> biffFolders = Profile.getProperty(Profile.Key.GET_GAME_BIFF_FOLDERS);
       if (biffFolders == null) {
         biffFolders = new ArrayList<>();
+      } else {
+        // remove non-matching biff folder paths
+        for (int idx = biffFolders.size() - 1; idx >= 0; idx--) {
+          try {
+//            if (!biffFolders.get(idx).getFileSystem().equals(root.getFileSystem())) {
+            if (!biffFolders.get(idx).startsWith(root)) {
+              biffFolders.remove(idx);
+            }
+          } catch (Throwable t) {
+            biffFolders.remove(idx);
+          }
+        }
       }
       if (biffFolders.isEmpty()) {
         final String[] baseFolders = { "", "cache", "cd1", "cd2", "cd3", "cd4", "cd5", "cd6", "cd7", "cdall" };
@@ -241,11 +253,9 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry>
       String[] fileNames = { fileName, StreamUtils.replaceFileExtension(fileName, "cbf") };
       for (final Path path: biffFolders) {
         for (final String biffName: fileNames) {
-          retVal = FileManager.query(path, biffName);
-          if (retVal != null && Files.isRegularFile(retVal)) {
+          retVal = FileManager.queryExisting(path, biffName);
+          if (retVal != null) {
             break;
-          } else {
-            retVal = null;
           }
         }
         if (retVal != null) {

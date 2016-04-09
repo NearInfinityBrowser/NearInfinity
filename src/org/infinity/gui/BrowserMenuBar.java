@@ -94,7 +94,7 @@ import org.infinity.util.io.FileManager;
 
 public final class BrowserMenuBar extends JMenuBar
 {
-  public static final String VERSION = "v2.0-20160407";
+  public static final String VERSION = "v2.0-20160408";
   public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
@@ -1132,7 +1132,7 @@ public final class BrowserMenuBar extends JMenuBar
                                   FileManager.queryExisting(Profile.getRootFolders(), "VAR.VAR"))));
       }
       else if (event.getSource() == editBIFF) {
-        new BIFFEditor();
+//        new BIFFEditor();
       }
     }
   }
@@ -1384,33 +1384,33 @@ public final class BrowserMenuBar extends JMenuBar
       add(toolConsole);
     }
 
-    private static void cleanKeyfile()
-    {
-      JLabel infolabel = new JLabel("<html><center>This will delete empty BIFFs and remove<br>" +
-                                    "references to nonexistent BIFFs.<br><br>" +
-                                    "Warning: Your existing " + ResourceFactory.getKeyfile() +
-                                    " will be overwritten!<br><br>Continue?</center></html>");
-      String options[] = {"Continue", "Cancel"};
-      if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), infolabel,
-                                       "Keyfile cleanup", JOptionPane.YES_NO_OPTION,
-                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
-        return;
-      boolean updated = ResourceFactory.getKeyfile().cleanUp();
-      if (!updated)
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No cleanup necessary", "Cleanup completed",
-                                      JOptionPane.INFORMATION_MESSAGE);
-      else {
-        try {
-          ResourceFactory.getKeyfile().write();
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Operation completed successfully", "Cleanup completed",
-                                        JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException e) {
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error writing keyfile", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-          e.printStackTrace();
-        }
-      }
-    }
+//    private static void cleanKeyfile()
+//    {
+//      JLabel infolabel = new JLabel("<html><center>This will delete empty BIFFs and remove<br>" +
+//                                    "references to nonexistent BIFFs.<br><br>" +
+//                                    "Warning: Your existing " + ResourceFactory.getKeyfile() +
+//                                    " will be overwritten!<br><br>Continue?</center></html>");
+//      String options[] = {"Continue", "Cancel"};
+//      if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), infolabel,
+//                                       "Keyfile cleanup", JOptionPane.YES_NO_OPTION,
+//                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
+//        return;
+//      boolean updated = ResourceFactory.getKeyfile().cleanUp();
+//      if (!updated)
+//        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No cleanup necessary", "Cleanup completed",
+//                                      JOptionPane.INFORMATION_MESSAGE);
+//      else {
+//        try {
+//          ResourceFactory.getKeyfile().write();
+//          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Operation completed successfully", "Cleanup completed",
+//                                        JOptionPane.INFORMATION_MESSAGE);
+//        } catch (IOException e) {
+//          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error writing keyfile", "Error",
+//                                        JOptionPane.ERROR_MESSAGE);
+//          e.printStackTrace();
+//        }
+//      }
+//    }
 
     @Override
     public void actionPerformed(ActionEvent event)
@@ -1459,7 +1459,8 @@ public final class BrowserMenuBar extends JMenuBar
         console.setVisible(toolConsole.isSelected());
       }
       else if (event.getSource() == toolCleanKeyfile)
-        cleanKeyfile();
+//        cleanKeyfile();
+        ;
       else if (event.getSource() == toolDropZone) {
         BcsDropFrame bcsframe = (BcsDropFrame)ChildFrame.getFirstFrame(BcsDropFrame.class);
         if (bcsframe == null)

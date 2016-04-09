@@ -188,23 +188,21 @@ public final class AttributeSearcher implements Runnable, ActionListener
       // decimal and hexadecimal notation is supported
       String s = term.toLowerCase(Locale.ENGLISH);
       int radix = 0;
-      if (s.length() > 1) {
-        if (s.charAt(s.length() - 1) == 'h') {
-          s = s.substring(0, s.length() - 1).trim();
-          radix = 16;
-        } else if (s.matches("^-?0x[0-9a-f]+$")) {
-          if (s.charAt(0) == '-') {
-            s = '-' + s.substring(3).trim();
-          } else {
-            s = s.substring(2).trim();
-          }
-          radix = 16;
-        } else if (s.matches("^-?[0-9a-f]+$") && !s.matches("^-?[0-9]+$")) {
-          radix = 16;
+      if (s.length() > 1 && s.charAt(s.length() - 1) == 'h') {
+        s = s.substring(0, s.length() - 1).trim();
+        radix = 16;
+      } else if (s.matches("^-?0x[0-9a-f]+$")) {
+        if (s.charAt(0) == '-') {
+          s = '-' + s.substring(3).trim();
         } else {
-          s = s.trim();
-          radix = 10;
+          s = s.substring(2).trim();
         }
+        radix = 16;
+      } else if (s.matches("^-?[0-9a-f]+$") && !s.matches("^-?[0-9]+$")) {
+        radix = 16;
+      } else {
+        s = s.trim();
+        radix = 10;
       }
       try {
         searchNumber = Integer.parseInt(s, radix);

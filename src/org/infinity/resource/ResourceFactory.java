@@ -346,15 +346,6 @@ public final class ResourceFactory
     }
   }
 
-  public static Path getPath(String filename)
-  {
-    if (getInstance() != null) {
-      return getInstance().getPathInternal(filename);
-    } else {
-      return null;
-    }
-  }
-
   /**
    * Returns whether the specified resource exists.
    * @param resourceName The resource filename.
@@ -619,6 +610,10 @@ public final class ResourceFactory
       if (langRoot != null) {
         dirList.add(langRoot);
       }
+      List<Path> dlcList = Profile.getProperty(Profile.Key.GET_GAME_DLC_FOLDERS_AVAILABLE);
+      if (dlcList != null) {
+        dlcList.forEach((path) -> dirList.add(path));
+      }
       dirList.add(Profile.getGameRoot());
     } else {
       // fetching the CD folders in a game installation
@@ -827,22 +822,6 @@ public final class ResourceFactory
         throw new Exception("Error while exporting " + entry);
       }
     }
-  }
-
-  private Path getPathInternal(String fileName)
-  {
-    Path file = FileManager.queryExisting(Profile.getRootFolders(), fileName);
-    if (file != null) {
-      return file;
-    }
-    List<Path> biffDirs = Profile.getProperty(Profile.Key.GET_GAME_BIFF_FOLDERS);
-    for (final Path biffDir : biffDirs) {
-      file = FileManager.queryExisting(biffDir, fileName);
-      if (file != null) {
-        return file;
-      }
-    }
-    return null;
   }
 
   private void loadResourcesInternal() throws Exception
