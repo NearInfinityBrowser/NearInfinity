@@ -489,6 +489,7 @@ public final class Decompiler
         int nr = numbers[index_i++];
         decompileInteger(code, (long)nr, p);
         if ((p.length() >= 8 && p.substring(0, 8).equalsIgnoreCase("I:StrRef")) ||
+            (p.length() >= 11 && p.substring(0, 11).equalsIgnoreCase("I:StringRef")) ||
             (p.length() >= 7 && p.substring(0, 7).equalsIgnoreCase("I:Entry"))) {
           comment = StringResource.getStringRef(nr);
           if (generateErrors)
