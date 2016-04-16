@@ -425,8 +425,8 @@ public final class ResourceFactory
       ResourceEntry entry = getInstance().treeModel.getResourceEntry(resourceName);
 
       // checking default override folder list
-      if (searchExtraDirs && (entry == null)) {
-        List<Path> extraFolders = Profile.getOverrideFolders(false);
+      if (entry == null) {
+        List<Path> extraFolders = Profile.getOverrideFolders(searchExtraDirs);
         if (extraFolders != null) {
           Path file = FileManager.query(extraFolders, resourceName);
           if (file != null && Files.isRegularFile(file)) {
