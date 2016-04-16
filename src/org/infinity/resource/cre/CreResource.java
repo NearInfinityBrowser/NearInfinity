@@ -8,6 +8,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
@@ -68,6 +69,7 @@ import org.infinity.search.SearchOptions;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.LongIntegerHashMap;
+import org.infinity.util.StringResource;
 import org.infinity.util.io.StreamUtils;
 
 public final class CreResource extends AbstractStruct
@@ -659,21 +661,23 @@ public final class CreResource extends AbstractStruct
     return offsetStructs;
   }
 
-  public static String getSearchString(ByteBuffer buffer)
+  public static String getSearchString(InputStream is) throws IOException
   {
-    String signature = StreamUtils.readString(buffer, 4);
-    ;
-    if (signature.equalsIgnoreCase("CHR ")) {
-      return StreamUtils.readString(buffer, 8, 32);
+    String retVal = "";
+    String sig = StreamUtils.readString(is, 4);
+    is.skip(4);
+    if (sig.equals("CHR ")) {
+      retVal = StreamUtils.readString(is, 32);
     } else {
-      String name = new StringRef(buffer, 8, "").toString().trim();
-      String shortName = new StringRef(buffer, 12, "").toString().trim();
+      String name = StringResource.getStringRef(StreamUtils.readInt(is));
+      String shortName = StringResource.getStringRef(StreamUtils.readInt(is));
       if (name.equals(shortName)) {
-        return name;
+        retVal = name;
       } else {
-        return name + " - " + shortName;
+        retVal = name + " - " + shortName;
       }
     }
+    return retVal.trim();
   }
 
   public CreResource(String name) throws Exception

@@ -158,13 +158,21 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
       try {
         String extension = getExtension();
         if (extension.equalsIgnoreCase("CRE")) {
-          searchString = CreResource.getSearchString(getResourceBuffer());
+          try (InputStream is = getResourceDataAsStream()) {
+            searchString = CreResource.getSearchString(is);
+          }
         } else if (extension.equalsIgnoreCase("ITM")) {
-          searchString = ItmResource.getSearchString(getResourceBuffer());
+          try (InputStream is = getResourceDataAsStream()) {
+            searchString = ItmResource.getSearchString(is);
+          }
         } else if (extension.equalsIgnoreCase("SPL")) {
-          searchString = SplResource.getSearchString(getResourceBuffer());
+          try (InputStream is = getResourceDataAsStream()) {
+            searchString = SplResource.getSearchString(is);
+          }
         } else if (extension.equalsIgnoreCase("STO")) {
-          searchString = StoResource.getSearchString(getResourceBuffer());
+          try (InputStream is = getResourceDataAsStream()) {
+            searchString = StoResource.getSearchString(is);
+          }
         }
       } catch (Exception e) {
         if ((NearInfinity.getInstance() != null) &&
