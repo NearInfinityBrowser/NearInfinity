@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE update SYSTEM "update_v1.dtd">
+
+<!--
+The file "update.xml" provides all the required information about available files involved in the 
+update process of Near Infinity.
+This template provides a basic example of how to set up this file correctly.
+Text content is always considered case-sensitive. Attribute values can be of any case.
+Whitespace around text content will be trimmed automatically.
+-->
+
+<!-- Root element "update". Version attribute will be used to distinguish between different 
+     revisions of the update.xml specification. A version change will usually require an updated 
+     DOCTYPE reference. New update versions are supposed to be backwards compatible. -->
+<update version="1">
+  <!-- This section provides general NearInfinity-related information. (optional) -->
+  <general>
+    <!-- Server elements provide information about alternative update server. You can specify 
+         as many as needed. (optional) -->
+    <server>
+      <!-- The URL to an alternative server. (mandatory) -->
+      <link>https://github.com/NearInfinityBrowser/NearInfinity/</link>
+    </server>
+    <!-- Info elements provide links to related websites. You can specify as many as needed. (optional) -->
+    <info>
+      <!-- A name or label for the provided link. (mandatory) -->
+      <name>Near Infinity on SHS Forums</name>
+      <!-- A URL to a releated website. (mandatory) -->
+      <link>http://www.shsforums.net/topic/45358-nearinfinity/</link>
+    </info>
+    <info>
+      <name>Near Infinity on Baldur's Gate Forums</name>
+      <link>http://forum.baldursgate.com/discussion/30593/new-versions-of-nearinfinity-available/</link>
+    </info>
+  </general>
+
+  <!-- "release" sections define specific Near Infinity releases that can be used to update an older 
+       version. (mandatory)
+       At least one release section has to be present. Supported types: latest, stable, updater. 
+       More types may be supported in later revisions. The "latest" release always points to the 
+       latest version of Near Infinity (can be stable, unstable, beta, snapshot or anything in between) -->
+  <release type="latest">
+    <!-- The file element contains all information of a specific file needed for the update process. -->
+    <file>
+      <!-- "name" specifies the actual filename. (mandatory) -->
+      <name>NearInfinity.jar</name>
+      <!-- "url" specifies the URL which is used to download the file of specified "type" which is 
+            either jar, zip or gzip. (mandatory) -->
+      <url type="zip">https://github.com/Argent77/NearInfinity/releases/download/snapshot-20141203/NearInfinity-20141203.zip</url>
+      <!-- "version" specifies the version of the file. (mandatory) -->
+      <version>v1.35-snapshot-20141203</version>
+      <!-- "timestamp" defines the release date and time of the file in ISO 8601 format. (mandatory) -->
+      <timestamp>2014-12-03T13:32-01:00</timestamp>
+      <!-- "hash" specifies the md5 checksum/hash value of the file. (mandatory) -->
+      <hash>5f5cf4fc416716b6692a0d2adcb7f719</hash>
+      <!-- "link" specifies a URL which can be used to manually download the file. (mandatory) -->
+      <link>https://github.com/Argent77/NearInfinity/releases/latest</link>
+    </file>
+    <!-- "changelog" contains changes introduced in the current release. (optional) -->
+    <changelog>
+      <!-- One or more changelog entries. Each entry will be displayed as a separate list 
+           element. (mandatory) -->
+      <entry>Added feature X.</entry>
+      <entry>Fixed missing fields in XYZ V1.0 resources.</entry>
+    </changelog>
+  </release>
+
+  <!-- Optional release type "stable" points to the latest stable Near Infinity version.
+       Depending on the current release policy this version can be quite old and outdated. -->
+  <release type="stable">
+    <file>
+      <name>NearInfinity-1.3.0.jar</name>
+      <url type="jar">https://github.com/NearInfinityBrowser/NearInfinity/releases/download/w1.3.0/NearInfinity-1.3.0.jar</url>
+      <version>v1.33 w1.3.0</version>
+      <timestamp>2013-06-24T13:31-01:00</timestamp>
+      <hash>ea59bfa96f83db4d373299a8663b31a8</hash>
+      <link>https://github.com/NearInfinityBrowser/NearInfinity/releases/tag/w1.3.0</link>
+    </file>
+    <changelog>
+      <entry>From-scratch resource creation</entry>
+      <entry>Improved handling of PRO files</entry>
+    </changelog>
+  </release>
+
+  <!-- The special release type "updater" provides information about the updater helper tool 
+       which is required to automatically update the Near Infinity JAR file. -->
+  <release type="updater">
+    <file>
+      <name>NI_Updater.jar</name>
+      <url type="jar">https://github.com/Argent77/NI_Updater/releases/download/v1.0/NI_Updater.jar</url>
+      <version>1.0</version>
+      <timestamp>2015-02-03T16:49-01:00</timestamp>
+      <hash>ffb9a373d9686d59a3c6e1cd5c8a6049</hash>
+      <link>https://github.com/Argent77/NI_Updater/releases/latest</link>
+    </file>
+    <changelog>
+      <entry>Initial release.</entry>
+    </changelog>
+  </release>
+</update>
