@@ -16,8 +16,8 @@
     <javac srcdir="${src.path}"
            destdir="${build.path}"
            encoding="UTF-8"
-           source="1.6"
-           target="1.6"
+           source="1.8"
+           target="1.8"
            includeantruntime="false"
            deprecation="false"
            debug="false"
@@ -35,7 +35,7 @@
          includes="**/*">
       <zipgroupfileset dir="${lib.path.abs}" includes="**/*.jar"/>
       <manifest>
-        <attribute name="Main-Class" value="infinity.NearInfinity"/>
+        <attribute name="Main-Class" value="org.infinity.NearInfinity"/>
       </manifest>
     </jar>
   </target>

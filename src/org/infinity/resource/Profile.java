@@ -1,0 +1,1822 @@
+// Near Infinity - An Infinity Engine Browser and Editor
+// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// See LICENSE.txt for license information
+
+package org.infinity.resource;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Stream;
+
+import org.infinity.NearInfinity;
+import org.infinity.resource.key.ResourceTreeFolder;
+import org.infinity.resource.key.ResourceTreeModel;
+import org.infinity.util.ObjectString;
+import org.infinity.util.Table2da;
+import org.infinity.util.Table2daCache;
+import org.infinity.util.io.DlcManager;
+import org.infinity.util.io.FileManager;
+
+/**
+ * Provides engine- and game-specific properties of the currently opened Infinity Engine game.<br>
+ * <br>
+ * Properties can be accessed by unique identifiers. The returned property can be
+ * of any type defined by the enum {@link Profile.Type} or {@code null}.
+ */
+public final class Profile
+{
+  /** Supported data types for properties. */
+  public enum Type {
+    /** Property data is of type {@link Boolean}. */
+    BOOLEAN,
+    /** Property data is of type {@link Integer}. */
+    INTEGER,
+    /** Property data is of type {@link String}. */
+    STRING,
+    /** Property data is of type {@link java.util.List}. */
+    LIST,
+    /** Property data is of type {@link java.nio.file.Path}. */
+    PATH,
+    /** Property data is of any custom data type. */
+    OBJECT,
+  }
+
+  /** Supported Infinity Engine games. */
+  public enum Game {
+    /** Default for unrecognized or unsupported engine. */
+    Unknown,
+    /** Baldur's Gate */
+    BG1,
+    /** Baldur's Gate: Tales of the Sword Coast */
+    BG1TotSC,
+    /** Baldur's Gate II: Shadows of Amn */
+    BG2SoA,
+    /** Baldur's Gate II: Throne of Bhaal */
+    BG2ToB,
+    /** BGTutu and EasyTutu */
+    Tutu,
+    /** Baldur's Gate Trilogy */
+    BGT,
+    /** Planescape: Torment */
+    PST,
+    /** Icewind Dale */
+    IWD,
+    /** Icewind Dale: Heart of Winter */
+    IWDHoW,
+    /** Icewind Dale: Trials of the Luremaster */
+    IWDHowToTLM,
+    /** Icewind Dale II */
+    IWD2,
+    /** Baldur's Gate: Enhanced Edition */
+    BG1EE,
+    /** Baldur's Gate: Siege of Dragonspear */
+    BG1SoD,
+    /** Baldur's Gate II: Enhanced Edition */
+    BG2EE,
+    /** Icewind Dale: Enhanced Edition */
+    IWDEE,
+    /** Enhanced Edition Trilogy */
+    EET,
+  }
+
+  /** Supported Infinity Engine types by feature levels. */
+  public enum Engine {
+    /** Default for unrecognized or unsupported games. */
+    Unknown,
+    /** Includes BG1 and BG1TotSC. */
+    BG1,
+    /** Includes BG2SoA, BG2ToB, Tutu and BGT. */
+    BG2,
+    /** Includes PST. */
+    PST,
+    /** Includes IWD, IWDHoW and IWDTotLM. */
+    IWD,
+    /** Includes IWD2. */
+    IWD2,
+    /** Includes BG1EE, BG1SoD, BG2EE, IWDEE and EET. */
+    EE,
+  }
+
+  /**
+   * Keys for querying global, game- or engine-specific properties.
+   */
+  public enum Key {
+    // Static properties
+    /** Property: ({@code String}) Current Near Infinity version. */
+    GET_GLOBAL_NEARINFINITY_VERSION,
+    /** Property: ({@code List<Game>}) List of supported games. */
+    GET_GLOBAL_GAMES,
+    /** Property: ({@code String}) The name of the override folder ("{@code Override}"). */
+    GET_GLOBAL_OVERRIDE_NAME,
+    /** Property: ({@code String}) The name of the parent language folder in Enhanced Edition games ("{@code Lang}"). */
+    GET_GLOBAL_LANG_NAME,
+    /** Property: ({@code String}) Returns "{@code dialog.tlk}". */
+    GET_GLOBAL_DIALOG_NAME,
+    /** Property: ({@code String}) Returns "{@code dialogf.tlk}". */
+    GET_GLOBAL_DIALOG_NAME_FEMALE,
+
+    // Static properties which require an additional parameter.
+    /** Property: ({@code String}) Returns the game's title. Extra parameter: Desired {@link Game}. */
+    GET_GLOBAL_GAME_TITLE,
+    /** Property: ({@code List<String>}) Returns a list of extra folders for the specified game.
+     *            Extra parameter: Desired {@link Game}. */
+    GET_GLOBAL_EXTRA_FOLDER_NAMES,
+    /** Property: ({@code String}) Returns the game's home folder name.
+     *            Extra parameter: Desired <em>Enhanced Edition</em> {@link Game}. */
+    GET_GLOBAL_HOME_FOLDER_NAME,
+
+    // Properties set at runtime
+    /** Property: ({@link Game}) Game identifier. */
+    GET_GAME_TYPE,
+    /** Property: ({@link Engine}) Engine identifier. */
+    GET_GAME_ENGINE,
+    /** Property: ({@code String}) Name of the game's root folder. */
+    GET_GAME_ROOT_FOLDER_NAME,
+    /** Property: ({@code String}) Name of the game's home folder. (Enhanced Editions only) */
+    GET_GAME_HOME_FOLDER_NAME,
+    /** Property: ({@code String}) Name of the currently selected game language folder. (Enhanced Editions only) */
+    GET_GAME_LANG_FOLDER_NAME,
+    /** Property: ({@code List<String>}) List of available languages as language code
+     *            for the current game. (Enhanced Editions only) */
+    GET_GAME_LANG_FOLDER_NAMES_AVAILABLE,
+    /** Property: ({@code List<Path>}) List of valid root folder, sorted by priority in descending order. */
+    GET_GAME_ROOT_FOLDERS_AVAILABLE,
+    /** Property: ({@code Path}) Game's root folder. */
+    GET_GAME_ROOT_FOLDER,
+    /** Property: ({@code List<Path>}) List of available DLC root folders. (Enhanced Editions only) */
+    GET_GAME_DLC_FOLDERS_AVAILABLE,
+    /** Property: ({@code Path}) Game's home folder. (Enhanced Editions only) */
+    GET_GAME_HOME_FOLDER,
+    /** Property: ({@code Path}) Game's language folder. (Enhanced Editions only) */
+    GET_GAME_LANG_FOLDER,
+    /** Property: ({@code List<Path>}) List of available game language folders. (Enhanced Editions only) */
+    GET_GAME_LANG_FOLDERS_AVAILABLE,
+    /** Property: ({@code Path}) Game's language root folder (where the actual language subfolder reside).
+     *            (Enhanced Editions only) */
+    GET_GAME_LANG_FOLDER_BASE,
+    /** Property: ({@code List<Path>}) List of override folders to search for game resources,
+     *            sorted by priority in descending order. */
+    GET_GAME_OVERRIDE_FOLDERS,
+    /** Property: ({@code List<String>}) List of extra folder names containing game-related resources,
+     *            sorted alphabetically in ascending order. */
+    GET_GAME_EXTRA_FOLDER_NAMES,
+    /** Property: ({@code List<Path>}) List of extra folders containing game-related resources,
+     *            sorted by root folder priority (in descending order) and
+     *            alphabetically in ascending order. */
+    GET_GAME_EXTRA_FOLDERS,
+    /** Property: ({@code Path}) The game's {@code chitin.key}. */
+    GET_GAME_CHITIN_KEY,
+    /** Property: ({@code List<Path>}) List of {@code mod.key} files of available DLCs
+     *            sorted by priority in ascending order. (Enhanced Edition only) */
+    GET_GAME_DLC_KEYS_AVAILABLE,
+    /** Property: ({@code String}) Title of the game. */
+    GET_GAME_TITLE,
+    /** Property: ({@code String}) A short user-defined description or name of the game.
+     *            Can be used to tell specific game installations apart. */
+    GET_GAME_DESC,
+    /** Property: ({@code String}) Name of the game's ini file. */
+    GET_GAME_INI_NAME,
+    /** Property: ({@code Path}) Path of the game's ini file. */
+    GET_GAME_INI_FILE,
+    /** Property: ({@code Path}) Path to the currently selected {@code dialog.tlk}. */
+    GET_GAME_DIALOG_FILE,
+    /** Property: ({@code Path}) Path to the currently selected female {@code dialogf.tlk}.
+     *            Returns {@code null} if the language does not require a dialogf.tlk. */
+    GET_GAME_DIALOGF_FILE,
+    /** Property: ({@code List<Path>}) List of folders containing BIFF archives.
+     *            (Sorted by priority in descending order for Enhanced Editions,
+     *             sorted by entries found in ini file for non-enhanced games) */
+    GET_GAME_BIFF_FOLDERS,
+    /** Property: ({@code Boolean}) Is game an Enhanced Edition game? */
+    IS_ENHANCED_EDITION,
+    /** Property: ({@code Boolean}) Has current game been enhanced by TobEx? */
+    IS_GAME_TOBEX,
+
+    /** Property: ({@code Boolean}) Are {@code 2DA} resources supported? */
+    IS_SUPPORTED_2DA,
+    /** Property: ({@code Boolean}) Are {@code ACM} resources supported? */
+    IS_SUPPORTED_ACM,
+    /** Property: ({@code Boolean}) Are {@code ARE V1.0} resources supported? */
+    IS_SUPPORTED_ARE_V10,
+    /** Property: ({@code Boolean}) Are {@code ARE V9.1} resources supported? */
+    IS_SUPPORTED_ARE_V91,
+    /** Property: ({@code Boolean}) Are {@code BAM V1} resources supported? */
+    IS_SUPPORTED_BAM_V1,
+    /** Property: ({@code Boolean}) Are {@code BAM V1} resources supported? */
+    IS_SUPPORTED_BAMC_V1,
+    /** Property: ({@code Boolean}) Are {@code BAM V2} resources supported? */
+    IS_SUPPORTED_BAM_V2,
+    /** Property: ({@code Boolean}) Are {@code BCS} resources supported? */
+    IS_SUPPORTED_BCS,
+    /** Property: ({@code Boolean}) Are uncompressed {@code BIFF V1} resources supported? */
+    IS_SUPPORTED_BIFF,
+    /** Property: ({@code Boolean}) Are compressed {@code BIF V1.0} resources supported? */
+    IS_SUPPORTED_BIF,
+    /** Property: ({@code Boolean}) Are compressed {@code BIFC V1.0} resources supported? */
+    IS_SUPPORTED_BIFC,
+    /** Property: ({@code Boolean}) Are {@code BIK} resources supported? */
+    IS_SUPPORTED_BIK,
+    /** Property: ({@code Boolean}) Are {@code BIO} resources supported? */
+    IS_SUPPORTED_BIO,
+    /** Property: ({@code Boolean}) Are paletted {@code BMP} resources supported? */
+    IS_SUPPORTED_BMP_PAL,
+    /** Property: ({@code Boolean}) Are alpha-blended {@code BMP} resources supported? */
+    IS_SUPPORTED_BMP_ALPHA,
+    /** Property: ({@code Boolean}) Are {@code CHR V1.0} resources supported? */
+    IS_SUPPORTED_CHR_V10,
+    /** Property: ({@code Boolean}) Are {@code CHR V2.0} resources supported? */
+    IS_SUPPORTED_CHR_V20,
+    /** Property: ({@code Boolean}) Are {@code CHR V2.1} resources supported? */
+    IS_SUPPORTED_CHR_V21,
+    /** Property: ({@code Boolean}) Are {@code CHR V2.2} resources supported? */
+    IS_SUPPORTED_CHR_V22,
+    /** Property: ({@code Boolean}) Are {@code CHU} resources supported? */
+    IS_SUPPORTED_CHU,
+    /** Property: ({@code Boolean}) Are {@code CRE V1.0} resources supported? */
+    IS_SUPPORTED_CRE_V10,
+    /** Property: ({@code Boolean}) Are {@code CRE V1.2} resources supported? */
+    IS_SUPPORTED_CRE_V12,
+    /** Property: ({@code Boolean}) Are {@code CRE V2.2} resources supported? */
+    IS_SUPPORTED_CRE_V22,
+    /** Property: ({@code Boolean}) Are {@code CRE V9.0} resources supported? */
+    IS_SUPPORTED_CRE_V90,
+    /** Property: ({@code Boolean}) Are {@code DLG} resources supported? */
+    IS_SUPPORTED_DLG,
+    /** Property: ({@code Boolean}) Are {@code EFF} resources supported? */
+    IS_SUPPORTED_EFF,
+    /** Property: ({@code Boolean}) Are {@code FNT} resources supported? */
+    IS_SUPPORTED_FNT,
+    /** Property: ({@code Boolean}) Are {@code GAM V1.1} resources supported? */
+    IS_SUPPORTED_GAM_V11,
+    /** Property: ({@code Boolean}) Are {@code GAM V2.0} resources supported? */
+    IS_SUPPORTED_GAM_V20,
+    /** Property: ({@code Boolean}) Are {@code GAM V2.1} resources supported? */
+    IS_SUPPORTED_GAM_V21,
+    /** Property: ({@code Boolean}) Are {@code GAM V2.2} resources supported? */
+    IS_SUPPORTED_GAM_V22,
+    /** Property: ({@code Boolean}) Are {@code GLSL} resources supported? */
+    IS_SUPPORTED_GLSL,
+    /** Property: ({@code Boolean}) Are {@code GUI} resources supported? */
+    IS_SUPPORTED_GUI,
+    /** Property: ({@code Boolean}) Are {@code IDS} resources supported? */
+    IS_SUPPORTED_IDS,
+    /** Property: ({@code Boolean}) Are {@code INI} resources supported? */
+    IS_SUPPORTED_INI,
+    /** Property: ({@code Boolean}) Are {@code ITM V1.0} resources supported? */
+    IS_SUPPORTED_ITM_V10,
+    /** Property: ({@code Boolean}) Are {@code ITM V1.1} resources supported? */
+    IS_SUPPORTED_ITM_V11,
+    /** Property: ({@code Boolean}) Are {@code ITM V2.0} resources supported? */
+    IS_SUPPORTED_ITM_V20,
+    /** Property: ({@code Boolean}) Are {@code KEY} resources supported? */
+    IS_SUPPORTED_KEY,
+    /** Property: ({@code Boolean}) Are {@code LUA} resources supported? */
+    IS_SUPPORTED_LUA,
+    /** Property: ({@code Boolean}) Are {@code MENU} resources supported? */
+    IS_SUPPORTED_MENU,
+    /** Property: ({@code Boolean}) Are {@code MOS V1} resources supported? */
+    IS_SUPPORTED_MOS_V1,
+    /** Property: ({@code Boolean}) Are {@code MOSC V1} resources supported? */
+    IS_SUPPORTED_MOSC_V1,
+    /** Property: ({@code Boolean}) Are {@code MOS V2} resources supported? */
+    IS_SUPPORTED_MOS_V2,
+    /** Property: ({@code Boolean}) Are {@code MUS} resources supported? */
+    IS_SUPPORTED_MUS,
+    /** Property: ({@code Boolean}) Are {@code MVE} resources supported? */
+    IS_SUPPORTED_MVE,
+    /** Property: ({@code Boolean}) Are {@code OGG} resources supported? */
+    IS_SUPPORTED_OGG,
+    /** Property: ({@code Boolean}) Are {@code PLT} resources supported? */
+    IS_SUPPORTED_PLT,
+    /** Property: ({@code Boolean}) Are {@code PNG} resources supported? */
+    IS_SUPPORTED_PNG,
+    /** Property: ({@code Boolean}) Are {@code PRO} resources supported? */
+    IS_SUPPORTED_PRO,
+    /** Property: ({@code Boolean}) Are {@code PVRZ} resources supported? */
+    IS_SUPPORTED_PVRZ,
+    /** Property: ({@code Boolean}) Are {@code RES} resources supported? */
+    IS_SUPPORTED_RES,
+    /** Property: ({@code Boolean}) Are {@code SAV} resources supported? */
+    IS_SUPPORTED_SAV,
+    /** Property: ({@code Boolean}) Are {@code SPL V1} resources supported? */
+    IS_SUPPORTED_SPL_V1,
+    /** Property: ({@code Boolean}) Are {@code SPL V2} resources supported? */
+    IS_SUPPORTED_SPL_V2,
+    /** Property: ({@code Boolean}) Are {@code SQL} resources supported? */
+    IS_SUPPORTED_SQL,
+    /** Property: ({@code Boolean}) Are (PST) {@code SRC} resources supported? */
+    IS_SUPPORTED_SRC_PST,
+    /** Property: ({@code Boolean}) Are (IWD2) {@code SRC} resources supported? */
+    IS_SUPPORTED_SRC_IWD2,
+    /** Property: ({@code Boolean}) Are {@code STO V1.0} resources supported? */
+    IS_SUPPORTED_STO_V10,
+    /** Property: ({@code Boolean}) Are {@code STO V1.1} resources supported? */
+    IS_SUPPORTED_STO_V11,
+    /** Property: ({@code Boolean}) Are {@code STO V9.0} resources supported? */
+    IS_SUPPORTED_STO_V90,
+    /** Property: ({@code Boolean}) Are (palette-based) {@code TIS V1} resources supported? */
+    IS_SUPPORTED_TIS_V1,
+    /** Property: ({@code Boolean}) Are (PVRZ-based) {@code TIS V2} resources supported? */
+    IS_SUPPORTED_TIS_V2,
+    /** Property: ({@code Boolean}) Are {@code TLK} resources supported? */
+    IS_SUPPORTED_TLK,
+    /** Property: ({@code Boolean}) Are {@code TO V1} (TOH/TOT) resources supported? */
+    IS_SUPPORTED_TO_V1,
+    /** Property: ({@code Boolean}) Are {@code TO V2} (TOH only) resources supported? */
+    IS_SUPPORTED_TO_V2,
+    /** Property: ({@code Boolean}) Are {@code TTF} resources supported? */
+    IS_SUPPORTED_TTF,
+    /** Property: ({@code Boolean}) Are {@code VAR} resources supported? */
+    IS_SUPPORTED_VAR,
+    /** Property: ({@code Boolean}) Are {@code VEF} resources supported? */
+    IS_SUPPORTED_VEF,
+    /** Property: ({@code Boolean}) Are {@code VVC} resources supported? */
+    IS_SUPPORTED_VVC,
+    /** Property: ({@code Boolean}) Are {@code WAV} resources supported? */
+    IS_SUPPORTED_WAV,
+    /** Property: ({@code Boolean}) Are {@code WAVC} resources supported? */
+    IS_SUPPORTED_WAVC,
+    /** Property: ({@code Boolean}) Are {@code WBM} resources supported? */
+    IS_SUPPORTED_WBM,
+    /** Property: ({@code Boolean}) Are {@code WED} resources supported? */
+    IS_SUPPORTED_WED,
+    /** Property: ({@code Boolean}) Are {@code WFX} resources supported? */
+    IS_SUPPORTED_WFX,
+    /** Property: ({@code Boolean}) Are {@code WMP} resources supported? */
+    IS_SUPPORTED_WMP,
+
+    /** Property: ({@code Boolean}) Are Kits supported? */
+    IS_SUPPORTED_KITS,
+    /** Property: ({@code String}) The name of the ALIGNMENT IDS resource. */
+    GET_IDS_ALIGNMENT,
+    /** Property: ({@code Boolean}) Indices whether overlays in tilesets are stenciled. */
+    IS_TILESET_STENCILED,
+  }
+
+  // Container for Property entries
+  private static final EnumMap<Key, Profile.Property> properties = new EnumMap<>(Key.class);
+  // Unique titles for all supported games
+  private static final EnumMap<Game, String> GAME_TITLE = new EnumMap<Game, String>(Game.class);
+  // List of supported extra folders for all supported games
+  private static final EnumMap<Game, List<String>> GAME_EXTRA_FOLDERS = new EnumMap<Game, List<String>>(Game.class);
+  // Home folder name for Enhanced Edition Games
+  private static final EnumMap<Game, String> GAME_HOME_FOLDER = new EnumMap<Game, String>(Game.class);
+
+  // Using the singleton approach
+  private static Profile instance = null;
+
+  static {
+    // initializing game titles
+    GAME_TITLE.put(Game.Unknown, "Unknown game");
+    GAME_TITLE.put(Game.BG1, "Baldur's Gate");
+    GAME_TITLE.put(Game.BG1TotSC, "Baldur's Gate: Tales of the Sword Coast");
+    GAME_TITLE.put(Game.BG2SoA, "Baldur's Gate II: Shadows of Amn");
+    GAME_TITLE.put(Game.BG2ToB, "Baldur's Gate II: Throne of Bhaal");
+    GAME_TITLE.put(Game.Tutu, "Baldur's Gate - Tutu");
+    GAME_TITLE.put(Game.BGT, "Baldur's Gate Trilogy");
+    GAME_TITLE.put(Game.PST, "Planescape: Torment");
+    GAME_TITLE.put(Game.IWD, "Icewind Dale");
+    GAME_TITLE.put(Game.IWDHoW, "Icewind Dale: Heart of Winter");
+    GAME_TITLE.put(Game.IWDHowToTLM, "Icewind Dale: Trials of the Luremaster");
+    GAME_TITLE.put(Game.IWD2, "Icewind Dale II");
+    GAME_TITLE.put(Game.BG1EE, "Baldur's Gate: Enhanced Edition");
+    GAME_TITLE.put(Game.BG1SoD, "Baldur's Gate: Siege of Dragonspear");
+    GAME_TITLE.put(Game.BG2EE, "Baldur's Gate II: Enhanced Edition");
+    GAME_TITLE.put(Game.IWDEE, "Icewind Dale: Enhanced Edition");
+    GAME_TITLE.put(Game.EET, "Baldur's Gate - Enhanced Edition Trilogy");
+
+    // initializing extra folders for each supported game
+    final String[] PST_EXTRA_FOLDERS = { "Music", "Save", "Temp" };
+    final String[] BG_EXTRA_FOLDERS = { "Characters", "MPSave", "Music", "Portraits", "Save",
+                                        "Scripts", "ScrnShot", "Sounds", "Temp", "TempSave" };
+    final String[] EE_EXTRA_FOLDERS = { "BPSave", "Characters", "Fonts", "Movies", "MPBPSave",
+                                        "MPSave", "Music", "Portraits", "Save", "Sounds",
+                                        "ScrnShot", "Scripts", "Temp", "TempSave" };
+    GAME_EXTRA_FOLDERS.put(Game.Unknown, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BG1, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BG1TotSC, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BG2SoA, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BG2ToB, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.Tutu, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BGT, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.PST, new ArrayList<>(Arrays.asList(PST_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.IWD, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.IWDHoW, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.IWDHowToTLM, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.IWD2, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BG1EE, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BG1SoD, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.BG2EE, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.IWDEE, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.EET, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
+
+    // initializing home folder names for Enhanced Edition games
+    GAME_HOME_FOLDER.put(Game.BG1EE, "Baldur's Gate - Enhanced Edition");
+    GAME_HOME_FOLDER.put(Game.BG1SoD, GAME_HOME_FOLDER.get(Game.BG1EE));
+    GAME_HOME_FOLDER.put(Game.BG2EE, "Baldur's Gate II - Enhanced Edition");
+    GAME_HOME_FOLDER.put(Game.EET, GAME_HOME_FOLDER.get(Game.BG2EE));
+    GAME_HOME_FOLDER.put(Game.IWDEE, "Icewind Dale - Enhanced Edition");
+
+    // static properties are always available
+    initStaticProperties();
+  }
+
+  /**
+   * Converts the string representation of a game type into a {@link Game} enum type.
+   * Falls back to {@code Game.Unknown} on error.
+   */
+  public static Game gameFromString(String gameName)
+  {
+    if (gameName != null && !gameName.isEmpty()) {
+      try {
+        return Enum.valueOf(Game.class, gameName);
+      } catch (IllegalArgumentException e) {
+        System.err.println("Unknown game type \"" + gameName + "\" specified. Falling back to \"Unknown\".");
+      }
+    }
+    return Game.Unknown;
+  }
+
+  /**
+   * Initializes properties of a new game.
+   * @param keyFile Full path to the chitin.key of the opened game.
+   * @return {@code true} if the game has been initialized successfully, {@code false} otherwise.
+   */
+  public static boolean openGame(Path keyFile)
+  {
+    return openGame(keyFile, null);
+  }
+
+  /**
+   * Initializes properties of a new game.
+   * @param keyFile Full path to the chitin.key of the opened game.
+   * @param desc An optional description associated with the game.
+   * @return {@code true} if the game has been initialized successfully, {@code false} otherwise.
+   */
+  public static boolean openGame(Path keyFile, String desc)
+  {
+    try {
+      closeGame();
+      instance = new Profile(keyFile, desc);
+      return true;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    closeGame();
+    return false;
+  }
+
+  /**
+   * Returns whether a game has been initialized.
+   * @return {@code true} if a game has been initialized, {@code false} if not.
+   */
+  public static boolean isGameOpen()
+  {
+    return (instance != null);
+  }
+
+  /**
+   * Returns whether a property of the specified key is available.
+   * @param key A key to identify the property.
+   * @return {@code true} if the key is pointing to an existing property, {@code false} otherwise.
+   */
+  public static boolean hasProperty(Key key)
+  {
+    return properties.containsKey(key);
+  }
+
+  /**
+   * Returns the data type of the specified property.
+   * @param key The unique key identifying the property.
+   * @return The data type of the property, or {@code null} if not available.
+   */
+  public static Type getPropertyType(Key key)
+  {
+    Property prop = getEntry(key);
+    if (prop != null) {
+      return prop.getType();
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Returns the actual data of the specified property.
+   * @param key The unique key identifying the property.
+   * @return The data of the property, or {@code null} if not available.
+   */
+  public static <T> T getProperty(Key key)
+  {
+    return getProperty(key, null);
+  }
+
+  /**
+   * Returns the actual data of the specified property.
+   * @param key The unique key identifying the property.
+   * @param param An additional parameter required by a small number of properties.
+   *              Specify {@code null} to always return the parent structure of the property.
+   * @return The data of the property, or {@code null} if not available.
+   */
+  public static <T> T getProperty(Key key, Object param)
+  {
+    Property prop = getEntry(key);
+    if (prop != null) {
+      if (param == null) {
+        return prop.getData();
+      } else {
+        // handling properties which require an additional parameter
+        EnumMap<?, T> map = null;
+        switch (key) {
+          case GET_GLOBAL_GAME_TITLE:
+          case GET_GLOBAL_EXTRA_FOLDER_NAMES:
+          case GET_GLOBAL_HOME_FOLDER_NAME:
+            if (param instanceof Game) {
+              map = prop.getData();
+              return map.get(param);
+            }
+            break;
+          default:
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Updates the value of the Property entry specified by {@code key} and returns
+   * the previous Property value.
+   * @param key The Property key.
+   * @param data The new value of the Property instance.
+   * @return the previous value of the specified Property, or {@code null} if not available or applicable.
+   */
+  public static Object updateProperty(Key key, Object data)
+  {
+    // Properties requiring extra parameters cannot be updated
+    if (key != null) {
+      Property prop = properties.get(key);
+      if (prop != null) {
+        return prop.setData(data);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Adds or updates a Property entry.
+   * @param key The Property key.
+   * @param type The data type.
+   * @param data The data of the Property instance.
+   * @return {@code true} if Property has been added or updated, {@code false} otherwise.
+   */
+  public static boolean addProperty(Key key, Type type, Object data)
+  {
+    if (key != null) {
+      if (properties.containsKey(key)) {
+        updateProperty(key, data);
+        return true;
+      } else {
+        addEntry(key, type, data);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns the name of the default override folder (without path). Does not need an opened game
+   * to return a valid value.
+   * @return The name of the override folder.
+   */
+  public static String getOverrideFolderName()
+  {
+    return getProperty(Key.GET_GLOBAL_OVERRIDE_NAME);
+  }
+
+  /**
+   * Returns the game type of the current game.
+   * @return The {@link Game} type of the current game or {@code Game.Unknown} otherwise.
+   */
+  public static Game getGame()
+  {
+    Object ret = getProperty(Key.GET_GAME_TYPE);
+    return (ret instanceof Game) ? (Game)ret : Game.Unknown;
+  }
+
+  /**
+   * Returns the engine type of the current game.
+   * @return The {@link Engine} type of the current game or {@code Engine.Unknown} otherwise.
+   */
+  public static Engine getEngine()
+  {
+    Object ret = getProperty(Key.GET_GAME_ENGINE);
+    return (ret instanceof Engine) ? (Engine)ret : Engine.Unknown;
+  }
+
+  /**
+   * Returns whether the current game is an Enhanced Edition game.
+   * @return {@code true} if the current game is an Enhanced Edition Game, {@code false} otherwise.
+   */
+  public static boolean isEnhancedEdition()
+  {
+    Object ret = getProperty(Key.IS_ENHANCED_EDITION);
+    return (ret instanceof Boolean) ? (Boolean)ret : false;
+  }
+
+  /**
+   * Returns the game's root folder.
+   * @return The game's root folder as {@link Path} object.
+   */
+  public static Path getGameRoot()
+  {
+    return getProperty(Key.GET_GAME_ROOT_FOLDER);
+  }
+
+  /**
+   * Returns the game's home folder. A Non-enhanced Edition game will always return the game's
+   * root folder instead.
+   * @return The game's home folder as {@link Path} object.
+   */
+  public static Path getHomeRoot()
+  {
+    Object ret = getProperty(Key.GET_GAME_HOME_FOLDER);
+    return (ret instanceof Path) ? (Path)ret : getGameRoot();
+  }
+
+  /**
+   * Returns the game's language folder (where the effective dialog.tlk is located).
+   * A Non-enhanced Edition game will always return the game's root folder instead.
+   * @return The game's effective language folder as @{link Path} object.
+   */
+  public static Path getLanguageRoot()
+  {
+    Object ret = getProperty(Key.GET_GAME_LANG_FOLDER);
+    return (ret instanceof Path) ? (Path)ret : getGameRoot();
+  }
+
+  /**
+   * Returns all available root folders of the game as a list of {@link Path} objects, sorted by
+   * priority in descending order.
+   * (which includes the home, language and optional DLC roots for Enhanced Edition games).
+   * @return A list of {@code Path} objects specifying the game's root folders.
+   */
+  public static List<Path> getRootFolders()
+  {
+    return getProperty(Key.GET_GAME_ROOT_FOLDERS_AVAILABLE);
+  }
+
+  /**
+   * Returns a list of override folders supported by the current game, sorted by priority
+   * in descending order.
+   * @param includeExtraFolders Whether to include extra folders that are treated
+   *                            as override folders by the current game.
+   * @return List of {@link Path} objects for all available override folders.
+   */
+  public static List<Path> getOverrideFolders(boolean includeExtraFolders)
+  {
+    List<Path> ret = getProperty(Key.GET_GAME_OVERRIDE_FOLDERS);
+    if (ret != null && !includeExtraFolders) {
+      String overrideName = getProperty(Key.GET_GLOBAL_OVERRIDE_NAME);
+      List<Path> overrides = new ArrayList<>();
+      ret.forEach((path) -> {
+        if (path.getFileName().toString().equalsIgnoreCase(overrideName)) {
+          overrides.add(path);
+        }
+      });
+      ret = overrides;
+    }
+    if (ret == null) {
+      ret = new ArrayList<>();
+    }
+    return ret;
+  }
+
+  /**
+   * Returns the full path to the chitin.key of the currently open game.
+   * @return The full path of the chitin.key as {@link Path} object.
+   */
+  public static Path getChitinKey()
+  {
+    Object ret = getProperty(Key.GET_GAME_CHITIN_KEY);
+    return (ret instanceof Path) ? (Path)ret : null;
+  }
+
+  /**
+   * Updates language-related Properties with the specified game language. (Enhanced Editions only)
+   * @param language The name of the language subfolder.
+   * @return {@code true} if the game language has been updated successfully, {@code false} otherwise.
+   */
+  public static boolean updateGameLanguage(String language)
+  {
+    if (isEnhancedEdition() && language != null) {
+      List<String> languages = getProperty(Key.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE);
+      for (final String curLang: languages) {
+        if (curLang.equalsIgnoreCase(language)) {
+          instance.initRootDirs();
+          instance.initOverrides();
+          // updating language names and folders
+          updateProperty(Key.GET_GAME_LANG_FOLDER_NAME, curLang);
+          Path langPath = FileManager.query((Path)getProperty(Key.GET_GAME_LANG_FOLDER_BASE), curLang);
+          updateProperty(Key.GET_GAME_LANG_FOLDER, langPath);
+          // updating dialog.tlks
+          updateProperty(Key.GET_GAME_DIALOG_FILE, FileManager.query(langPath, getProperty(Key.GET_GLOBAL_DIALOG_NAME)));
+          Path femaleTlkFile = FileManager.query(langPath, getProperty(Key.GET_GLOBAL_DIALOG_NAME_FEMALE));
+          if (Files.isRegularFile(femaleTlkFile)) {
+            addProperty(Key.GET_GAME_DIALOGF_FILE, Type.PATH, femaleTlkFile);
+          } else {
+            updateProperty(Key.GET_GAME_DIALOGF_FILE, null);
+          }
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns a list of supported resource types by the current game.
+   * @return String array containing format extensions.
+   */
+  public static String[] getAvailableResourceTypes()
+  {
+    return getAvailableResourceTypes(false);
+  }
+
+  /**
+   * Returns a list of known or supported resource types by the current game.
+   * @param ignoreGame If {@code true}, returns all known resource types.
+   *                   If {@code false}, returns resource types supported by the current game.
+   * @return String array containing format extensions.
+   */
+  public static String[] getAvailableResourceTypes(boolean ignoreGame)
+  {
+    ArrayList<String> list = new ArrayList<String>();
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_2DA))     { list.add("2DA"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_ACM))     { list.add("ACM"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_ARE_V10) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_ARE_V91)) { list.add("ARE"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_BAM_V1) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_BAM_V2) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_BAMC_V1)) { list.add("BAM"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_BCS))     { list.add("BCS"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_BIK))     { list.add("BIK"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_BIO))     { list.add("BIO"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_BMP_ALPHA) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_BMP_PAL)) { list.add("BMP"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_CHR_V10) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_CHR_V20) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_CHR_V21) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_CHR_V22)) { list.add("CHR"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_CHU))     { list.add("CHU"); }
+    if ((Boolean)getProperty(Key.IS_SUPPORTED_CRE_V10) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_CRE_V12) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_CRE_V22) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_CRE_V90)) { list.add("CRE"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_DLG))     { list.add("DLG"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_EFF))     { list.add("EFF"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_FNT))     { list.add("FNT"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_GAM_V11) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_GAM_V20) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_GAM_V21) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_GAM_V22)) { list.add("GAM"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_GLSL))    { list.add("GLSL"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_GUI))     { list.add("GUI"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_IDS))     { list.add("IDS"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_INI))     { list.add("INI"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_ITM_V10) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_ITM_V11) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_ITM_V20)) { list.add("ITM"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_LUA))     { list.add("LUA"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_MENU))     { list.add("MENU"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_MOS_V1) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_MOS_V2) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_MOSC_V1)) { list.add("MOS"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_MUS))     { list.add("MUS"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_MVE))     { list.add("MVE"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_PLT))     { list.add("PLT"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_PNG))     { list.add("PNG"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_PRO))     { list.add("PRO"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_PVRZ))    { list.add("PVRZ"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_RES))     { list.add("RES"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_SAV))     { list.add("SAV"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_SPL_V1) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_SPL_V2))  { list.add("SPL"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_SQL))     { list.add("SQL"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_SRC_IWD2) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_SRC_PST)) { list.add("SRC"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_STO_V10) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_STO_V11) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_STO_V90)) { list.add("STO"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_TIS_V1) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_TIS_V2))  { list.add("TIS"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_TO_V1))   { list.add("TOH"); list.add("TOT"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_TO_V2))   { list.add("TOH"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_TTF))     { list.add("TTF"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_VAR))     { list.add("VAR"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_VEF))     { list.add("VEF"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_VVC))     { list.add("VVC"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_WAV) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_WAVC) ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_OGG))     { list.add("WAV"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_WBM))     { list.add("WBM"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_WED))     { list.add("WED"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_WFX))     { list.add("WFX"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_WMP))     { list.add("WMP"); }
+
+    String[] retVal = new String[list.size()];
+    for (int i = 0; i < retVal.length; i++) {
+      retVal[i] = list.get(i);
+    }
+
+    return retVal;
+  }
+
+  // Returns the Property object assigned to the given key.
+  private static Property getEntry(Key  key)
+  {
+    return properties.get(key);
+  }
+
+  // Adds a new Property entry to the list.
+  private static void addEntry(Key key, Type type, Object data)
+  {
+    Property prop = new Property(key, type, data);
+    properties.put(prop.getKey(), prop);
+  }
+
+  // Cleans up data when closing a game profile
+  private static void closeGame()
+  {
+    properties.clear();
+    initStaticProperties();
+    instance = null;
+  }
+
+  // Initializes properties not related to a specific game
+  private static void initStaticProperties()
+  {
+    // setting current NI version
+    addEntry(Key.GET_GLOBAL_NEARINFINITY_VERSION, Type.STRING, NearInfinity.getVersion());
+
+    // setting list of supported games and associated data
+    List<Game> gameList = new ArrayList<Game>();
+    for (Game game : Game.values()) {
+      gameList.add(game);
+    }
+    addEntry(Key.GET_GLOBAL_GAMES, Type.LIST, gameList);
+    addEntry(Key.GET_GLOBAL_GAME_TITLE, Type.STRING, GAME_TITLE);
+    addEntry(Key.GET_GLOBAL_EXTRA_FOLDER_NAMES, Type.LIST, GAME_EXTRA_FOLDERS);
+    addEntry(Key.GET_GLOBAL_HOME_FOLDER_NAME, Type.STRING, GAME_HOME_FOLDER);
+
+    // setting default override folder name
+    addEntry(Key.GET_GLOBAL_OVERRIDE_NAME, Type.STRING, "Override");
+
+    // Language root folder for Enhanced Edition games
+    addEntry(Key.GET_GLOBAL_LANG_NAME, Type.STRING, "Lang");
+
+    // setting dialog.tlk file names
+    addEntry(Key.GET_GLOBAL_DIALOG_NAME, Type.STRING, "dialog.tlk");
+    addEntry(Key.GET_GLOBAL_DIALOG_NAME_FEMALE, Type.STRING, "dialogf.tlk");
+  }
+
+  // Attempts to determine home folder name from the game's "engine.lua" file if available
+  private static String getLuaHomeFolderName(Game game)
+  {
+    Path gameRoot = getGameRoot();
+    if (gameRoot != null) {
+      Path lua = FileManager.query(gameRoot, "engine.lua");
+      String name = getLuaValue(lua, "engine_name", "Infinity Engine - Enhanced Edition", true);
+      if (name != null) {
+        return name.replace('"', ' ').trim();
+      }
+    }
+
+    if (game != null) {
+      return GAME_HOME_FOLDER.get(game);
+    } else {
+      return null;
+    }
+  }
+
+  // Returns the value of the Lua script entry specified by key
+  private static String getLuaValue(Path file, String key, String defaultValue, boolean ifLuaExists)
+  {
+    String retVal = ifLuaExists ? null : defaultValue;
+    if (file != null && Files.isRegularFile(file) && key != null && !key.trim().isEmpty()) {
+      retVal = defaultValue;
+      try (Stream<String> lines = Files.lines(file, StandardCharsets.UTF_8)) {
+        for (Iterator<String> iter = lines.iterator(); iter.hasNext();) {
+          String line = iter.next();
+          int sep = line.indexOf('=');
+          if (sep > 0) {
+            String name = line.substring(0, sep).trim();
+            if (name.equals(key)) {
+              String value = line.substring(sep+1).trim();
+              if (!value.isEmpty()) {
+                boolean quote = (value.charAt(0) == '"');
+                boolean cmt = false;
+                int pos = 0;
+                for (int i = 1, len = value.length(); i < len; i++) {
+                  char ch = value.charAt(i);
+                  if (ch == '"') {
+                    quote = !quote;
+                    if (!quote) {
+                      pos = i + 1;
+                      break;
+                    }
+                  } else if (ch == '-' && !quote) {
+                    cmt = !cmt;
+                    if (!cmt) {
+                      pos = i - 1;
+                      break;
+                    }
+                  } else {
+                    cmt = false;
+                  }
+                }
+                if (pos > 0) {
+                  value = value.substring(0, pos);
+                }
+                retVal = value;
+              }
+              break;
+            }
+          }
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    return retVal;
+  }
+
+  private Profile(Path keyFile, String desc) throws Exception
+  {
+    init(keyFile, desc);
+  }
+
+  // Initializes profile
+  private void init(Path keyFile, String desc) throws Exception
+  {
+    if (keyFile == null) {
+      throw new Exception("No chitin.key specified");
+    } else if (!Files.isRegularFile(keyFile)) {
+      throw new Exception(keyFile.toString() + " does not exist");
+    }
+
+    if (desc != null) {
+      addEntry(Key.GET_GAME_DESC, Type.STRING, desc);
+    }
+
+    // adding chitin.key path
+    addEntry(Key.GET_GAME_CHITIN_KEY, Type.PATH, keyFile);
+
+    // adding game's root folder and name
+    Path rootDir = keyFile.toAbsolutePath().getParent();
+    addEntry(Key.GET_GAME_ROOT_FOLDER, Type.PATH, rootDir);
+    addEntry(Key.GET_GAME_ROOT_FOLDER_NAME, Type.STRING, rootDir.getFileName().toString());
+
+    // first attempt to determine home directory for current game
+    String home = getLuaHomeFolderName(null);
+    Path homeDir = null;
+    if (home != null) {
+      addEntry(Key.GET_GAME_HOME_FOLDER_NAME, Type.STRING, home);
+      homeDir = ResourceFactory.getHomeRoot();
+      if (homeDir != null) {
+        addEntry(Key.GET_GAME_HOME_FOLDER, Type.PATH, homeDir);
+      }
+    }
+
+    // first attempt to initialize DLC content
+    addEntry(Key.GET_GAME_DLC_FOLDERS_AVAILABLE, Type.LIST, initDlc(rootDir, homeDir));
+
+    initGame();
+  }
+
+  private void initGame() throws Exception
+  {
+    // Main game detection
+    Game game;
+
+    // Preparing available root paths
+    List<Path> gameRoots = new ArrayList<Path>();
+    if (Profile.getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE) != null) {
+      gameRoots.addAll(Profile.getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE));
+    }
+    if (Profile.getGameRoot() != null) {
+      gameRoots.add(Profile.getGameRoot());
+    }
+
+    if (Files.isRegularFile(FileManager.query(gameRoots, "movies/howseer.wbm"))) {
+      game = Game.IWDEE;
+      // Note: baldur.ini is initialized later
+    } else if (Files.isRegularFile(FileManager.query(gameRoots, "movies/pocketzz.wbm"))) {
+      if ((Files.isRegularFile(FileManager.query(gameRoots, "override/EET.flag"))) ||
+          (Files.isRegularFile(FileManager.query(gameRoots, "data/eetTU00.bif")))) {
+        game = Game.EET;
+      } else {
+        game = Game.BG2EE;
+      }
+      // Note: baldur.ini is initialized later
+    } else if (Files.isRegularFile(FileManager.query(gameRoots, "movies/sodcin01.wbm"))) {
+      game = Game.BG1SoD;
+      // Note: baldur.ini is initialized later
+    } else if (Files.isRegularFile(FileManager.query(gameRoots, "movies/bgenter.wbm"))) {
+      game = Game.BG1EE;
+      // Note: baldur.ini is initialized later
+    } else if ((Files.isRegularFile(FileManager.query(gameRoots, "torment.exe"))) &&
+               (!Files.isRegularFile(FileManager.query(gameRoots, "movies/sigil.wbm")))) {
+      game = Game.PST;
+      addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "torment.ini");
+      Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
+      if (ini != null && Files.isRegularFile(ini)) {
+        addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
+      }
+    } else if ((Files.isRegularFile(FileManager.query(gameRoots, "idmain.exe"))) &&
+               (!Files.isRegularFile(FileManager.query(gameRoots, "movies/howseer.wbm")))) {
+      game = Game.IWD;
+      addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "icewind.ini");
+      Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
+      if (ini != null && Files.isRegularFile(ini)) {
+        addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
+      }
+    } else if ((Files.isRegularFile(FileManager.query(gameRoots, "iwd2.exe"))) &&
+               (Files.isRegularFile(FileManager.query(gameRoots, "Data/Credits.mve")))) {
+      game = Game.IWD2;
+      addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "icewind2.ini");
+      Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
+      if (ini != null && Files.isRegularFile(ini)) {
+        addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
+      }
+    } else if ((Files.isRegularFile(FileManager.query(gameRoots, "baldur.exe"))) &&
+               (Files.isRegularFile(FileManager.query(gameRoots, "BGConfig.exe")))) {
+      game = Game.BG2SoA;
+      addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
+      Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
+      if (ini != null && Files.isRegularFile(ini)) {
+        addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
+      }
+    } else if ((Files.isRegularFile(FileManager.query(gameRoots, "movies/graphsim.mov"))) || // Mac BG1 detection hack
+               ((Files.isRegularFile(FileManager.query(gameRoots, "baldur.exe"))) &&
+                (Files.isRegularFile(FileManager.query(gameRoots, "Config.exe"))))) {
+      game = Game.BG1;
+      addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
+      Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
+      if (ini != null && Files.isRegularFile(ini)) {
+        addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
+      }
+    } else if (Files.isRegularFile(FileManager.query(gameRoots, "bg1tutu.exe"))) {
+      game = Game.Tutu;
+      addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
+      Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
+      if (ini != null && Files.isRegularFile(ini)) {
+        addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
+      }
+    } else {
+      // game == Game.Unknown
+      game = Game.Unknown;
+      addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
+      Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
+      if (ini != null && Files.isRegularFile(ini)) {
+        addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
+      }
+    }
+    // adding priliminary game type into storage
+    addEntry(Key.GET_GAME_TYPE, Type.OBJECT, game);
+    addEntry(Key.GET_GAME_EXTRA_FOLDER_NAMES, Type.LIST, GAME_EXTRA_FOLDERS.get(game));
+
+    // determining game engine
+    initGameEngine();
+
+    // initializing method isEnhancedEdition()
+    addEntry(Key.IS_ENHANCED_EDITION, Type.BOOLEAN, Boolean.valueOf(getEngine() == Engine.EE));
+
+    if (isEnhancedEdition()) {
+      Path langDir = FileManager.query(gameRoots, "lang");
+      if (langDir != null && Files.isDirectory(langDir)) {
+        addEntry(Key.GET_GAME_LANG_FOLDER_BASE, Type.PATH, langDir);
+      }
+    }
+
+    if (!hasProperty(Key.GET_GAME_HOME_FOLDER_NAME) && GAME_HOME_FOLDER.containsKey(game)) {
+      addEntry(Key.GET_GAME_HOME_FOLDER_NAME, Type.STRING, getLuaHomeFolderName(game));
+    }
+
+    // delayed initialization of ini files (EE only)
+    if (isEnhancedEdition() && getProperty(Key.GET_GAME_INI_FILE) == null) {
+      initIniFile("baldur.lua", "baldur.ini");
+    }
+
+    // initializing available root directories
+    initRootDirs();
+
+    // initializing extra folders containing resources
+    initExtraFolders();
+
+    // initializing list of available override folders
+    initOverrides();
+
+    // initializing dialog.tlk and dialogf.tlk
+    Path tlk = FileManager.query(getRootFolders(), getProperty(Key.GET_GLOBAL_DIALOG_NAME));
+    if (tlk != null && Files.isRegularFile(tlk)) {
+      addEntry(Key.GET_GAME_DIALOG_FILE, Type.PATH, tlk);
+    }
+    Path tlkf = FileManager.query(getRootFolders(), getProperty(Key.GET_GLOBAL_DIALOG_NAME_FEMALE));
+    if (tlkf != null && Files.isRegularFile(tlkf)) {
+      addEntry(Key.GET_GAME_DIALOGF_FILE, Type.PATH, tlkf);
+    }
+
+    // initializing list of folders containing BIFF archives
+    List<Path> biffDirs = ResourceFactory.getBIFFDirs();
+    if (biffDirs != null && !biffDirs.isEmpty()) {
+      addEntry(Key.GET_GAME_BIFF_FOLDERS, Type.LIST, biffDirs);
+    }
+
+    // Initializing resource structure
+    ResourceFactory.openGame(getChitinKey());
+
+    // Expansion pack detection
+    if (game == Game.IWD && ResourceFactory.resourceExists("HOWDRAG.MVE")) {
+      // detect Trials of the Luremaster
+      if (ResourceFactory.resourceExists("AR9715.ARE")) {
+        game = Game.IWDHowToTLM;
+      } else {
+        game = Game.IWDHoW;
+      }
+    } else if (game == Game.BG2SoA && ResourceFactory.resourceExists("SARADUSH.MVE")) {
+      // detect BG Trilogy
+      if (ResourceFactory.resourceExists("ARU000.ARE")) {
+        game = Game.BGT;
+      } else {
+        game = Game.BG2ToB;
+      }
+    } else if (game == Game.BG1 && ResourceFactory.resourceExists("DURLAG.MVE")) {
+      game = Game.BG1TotSC;
+    }
+
+    // updating game type
+    addEntry(Key.GET_GAME_TYPE, Type.OBJECT, game);
+    addEntry(Key.GET_GAME_TITLE, Type.STRING, GAME_TITLE.get(game));
+
+    // initializing supported resource types
+    initResourceTypes();
+
+    // initializing engine-specific traits
+    initFeatures();
+  }
+
+  // Initializes the engine type
+  private void initGameEngine()
+  {
+    // determining game engine
+    Game game = getGame();
+    Engine engine;
+    switch (game) {
+      case BG1:
+      case BG1TotSC:
+        engine = Engine.BG1;
+        break;
+      case BG2SoA:
+      case BG2ToB:
+      case Tutu:
+      case BGT:
+        engine = Engine.BG2;
+        break;
+      case PST:
+        engine = Engine.PST;
+        break;
+      case IWD:
+      case IWDHoW:
+      case IWDHowToTLM:
+        engine = Engine.IWD;
+        break;
+      case IWD2:
+        engine = Engine.IWD2;
+        break;
+      case BG1EE:
+      case BG1SoD:
+      case BG2EE:
+      case IWDEE:
+      case EET:
+        engine = Engine.EE;
+        break;
+      default:
+        engine = Engine.Unknown;
+    }
+    addEntry(Key.GET_GAME_ENGINE, Type.OBJECT, engine);
+  }
+
+  // Initializes the first available of the specified ini files
+  private void initIniFile(String... iniFiles)
+  {
+    if (iniFiles != null) {
+      Path homeRoot = ResourceFactory.getHomeRoot();
+      for (int i = 0; i < iniFiles.length; i++) {
+        Path ini = FileManager.query(homeRoot, iniFiles[i]);
+        if (ini != null && Files.isRegularFile(ini)) {
+          addEntry(Key.GET_GAME_INI_NAME, Type.STRING, iniFiles[i]);
+          break;
+        }
+      }
+    }
+  }
+
+  // Initializes available root folders of the game
+  private void initRootDirs()
+  {
+    // Considering three (or four) different root folders to locate game resources
+    // Note: Order of the root directories is important. FileNI will take the first one available.
+    Path homeRoot = ResourceFactory.getHomeRoot();
+    String language = ResourceFactory.fetchGameLanguage(FileManager.query(homeRoot, getProperty(Key.GET_GAME_INI_NAME)));
+    String languageDef = ResourceFactory.fetchGameLanguage(null);
+
+    // adding available roots in order of priority (highest first)
+    List<Path> listRoots = new ArrayList<>();
+    if (homeRoot != null) {
+      addEntry(Key.GET_GAME_HOME_FOLDER, Type.PATH, homeRoot);
+      Path ini = FileManager.query(homeRoot, getProperty(Key.GET_GAME_INI_NAME));
+      if (ini != null && Files.isRegularFile(ini)) {
+        addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
+      }
+      listRoots.add(homeRoot);
+    }
+
+    // initializing available DLC
+    Path gameRoot = getGameRoot();
+    List<Path> dlcRoots = initDlc(gameRoot, homeRoot);
+    addEntry(Key.GET_GAME_DLC_FOLDERS_AVAILABLE, Type.LIST, dlcRoots);
+
+    // preparing available game root paths
+    List<Path> roots = new ArrayList<>();
+    roots.addAll(dlcRoots);
+    roots.add(gameRoot);
+
+    // process each root separately
+    roots.forEach((root) -> {
+      // adding root of active language
+      Path langRoot = FileManager.query(root, (String)getProperty(Key.GET_GLOBAL_LANG_NAME), language);
+      if (langRoot != null && Files.isDirectory(langRoot)) {
+        addEntry(Key.GET_GAME_LANG_FOLDER_NAME, Type.STRING, language);
+        addEntry(Key.GET_GAME_LANG_FOLDER, Type.PATH, langRoot);
+        List<Path> langPaths = ResourceFactory.getAvailableGameLanguages();
+        addEntry(Key.GET_GAME_LANG_FOLDERS_AVAILABLE, Type.LIST, langPaths);
+        List<String> languages = new ArrayList<String>(langPaths.size());
+        langPaths.forEach((path) -> languages.add(path.getFileName().toString()));
+        addEntry(Key.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE, Type.LIST, languages);
+        listRoots.add(langRoot);
+      }
+
+      // adding fallback language added if selected language is non-english
+      Path langRootDef = FileManager.query((Path)getProperty(Key.GET_GAME_LANG_FOLDER_BASE), languageDef);
+      if (!languageDef.equals(language) && langRootDef != null && Files.isDirectory(langRootDef)) {
+        listRoots.add(langRootDef);
+      }
+
+      // adding game root
+      listRoots.add(root);
+    });
+
+    addEntry(Key.GET_GAME_ROOT_FOLDERS_AVAILABLE, Type.PATH, listRoots);
+  }
+
+  // Initializes extra folders containing resources
+  private void initExtraFolders()
+  {
+    List<Path> pathList = new ArrayList<>();
+    List<Path> rootPaths = getRootFolders();
+    List<String> extraFolders = getProperty(Key.GET_GAME_EXTRA_FOLDER_NAMES);
+    rootPaths.forEach((root) -> {
+      List<Path> list = new ArrayList<>(extraFolders.size());
+      extraFolders.forEach((folder) -> {
+        Path path = FileManager.query(root, folder);
+        if (path != null && Files.isDirectory(path)) {
+          list.add(path);
+        }
+      });
+      Collections.sort(list);
+      pathList.addAll(list);
+    });
+    if (getProperty(Key.GET_GAME_EXTRA_FOLDERS) != null) {
+      updateProperty(Key.GET_GAME_EXTRA_FOLDERS, pathList);
+    } else {
+      addEntry(Key.GET_GAME_EXTRA_FOLDERS, Type.LIST, pathList);
+    }
+  }
+
+  // Initializes supported override folders used by specific games
+  private void initOverrides()
+  {
+    List<Path> list = new ArrayList<>();
+    if (isEnhancedEdition()) {
+      // preparations
+      Path gameRoot = getGameRoot();
+      // relative language paths based on game root
+      String langFolder = gameRoot.relativize(getLanguageRoot()).toString();
+      String langFolderDef = gameRoot.relativize(getLanguageRoot().getParent().resolve("en_US")).toString();
+      if (langFolder.equalsIgnoreCase(langFolderDef)) {
+        langFolderDef = null;
+      }
+      Path homeRoot = getHomeRoot();
+      List<Path> dlcRoots = getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE);
+
+      // putting all root folders into a list ordered by priority (highest first)
+      List<Path> gameRoots = new ArrayList<>();
+      gameRoots.add(gameRoot);
+      dlcRoots.forEach((path) -> gameRoots.add(path));
+      gameRoots.add(homeRoot);
+
+      // registering override paths
+      for (final Path root: gameRoots) {
+        Path path = FileManager.query(root, langFolder, "Movies");
+        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        if (langFolderDef != null) {
+          path = FileManager.query(root, langFolderDef, "Movies");
+          if (path != null && Files.isDirectory(path)) { list.add(path); }
+        }
+        path = FileManager.query(root, "Movies");
+        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        path = FileManager.query(root, "Characters");
+        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        path = FileManager.query(root, "Portraits");
+        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        path = FileManager.query(root, langFolder, "Sounds");
+        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        if (langFolderDef != null) {
+          path = FileManager.query(root, langFolderDef, "Sounds");
+          if (path != null && Files.isDirectory(path)) { list.add(path); }
+        }
+        path = FileManager.query(root, langFolder, "Fonts");
+        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        path = FileManager.query(root, "Sounds");
+        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        path = FileManager.query(root, "Scripts");
+        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        path = FileManager.query(root, langFolder, "Override");
+        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        path = FileManager.query(root, "Override");
+        if (path != null && Files.isDirectory(path)) { list.add(path); }
+      }
+    } else {
+      Path root = getGameRoot();
+      Path path = FileManager.query(root, "Movies");
+      if (path != null && Files.isDirectory(path)) { list.add(path); }
+      path = FileManager.query(root, "Characters");
+      if (path != null && Files.isDirectory(path)) { list.add(path); }
+      path = FileManager.query(root, "Portraits");
+      if (path != null && Files.isDirectory(path)) { list.add(path); }
+      path = FileManager.query(root, "Sounds");
+      if (path != null && Files.isDirectory(path)) { list.add(path); }
+      path = FileManager.query(root, "Scripts");
+      if (path != null && Files.isDirectory(path)) { list.add(path); }
+      path = FileManager.query(root, "Override");
+      if (path != null && Files.isDirectory(path)) { list.add(path); }
+    }
+    addEntry(Key.GET_GAME_OVERRIDE_FOLDERS, Type.LIST, list);
+  }
+
+  // Initializes supported resource types
+  private void initResourceTypes()
+  {
+    Game game = getGame();
+    Engine engine = getEngine();
+
+    addEntry(Key.IS_SUPPORTED_2DA, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_ACM, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_ARE_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
+                                                      engine == Engine.IWD || engine == Engine.PST ||
+                                                      engine == Engine.EE || engine == Engine.Unknown));
+    addEntry(Key.IS_SUPPORTED_ARE_V91, Type.BOOLEAN, (engine == Engine.IWD2));
+
+    addEntry(Key.IS_SUPPORTED_BAM_V1, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_BAMC_V1, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD ||
+                                                      engine == Engine.IWD2 || engine == Engine.EE));
+    addEntry(Key.IS_SUPPORTED_BAM_V2, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_BCS, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_BIFF, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_BIF, Type.BOOLEAN, (engine == Engine.IWD));
+    addEntry(Key.IS_SUPPORTED_BIFC, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD2));
+
+    addEntry(Key.IS_SUPPORTED_BIK, Type.BOOLEAN, (engine == Engine.IWD2));
+
+    addEntry(Key.IS_SUPPORTED_BIO, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
+                                                  engine == Engine.EE || engine == Engine.Unknown));
+
+    addEntry(Key.IS_SUPPORTED_BMP_PAL, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_BMP_ALPHA, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_CHR_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.Unknown));
+    addEntry(Key.IS_SUPPORTED_CHR_V20, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
+    addEntry(Key.IS_SUPPORTED_CHR_V21, Type.BOOLEAN, (game == Game.BG2ToB || engine == Engine.EE));
+    addEntry(Key.IS_SUPPORTED_CHR_V22, Type.BOOLEAN, (engine == Engine.IWD2));
+
+    addEntry(Key.IS_SUPPORTED_CHU, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_CRE_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
+                                                      engine == Engine.EE || engine == Engine.Unknown));
+    addEntry(Key.IS_SUPPORTED_CRE_V12, Type.BOOLEAN, (engine == Engine.PST));
+    addEntry(Key.IS_SUPPORTED_CRE_V22, Type.BOOLEAN, (engine == Engine.IWD2));
+    addEntry(Key.IS_SUPPORTED_CRE_V90, Type.BOOLEAN, (engine == Engine.IWD));
+
+    addEntry(Key.IS_SUPPORTED_DLG, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_EFF, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
+                                                  engine == Engine.IWD || engine == Engine.EE ||
+                                                  engine == Engine.Unknown));
+
+    addEntry(Key.IS_SUPPORTED_FNT, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_GAM_V11, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.IWD ||
+                                                      engine == Engine.PST || engine == Engine.Unknown));
+    addEntry(Key.IS_SUPPORTED_GAM_V20, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
+    addEntry(Key.IS_SUPPORTED_GAM_V21, Type.BOOLEAN, (game == Game.BG2ToB || engine == Engine.EE));
+    addEntry(Key.IS_SUPPORTED_GAM_V22, Type.BOOLEAN, (engine == Engine.IWD2));
+
+    addEntry(Key.IS_SUPPORTED_GLSL, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_GUI, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_IDS, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_INI, Type.BOOLEAN, (engine == Engine.IWD || engine == Engine.IWD2 ||
+                                                  engine == Engine.PST || engine == Engine.EE));
+
+    addEntry(Key.IS_SUPPORTED_ITM_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
+                                                    engine == Engine.IWD || engine == Engine.EE ||
+                                                    engine == Engine.Unknown));
+    addEntry(Key.IS_SUPPORTED_ITM_V11, Type.BOOLEAN, (engine == Engine.PST));
+    addEntry(Key.IS_SUPPORTED_ITM_V20, Type.BOOLEAN, (engine == Engine.IWD2));
+
+    addEntry(Key.IS_SUPPORTED_KEY, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_LUA, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_MENU, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_MOS_V1, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_MOSC_V1, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD ||
+                                                      engine == Engine.IWD2 || engine == Engine.EE));
+    addEntry(Key.IS_SUPPORTED_MOS_V2, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_MUS, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_MVE, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_OGG, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_PLT, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_PNG, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_PRO, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
+
+    addEntry(Key.IS_SUPPORTED_PVRZ, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_RES, Type.BOOLEAN, (engine == Engine.IWD || engine == Engine.IWD2));
+
+    addEntry(Key.IS_SUPPORTED_SAV, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_SPL_V1, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
+                                                     engine == Engine.IWD || engine == Engine.PST ||
+                                                     engine == Engine.EE || engine == Engine.Unknown));
+    addEntry(Key.IS_SUPPORTED_SPL_V2, Type.BOOLEAN, (engine == Engine.IWD2));
+
+    addEntry(Key.IS_SUPPORTED_SQL, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_SRC_PST, Type.BOOLEAN, (engine == Engine.PST));
+
+    addEntry(Key.IS_SUPPORTED_SRC_IWD2, Type.BOOLEAN, (engine == Engine.IWD2));
+
+    addEntry(Key.IS_SUPPORTED_STO_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
+                                                      engine == Engine.EE || engine == Engine.Unknown));
+    addEntry(Key.IS_SUPPORTED_STO_V11, Type.BOOLEAN, (engine == Engine.PST));
+    addEntry(Key.IS_SUPPORTED_STO_V90, Type.BOOLEAN, (engine == Engine.IWD || engine == Engine.IWD2));
+
+    addEntry(Key.IS_SUPPORTED_TIS_V1, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_TIS_V2, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_TLK, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_TO_V1, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD));
+    addEntry(Key.IS_SUPPORTED_TO_V2, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_TTF, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_VAR, Type.BOOLEAN, (engine == Engine.PST));
+
+    addEntry(Key.IS_SUPPORTED_VEF, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
+
+    addEntry(Key.IS_SUPPORTED_VVC, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
+
+    addEntry(Key.IS_SUPPORTED_WAV, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_WAVC, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_WBM, Type.BOOLEAN, isEnhancedEdition());
+
+    addEntry(Key.IS_SUPPORTED_WED, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_WFX, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
+
+    addEntry(Key.IS_SUPPORTED_WMP, Type.BOOLEAN, Boolean.valueOf(true));
+  }
+
+  // Initializes game-specific features
+  private void initFeatures()
+  {
+    Game game = getGame();
+    Engine engine = getEngine();
+
+    // Are Kits supported?
+    addEntry(Key.IS_SUPPORTED_KITS, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD2 ||
+                                               engine == Engine.EE));
+
+    // the actual name of the "Alignment" IDS resource
+    addEntry(Key.GET_IDS_ALIGNMENT, Type.STRING, (engine == Engine.IWD2) ? "ALIGNMNT.IDS" : "ALIGNMEN.IDS");
+
+    // display mode of overlays in tilesets
+    addEntry(Key.IS_TILESET_STENCILED, Type.BOOLEAN, (engine == Engine.BG2 || game == Game.BG2EE));
+
+    // Has TobEx been installed?
+    if (engine == Engine.BG2) {
+      Path tobexIni = FileManager.query(getGameRoot(), "TobEx_ini/TobExCore.ini");
+      addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, Files.isRegularFile(tobexIni));
+    } else {
+      addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, Boolean.FALSE);
+    }
+
+    // Add campaign-specific extra folders
+    initCampaigns();
+  }
+
+  // Adds any campaign-specific save folders to the resource tree (EE only)
+  private void initCampaigns()
+  {
+    final String campaign = "CAMPAIGN.2DA";
+    if (isEnhancedEdition() && ResourceFactory.resourceExists(campaign)) {
+      Table2da table = Table2daCache.get(campaign);
+      if (table == null || table.getRowCount() == 0) {
+        return;
+      }
+
+      // getting correct column
+      final String saveColName = "SAVE_DIR";  // default column name
+      int col = 12;   // default column index
+      for (int i = 0; i < table.getColCount(); i++) {
+        if (saveColName.equalsIgnoreCase(table.getHeader(i))) {
+          col = i;
+          break;
+        }
+      }
+      if (col >= table.getColCount()) {
+        return;
+      }
+
+      // getting save folder names
+      List<String> extraNames = getProperty(Key.GET_GAME_EXTRA_FOLDER_NAMES);
+      boolean available = false;
+      for (int row = 0; row < table.getRowCount(); row++) {
+        String save = table.get(row, col);
+        if (save != null && !save.isEmpty()) {
+          save = Character.toUpperCase(save.charAt(0)) + save.substring(1).toLowerCase(Locale.ENGLISH);
+          String mpsave = "MP" + save;
+          boolean checkSave = false, checkMPSave = false;
+          for (final String s: extraNames) {
+            checkSave |= save.equalsIgnoreCase(s);
+            checkMPSave |= mpsave.equalsIgnoreCase(s);
+            if (checkSave && checkMPSave) {
+              break;
+            }
+          }
+          if (!checkSave) {
+            available = true;
+            extraNames.add(save);
+          }
+          if (!checkMPSave) {
+            available = true;
+            extraNames.add(mpsave);
+          }
+        }
+      }
+
+      if (available) {
+        // updating extra folder name and path list
+        Collections.sort(extraNames);
+        updateProperty(Key.GET_GAME_EXTRA_FOLDER_NAMES, extraNames);
+        initExtraFolders();
+
+        // adding new paths to resource tree
+        ResourceTreeModel model = ResourceFactory.getResources();
+        if (model != null) {
+          List<Path> extraDirs = getProperty(Key.GET_GAME_EXTRA_FOLDERS);
+          for (final Path path: extraDirs) {
+            if (Files.isDirectory(path)) {
+              String folderName = path.getFileName().toString();
+              if (model.getFolder(folderName) == null) {
+                model.addDirectory((ResourceTreeFolder)model.getRoot(), path, false);
+              }
+            }
+          }
+          model.sort();
+        }
+      }
+    }
+  }
+
+  // Registers available DLCs and returns them as list of root paths
+  private List<Path> initDlc(Path rootDir, Path homeDir)
+  {
+    List<Path> retVal = new ArrayList<>();
+
+    if (homeDir == null) {  // assume original IE game or EE game without DLC support
+      return retVal;
+    }
+
+    List<ObjectString> gameFolders = new ArrayList<>();
+    // Getting potential DLC folders (search order is important)
+    if (homeDir != null && Files.isDirectory(homeDir)) {
+      gameFolders.add(new ObjectString("zip", homeDir));
+    }
+    if (rootDir != null && Files.isDirectory(rootDir)) {
+      gameFolders.add(new ObjectString("zip", rootDir));
+      gameFolders.add(new ObjectString("zip", rootDir.resolve("dlc")));
+      gameFolders.add(new ObjectString("mod", rootDir.resolve("workshop")));
+    }
+
+    for (final ObjectString root: gameFolders) {
+      String ext = root.getString();
+      Path dir = root.getObject();
+      if (dir != null && Files.isDirectory(dir)) {
+        List<Path> list = new ArrayList<>();
+        try (DirectoryStream<Path> dstream = Files.newDirectoryStream(dir)) {
+          for (final Path file: dstream) {
+            try {
+              Path dlcRoot = validateDlc(file, ext);
+              if (dlcRoot != null) {
+                list.add(dlcRoot);
+              }
+            } catch (IOException e) {
+              e.printStackTrace();
+            }
+          }
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+        // DLCs of the same root are sorted alphabetically
+        if (!list.isEmpty()) {
+          Collections.sort(list);
+          retVal.addAll(list);
+        }
+      }
+    }
+
+    // registering paths to mod.key files
+    List<Path> keyList = new ArrayList<>();
+    retVal.forEach((path) -> {
+      Path keyFile = DlcManager.queryKey(path);
+      if (keyFile != null) {
+        keyList.add(keyFile);
+      }
+    });
+    if (getProperty(Key.GET_GAME_DLC_KEYS_AVAILABLE) != null) {
+      updateProperty(Key.GET_GAME_DLC_KEYS_AVAILABLE, keyList);
+    } else {
+      addEntry(Key.GET_GAME_DLC_KEYS_AVAILABLE, Type.LIST, keyList);
+    }
+
+    return retVal;
+  }
+
+  // Checks whether specified file meets the requirement of a DLC archive, which includes
+  // is regular file, has correct file extension, is of type zip and contains a valid KEY file in
+  // the archive's root folder.
+  // Returns the root path of the Dlc archive if available or null.
+  private Path validateDlc(Path file, String ext) throws IOException
+  {
+    // is regular file?
+    if (file == null && !Files.isRegularFile(file)) {
+      return null;
+    }
+
+    // has correct file extension?
+    String fileName = file.getFileName().toString().toLowerCase(Locale.ENGLISH);
+    if (!fileName.endsWith('.' + ext.toLowerCase(Locale.ENGLISH))) {
+      return null;
+    }
+
+    // is already registered?
+    FileSystem fs = DlcManager.getDlc(file);
+    if (fs == null) {
+      // try to register potential DLC
+      fs = DlcManager.register(file);
+    }
+
+    if (fs != null) {
+      return fs.getPath("/");
+    } else {
+      return null;
+    }
+  }
+
+//-------------------------- INNER CLASSES --------------------------
+
+  // Internal definition of a property entry
+  private static class Property
+  {
+    private final Key key;
+    private final Type type;
+
+    private Object data;
+
+    /**
+     * Initialize a new property.
+     * @param key A unique identifier for the property. Cannot be modified afterwards.
+     * @param type The data type of the property. Cannot be modified afterwards.
+     * @param data The actual data of the property. Can be modified afterwards.
+     */
+    public Property(Key key, Type type, Object data)
+    {
+      this.key = key;
+      this.type = type;
+      this.data = data;
+    }
+
+    /** Returns a unique key which identifies this property. */
+    public Key getKey() { return key; }
+
+    /** Returns the data type of this property. */
+    public Type getType() { return type; }
+
+    /** Returns the actual data of this property. */
+    @SuppressWarnings("unchecked")
+    public <T> T getData() { return (T)data; }
+
+    /** Sets new data value of this property. Returns the previous data. */
+    public Object setData(Object newValue) { Object retVal = data; data = newValue; return retVal; }
+
+    @Override
+    public String toString()
+    {
+      return String.format("%1$d:[%2$s] = %3$s", key, type, data);
+    }
+  }
+}
