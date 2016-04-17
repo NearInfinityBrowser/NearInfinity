@@ -11,7 +11,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -262,10 +261,10 @@ public class QuickSearch extends JPanel implements Runnable
     // populating list with new entries
     ResourceTreeModel model = tree.getModel();
     if (model != null) {
-      Collection<ResourceEntry> entries = model.getResourceEntries();
+      List<ResourceEntry> entries = ResourceFactory.getResources();
       if (entries != null) {
-        for (Iterator<ResourceEntry> iter = entries.iterator(); iter.hasNext();) {
-          list.add(iter.next());
+        for (final ResourceEntry entry: entries) {
+          list.add(entry);
         }
       }
       Collections.sort(list);

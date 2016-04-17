@@ -186,9 +186,9 @@ public final class BIFFWriter
 
   private BIFFResourceEntry reloadNode(ResourceEntry entry, int newOffset)
   {
-    ResourceFactory.getResources().removeResourceEntry(entry);
+    ResourceFactory.getResourceTreeModel().removeResourceEntry(entry);
     BIFFResourceEntry newEntry = new BIFFResourceEntry(bifEntry, entry.toString(), newOffset);
-    ResourceFactory.getResources().addResourceEntry(newEntry, newEntry.getTreeFolder(), true);
+    ResourceFactory.getResourceTreeModel().addResourceEntry(newEntry, newEntry.getTreeFolder(), true);
     return newEntry;
   }
 

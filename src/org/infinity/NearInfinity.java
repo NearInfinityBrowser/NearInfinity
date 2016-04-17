@@ -338,7 +338,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       }
 
       statusBar = new StatusBar();
-      ResourceTreeModel treemodel = ResourceFactory.getResources();
+      ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
       updateWindowTitle();
       final String msg = String.format(STATUSBAR_TEXT_FMT,
                                        Profile.getProperty(Profile.Key.GET_GAME_TITLE),
@@ -492,7 +492,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
           return;
         }
         ChildFrame.closeWindows();
-        ResourceTreeModel treemodel = ResourceFactory.getResources();
+        ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
         updateWindowTitle();
         final String msg = String.format(STATUSBAR_TEXT_FMT,
                                          Profile.getProperty(Profile.Key.GET_GAME_TITLE),
@@ -627,7 +627,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       Compiler.restartCompiler();
       removeViewable();
       ChildFrame.closeWindows();
-      ResourceTreeModel treemodel = ResourceFactory.getResources();
+      ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
       updateWindowTitle();
       final String msg = String.format(STATUSBAR_TEXT_FMT,
                                        Profile.getProperty(Profile.Key.GET_GAME_TITLE),
@@ -684,7 +684,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       reloadFactory(true);
       if (removeViewable()) {
         ChildFrame.closeWindows();
-        ResourceTreeModel treemodel = ResourceFactory.getResources();
+        ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
         final String msg = String.format(STATUSBAR_TEXT_FMT,
                                          Profile.getProperty(Profile.Key.GET_GAME_TITLE),
                                          Profile.getGameRoot(), treemodel.size());

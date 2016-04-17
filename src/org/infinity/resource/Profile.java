@@ -1665,7 +1665,7 @@ public final class Profile
         initExtraFolders();
 
         // adding new paths to resource tree
-        ResourceTreeModel model = ResourceFactory.getResources();
+        ResourceTreeModel model = ResourceFactory.getResourceTreeModel();
         if (model != null) {
           List<Path> extraDirs = getProperty(Key.GET_GAME_EXTRA_FOLDERS);
           for (final Path path: extraDirs) {

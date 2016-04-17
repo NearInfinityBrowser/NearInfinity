@@ -138,7 +138,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     blocker.setBlocked(true);
     // 1: Delete old entries from keyfile
     for (int i = 0; i < origbiflist.size(); i++) {
-      ResourceFactory.getResources().removeResourceEntry(origbiflist.get(i));
+      ResourceFactory.getResourceTreeModel().removeResourceEntry(origbiflist.get(i));
     }
     progress.setProgress(1, true);
 
@@ -158,7 +158,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
         return;
       }
       FileResourceEntry fileEntry = new FileResourceEntry(file, true);
-      ResourceFactory.getResources().addResourceEntry(fileEntry, fileEntry.getTreeFolder(), true);
+      ResourceFactory.getResourceTreeModel().addResourceEntry(fileEntry, fileEntry.getTreeFolder(), true);
     }
     progress.setProgress(2, true);
 
@@ -206,7 +206,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       Path file = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(),
                                     origbiflist.get(i).toString());
       FileResourceEntry fileEntry = new FileResourceEntry(file, true);
-      ResourceFactory.getResources().addResourceEntry(fileEntry, fileEntry.getTreeFolder(), true);
+      ResourceFactory.getResourceTreeModel().addResourceEntry(fileEntry, fileEntry.getTreeFolder(), true);
     }
     progress.setProgress(5, true);
 
@@ -220,7 +220,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
                                     JOptionPane.ERROR_MESSAGE);
       e.printStackTrace();
     }
-    ResourceFactory.getResources().sort();
+    ResourceFactory.getResourceTreeModel().sort();
     blocker.setBlocked(false);
   }
 
@@ -237,7 +237,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     GridBagConstraints gbc = new GridBagConstraints();
     pane.setLayout(gbl);
 
-    for (final ResourceEntry entry : ResourceFactory.getResources().getResourceEntries()) {
+    for (final ResourceEntry entry : ResourceFactory.getResourceTreeModel().getResourceEntries()) {
       if ((entry instanceof FileResourceEntry || entry.hasOverride()) &&
           StreamUtils.splitFileName(entry.toString())[1].length() <= 8 &&
           ResourceFactory.getKeyfile().getExtensionType(entry.getExtension()) != -1) {
