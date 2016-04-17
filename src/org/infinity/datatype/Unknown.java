@@ -128,7 +128,7 @@ public class Unknown extends Datatype implements Editable, IsBinary
       }
     }
     buffer.position(0);
-    buffer.get(newdata);
+    buffer.put(newdata);
 
     // notifying listeners
     fireValueUpdated(new UpdateEvent(this, struct));

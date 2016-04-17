@@ -46,7 +46,7 @@ public final class UnknownBinary extends Unknown
       }
     }
     buffer.position(0);
-    buffer.get(newdata);
+    buffer.put(newdata);
     return true;
   }
 
