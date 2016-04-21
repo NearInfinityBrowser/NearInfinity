@@ -405,6 +405,14 @@ public final class CreResource extends AbstractStruct
     "Holding item", "Clear all flags", "", "", "", "", "", "", "Allegiance tracking",
     "General tracking", "Race tracking", "Class tracking", "Specifics tracking", "Gender tracking",
     "Alignment tracking", "Uninterruptible"};
+  public static final String[] s_flag_ee = {
+    "No flags set", "Identified", "No corpse", "Permanent corpse",
+    "Original class: Fighter", "Original class: Mage", "Original class: Cleric", "Original class: Thief",
+    "Original class: Druid", "Original class: Ranger", "Fallen paladin", "Fallen ranger",
+    "Export allowed", "Hide status", "Large creature", "Moving between areas", "Been in party",
+    "Holding item", "Clear all flags", "", "", "", "", "Ignore nightmare mode", "No tooltip",
+    "Allegiance tracking", "General tracking", "Race tracking", "Class tracking", "Specifics tracking",
+    "Gender tracking", "Alignment tracking", "Uninterruptible"};
   public static final String[] s_feats1 = {
     "No feats selected", "Aegis of rime", "Ambidexterity", "Aqua mortis", "Armor proficiency", "Armored arcana",
     "Arterial strike", "Blind fight", "Bullheaded", "Cleave", "Combat casting", "Courteous magocracy", "Crippling strike",
@@ -1401,7 +1409,11 @@ public final class CreResource extends AbstractStruct
   {
     addField(new StringRef(buffer, offset, CRE_NAME));
     addField(new StringRef(buffer, offset + 4, CRE_TOOLTIP));
-    addField(new Flag(buffer, offset + 8, 4, CRE_FLAGS, s_flag));
+    if (Profile.isEnhancedEdition()) {
+      addField(new Flag(buffer, offset + 8, 4, CRE_FLAGS, s_flag_ee));
+    } else {
+      addField(new Flag(buffer, offset + 8, 4, CRE_FLAGS, s_flag));
+    }
     addField(new DecNumber(buffer, offset + 12, 4, CRE_XP_VALUE));
     addField(new DecNumber(buffer, offset + 16, 4, CRE_XP));
     addField(new DecNumber(buffer, offset + 20, 4, CRE_GOLD));
