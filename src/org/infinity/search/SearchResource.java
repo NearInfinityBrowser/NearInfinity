@@ -1281,11 +1281,7 @@ public class SearchResource extends ChildFrame
 
       tfName = Utils.defaultWidth(new JTextField());
       tfScriptName = Utils.defaultWidth(new JTextField(new FormattedDocument(32, false), "", 0));
-      if (Profile.isEnhancedEdition()) {
-        pFlags = new FlagsPanel(4, CreResource.s_flag_ee);
-      } else {
-        pFlags = new FlagsPanel(4, CreResource.s_flag);
-      }
+      pFlags = new FlagsPanel(4, CreResource.s_flag);
       bpwFlags = new ButtonPopupWindow(setOptionsText, pFlags);
       pType = new CreTypePanel();
       bpwTypes = new ButtonPopupWindow(setOptionsText, pType);
