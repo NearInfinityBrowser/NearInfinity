@@ -625,13 +625,13 @@ public final class ResourceFactory
   }
 
   /** Attempts to find the home folder of an Enhanced Edition game. */
-  static Path getHomeRoot()
+  static Path getHomeRoot(boolean allowMissing)
   {
     if (Profile.hasProperty(Profile.Key.GET_GAME_HOME_FOLDER_NAME)) {
       final Path EE_DOC_ROOT = FileSystemView.getFileSystemView().getDefaultDirectory().toPath();
       final String EE_DIR = Profile.getProperty(Profile.Key.GET_GAME_HOME_FOLDER_NAME);
       Path userPath = FileManager.query(EE_DOC_ROOT, EE_DIR);
-      if (userPath != null && Files.isDirectory(userPath)) {
+      if (allowMissing || (userPath != null && Files.isDirectory(userPath))) {
         return userPath;
       } else {
         // fallback solution
@@ -657,7 +657,7 @@ public final class ResourceFactory
         } else if (osName.contains("nix") || osName.contains("nux") || osName.contains("bsd")) {
           userPath = FileManager.resolve(FileManager.resolve(userPrefix, ".local", "share", EE_DIR));
         }
-        if (userPath != null && Files.isDirectory(userPath)) {
+        if (allowMissing || (userPath != null && Files.isDirectory(userPath))) {
           return userPath;
         }
       }
