@@ -701,9 +701,14 @@ public final class ResourceFactory
                 if (line.endsWith(":")) {
                   line = line.replace(':', '/');
                 }
-                // Try to handle Mac relative paths
+                // Try to handle Unix paths
                 Path path;
-                if (line.charAt(0) == '/') {
+                if (line.charAt(0) == '/') {  // absolute Unix path
+                  path = FileManager.resolve(line);
+                  if (path == null || !Files.isDirectory(path)) { // try relative Unix path
+                    path = FileManager.query(rootFolders, line);
+                  }
+                } else if (line.indexOf(':') < 0) { // relative Unix path
                   path = FileManager.query(rootFolders, line);
                 } else {
                   path = FileManager.resolve(line);
@@ -722,6 +727,7 @@ public final class ResourceFactory
 
       if (dirList.isEmpty()) {
         // Don't panic if an .ini-file cannot be found or contains errors
+        dirList.addAll(rootFolders);
         Path path;
         for (int i = 1; i < 7; i++) {
           path = FileManager.query(rootFolders, "CD" + i);
