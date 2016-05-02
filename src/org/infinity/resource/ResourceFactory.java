@@ -925,9 +925,8 @@ public final class ResourceFactory
           dstream.forEach((path) -> {
             if (Files.isRegularFile(path)) {
               ResourceEntry entry = getResourceEntry(path.getFileName().toString());
-              if (entry == null) {
-                FileResourceEntry fileEntry = new FileResourceEntry(path, true);
-                treeModel.addResourceEntry(fileEntry, fileEntry.getTreeFolder(), true);
+              if (entry instanceof FileResourceEntry) {
+                treeModel.addResourceEntry(entry, entry.getTreeFolder(), true);
               } else if (entry instanceof BIFFResourceEntry) {
                 ((BIFFResourceEntry)entry).setOverride(true);
                 if (overrideInOverride) {
