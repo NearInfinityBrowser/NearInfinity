@@ -106,7 +106,6 @@ public final class FileResourceEntry extends ResourceEntry
   {
     if ((BrowserMenuBar.getInstance() != null) &&
         (BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_THREE) &&
-        hasOverride() &&
         (ResourceFactory.getKeyfile().getExtensionType(getExtension()) != -1)) {
       return getExtension();
     } else if (hasOverride()) {
