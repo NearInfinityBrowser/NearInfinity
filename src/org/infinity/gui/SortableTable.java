@@ -227,12 +227,15 @@ public final class SortableTable extends JTable
         res = int1.compareTo(int2);
       }
       else {
-        String string1 = o1.getObjectAt(sortByColumn).toString();
-        String string2 = o2.getObjectAt(sortByColumn).toString();
+        Object item1 = o1.getObjectAt(sortByColumn);
+        Object item2 = o2.getObjectAt(sortByColumn);
+        String string1 = (item1 != null) ? item1.toString() : "";
+        String string2 = (item2 != null) ? item2.toString() : "";
         res = string1.compareToIgnoreCase(string2);
       }
-      if (sortAscending)
+      if (sortAscending) {
         res = -res;
+      }
       return res;
     }
   }
