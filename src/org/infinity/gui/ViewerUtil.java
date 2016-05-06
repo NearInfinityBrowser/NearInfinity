@@ -190,7 +190,12 @@ public final class ViewerUtil
 
   public static JLabel makeImagePanel(ResourceRef imageRef)
   {
-    ResourceEntry imageEntry = ResourceFactory.getResourceEntry(imageRef.getResourceName());
+    return makeImagePanel(imageRef, false);
+  }
+
+  public static JLabel makeImagePanel(ResourceRef imageRef, boolean searchExtraDirs)
+  {
+    ResourceEntry imageEntry = ResourceFactory.getResourceEntry(imageRef.getResourceName(), searchExtraDirs);
     if (imageEntry != null) {
       Resource resource = ResourceFactory.getResource(imageEntry);
       if (resource != null) {
