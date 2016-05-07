@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -425,8 +426,8 @@ public final class ResourceFactory
       ResourceEntry entry = getInstance().treeModel.getResourceEntry(resourceName);
 
       // checking default override folder list
-      if (searchExtraDirs && (entry == null)) {
-        List<Path> extraFolders = Profile.getOverrideFolders(false);
+      if (entry == null) {
+        List<Path> extraFolders = Profile.getOverrideFolders(searchExtraDirs);
         if (extraFolders != null) {
           Path file = FileManager.query(extraFolders, resourceName);
           if (file != null && Files.isRegularFile(file)) {
@@ -449,7 +450,8 @@ public final class ResourceFactory
     }
   }
 
-  public static ResourceTreeModel getResources()
+  /** Returns the resource tree model of the current game. */
+  public static ResourceTreeModel getResourceTreeModel()
   {
     if (getInstance() != null) {
       return getInstance().treeModel;
@@ -458,15 +460,79 @@ public final class ResourceFactory
     }
   }
 
+  /**
+   * Returns all resources of the specified resource type from BIFFs, extra and override directories.
+   * @param type Resource extension.
+   */
   public static List<ResourceEntry> getResources(String type)
   {
-    return getResources(type, Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS));
+    return getResources(type, null);
   }
 
+  /**
+   * Returns all resources of the specified resource type from BIFFs, override and specified
+   * extra directories.
+   * @param type Resource extension.
+   * @param extraDirs List of extra directories to search. Specify {@code null} to search default
+   *                  extra directories.
+   */
   public static List<ResourceEntry> getResources(String type, List<Path> extraDirs)
   {
     if (getInstance() != null) {
       return getInstance().getResourcesInternal(type, extraDirs);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Returns all available resources from BIFFs, extra and override directories
+   * from BIFFs, extra and override directories.
+   */
+  public static List<ResourceEntry> getResources()
+  {
+    if (getInstance() != null) {
+      return getInstance().getResourcesInternal((Pattern)null, null);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Returns all available resources from BIFFs, override and specified extra directories.
+   * @param extraDirs List of extra directories to search. Specify {@code null} to search default
+   *                  extra directories.
+   */
+  public static List<ResourceEntry> getResources(List<Path> extraDirs)
+  {
+    if (getInstance() != null) {
+      return getInstance().getResourcesInternal((Pattern)null, extraDirs);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Returns all available resources from BIFFs, override and extra directories matching the
+   * specified regular expression pattern.
+   * @param pattern RegEx pattern to filter available resources.
+   */
+  public static List<ResourceEntry> getResources(Pattern pattern)
+  {
+    return getResources(pattern, null);
+  }
+
+  /**
+   * Returns all available resources from BIFFs, override and specified extra directories
+   * matching the specified regular expression pattern.
+   * @param pattern RegEx pattern to filter available resources.
+   * @param extraDirs List of extra directories to search. Specify {@code null} to search default
+   *                  extra directories.
+   */
+  public static List<ResourceEntry> getResources(Pattern pattern, List<Path> extraDirs)
+  {
+    if (getInstance() != null) {
+      return getInstance().getResourcesInternal(pattern, extraDirs);
     } else {
       return null;
     }
@@ -559,13 +625,13 @@ public final class ResourceFactory
   }
 
   /** Attempts to find the home folder of an Enhanced Edition game. */
-  static Path getHomeRoot()
+  static Path getHomeRoot(boolean allowMissing)
   {
     if (Profile.hasProperty(Profile.Key.GET_GAME_HOME_FOLDER_NAME)) {
       final Path EE_DOC_ROOT = FileSystemView.getFileSystemView().getDefaultDirectory().toPath();
       final String EE_DIR = Profile.getProperty(Profile.Key.GET_GAME_HOME_FOLDER_NAME);
       Path userPath = FileManager.query(EE_DOC_ROOT, EE_DIR);
-      if (userPath != null && Files.isDirectory(userPath)) {
+      if (allowMissing || (userPath != null && Files.isDirectory(userPath))) {
         return userPath;
       } else {
         // fallback solution
@@ -591,7 +657,7 @@ public final class ResourceFactory
         } else if (osName.contains("nix") || osName.contains("nux") || osName.contains("bsd")) {
           userPath = FileManager.resolve(FileManager.resolve(userPrefix, ".local", "share", EE_DIR));
         }
-        if (userPath != null && Files.isDirectory(userPath)) {
+        if (allowMissing || (userPath != null && Files.isDirectory(userPath))) {
           return userPath;
         }
       }
@@ -635,9 +701,14 @@ public final class ResourceFactory
                 if (line.endsWith(":")) {
                   line = line.replace(':', '/');
                 }
-                // Try to handle Mac relative paths
+                // Try to handle Unix paths
                 Path path;
-                if (line.charAt(0) == '/') {
+                if (line.charAt(0) == '/') {  // absolute Unix path
+                  path = FileManager.resolve(line);
+                  if (path == null || !Files.isDirectory(path)) { // try relative Unix path
+                    path = FileManager.query(rootFolders, line);
+                  }
+                } else if (line.indexOf(':') < 0) { // relative Unix path
                   path = FileManager.query(rootFolders, line);
                 } else {
                   path = FileManager.resolve(line);
@@ -656,6 +727,7 @@ public final class ResourceFactory
 
       if (dirList.isEmpty()) {
         // Don't panic if an .ini-file cannot be found or contains errors
+        dirList.addAll(rootFolders);
         Path path;
         for (int i = 1; i < 7; i++) {
           path = FileManager.query(rootFolders, "CD" + i);
@@ -853,9 +925,8 @@ public final class ResourceFactory
           dstream.forEach((path) -> {
             if (Files.isRegularFile(path)) {
               ResourceEntry entry = getResourceEntry(path.getFileName().toString());
-              if (entry == null) {
-                FileResourceEntry fileEntry = new FileResourceEntry(path, true);
-                treeModel.addResourceEntry(fileEntry, fileEntry.getTreeFolder(), true);
+              if (entry instanceof FileResourceEntry) {
+                treeModel.addResourceEntry(entry, entry.getTreeFolder(), true);
               } else if (entry instanceof BIFFResourceEntry) {
                 ((BIFFResourceEntry)entry).setOverride(true);
                 if (overrideInOverride) {
@@ -886,7 +957,7 @@ public final class ResourceFactory
     if (extraDirs == null) {
       extraDirs = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
     }
-    extraDirs.forEach((path) -> {
+    extraDirs.forEach(path -> {
       ResourceTreeFolder extraNode = treeModel.getFolder(path.getFileName().toString());
       if (extraNode != null) {
         list.addAll(extraNode.getResourceEntries(type));
@@ -905,6 +976,59 @@ public final class ResourceFactory
       Collections.sort(list);
     }
     return list;
+  }
+
+  private List<ResourceEntry> getResourcesInternal(Pattern pattern, List<Path> extraDirs)
+  {
+    List<ResourceEntry> retList = new ArrayList<>();
+
+    String[] resTypes = Profile.getAvailableResourceTypes();
+    for (final String type: resTypes) {
+      ResourceTreeFolder bifNode = treeModel.getFolder(type);
+      if (bifNode != null) {
+        List<ResourceEntry> list = bifNode.getResourceEntries();
+        list.forEach(entry -> {
+          if (pattern == null || pattern.matcher(entry.getResourceName()).matches()) {
+            retList.add(entry);
+          }
+        });
+      }
+    }
+
+    // include extra folders
+    if (extraDirs == null) {
+      extraDirs = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
+    }
+    extraDirs.forEach(path -> {
+      ResourceTreeFolder extraNode = treeModel.getFolder(path.getFileName().toString());
+      if (extraNode != null) {
+        List<ResourceEntry> list = extraNode.getResourceEntries();
+        list.forEach(entry -> {
+          if (pattern == null || pattern.matcher(entry.getResourceName()).matches()) {
+            retList.add(entry);
+          }
+        });
+      }
+    });
+
+    // include override folders
+    if (BrowserMenuBar.getInstance() != null && !BrowserMenuBar.getInstance().ignoreOverrides()) {
+      ResourceTreeFolder overrideNode = treeModel.getFolder(Profile.getOverrideFolderName());
+      if (overrideNode != null) {
+        List<ResourceEntry> list = overrideNode.getResourceEntries();
+        list.forEach(entry -> {
+          if (pattern == null || pattern.matcher(entry.getResourceName()).matches()) {
+            retList.add(entry);
+          }
+        });
+      }
+    }
+
+    if (retList.size() > 1) {
+      Collections.sort(retList);
+    }
+
+    return retList;
   }
 
   private void saveCopyOfResourceInternal(ResourceEntry entry)

@@ -1037,8 +1037,8 @@ public final class Profile
     Path homeDir = null;
     if (home != null) {
       addEntry(Key.GET_GAME_HOME_FOLDER_NAME, Type.STRING, home);
-      homeDir = ResourceFactory.getHomeRoot();
-      if (homeDir != null) {
+      homeDir = ResourceFactory.getHomeRoot(true);
+      if (homeDir != null && Files.isDirectory(homeDir)) {
         addEntry(Key.GET_GAME_HOME_FOLDER, Type.PATH, homeDir);
       }
     }
@@ -1266,7 +1266,7 @@ public final class Profile
   private void initIniFile(String... iniFiles)
   {
     if (iniFiles != null) {
-      Path homeRoot = ResourceFactory.getHomeRoot();
+      Path homeRoot = ResourceFactory.getHomeRoot(false);
       for (int i = 0; i < iniFiles.length; i++) {
         Path ini = FileManager.query(homeRoot, iniFiles[i]);
         if (ini != null && Files.isRegularFile(ini)) {
@@ -1282,7 +1282,7 @@ public final class Profile
   {
     // Considering three (or four) different root folders to locate game resources
     // Note: Order of the root directories is important. FileNI will take the first one available.
-    Path homeRoot = ResourceFactory.getHomeRoot();
+    Path homeRoot = ResourceFactory.getHomeRoot(false);
     String language = ResourceFactory.fetchGameLanguage(FileManager.query(homeRoot, getProperty(Key.GET_GAME_INI_NAME)));
     String languageDef = ResourceFactory.fetchGameLanguage(null);
 
@@ -1665,7 +1665,7 @@ public final class Profile
         initExtraFolders();
 
         // adding new paths to resource tree
-        ResourceTreeModel model = ResourceFactory.getResources();
+        ResourceTreeModel model = ResourceFactory.getResourceTreeModel();
         if (model != null) {
           List<Path> extraDirs = getProperty(Key.GET_GAME_EXTRA_FOLDERS);
           for (final Path path: extraDirs) {

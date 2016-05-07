@@ -180,13 +180,10 @@ public final class Viewer extends JPanel
     }
     ResourceRef imageRef = (ResourceRef)cre.getAttribute(CreResource.CRE_PORTRAIT_LARGE);
     JComponent imagePanel;
-//    if (imageRef.getResourceName().endsWith(".BAM"))
-//      imagePanel = ViewerUtil.makeBamPanel(imageRef, 0);
-    if (imageRef.getResourceName().endsWith(".BMP") &&
-        ResourceFactory.resourceExists(imageRef.getResourceName())) {
-      imagePanel = ViewerUtil.makeImagePanel(imageRef);
+    if (ResourceFactory.resourceExists(imageRef.getResourceName(), true)) {
+      imagePanel = ViewerUtil.makeImagePanel(imageRef, true);
     } else {
-      imagePanel = ViewerUtil.makeImagePanel((ResourceRef)cre.getAttribute(CreResource.CRE_PORTRAIT_SMALL));
+      imagePanel = ViewerUtil.makeImagePanel((ResourceRef)cre.getAttribute(CreResource.CRE_PORTRAIT_SMALL), true);
     }
 
     GridBagLayout gbl = new GridBagLayout();

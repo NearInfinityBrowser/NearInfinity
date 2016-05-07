@@ -404,7 +404,7 @@ public class Keyfile
       }
       int resoff = offset;
 
-      List<BIFFResourceEntry> entries = ResourceFactory.getResources().getBIFFResourceEntries(getKeyfile());
+      List<BIFFResourceEntry> entries = ResourceFactory.getResourceTreeModel().getBIFFResourceEntries(getKeyfile());
 
       StreamUtils.writeString(os, KEY_SIGNATURE, 4);
       StreamUtils.writeString(os, KEY_VERSION, 4);

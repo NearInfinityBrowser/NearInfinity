@@ -169,7 +169,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     if (entry == null)
       tree.clearSelection();
     else if (entry != shownresource) {
-      TreePath tp = ResourceFactory.getResources().getPathToNode(entry);
+      TreePath tp = ResourceFactory.getResourceTreeModel().getPathToNode(entry);
       tree.scrollPathToVisible(tp);
       tree.addSelectionPath(tp);
     }
@@ -258,7 +258,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       e.printStackTrace();
       return;
     }
-    ResourceFactory.getResources().resourceEntryChanged(entry);
+    ResourceFactory.getResourceTreeModel().resourceEntryChanged(entry);
   }
 
   /** Attempts to delete the specified resource if it exists as a file in the game path. */
@@ -273,7 +273,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
                                        JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
         return;
       NearInfinity.getInstance().removeViewable();
-      ResourceFactory.getResources().removeResourceEntry(entry);
+      ResourceFactory.getResourceTreeModel().removeResourceEntry(entry);
       Path bakFile = getBackupFile(entry);
       if (bakFile != null) {
         try {

@@ -5,6 +5,7 @@
 package org.infinity.resource.itm;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
@@ -38,6 +39,8 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
+import org.infinity.util.StringResource;
+import org.infinity.util.io.StreamUtils;
 
 public final class ItmResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
@@ -226,11 +229,13 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
 
   private StructHexViewer hexViewer;
 
-  public static String getSearchString(ByteBuffer buffer)
+  public static String getSearchString(InputStream is) throws IOException
   {
-    String name = new StringRef(buffer, 12, "").toString().trim();
-    if (name.equals("") || name.equalsIgnoreCase("No such index")) {
-      return new StringRef(buffer, 8, "").toString().trim();
+    is.skip(8);
+    String defName = StringResource.getStringRef(StreamUtils.readInt(is)).trim();
+    String name = StringResource.getStringRef(StreamUtils.readInt(is)).trim();
+    if (name.isEmpty() || name.equalsIgnoreCase("No such index")) {
+      return defName;
     } else {
       return name;
     }

@@ -4,6 +4,8 @@
 
 package org.infinity.resource.sto;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import javax.swing.BorderFactory;
@@ -32,6 +34,8 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
+import org.infinity.util.StringResource;
+import org.infinity.util.io.StreamUtils;
 
 public final class StoResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
@@ -77,9 +81,10 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
 
   private StructHexViewer hexViewer;
 
-  public static String getSearchString(ByteBuffer buffer)
+  public static String getSearchString(InputStream is) throws IOException
   {
-    return new StringRef(buffer, 12, "").toString().trim();
+    is.skip(12);
+    return StringResource.getStringRef(StreamUtils.readInt(is)).trim();
   }
 
   public StoResource(ResourceEntry entry) throws Exception

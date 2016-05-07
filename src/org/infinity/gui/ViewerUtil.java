@@ -49,6 +49,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.graphics.BamDecoder;
+import org.infinity.resource.graphics.BamResource;
 import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
@@ -190,7 +191,12 @@ public final class ViewerUtil
 
   public static JLabel makeImagePanel(ResourceRef imageRef)
   {
-    ResourceEntry imageEntry = ResourceFactory.getResourceEntry(imageRef.getResourceName());
+    return makeImagePanel(imageRef, false);
+  }
+
+  public static JLabel makeImagePanel(ResourceRef imageRef, boolean searchExtraDirs)
+  {
+    ResourceEntry imageEntry = ResourceFactory.getResourceEntry(imageRef.getResourceName(), searchExtraDirs);
     if (imageEntry != null) {
       Resource resource = ResourceFactory.getResource(imageEntry);
       if (resource != null) {
@@ -201,6 +207,11 @@ public final class ViewerUtil
           label.setIcon(new ImageIcon(((GraphicsResource)resource).getImage()));
         } else if (resource instanceof MosResource) {
           label.setIcon(new ImageIcon(((MosResource)resource).getImage()));
+        } else if (resource instanceof BamResource) {
+          BamResource br = (BamResource)resource;
+          if (br.getFrameCount() > 0) {
+            label.setIcon(new ImageIcon(br.getFrame(0)));
+          }
         }
         return label;
       }

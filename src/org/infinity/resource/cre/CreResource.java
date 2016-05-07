@@ -8,6 +8,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
@@ -68,6 +69,7 @@ import org.infinity.search.SearchOptions;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.LongIntegerHashMap;
+import org.infinity.util.StringResource;
 import org.infinity.util.io.StreamUtils;
 
 public final class CreResource extends AbstractStruct
@@ -400,9 +402,9 @@ public final class CreResource extends AbstractStruct
     "Original class: Fighter", "Original class: Mage", "Original class: Cleric", "Original class: Thief",
     "Original class: Druid", "Original class: Ranger", "Fallen paladin", "Fallen ranger",
     "Export allowed", "Hide status", "Large creature", "Moving between areas", "Been in party",
-    "Holding item", "Clear all flags", "", "", "", "", "", "", "Allegiance tracking",
-    "General tracking", "Race tracking", "Class tracking", "Specifics tracking", "Gender tracking",
-    "Alignment tracking", "Uninterruptible"};
+    "Holding item", "Clear all flags", "", "", "", "", "EE: Ignore nightmare mode", "EE: No tooltip",
+    "Allegiance tracking", "General tracking", "Race tracking", "Class tracking", "Specifics tracking",
+    "Gender tracking", "Alignment tracking", "Uninterruptible"};
   public static final String[] s_feats1 = {
     "No feats selected", "Aegis of rime", "Ambidexterity", "Aqua mortis", "Armor proficiency", "Armored arcana",
     "Arterial strike", "Blind fight", "Bullheaded", "Cleave", "Combat casting", "Courteous magocracy", "Crippling strike",
@@ -659,21 +661,23 @@ public final class CreResource extends AbstractStruct
     return offsetStructs;
   }
 
-  public static String getSearchString(ByteBuffer buffer)
+  public static String getSearchString(InputStream is) throws IOException
   {
-    String signature = StreamUtils.readString(buffer, 4);
-    ;
-    if (signature.equalsIgnoreCase("CHR ")) {
-      return StreamUtils.readString(buffer, 8, 32);
+    String retVal = "";
+    String sig = StreamUtils.readString(is, 4);
+    is.skip(4);
+    if (sig.equals("CHR ")) {
+      retVal = StreamUtils.readString(is, 32);
     } else {
-      String name = new StringRef(buffer, 8, "").toString().trim();
-      String shortName = new StringRef(buffer, 12, "").toString().trim();
+      String name = StringResource.getStringRef(StreamUtils.readInt(is));
+      String shortName = StringResource.getStringRef(StreamUtils.readInt(is));
       if (name.equals(shortName)) {
-        return name;
+        retVal = name;
       } else {
-        return name + " - " + shortName;
+        retVal = name + " - " + shortName;
       }
     }
+    return retVal.trim();
   }
 
   public CreResource(String name) throws Exception
@@ -1405,10 +1409,6 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 28, 2, CRE_HP_CURRENT));
     addField(new DecNumber(buffer, offset + 30, 2, CRE_HP_MAX));
     addField(new IdsBitmap(buffer, offset + 32, 4, CRE_ANIMATION, "ANIMATE.IDS"));
-//    addField(new Unknown(buffer, offset + 34, 2));
-//    if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1"))
-//      addField(new Unknown(buffer, offset + 36, 7));
-//    else {
     addField(new ColorValue(buffer, offset + 36, 1, CRE_COLOR_METAL));
     addField(new ColorValue(buffer, offset + 37, 1, CRE_COLOR_MINOR));
     addField(new ColorValue(buffer, offset + 38, 1, CRE_COLOR_MAJOR));
@@ -1416,7 +1416,6 @@ public final class CreResource extends AbstractStruct
     addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER));
     addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR));
     addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
-//    }
     Bitmap effect_version = (Bitmap)addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
@@ -1433,10 +1432,7 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 70, 2, CRE_AC_MOD_PIERCING));
     addField(new DecNumber(buffer, offset + 72, 2, CRE_AC_MOD_SLASHING));
     addField(new DecNumber(buffer, offset + 74, 1, CRE_THAC0));
-//    if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1"))
     addField(new Bitmap(buffer, offset + 75, 1, CRE_ATTACKS_PER_ROUND, s_attacks));
-//    else
-//      addField(new DecNumber(buffer, offset + 75, 1, "# attacks"));
     addField(new DecNumber(buffer, offset + 76, 1, CRE_SAVE_DEATH));
     addField(new DecNumber(buffer, offset + 77, 1, CRE_SAVE_WAND));
     addField(new DecNumber(buffer, offset + 78, 1, CRE_SAVE_POLYMORPH));
@@ -1552,7 +1548,6 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 568, 1, CRE_MORALE_BREAK));
     addField(new IdsBitmap(buffer, offset + 569, 1, CRE_RACIAL_ENEMY, "RACE.IDS"));
     addField(new DecNumber(buffer, offset + 570, 2, CRE_MORALE_RECOVERY));
-//    addField(new Unknown(buffer, offset + 571, 1));
     if (ResourceFactory.resourceExists("KIT.IDS")) {
       addField(new KitIdsBitmap(buffer, offset + 572, CRE_KIT));
     }
@@ -1576,9 +1571,6 @@ public final class CreResource extends AbstractStruct
     addField(new ResourceRef(buffer, offset + 600, CRE_SCRIPT_GENERAL, "BCS"));
     addField(new ResourceRef(buffer, offset + 608, CRE_SCRIPT_DEFAULT, "BCS"));
     if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
-//      LongIntegerHashMap<String> m_zoom = new LongIntegerHashMap<String>();
-//      m_zoom.put(0x0000L, "No");
-//      m_zoom.put(0xffffL, "Yes");
       addField(new Unknown(buffer, offset + 616, 24));
       addField(new Unknown(buffer, offset + 640, 4));
       addField(new Unknown(buffer, offset + 644, 8));
