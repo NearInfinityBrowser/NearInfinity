@@ -20,6 +20,17 @@ ant
 The sources also contain configuration files for the [Eclipse IDE](http://www.eclipse.org/).
 It is preferred to use `Apache Ant` for compiling Near Infinity, however.
 
+### Unit Tests
+
+The unit tests (that currently have far from complete coverage) can be run by 
+passing `test` as the target parameter to ant:
+
+```bash
+cd NearInfinity
+ant test
+```
+(This will compile the tests and run the tests on the last compiled build)
+
 ## Contributors
 
 This section contains information intended for those who contribute
