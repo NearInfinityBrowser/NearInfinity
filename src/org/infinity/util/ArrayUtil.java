@@ -11,44 +11,22 @@ public final class ArrayUtil
   /**
    * Merges two or more byte arrays into one.
    * @param first The first array to be placed into the new array.
+   * @param second The second array, needed to ensure a minimum parameter count of 2.
    * @param more More byte arrays to merge.
    * @return A new byte array containing the data of every specified array.
    */
-  public static byte[] mergeArrays(byte[] first, byte[]... more)
+  public static byte[] mergeArrays(byte[] first, byte[] second, byte[]... more)
   {
-    int totalLength = first.length;
+    int totalLength = first.length + second.length;
     for (byte[] ar: more) {
       totalLength += ar.length;
     }
 
     byte[] res = Arrays.copyOf(first, totalLength);
     int offset = first.length;
+    System.arraycopy(second, 0, res, offset, second.length);
+    offset += second.length;
     for (byte[] ar: more) {
-      System.arraycopy(ar, 0, res, offset, ar.length);
-      offset += ar.length;
-    }
-
-    return res;
-  }
-
-  /**
-   * Merges two or more generic arrays of the same type into one.
-   * Note: The result for arrays of different types but common base type is undefined.
-   * @param first The first array to be placed into the new array.
-   * @param more More arrays of the same type to merge.
-   * @return A new array containing the data of all specified arrays.
-   */
-  @SafeVarargs
-  public static <T> T[] mergeArrays(T[] first, T[]... more)
-  {
-    int totalLength = first.length;
-    for (T[] ar: more) {
-      totalLength += ar.length;
-    }
-
-    T[] res = Arrays.copyOf(first, totalLength);
-    int offset = first.length;
-    for (T[] ar: more) {
       System.arraycopy(ar, 0, res, offset, ar.length);
       offset += ar.length;
     }
