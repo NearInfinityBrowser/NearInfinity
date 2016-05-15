@@ -534,7 +534,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
     fc.setSelectedFile(new File(fc.getCurrentDirectory(), getResourceEntry().getResourceName().toUpperCase(Locale.ENGLISH).replace(".TIS", ".PNG")));
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       retVal = fc.getSelectedFile().toPath();
-      if (!Files.exists(retVal)) {
+      if (Files.exists(retVal)) {
         final String options[] = {"Overwrite", "Cancel"};
         if (JOptionPane.showOptionDialog(parent, retVal + " exists. Overwrite?", "Export resource",
                                          JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
