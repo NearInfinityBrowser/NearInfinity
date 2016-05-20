@@ -1074,9 +1074,6 @@ public final class Profile
         game = Game.BG2EE;
       }
       // Note: baldur.ini is initialized later
-    } else if (Files.isRegularFile(FileManager.query(gameRoots, "movies/sodcin01.wbm"))) {
-      game = Game.BG1SoD;
-      // Note: baldur.ini is initialized later
     } else if (Files.isRegularFile(FileManager.query(gameRoots, "movies/bgenter.wbm"))) {
       game = Game.BG1EE;
       // Note: baldur.ini is initialized later
@@ -1192,7 +1189,19 @@ public final class Profile
     ResourceFactory.openGame(getChitinKey());
 
     // Expansion pack detection
-    if (game == Game.IWD && ResourceFactory.resourceExists("HOWDRAG.MVE")) {
+    if (game == Game.BG1EE && ResourceFactory.resourceExists("CAMPAIGN.2DA")) {
+      // detect Siege of Dragonspear
+      Table2da table = Table2daCache.get("CAMPAIGN.2DA");
+      if (table != null) {
+        for (int row = 0, rowCount = table.getRowCount(); row < rowCount; row++) {
+          String s = table.get(row, 0);
+          if ("SOD".equalsIgnoreCase(s)) {
+            game = Game.BG1SoD;
+            break;
+          }
+        }
+      }
+    } else if (game == Game.IWD && ResourceFactory.resourceExists("HOWDRAG.MVE")) {
       // detect Trials of the Luremaster
       if (ResourceFactory.resourceExists("AR9715.ARE")) {
         game = Game.IWDHowToTLM;
