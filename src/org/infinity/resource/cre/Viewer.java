@@ -26,6 +26,7 @@ import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.ViewerUtil;
+import org.infinity.gui.ViewerUtil.ListValueRenderer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Effect;
 import org.infinity.resource.Effect2;
@@ -386,6 +387,7 @@ public final class Viewer extends JPanel
 // -------------------------- INNER CLASSES --------------------------
 
   private static final class SpellListRendererIWD2 extends DefaultListCellRenderer
+      implements ListValueRenderer
   {
     private SpellListRendererIWD2()
     {
@@ -396,9 +398,20 @@ public final class Viewer extends JPanel
                                                   boolean cellHasFocus)
     {
       JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-      AbstractStruct struct = (AbstractStruct)value;
-      label.setText(struct.getName() + " (" + (struct.getFieldCount() - 2) + ')');
+      label.setText(getListValue(value));
       return label;
+    }
+
+    @Override
+    public String getListValue(Object value)
+    {
+      if (value instanceof AbstractStruct) {
+        AbstractStruct struct = (AbstractStruct)value;
+        return struct.getName() + " (" + (struct.getFieldCount() - 2) + ')';
+      } else if (value != null) {
+        return value.toString();
+      }
+      return "";
     }
   }
 }

@@ -46,6 +46,7 @@ import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.RenderCanvas;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.gui.ViewerUtil.ListValueRenderer;
 import org.infinity.gui.ViewerUtil.StructListPanel;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
@@ -593,6 +594,7 @@ public class ViewerMap extends JPanel
 
 
   private static final class WmpAreaListRenderer extends DefaultListCellRenderer
+      implements ListValueRenderer
   {
     private final BamDecoder bam;
     private final BamControl ctrl;
@@ -608,28 +610,48 @@ public class ViewerMap extends JPanel
                                                   boolean cellHasFocus)
     {
       JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      label.setText(getListValue(value, true));
+
       AbstractStruct struct = (AbstractStruct)value;
-
-      StringRef areaName = (StringRef)struct.getAttribute(AreaEntry.WMP_AREA_NAME);
-      ResourceRef areaRef = (ResourceRef)struct.getAttribute(AreaEntry.WMP_AREA_CURRENT);
-      String text1 = null, text2 = null;
-      if (areaName.getValue() >= 0) {
-        text1 = areaName.toString(BrowserMenuBar.getInstance().showStrrefs());
-      } else {
-        text1 = "";
-      }
-      text2 = areaRef.getResourceName();
-      if (!text2.equalsIgnoreCase("NONE")) {
-        text2 = text2.toUpperCase(Locale.ENGLISH).replace(".ARE", "");
-      }
-      label.setText(String.format("[%1$s] %2$s", text2, text1));
-
       DecNumber animNr = (DecNumber)struct.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX);
       setIcon(null);
       if (ctrl != null) {
         setIcon(new ImageIcon(bam.frameGet(ctrl, ctrl.cycleGetFrameIndexAbsolute(animNr.getValue(), 0))));
       }
       return label;
+    }
+
+    @Override
+    public String getListValue(Object value)
+    {
+      return getListValue(value, false);
+    }
+
+    private String getListValue(Object value, boolean showFull)
+    {
+      if (value instanceof AbstractStruct) {
+        AbstractStruct struct = (AbstractStruct)value;
+
+        StringRef areaName = (StringRef)struct.getAttribute(AreaEntry.WMP_AREA_NAME);
+        ResourceRef areaRef = (ResourceRef)struct.getAttribute(AreaEntry.WMP_AREA_CURRENT);
+        String text1 = null, text2 = null;
+        if (areaName.getValue() >= 0) {
+          text1 = areaName.toString(BrowserMenuBar.getInstance().showStrrefs());
+        } else {
+          text1 = "";
+        }
+        text2 = areaRef.getResourceName();
+        if (!text2.equalsIgnoreCase("NONE")) {
+          text2 = text2.toUpperCase(Locale.ENGLISH).replace(".ARE", "");
+        }
+
+        if (showFull) {
+          return '[' + text2 + "] " + text1;
+        } else {
+          return text2;
+        }
+      }
+      return "";
     }
   }
 }

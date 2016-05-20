@@ -479,7 +479,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
 
   private final class TreeKeyListener extends KeyAdapter implements ActionListener
   {
-    private static final int TIMER_DELAY = 900;
+    private static final int TIMER_DELAY = 1000;
     private String currentkey = "";
     private final Timer timer;
 
