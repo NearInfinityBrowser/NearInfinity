@@ -19,6 +19,7 @@ import javax.swing.JOptionPane;
 
 import org.infinity.NearInfinity;
 import org.infinity.gui.BrowserMenuBar;
+import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.cre.CreResource;
@@ -222,7 +223,16 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
    */
   public boolean isVisible()
   {
-    return !skippedExtensions.contains(getExtension().toUpperCase(Locale.ENGLISH));
+    // Visibility conditions:
+    // 1. Options->Show Unknown Resource Types == true OR resource type is supported
+    // 2. NOT Resource type part of skippedExtensions
+    // 3. Filename length is valid
+    int resLen = getResourceName().lastIndexOf('.');
+    boolean bRet = (BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().showUnknownResourceTypes()) ||
+                   Profile.isResourceTypeSupported(getExtension()) &&
+                   !skippedExtensions.contains(getExtension().toUpperCase(Locale.ENGLISH)) &&
+                   (resLen >= 0 && resLen <= 8);
+    return bRet;
   }
 
   protected abstract Path getActualPath(boolean ignoreOverride);

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -372,6 +373,8 @@ public final class Profile
   private static final EnumMap<Game, List<String>> GAME_EXTRA_FOLDERS = new EnumMap<Game, List<String>>(Game.class);
   // Home folder name for Enhanced Edition Games
   private static final EnumMap<Game, String> GAME_HOME_FOLDER = new EnumMap<Game, String>(Game.class);
+  // Set of resource extensions supported by Infinity Engine games
+  private static final HashSet<String> SUPPORTED_RESOURCE_TYPES = new HashSet<>();
 
   // Using the singleton approach
   private static Profile instance = null;
@@ -744,6 +747,32 @@ public final class Profile
   }
 
   /**
+   * Returns whether the specified resource type is supported by Infinity Engine games.
+   * @param extension The file extension to check.
+   * @return {@code true} if the specified resource type is supported, {@code false} otherwise.
+   */
+  public static boolean isResourceTypeSupported(String extension)
+  {
+    if (SUPPORTED_RESOURCE_TYPES.isEmpty()) {
+      String[] types = getAvailableResourceTypes(true);
+      for (final String type: types) {
+        SUPPORTED_RESOURCE_TYPES.add(type);
+      }
+    }
+
+    if (extension != null) {
+      extension = extension.trim().toUpperCase(Locale.ENGLISH);
+      if (!extension.isEmpty()) {
+        if (extension.charAt(0) == '.') {
+          extension = extension.substring(1);
+        }
+        return SUPPORTED_RESOURCE_TYPES.contains(extension);
+      }
+    }
+    return false;
+  }
+
+  /**
    * Returns a list of supported resource types by the current game.
    * @return String array containing format extensions.
    */
@@ -773,7 +802,7 @@ public final class Profile
         (Boolean)getProperty(Key.IS_SUPPORTED_BAM_V2) ||
         (Boolean)getProperty(Key.IS_SUPPORTED_BAMC_V1)) { list.add("BAM"); }
     if (ignoreGame ||
-        (Boolean)getProperty(Key.IS_SUPPORTED_BCS))     { list.add("BCS"); }
+        (Boolean)getProperty(Key.IS_SUPPORTED_BCS))     { list.add("BCS"); list.add("BS"); }
     if (ignoreGame ||
         (Boolean)getProperty(Key.IS_SUPPORTED_BIK))     { list.add("BIK"); }
     if (ignoreGame ||
@@ -788,7 +817,8 @@ public final class Profile
         (Boolean)getProperty(Key.IS_SUPPORTED_CHR_V22)) { list.add("CHR"); }
     if (ignoreGame ||
         (Boolean)getProperty(Key.IS_SUPPORTED_CHU))     { list.add("CHU"); }
-    if ((Boolean)getProperty(Key.IS_SUPPORTED_CRE_V10) ||
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_CRE_V10) ||
         (Boolean)getProperty(Key.IS_SUPPORTED_CRE_V12) ||
         (Boolean)getProperty(Key.IS_SUPPORTED_CRE_V22) ||
         (Boolean)getProperty(Key.IS_SUPPORTED_CRE_V90)) { list.add("CRE"); }

@@ -111,14 +111,6 @@ public final class ResourceTreeModel implements TreeModel
           }
         });
         parentFolder.sortChildren(true);
-
-//        TreePath path = getPathToNode(parentFolder);
-//        TreeModelEvent event = new TreeModelEvent(this, path,
-//                                                  new int[]{getIndexOfChild(parentFolder, folder)},
-//                                                  new Object[]{folder});
-//        for (int i = 0; i < treeModelListeners.size(); i++) {
-//          treeModelListeners.get(i).treeNodesInserted(event);
-//        }
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -128,21 +120,14 @@ public final class ResourceTreeModel implements TreeModel
 
   public ResourceTreeFolder addResourceEntry(ResourceEntry entry, String folderName, boolean overwrite)
   {
-    ResourceTreeFolder folder = addFolder(folderName);
-    folder.addResourceEntry(entry, overwrite);
     if (entry.isVisible()) {
+      ResourceTreeFolder folder = addFolder(folderName);
+      folder.addResourceEntry(entry, overwrite);
       entries.put(entry.getResourceName().toUpperCase(Locale.ENGLISH), entry);
       folder.sortChildren(false);
-
-//      TreePath path = getPathToNode(entry).getParentPath();
-//      TreeModelEvent event = new TreeModelEvent(this, path,
-//                                                new int[]{getIndexOfChild(folder, entry)},
-//                                                new Object[]{entry});
-//      for (int i = 0; i < treeModelListeners.size(); i++) {
-//        treeModelListeners.get(i).treeNodesInserted(event);
-//      }
+      return folder;
     }
-    return folder;
+    return getFolder(folderName);
   }
 
   public List<BIFFResourceEntry> getBIFFResourceEntries()
@@ -215,14 +200,6 @@ public final class ResourceTreeModel implements TreeModel
         folders.put(folderName, folder);
         parent.addFolder(folder);
         parent.sortChildren(false);
-
-//        TreePath path = getPathToNode(parent);
-//        TreeModelEvent event = new TreeModelEvent(this, path,
-//                                                  new int[]{getIndexOfChild(parent, folder)},
-//                                                  new Object[]{folder});
-//        for (int i = 0; i < treeModelListeners.size(); i++) {
-//          treeModelListeners.get(i).treeNodesInserted(event);
-//        }
       }
       return folder;
     }

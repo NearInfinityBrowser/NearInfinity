@@ -396,6 +396,11 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionIgnoreReadErrors.isSelected();
   }
 
+  public boolean showUnknownResourceTypes()
+  {
+    return optionsMenu.optionShowUnknownResources.isSelected();
+  }
+
   public void resourceEntrySelected(ResourceEntry entry)
   {
     fileMenu.resourceEntrySelected(entry);
@@ -1578,6 +1583,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_BACKUPONSAVE             = "BackupOnSave";
     private static final String OPTION_IGNOREOVERRIDE           = "IgnoreOverride";
     private static final String OPTION_IGNOREREADERRORS         = "IgnoreReadErrors";
+    private static final String OPTION_SHOWUNKNOWNRESOURCES     = "ShowUnknownResources";
     private static final String OPTION_AUTOCHECK_BCS            = "AutocheckBCS";
     private static final String OPTION_CACHEOVERRIDE            = "CacheOverride";
     private static final String OPTION_CHECKSCRIPTNAMES         = "CheckScriptNames";
@@ -1649,10 +1655,10 @@ public final class BrowserMenuBar extends JMenuBar
                               optionTextDebugColorSchemeEnabled;
     private JMenuItem optionTextDebugColorSchemeSelect;
 
-    private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride;
-    private JCheckBoxMenuItem optionIgnoreReadErrors, optionAutocheckBCS, optionCacheOverride;
-    private JCheckBoxMenuItem optionCheckScriptNames, optionShowStrrefs, optionDlgShowIcons,
-                              optionShowHexColored;
+    private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride,
+                              optionIgnoreReadErrors, optionAutocheckBCS, optionCacheOverride,
+                              optionCheckScriptNames, optionShowStrrefs, optionDlgShowIcons,
+                              optionShowHexColored, optionShowUnknownResources;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
     private String languageDefinition;
@@ -1680,6 +1686,12 @@ public final class BrowserMenuBar extends JMenuBar
       optionIgnoreReadErrors =
           new JCheckBoxMenuItem("Ignore Read Errors", getPrefs().getBoolean(OPTION_IGNOREREADERRORS, false));
       add(optionIgnoreReadErrors);
+      optionShowUnknownResources =
+          new JCheckBoxMenuItem("Show Unknown Resource Types", getPrefs().getBoolean(OPTION_SHOWUNKNOWNRESOURCES, true));
+      optionShowUnknownResources.setActionCommand("Refresh");
+      optionShowUnknownResources.addActionListener(NearInfinity.getInstance());
+      optionShowUnknownResources.setToolTipText("Uncheck this option to hide unknown or unsupported resource types and invalid filenames.");
+      add(optionShowUnknownResources);
       optionShowOffset =
           new JCheckBoxMenuItem("Show Hex Offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETS, false));
       add(optionShowOffset);
@@ -2262,6 +2274,7 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_BACKUPONSAVE, optionBackupOnSave.isSelected());
       getPrefs().putBoolean(OPTION_IGNOREOVERRIDE, optionIgnoreOverride.isSelected());
       getPrefs().putBoolean(OPTION_IGNOREREADERRORS, optionIgnoreReadErrors.isSelected());
+      getPrefs().putBoolean(OPTION_SHOWUNKNOWNRESOURCES, optionShowUnknownResources.isSelected());
       getPrefs().putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());
       getPrefs().putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
       getPrefs().putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
