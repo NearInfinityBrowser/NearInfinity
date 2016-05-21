@@ -43,7 +43,10 @@
     <jar destfile="${jar.file}"
          basedir="${build.path}"
          includes="**/*">
-      <zipgroupfileset dir="${lib.path.abs}" includes="**/*.jar"/>
+      <zipgroupfileset dir="." includes="${jorbis.file}"/>
+      <zipgroupfileset dir="." includes="${rsyntaxtextarea.file}"/>
+      <zipgroupfileset dir="." includes="${jhexview.file}"/>
+      <zipgroupfileset dir="." includes="${montemedia.file}"/>
       <manifest>
         <attribute name="Main-Class" value="org.infinity.NearInfinity"/>
       </manifest>
