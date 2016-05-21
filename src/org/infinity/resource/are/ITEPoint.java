@@ -34,6 +34,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
   public static final String ARE_TRIGGER_BOUNDING_BOX_BOTTOM        = "Bounding box: Bottom";
   public static final String ARE_TRIGGER_NUM_VERTICES               = "# vertices";
   public static final String ARE_TRIGGER_FIRST_VERTEX_INDEX         = "First vertex index";
+  public static final String ARE_TRIGGER_VALUE                      = "Trigger value";
   public static final String ARE_TRIGGER_CURSOR_INDEX               = "Cursor number";
   public static final String ARE_TRIGGER_DESTINATION_AREA           = "Destination area";
   public static final String ARE_TRIGGER_ENTRANCE_NAME              = "Entrance name";
@@ -166,7 +167,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     addField(new DecNumber(buffer, offset + 40, 2, ARE_TRIGGER_BOUNDING_BOX_BOTTOM));
     addField(new DecNumber(buffer, offset + 42, 2, ARE_TRIGGER_NUM_VERTICES));
     addField(new DecNumber(buffer, offset + 44, 4, ARE_TRIGGER_FIRST_VERTEX_INDEX));
-    addField(new Unknown(buffer, offset + 48, 4));
+    addField(new DecNumber(buffer, offset + 48, 4, ARE_TRIGGER_VALUE));
     addField(new DecNumber(buffer, offset + 52, 4, ARE_TRIGGER_CURSOR_INDEX));
     addField(new ResourceRef(buffer, offset + 56, ARE_TRIGGER_DESTINATION_AREA, "ARE"));
     addField(new TextString(buffer, offset + 64, 32, ARE_TRIGGER_ENTRANCE_NAME));

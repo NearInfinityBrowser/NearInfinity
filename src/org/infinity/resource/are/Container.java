@@ -21,7 +21,6 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.HasViewerTabs;
-import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.util.io.StreamUtils;
@@ -55,15 +54,14 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
   public static final String ARE_CONTAINER_ACTIVATION_RANGE           = "Activation range";
   public static final String ARE_CONTAINER_OWNER_NAME                 = "Owner name";
   public static final String ARE_CONTAINER_KEY                        = "Key";
+  public static final String ARE_CONTAINER_BREAK_DIFFICULTY           = "Break difficulty";
   public static final String ARE_CONTAINER_LOCKPICK_STRING            = "Lockpick string";
 
   public static final String[] s_type = { "", "Bag", "Chest", "Drawer", "Pile", "Table", "Shelf",
                                           "Altar", "Non-visible", "Spellbook", "Body", "Barrel", "Crate"};
   public static final String[] s_noyes = {"No", "Yes"};
-  public static final String[] s_flag = { "No flags set", "Locked", "", "Magical lock", "Trap resets",
-                                          "", "Disabled" };
-  public static final String[] s_flag_ee = { "No flags set", "Locked", "", "Magical lock", "Trap resets",
-                                             "", "Disabled", "Don't clear" };
+  public static final String[] s_flag = { "No flags set", "Locked", "Disable if no owner", "Magical lock",
+                                          "Trap resets", "Remove only", "Disabled", "EE: Don't clear" };
 
   public Container() throws Exception
   {
@@ -226,11 +224,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     addField(new DecNumber(buffer, offset + 34, 2, ARE_CONTAINER_LOCATION_Y));
     addField(new Bitmap(buffer, offset + 36, 2, ARE_CONTAINER_TYPE, s_type));
     addField(new DecNumber(buffer, offset + 38, 2, ARE_CONTAINER_LOCK_DIFFICULTY));
-    if (Profile.isEnhancedEdition()) {
-      addField(new Flag(buffer, offset + 40, 4, ARE_CONTAINER_FLAGS, s_flag_ee));
-    } else {
-      addField(new Flag(buffer, offset + 40, 4, ARE_CONTAINER_FLAGS, s_flag));
-    }
+    addField(new Flag(buffer, offset + 40, 4, ARE_CONTAINER_FLAGS, s_flag));
     addField(new DecNumber(buffer, offset + 44, 2, ARE_CONTAINER_TRAP_DETECTION_DIFFICULTY));
     addField(new DecNumber(buffer, offset + 46, 2, ARE_CONTAINER_TRAP_REMOVAL_DIFFICULTY));
     addField(new Bitmap(buffer, offset + 48, 2, ARE_CONTAINER_TRAPPED, s_noyes));
@@ -249,7 +243,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     addField(new DecNumber(buffer, offset + 86, 2, ARE_CONTAINER_ACTIVATION_RANGE));
     addField(new TextString(buffer, offset + 88, 32, ARE_CONTAINER_OWNER_NAME));
     addField(new ResourceRef(buffer, offset + 120, ARE_CONTAINER_KEY, "ITM"));
-    addField(new Unknown(buffer, offset + 128, 4));
+    addField(new DecNumber(buffer, offset + 128, 4, ARE_CONTAINER_BREAK_DIFFICULTY));
     addField(new StringRef(buffer, offset + 132, ARE_CONTAINER_LOCKPICK_STRING));
     addField(new Unknown(buffer, offset + 136, 56));
     return offset + 192;

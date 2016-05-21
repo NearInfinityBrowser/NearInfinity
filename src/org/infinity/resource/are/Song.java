@@ -82,12 +82,13 @@ public final class Song extends AbstractStruct // implements AddRemovable
     }
     if (ResourceFactory.resourceExists("REVERB.IDS")) {
       addField(new IdsBitmap(buffer, offset + 80, 4, ARE_SONGS_REVERB, "REVERB.IDS"));
+      addField(new Unknown(buffer, offset + 84, 60));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Bitmap(buffer, offset + 80, 4, ARE_SONGS_REVERB, s_reverb));
+      addField(new Unknown(buffer, offset + 84, 60));
     } else {
-      addField(new Unknown(buffer, offset + 80, 4));
+      addField(new Unknown(buffer, offset + 80, 64));
     }
-    addField(new Unknown(buffer, offset + 84, 60));
     return offset + 144;
   }
 }

@@ -45,8 +45,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   public static final String GAM_WEATHER                          = "Weather";
   public static final String GAM_OFFSET_PARTY_MEMBERS             = "Party members offset";
   public static final String GAM_NUM_PARTY_MEMBERS                = "# party members";
-  public static final String GAM_OFFSET_UNUSED                    = "Unused offset";
-  public static final String GAM_NUM_UNUSED                       = "Unused count";
+  public static final String GAM_OFFSET_PARTY_INVENTORY           = "Party inventory offset";
+  public static final String GAM_NUM_PARTY_INVENTORY              = "# party inventory items";
   public static final String GAM_OFFSET_NON_PARTY_MEMBERS         = "Non-party characters offset";
   public static final String GAM_NUM_NON_PARTY_MEMBERS            = "# non-party characters";
   public static final String GAM_OFFSET_GLOBAL_VARIABLES          = "Global variables offset";
@@ -283,10 +283,10 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     SectionCount count_partynpc = new SectionCount(buffer, offset + 36, 4, GAM_NUM_PARTY_MEMBERS,
                                                    PartyNPC.class);
     addField(count_partynpc);
-    SectionOffset offset_unknown = new SectionOffset(buffer, offset + 40, GAM_OFFSET_UNUSED,
+    SectionOffset offset_unknown = new SectionOffset(buffer, offset + 40, GAM_OFFSET_PARTY_INVENTORY,
                                                      UnknownSection2.class);
     addField(offset_unknown);
-    SectionCount count_unknown = new SectionCount(buffer, offset + 44, 4, GAM_NUM_UNUSED,
+    SectionCount count_unknown = new SectionCount(buffer, offset + 44, 4, GAM_NUM_PARTY_INVENTORY,
                                                   UnknownSection2.class);
     addField(count_unknown);
     SectionOffset offset_nonpartynpc = new SectionOffset(buffer, offset + 48, GAM_OFFSET_NON_PARTY_MEMBERS,

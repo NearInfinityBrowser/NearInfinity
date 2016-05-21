@@ -53,7 +53,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
                                               "Triggered by condition", "Delayed trigger", "Secondary projectile",
                                               "Fragments", "Not affecting allies", "Not affecting enemies",
                                               "Mage-level duration", "Cleric-level duration", "Draw animation",
-                                              "Cone-shaped", "Ignore visibility", "Delayed explosion",
+                                              "Cone-shaped", "Ignore LOS", "Delayed explosion",
                                               "Skip first condition", "Single target"};
   public static final String[] s_areaflagsEx = {
     "No flags set", "Paletted ring", "Random speed", "Start scattered", "Paletted center",

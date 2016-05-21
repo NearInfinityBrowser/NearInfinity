@@ -47,6 +47,7 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
   public static final String GAM_NPC_VIEWPORT_Y                 = "Viewport location: Y";
   public static final String GAM_NPC_MODAL_STATE                = "Modal state";
   public static final String GAM_NPC_HAPPINESS                  = "Happiness";
+  public static final String GAM_NPC_NUMBER_INTERACTED_WITH_FMT = "# interacted with NPC %d";
   public static final String GAM_NPC_QUICK_WEAPON_SLOT_FMT      = CreResource.CHR_QUICK_WEAPON_SLOT_FMT;
   public static final String GAM_NPC_QUICK_SHIELD_SLOT_FMT      = CreResource.CHR_QUICK_SHIELD_SLOT_FMT;
   public static final String GAM_NPC_QUICK_WEAPON_ABILITY_FMT   = CreResource.CHR_QUICK_WEAPON_ABILITY_FMT;
@@ -232,7 +233,10 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
     if (Profile.getEngine() == Profile.Engine.BG1) {
       addField(new DecNumber(buffer, offset + 40, 2, GAM_NPC_MODAL_STATE));
       addField(new DecNumber(buffer, offset + 42, 2, GAM_NPC_HAPPINESS));
-      addField(new Unknown(buffer, offset + 44, 96));
+      for (int i = 0; i < 24; i++) {
+        addField(new DecNumber(buffer, offset + 44 + (i * 4), 4,
+                               String.format(GAM_NPC_NUMBER_INTERACTED_WITH_FMT, i)));
+      }
       for (int i = 0; i < 4; i++) {
         addField(new IdsBitmap(buffer, offset + 140 + (i * 2), 2,
                                String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS"));
@@ -262,7 +266,10 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
     else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       addField(new IdsBitmap(buffer, offset + 40, 2, GAM_NPC_MODAL_STATE, "MODAL.IDS"));
       addField(new DecNumber(buffer, offset + 42, 2, GAM_NPC_HAPPINESS));
-      addField(new Unknown(buffer, offset + 44, 96));
+      for (int i = 0; i < 24; i++) {
+        addField(new DecNumber(buffer, offset + 44 + (i * 4), 4,
+                               String.format(GAM_NPC_NUMBER_INTERACTED_WITH_FMT, i)));
+      }
       for (int i = 0; i < 4; i++) {
         addField(new IdsBitmap(buffer, offset + 140 + (i * 2), 2,
                                String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS"));
@@ -292,7 +299,10 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
     else if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new DecNumber(buffer, offset + 40, 2, GAM_NPC_MODAL_STATE));
       addField(new DecNumber(buffer, offset + 42, 2, GAM_NPC_HAPPINESS));
-      addField(new Unknown(buffer, offset + 44, 96));
+      for (int i = 0; i < 24; i++) {
+        addField(new DecNumber(buffer, offset + 44 + (i * 4), 4,
+                               String.format(GAM_NPC_NUMBER_INTERACTED_WITH_FMT, i)));
+      }
       for (int i = 0; i < 4; i++) {
         addField(new DecNumber(buffer, offset + 140 + (i * 2), 2,
                                String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1)));
