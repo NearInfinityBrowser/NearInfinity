@@ -78,7 +78,7 @@ import org.infinity.resource.video.MveResource;
 import org.infinity.resource.video.WbmResource;
 import org.infinity.resource.wed.WedResource;
 import org.infinity.resource.wmp.WmpResource;
-import org.infinity.util.Decryptor;
+import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.Misc;
@@ -842,7 +842,7 @@ public final class ResourceFactory
                                            ext.equalsIgnoreCase("SQL") ||
                                            ext.equalsIgnoreCase("GLSL")))) {
         if (buffer.getShort(0) == -1) {
-          exportResourceInternal(entry, Decryptor.decrypt(buffer, 2), entry.toString(), parent, output);
+          exportResourceInternal(entry, StaticSimpleXorDecryptor.decrypt(buffer, 2), entry.toString(), parent, output);
         } else {
           buffer.position(0);
           exportResourceInternal(entry, buffer, entry.toString(), parent, output);
