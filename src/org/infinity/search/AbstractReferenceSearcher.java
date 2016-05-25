@@ -329,7 +329,9 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
       for (int i = 0; i < retVal.length; i++) retVal[i] = false;
       String[] selectedExt = null;
       String ext = entry.getExtension();
-      if ("ARE".equalsIgnoreCase(ext)) {
+      if ("2DA".equalsIgnoreCase(ext)) {
+        selectedExt = new String[]{"BCS", "CRE", "DLG", "EFF", "ITM", "SPL"};
+      } else if ("ARE".equalsIgnoreCase(ext)) {
         selectedExt = new String[]{"2DA", "BCS", "DLG", "GAM", "WMP"};
       } else if ("BAM".equalsIgnoreCase(ext)) {
         selectedExt = new String[]{"2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF",

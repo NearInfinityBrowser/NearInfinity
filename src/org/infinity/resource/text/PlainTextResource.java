@@ -43,6 +43,7 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.search.ReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.Decryptor;
 import org.infinity.util.Misc;
@@ -92,6 +93,8 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
       if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor()))
         resourceChanged = false;
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
+      new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.TRIM_SPACES) == event.getSource()) {
@@ -258,6 +261,9 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
     bpmFind.addItemListener(this);
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.TRIM_SPACES)).addActionListener(this);
+    if (entry.toString().toUpperCase(Locale.ENGLISH).endsWith(".2DA")) {
+      ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
+    }
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
 
