@@ -2,7 +2,6 @@ package org.infinity.util;
 
 import org.junit.Assert;
 import org.junit.Test;
-import junit.framework.TestCase;
 
 public class ArrayUtilTest {
   //public static byte[] mergeArrays(byte[] first, byte[] second, byte[]... more)
