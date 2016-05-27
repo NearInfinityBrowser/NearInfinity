@@ -52,7 +52,7 @@ import org.infinity.resource.Writeable;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.TextResourceSearcher;
-import org.infinity.util.Decryptor;
+import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
@@ -89,7 +89,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     this.entry = entry;
     ByteBuffer buffer = entry.getResourceBuffer();
     if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
-      buffer = Decryptor.decrypt(buffer, 2);
+      buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
     text = StreamUtils.readString(buffer, buffer.limit());
   }

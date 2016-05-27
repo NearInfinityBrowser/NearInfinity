@@ -45,7 +45,7 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
-import org.infinity.util.Decryptor;
+import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
@@ -73,7 +73,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     this.entry = entry;
     ByteBuffer buffer = entry.getResourceBuffer();
     if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
-      buffer = Decryptor.decrypt(buffer, 2);
+      buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
     Charset cs = null;
     if (BrowserMenuBar.getInstance() != null) {
