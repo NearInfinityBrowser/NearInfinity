@@ -3118,7 +3118,7 @@ public final class BrowserMenuBar extends JMenuBar
 
     public Bookmark(String name, Profile.Game game, String path, ActionListener listener)
     {
-      if (game == null || game == Profile.Game.Unknown || path == null) {
+      if (game == null || path == null) {
         throw new NullPointerException();
       }
       if (name == null || name.trim().isEmpty()) {
