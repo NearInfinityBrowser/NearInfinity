@@ -116,7 +116,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   public static final String[] s_atype = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
                                           "Dream area"};
   public static final String[] s_atype_ee = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
-                                             "Dream area", "Player1 can die;Allows death of party leader without ending the game"};
+                                             "Dream area", "Player1 can die;Allows death of party leader without ending the game",
+                                             "Can't rest", "Can't travel"};
   public static final String[] s_atype_torment = {"Can rest", "Cannot save",
                                                   "Cannot rest", "Cannot save", "Too dangerous to rest",
                                                   "Cannot save", "Can rest with permission"};
