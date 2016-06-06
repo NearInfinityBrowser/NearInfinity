@@ -2620,8 +2620,8 @@ public class AreaViewer extends ChildFrame
      */
     public void reloadMiniMaps()
     {
-      if (are != null) {
-        String mapName = are.getName().toUpperCase(Locale.ENGLISH);
+      if (wed[ViewerConstants.AREA_DAY] != null) {
+        String mapName = wed[ViewerConstants.AREA_DAY].getName().toUpperCase(Locale.ENGLISH);
         if (mapName.lastIndexOf('.') >= 0) {
           mapName = mapName.substring(0, mapName.lastIndexOf('.'));
         }
