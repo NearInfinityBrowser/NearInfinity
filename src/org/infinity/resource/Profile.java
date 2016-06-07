@@ -1086,11 +1086,11 @@ public final class Profile
 
     // Preparing available root paths
     List<Path> gameRoots = new ArrayList<Path>();
-    if (Profile.getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE) != null) {
-      gameRoots.addAll(Profile.getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE));
-    }
     if (Profile.getGameRoot() != null) {
       gameRoots.add(Profile.getGameRoot());
+    }
+    if (Profile.getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE) != null) {
+      gameRoots.addAll(Profile.getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE));
     }
 
     if (Files.isRegularFile(FileManager.query(gameRoots, "movies/howseer.wbm"))) {
@@ -1732,13 +1732,13 @@ public final class Profile
 
     List<ObjectString> gameFolders = new ArrayList<>();
     // Getting potential DLC folders (search order is important)
+    if (rootDir != null && Files.isDirectory(rootDir)) {
+      gameFolders.add(new ObjectString("mod", rootDir.resolve("workshop")));
+      gameFolders.add(new ObjectString("zip", rootDir.resolve("dlc")));
+      gameFolders.add(new ObjectString("zip", rootDir));
+    }
     if (homeDir != null && Files.isDirectory(homeDir)) {
       gameFolders.add(new ObjectString("zip", homeDir));
-    }
-    if (rootDir != null && Files.isDirectory(rootDir)) {
-      gameFolders.add(new ObjectString("zip", rootDir));
-      gameFolders.add(new ObjectString("zip", rootDir.resolve("dlc")));
-      gameFolders.add(new ObjectString("mod", rootDir.resolve("workshop")));
     }
 
     for (final ObjectString root: gameFolders) {
@@ -1760,9 +1760,10 @@ public final class Profile
         } catch (IOException e) {
           e.printStackTrace();
         }
-        // DLCs of the same root are sorted alphabetically
+        // DLCs of the same root are sorted alphabetically (in reverse order)
         if (!list.isEmpty()) {
           Collections.sort(list);
+          Collections.reverse(list);
           retVal.addAll(list);
         }
       }
