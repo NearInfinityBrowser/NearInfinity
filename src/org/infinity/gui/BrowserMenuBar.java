@@ -1148,7 +1148,7 @@ public final class BrowserMenuBar extends JMenuBar
 
   private static final class SearchMenu extends JMenu implements ActionListener
   {
-    private final String TEXTSEARCH[] = {"2DA", "BCS", "DLG", "IDS", "INI"};
+    private final String TEXTSEARCH[] = {"2DA", "BCS", "DLG", "IDS", "INI", "LUA"};
     private final JMenuItem searchString, searchFile, searchResource;
     private final JMenu textSearchMenu;
 
@@ -1187,11 +1187,9 @@ public final class BrowserMenuBar extends JMenuBar
         if (textSearchMenu.getMenuComponent(i) instanceof JMenuItem) {
           JMenuItem mi = (JMenuItem)textSearchMenu.getMenuComponent(i);
           if ("INI".equals(mi.getText())) {
-            if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_INI)) {
-              mi.setEnabled(true);
-            } else {
-              mi.setEnabled(false);
-            }
+            mi.setEnabled((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_INI));
+          } else if ("LUA".equals(mi.getText())) {
+            mi.setEnabled((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_LUA));
           }
         }
       }
