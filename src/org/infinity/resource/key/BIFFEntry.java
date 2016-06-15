@@ -224,20 +224,16 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry>
   {
     Path retVal = null;
     if (root != null && fileName != null) {
-      List<Path> biffFolders = Profile.getProperty(Profile.Key.GET_GAME_BIFF_FOLDERS);
-      if (biffFolders == null) {
-        biffFolders = new ArrayList<>();
-      } else {
-        // remove non-matching biff folder paths
-        for (int idx = biffFolders.size() - 1; idx >= 0; idx--) {
-          try {
+      List<Path> biffFolders = new ArrayList<>(Profile.getProperty(Profile.Key.GET_GAME_BIFF_FOLDERS));
+      // remove non-matching biff folder paths
+      for (int idx = biffFolders.size() - 1; idx >= 0; idx--) {
+        try {
 //            if (!biffFolders.get(idx).getFileSystem().equals(root.getFileSystem())) {
-            if (!biffFolders.get(idx).startsWith(root)) {
-              biffFolders.remove(idx);
-            }
-          } catch (Throwable t) {
+          if (!biffFolders.get(idx).startsWith(root)) {
             biffFolders.remove(idx);
           }
+        } catch (Throwable t) {
+          biffFolders.remove(idx);
         }
       }
       if (biffFolders.isEmpty()) {
