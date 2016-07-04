@@ -53,7 +53,6 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.StaticSimpleXorDecryptor;
-import org.infinity.util.Misc;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -215,8 +214,8 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
       if (returnval == JFileChooser.APPROVE_OPTION) {
         try (BufferedWriter bw = Files.newBufferedWriter(chooser.getSelectedFile().toPath())) {
-          bw.write(codeText.getText().replaceAll("\r?\n", Misc.LINE_SEPARATOR));
-          bw.newLine();
+          bw.write(codeText.getText());
+          bw.write("\n");
           JOptionPane.showMessageDialog(panel, "File saved to \"" + chooser.getSelectedFile().toString() +
                                                '\"', "Save completed", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
