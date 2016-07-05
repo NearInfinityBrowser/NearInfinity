@@ -4698,7 +4698,8 @@ public final class EffectFactory
         case 12:    // Damage
           s.add(new Flag(buffer, offset, 4, EFFECT_SPECIAL,
                          new String[]{"Default", "Drain HP to caster", "Transfer HP to target",
-                                      "Fist damage only", "", "", "", "", "", "Save for half",
+                                      "Fist damage only", "Drain to max. HP of caster", "",
+                                      "Suppress damage feedback", "", "", "Save for half",
                                       "Made save", "Does not wake sleepers"}));
           break;
 
