@@ -43,34 +43,39 @@ public final class ColorValue extends Datatype implements Editable, IsNumeric, C
 
   private static Color getColor(int index, int brightness)
   {
-    if (image == null)
+    if (image == null) {
       initImage();
-    if (index >= image.getHeight() || brightness >= image.getWidth())
+    }
+    if (index >= image.getHeight() || brightness >= image.getWidth()) {
       return null;
+    }
     return new Color(image.getRGB(brightness, index));
   }
 
   private static int getNumColors()
   {
-    if (image == null)
+    if (image == null) {
       initImage();
+    }
     return image.getHeight();
   }
 
   private static int getRangeSize()
   {
-    if (image == null)
+    if (image == null) {
       initImage();
+    }
     return image.getWidth();
   }
 
   private static void initImage()
   {
     try {
-      if (ResourceFactory.resourceExists("RANGES12.BMP"))
+      if (ResourceFactory.resourceExists("RANGES12.BMP")) {
         image = new GraphicsResource(ResourceFactory.getResourceEntry("RANGES12.BMP")).getImage();
-      else
+      } else {
         image = new GraphicsResource(ResourceFactory.getResourceEntry("MPALETTE.BMP")).getImage();
+      }
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -237,13 +242,13 @@ public final class ColorValue extends Datatype implements Editable, IsNumeric, C
     buffer.position(offset);
     switch (getSize()) {
       case 1:
-        number = buffer.get();
+        number = buffer.get() & 0xff;
         break;
       case 2:
-        number = buffer.getShort();
+        number = buffer.getShort() & 0xffff;
         break;
       case 4:
-        number = buffer.getInt();
+        number = buffer.getInt() & 0x7fffffff;
         break;
       default:
         throw new IllegalArgumentException();
@@ -259,7 +264,7 @@ public final class ColorValue extends Datatype implements Editable, IsNumeric, C
   @Override
   public long getLongValue()
   {
-    return (long)number & 0xffffffffL;
+    return (long)number & 0x7fffffffL;
   }
 
   @Override
