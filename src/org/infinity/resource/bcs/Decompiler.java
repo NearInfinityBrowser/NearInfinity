@@ -985,20 +985,18 @@ public final class Decompiler
     String newStrings[] = new String[4];
     int index = 0;
 
-    if (string1.length() > 9
-        && (Compiler.isPossibleNamespace(string1.substring(0, 7) + '\"')
-//        && (!string1.substring(0, 3).equalsIgnoreCase("\"AR")
-            || ResourceFactory.resourceExists(string1.substring(1, 7) + ".ARE"))) {
+    if (string1.length() > 9 && (string1.charAt(7) != '*') &&
+        (Compiler.isPossibleNamespace(string1.substring(0, 7) + '\"') ||
+         ResourceFactory.resourceExists(string1.substring(1, 7) + ".ARE"))) {
       newStrings[index++] = '\"' + string1.substring(7);
       newStrings[index++] = string1.substring(0, 7) + '\"';
     }
     else
       newStrings[index++] = string1;
 
-    if (string2.length() > 9
-        && (Compiler.isPossibleNamespace(string2.substring(0, 7) + '\"')
-//        && (!string2.substring(0, 3).equalsIgnoreCase("\"AR")
-            || ResourceFactory.resourceExists(string2.substring(1, 7) + ".ARE"))) {
+    if (string2.length() > 9 && (string2.charAt(7) != '*') &&
+        (Compiler.isPossibleNamespace(string2.substring(0, 7) + '\"') ||
+         ResourceFactory.resourceExists(string2.substring(1, 7) + ".ARE"))) {
       newStrings[index++] = '\"' + string2.substring(7);
       newStrings[index++] = string2.substring(0, 7) + '\"';
     }
