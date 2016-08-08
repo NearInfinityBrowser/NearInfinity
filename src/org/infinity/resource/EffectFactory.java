@@ -4719,6 +4719,11 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset, 4, "Display message?", s_yesno));
           break;
 
+        case 178: // THAC0 vs. type bonus
+        case 179: // Damage vs. type bonus
+          s.add(new DecNumber(buffer, offset, 4, "Value"));
+          break;
+
         case 181:   // Disallow item type
           s.add(new StringRef(buffer, offset, "Description note"));
           break;
@@ -4738,6 +4743,14 @@ public final class EffectFactory
             default:
               s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           }
+          break;
+
+        case 301:   // Critical hit bonus
+        case 341:   // Critical hit effect
+        case 361:   // Cast spell on critical miss
+        case 362:   // Critical miss bonus
+          s.add(new Bitmap(buffer, offset, 4, "Weapon type",
+                           new String[]{"Any weapon", "Melee weapon only", "Ranged weapon only"}));
           break;
 
         case 319:   // Restrict item (BGEE)
