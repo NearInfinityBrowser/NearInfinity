@@ -4749,8 +4749,9 @@ public final class EffectFactory
         case 341:   // Critical hit effect
         case 361:   // Cast spell on critical miss
         case 362:   // Critical miss bonus
-          s.add(new Bitmap(buffer, offset, 4, "Weapon type",
-                           new String[]{"Any weapon", "Melee weapon only", "Ranged weapon only"}));
+          s.add(new Bitmap(buffer, offset, 4, "Attack type",
+                           new String[]{"Any attack type", "Melee attack only", "Ranged attack only",
+                                        "Magical attack only"}));
           break;
 
         case 319:   // Restrict item (BGEE)
