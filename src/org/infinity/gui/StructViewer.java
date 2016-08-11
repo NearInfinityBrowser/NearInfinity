@@ -110,6 +110,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public static final String CMD_TOBIN          = "ToBin";
   public static final String CMD_TODEC          = "ToDec";
   public static final String CMD_TOINT          = "ToInt";
+  public static final String CMD_TOHEXINT       = "ToHexInt";
   public static final String CMD_RESET          = "ResetType";
   public static final String CMD_SHOWVIEWER     = "ShowView";
   public static final String CMD_SHOWNEWVIEWER  = "ShowNewView";
@@ -135,6 +136,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem miToBin = createMenuItem(CMD_TOBIN, "Edit as binary", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miToDec = createMenuItem(CMD_TODEC, "Edit as decimal", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miToInt = createMenuItem(CMD_TOINT, "Edit as number", Icons.getIcon(Icons.ICON_REFRESH_16), this);
+  private final JMenuItem miToHexInt = createMenuItem(CMD_TOHEXINT, "Edit as hex number", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miReset = createMenuItem(CMD_RESET, "Reset field type", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miShowViewer = createMenuItem(CMD_SHOWVIEWER, "Show in viewer", null, this);
   private final JMenuItem miShowNewViewer = createMenuItem(CMD_COPYVALUE, "Show in new viewer", null, this);
@@ -216,6 +218,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     popupmenu.add(miToBin);
     popupmenu.add(miToDec);
     popupmenu.add(miToInt);
+    popupmenu.add(miToHexInt);
     popupmenu.add(miToString);
     popupmenu.add(miReset);
     if (struct instanceof DlgResource) {
@@ -233,6 +236,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     miToBin.setEnabled(false);
     miToDec.setEnabled(false);
     miToInt.setEnabled(false);
+    miToHexInt.setEnabled(false);
     miToString.setEnabled(false);
     miReset.setEnabled(false);
     miShowViewer.setEnabled(false);
@@ -501,6 +505,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       convertAttribute(table.getSelectedRow(), miToDec);
     } else if (event.getActionCommand().equals(CMD_TOINT)) {
       convertAttribute(table.getSelectedRow(), miToInt);
+    } else if (event.getActionCommand().equals(CMD_TOHEXINT)) {
+      convertAttribute(table.getSelectedRow(), miToHexInt);
     } else if (event.getActionCommand().equals(CMD_TOSTRING)) {
       convertAttribute(table.getSelectedRow(), miToString);
     } else if (event.getActionCommand().equals(CMD_RESET)) {
@@ -617,6 +623,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miToBin.setEnabled(false);
       miToDec.setEnabled(false);
       miToInt.setEnabled(false);
+      miToHexInt.setEnabled(false);
       miToString.setEnabled(false);
       miReset.setEnabled(false);
       miShowViewer.setEnabled(false);
@@ -674,6 +681,11 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                          !(selected instanceof DecNumber ||
                            selected instanceof SectionCount ||
                            selected instanceof AbstractCode));
+      miToHexInt.setEnabled(isDataType && isReadable &&
+                            (selected instanceof Datatype && ((Datatype)selected).getSize() <= 4) &&
+                            !(selected instanceof DecNumber ||
+                              selected instanceof SectionCount ||
+                              selected instanceof AbstractCode));
       miToString.setEnabled(isDataType && isReadable &&
                             (selected instanceof Unknown || selected instanceof ResourceRef) &&
                             !(selected instanceof AbstractCode));
@@ -1141,6 +1153,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         newentry = new UnknownDecimal(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToInt) {
         newentry = new DecNumber(bb, 0, entry.getSize(), entry.getName());
+      } else if (menuitem == miToHexInt) {
+        newentry = new HexNumber(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToString) {
         newentry = new TextString(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miReset) {
