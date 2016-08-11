@@ -19,6 +19,8 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.TextListPanel;
@@ -31,6 +33,8 @@ import org.infinity.util.ObjectString;
 public class HashBitmap extends Datatype implements Editable, IsNumeric
 {
   private final LongIntegerHashMap<? extends Object> idsmap;
+  private final List<JButton> buttonList;
+  private final JButton bUpdate;
   private final boolean sortByName;
   private TextListPanel list;
   private long value;
@@ -59,6 +63,9 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
     super(parent, offset, length, name);
     this.idsmap = normalizeHashMap(idsmap);
     this.sortByName = sortByName;
+    this.bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
+    this.buttonList = new ArrayList<>();
+    this.buttonList.add(bUpdate);
 
     read(buffer, offset);
   }
@@ -89,13 +96,21 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
             container.actionPerformed(new ActionEvent(this, 0, StructViewer.UPDATE_VALUE));
         }
       });
+      list.addListSelectionListener(new ListSelectionListener() {
+        @Override
+        public void valueChanged(ListSelectionEvent e)
+        {
+          if (!e.getValueIsAdjusting()) {
+            listItemChanged();
+          }
+        }
+      });
     }
     Object selected = idsmap.get(value);
     if (selected != null) {
       list.setSelectedValue(selected, true);
     }
 
-    JButton bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
 
@@ -105,15 +120,36 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
 
     gbc.weightx = 1.0;
     gbc.weighty = 1.0;
+    gbc.gridheight = buttonList.size() + 2;
     gbc.fill = GridBagConstraints.BOTH;
     gbl.setConstraints(list, gbc);
     panel.add(list);
 
     gbc.weightx = 0.0;
-    gbc.fill = GridBagConstraints.NONE;
+    gbc.gridheight = 1;
+    gbc.gridx = 1;
+    gbc.gridy = 0;
     gbc.insets.left = 6;
-    gbl.setConstraints(bUpdate, gbc);
-    panel.add(bUpdate);
+    gbc.insets.top = 4;
+    gbc.insets.bottom = 4;
+    // dummy component to center list of buttons vertically
+    JPanel p = new JPanel();
+    gbl.setConstraints(p, gbc);
+    panel.add(p);
+    ++gbc.gridy;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weighty = 0.0;
+    for (final JButton btn: buttonList) {
+      gbl.setConstraints(btn, gbc);
+      panel.add(btn);
+      ++gbc.gridy;
+    }
+    // dummy component to center list of buttons vertically
+    gbc.weighty = 1.0;
+    gbc.fill = GridBagConstraints.BOTH;
+    p = new JPanel();
+    gbl.setConstraints(p, gbc);
+    panel.add(p);
 
     panel.setMinimumSize(DIM_MEDIUM);
     panel.setPreferredSize(DIM_MEDIUM);
@@ -130,16 +166,11 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
   public boolean updateValue(AbstractStruct struct)
   {
     // updating value
-    Object selected = list.getSelectedValue();
-    if (selected instanceof ObjectString && ((ObjectString)selected).getObject() instanceof Number) {
-      value = ((Number)((ObjectString)selected).getObject()).longValue();
+    Long number = getValueOfItem(list.getSelectedValue());
+    if (number != null) {
+      value = number.longValue();
     } else {
-      int i = selected.toString().lastIndexOf(" - ");
-      try {
-        value = Long.parseLong(selected.toString().substring(i + 3));
-      } catch (NumberFormatException e) {
-        return false;
-      }
+      return false;
     }
 
     // notifying listeners
@@ -217,21 +248,66 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
     this.value = newValue;
   }
 
+  /** Called whenever the user selects a new list item. */
+  protected void listItemChanged()
+  {
+  }
+
+  /**
+   * Can be used to register one or more custom buttons to the bitmap control.
+   * Only effective if called before the UI control is created.
+   */
+  protected void addButtons(JButton... buttons)
+  {
+    if (list == null) {
+      for (final JButton button: buttons) {
+        if (button != null) {
+          buttonList.add(button);
+        }
+      }
+    }
+  }
+
+  /** Returns the number of registered buttons. */
+  public int getButtonCount()
+  {
+    return buttonList.size();
+  }
+
+  /**
+   * Returns the button control at the specified index.
+   * First entry is always the "Update value" button.
+   */
+  public JButton getButton(int index)
+  {
+    return buttonList.get(index);
+  }
+
+  /** Returns the TextListPanel control used by this datatype. */
+  public TextListPanel getListPanel()
+  {
+    return list;
+  }
+
+  /** Returns the number if IDS entries. */
   public int getListSize()
   {
     return idsmap.size();
   }
 
+  /** Returns an array of numeric IDS values */
   public long[] getKeys()
   {
     return idsmap.keys();
   }
 
+  /** Returns the textual representation of the specified IDS value. */
   public Object getValueOf(long key)
   {
     return idsmap.get(Long.valueOf(key));
   }
 
+  /** Returns the symbol associated with the specified IDS value. */
   public String getSymbol(long index)
   {
     Object o = idsmap.get(index);
@@ -246,6 +322,25 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
       }
     }
     return null;
+  }
+
+  /** Attempts to extract the IDS value from the specified list item. */
+  protected Long getValueOfItem(Object item)
+  {
+    Long retVal = null;
+    if (item != null) {
+      if (item instanceof ObjectString && ((ObjectString)item).getObject() instanceof Number) {
+        retVal = ((Number)((ObjectString)item).getObject()).longValue();
+      } else {
+        int i = item.toString().lastIndexOf(" - ");
+        try {
+          retVal = Long.parseLong(item.toString().substring(i + 3));
+        } catch (NumberFormatException e) {
+          retVal = null;
+        }
+      }
+    }
+    return retVal;
   }
 
   protected LongIntegerHashMap<? extends Object> getHashBitmap()

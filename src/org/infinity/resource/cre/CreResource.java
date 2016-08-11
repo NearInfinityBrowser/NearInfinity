@@ -27,6 +27,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
 import org.infinity.NearInfinity;
+import org.infinity.datatype.AnimateBitmap;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.ColorValue;
 import org.infinity.datatype.Datatype;
@@ -1408,7 +1409,7 @@ public final class CreResource extends AbstractStruct
     addField(new IdsFlag(buffer, offset + 24, 4, CRE_STATUS, "STATE.IDS"));
     addField(new DecNumber(buffer, offset + 28, 2, CRE_HP_CURRENT));
     addField(new DecNumber(buffer, offset + 30, 2, CRE_HP_MAX));
-    addField(new IdsBitmap(buffer, offset + 32, 4, CRE_ANIMATION, "ANIMATE.IDS"));
+    addField(new AnimateBitmap(buffer, offset + 32, 4, CRE_ANIMATION, "ANIMATE.IDS"));
     addField(new ColorValue(buffer, offset + 36, 1, CRE_COLOR_METAL));
     addField(new ColorValue(buffer, offset + 37, 1, CRE_COLOR_MINOR));
     addField(new ColorValue(buffer, offset + 38, 1, CRE_COLOR_MAJOR));
