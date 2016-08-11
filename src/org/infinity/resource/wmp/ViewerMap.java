@@ -55,6 +55,7 @@ import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.MosDecoder;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.StringResource;
 
 public class ViewerMap extends JPanel
 {
@@ -204,6 +205,8 @@ public class ViewerMap extends JPanel
       Graphics2D g = ((BufferedImage)rcMap.getImage()).createGraphics();
       try {
         g.setFont(g.getFont().deriveFont(g.getFont().getSize2D()*0.9f));
+
+        // two passes are required to prevent text boxes to be covered by icons
         for (int i = 0, count = listPanel.getList().getModel().getSize(); i < count; i++) {
           AreaEntry area = getAreaEntry(i);
           if (area != null) {
@@ -211,12 +214,6 @@ public class ViewerMap extends JPanel
             int frameIndex = mapIconsCtrl.cycleGetFrameIndexAbsolute(iconIndex, 0);
             if (frameIndex >= 0) {
               BufferedImage mapIcon = (BufferedImage)mapIcons.frameGet(mapIconsCtrl, frameIndex);
-              String mapCode = ((ResourceRef)area.getAttribute(AreaEntry.WMP_AREA_CURRENT)).getResourceName();
-              if (ResourceFactory.resourceExists(mapCode)) {
-                mapCode = mapCode.replace(".ARE", "");
-              } else {
-                mapCode = "";
-              }
               int x = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
               int y = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
               int width = mapIcons.getFrameInfo(frameIndex).getWidth();
@@ -226,19 +223,73 @@ public class ViewerMap extends JPanel
               x -= cx;
               y -= cy;
               g.drawImage(mapIcon, x, y, x+width, y+height, 0, 0, width, height, null);
+            }
+          }
+        }
+
+        // second pass
+        final Color WHITE_BLENDED = new Color(0xc0ffffff, true);
+        for (int i = 0, count = listPanel.getList().getModel().getSize(); i < count; i++) {
+          AreaEntry area = getAreaEntry(i);
+          if (area != null) {
+            int iconIndex = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue();
+            int frameIndex = mapIconsCtrl.cycleGetFrameIndexAbsolute(iconIndex, 0);
+            if (frameIndex >= 0) {
+              // getting area name
+              int strref = ((StringRef)area.getAttribute(AreaEntry.WMP_AREA_NAME)).getValue();
+              if (strref < 0) {
+                strref = ((StringRef)area.getAttribute(AreaEntry.WMP_AREA_TOOLTIP)).getValue();
+              }
+              String mapName = (strref >= 0) ? StringResource.getStringRef(strref) : null;
+              if (mapName != null && mapName.trim().length() == 0) {
+                mapName = null;
+              }
+
+              // getting area code
+              String mapCode = ((ResourceRef)area.getAttribute(AreaEntry.WMP_AREA_CURRENT)).getResourceName();
+              if (ResourceFactory.resourceExists(mapCode)) {
+                mapCode = mapCode.replace(".ARE", "");
+              } else {
+                mapCode = "";
+              }
+
+              int x = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
+              int y = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
+              int width = mapIcons.getFrameInfo(frameIndex).getWidth();
+              int height = mapIcons.getFrameInfo(frameIndex).getHeight();
+              int cx = mapIcons.getFrameInfo(frameIndex).getCenterX();
+              int cy = mapIcons.getFrameInfo(frameIndex).getCenterY();
+              x -= cx;
+              y -= cy;
 
               // printing label
               if (!mapCode.isEmpty()) {
-                LineMetrics lm = g.getFont().getLineMetrics(mapCode, g.getFontRenderContext());
-                Rectangle2D rectText = g.getFont().getStringBounds(mapCode, g.getFontRenderContext());
-                int textX = x + (width - rectText.getBounds().width) / 2;
-                int textY = y + height;
-                int textWidth = rectText.getBounds().width;
-                int textHeight = rectText.getBounds().height;
-                g.setColor(Color.WHITE);
-                g.fillRect(textX - 2, textY, textWidth + 4, textHeight);
-                g.setColor(Color.BLACK);
-                g.drawString(mapCode, (float)textX, (float)textY + lm.getAscent() + lm.getLeading());
+                String[] labels = null;
+                if (mapName != null) {
+                  labels = new String[2];
+                  labels[0] = mapName;
+                  labels[1] = "(" + mapCode + ")";
+                } else {
+                  labels = new String[1];
+                  labels[0] = mapCode;
+                }
+
+                int ofsY = 0;
+                for (final String label: labels) {
+                  Rectangle2D rectText = g.getFont().getStringBounds(label, g.getFontRenderContext());
+                  int boxWidth = rectText.getBounds().width;
+                  int boxHeight = rectText.getBounds().height;
+                  int textX = x + (width - boxWidth) / 2;
+                  int textY = y + height + ofsY;
+
+                  g.setColor(WHITE_BLENDED);
+                  g.fillRect(textX - 2, textY, boxWidth + 4, boxHeight);
+
+                  g.setColor(Color.BLACK);
+                  LineMetrics lm = g.getFont().getLineMetrics(label, g.getFontRenderContext());
+                  g.drawString(label, (float)textX, (float)textY + lm.getAscent() + lm.getLeading());
+                  ofsY += boxHeight;
+                }
               }
             }
           }
