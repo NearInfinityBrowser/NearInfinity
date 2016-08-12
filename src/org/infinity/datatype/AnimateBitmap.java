@@ -27,6 +27,7 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
 {
   private final JButton showIni;
   private IdsMap idsMap;
+  private boolean useIni;
 
   public AnimateBitmap(ByteBuffer buffer, int offset, int length, String name, String resource)
   {
@@ -49,22 +50,23 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
   {
     super(parent, buffer, offset, length, name, resource, idsStart);
 
-    // Don't show button for games that don't support INI/2DA files
-    if (Profile.isEnhancedEdition()) {
+    if (Profile.isEnhancedEdition() || ResourceFactory.resourceExists("ANISND.IDS")) {
       showIni = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
-      showIni.setToolTipText("Open associated INI resource");
-    } else if (ResourceFactory.resourceExists("ANISND.IDS")) {
-      showIni = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
-      showIni.setToolTipText("Open associated 2DA resource");
-      idsMap = IdsMapCache.get("ANISND.IDS");
-    } else {
-      showIni = null;
-    }
-
-    if (showIni != null) {
       showIni.setEnabled(false);
       showIni.addActionListener(this);
       addButtons(showIni);
+
+      // Don't show button for games that don't support INI/2DA files
+      if (ResourceFactory.resourceExists("ANISND.IDS")) {
+        showIni.setToolTipText("Open associated 2DA resource");
+        idsMap = IdsMapCache.get("ANISND.IDS");
+      }
+      if (Profile.isEnhancedEdition()) {
+        showIni.setToolTipText("Open associated INI or 2DA resource");
+        useIni = true;
+      }
+    } else {
+      showIni = null;
     }
   }
 
@@ -98,25 +100,29 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
   private String getAnimResource(long value)
   {
     String animRes = null;
-    if (idsMap != null) {
+
+    if (useIni) {
+      // checking for INI
+      animRes = String.format("%04X.INI", value);
+      if (!ResourceFactory.resourceExists(animRes)) {
+        animRes = null;
+      }
+    }
+
+    if (animRes == null && idsMap != null) {
       // checking for 2DA
       IdsMapEntry entry = idsMap.getValue(value);
       if (entry != null) {
-        String symbol = entry.getString();
-        int idx = symbol.indexOf(' ');
-        if (idx < 0) { idx = symbol.indexOf('\t'); }
-        if (idx > 0) {
-          animRes = symbol.substring(0, idx).trim() + ".2DA";
+        String[] symbols = entry.getString().split("[ \t]");
+        if (symbols.length > 1) {
+          animRes = symbols[0].trim() + ".2DA";
+          if (!ResourceFactory.resourceExists(animRes)) {
+            animRes = null;
+          }
         }
       }
-    } else {
-      // checking for INI
-      animRes = String.format("%04X.INI", value);
     }
 
-    if (animRes != null && !ResourceFactory.resourceExists(animRes)) {
-      animRes = null;
-    }
     return animRes;
   }
 }
