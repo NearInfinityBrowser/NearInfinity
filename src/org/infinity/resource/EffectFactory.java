@@ -20,6 +20,7 @@ import org.infinity.datatype.HashBitmap;
 import org.infinity.datatype.IdsBitmap;
 import org.infinity.datatype.IdsFlag;
 import org.infinity.datatype.IdsTargetType;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.MultiNumber;
 import org.infinity.datatype.PriTypeBitmap;
 import org.infinity.datatype.ProRef;
@@ -687,6 +688,8 @@ public final class EffectFactory
             return updateOpcode319(struct);
           case 328:     // Set state
             return updateOpcode328(struct);
+          case 342:     // Override creature data
+            return updateOpcode342(struct);
         }
       }
     }
@@ -789,12 +792,39 @@ public final class EffectFactory
           if (special == 1 && ResourceFactory.resourceExists("SPLSTATE.IDS")) {
             // Activate IWD2 mode
             replaceEntry(struct, EffectEntry.IDX_PARAM2, EffectEntry.OFS_PARAM2,
-                         new IdsBitmap(getEntryData(struct, EffectEntry.IDX_PARAM2), 0, 4, "State", "SPLSTATE.IDS"));
+                new IdsBitmap(getEntryData(struct, EffectEntry.IDX_PARAM2), 0, 4, "State", "SPLSTATE.IDS"));
           } else {
             // Activate IWD1 mode
             replaceEntry(struct, EffectEntry.IDX_PARAM2, EffectEntry.OFS_PARAM2,
-                         new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM2), 0, 4, "State", s_spellstate));
+                new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM2), 0, 4, "State", s_spellstate));
           }
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // Effect type "Override creature data" (342)
+  private static boolean updateOpcode342(AbstractStruct struct) throws Exception
+  {
+    if (struct != null) {
+      if (Profile.isEnhancedEdition()) {
+        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        if (opcode == 342) {   // effect type "Override creature data" (342)
+          int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
+          StructEntry newEntry = null;
+          switch (param2) {
+            case 1:
+              newEntry = new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Enabled?", s_noyes);
+              break;
+            case 2:
+              newEntry = new ColorValue(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Color");
+              break;
+            default:
+              newEntry = new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value");
+          }
+          replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1, newEntry);
           return true;
         }
       }
@@ -3688,8 +3718,18 @@ public final class EffectFactory
 
       case 342: // Override creature data
         if (Profile.isEnhancedEdition()) {
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Field", new String[]{"Body heat", "Blood color"}));
+          Bitmap bmp = new Bitmap(buffer, offset + 4, 4, "Field",
+                                  new String[]{"Unknown", "Body heat", "Blood color", "Unknown",
+                                               "Personal space"});
+          switch (bmp.getValue()) {
+            case 1:  s.add(new Bitmap(buffer, offset, 4, "Enabled?", s_noyes)); break;
+            case 2:  s.add(new ColorValue(buffer, offset, 4, "Color")); break;
+            default: s.add(new DecNumber(buffer, offset, 4, "Value"));
+          }
+          s.add(bmp);
+          if (parent != null && parent instanceof UpdateListener) {
+            bmp.addUpdateListener((UpdateListener)parent);
+          }
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
