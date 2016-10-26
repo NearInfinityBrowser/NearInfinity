@@ -2370,9 +2370,17 @@ public final class EffectFactory
       }
 
       case 99: // Modify duration
+      {
         s.add(new DecNumber(buffer, offset, 4, "Percentage"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Spell class", new String[]{"Wizard", "Priest"}));
+        final String[] s_type;
+        if (Profile.isEnhancedEdition()) {
+          s_type = new String[]{"Wizard", "Priest", "Bard song"};
+        } else {
+          s_type = new String[]{"Wizard", "Priest"};
+        }
+        s.add(new Bitmap(buffer, offset + 4, 4, "Spell class", s_type));
         break;
+      }
 
       case 101: // Immunity to effect
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
