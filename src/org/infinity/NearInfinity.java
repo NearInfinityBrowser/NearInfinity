@@ -184,14 +184,35 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         !jarFile.toLowerCase(Locale.ENGLISH).endsWith(".jar")) {
       jarFile = "NearInfinity.jar";
     }
-    System.out.format("Usage: java -jar %1$s [game_path | options]", jarFile).println();
+    System.out.format("Usage: java -jar %s [options] [game_path]", jarFile).println();
     System.out.println("\nOptions:");
     System.out.println("  -v, -version    Display version information.");
     System.out.println("  -h, -help       Display this help.");
+    System.out.println("  -t type         Force the current or specified game to be of");
+    System.out.println("                  specific type. (Use with care!)");
+    System.out.println("                  Supported game types:");
+    System.out.println("                    BG1");
+    System.out.println("                    BG1TotSC");
+    System.out.println("                    Tutu");
+    System.out.println("                    BG1EE");
+    System.out.println("                    BG1SoD");
+    System.out.println("                    BG2SoA");
+    System.out.println("                    BG2ToB");
+    System.out.println("                    BG2EE");
+    System.out.println("                    BGT");
+    System.out.println("                    EET");
+    System.out.println("                    IWD");
+    System.out.println("                    IWDHoW");
+    System.out.println("                    IWDHowTotLM");
+    System.out.println("                    IWDEE");
+    System.out.println("                    IWD2");
+    System.out.println("                    PST");
+    System.out.println("                    Unknown");
     System.out.println("\nExamples:");
-    System.out.format("Specify game path: java -jar %1$s \"C:\\Games\\Baldurs Gate II\"", jarFile).println();
-    System.out.format("Display version:   java -jar %1$s -v", jarFile).println();
-    System.out.format("Display help:      java -jar %1$s -help", jarFile).println();
+    System.out.format("Specify game path: java -jar %s \"C:\\Games\\Baldurs Gate II\"", jarFile).println();
+    System.out.format("Force game type:   java -jar %s -t bg2tob", jarFile).println();
+    System.out.format("Display version:   java -jar %s -v", jarFile).println();
+    System.out.format("Display help:      java -jar %s -help", jarFile).println();
   }
 
   /** Advances the progress monitor by one step with optional note. */
@@ -205,22 +226,40 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   public static void main(String args[])
   {
-    // evaluating command line arguments
-    for (final String arg: args) {
-      if (arg.equalsIgnoreCase("-v") ||
-          arg.equalsIgnoreCase("-version")) {
+    Profile.Game forcedGame = null;
+    Path gameOverride = null;
+
+    for (int idx = 0; idx < args.length; idx++) {
+      if (args[idx].equalsIgnoreCase("-v") || args[idx].equalsIgnoreCase("-version")) {
         System.out.println("Near Infinity " + getVersion());
         System.exit(0);
-      }
-
-      if (arg.equalsIgnoreCase("-h") ||
-          arg.equalsIgnoreCase("-help")) {
+      } else if (args[idx].equalsIgnoreCase("-h") || args[idx].equalsIgnoreCase("-help")) {
         String jarFile = Utils.getJarFileName(NearInfinity.class);
         if (!jarFile.isEmpty()) {
           jarFile = FileManager.resolve(jarFile).getFileName().toString();
         }
         printHelp(jarFile);
         System.exit(0);
+      } else if (args[idx].equalsIgnoreCase("-t") && idx+1 < args.length) {
+        idx++;
+        String type = args[idx];
+        Profile.Game[] games = Profile.Game.values();
+        for (final Profile.Game game: games) {
+          if (game.toString().equalsIgnoreCase(type)) {
+            forcedGame = game;
+            break;
+          }
+        }
+      } else {
+        // Override game folder via application parameter
+        Path f = FileManager.resolve(args[idx]);
+        if (Files.isRegularFile(f)) {
+          f = f.getParent();
+        }
+        if (Files.isDirectory(f)) {
+          gameOverride = f;
+          break;
+        }
       }
     }
 
@@ -241,22 +280,10 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     System.setOut(new ConsoleStream(System.out, consoletext));
     System.setErr(new ConsoleStream(System.err, consoletext));
 
-    // Override game folder via application parameter
-    Path gameOverride = null;
-    if (args.length > 0) {
-      Path f = FileManager.resolve(args[0]);
-      if (Files.isRegularFile(f)) {
-        f = f.getParent();
-      }
-      if (Files.isDirectory(f)) {
-        gameOverride = f;
-      }
-    }
-
-    new NearInfinity(gameOverride);
+    new NearInfinity(gameOverride, forcedGame);
   }
 
-  private NearInfinity(Path gameOverride)
+  private NearInfinity(Path gameOverride, Profile.Game forcedGame)
   {
     super("Near Infinity");
     browser = this;
@@ -298,7 +325,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       @Override
       protected Void doInBackground() throws Exception
       {
-        Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+        Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile), forcedGame);
 
         advanceProgress("Initializing GUI...");
         BrowserMenuBar.getInstance().gameLoaded(Profile.Game.Unknown, null);

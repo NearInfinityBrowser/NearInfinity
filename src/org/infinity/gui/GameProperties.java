@@ -166,6 +166,9 @@ public final class GameProperties extends ChildFrame implements ActionListener
 
     // Entry: game type
     s = Profile.getProperty(Profile.Key.GET_GAME_TITLE);
+    if ((Boolean)Profile.getProperty(Profile.Key.IS_FORCED_GAME)) {
+      s = s + " (enforced)";
+    }
     l = new JLabel("Game type:");
     tf = createReadOnlyField(s, true);
     listControls.add(new Pair<JComponent>(l, tf));

@@ -210,7 +210,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
         break;
       case IWD:
       case IWDHoW:
-      case IWDHowToTLM:
+      case IWDHowTotLM:
         gameType = GameType.IWD;
         break;
       case IWD2:

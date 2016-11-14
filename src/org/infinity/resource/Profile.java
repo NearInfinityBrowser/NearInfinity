@@ -76,7 +76,7 @@ public final class Profile
     /** Icewind Dale: Heart of Winter */
     IWDHoW,
     /** Icewind Dale: Trials of the Luremaster */
-    IWDHowToTLM,
+    IWDHowTotLM,
     /** Icewind Dale II */
     IWD2,
     /** Baldur's Gate: Enhanced Edition */
@@ -203,6 +203,8 @@ public final class Profile
     IS_ENHANCED_EDITION,
     /** Property: ({@code Boolean}) Has current game been enhanced by TobEx? */
     IS_GAME_TOBEX,
+    /** Property: ({@code Boolean}) Has type of current game been forcibly set? */
+    IS_FORCED_GAME,
 
     /** Property: ({@code Boolean}) Are {@code 2DA} resources supported? */
     IS_SUPPORTED_2DA,
@@ -391,7 +393,7 @@ public final class Profile
     GAME_TITLE.put(Game.PST, "Planescape: Torment");
     GAME_TITLE.put(Game.IWD, "Icewind Dale");
     GAME_TITLE.put(Game.IWDHoW, "Icewind Dale: Heart of Winter");
-    GAME_TITLE.put(Game.IWDHowToTLM, "Icewind Dale: Trials of the Luremaster");
+    GAME_TITLE.put(Game.IWDHowTotLM, "Icewind Dale: Trials of the Luremaster");
     GAME_TITLE.put(Game.IWD2, "Icewind Dale II");
     GAME_TITLE.put(Game.BG1EE, "Baldur's Gate: Enhanced Edition");
     GAME_TITLE.put(Game.BG1SoD, "Baldur's Gate: Siege of Dragonspear");
@@ -416,7 +418,7 @@ public final class Profile
     GAME_EXTRA_FOLDERS.put(Game.PST, new ArrayList<>(Arrays.asList(PST_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.IWD, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.IWDHoW, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
-    GAME_EXTRA_FOLDERS.put(Game.IWDHowToTLM, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.IWDHowTotLM, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.IWD2, new ArrayList<>(Arrays.asList(BG_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.BG1EE, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.BG1SoD, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
@@ -458,7 +460,7 @@ public final class Profile
    */
   public static boolean openGame(Path keyFile)
   {
-    return openGame(keyFile, null);
+    return openGame(keyFile, null, null);
   }
 
   /**
@@ -469,9 +471,21 @@ public final class Profile
    */
   public static boolean openGame(Path keyFile, String desc)
   {
+    return openGame(keyFile, desc, null);
+  }
+
+  /**
+   * Initializes properties of a new game.
+   * @param keyFile Full path to the chitin.key of the opened game.
+   * @param desc An optional description associated with the game.
+   * @param forcedGame Set to non-{@code null} to enforce a specific game type.
+   * @return {@code true} if the game has been initialized successfully, {@code false} otherwise.
+   */
+  public static boolean openGame(Path keyFile, String desc, Game forcedGame)
+  {
     try {
       closeGame();
-      instance = new Profile(keyFile, desc);
+      instance = new Profile(keyFile, desc, forcedGame);
       return true;
     } catch (Exception e) {
       e.printStackTrace();
@@ -1036,13 +1050,13 @@ public final class Profile
     return retVal;
   }
 
-  private Profile(Path keyFile, String desc) throws Exception
+  private Profile(Path keyFile, String desc, Game forcedGame) throws Exception
   {
-    init(keyFile, desc);
+    init(keyFile, desc, forcedGame);
   }
 
   // Initializes profile
-  private void init(Path keyFile, String desc) throws Exception
+  private void init(Path keyFile, String desc, Game forcedGame) throws Exception
   {
     if (keyFile == null) {
       throw new Exception("No chitin.key specified");
@@ -1052,6 +1066,11 @@ public final class Profile
 
     if (desc != null) {
       addEntry(Key.GET_GAME_DESC, Type.STRING, desc);
+    }
+
+    addEntry(Key.IS_FORCED_GAME, Type.BOOLEAN, Boolean.valueOf(forcedGame != null));
+    if (forcedGame != null) {
+      addEntry(Key.GET_GAME_TYPE, Type.OBJECT, forcedGame);
     }
 
     // adding chitin.key path
@@ -1082,7 +1101,7 @@ public final class Profile
   private void initGame() throws Exception
   {
     // Main game detection
-    Game game;
+    Game game = null;
 
     // Preparing available root paths
     List<Path> gameRoots = new ArrayList<Path>();
@@ -1093,66 +1112,81 @@ public final class Profile
       gameRoots.addAll(Profile.getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE));
     }
 
-    if (Files.isRegularFile(FileManager.query(gameRoots, "movies/howseer.wbm"))) {
-      game = Game.IWDEE;
+    boolean isForced = (Boolean)getProperty(Key.IS_FORCED_GAME);
+    if (isForced) {
+      game = getGame();
+    }
+
+    if (game == Game.IWDEE ||
+        Files.isRegularFile(FileManager.query(gameRoots, "movies/howseer.wbm"))) {
+      if (game == null) game = Game.IWDEE;
       // Note: baldur.ini is initialized later
-    } else if (Files.isRegularFile(FileManager.query(gameRoots, "movies/pocketzz.wbm"))) {
+    } else if (game == Game.EET || game == Game.BG2EE ||
+               Files.isRegularFile(FileManager.query(gameRoots, "movies/pocketzz.wbm"))) {
       if ((Files.isRegularFile(FileManager.query(gameRoots, "override/EET.flag"))) ||
           (Files.isRegularFile(FileManager.query(gameRoots, "data/eetTU00.bif")))) {
-        game = Game.EET;
+        if (game == null) game = Game.EET;
       } else {
-        game = Game.BG2EE;
+        if (game == null) game = Game.BG2EE;
       }
       // Note: baldur.ini is initialized later
-    } else if (Files.isRegularFile(FileManager.query(gameRoots, "movies/sodcin01.wbm"))) {
-      game = Game.BG1SoD;
+    } else if (game == Game.BG1SoD ||
+               Files.isRegularFile(FileManager.query(gameRoots, "movies/sodcin01.wbm"))) {
+      if (game == null) game = Game.BG1SoD;
       // Note: baldur.ini is initialized later
-    } else if (Files.isRegularFile(FileManager.query(gameRoots, "movies/bgenter.wbm"))) {
-      game = Game.BG1EE;
+    } else if (game == Game.BG1EE ||
+               Files.isRegularFile(FileManager.query(gameRoots, "movies/bgenter.wbm"))) {
+      if (game == null) game = Game.BG1EE;
       // Note: baldur.ini is initialized later
-    } else if ((Files.isRegularFile(FileManager.query(gameRoots, "torment.exe"))) &&
+    } else if ((game == Game.PST ||
+               Files.isRegularFile(FileManager.query(gameRoots, "torment.exe"))) &&
                (!Files.isRegularFile(FileManager.query(gameRoots, "movies/sigil.wbm")))) {
-      game = Game.PST;
+      if (game == null) game = Game.PST;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "torment.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
       if (ini != null && Files.isRegularFile(ini)) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
-    } else if ((Files.isRegularFile(FileManager.query(gameRoots, "idmain.exe"))) &&
+    } else if (game == Game.IWD || game == Game.IWDHoW || game == Game.IWDHowTotLM ||
+               (Files.isRegularFile(FileManager.query(gameRoots, "idmain.exe"))) &&
                (!Files.isRegularFile(FileManager.query(gameRoots, "movies/howseer.wbm")))) {
-      game = Game.IWD;
+      if (game == null) game = Game.IWD;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "icewind.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
       if (ini != null && Files.isRegularFile(ini)) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
-    } else if ((Files.isRegularFile(FileManager.query(gameRoots, "iwd2.exe"))) &&
+    } else if (game == Game.IWD2 ||
+               (Files.isRegularFile(FileManager.query(gameRoots, "iwd2.exe"))) &&
                (Files.isRegularFile(FileManager.query(gameRoots, "Data/Credits.mve")))) {
-      game = Game.IWD2;
+      if (game == null) game = Game.IWD2;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "icewind2.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
       if (ini != null && Files.isRegularFile(ini)) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
-    } else if ((Files.isRegularFile(FileManager.query(gameRoots, "baldur.exe"))) &&
+    } else if (game == Game.BG2SoA || game == Game.BG2ToB || game == Game.BGT ||
+               (Files.isRegularFile(FileManager.query(gameRoots, "baldur.exe"))) &&
                (Files.isRegularFile(FileManager.query(gameRoots, "BGConfig.exe")))) {
-      game = Game.BG2SoA;
+      if (game == null) game = Game.BG2SoA;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
       if (ini != null && Files.isRegularFile(ini)) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
-    } else if ((Files.isRegularFile(FileManager.query(gameRoots, "movies/graphsim.mov"))) || // Mac BG1 detection hack
+    } else if (game == Game.BG1 || game == Game.BG1TotSC ||
+               (Files.isRegularFile(FileManager.query(gameRoots, "movies/graphsim.mov"))) || // Mac BG1 detection hack
                ((Files.isRegularFile(FileManager.query(gameRoots, "baldur.exe"))) &&
                 (Files.isRegularFile(FileManager.query(gameRoots, "Config.exe"))))) {
-      game = Game.BG1;
+      if (game == null) game = Game.BG1;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
       if (ini != null && Files.isRegularFile(ini)) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
-    } else if (Files.isRegularFile(FileManager.query(gameRoots, "bg1tutu.exe"))) {
-      game = Game.Tutu;
+    } else if (game == Game.Tutu ||
+               Files.isRegularFile(FileManager.query(gameRoots, "bg1tutu.exe"))) {
+      if (game == null) game = Game.Tutu;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
       if (ini != null && Files.isRegularFile(ini)) {
@@ -1160,7 +1194,7 @@ public final class Profile
       }
     } else {
       // game == Game.Unknown
-      game = Game.Unknown;
+      if (game == null) game = Game.Unknown;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
       if (ini != null && Files.isRegularFile(ini)) {
@@ -1222,21 +1256,21 @@ public final class Profile
     ResourceFactory.openGame(getChitinKey());
 
     // Expansion pack detection
-    if (game == Game.IWD && ResourceFactory.resourceExists("HOWDRAG.MVE")) {
+    if (!isForced && game == Game.IWD && ResourceFactory.resourceExists("HOWDRAG.MVE")) {
       // detect Trials of the Luremaster
       if (ResourceFactory.resourceExists("AR9715.ARE")) {
-        game = Game.IWDHowToTLM;
+        game = Game.IWDHowTotLM;
       } else {
         game = Game.IWDHoW;
       }
-    } else if (game == Game.BG2SoA && ResourceFactory.resourceExists("SARADUSH.MVE")) {
+    } else if (!isForced && game == Game.BG2SoA && ResourceFactory.resourceExists("SARADUSH.MVE")) {
       // detect BG Trilogy
       if (ResourceFactory.resourceExists("ARU000.ARE")) {
         game = Game.BGT;
       } else {
         game = Game.BG2ToB;
       }
-    } else if (game == Game.BG1 && ResourceFactory.resourceExists("DURLAG.MVE")) {
+    } else if (!isForced && game == Game.BG1 && ResourceFactory.resourceExists("DURLAG.MVE")) {
       game = Game.BG1TotSC;
     }
 
@@ -1273,7 +1307,7 @@ public final class Profile
         break;
       case IWD:
       case IWDHoW:
-      case IWDHowToTLM:
+      case IWDHowTotLM:
         engine = Engine.IWD;
         break;
       case IWD2:

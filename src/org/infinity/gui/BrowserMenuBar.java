@@ -867,7 +867,7 @@ public final class BrowserMenuBar extends JMenuBar
 
       public ResInfo(StructureFactory.ResType id, String text) {
         this(id, text, new Profile.Game[]{Profile.Game.BG1, Profile.Game.BG1TotSC, Profile.Game.PST,
-                                          Profile.Game.IWD, Profile.Game.IWDHoW, Profile.Game.IWDHowToTLM,
+                                          Profile.Game.IWD, Profile.Game.IWDHoW, Profile.Game.IWDHowTotLM,
                                           Profile.Game.IWD2, Profile.Game.BG2SoA, Profile.Game.BG2ToB,
                                           Profile.Game.BG1EE, Profile.Game.BG1SoD, Profile.Game.BG2EE,
                                           Profile.Game.IWDEE, Profile.Game.EET});
@@ -900,7 +900,7 @@ public final class BrowserMenuBar extends JMenuBar
       new ResInfo(StructureFactory.ResType.RES_CHR, "CHR",
                   new Profile.Game[]{Profile.Game.BG1, Profile.Game.BG1TotSC,
                                      Profile.Game.BG2SoA, Profile.Game.BG2ToB,
-                                     Profile.Game.IWD, Profile.Game.IWDHoW, Profile.Game.IWDHowToTLM,
+                                     Profile.Game.IWD, Profile.Game.IWDHoW, Profile.Game.IWDHowTotLM,
                                      Profile.Game.IWD2, Profile.Game.BG1EE, Profile.Game.BG1SoD,
                                      Profile.Game.BG2EE, Profile.Game.IWDEE, Profile.Game.EET}),
       new ResInfo(StructureFactory.ResType.RES_CRE, "CRE"),
@@ -913,7 +913,7 @@ public final class BrowserMenuBar extends JMenuBar
       new ResInfo(StructureFactory.ResType.RES_ITM, "ITM"),
       new ResInfo(StructureFactory.ResType.RES_INI, "INI",
                   new Profile.Game[]{Profile.Game.PST, Profile.Game.IWD, Profile.Game.IWDHoW,
-                                     Profile.Game.IWDHowToTLM, Profile.Game.IWD2,
+                                     Profile.Game.IWDHowTotLM, Profile.Game.IWD2,
                                      Profile.Game.BG1EE, Profile.Game.BG1SoD, Profile.Game.BG2EE,
                                      Profile.Game.IWDEE, Profile.Game.EET}),
       new ResInfo(StructureFactory.ResType.RES_PRO, "PRO",
@@ -921,7 +921,7 @@ public final class BrowserMenuBar extends JMenuBar
                                      Profile.Game.BG1EE, Profile.Game.BG1SoD, Profile.Game.BG2EE,
                                      Profile.Game.IWDEE, Profile.Game.EET}),
       new ResInfo(StructureFactory.ResType.RES_RES, "RES",
-                  new Profile.Game[]{Profile.Game.IWD, Profile.Game.IWDHoW, Profile.Game.IWDHowToTLM,
+                  new Profile.Game[]{Profile.Game.IWD, Profile.Game.IWDHoW, Profile.Game.IWDHowTotLM,
                                      Profile.Game.IWD2}),
       new ResInfo(StructureFactory.ResType.RES_SPL, "SPL"),
       new ResInfo(StructureFactory.ResType.RES_SRC, "SRC",
