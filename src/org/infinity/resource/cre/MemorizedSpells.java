@@ -6,7 +6,7 @@ package org.infinity.resource.cre;
 
 import java.nio.ByteBuffer;
 
-import org.infinity.datatype.Bitmap;
+import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
@@ -46,7 +46,7 @@ public final class MemorizedSpells extends AbstractStruct implements AddRemovabl
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, CRE_MEMORIZED_RESREF, "SPL"));
-    addField(new Bitmap(buffer, offset + 8, 2, CRE_MEMORIZED_MEMORIZATION, s_mem));
+    addField(new Flag(buffer, offset + 8, 2, CRE_MEMORIZED_MEMORIZATION, s_mem));
     addField(new Unknown(buffer, offset + 10, 2));
     return offset + 12;
   }
