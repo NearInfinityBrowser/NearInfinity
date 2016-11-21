@@ -506,7 +506,8 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
       if (decoder.getType() == BamDecoder.Type.BAMC) {
         miExportBAM = new JMenuItem("decompressed");
         miExportBAM.addActionListener(this);
-      } else if (decoder.getType() == BamDecoder.Type.BAMV1 && Profile.getEngine() == Profile.Engine.PST) {
+      } else if (decoder.getType() == BamDecoder.Type.BAMV1 &&
+                 (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BAMC_V1)) {
         miExportBAMC = new JMenuItem("compressed");
         miExportBAMC.addActionListener(this);
       } else if (decoder.getType() == BamDecoder.Type.BAMV2) {
