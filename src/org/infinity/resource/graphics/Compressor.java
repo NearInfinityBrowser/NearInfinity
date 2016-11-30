@@ -31,7 +31,7 @@ public final class Compressor
         signature.length() == 4 && version.length() == 4) {
       buffer.position(0);
       byte[] data = new byte[buffer.remaining()];
-      buffer.put(data);
+      buffer.get(data);
       data = compress(data, 0, data.length, false);
       if (data != null) {
         retVal = StreamUtils.getByteBuffer(12 + data.length);
