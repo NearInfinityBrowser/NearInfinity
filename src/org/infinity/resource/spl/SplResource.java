@@ -83,17 +83,20 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
                                               "Non-combat ability", "", "", "", "", "", "", "",
                                               "Ex: Can target invisible", "EE/Ex: Castable when silenced"};
   public static final String[] s_exclude = { "None",
-                                             "Chaotic;Includes Chaotic Good, Chaotic Neutral and Chaotic Evil",
-                                             "Evil;Includes Lawful Evil, Neutral Evil and Chaotic Evil",
-                                             "Good;Includes Lawful Good, Neutral Good and Chaotic Good",
-                                             "... Neutral;Includes Lawful Neutral, True Neutral and Chaotic Neutral",
-                                             "Lawful;Includes Lawful Good, Lawful Neutral and Lawful Evil",
-                                             "Neutral ...;Includes Neutral Good, True Neutral and Neutral Evil",
+                                             "Chaotic/Berserker;Includes Chaotic Good, Chaotic Neutral and Chaotic Evil as well as Berserkers",
+                                             "Evil/Wizard Slayer;Includes Lawful Evil, Neutral Evil and Chaotic Evil as well as Wizard Slayers",
+                                             "Good/Kensai;Includes Lawful Good, Neutral Good and Chaotic Good as well as Kensais",
+                                             "...Neutral/Cavalier;Includes Lawful Neutral, True Neutral and Chaotic Neutral as well as Cavaliers",
+                                             "Lawful/Inquisitor;Includes Lawful Good, Lawful Neutral and Lawful Evil as well as Inquisitors",
+                                             "Neutral.../Undead Hunter;Includes Neutral Good, True Neutral and Neutral Evil as well as Undead Hunters",
                                              "Abjurer", "Conjurer", "Diviner", "Enchanter",
                                              "Illusionist", "Invoker", "Necromancer", "Transmuter",
-                                             "Generalist", "", "", "", "", "", "", "", "", "Elf",
-                                             "Dwarf", "Half-elf", "Halfling", "Human", "Gnome", "",
-                                             "Cleric", "Druid"};
+                                             "Generalist;Includes trueclass mages, sorcerers and bards",
+                                             "Archer", "Stalker", "Beastmaster", "Assassin", "Bounty Hunter",
+                                             "Swashbuckler", "Blade", "Jester", "Skald", "Priest of Talos",
+                                             "Priest of Helm", "Priest of Lathander", "Totemic Druid",
+                                             "Shapeshifter", "Avenger", "Cleric/Paladin/Barbarian",
+                                             "Druid/Ranger/Wildmage"};
 
   private StructHexViewer hexViewer;
 
