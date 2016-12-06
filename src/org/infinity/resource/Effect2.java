@@ -55,6 +55,8 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
                                             "", "Hostile", "No LOS required", "Allow spotting", "Outdoors only",
                                             "Non-magical ability", "Trigger/Contingency", "Non-combat ability"};
   public static final String[] s_restype = {"None", "Spell", "Item"};
+  public static final String s_dispel[] = {"Natural/Nonmagical", "Dispel/Not bypass resistance",
+                                           "Not dispel/bypass resistance", "Dispel/Bypass resistance"};
 
   public static int readCommon(List<StructEntry> list, ByteBuffer buffer, int offset)
   {
@@ -62,7 +64,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     list.add(new Unknown(buffer, offset + 4, 4));
     list.add(new DecNumber(buffer, offset + 8, 4, EFFECT_MIN_LEVEL));
     list.add(new DecNumber(buffer, offset + 12, 4, EFFECT_MAX_LEVEL));
-    list.add(new Bitmap(buffer, offset + 16, 4, EFFECT_DISPEL_TYPE, EffectType.s_dispel));
+    list.add(new Bitmap(buffer, offset + 16, 4, EFFECT_DISPEL_TYPE, s_dispel));
     list.add(new DecNumber(buffer, offset + 20, 4, EFFECT_PARAMETER_3));
     list.add(new DecNumber(buffer, offset + 24, 4, EFFECT_PARAMETER_4));
     list.add(new Unknown(buffer, offset + 28, 4));
