@@ -56,7 +56,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
                                             "Non-magical ability", "Trigger/Contingency", "Non-combat ability"};
   public static final String[] s_restype = {"None", "Spell", "Item"};
   public static final String s_dispel[] = {"Natural/Nonmagical", "Dispel/Not bypass resistance",
-                                           "Not dispel/bypass resistance", "Dispel/Bypass resistance"};
+                                           "Not dispel/Bypass resistance", "Dispel/Bypass resistance"};
 
   public static int readCommon(List<StructEntry> list, ByteBuffer buffer, int offset)
   {
