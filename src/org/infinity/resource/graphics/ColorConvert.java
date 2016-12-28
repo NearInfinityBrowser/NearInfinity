@@ -530,7 +530,7 @@ public class ColorConvert
           int[] retVal = new int[count];
           int transColor = -1;
           if (size == 772) {
-            is.skip(2);
+            is.skip(3);
             transColor = is.read();
           }
           for (int ofs = 0, i = 0; i < count; i++, ofs += 3) {
