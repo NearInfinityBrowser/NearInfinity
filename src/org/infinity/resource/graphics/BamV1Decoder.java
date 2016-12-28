@@ -224,17 +224,13 @@ public class BamV1Decoder extends BamDecoder
 
         // initializing palette
         bamPalette = new int[256];
-        int alphaMask = Profile.isEnhancedEdition() ? 0 : 0xff000000;
-        boolean alphaUsed = false;  // determines whether alpha is actually used
         for (int i = 0; i < 256; i++) {
-          bamPalette[i] = alphaMask | bamBuffer.getInt(ofsPalette + 4*i);
-          alphaUsed |= (bamPalette[i] & 0xff000000) != 0;
-        }
-        if (!alphaUsed) {
-          // fix palette if needed
-          for (int i = 0; i < bamPalette.length; i++) {
-            bamPalette[i] |= 0xff000000;
+          int col = bamBuffer.getInt(ofsPalette + 4*i);
+          // handling alpha backwards compatibility with non-enhanced games
+          if ((col & 0xff000000) == 0) {
+            col |= 0xff000000;
           }
+          bamPalette[i] = col;
         }
 
         // creating default bam control instance as a fallback option
@@ -644,8 +640,12 @@ public class BamV1Decoder extends BamDecoder
 
     private void init()
     {
-      this.transparencyEnabled = true;
-      this.transparencyMode = TransparencyMode.NORMAL;
+      transparencyEnabled = true;
+      if (Profile.getEngine() == Profile.Engine.BG1 || Profile.getEngine() == Profile.Engine.PST) {
+        transparencyMode = TransparencyMode.NORMAL;
+      } else {
+        transparencyMode = TransparencyMode.FIRST_INDEX_ONLY;
+      }
       currentPalette = null;
       externalPalette = null;
       currentCycle = currentFrame = 0;

@@ -1069,7 +1069,7 @@ public class PvrDecoder
   }
 
 
-  // Decodes DXTn pixel data.
+  // Decodes PVRTC pixel data.
   private static class DecodePVRT
   {
     // The local cache list for decoded PVR textures. The "key" has to be a unique PvrInfo structure.
