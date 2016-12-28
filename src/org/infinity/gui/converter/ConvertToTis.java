@@ -4,6 +4,7 @@
 
 package org.infinity.gui.converter;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -513,7 +514,8 @@ public class ConvertToTis extends ChildFrame
       BufferedImage texture = ColorConvert.createCompatibleImage(w, h, true);
       Graphics2D g = texture.createGraphics();
       g.setBackground(new Color(0, true));
-      g.setColor(Color.BLACK);
+      g.setComposite(AlphaComposite.Src);
+      g.setColor(new Color(0, true));
       g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
       int tw = srcImg.getWidth() / 64;
       for (final TileEntry entry: entryList) {

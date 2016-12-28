@@ -1298,10 +1298,9 @@ public class PseudoBamDecoder extends BamDecoder
       BufferedImage texture = ColorConvert.createCompatibleImage(tw, th, true);
       Graphics2D g = texture.createGraphics();
       try {
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+        g.setComposite(AlphaComposite.Src);
         g.setColor(TransparentColor);
+        g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
         for (int frameIdx = 0; frameIdx < listFrames.size(); frameIdx++) {
           BufferedImage image = listFrames.get(frameIdx).frame;
           FrameDataV2 frame = framesList.get(frameIdx);
