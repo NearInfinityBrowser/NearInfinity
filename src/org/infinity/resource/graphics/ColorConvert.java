@@ -523,13 +523,22 @@ public class ColorConvert
     if (file != null && Files.isRegularFile(file)) {
       try (InputStream is = StreamUtils.getInputStream(file)) {
         int size = (int)Files.size(file);
-        if (size == 768) {
-          byte[] palData = new byte[size];
+        if (size >= 768) {
+          byte[] palData = new byte[768];
           is.read(palData);
-          int count = size / 3;
+          int count = 256;
           int[] retVal = new int[count];
+          int transColor = -1;
+          if (size == 772) {
+            is.skip(2);
+            transColor = is.read();
+          }
           for (int ofs = 0, i = 0; i < count; i++, ofs += 3) {
-            retVal[i] = ((palData[ofs] & 0xff) << 16) | ((palData[ofs+1] & 0xff) << 8) | (palData[ofs+2] & 0xff);
+            if (i == transColor) {
+              retVal[i] = 0x00ff00;
+            } else {
+              retVal[i] = ((palData[ofs] & 0xff) << 16) | ((palData[ofs+1] & 0xff) << 8) | (palData[ofs+2] & 0xff);
+            }
           }
           return retVal;
         } else {
