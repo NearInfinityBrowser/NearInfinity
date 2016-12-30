@@ -18,6 +18,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -40,6 +42,7 @@ import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.RenderCanvas;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
@@ -52,6 +55,8 @@ import org.infinity.util.io.StreamUtils;
 
 public class MosResource implements Resource, ActionListener, PropertyChangeListener
 {
+  private static final ButtonPanel.Control Properties = ButtonPanel.Control.CUSTOM_1;
+
   private static boolean enableTransparency = true;
 
   private final ResourceEntry entry;
@@ -90,6 +95,8 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
       new ReferenceSearcher(entry, panel.getTopLevelAncestor());
+    } else if (buttonPanel.getControlByType(Properties) == event.getSource()) {
+      showProperties();
     } else if (event.getSource() == miExport) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExportMOSV1) {
@@ -268,6 +275,10 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
     ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(mi);
 
+    JButton bProperties = new JButton("Properties...", Icons.getIcon(Icons.ICON_EDIT_16));
+    bProperties.addActionListener(this);
+    buttonPanel.addControl(bProperties, Properties);
+
     rcImage = new RenderCanvas();
     rcImage.setHorizontalAlignment(SwingConstants.CENTER);
     rcImage.setVerticalAlignment(SwingConstants.CENTER);
@@ -310,6 +321,67 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
       return loadImage();
     }
     return null;
+  }
+
+  // Shows message box about basic resource properties
+  private void showProperties()
+  {
+    MosDecoder decoder = null;
+    try {
+      decoder = MosDecoder.loadMos(entry);
+      String resName = entry.getResourceName().toUpperCase(Locale.ENGLISH);
+      int width = decoder.getWidth();
+      int height = decoder.getHeight();
+      String br = "<br />";
+      StringBuilder pageList = new StringBuilder();
+      String type;
+      switch (decoder.getType()) {
+        case MOSV1:
+          type = "MOS V1 (uncompressed)";
+          break;
+        case MOSC:
+          type = "MOS V1 (compressed)";
+          break;
+        case MOSV2:
+        {
+          type = "MOS V2";
+          Set<Integer> pvrzPages = ((MosV2Decoder)decoder).getReferencedPVRZPages();
+          int counter = 8;
+          for (Integer page: pvrzPages) {
+            if (pageList.length() > 0) {
+              pageList.append(", ");
+              if (counter == 0) {
+                pageList.append(br);
+                counter = 8;
+              }
+            }
+            pageList.append(page.toString());
+            counter--;
+          }
+          break;
+        }
+        default:
+          type = "Undetermined";
+      }
+
+      StringBuilder sb = new StringBuilder("<html><div style='font-family:monospace'>");
+      sb.append("Type:&nbsp;&nbsp;&nbsp;").append(type).append(br);
+      sb.append("Width:&nbsp;&nbsp;").append(width).append(br);
+      sb.append("Height:&nbsp;").append(height).append(br);
+      if (decoder.getType() == MosDecoder.Type.MOSV2) {
+        sb.append(br).append("Referenced PVRZ pages:").append(br);
+        sb.append(pageList.toString()).append(br);
+      }
+      sb.append("</code></html>");
+      JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName,
+                                    JOptionPane.INFORMATION_MESSAGE);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      if (decoder != null) {
+        decoder.close();
+      }
+    }
   }
 
   private BufferedImage loadImage()

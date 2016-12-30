@@ -14,7 +14,10 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
@@ -29,6 +32,7 @@ import org.infinity.util.io.StreamUtils;
  */
 public class BamV2Decoder extends BamDecoder
 {
+  private final TreeSet<Integer> pvrIndices = new TreeSet<>();
   private final List<BamV2FrameEntry> listFrames = new ArrayList<BamV2FrameEntry>();
   private final List<CycleEntry> listCycles = new ArrayList<CycleEntry>();
   private final BamV2FrameEntry defaultFrameInfo = new BamV2FrameEntry(null, 0, 0);
@@ -67,6 +71,7 @@ public class BamV2Decoder extends BamDecoder
     bamBuffer = null;
     listFrames.clear();
     listCycles.clear();
+    pvrIndices.clear();
   }
 
   @Override
@@ -144,6 +149,12 @@ public class BamV2Decoder extends BamDecoder
   public int getDataBlockCount()
   {
     return numDataBlocks;
+  }
+
+  /** Returns the set of referenced PVRZ pages by this BAM. */
+  public Set<Integer> getReferencedPVRZPages()
+  {
+    return Collections.unmodifiableSet(pvrIndices);
   }
 
   private void init()
@@ -233,6 +244,7 @@ public class BamV2Decoder extends BamDecoder
   private PvrDecoder getPVR(int page)
   {
     try {
+      pvrIndices.add(Integer.valueOf(page));
       String name = String.format("MOS%1$04d.PVRZ", page);
       ResourceEntry entry = null;
       if (bamPath != null) {
