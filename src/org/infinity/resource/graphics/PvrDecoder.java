@@ -22,6 +22,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.zip.InflaterInputStream;
 
+import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.io.FileManager;
@@ -86,7 +87,12 @@ public class PvrDecoder
       throw new NullPointerException();
     }
     try {
-      String key = entry.getResourceName().toUpperCase(Locale.ENGLISH);
+      String key = null;
+      if (entry instanceof FileResourceEntry) {
+        key = ((FileResourceEntry)entry).getActualPath().toString();
+      } else {
+        key = entry.getResourceName();
+      }
       PvrDecoder decoder = getCachedPvrDecoder(key);
       if (decoder != null) {
         return decoder;
@@ -110,7 +116,7 @@ public class PvrDecoder
       throw new NullPointerException();
     }
     try {
-      String key = fileName.toUpperCase(Locale.ENGLISH);
+      String key = fileName;
       PvrDecoder decoder = getCachedPvrDecoder(key);
       if (decoder != null) {
         return decoder;
@@ -131,7 +137,7 @@ public class PvrDecoder
   public static PvrDecoder loadPvr(Path file)
   {
     try {
-      String key = file.getFileName().toString().toUpperCase(Locale.ENGLISH);
+      String key = file.getFileName().toString();
       PvrDecoder decoder = getCachedPvrDecoder(key);
       if (decoder != null) {
         return decoder;
@@ -208,6 +214,7 @@ public class PvrDecoder
   {
     PvrDecoder retVal = null;
     if (key != null && !key.isEmpty()) {
+      key = key.toUpperCase(Locale.ENGLISH);
       if (pvrCache.containsKey(key)) {
         retVal = pvrCache.get(key);
         // re-inserting entry to prevent premature removal from cache
