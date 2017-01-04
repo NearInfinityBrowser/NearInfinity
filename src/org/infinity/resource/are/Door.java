@@ -46,10 +46,10 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
   public static final String ARE_DOOR_CLOSED_BOUNDING_BOX_TOP           = "Bounding box (closed): Top";
   public static final String ARE_DOOR_CLOSED_BOUNDING_BOX_RIGHT         = "Bounding box (closed): Right";
   public static final String ARE_DOOR_CLOSED_BOUNDING_BOX_BOTTOM        = "Bounding box (closed): Bottom";
-  public static final String ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN   = "First vertex index (impeded, open)";
-  public static final String ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN         = "# vertices (impeded, open)";
-  public static final String ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED       = "# vertices (impeded, closed)";
-  public static final String ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED = "First vertex index (impeded, closed)";
+  public static final String ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN   = "First impeded cell index (open)";
+  public static final String ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN         = "# impeded cells (open)";
+  public static final String ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED       = "# impeded cells (closed)";
+  public static final String ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED = "First impeded cell index (closed)";
   public static final String ARE_DOOR_CURRENT_HP                        = "Current HP";
   public static final String ARE_DOOR_EFFECTIVE_AC                      = "Effective AC";
   public static final String ARE_DOOR_SOUND_OPENING                     = "Opening sound";
