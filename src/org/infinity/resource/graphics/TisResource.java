@@ -13,6 +13,7 @@ import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Transparency;
 import java.awt.event.ActionEvent;
@@ -33,6 +34,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -59,6 +61,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.infinity.NearInfinity;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.TileGrid;
@@ -71,6 +74,10 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.wed.Door;
+import org.infinity.resource.wed.Overlay;
+import org.infinity.resource.wed.Tilemap;
+import org.infinity.resource.wed.WedResource;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.BinPack2D;
 import org.infinity.util.DynamicArray;
@@ -710,10 +717,24 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
           progress.setMillisToPopup(0);
         }
 
+        // try to get associated WED resource
         int numTiles = decoder.getTileCount();
-        int tilesPerRow = getDefaultTilesPerRow();
-        List<ConvertToTis.TileEntry> entryList = new ArrayList<ConvertToTis.TileEntry>(numTiles);
-        List<BinPack2D> pageList = new ArrayList<BinPack2D>();
+        String tisName = decoder.getResourceEntry().getResourceName().toUpperCase(Locale.ENGLISH);
+        String wedName = tisName.replaceFirst("\\.TIS$", ".WED");
+        WedResource wed = null;
+        Overlay ovl = null;
+        try {
+          if (ResourceFactory.resourceExists(wedName)) {
+            wed = new WedResource(ResourceFactory.getResourceEntry(wedName));
+            if (wed != null) {
+              ovl = (Overlay)wed.getAttribute(Overlay.WED_OVERLAY + " 0");
+            }
+          }
+        } catch (Exception e) {
+          wed = null;
+          ovl = null;
+          e.printStackTrace();
+        }
 
         try (BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream(output))) {
           // writing header data
@@ -727,53 +748,157 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
 
           // processing tiles
           final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BOTTOM_LEFT_RULE;
-          final int pageDim = 1024;
-          final int tileDim = 64;
-          final int tilesPerDim = pageDim / tileDim;
-          int tisWidth = tilesPerRow*tileDim;
-          int tisHeight = ((numTiles+tilesPerRow-1) / tilesPerRow) * tileDim;
-          int pw = tisWidth / pageDim + (((tisWidth % pageDim) != 0) ? 1 : 0);
-          int ph = tisHeight / pageDim + (((tisHeight % pageDim) != 0) ? 1 : 0);
+          final int pageDim = 16;   // 16 tiles a 64x64 pixels
+          int tisWidth = tileGrid.getTileColumns();
+          int tisHeight = (numTiles+tisWidth-1) / tisWidth;
+          int numTilesPrimary = numTiles;
+          if (ovl != null) {
+            tisWidth = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
+            tisHeight = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_HEIGHT)).getValue();
+            numTilesPrimary = tisWidth * tisHeight;
+          }
+          boolean[] markedTiles = new boolean[numTiles];
+          Arrays.fill(markedTiles, false);
+          List<TileRect> listRegions = new ArrayList<TileRect>(256);
 
+          // divide primary tiles into regions
+          int pw = (tisWidth + pageDim - 1) / pageDim;
+          int ph = (tisHeight + pageDim - 1) / pageDim;
           for (int py = 0; py < ph; py++) {
+            int y = py * pageDim;
+            int h = Math.min(pageDim, tisHeight - y);
             for (int px = 0; px < pw; px++) {
-              int x = px * pageDim, y = py * pageDim;
+              int x = px * pageDim;
               int w = Math.min(pageDim, tisWidth - x);
-              int h = Math.min(pageDim, tisHeight - y);
 
-              Dimension space = new Dimension(w / tileDim, h / tileDim);
-              int pageIdx = -1;
-              Rectangle rectMatch = null;
-              for (int i = 0; i < pageList.size(); i++) {
-                BinPack2D packer = pageList.get(i);
-                rectMatch = packer.insert(space.width, space.height, binPackRule);
-                if (rectMatch.height > 0) {
-                  pageIdx = i;
-                  break;
-                }
-              }
+              TileRect rect = new TileRect(x, y, w, h, tisWidth, numTiles, markedTiles);
+              listRegions.add(rect);
+            }
+          }
 
-              // create new page?
-              if (pageIdx < 0) {
-                BinPack2D packer = new BinPack2D(tilesPerDim, tilesPerDim);
-                pageList.add(packer);
-                pageIdx = pageList.size() - 1;
-                rectMatch = packer.insert(space.width, space.height, binPackRule);
-              }
-
-              // registering tile entries
-              int tileIdx = (y*tisWidth)/(tileDim*tileDim) + x/tileDim;
-              for (int ty = 0; ty < space.height; ty++, tileIdx += tisWidth/tileDim) {
-                for (int tx = 0; tx < space.width; tx++) {
-                  // marking page index as incomplete
-                  if (tileIdx + tx < numTiles) {
-                    ConvertToTis.TileEntry entry =
-                        new ConvertToTis.TileEntry(tileIdx + tx, pageIdx,
-                                                   (rectMatch.x + tx)*tileDim,
-                                                   (rectMatch.y + ty)*tileDim);
-                    entryList.add(entry);
+          // defining additional regions from WED door structures
+          if (wed != null) {
+            int numDoors = ((IsNumeric)wed.getAttribute(WedResource.WED_NUM_DOORS)).getValue();
+            for (int doorIdx = 0; doorIdx < numDoors; doorIdx++) {
+              // for each door...
+              Door door = (Door)wed.getAttribute(Door.WED_DOOR + " " + doorIdx);
+              int numDoorTiles = ((IsNumeric)door.getAttribute(Door.WED_DOOR_NUM_TILEMAP_INDICES)).getValue();
+              if (numDoorTiles > 0) {
+                Point[] doorTiles = new Point[numDoorTiles];
+                Arrays.fill(doorTiles, null);
+                // getting actual tile indices
+                for (int doorTileIdx = 0; doorTileIdx < numDoorTiles; doorTileIdx++) {
+                  // for each door tilemap...
+                  Point p = new Point();  // x=tilemap, y=tilemap index
+                  int doorTile = ((IsNumeric)door.getAttribute(Door.WED_DOOR_TILEMAP_INDEX + " " + doorTileIdx)).getValue();
+                  p.x = doorTile;
+                  Tilemap tileMap = (Tilemap)ovl.getAttribute(Tilemap.WED_TILEMAP + " " + doorTile);
+                  // we need both primary and secondary tile index
+                  int index = ((IsNumeric)tileMap.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_SEC)).getValue();
+                  if (index > numTilesPrimary) {
+                    // found already!
+                    p.y = index;
+                    doorTiles[doorTileIdx] = p;
+                  } else {
+                    // processing another redirection for getting the primary tile index
+                    index = ((IsNumeric)tileMap.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_PRI)).getValue();
+                    if (index >= 0 && index < numTilesPrimary) {
+                      index = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_TILEMAP_INDEX + " " + index)).getValue();
+                      if (index > numTilesPrimary) {
+                        // found!
+                        p.y = index;
+                        doorTiles[doorTileIdx] = p;
+                      }
+                    }
                   }
                 }
+
+                int left = Integer.MAX_VALUE, right = Integer.MIN_VALUE;
+                int top = Integer.MAX_VALUE, bottom = Integer.MIN_VALUE;
+                boolean initialized = false;
+                for (Point p: doorTiles) {
+                  if (p != null) {
+                    initialized = true;
+                    left = Math.min(p.x % tisWidth, left);
+                    right = Math.max(p.x % tisWidth, right);
+                    top = Math.min(p.x / tisWidth, top);
+                    bottom = Math.max(p.x / tisWidth, bottom);
+                  }
+                }
+                if (initialized) {
+                  // divide into regions in case door tile size exceeds max. texture size
+                  int doorWidth = right - left + 1;
+                  int doorHeight = bottom - top + 1;
+                  pw = (doorWidth + pageDim - 1) / pageDim;
+                  ph = (doorHeight + pageDim - 1) / pageDim;
+                  for (int py = 0; py < ph; py++) {
+                    int y = py * pageDim;
+                    int h = Math.min(pageDim, doorHeight - y);
+                    for (int px = 0; px < pw; px++) {
+                      int x = px * pageDim;
+                      int w = Math.min(pageDim, doorWidth - x);
+
+                      TileRect rect = new TileRect(w, h);
+                      for (Point p: doorTiles) {
+                        if (p != null) {
+                          int dx = (p.x % tisWidth) - left;
+                          int dy = (p.x / tisWidth) - top;
+                          if (dx >= x && dx < x+w && dy >= y && dy < y+h &&
+                              rect.setMarked(dx, dy, p.y)) {
+                            markedTiles[p.y] = true;
+                          }
+                        }
+                      }
+                      listRegions.add(rect);
+                    }
+                  }
+                }
+              }
+            }
+
+            // handling remaining unmarked tiles
+            for (int idx = 0; idx < markedTiles.length; idx++) {
+              if (markedTiles[idx] == false) {
+                TileRect rect = new TileRect(1, 1);
+                rect.setMarked(0, 0, idx);
+                listRegions.add(rect);
+              }
+            }
+          }
+
+          // packing tileset regions
+          List<ConvertToTis.TileEntry> entryList = new ArrayList<ConvertToTis.TileEntry>(numTiles);
+          List<BinPack2D> pageList = new ArrayList<BinPack2D>();
+          for (TileRect rect: listRegions) {
+            Dimension space = new Dimension(rect.bounds);
+            int pageIndex = -1;
+            Rectangle rectMatch = null;
+            for (int idx = 0; idx < pageList.size(); idx++) {
+              BinPack2D packer = pageList.get(idx);
+              rectMatch = packer.insert(space.width, space.height, binPackRule);
+              if (rectMatch.height > 0) {
+                pageIndex = idx;
+                break;
+              }
+            }
+
+            // create new page?
+            if (pageIndex < 0) {
+              BinPack2D packer = new BinPack2D(pageDim, pageDim);
+              pageList.add(packer);
+              pageIndex = pageList.size() - 1;
+              rectMatch = packer.insert(space.width, space.height, binPackRule);
+            }
+
+            // registering tile entries
+            for (int idx = 0; idx < rect.indices.length; idx++) {
+              int x = rect.getX(idx);
+              int y = rect.getY(idx);
+              ConvertToTis.TileEntry entry;
+              if (rect.indices[idx] >= 0) {
+                entry = new ConvertToTis.TileEntry(rect.indices[idx], pageIndex,
+                                                   (rectMatch.x + x) * 64, (rectMatch.y + y) * 64);
+                entryList.add(entry);
               }
             }
           }
@@ -906,7 +1031,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
         try {
           g.setBackground(new Color(0, true));
-          g.setColor(Color.BLACK);
+          g.setColor(new Color(0, true));
           g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
           for (final ConvertToTis.TileEntry entry: entryList) {
             if (entry.page == pageIdx) {
@@ -1119,5 +1244,78 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
       }
     }
     return retVal;
+  }
+
+//-------------------------- INNER CLASSES --------------------------
+
+  // Tracks regions of tiles used for the tile -> pvrz packing algorithm
+  private static class TileRect
+  {
+    Dimension bounds;
+    int[] indices;
+
+    /** Creates an empty TileRect structure. */
+    TileRect(int width, int height)
+    {
+      width = Math.max(1, width);
+      height = Math.max(1, height);
+      bounds = new Dimension(width, height);
+      indices = new int[width*height];
+      Arrays.fill(indices, -1);
+    }
+
+    /** Automatically fills the TileRect structure with valid tile indices. */
+    TileRect(int left, int top, int width, int height, int rowLength, int numTiles,
+             boolean[] markedTiles)
+    {
+      left = Math.max(0, left);
+      top = Math.max(0, top);
+      width = Math.max(1, width);
+      height = Math.max(1, height);
+      rowLength = Math.max(width, rowLength);
+      bounds = new Dimension(width, height);
+      indices = new int[width*height];
+      for (int by = 0; by < height; by++) {
+        int idx = by * width;
+        int ofs = (top + by) * rowLength;
+        for (int bx = 0; bx < width; bx++) {
+          int tileIdx = ofs + left + bx;
+          if (tileIdx < numTiles) {
+            indices[idx + bx] = tileIdx;
+            if (tileIdx < markedTiles.length) {
+              markedTiles[tileIdx] = true;
+            }
+          } else {
+            indices[idx + bx] = -1;
+          }
+        }
+      }
+    }
+
+    /** Sets the specified tile index in the TileRect structure. x and y specify a position
+     *  within the TileRect structure. tileIndex is the absolute tile index. */
+    public boolean setMarked(int x, int y, int tileIndex)
+    {
+      tileIndex = Math.max(-1, tileIndex);
+      if (x >= 0 && x < bounds.width && y >= 0 && y < bounds.height) {
+        int index = y * bounds.width + x;
+        if ((tileIndex != -1 && indices[index] == -1) ||
+            (tileIndex == -1 && indices[index] != -1)) {
+          indices[index] = tileIndex;
+          return true;
+        }
+      }
+      return false;
+    }
+
+    public int getX(int index)
+    {
+      return (index >= 0 && index < bounds.width * bounds.height) ? index % bounds.width : -1;
+    }
+
+    public int getY(int index)
+    {
+      return (index >= 0 && index < bounds.width * bounds.height) ? index / bounds.width : -1;
+    }
   }
 }
