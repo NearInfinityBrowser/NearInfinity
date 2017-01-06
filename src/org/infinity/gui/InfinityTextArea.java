@@ -57,6 +57,8 @@ public class InfinityTextArea extends RSyntaxTextArea
     ECLIPSE,
     /** Color scheme based on IntelliJ IDEA's defaults. */
     IDEA,
+    /** A dark color scheme inspired by "Monokai". */
+    MONOKAI,
     /** Color scheme based on Microsoft Visual Studio's defaults. */
     VS,
     /** Color scheme loosely based on the WeiDU Syntax Highlighter for Notepad++. */
@@ -76,6 +78,8 @@ public class InfinityTextArea extends RSyntaxTextArea
   public static final String SchemeEclipse = "org/infinity/resource/text/modes/ThemeEclipse.xml";
   /** IntelliJ IDEA color scheme */
   public static final String SchemeIdea = "org/infinity/resource/text/modes/ThemeIdea.xml";
+  /** "Monokai" color scheme */
+  public static final String SchemeMonokai = "org/infinity/resource/text/modes/ThemeMonokai.xml";
   /** Visual Studio color scheme */
   public static final String SchemeVs = "org/infinity/resource/text/modes/ThemeVs.xml";
   /** BCS color scheme based on WeiDU Highlighter for Notepad++ */
@@ -100,6 +104,7 @@ public class InfinityTextArea extends RSyntaxTextArea
     SchemeMap.put(Scheme.DARK, SchemeDark);
     SchemeMap.put(Scheme.ECLIPSE, SchemeEclipse);
     SchemeMap.put(Scheme.IDEA, SchemeIdea);
+    SchemeMap.put(Scheme.MONOKAI, SchemeMonokai);
     SchemeMap.put(Scheme.VS, SchemeVs);
     SchemeMap.put(Scheme.BCS, SchemeBCS);
   }

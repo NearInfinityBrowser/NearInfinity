@@ -1551,6 +1551,7 @@ public final class BrowserMenuBar extends JMenuBar
       {InfinityTextArea.SchemeDark, "Dark", "A dark scheme based off of Notepad++'s Obsidian theme"},
       {InfinityTextArea.SchemeEclipse, "Eclipse", "Mimics Eclipse's default color scheme"},
       {InfinityTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
+      {InfinityTextArea.SchemeMonokai, "Monokai", "A dark color scheme inspired by \"Monokai\""},
       {InfinityTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
       {InfinityTextArea.SchemeBCS, "BCS Light", "A color scheme which is loosely based on the WeiDU Syntax Highlighter for Notepad++"},
 //      {null, "External color scheme...", "Use an external color scheme definition file"},
@@ -1561,6 +1562,7 @@ public final class BrowserMenuBar extends JMenuBar
       {InfinityTextArea.SchemeDark, "Dark", "A dark scheme based off of Notepad++'s Obsidian theme"},
       {InfinityTextArea.SchemeEclipse, "Eclipse", "Mimics Eclipse's default color scheme"},
       {InfinityTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
+      {InfinityTextArea.SchemeMonokai, "Monokai", "A dark color scheme inspired by \"Monokai\""},
       {InfinityTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
 //      {null, "External color scheme...", "Use an external color scheme definition file"},
     };
