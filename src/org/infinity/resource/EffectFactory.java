@@ -1179,7 +1179,7 @@ public final class EffectFactory
             // 320..329
             "Change weather", "Remove effects by resource", "AoE evade check",
             "Turn undead level", "Immunity to spell and message", "All saving throws bonus",
-            "Apply effects list", "Show visual effect", "Set state", "Slow poison",
+            "Apply effects list", "Show visual effect", "Set spell state", "Slow poison",
             // 330..339
             "Float text", "Summon creatures 2", "Attack damage type bonus", "Static charge",
             "Turn undead", "Seven eyes", "Seven eyes overlay", "Remove effects by opcode",
@@ -1398,7 +1398,7 @@ public final class EffectFactory
             "Shroud of flame", "Animal rage",
             // 280..289
             "Turn undead", "Vitriolic sphere", "Hide hit points", "Float text", "Mace of disruption",
-            "Force sleep", "Ranger tracking", "Immunity to sneak attack", "Set state",
+            "Force sleep", "Ranger tracking", "Immunity to sneak attack", "Set spell state",
             "Dragon gem cutscene",
             // 290..299
             "Display spell immunity string", "Rod of smiting", "Rest", "Beholder dispel magic",
@@ -1519,7 +1519,7 @@ public final class EffectFactory
             "Shroud of flame", "Animal rage",
             // 280..289
             "Turn undead", "Vitriolic sphere", "Hide hit points", "Float text", "Mace of disruption",
-            "Force sleep", "Ranger tracking", "Immunity to sneak attack", "Set state",
+            "Force sleep", "Ranger tracking", "Immunity to sneak attack", "Set spell state",
             "Unknown (289)",
             // 290..299
             "Display spell immunity string", "Rod of smiting", "Rest", "Beholder dispel magic",
@@ -3579,10 +3579,11 @@ public final class EffectFactory
         }
         break;
 
-      case 328: // Set state
+      case 328: // Set spell state
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-          int special = buffer.getInt(offset + 0x28);
+          int ofsSpecial = offset + (isV1 ? 0x28 : 0x2c);
+          int special = buffer.getInt(ofsSpecial);
           if (special == 1) {
             s.add(new IdsBitmap(buffer, offset + 4, 4, "State", "SPLSTATE.IDS"));
           } else {
@@ -4246,7 +4247,7 @@ public final class EffectFactory
         s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", s_yesno));
         break;
 
-      case 288: // Set state
+      case 288: // Set spell state
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new Bitmap(buffer, offset + 4, 4, "State", s_spellstate));
         break;
@@ -4504,7 +4505,7 @@ public final class EffectFactory
         s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", s_yesno));
         break;
 
-      case 288: // Set state
+      case 288: // Set spell state
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new IdsBitmap(buffer, offset + 4, 4, "State", "SPLSTATE.IDS"));
         break;
