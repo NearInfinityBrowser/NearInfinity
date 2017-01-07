@@ -749,6 +749,11 @@ public final class EffectFactory
                            new IdsFlag(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4,
                                        EFFECT_SPECIAL, "STATE.IDS"));
               break;
+            case 21:
+              replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
+                  new IdsBitmap(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4,
+                                             EFFECT_SPECIAL, "SPLSTATE.IDS"));
+              break;
             default:
               replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
                            new DecNumber(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4, EFFECT_SPECIAL));
@@ -3154,7 +3159,8 @@ public final class EffectFactory
                                                 "Target in 'Special' range",
                                                 "Target's state is 'Special'", "Target dies",
                                                 "Target died", "Target turned by",
-                                                "Target HP < 'Special'", "Target HP % < 'Special'"});
+                                                "Target HP < 'Special'", "Target HP % < 'Special'",
+                                                "Target's spell state is 'Special'"});
           s.add(item);
           if (parent != null && parent instanceof UpdateListener) {
             item.addUpdateListener((UpdateListener)parent);
@@ -4788,6 +4794,9 @@ public final class EffectFactory
               break;
             case 15: // State check
               s.add(new IdsFlag(buffer, offset, 4, EFFECT_SPECIAL, "STATE.IDS"));
+              break;
+            case 21:  // Spell State check
+              s.add(new IdsBitmap(buffer, offset, 4, EFFECT_SPECIAL, "SPLSTATE.IDS"));
               break;
             default:
               s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
