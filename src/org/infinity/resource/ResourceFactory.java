@@ -593,7 +593,7 @@ public final class ResourceFactory
     final String langDefault = "en_US";   // using default language, if no language entry found
     if (Profile.isEnhancedEdition() && iniFile != null && Files.isRegularFile(iniFile)) {
       // Attempt to autodetect game language
-      try (BufferedReader br = Files.newBufferedReader(iniFile, Misc.CHARSET_ASCII)) {
+      try (BufferedReader br = Files.newBufferedReader(iniFile, Misc.CHARSET_UTF8)) {
         String line;
         while ((line = br.readLine()) != null) {
           if (line.contains("'Language'")) {
@@ -617,6 +617,7 @@ public final class ResourceFactory
           }
         }
       } catch (IOException e) {
+        e.printStackTrace();
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error parsing " + iniFile.getFileName() +
                                       ". Using language defaults.", "Error", JOptionPane.ERROR_MESSAGE);
       }
