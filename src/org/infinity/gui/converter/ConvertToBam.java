@@ -4923,6 +4923,7 @@ public class ConvertToBam extends ChildFrame
       Path outFile = getSaveFileName(bam, "Export BAM session", root,
                                      new FileNameExtensionFilter[]{getIniFilter()}, 0);
       if (outFile != null) {
+        outFile = StreamUtils.replaceFileExtension(outFile, "ini");
         if (getSelection(true)) {
           try {
             WindowBlocker.blockWindow(bam, true);
@@ -4946,6 +4947,9 @@ public class ConvertToBam extends ChildFrame
       Path[] files = getOpenFileName(bam, "Import BAM session", null, false,
                                      new FileNameExtensionFilter[]{getIniFilter()}, 0);
       if (files != null && files.length > 0) {
+        if (!Files.isRegularFile(files[0])) {
+          files[0] = StreamUtils.replaceFileExtension(files[0], "ini");
+        }
         if (loadData(files[0], silent)) {
           if (getSelection(false)) {
             try {
