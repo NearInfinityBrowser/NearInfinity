@@ -885,61 +885,63 @@ public final class Decompiler
 
   private String getResourceName(String function, String definition, String value)
   {
-    if (definition.startsWith("S:") && value.length() > 8)
-      return null;
-    ResourceEntry entry = null;
-    if (definition.equalsIgnoreCase("S:DialogFile*"))
-      entry = decompileStringCheck(value, new String[]{".DLG", ".VEF", ".VVC", ".BAM"});
-    else if (definition.equalsIgnoreCase("S:CutScene*") || definition.equalsIgnoreCase("S:ScriptFile*")
-             || definition.equalsIgnoreCase("S:Script*"))
-      entry = decompileStringCheck(value, new String[]{".BCS"});
-    else if (definition.equalsIgnoreCase("S:Item*") || definition.equalsIgnoreCase("S:Take*")
-             || definition.equalsIgnoreCase("S:Give*") || definition.equalsIgnoreCase("S:OldObject*"))
-      entry = decompileStringCheck(value, new String[]{".ITM"});
-    else if (definition.equalsIgnoreCase("S:Sound*") || definition.equalsIgnoreCase("S:Voice*"))
-      entry = decompileStringCheck(value, new String[]{".WAV"});
-    else if (definition.equalsIgnoreCase("S:TextList*"))
-      entry = decompileStringCheck(value, new String[]{".2DA"});
-    else if (definition.equalsIgnoreCase("S:Effect*"))
-      entry = decompileStringCheck(value, new String[]{".VEF", ".VVC", ".BAM"});
-    else if (definition.equalsIgnoreCase("S:Parchment*"))
-      entry = decompileStringCheck(value, new String[]{".MOS"});
-    else if (definition.equalsIgnoreCase("S:Spell*") || definition.equalsIgnoreCase("S:Res*"))
-      entry = decompileStringCheck(value, new String[]{".SPL"});
-    else if (definition.equalsIgnoreCase("S:Store*"))
-      entry = decompileStringCheck(value, new String[]{".STO"});
-    else if (definition.equalsIgnoreCase("S:ToArea*") || definition.equalsIgnoreCase("S:Areaname*")
-             || definition.equalsIgnoreCase("S:FromArea*") || definition.equalsIgnoreCase("S:Area*")
-             || definition.equalsIgnoreCase("S:Area1*") || definition.equalsIgnoreCase("S:Area2*"))
-      entry = decompileStringCheck(value, new String[]{".ARE"});
-    else if (definition.equalsIgnoreCase("S:BamResRef*"))
-      entry = decompileStringCheck(value, new String[]{".BAM"});
-    else if (definition.equalsIgnoreCase("S:Pool*"))
-      entry = decompileStringCheck(value, new String[]{".SRC"});
-    else if (definition.equalsIgnoreCase("S:Palette*"))
-      entry = decompileStringCheck(value, new String[]{".BMP"});
-    else if (definition.equalsIgnoreCase("S:ResRef*")) {
-      entry = decompileStringCheck(value, getResRefType(function));
-    }
-    else if (definition.equalsIgnoreCase("S:Object*")) {
-      entry = decompileStringCheck(value, getResRefType(function));
-    }
-    else if (definition.equalsIgnoreCase("S:NewObject*")) {
-      entry = decompileStringCheck(value, getResRefType(function));
-    }
-    else if (definition.equalsIgnoreCase("I:Spell*Spell")) {
-      String refValue = org.infinity.resource.spl.Viewer.getResourceName(value, false);
-      if (refValue != null) {
-        entry = decompileStringCheck(refValue, new String[]{".SPL"});
+    if (BrowserMenuBar.getInstance().checkScriptNames()) {
+      if (definition.startsWith("S:") && value.length() > 8)
+        return null;
+      ResourceEntry entry = null;
+      if (definition.equalsIgnoreCase("S:DialogFile*"))
+        entry = decompileStringCheck(value, new String[]{".DLG", ".VEF", ".VVC", ".BAM"});
+      else if (definition.equalsIgnoreCase("S:CutScene*") || definition.equalsIgnoreCase("S:ScriptFile*")
+               || definition.equalsIgnoreCase("S:Script*"))
+        entry = decompileStringCheck(value, new String[]{".BCS"});
+      else if (definition.equalsIgnoreCase("S:Item*") || definition.equalsIgnoreCase("S:Take*")
+               || definition.equalsIgnoreCase("S:Give*") || definition.equalsIgnoreCase("S:OldObject*"))
+        entry = decompileStringCheck(value, new String[]{".ITM"});
+      else if (definition.equalsIgnoreCase("S:Sound*") || definition.equalsIgnoreCase("S:Voice*"))
+        entry = decompileStringCheck(value, new String[]{".WAV"});
+      else if (definition.equalsIgnoreCase("S:TextList*"))
+        entry = decompileStringCheck(value, new String[]{".2DA"});
+      else if (definition.equalsIgnoreCase("S:Effect*"))
+        entry = decompileStringCheck(value, new String[]{".VEF", ".VVC", ".BAM"});
+      else if (definition.equalsIgnoreCase("S:Parchment*"))
+        entry = decompileStringCheck(value, new String[]{".MOS"});
+      else if (definition.equalsIgnoreCase("S:Spell*") || definition.equalsIgnoreCase("S:Res*"))
+        entry = decompileStringCheck(value, new String[]{".SPL"});
+      else if (definition.equalsIgnoreCase("S:Store*"))
+        entry = decompileStringCheck(value, new String[]{".STO"});
+      else if (definition.equalsIgnoreCase("S:ToArea*") || definition.equalsIgnoreCase("S:Areaname*")
+               || definition.equalsIgnoreCase("S:FromArea*") || definition.equalsIgnoreCase("S:Area*")
+               || definition.equalsIgnoreCase("S:Area1*") || definition.equalsIgnoreCase("S:Area2*"))
+        entry = decompileStringCheck(value, new String[]{".ARE"});
+      else if (definition.equalsIgnoreCase("S:BamResRef*"))
+        entry = decompileStringCheck(value, new String[]{".BAM"});
+      else if (definition.equalsIgnoreCase("S:Pool*"))
+        entry = decompileStringCheck(value, new String[]{".SRC"});
+      else if (definition.equalsIgnoreCase("S:Palette*"))
+        entry = decompileStringCheck(value, new String[]{".BMP"});
+      else if (definition.equalsIgnoreCase("S:ResRef*")) {
+        entry = decompileStringCheck(value, getResRefType(function));
       }
-    }
-//    else
-//      System.out.println("Decompiler.getResourceName: " + definition + " - " + value);
-    if (entry != null) {
-      if (generateErrors) {
-        resourcesUsed.add(entry);
+      else if (definition.equalsIgnoreCase("S:Object*")) {
+        entry = decompileStringCheck(value, getResRefType(function));
       }
-      return entry.getSearchString();
+      else if (definition.equalsIgnoreCase("S:NewObject*")) {
+        entry = decompileStringCheck(value, getResRefType(function));
+      }
+      else if (definition.equalsIgnoreCase("I:Spell*Spell")) {
+        String refValue = org.infinity.resource.spl.Viewer.getResourceName(value, false);
+        if (refValue != null) {
+          entry = decompileStringCheck(refValue, new String[]{".SPL"});
+        }
+      }
+  //    else
+  //      System.out.println("Decompiler.getResourceName: " + definition + " - " + value);
+      if (entry != null) {
+        if (generateErrors) {
+          resourcesUsed.add(entry);
+        }
+        return entry.getSearchString();
+      }
     }
     return null;
   }
@@ -950,10 +952,12 @@ public final class Decompiler
       return null;
     }
     ResourceEntry entry = null;
-    if (definition.equalsIgnoreCase("I:Spell*Spell")) {
-      String refName = org.infinity.resource.spl.Viewer.getResourceName(value, false);
-      if (refName != null) {
-        entry = decompileStringCheck(refName, new String[]{".SPL"});
+    if (BrowserMenuBar.getInstance().checkScriptNames()) {
+      if (definition.equalsIgnoreCase("I:Spell*Spell")) {
+        String refName = org.infinity.resource.spl.Viewer.getResourceName(value, false);
+        if (refName != null) {
+          entry = decompileStringCheck(refName, new String[]{".SPL"});
+        }
       }
     }
 

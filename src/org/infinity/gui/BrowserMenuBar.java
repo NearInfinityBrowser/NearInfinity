@@ -1704,9 +1704,9 @@ public final class BrowserMenuBar extends JMenuBar
                                          "to discover new override files added while NI is open");
       add(optionCacheOverride);
       optionCheckScriptNames =
-          new JCheckBoxMenuItem("Interactive script names", getPrefs().getBoolean(OPTION_CHECKSCRIPTNAMES, true));
+          new JCheckBoxMenuItem("Interactive script and resource names", getPrefs().getBoolean(OPTION_CHECKSCRIPTNAMES, true));
       optionCheckScriptNames.setToolTipText("With this option disabled, performance may be boosted " +
-                                            "but many features involving script names will be disabled.");
+                                            "but many features involving script or resource names will be disabled.");
       add(optionCheckScriptNames);
       optionShowStrrefs =
           new JCheckBoxMenuItem("Show Strrefs in View tabs", getPrefs().getBoolean(OPTION_SHOWSTRREFS, false));
