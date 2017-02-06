@@ -3019,11 +3019,13 @@ public final class EffectFactory
         break;
 
       case 197: // Physical mirror
+      {
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         IdsBitmap ids = new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS");
         ids.addIdsMapEntry(new IdsMapEntry(0L, "None", null));
         s.add(ids);
         break;
+      }
 
       case 198: // Reflect specified effect
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
@@ -3107,9 +3109,16 @@ public final class EffectFactory
         break;
 
       case 219: // Attack roll penalty
-      case 238: // Disintegrate
       {
-        IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
+        final String[] ids;
+        if (Profile.isEnhancedEdition()) {
+          ids = new String[]{"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS", "", "GENDER.IDS",
+                             Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT), "KIT.IDS"};
+        } else {
+          ids = new String[]{"", "", "EA.IDS", "GENERAL.IDS", "RACE.IDS", "CLASS.IDS", "", "GENDER.IDS",
+                             Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT)};
+        }
+        IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4, IdsTargetType.DEFAULT_NAME_TYPE, ids);
         s.add(param2.createIdsValueFromType(buffer));
         s.add(param2);
         break;
@@ -3228,6 +3237,14 @@ public final class EffectFactory
         s.add(new Bitmap(buffer, offset + 4, 4, "Puppet type",
                          new String[]{"Talkative, uncontrollable", "Mislead", "Project image",
                                       "Simulacrum"}));
+        break;
+      }
+
+      case 238: // Disintegrate
+      {
+        IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4);
+        s.add(param2.createIdsValueFromType(buffer));
+        s.add(param2);
         break;
       }
 
