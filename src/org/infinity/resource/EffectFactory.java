@@ -3161,9 +3161,9 @@ public final class EffectFactory
           Bitmap item = new Bitmap(buffer, offset + 4, 4, "Condition",
                                    new String[]{"Target hit", "Enemy sighted", "HP below 50%",
                                                 "HP below 25%", "HP below 10%", "If helpless",
-                                                "If poisoned", "Every round when attacked",
+                                                "If poisoned", "When attacked",
                                                 "Target in range 4'", "Target in range 10'",
-                                                "Every round", "Took damage", "Actor killed",
+                                                "Unknown (every round)", "Took damage", "Actor killed",
                                                 "Time of day is 'Special'",
                                                 "Target in 'Special' range",
                                                 "Target's state is 'Special'", "Target dies",
@@ -3177,9 +3177,9 @@ public final class EffectFactory
         } else {
           String[] condition = new String[]{"Target hit", "Enemy sighted", "HP below 50%",
                                             "HP below 25%", "HP below 10%", "If helpless",
-                                            "If poisoned", "Every round when attacked",
+                                            "If poisoned", "When attacked",
                                             "Target in range 4'", "Target in range 10'",
-                                            "Every round", "Took damage"};
+                                            "Unknown (every round)", "Took damage"};
           if (isTobEx) {
             s.add(new Bitmap(buffer, offset + 4, 2, "Condition", condition));
             s.add(new DecNumber(buffer, offset + 6, 2, "Trigger check period"));
