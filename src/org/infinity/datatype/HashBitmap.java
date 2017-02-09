@@ -75,37 +75,35 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
   @Override
   public JComponent edit(final ActionListener container)
   {
-    if (list == null) {
-      long[] keys = idsmap.keys();
-      List<Object> items = new ArrayList<Object>(keys.length);
-      for (final long id : keys) {
-        if (idsmap.containsKey(id)) {
-          Object o = idsmap.get(id);
-          if (o != null) {
-            items.add(o);
-          }
+    long[] keys = idsmap.keys();
+    List<Object> items = new ArrayList<Object>(keys.length);
+    for (final long id : keys) {
+      if (idsmap.containsKey(id)) {
+        Object o = idsmap.get(id);
+        if (o != null) {
+          items.add(o);
         }
       }
-      list = new TextListPanel(items, sortByName);
-      list.addMouseListener(new MouseAdapter()
-      {
-        @Override
-        public void mouseClicked(MouseEvent event)
-        {
-          if (event.getClickCount() == 2)
-            container.actionPerformed(new ActionEvent(this, 0, StructViewer.UPDATE_VALUE));
-        }
-      });
-      list.addListSelectionListener(new ListSelectionListener() {
-        @Override
-        public void valueChanged(ListSelectionEvent e)
-        {
-          if (!e.getValueIsAdjusting()) {
-            listItemChanged();
-          }
-        }
-      });
     }
+    list = new TextListPanel(items, sortByName);
+    list.addMouseListener(new MouseAdapter()
+    {
+      @Override
+      public void mouseClicked(MouseEvent event)
+      {
+        if (event.getClickCount() == 2)
+          container.actionPerformed(new ActionEvent(this, 0, StructViewer.UPDATE_VALUE));
+      }
+    });
+    list.addListSelectionListener(new ListSelectionListener() {
+      @Override
+      public void valueChanged(ListSelectionEvent e)
+      {
+        if (!e.getValueIsAdjusting()) {
+          listItemChanged();
+        }
+      }
+    });
     Object selected = idsmap.get(value);
     if (selected != null) {
       list.setSelectedValue(selected, true);
