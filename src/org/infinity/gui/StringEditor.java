@@ -60,24 +60,6 @@ import org.infinity.search.StringReferenceSearcher;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileManager;
 
-/**
- * Features:
- * - uses tabs for male and female string table (disable female tab when not available)
- * - provides a quickjump button next to the strref slider
- *   - opens a scrollable popup menu with list of strings (current strref preselected)
- *   - a click jumps directly to the strref entry
- *   - menu items are created in background task
- *   - text changes in entries are updated when popup menu is requested
- * - provides options to revert last operation (add/remove only) or all operations
- * - uses resizeable splitter between central attribute and text components
- * - more export options (save as tra and txt)
- * - mark modified string tables as modified (e.g. by a hint in dialog title or asterisk in tab name)
- * - synchronizes add/remove operations between male and female string table
- * - synchronizes current strref selection between male and female string table
- * - provides a function for cloning current male entry to female table (and vice versa)
- *   - confirmation dialog if target entry is not empty or identical
- *
- */
 public class StringEditor extends ChildFrame implements SearchClient
 {
   public static final String TLK_FLAGS  = "Flags";
@@ -503,6 +485,34 @@ public class StringEditor extends ChildFrame implements SearchClient
     }
   }
 
+  private void syncTables()
+  {
+    if (!StringTable.hasFemaleTable()) {
+      return;
+    }
+
+    updateEntry(getSelectedEntry());
+
+    StringTable.Type male = StringTable.Type.MALE;
+    StringTable.Type female = StringTable.Type.FEMALE;
+
+    if (StringTable.getNumEntries(male) < StringTable.getNumEntries(female)) {
+      while (StringTable.getNumEntries(male) < StringTable.getNumEntries(female)) {
+        StringTable.StringEntry entry = StringTable.getStringEntry(female, StringTable.getNumEntries(male));
+        StringTable.addEntry(male, entry.clone());
+      }
+      updateModifiedUI(male);
+    }
+
+    if (StringTable.getNumEntries(female) < StringTable.getNumEntries(male)) {
+      while (StringTable.getNumEntries(female) < StringTable.getNumEntries(male)) {
+        StringTable.StringEntry entry = StringTable.getStringEntry(male, StringTable.getNumEntries(female));
+        StringTable.addEntry(female, entry.clone());
+      }
+      updateModifiedUI(female);
+    }
+  }
+
   private int addEntry(StringTable.StringEntry entryMale, StringTable.StringEntry entryFemale, boolean undoable)
   {
     if (entryMale == null) {
@@ -511,6 +521,8 @@ public class StringEditor extends ChildFrame implements SearchClient
     if (entryFemale == null) {
       entryFemale = new StringTable.StringEntry(null);
     }
+
+    syncTables();
 
     int index = StringTable.addEntry(StringTable.Type.MALE, entryMale);
     int index2 = index;
@@ -538,6 +550,8 @@ public class StringEditor extends ChildFrame implements SearchClient
   {
     StringTable.StringEntry entry1 = null;
     StringTable.StringEntry entry2 = null;
+
+    syncTables();
 
     int index = StringTable.getNumEntries(StringTable.Type.MALE) - 1;
     if (getSelectedDialogType() == StringTable.Type.MALE && index == getSelectedIndex()) {
@@ -745,7 +759,7 @@ public class StringEditor extends ChildFrame implements SearchClient
 
       updateModifiedUI(null);
       if (interactive) {
-        JOptionPane.showMessageDialog(this, "File(s) written successfully", "Save complete",
+        JOptionPane.showMessageDialog(this, "File(s) written successfully.", "Save complete",
                                       JOptionPane.INFORMATION_MESSAGE);
       }
     } finally {
@@ -811,7 +825,7 @@ public class StringEditor extends ChildFrame implements SearchClient
         if (editable.updateValue(StringTable.getStringEntry(getSelectedDialogType(), getSelectedIndex()))) {
           updateTableItem(table.getSelectedRow());
         } else {
-          JOptionPane.showMessageDialog(StringEditor.this, "Error updating value", "Error",
+          JOptionPane.showMessageDialog(StringEditor.this, "Error updating value.", "Error",
                                         JOptionPane.ERROR_MESSAGE);
         }
         table.repaint();
@@ -848,7 +862,7 @@ public class StringEditor extends ChildFrame implements SearchClient
             }
           }.execute();
         } else {
-          JOptionPane.showMessageDialog(StringEditor.this, "You can only delete the last entry",
+          JOptionPane.showMessageDialog(StringEditor.this, "You can only delete the last entry.",
                                         "Error", JOptionPane.ERROR_MESSAGE);
         }
       } else if (e.getSource() == bSave) {
@@ -875,11 +889,11 @@ public class StringEditor extends ChildFrame implements SearchClient
           if (i >= 0 && i < StringTable.getNumEntries(getSelectedDialogType())) {
             showEntry(i);
           } else {
-            JOptionPane.showMessageDialog(StringEditor.this, "Entry not found", "Error",
+            JOptionPane.showMessageDialog(StringEditor.this, "Entry not found.", "Error",
                                           JOptionPane.ERROR_MESSAGE);
           }
         }  catch (NumberFormatException nfe) {
-          JOptionPane.showMessageDialog(StringEditor.this, "Not a number", "Error",
+          JOptionPane.showMessageDialog(StringEditor.this, "Not a number.", "Error",
                                         JOptionPane.ERROR_MESSAGE);
         }
       }
