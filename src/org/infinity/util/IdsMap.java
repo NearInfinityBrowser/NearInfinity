@@ -6,205 +6,265 @@ package org.infinity.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+import java.util.SortedSet;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.swing.JOptionPane;
 
+import org.infinity.resource.bcs.ScriptInfo;
+import org.infinity.resource.bcs.Signatures;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 
-public final class IdsMap
+public class IdsMap
 {
-  private final List<IdsMapEntry> overflow = new ArrayList<IdsMapEntry>();
-  private final LongIntegerHashMap<IdsMapEntry> idEntryMap = new LongIntegerHashMap<IdsMapEntry>();
+  private final TreeMap<Long, IdsMapEntry> idsMap = new TreeMap<>();
+  private final HashMap<String, Long> symbolMap = new HashMap<>();
   private final ResourceEntry entry;
-  private Map<String, IdsMapEntry> stringEntryMap;
+  private final boolean caseSensitive;
 
   public IdsMap(ResourceEntry entry)
   {
     this.entry = entry;
-    StringTokenizer st;
+    this.caseSensitive = IdsMapCache.isCaseSensitiveMatch(entry.toString());
     try {
-      st = new StringTokenizer(new PlainTextResource(entry).getText(), "\r\n");
+      if (entry.getExtension().equalsIgnoreCase("IDS")) {
+        parseIDS();
+      } else if (entry.getExtension().equalsIgnoreCase("2DA")) {
+        parse2DA();
+      }
     } catch (Exception e) {
       e.printStackTrace();
-      return;
-    }
-    if (entry.getExtension().equalsIgnoreCase("IDS")) {
-      while (st.hasMoreTokens()) {
-        String token = st.nextToken();
-        try {
-          extractIDS(token);
-        } catch (NumberFormatException e) {
-          JOptionPane.showMessageDialog(null, "Error interpreting " + entry + ": " + token,
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-          e.printStackTrace();
-        }
-      }
-      if (entry.toString().equalsIgnoreCase("TRIGGER.IDS")
-          || entry.toString().equalsIgnoreCase("ACTION.IDS")
-          || entry.toString().equalsIgnoreCase("OBJECT.IDS")) {
-        stringEntryMap = new HashMap<String, IdsMapEntry>();
-        for (final Object newVar : idEntryMap.values()) {
-          IdsMapEntry idsEntry = (IdsMapEntry)newVar;
-          stringEntryMap.put(idsEntry.getString().toUpperCase(Locale.ENGLISH), idsEntry);
-        }
-        for (int i = 0; i < overflow.size(); i++) {
-          IdsMapEntry idsEntry = overflow.get(i);
-          if (!stringEntryMap.containsKey(idsEntry.getString().toUpperCase(Locale.ENGLISH)))
-            stringEntryMap.put(idsEntry.getString().toUpperCase(Locale.ENGLISH), idsEntry);
-        }
-      }
-    }
-    else if (entry.getExtension().equalsIgnoreCase("2DA")) {
-      // 3 uninteresting lines
-      if (st.hasMoreTokens())
-        st.nextToken();
-      if (st.hasMoreTokens())
-        st.nextToken();
-      if (st.hasMoreTokens())
-        st.nextToken();
-      while (st.hasMoreTokens()) {
-        String token = st.nextToken();
-        try {
-          extract2DA(token);
-        } catch (NumberFormatException e) {
-          JOptionPane.showMessageDialog(null, "Error interpreting " + entry + ": " + token,
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-          e.printStackTrace();
-        }
-      }
     }
   }
 
   @Override
   public String toString()
   {
-    if (entry == null)
-      return "NULL";
-    return entry.toString();
+    if (entry != null) {
+      return entry.toString();
+    } else {
+      return "null";
+    }
   }
 
+  /** Returns the number of entries in the map. */
+  public int size()
+  {
+    return idsMap.size();
+  }
+
+  /** Returns a copy of the values contained in the IDS map. */
   public List<IdsMapEntry> getAllValues()
   {
-    List<IdsMapEntry> list = new ArrayList<IdsMapEntry>(idEntryMap.values());
-    list.addAll(overflow);
-    return list;
+    return new ArrayList<IdsMapEntry>(idsMap.values());
   }
 
-  public LongIntegerHashMap<IdsMapEntry> getMap()
+  /** Returns a formatted string list of all available symbols and their associated key values. */
+  public List<String> getAllStringValues()
   {
-    return idEntryMap;
-  }
+    ArrayList<String> retVal = new ArrayList<>(idsMap.size() * 3 / 2);
 
-  public IdsMapEntry getOverflowValue(long value)
-  {
-    if (value < 0)
-      value += 4294967296L;
-    for (int i = 0; i < overflow.size(); i++) {
-      IdsMapEntry idsEntry = overflow.get(i);
-      if (idsEntry.getID() == value)
-        return idsEntry;
+    for (final IdsMapEntry e: idsMap.values()) {
+      long id = e.getID();
+      Iterator<String> iter = e.getSymbols();
+      while (iter.hasNext()) {
+        String symbol = iter.next();
+        retVal.add(IdsMapEntry.toString(id, symbol));
+      }
     }
-    return null;
+
+    return retVal;
   }
 
-  public IdsMapEntry getValue(long value)
+  /** Returns a copy of the keys contained in the IDS map as a sorted set. */
+  public SortedSet<Long> getKeys()
   {
-    if (value < 0)
-      value += 4294967296L;
-    return idEntryMap.get(value);
-//    return new IdsMapEntry(value, String.valueOf(value), null);
+    return new TreeSet<Long>(idsMap.keySet());
   }
 
-  public IdsMapEntry lookup(String entry) // ToDo: Pretty much all compile time is spent here
+  /** Returns the entry structure defined by the specified IDS value, or {@code null} otherwise. */
+  public IdsMapEntry get(long value)
   {
-    if (entry.length() == 0 || entry.equals("0"))
-      return null;
-    if (stringEntryMap != null) {
-      IdsMapEntry idsEntry = stringEntryMap.get(entry.toUpperCase(Locale.ENGLISH));
-      if (idsEntry != null)
-        return idsEntry;
-    }
-    for (final Object newVar : idEntryMap.values()) {
-      IdsMapEntry idsEntry = (IdsMapEntry)newVar;
-      if (idsEntry.getString().equalsIgnoreCase(entry))
-        return idsEntry;
-    }
-    for (int i = 0; i < overflow.size(); i++) {
-      IdsMapEntry idsEntry = overflow.get(i);
-      if (idsEntry.getString().equalsIgnoreCase(entry))
-        return idsEntry;
-    }
-    return null;
+    return idsMap.get(Long.valueOf(normalizedKey(value)));
   }
 
-  public String lookupID(String entry)
+  private void put(long key, IdsMapEntry value)
   {
-    IdsMapEntry idsEntry = lookup(entry);
-    if (idsEntry == null)
-      return null;
-    long l_value = idsEntry.getID();
-    if (l_value >= 2147483648L)
-      l_value -= 4294967296L;
-    return String.valueOf(l_value);
+    if (value != null) {
+      idsMap.put(Long.valueOf(normalizedKey(key)), value);
+    }
+  }
+
+  /**
+   * Attempts to find the entry containing the specified symbol.
+   * Symbol will be compared case-sensitive except for triggers, actions and objects.
+   * @param symbol The symbolic name.
+   * @return Matching entry structure, or {@code null} otherwise.
+   */
+  public IdsMapEntry lookup(String symbol)
+  {
+    return lookup(symbol, caseSensitive);
+  }
+
+  /**
+   * Attempts to find the entry containing the specified symbol.
+   * @param symbol The symbolic name.
+   * @param exact Whether to compare case-sensitive.
+   * @return Matching entry structure, or {@code null} otherwise.
+   */
+  public IdsMapEntry lookup(String symbol, boolean exact)
+  {
+    IdsMapEntry retVal = null;
+    String symbolNorm = normalizedString(symbol);
+    if (!symbolNorm.isEmpty() && !symbolNorm.equals("0")) {
+      Long key = symbolMap.get(normalizedString(symbolNorm));
+      if (key != null) {
+        IdsMapEntry e = idsMap.get(key);
+        if (exact && e != null) {
+          Iterator<String> iter = e.getSymbols();
+          while (iter.hasNext() && retVal == null) {
+            String s = iter.next();
+            if (s.equals(symbol)) {
+              retVal = e;
+            }
+          }
+        } else {
+          retVal = e;
+        }
+      }
+    }
+    return retVal;
+  }
+
+  /** Returns whether symbols from this IDS resource are matched case-sensitive. */
+  public boolean isCaseSensitiveMatch()
+  {
+    return caseSensitive;
+  }
+
+  private void parse2DA() throws Exception
+  {
+    StringTokenizer st = new StringTokenizer(new PlainTextResource(entry).getText(), "\r\n");
+    // 3 uninteresting lines
+    for (int i = 0; i < 3 && st.hasMoreTokens(); i++) {
+      st.nextToken();
+    }
+    while (st.hasMoreTokens()) {
+      String token = st.nextToken();
+      try {
+        extract2DA(token);
+      } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(null, "Error interpreting " + entry + ": " + token,
+                                      "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    }
+  }
+
+  private void parseIDS() throws Exception
+  {
+    // parsing regular IDS content
+    StringTokenizer st = new StringTokenizer(new PlainTextResource(entry).getText(), "\r\n");
+    while (st.hasMoreTokens()) {
+      String token = st.nextToken();
+      try {
+        extractIDS(token);
+      } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(null, "Error interpreting " + entry + ": " + token,
+                                      "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    }
+
+    // parsing hardcoded entries
+    List<String> list = null;
+    if (entry.toString().equalsIgnoreCase("TRIGGER.IDS")) {
+      list = ScriptInfo.getInfo().getFunctionDefinitions(Signatures.Function.FunctionType.TRIGGER);
+    } else if (entry.toString().equalsIgnoreCase("ACTION.IDS")) {
+      list = ScriptInfo.getInfo().getFunctionDefinitions(Signatures.Function.FunctionType.ACTION);
+    }
+    if (list != null) {
+      for (String token: list) {
+        try {
+          extractIDS(token);
+        } catch (NumberFormatException e) {
+          JOptionPane.showMessageDialog(null, "Error interpreting " + entry + ": " + token,
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    }
   }
 
   private void extract2DA(String line)
   {
     StringTokenizer st = new StringTokenizer(line);
-    long id = Long.parseLong(st.nextToken());
+    long id = normalizedKey(Long.parseLong(st.nextToken()));
     String resource = st.nextToken();
-    while (st.hasMoreTokens())
+    while (st.hasMoreTokens()) {
       resource = st.nextToken();
-    if (!idEntryMap.containsKey(id))
-      idEntryMap.put(id, new IdsMapEntry(id, resource, null));
-    else
-      overflow.add(new IdsMapEntry(id, resource, null));
+    }
+    IdsMapEntry value = get(id);
+    if (value == null) {
+      value = new IdsMapEntry(id, resource);
+      put(id, value);
+    }
   }
 
   private void extractIDS(String line)
   {
-    line = line.trim();
-    line = line.replace('\t', ' ');
-    int i = line.indexOf((int)' ');
-    if (i == -1)
-      return;
-    String id = line.substring(0, i);
-    String val = line.substring(i).trim();
-    if (val.equals("") || id.equalsIgnoreCase("IDS"))
-      return;
-
-    long iid;
-    if (id.length() > 2 && id.substring(0, 2).equalsIgnoreCase("0x"))  // Hex
-      iid = Long.parseLong(id.substring(2), 16);
-    else  // Dec
-      iid = Long.parseLong(id);
-
-    i = val.indexOf("//");
-    if (i != -1)
-      val = val.substring(0, i - 1);
-
-    String param = null;
-    i = val.indexOf((int)'(');
-    if ((entry.toString().equalsIgnoreCase("ACTION.IDS") ||
-         entry.toString().equalsIgnoreCase("TRIGGER.IDS")) && i != -1) {
-      int j = val.indexOf((int)')', i + 1);
-      if (j != -1) {
-        param = val.substring(i + 1, j);
-        val = val.substring(0, i + 1);
+    if (line.contains("WatchersKeep")) {
+      if (true) {
       }
     }
-    val = val.trim();
-    //    if (iid.longValue() < 0)
-    //      iid = new Long(iid.longValue() + 4294967296l);
-    if (!idEntryMap.containsKey(iid))
-      idEntryMap.put(iid, new IdsMapEntry(iid, val, param));
-    else
-      overflow.add(new IdsMapEntry(iid, val, param));
+    line = line.trim();
+    int p = Math.min(line.indexOf(' ') & Integer.MAX_VALUE, line.indexOf('\t') & Integer.MAX_VALUE);
+    if (p == Integer.MAX_VALUE) {
+      return;
+    }
+
+    String istr = line.substring(0, p).trim();
+    if (istr.equalsIgnoreCase("IDS")) {
+      return;
+    }
+
+    if (!istr.isEmpty()) {
+      int radix = 10;
+      if (istr.length() > 2 && istr.substring(0, 2).equalsIgnoreCase("0x")) {
+        istr = istr.substring(2);
+        radix = 16;
+      }
+      long key = normalizedKey(Long.parseLong(istr, radix));
+
+      String vstr = line.substring(p).trim();
+      p = vstr.indexOf("//");
+      if (p >= 0) {
+        vstr = vstr.substring(0, p).trim();
+      }
+      if (!vstr.isEmpty()) {
+        IdsMapEntry value = get(key);
+        if (value != null) {
+          value.addSymbol(vstr);
+        } else {
+          value = new IdsMapEntry(key, vstr);
+          put(key, value);
+        }
+
+        symbolMap.put(normalizedString(vstr), Long.valueOf(key));
+      }
+    }
+  }
+
+  private long normalizedKey(long key)
+  {
+    return key & 0xffffffffL;
+  }
+
+  private String normalizedString(String s)
+  {
+    return (s != null) ? s.trim().toUpperCase(Locale.ENGLISH) : "";
   }
 }
-

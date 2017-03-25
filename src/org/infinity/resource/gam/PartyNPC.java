@@ -48,6 +48,8 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
   public static final String GAM_NPC_MODAL_STATE                = "Modal state";
   public static final String GAM_NPC_HAPPINESS                  = "Happiness";
   public static final String GAM_NPC_NUMBER_INTERACTED_WITH_FMT = "# interacted with NPC %d";
+  public static final String GAM_NPC_QUICK_ITEMS                = "Quick items";
+  public static final String GAM_NPC_ITEM_ABILITIES             = "Item abilities";
   public static final String GAM_NPC_QUICK_WEAPON_SLOT_FMT      = CreResource.CHR_QUICK_WEAPON_SLOT_FMT;
   public static final String GAM_NPC_QUICK_SHIELD_SLOT_FMT      = CreResource.CHR_QUICK_SHIELD_SLOT_FMT;
   public static final String GAM_NPC_QUICK_WEAPON_ABILITY_FMT   = CreResource.CHR_QUICK_WEAPON_ABILITY_FMT;
@@ -266,9 +268,17 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
     else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       addField(new IdsBitmap(buffer, offset + 40, 2, GAM_NPC_MODAL_STATE, "MODAL.IDS"));
       addField(new DecNumber(buffer, offset + 42, 2, GAM_NPC_HAPPINESS));
-      for (int i = 0; i < 24; i++) {
+      int max = (Profile.getGame() == Profile.Game.PSTEE) ? 22 : 24;
+      for (int i = 0; i < max; i++) {
         addField(new DecNumber(buffer, offset + 44 + (i * 4), 4,
                                String.format(GAM_NPC_NUMBER_INTERACTED_WITH_FMT, i)));
+      }
+      if (max == 22) {  // PSTEE
+        // TODO: confirm fields
+        addField(new DecNumber(buffer, offset + 132, 2, GAM_NPC_QUICK_ITEMS));
+        addField(new DecNumber(buffer, offset + 134, 2, GAM_NPC_ITEM_ABILITIES));
+        addField(new DecNumber(buffer, offset + 136, 2, COMMON_UNKNOWN));
+        addField(new DecNumber(buffer, offset + 138, 2, COMMON_UNKNOWN));
       }
       for (int i = 0; i < 4; i++) {
         addField(new IdsBitmap(buffer, offset + 140 + (i * 2), 2,

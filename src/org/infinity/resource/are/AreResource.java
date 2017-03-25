@@ -42,6 +42,9 @@ import org.infinity.search.SearchOptions;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.StringTable;
+import org.infinity.util.Table2da;
+import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
 
 public final class AreResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
@@ -118,14 +121,41 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   public static final String[] s_atype_ee = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
                                              "Dream area", "Player1 can die;Allows death of party leader without ending the game",
                                              "Can't rest", "Can't travel"};
-  public static final String[] s_atype_torment = {"Can rest", "Cannot save",
-                                                  "Cannot rest", "Cannot save", "Too dangerous to rest",
-                                                  "Cannot save", "Can rest with permission"};
+  public static final String[] s_atype_torment = {"Normal", "Can't save game",
+                                                  "Can't rest;Combined with bit 2: \"Can't rest without permission\"",
+                                                  "Too dangerous to rest;Combined with bit 1: \"Can't rest without permission\""};
+  public static final String[] s_atype_pstee = {"Normal", "Can't save game", "", "Dead magic zone",
+                                                "Dream area", "Player1 can die;The Nameless One can die without ending the game",
+                                                "Can't rest", "Can't travel",
+                                                "Can't rest;Combined with bit 8: \"Can't rest without permission\"",
+                                                "Too dangerous to rest;Combined with bit 7: \"Can't rest without permission\""};
   public static final String[] s_atype_iwd2 = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
   public static final String[] s_edge = {"No flags set", "Party required", "Party enabled"};
 
   private StructHexViewer hexViewer;
   private AreaViewer areaViewer;
+
+  public static String getSearchString(ResourceEntry entry)
+  {
+    String retVal = null;
+    if (entry != null && ResourceFactory.resourceExists("MAPNAME.2DA")) {
+      Table2da table = Table2daCache.get("MAPNAME.2DA");
+      if (table != null) {
+        String are = entry.getResourceName();
+        are = are.substring(0, are.lastIndexOf('.'));
+        for (int row = 0, cnt = table.getRowCount(); row < cnt; row++) {
+          if (are.equalsIgnoreCase(table.get(row, 0))) {
+            try {
+              int strref = Integer.parseInt(table.get(row, 1));
+              retVal = StringTable.getStringRef(strref);
+            } catch (NumberFormatException e) {
+            }
+          }
+        }
+      }
+    }
+    return retVal;
+  }
 
   public static void addScriptNames(Set<String> scriptNames, ByteBuffer buffer)
   {
@@ -135,52 +165,47 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
     // Actors
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 84),
-                   buffer.getShort(offset + 88), 272, true);
+                   buffer.getShort(offset + 88), 272,
+                   Profile.isEnhancedEdition() || Profile.getEngine() == Profile.Engine.BG2); // needed?
 
     // ITEPoints
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 92),
-                   buffer.getShort(offset + 90), 196);
+                   buffer.getShort(offset + 90), 196, false);
 
     // Spawnpoints
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 96),
-                   buffer.getInt(offset + 100), 200);
+                   buffer.getInt(offset + 100), 200, false);
 
     // Entrances
 //    addScriptNames(scriptNames, buffer, buffer.getInt(offset + 104),
-//                   buffer.getInt(offset + 108), 104);
+//                   buffer.getInt(offset + 108), 104, false);
 
     // Containers
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 112),
-                   buffer.getShort(offset + 116), 192);
+                   buffer.getShort(offset + 116), 192, false);
 
     // Ambients
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 132),
-                   buffer.getShort(offset + 130), 212);
+                   buffer.getShort(offset + 130), 212, false);
 
     // Variables
 //    addScriptNames(scriptNames, buffer, buffer.getInt(offset + 136),
-//                   buffer.getInt(offset + 140), 84);
+//                   buffer.getInt(offset + 140), 84, false);
 
     // Doors
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 168),
-                   buffer.getInt(offset + 164), 200);
+                   buffer.getInt(offset + 164), 200, false);
 
     // Animations
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 176),
-                   buffer.getInt(offset + 172), 76);
+                   buffer.getInt(offset + 172), 76, false);
 
     // Tiled objects
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 184),
-                   buffer.getInt(offset + 180), 108);
+                   buffer.getInt(offset + 180), 108, false);
 
     // Rest spawn
-//    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 192), 1, 228);
-  }
-
-  private static void addScriptNames(Set<String> scriptNames, ByteBuffer buffer, int offset,
-                                     int count, int size)
-  {
-    addScriptNames(scriptNames, buffer, offset, count, size, false);
+//    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 192), 1, 228, false);
   }
 
   private static void addScriptNames(Set<String> scriptNames, ByteBuffer buffer, int offset,
@@ -436,6 +461,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_iwd2, "AREAFLAG.IDS", 4, false)));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_torment, null, 4, false)));
+    } else if (Profile.getGame() == Profile.Game.PSTEE) {
+      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_pstee, null, 4, false)));
     } else if (Profile.isEnhancedEdition()) {
       addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_ee, "AREAFLAG.IDS", 4, false)));
     } else {
@@ -449,7 +476,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new Flag(buffer, offset + 56, 4, ARE_EDGE_FLAGS_SOUTH, s_edge));
     addField(new ResourceRef(buffer, offset + 60, ARE_AREA_WEST, "ARE"));
     addField(new Flag(buffer, offset + 68, 4, ARE_EDGE_FLAGS_WEST, s_edge));
-    if (Profile.getGame() == Profile.Game.PST) {
+    if (Profile.getEngine() == Profile.Engine.PST || Profile.getGame() == Profile.Game.PSTEE) {
       addField(new Flag(buffer, offset + 72, 2, ARE_LOCATION, getUpdatedIdsFlags(s_flag_torment, null, 2, false)));
     } else {
       addField(new Flag(buffer, offset + 72, 2, ARE_LOCATION, getUpdatedIdsFlags(s_flag, "AREATYPE.IDS", 2, false)));
@@ -521,7 +548,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     SectionCount count_variables = new SectionCount(buffer, offset + 140, 2, ARE_NUM_VARIABLES,
                                                     Variable.class);
     addField(count_variables);
-    addField(new HexNumber(buffer, offset + 142, 2, ARE_NUM_OBJECT_FLAGS));
+    addField(new DecNumber(buffer, offset + 142, 2, ARE_NUM_OBJECT_FLAGS));
     addField(new HexNumber(buffer, offset + 144, 4, ARE_OFFSET_OBJECT_FLAGS));
     addField(new ResourceRef(buffer, offset + 148, ARE_AREA_SCRIPT, "BCS"));
     SectionCount size_exploredbitmap = new SectionCount(buffer, offset + 156, 4, ARE_SIZE_EXPLORED_BITMAP,
@@ -815,8 +842,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       if (map != null) {
         int numBits = size * 8;
         for (int i = 0; i < numBits; i++) {
-          IdsMapEntry entry = map.getValue((long)(1 << i));
-          String s = (entry != null) ? entry.getString() : null;
+          IdsMapEntry entry = map.get((long)(1 << i));
+          String s = (entry != null) ? entry.getSymbol() : null;
           if (i < list.size() - 1) {
             if (overwrite || list.get(i+1) == null) {
               list.set(i+1, s);

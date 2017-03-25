@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -29,6 +31,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
 
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ButtonPanel;
@@ -203,32 +206,34 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   }
 
   @Override
-  public void highlightText(int linenr, String text)
+  public void highlightText(int linenr, String highlightText)
   {
-    String s = editor.getText();
-    int startpos = 0;
-    int i = (s.charAt(0) == '\n') ? 2 : 1;
-    for (; i < linenr; i++) {
-      startpos = s.indexOf("\n", startpos + 1);
-    }
-    if (startpos == -1) return;
-    if (text != null) {
-      // try to select specified text string
-      int wordpos = s.toUpperCase(Locale.ENGLISH).indexOf(text.toUpperCase(Locale.ENGLISH), startpos);
-      if (wordpos != -1) {
-        editor.select(wordpos, wordpos + text.length());
-      } else {
-        editor.select(startpos, s.indexOf("\n", startpos + 1));
+    try {
+      int startOfs = editor.getLineStartOffset(linenr - 1);
+      int endOfs = editor.getLineEndOffset(linenr - 1);
+      if (highlightText != null) {
+        String text = editor.getText(startOfs, endOfs - startOfs);
+        Pattern p = Pattern.compile(highlightText, Pattern.CASE_INSENSITIVE);
+        Matcher m = p.matcher(text);
+        if (m.find()) {
+          startOfs += m.start();
+          endOfs = startOfs + m.end() + 1;
+        }
       }
-    } else {
-      // select whole line
-      int endpos = s.indexOf("\n", startpos + 1);
-      if (endpos < 0) {
-        endpos = s.length();
-      }
-      editor.select(startpos, endpos);
+      highlightText(startOfs, endOfs);
+    } catch (BadLocationException ble) {
     }
-    editor.getCaret().setSelectionVisible(true);
+  }
+
+  @Override
+  public void highlightText(int startOfs, int endOfs)
+  {
+    try {
+      editor.setCaretPosition(startOfs);
+      editor.moveCaretPosition(endOfs - 1);
+      editor.getCaret().setSelectionVisible(true);
+    } catch (IllegalArgumentException e) {
+    }
   }
 
 // --------------------- End Interface TextResource ---------------------

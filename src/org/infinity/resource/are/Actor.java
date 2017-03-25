@@ -68,6 +68,8 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
   public static final String[] s_noyes = {"No", "Yes"};
   public static final String[] s_flags = {"CRE attached", "CRE not attached", "Has seen party",
                                           "Toggle invulnerability", "Override script name"};
+  public static final String[] s_flags_iwd = {"CRE attached", "CRE not attached", "Has seen party",
+                                              "Toggle invulnerability"};
   public static final String[] s_schedule = {"Not active", "00:30-01:29", "01:30-02:29", "02:30-03:29",
                                              "03:30-04:29", "04:30-05:29", "05:30-06:29", "06:30-07:29",
                                              "07:30-08:29", "08:30-09:29", "09:30-10:29", "10:30-11:29",
@@ -189,7 +191,13 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
     addField(new DecNumber(buffer, offset + 34, 2, ARE_ACTOR_POS_Y));
     addField(new DecNumber(buffer, offset + 36, 2, ARE_ACTOR_DEST_X));
     addField(new DecNumber(buffer, offset + 38, 2, ARE_ACTOR_DEST_Y));
-    addField(new Flag(buffer, offset + 40, 4, ARE_ACTOR_FLAGS, s_flags));
+    if (Profile.getEngine() == Profile.Engine.IWD ||
+        Profile.getEngine() == Profile.Engine.IWD2 ||
+        Profile.getEngine() == Profile.Engine.PST) {
+      addField(new Flag(buffer, offset + 40, 4, ARE_ACTOR_FLAGS, s_flags_iwd));
+    } else {
+      addField(new Flag(buffer, offset + 40, 4, ARE_ACTOR_FLAGS, s_flags));
+    }
     addField(new Bitmap(buffer, offset + 44, 2, ARE_ACTOR_IS_SPAWNED, s_noyes));
     if (Profile.getEngine() == Profile.Engine.IWD2) {
       addField(new Unknown(buffer, offset + 46, 1));

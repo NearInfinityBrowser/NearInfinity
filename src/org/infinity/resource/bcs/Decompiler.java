@@ -4,56 +4,51 @@
 
 package org.infinity.resource.bcs;
 
+import java.awt.Point;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.StringTokenizer;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.CreMapCache;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringBufferStream;
+import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
 public final class Decompiler
 {
-  /** Indicates how to decompile script code. */
-  public enum ScriptType {
-    /** Treat code as full BCS resource. */
-    BCS,
-    /** Treat code as script trigger only. */
-    TRIGGER,
-    /** Treat code as script action only. */
-    ACTION,
-    /** Do not decompile automatically. */
-    CUSTOM
-  }
-
-  private final Set<Integer> stringrefsUsed = new HashSet<Integer>();
-  private final Set<ResourceEntry> resourcesUsed = new HashSet<ResourceEntry>();
-  private final SortedMap<Integer, String> idsErrors = new TreeMap<Integer, String>();
-  private String code;    // script byte code
-  private String source;  // decompiled script source
+  private final Set<Integer> strrefsUsed = new HashSet<>();
+  private final Set<ResourceEntry> resourcesUsed = new HashSet<>();
+  private final SortedMap<Integer, String> idsErrors = new TreeMap<>();
+  private String code;    // byte code
+  private String source;  // decompiled sources
   private ScriptType scriptType;
   private String indent = "\t";
-  private boolean generateErrors;
+  private boolean generateErrors, generateComments, generateResUsed;
   private int lineNr;
+  private Signatures triggers, actions;
+  private boolean triggerOverrideEnabled;
 
-  public Decompiler(ResourceEntry bcsEntry, boolean generateErrors) throws Exception
+  public Decompiler(ResourceEntry bcs, boolean generateErrors) throws Exception
   {
-    this(bcsEntry, ScriptType.BCS, generateErrors);
+    this(bcs, ScriptType.BCS, generateErrors);
   }
 
-  public Decompiler(ResourceEntry bcsEntry, ScriptType type, boolean generateErrors) throws Exception
+  public Decompiler(ResourceEntry bcs, ScriptType type, boolean generateErrors) throws Exception
   {
-    if (bcsEntry == null) {
+    if (bcs == null) {
       throw new NullPointerException();
     }
     if (BrowserMenuBar.getInstance() != null) {
@@ -65,8 +60,11 @@ public final class Decompiler
     }
     this.scriptType = type;
     this.generateErrors = generateErrors;
-    ByteBuffer buffer = bcsEntry.getResourceBuffer();
+    this.generateComments = true;
+    this.generateResUsed = true;
+    ByteBuffer buffer = bcs.getResourceBuffer();
     this.code = StreamUtils.readString(buffer, buffer.limit());
+    setTriggerOverrideEnabled(this.scriptType != ScriptType.TRIGGER);
   }
 
   public Decompiler(String code, boolean generateErrors)
@@ -85,35 +83,37 @@ public final class Decompiler
     }
     this.scriptType = type;
     this.generateErrors = generateErrors;
+    this.generateComments = true;
+    this.generateResUsed = true;
     this.code = (code != null) ? code : "";
+    setTriggerOverrideEnabled(this.scriptType != ScriptType.TRIGGER);
   }
 
-  /** Returns unprocessed BCS byte code. */
+  /** Returns the unprocessed BCS byte code. */
   public String getCode()
   {
     return code;
   }
 
-  /** Set new BCS byte code to decompile. */
+  /** Sets new BCS byte code to compile. */
   public void setCode(String code)
   {
     this.code = (code != null) ? code : "";
     reset();
   }
 
-  /** Load new BCS byte code from the specified resource entry to decompile. */
-  public void setCode(ResourceEntry bcsEntry) throws Exception
+  public void setCode(ResourceEntry bcs) throws Exception
   {
-    if (bcsEntry == null) {
+    if (bcs == null) {
       throw new NullPointerException();
     }
-    ByteBuffer buffer = bcsEntry.getResourceBuffer();
+    ByteBuffer buffer = bcs.getResourceBuffer();
     this.code = StreamUtils.readString(buffer, buffer.limit());
     reset();
   }
 
-  /** Returns the decompiled script source. Executes decompile process if needed. */
-  public String getSource()
+  /** Returns the decompiled script source. Executes {@code decompile()} if needed. */
+  public String getSource() throws Exception
   {
     if (source == null) {
       decompile();
@@ -128,18 +128,20 @@ public final class Decompiler
   }
 
   /**
-   * Specify new script type.
+   * Specifies new script type.
    * <b>Note:</b> Automatically invalidates previously decompiled script code.
+   * @param type
    */
   public void setScriptType(ScriptType type)
   {
     if (type != scriptType) {
       reset();
-      this.scriptType = type;
+      scriptType = type;
+      setTriggerOverrideEnabled(scriptType != ScriptType.TRIGGER);
     }
   }
 
-  /** Returns whether to generate decompile errors. */
+  /** Returns whether to generate compiler errors. */
   public boolean isGenerateErrors()
   {
     return generateErrors;
@@ -149,15 +151,30 @@ public final class Decompiler
    * Specify whether to generate decompile errors.
    * <b>Note:</b> Automatically invalidates previously decompiled script code.
    */
-  public void setGenerateErrors(boolean flag)
+  public void setGenerateErrors(boolean enable)
   {
-    if (flag != generateErrors) {
+    if (enable != generateErrors) {
       reset();
-      generateErrors = flag;
+      generateErrors = enable;
     }
   }
 
-  /** Returns currently used string for a single level of intendation. */
+  /** Returns whether function-specific comments are generated. */
+  public boolean isGenerateComments()
+  {
+    return generateComments;
+  }
+
+  /** Specify whether function-specific comments should be generated. */
+  public void setGenerateComments(boolean enable)
+  {
+    if (enable != generateComments) {
+      reset();
+      generateComments = enable;
+    }
+  }
+
+  /** Returns currently used string for a single level of indentation. */
   public String getIndent()
   {
     return indent;
@@ -183,9 +200,42 @@ public final class Decompiler
     }
   }
 
+  /**
+   * Returns whether the artificial construct TriggerOverride() will be used.
+   * <b>Note:</b> This flag is automatically updated whenever a new script type is set.
+   */
+  public boolean isTriggerOverrideEnabled()
+  {
+    return triggerOverrideEnabled;
+  }
+
+  /**
+   * Sets whether the artificial construct TriggerOverride() will be used.
+   * <b>Note:</b> This flag is automatically updated whenever a new script type is set.
+   */
+  public void setTriggerOverrideEnabled(boolean set)
+  {
+    triggerOverrideEnabled = set;
+  }
+
   public SortedMap<Integer, String> getIdsErrors()
   {
     return idsErrors;
+  }
+
+  /** Returns whether a used resources map is generated. */
+  public boolean isGenerateResourcesUsed()
+  {
+    return generateResUsed;
+  }
+
+  /** Specify whether a used resources map should be generated. */
+  public void setGenerateResourcesUsed(boolean enable)
+  {
+    if (enable != generateResUsed) {
+      reset();
+      generateResUsed = enable;
+    }
   }
 
   public Set<ResourceEntry> getResourcesUsed()
@@ -195,7 +245,7 @@ public final class Decompiler
 
   public Set<Integer> getStringRefsUsed()
   {
-    return stringrefsUsed;
+    return strrefsUsed;
   }
 
   /**
@@ -204,870 +254,969 @@ public final class Decompiler
    * @return The decompiled script source.
    * @throws Exception Thrown if script type is {@code Custom}.
    */
-  public String decompile()
+  public String decompile() throws Exception
   {
-    switch (scriptType) {
-      case BCS: return decompileScript();
-      case TRIGGER: return decompileTrigger();
-      case ACTION: return decompileAction();
-      default: throw new IllegalArgumentException("Could not determine script type");
-    }
+    return decompile(scriptType);
   }
 
   /**
-   * Decompiles the current script code as if defined as {@code ScriptType.BCS}.
-   * @return The decompiled script source. Also available via {@link #getSource()}.
+   * Decompiles the currently loaded script code into human-readable source.
+   * @param type Specifies the decompile action.
+   * @return The decompiled script source.
+   * @throws Exception Thrown if script type is {@code Custom}.
    */
-  public String decompileScript()
+  public String decompile(ScriptType type) throws Exception
+  {
+    if (type != getScriptType()) {
+      reset();
+    }
+
+    switch (type) {
+      case BCS:     return decompileScript();
+      case TRIGGER: return decompileTriggers();
+      case ACTION:  return decompileActions();
+      default:      throw new IllegalArgumentException("Could not determine script type");
+    }
+  }
+
+  public String decompileScript() throws Exception
   {
     reset();
+    init();
     StringBuilder sb = new StringBuilder(code.length() * 2);
-    StringTokenizer st = new StringTokenizer(code);
-    while (st.hasMoreTokens()) {
-      if (st.nextToken().equalsIgnoreCase("CR"))
-        decompileCR(sb, st);
+    StringBufferStream sbs = new StringBufferStream(code);
+    sbs.setAutoSkipWhitespace(true);
+    if (sbs.skip("SC")) {
+      while (!sbs.eos() && !sbs.skip("SC")) {
+        if (sbs.skip("CR")) {
+          decompileCR(sb, sbs);
+        } else {
+          sbs.skip();
+        }
+      }
     }
     source = sb.toString();
     return source;
   }
 
-  /**
-   * Decompiles the current script code as if defined as {@code ScriptType.Trigger}.
-   * @return The decompiled script source. Also available via {@link #getSource()}.
-   */
-  public String decompileTrigger()
+  public String decompileTriggers() throws Exception
   {
+    // Note: majority of code is identical with decompileCO()
     String curIndent = indent;
-    indent = "";  // ignore indentation for dialog script actions
     try {
       reset();
+      init();
       StringBuilder sb = new StringBuilder(code.length() * 2);
-      StringTokenizer st = new StringTokenizer(code);
-      while (st.hasMoreTokens()) {
-        if (st.nextToken().equalsIgnoreCase("TR"))
-          sb.append(decompileTR(st));
+      StringBufferStream sbs = new StringBufferStream(code);
+      sbs.setAutoSkipWhitespace(true);
+      long orCount = 0;
+      BcsTrigger override = null;
+      while (!sbs.eos()) {
+        if (sbs.skip("TR")) {
+          // decoding next trigger
+          BcsTrigger trigger = new BcsTrigger(sbs, triggers);
+          if (isTriggerOverrideEnabled() &&
+              override == null && trigger.isOverride()) {
+            override = trigger;   // save for later
+          } else {
+            if (override != null) {
+              // prepare for combining trigger with previous NextTriggerObject() into TriggerOverride()
+              trigger.setOverride(override);
+              override = null;
+            }
+            if (orCount > 0) {
+              sb.append(indent);
+              if (!trigger.isOverride()) {
+                orCount--;
+              }
+            } else if (trigger.isOR()) {
+              orCount = trigger.getORCount();
+            }
+            sb.append(decompileTrigger(trigger)).append('\n');
+            lineNr++;
+          }
+        } else {
+          sbs.skip();
+        }
       }
+
+      // recovering pending override trigger
+      if (override != null) {
+        if (orCount > 0) {
+          sb.append(indent);
+          orCount--;
+        }
+        sb.append(decompileTrigger(override)).append('\n');
+        override = null;
+      }
+
       source = sb.toString();
-      return source;
     } finally {
       indent = curIndent;
     }
+    return source;
   }
 
-  /**
-   * Decompiles the current script code as if defined as {@code ScriptType.Action}.
-   * @return The decompiled script source. Also available via {@link #getSource()}.
-   */
-  public String decompileAction()
+  public String decompileActions() throws Exception
   {
     String curIndent = indent;
-    indent = "";  // ignore indentation for dialog script actions
     try {
       reset();
+      init();
       StringBuilder sb = new StringBuilder(code.length() * 2);
-      StringTokenizer st = new StringTokenizer(code);
-      while (st.hasMoreTokens()) {
-        if (st.nextToken().equalsIgnoreCase("AC"))
-          decompileAC(sb, st);
+      StringBufferStream sbs = new StringBufferStream(code);
+      sbs.setAutoSkipWhitespace(true);
+      while (!sbs.eos()) {
+        if (sbs.skip("AC")) {
+          BcsAction action = new BcsAction(sbs, actions);
+          sb.append(decompileAction(action)).append('\n');
+          lineNr++;
+        } else {
+          sbs.skip();
+        }
       }
       source = sb.toString();
-      return source;
     } finally {
       indent = curIndent;
     }
-  }
-
-  public static String[] getResRefType(String function)
-  {
-    if (function.equalsIgnoreCase("DropItem") ||
-        function.equalsIgnoreCase("EquipItem") ||
-        function.equalsIgnoreCase("GetItem") ||
-        function.equalsIgnoreCase("GiveItem") ||
-        function.equalsIgnoreCase("UseItem") ||
-        function.equalsIgnoreCase("HasItem") ||
-        function.equalsIgnoreCase("Contains") ||
-        function.equalsIgnoreCase("NumItems") ||
-        function.equalsIgnoreCase("NumItemsGT") ||
-        function.equalsIgnoreCase("NumItemsLT") ||
-        function.equalsIgnoreCase("NumItemsParty") ||
-        function.equalsIgnoreCase("NumItemsPartyGT") ||
-        function.equalsIgnoreCase("NumItemsPartyLT") ||
-        function.equalsIgnoreCase("HasItemEquiped") ||
-        function.equalsIgnoreCase("PartyHasItem") ||
-        function.equalsIgnoreCase("PartyHasItemIdentified") ||
-        function.equalsIgnoreCase("HasItemEquipedReal") ||
-        function.equalsIgnoreCase("Acquired") ||
-        function.equalsIgnoreCase("Unusable") ||
-        function.equalsIgnoreCase("CreateItem") ||
-        function.equalsIgnoreCase("GiveItemCreate") ||
-        function.equalsIgnoreCase("DestroyItem") ||
-        function.equalsIgnoreCase("TakePartyItemNum") ||
-        function.equalsIgnoreCase("CreateItemNumGlobal") ||
-        function.equalsIgnoreCase("CreateItemGlobal") ||
-        function.equalsIgnoreCase("PickUpItem")) {
-      return new String[] {".ITM"};
-    }
-    else if (function.equalsIgnoreCase("ChangeAnimation") ||
-             function.equalsIgnoreCase("ChangeAnimationNoEffect") ||
-             function.equalsIgnoreCase("CreateCreature") ||
-             function.equalsIgnoreCase("CreateCreatureObject") ||
-             function.equalsIgnoreCase("CreateCreatureImpassable") ||
-             function.equalsIgnoreCase("CreateCreatureDoor") ||
-             function.equalsIgnoreCase("CreateCreatureObjectDoor") ||
-             function.equalsIgnoreCase("CreateCreatureObjectOffScreen") ||
-             function.equalsIgnoreCase("CreateCreatureOffScreen") ||
-             function.equalsIgnoreCase("CreateCreatureAtLocation") ||
-             function.equalsIgnoreCase("CreateCreatureObjectCopy") ||
-             function.equalsIgnoreCase("CreateCreatureObjectOffset") ||
-             function.equalsIgnoreCase("CreateCreatureCopyPoint") ||
-             function.equalsIgnoreCase("CreateCreatureImpassableAllowOverlap")) {
-      return new String[] {".CRE"};
-    }
-    else if (function.equalsIgnoreCase("AreaCheck") ||
-             function.equalsIgnoreCase("AreaCheckObject") ||
-             function.equalsIgnoreCase("RevealAreaOnMap") ||
-             function.equalsIgnoreCase("HideAreaOnMap") ||
-             function.equalsIgnoreCase("CopyGroundPilesTo") ||
-             function.equalsIgnoreCase("EscapeAreaObjectMove")) {
-      return new String[] {".ARE"};
-    }
-    else if (function.equalsIgnoreCase("G") ||
-             function.equalsIgnoreCase("GGT") ||
-             function.equalsIgnoreCase("GLT")) {
-      return new String[] {};
-    }
-    else if (function.equalsIgnoreCase("IncrementChapter") ||
-             function.equalsIgnoreCase("TakeItemListParty") ||
-             function.equalsIgnoreCase("TakeItemListPartyNum")) {
-      return new String[] {".2DA"};
-    }
-    else if (function.equalsIgnoreCase("StartMovie")) {
-      if (Profile.isEnhancedEdition()) {
-        return new String[] {".WBM", ".MVE"};
-      } else {
-        return new String[] {".MVE"};
-      }
-    }
-    else if (function.equalsIgnoreCase("AddSpecialAbility")) {
-      return new String[] {".SPL"};
-    }
-    else if (function.equalsIgnoreCase("CreateVisualEffect")) {
-      return new String[] {".VEF", ".VVC", ".BAM"};
-    }
-    return new String[] {".CRE", ".ITM", ".ARE", ".2DA", ".BCS",
-                         ".MVE", ".SPL", ".DLG", ".VEF", ".VVC", ".BAM"};
+    return source;
   }
 
   private void reset()
   {
+    strrefsUsed.clear();
     resourcesUsed.clear();
-    stringrefsUsed.clear();
     idsErrors.clear();
     lineNr = 1;
     source = null;
   }
 
-  private void decompileAC(StringBuilder code, StringTokenizer st)
+  private void init()
   {
-    int numbers[] = new int[3];
-    String objects[] = new String[2];
-    String strings[] = null;
-    String actionString = st.nextToken();
-    int actioncode;
-    if (actionString.endsWith("OB"))
-      actioncode = Integer.parseInt(actionString.substring(0, actionString.length() - 2));
-    else
-      actioncode = Integer.parseInt(st.nextToken());
-    String overrideObject = decompileOB(st);
-    st.nextToken(); // OB
-    objects[0] = decompileOB(st);
-    st.nextToken(); // OB
-    objects[1] = decompileOB(st);
-    numbers[0] = Integer.parseInt(st.nextToken());
-    int x = Integer.parseInt(st.nextToken());
-    int y = Integer.parseInt(st.nextToken());
-    numbers[1] = Integer.parseInt(st.nextToken());
-    String string1 = st.nextToken();
-    if (string1.endsWith("AC"))
-      numbers[2] = Integer.parseInt(string1.substring(0, string1.length() - 2));
-    else {
-      int i = string1.indexOf((int)'"');
-      if (i != -1) {
-        numbers[2] = Integer.parseInt(string1.substring(0, i));
-        string1 = string1.substring(i);
-        while (string1.charAt(0) == '"' && string1.charAt(string1.length() - 1) != '"')
-          string1 += ' ' + st.nextToken();
-      }
-      else {
-        numbers[2] = Integer.parseInt(string1);
-        string1 = st.nextToken();
-        while (string1.charAt(0) == '"' && string1.charAt(string1.length() - 1) != '"')
-          string1 += ' ' + st.nextToken();
-      }
-      String string2 = st.nextToken();
-      while (string2.charAt(0) == '"' && string2.charAt(string2.length() - 1) != '"')
-        string2 += ' ' + st.nextToken();
-      strings = modifyStrings(string1, string2);
-      st.nextToken(); // AC
-    }
-
-    IdsMapEntry action = IdsMapCache.get("ACTION.IDS").getValue((long)actioncode);
-    if (action == null) {
-      if (generateErrors)
-        idsErrors.put(new Integer(lineNr), actioncode + " not found in ACTION.IDS");
-      code.append("Error - Could not find actionString ").append(actioncode).append('\n');
-      lineNr++;
-      return;
-    }
-    StringTokenizer defParam = new StringTokenizer(action.getParameters(), ",");
-
-    IdsMapEntry action2 = IdsMapCache.get("ACTION.IDS").getOverflowValue((long)actioncode);
-    if (action2 != null) {
-      if (useOverflowCommand(defParam, numbers, x, y, objects, strings))
-        action = action2;
-      defParam = new StringTokenizer(action.getParameters(), ",");
-    }
-
-    if (strings != null) {
-      int count_s = 0;
-      while (defParam.hasMoreTokens()) {
-        String p = defParam.nextToken();
-        if (p.substring(0, 2).equals("S:"))
-          count_s++;
-      }
-      if (count_s > 0 && count_s < 4 && strings[count_s] != null && !strings[count_s].equals("\"\""))
-        strings[count_s - 1] =
-        strings[count_s].substring(0, strings[count_s].length() - 1) + strings[count_s - 1].substring(1);
-
-      defParam = new StringTokenizer(action.getParameters(), ",");
-    }
-
-    String comment = null;
-    if (overrideObject.equals("[ANYONE]"))
-      code.append(action.getString());
-    else
-      code.append("ActionOverride(").append(overrideObject).append(',').append(action.getString());
-
-    int index_i = 0, index_o = 0, index_s = 0;
-    boolean first = true;
-    while (defParam.hasMoreTokens()) {
-      if (!first)
-        code.append(',');
-      String p = defParam.nextToken();
-      if (p.substring(0, 2).equals("S:")) {
-        String newp;
-        if (strings == null)
-          newp = objects[index_o++];
-        else
-          newp = strings[index_s++];
-        code.append(newp);
-        if (p.equalsIgnoreCase("S:Spells*")) {
-          String spellNumbers = newp.substring(1, newp.length() - 1);
-          int index = 4;
-          IdsMap map = IdsMapCache.get("SPELL.IDS");
-          while (index <= spellNumbers.length()) {
-            long spellNumber = Long.parseLong(spellNumbers.substring(index - 4, index));
-            IdsMapEntry entry = map.getValue(spellNumber);
-            if (comment == null)
-              comment = entry.toString();
-            else
-              comment += ", " + entry.toString();
-            index += 4;
-          }
-        }
-        else if (newp != null) {
-          String function = action.getString().substring(0, action.getString().length() - 1);
-          comment = getResourceName(function, p, newp.substring(1, newp.length() - 1));
-        }
-      }
-      else if (p.substring(0, 2).equals("O:")) {
-        while (objects[index_o++].equals("[ANYONE]") && index_o < 2)
-          ;
-        code.append(objects[index_o - 1]);
-      }
-      else if (p.substring(0, 2).equals("I:")) {
-        int nr = numbers[index_i++];
-        decompileInteger(code, (long)nr, p);
-        if ((p.length() >= 8 && p.substring(0, 8).equalsIgnoreCase("I:StrRef")) ||
-            (p.length() >= 11 && p.substring(0, 11).equalsIgnoreCase("I:StringRef")) ||
-            (p.length() >= 7 && p.substring(0, 7).equalsIgnoreCase("I:Entry"))) {
-          comment = StringResource.getStringRef(nr);
-          if (generateErrors)
-            stringrefsUsed.add(new Integer(nr));
-        } else {
-          StringBuilder sb = new StringBuilder();
-          decompileInteger(sb, (long)nr, p);
-          String s = getResourceFileName(p, sb.toString());
-          if (s != null) {
-            comment = s;
-          }
-        }
-      }
-      else if (p.substring(0, 2).equals("P:"))
-        code.append('[').append(x).append('.').append(y).append(']').toString();
-      first = false;
-    }
-
-    if (!overrideObject.equals("[ANYONE]"))
-      code.append("))");
-    else
-      code.append(')');
-    if (comment != null)
-      code.append(" // ").append(comment.replace('\n', ' '));
-    code.append('\n');
-    lineNr++;
+    triggers = Signatures.getTriggers();
+    actions = Signatures.getActions();
   }
 
-  private void decompileCO(StringBuilder code, StringTokenizer st)
-  {
-    code.append("IF\n");
-    lineNr++;
-    String token = st.nextToken();
-    int orcount = 0;
-    while (!token.equalsIgnoreCase("CO")) {
-      if (token.equalsIgnoreCase("TR")) {
-        String trigger = decompileTR(st);
-        if (orcount > 0) {
-          // NextTriggerObject doesn't count as separate trigger
-          if (!trigger.startsWith("NextTriggerObject")) {
-            orcount--;
-          }
-          code.append(indent);
-        }
-        else if (trigger.substring(0, 3).equalsIgnoreCase("OR(")) {
-          orcount = Integer.parseInt(trigger.substring(3, trigger.indexOf(")")));
-        }
-        code.append(indent).append(trigger);
-      }
-      token = st.nextToken();
-    }
-  }
 
-  private void decompileCR(StringBuilder code, StringTokenizer st)
+  private void decompileCR(StringBuilder sb, StringBufferStream sbs) throws Exception
   {
-    String token = st.nextToken();
-    while (st.hasMoreTokens() && !token.equalsIgnoreCase("CR")) {
-      if (token.equalsIgnoreCase("CO"))
-        decompileCO(code, st);
-      else if (token.equalsIgnoreCase("RS"))
-        decompileRS(code, st);
-      if (st.hasMoreTokens())
-        token = st.nextToken();
+    while (!sbs.eos() && !sbs.skip("CR")) {
+      if (sbs.skip("CO")) {
+        decompileCO(sb, sbs);
+      } else if (sbs.skip("RS")) {
+        decompileRS(sb, sbs);
+      } else {
+        sbs.skip();
+      }
     }
-    code.append("END\n\n");
+    sb.append("END\n\n");
     lineNr += 2;
   }
 
-  private void decompileInteger(StringBuilder code, long nr, String p)
+  private void decompileCO(StringBuilder sb, StringBufferStream sbs) throws Exception
   {
-    int pIndex = p.indexOf((int)'*');
-    if (pIndex != -1 && pIndex != p.length() - 1) {
-//      if (nr < 0)
-//        nr += 4294967296L;
-      String idsFile = p.substring(pIndex + 1).toUpperCase(Locale.ENGLISH) + ".IDS";
-      IdsMap map = IdsMapCache.get(idsFile);
-      if (map != null) {
-        IdsMapEntry entry = map.getValue(nr);
-        if (entry != null) {
-          code.append(entry.getString());
-        }
-        else if (nr != 0 && (map.toString().equalsIgnoreCase("AREATYPE.IDS") ||
-                             map.toString().equalsIgnoreCase("BITS.IDS") ||
-                             map.toString().equalsIgnoreCase("SPLCAST.IDS") ||
-                             map.toString().equalsIgnoreCase("STATE.IDS"))) {
-          if (nr < 0) {
-            nr += 4294967296L;
+    // Note: majority of code is identical with decompileTriggers()
+    sb.append("IF\n");
+    lineNr++;
+    long orCount = 0;
+    BcsTrigger override = null;
+    while (!sbs.eos() && !sbs.skip("CO")) {
+      if (sbs.skip("TR")) {
+        // decoding next trigger
+        BcsTrigger trigger = new BcsTrigger(sbs, triggers);
+        if (isTriggerOverrideEnabled() &&
+            override == null && trigger.isOverride()) {
+          override = trigger;   // save for later
+        } else {
+          if (override != null) {
+            // prepare for combining trigger with previous NextTriggerObject() into TriggerOverride()
+            trigger.setOverride(override);
+            override = null;
           }
-          StringBuilder temp = new StringBuilder();
-          for (int bit = 0; nr > 0 && bit < 32; bit++) {
-            long bitnr = 1L << bit;
-            if ((nr & bitnr) == bitnr) {
-              entry = map.getValue(bitnr);
+          if (orCount > 0) {
+            sb.append(indent);
+            if (!trigger.isOverride()) {
+              orCount--;
+            }
+          } else if (trigger.isOR()) {
+            orCount = trigger.getORCount();
+          }
+          sb.append(indent).append(decompileTrigger(trigger)).append('\n');
+          lineNr++;
+        }
+      } else {
+        sbs.skip();
+      }
+    }
+
+    // recovering pending override trigger
+    if (override != null) {
+      if (orCount > 0) {
+        sb.append(indent);
+        orCount--;
+      }
+      sb.append(indent).append(decompileTrigger(override)).append('\n');
+      override = null;
+    }
+  }
+
+  private void decompileRS(StringBuilder sb, StringBufferStream sbs) throws Exception
+  {
+    sb.append("THEN\n");
+    lineNr++;
+    while (!sbs.eos() && !sbs.skip("RS")) {
+      if (sbs.skip("RE")) {
+        decompileRE(sb, sbs);
+      } else {
+        sbs.skip();
+      }
+    }
+  }
+
+  private void decompileRE(StringBuilder sb, StringBufferStream sbs) throws Exception
+  {
+    String weight = sbs.getMatch("[0-9]+");
+    if (weight != null) {
+      try {
+        int i = Integer.parseInt(weight);
+        sb.append(indent).append("RESPONSE #").append(i).append('\n');
+        lineNr++;
+      } catch (NumberFormatException e) {
+        throw new Exception("Invalid response weight: " + weight);
+      }
+    } else {
+      throw new Exception("Missing or invalid response weight");
+    }
+    while (!sbs.eos() && !sbs.skip("RE")) {
+      if (sbs.skip("AC")) {
+        BcsAction action = new BcsAction(sbs, actions);
+        sb.append(indent).append(indent).append(decompileAction(action)).append('\n');
+        lineNr++;
+      } else {
+        sbs.skip();
+      }
+    }
+  }
+
+  private String decompileTrigger(BcsTrigger trigger) throws Exception
+  {
+    StringBuilder sb = new StringBuilder();
+
+    Signatures.Function[] functions = trigger.signatures.getFunction(trigger.id);
+    if (functions == null) {
+      trigger.id ^= 0x4000;
+      functions = trigger.signatures.getFunction(trigger.id);
+      if (functions == null) {
+        trigger.id ^= 0x4000;
+      }
+    }
+    if (functions == null) {
+      if (isGenerateErrors()) {
+        idsErrors.put(Integer.valueOf(lineNr),
+                      String.format("0x%04X not found in %s",
+                          trigger.id, trigger.signatures.getResource().toUpperCase(Locale.ENGLISH)));
+      }
+      return String.format("// Error - Could not find trigger 0x%04X", trigger.id);
+    }
+
+    Signatures.Function function = trigger.getMatchingFunction();
+    if (function == null) {
+      if (isGenerateErrors()) {
+        idsErrors.put(Integer.valueOf(lineNr),
+                      String.format("No matching signature found for 0x%04X in %s",
+                          trigger.id, trigger.signatures.getResource().toUpperCase(Locale.ENGLISH)));
+      }
+      return String.format("// Error - Could not find matching signature for trigger 0x%04X", trigger.id);
+    }
+
+    if (trigger.negated) {
+      sb.append('!');
+    }
+
+    // handling TriggerOverride()
+    BcsTrigger override = trigger.getOverride();
+    if (override != null) {
+      // TBC: Can NextTriggerObject() be negated?
+      String obj = decompileObject(override.t6);
+      sb.append(Signatures.Function.TRIGGER_OVERRIDE_NAME).append('(').append(obj).append(',');
+    }
+
+    // dealing with actual trigger
+    sb.append(function.getName()).append('(');
+
+    String comment = null;
+    int curNum = 0, curString = 0, curObj = 0, curPoint = 0;
+    for (int i = 0, cnt = function.getNumParameters(); i < cnt; i++) {
+      if (i > 0) {
+        sb.append(',');
+      }
+
+      Signatures.Function.Parameter p = function.getParameter(i);
+      switch (p.getType()) {
+        case Signatures.Function.Parameter.TYPE_INTEGER:
+        {
+          long value;
+          try {
+            value = trigger.getNumericParam(curNum);
+          } catch (IllegalArgumentException e) {
+            value = 0;
+            if (isGenerateErrors()) {
+              idsErrors.put(Integer.valueOf(lineNr), "No value defined for number at parameter " + i + ". Using defaults.");
+            }
+          }
+          String s = decompileNumber(value, p);
+          sb.append(s);
+          String c = generateNumberComment(value, p, ScriptInfo.getInfo().isCommentAllowed(function.getId(), i));
+          if (comment == null && !c.isEmpty()) {
+            comment = c;
+          }
+          curNum++;
+          break;
+        }
+        case Signatures.Function.Parameter.TYPE_STRING:
+        {
+          String value;
+          try {
+            value = trigger.getStringParam(function, curString);
+          } catch (IllegalArgumentException e) {
+            value = "";
+            if (isGenerateErrors()) {
+              idsErrors.put(Integer.valueOf(lineNr), "No value defined for string at parameter " + i + ". Using defaults.");
+            }
+          }
+          String s = decompileString(value, p);
+          sb.append(s);
+          String c = generateStringComment(value, p, ScriptInfo.getInfo().isCommentAllowed(function.getId(), i));
+          if (comment == null && !c.isEmpty()) {
+            comment = c;
+          }
+          curString++;
+          break;
+        }
+        case Signatures.Function.Parameter.TYPE_OBJECT:
+        {
+          BcsObject value;
+          try {
+            value = trigger.getObjectParam(curObj);
+          } catch (IllegalArgumentException e) {
+            value = BcsObject.getEmptyObject();
+            if (isGenerateErrors()) {
+              idsErrors.put(Integer.valueOf(lineNr), "No value defined for object at parameter " + i + ". Using defaults.");
+            }
+          }
+          String s = decompileObject(value);  // defaults to "[ANYONE]"
+          sb.append(s);
+          String c = generateObjectComment(value, ScriptInfo.getInfo().isCommentAllowed(function.getId(), i));
+          if (comment == null && !c.isEmpty()) {
+            comment = c;
+          }
+          curObj++;
+          break;
+        }
+        case Signatures.Function.Parameter.TYPE_POINT:
+        {
+          Point value;
+          try {
+            value = trigger.getPointParam(curPoint);
+          } catch (IllegalArgumentException e) {
+            value = new Point();
+            if (isGenerateErrors()) {
+              idsErrors.put(Integer.valueOf(lineNr), "No value defined for point at parameter " + i + ". Using defaults.");
+            }
+          }
+          String s = decompilePoint(value);
+          sb.append(s);
+          curPoint++;
+          break;
+        }
+        default:
+          if (isGenerateErrors()) {
+            idsErrors.put(Integer.valueOf(lineNr), "Unknown type for parameter " + i + ".");
+          }
+          return String.format("// Error - %s: Unknown type for parameter %d", function.getName(), trigger.id);
+      }
+    }
+
+    sb.append(')');
+
+    if (override != null) {
+      sb.append(')');
+    }
+
+    if (comment != null) {
+      sb.append("  // ").append(comment.replace('\n', ' '));
+    }
+
+    return sb.toString();
+  }
+
+  private String decompileAction(BcsAction action) throws Exception
+  {
+    StringBuilder sb = new StringBuilder();
+
+    Signatures.Function[] functions = action.signatures.getFunction(action.id);
+    if (functions == null) {
+      if (isGenerateErrors()) {
+        idsErrors.put(Integer.valueOf(lineNr),
+                      String.format("%d not found in %s",
+                          action.id, action.signatures.getResource().toUpperCase(Locale.ENGLISH)));
+      }
+      return String.format("// Error - Could not find action %d", action.id);
+    }
+
+    Signatures.Function function = action.getMatchingFunction();
+    if (function == null) {
+      if (isGenerateErrors()) {
+        idsErrors.put(Integer.valueOf(lineNr),
+                      String.format("No matching signature found for %d in %s",
+                          action.id, action.signatures.getResource().toUpperCase(Locale.ENGLISH)));
+      }
+      return String.format("// Error - Could not find matching signature for action %d", action.id);
+    }
+
+    BcsObject override = action.getObjectParam(0);
+    String comment = null;
+    int curNum = 0, curObj = 1, curString = 0, curPoint = 0;  // curObj: skipping ActionOverride
+
+    // constructing action
+    sb.append(function.getName()).append('(');
+
+    for (int i = 0, cnt = function.getNumParameters(); i < cnt; i++) {
+      if (i > 0) {
+        sb.append(',');
+      }
+
+      Signatures.Function.Parameter param = function.getParameter(i);
+      switch (param.getType()) {
+        case Signatures.Function.Parameter.TYPE_INTEGER:
+        {
+          long value;
+          try {
+            value = action.getNumericParam(curNum);
+          } catch (IllegalArgumentException e) {
+            value = 0;
+            if (isGenerateErrors()) {
+              idsErrors.put(Integer.valueOf(lineNr), "No value defined for number at parameter " + i + ". Using defaults.");
+            }
+          }
+          String s = decompileNumber(value, param);
+          sb.append(s);
+          String c = generateNumberComment(value, param, ScriptInfo.getInfo().isCommentAllowed(function.getId(), i));
+          if (comment == null && !c.isEmpty()) {
+            comment = c;
+          }
+          curNum++;
+          break;
+        }
+        case Signatures.Function.Parameter.TYPE_STRING:
+        {
+          String value;
+          try {
+            value = action.getStringParam(function, curString);
+          } catch (IllegalArgumentException e) {
+            value = "";
+            if (isGenerateErrors()) {
+              idsErrors.put(Integer.valueOf(lineNr), "No value defined for string at parameter " + i + ". Using defaults.");
+            }
+          }
+          String s = decompileString(value, param);
+          sb.append(s);
+          String c = generateStringComment(value, param, ScriptInfo.getInfo().isCommentAllowed(function.getId(), i));
+          if (comment == null && !c.isEmpty()) {
+            comment = c;
+          }
+          curString++;
+          break;
+        }
+        case Signatures.Function.Parameter.TYPE_POINT:
+        {
+          Point value;
+          try {
+            value = action.getPointParam(curPoint);
+          } catch (IllegalArgumentException e) {
+            value = new Point();
+            if (isGenerateErrors()) {
+              idsErrors.put(Integer.valueOf(lineNr), "No value defined for point at parameter " + i + ". Using defaults.");
+            }
+          }
+          String s = decompilePoint(value);
+          sb.append(s);
+          curPoint++;
+          break;
+        }
+        case Signatures.Function.Parameter.TYPE_OBJECT:
+        {
+          BcsObject value = null;
+          try {
+            value = action.getObjectParam(curObj);
+          } catch (IllegalArgumentException e) {
+            value = BcsObject.getEmptyObject();
+            if (isGenerateErrors()) {
+              idsErrors.put(Integer.valueOf(lineNr), "No value defined for object at parameter " + i + ". Using defaults.");
+            }
+          }
+          String s = decompileObject(value);  // defaults to "[ANYONE]"
+          sb.append(s);
+          String c = generateObjectComment(value, ScriptInfo.getInfo().isCommentAllowed(function.getId(), i));
+          if (comment == null && !c.isEmpty()) {
+            comment = c;
+          }
+          curObj++;
+          break;
+        }
+        case Signatures.Function.Parameter.TYPE_ACTION:
+          // ignore
+          break;
+      }
+    }
+
+    sb.append(')');
+
+    // handling ActionOverride()
+    if (!override.isEmpty()) {
+      String funcName = null;
+      functions = action.signatures.getFunction(1);
+      for (Signatures.Function f: functions) {
+        if (f.getNumParameters() == 2 &&
+            f.getParameter(0).getType() == Signatures.Function.Parameter.TYPE_OBJECT &&
+            f.getParameter(1).getType() == Signatures.Function.Parameter.TYPE_ACTION) {
+          funcName = f.getName();
+          break;
+        }
+      }
+      if (funcName == null) {
+        funcName = Signatures.Function.ACTION_OVERRIDE_NAME;
+      }
+      StringBuilder sbOverride = new StringBuilder();
+      sbOverride.append(funcName).append('(');
+      sbOverride.append(decompileObject(override)).append(',');
+      sb.insert(0, sbOverride.toString());
+      sb.append(')');
+    }
+
+    if (comment != null) {
+      sb.append("  // ").append(comment.replace('\n', ' '));
+    }
+
+    return sb.toString();
+  }
+
+  // Returns fully qualified object specifier.
+  private String decompileObject(BcsObject object)
+  {
+    StringBuilder sb = new StringBuilder();
+
+    if (object == null) {
+      sb.append(decompileObjectTarget(null, true));
+    } else {
+      String target = null;
+      String rect = null;
+
+      // getting target object
+      target = decompileObjectTarget(object, false);
+
+      // getting string
+      if (target == null && !object.isEmptyString()) {
+        target = '"' + object.name + '"';
+      }
+
+      // getting identifier list (ordered from most outer to most inner identifier)
+      List<String> listIdentifiers = null;
+      if (!object.isEmptyIdentifier()) {
+        listIdentifiers = new ArrayList<>();
+        IdsMap map = IdsMapCache.get("OBJECT.IDS");
+        if (map == null && isGenerateErrors()) {
+          idsErrors.put(Integer.valueOf(lineNr), "Could not retrieve values from OBJECT.IDS");
+        }
+        boolean found = false;
+        for (int i = object.identifier.length - 1; i >= 0; i--) {
+          if (object.identifier[i] != 0) {
+            found = true;
+            IdsMapEntry entry = null;
+            if (map != null) {
+              entry = map.get(object.identifier[i]);
               if (entry != null) {
-                if (temp.length() > 0) {
-                  temp.append(" | ");
+                listIdentifiers.add(getNormalizedSymbol(entry.getSymbol()));
+              }
+            }
+            if (map == null || entry == null) {
+              listIdentifiers.add("UnknownObject" + object.identifier[i]);
+            }
+          } else if (found) {
+            break;
+          }
+        }
+      }
+
+      if (target == null && listIdentifiers == null) {
+        // using default target
+        target = decompileObjectTarget(null, true);
+      }
+
+      // optional: getting region
+      if (!object.isEmptyRect()) {
+        StringBuilder sbRect = new StringBuilder();
+        sbRect.append('[');
+        sbRect.append(object.region.x).append('.');
+        sbRect.append(object.region.y).append('.');
+        sbRect.append(object.region.width).append('.');
+        sbRect.append(object.region.height);
+        sbRect.append(']');
+        rect = sbRect.toString();
+      }
+
+      // assembling object string
+      StringBuilder sbClosing = null;
+      if (listIdentifiers != null) {
+        sbClosing = new StringBuilder();
+        for (int i = 0, cnt = listIdentifiers.size(); i < cnt; i++) {
+          sb.append(listIdentifiers.get(i));
+          if (i + 1 < cnt || target != null) {
+            sb.append('(');
+            sbClosing.append(')');
+          }
+        }
+      }
+
+      if (target != null) {
+        sb.append(target);
+      }
+
+      if (sbClosing != null) {
+        sb.append(sbClosing.toString());
+      }
+
+      if (rect != null) {
+        sb.append(rect);
+      }
+    }
+
+    return sb.toString();
+  }
+
+  // Decompiles a target ([EA.GENERAL.RACE...]). Returns "[ANYONE]" if useDefault is true, null otherwise.
+  private String decompileObjectTarget(BcsObject object, boolean useDefault)
+  {
+    String retVal = null;
+
+    if (object != null && !object.isEmptyTarget()) {
+      StringBuilder sb = new StringBuilder();
+      long[] idsValues = new long[object.target.length];
+      System.arraycopy(object.target, 0, idsValues, 0, idsValues.length);
+      int numTargetValues = 0;
+      for (int i = idsValues.length - 1; i >= 0; i--) {
+        if (idsValues[i] != 0) {
+          numTargetValues = i + 1;
+          break;
+        }
+      }
+      if (numTargetValues > 0) {
+        ScriptInfo info = ScriptInfo.getInfo();
+        String[] idsNames = BcsObject.getTargetList();
+        boolean isIwd2 = (Profile.getEngine() == Profile.Engine.IWD2);
+        long race = 0; // store RACE value in IWD2
+        sb.append('[');
+        for (int i = 0; i < numTargetValues; i++) {
+          if (i > 0) {
+            sb.append('.');
+          }
+
+          String symbol = null;
+          if (isIwd2) {
+            // IWD2 needs RACE value to correctly look up SUBRACE symbol
+            if (i == info.IDX_OBJECT_RACE) {
+              race = idsValues[i];
+            } else if (i == info.IDX_OBJECT_SUBRACE) {
+              idsValues[i] |= race << 16;
+            }
+          }
+          if (idsValues[i] != 0) {
+            // don't use symbols for 0
+            IdsMap map = IdsMapCache.get(idsNames[i] + ".IDS");
+            if (map != null) {
+              IdsMapEntry entry = map.get(idsValues[i]);
+              if (entry != null) {
+                symbol = getNormalizedSymbol(entry.getSymbol());
+              }
+            }
+            if (symbol == null && isGenerateErrors()) {
+              idsErrors.put(Integer.valueOf(lineNr), idsValues[i] + " not found in " + idsNames[i] + ".IDS");
+            }
+          }
+
+          if (symbol == null) {
+            if (isIwd2 && i == info.IDX_OBJECT_SUBRACE) {
+              // reverting RACE + SUBRACE combination
+              idsValues[i] &= ~(race << 16);
+            }
+            symbol = Long.toString(idsValues[i]);
+          }
+
+          sb.append(symbol);
+        }
+        sb.append(']');
+        retVal = sb.toString();
+      }
+    }
+
+    if (useDefault && retVal == null) {
+      retVal = "[ANYONE]";
+    }
+
+    return retVal;
+  }
+
+  // Returns point structure formatted as [x.y]
+  private String decompilePoint(Point value)
+  {
+    StringBuilder sb = new StringBuilder();
+
+    if (value != null) {
+      sb.append('[').append(value.x).append('.').append(value.y).append(']');
+    } else {
+      sb.append("[0.0]");
+    }
+
+    return sb.toString();
+  }
+
+  // Returns symbolic names or binary combination of symbols if available, returns number otherwise.
+  private String decompileNumber(long value, Signatures.Function.Parameter param)
+  {
+    String retVal = null;
+
+    String ids = param.getIdsRef();
+    if (!ids.isEmpty()) {
+      IdsMap map = IdsMapCache.get(ids + ".ids");
+      if (map != null) {
+        IdsMapEntry entry = map.get(value);
+        if (entry != null) {
+          retVal = getNormalizedSymbol(entry.getSymbol());
+        } else if (ids.equals("areatype") ||
+                   ids.equals("areaflag") ||
+                   ids.equals("bits") ||
+                   ids.equals("classmsk") ||
+                   ids.equals("crearefl") ||
+                   ids.equals("damages") ||
+                   ids.equals("doorflag") ||
+                   ids.equals("dmgtype") ||
+                   ids.equals("extstate") ||
+                   ids.equals("invitem") ||
+                   ids.equals("itemflag") ||
+                   ids.equals("jourtype") ||
+                   ids.equals("magespec") ||
+                   ids.equals("splcast") ||
+                   ids.equals("state") ||
+                   ids.equals("wmpflag")) {
+          value &= 0xffffffffL;   // converted into unsigned value
+          StringBuilder combi = new StringBuilder();
+          for (int bit = 0; bit < 32 && value > 0; bit++) {
+            long mask = 1L << bit;
+            if ((value & mask) == mask) {
+              if (combi.length() > 0) {
+                combi.append(" | ");
+              }
+              entry = map.get(mask);
+              if (entry != null) {
+                combi.append(getNormalizedSymbol(entry.getSymbol()));
+              } else {
+                combi.append(String.format("0x%X", mask));
+              }
+              value &= ~mask;
+            }
+          }
+          if (combi.length() == 0) {
+            combi.append('0');
+          }
+          retVal = combi.toString();
+        } else if (isGenerateErrors()) {
+          idsErrors.put(Integer.valueOf(lineNr), value + " not found in " + ids.toUpperCase(Locale.ENGLISH) + ".IDS");
+        }
+      } else if (isGenerateErrors()) {
+        idsErrors.put(Integer.valueOf(lineNr), "Could not find " + ids.toUpperCase(Locale.ENGLISH) + ".IDS");
+      }
+    }
+
+    if (retVal == null) {
+      retVal = Long.toString((int)value); // treat as signed 32-bit integer
+    }
+
+    return retVal;
+  }
+
+  // Returns complete string with enclosing double quotes.
+  private String decompileString(String value, Signatures.Function.Parameter param)
+  {
+    StringBuilder sb = new StringBuilder();
+
+    sb.append('"');
+    if (value != null) {
+      sb.append(value);
+    }
+    sb.append('"');
+
+    return sb.toString();
+  }
+
+  // Returns a descriptive comment without comment tag, returns empty string otherwise.
+  private String generateNumberComment(long value, Signatures.Function.Parameter param, boolean enable)
+  {
+    StringBuilder sb = new StringBuilder();
+
+    if (enable && (isGenerateComments() || isGenerateResourcesUsed()) &&
+        BrowserMenuBar.getInstance().checkScriptNames()) {
+      ResourceEntry entry = null;
+      String[] types = param.getResourceType();
+      for (String type: types) {
+        if (type.equals("TLK")) {
+          int intValue = (int)value;
+          if (isGenerateComments()) {
+//            sb.append(getNormalizedString(StringResource.getStringRef(intValue)));
+            sb.append(getNormalizedString(StringTable.getStringRef(intValue)));
+          }
+          if (isGenerateResourcesUsed()) {
+            strrefsUsed.add(Integer.valueOf(intValue));
+          }
+          break;
+        } else if (type.equals("SPL")) {
+          String resRef = org.infinity.resource.spl.Viewer.getResourceName((int)value, true);
+          entry = ResourceFactory.getResourceEntry(resRef, true);
+          if (entry != null) {
+            if (isGenerateResourcesUsed()) {
+              resourcesUsed.add(entry);
+            }
+            if (isGenerateComments()) {
+              sb.append(entry.getResourceName()).append(" (").append(entry.getSearchString()).append(')');
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    return sb.toString();
+  }
+
+  // Returns a descriptive comment without comment tag, returns empty string otherwise.
+  private String generateStringComment(String value, Signatures.Function.Parameter param, boolean enable)
+  {
+    StringBuilder sb = new StringBuilder();
+
+    if (enable && (isGenerateComments() || isGenerateResourcesUsed()) &&
+        BrowserMenuBar.getInstance().checkScriptNames() && !value.isEmpty()) {
+      String[] types = param.getResourceType();
+      for (String type: types) {
+        if (type.equals(Signatures.Function.Parameter.RESTYPE_SCRIPT) &&
+            isGenerateComments()) {
+          // resolving script name
+          Set<ResourceEntry> set = CreMapCache.getCreForScriptName(value);
+          if (set != null && !set.isEmpty()) {
+            // First available entry should suffice
+            ResourceEntry e = set.iterator().next();
+            String s = e.getSearchString();
+            if (s != null && !s.isEmpty()) {
+              sb.append(s);
+            } else {
+              sb.append(e.getResourceName());
+            }
+            break;
+          }
+        } else if (type.equals(Signatures.Function.Parameter.RESTYPE_SPELL_LIST) &&
+                   isGenerateComments()) {
+          // resolving list of marked spells
+          sb.append('[');
+          for (int i = 0, cnt = value.length() / 4; i < cnt; i++) {
+            if (i > 0) {
+              sb.append(", ");
+            }
+            String snum = value.substring(i*4, i*4 + 4);
+            String result = null;
+            try {
+               long number = Long.parseLong(snum);
+               result = getNormalizedSymbol(IdsMapCache.getIdsSymbol("SPELL.IDS", number));
+            } catch (NumberFormatException e) {
+            }
+            if (result == null) {
+              sb.append("UNKNOWN_").append(snum);
+            }
+            sb.append(result);
+          }
+          sb.append(']');
+          break;
+        } else if (Character.isUpperCase(type.charAt(0)) && value.length() <= 8) {
+          if (!type.equals("ARE") || !ScriptInfo.getInfo().isGlobalScope(value)) {
+            // resolving resource name
+            String resRef = value + '.' + type;
+            ResourceEntry entry = ResourceFactory.getResourceEntry(resRef, true);
+            if (entry != null) {
+              if (isGenerateResourcesUsed()) {
+                resourcesUsed.add(entry);
+              }
+              if (isGenerateComments()) {
+                String s = entry.getSearchString();
+                if (s != null) {
+                  sb.append(s);
+                  break;
                 }
-                temp.append(entry.getString());
-                nr ^= bitnr;
               }
             }
           }
-          if (nr > 0) {
-            code.append(nr);
-            if (generateErrors) {
-              idsErrors.put(new Integer(lineNr), nr + " not found in " + map.toString());
-            }
+        }
+      }
+    }
+
+    return sb.toString();
+  }
+
+  private String generateObjectComment(BcsObject object, boolean enable)
+  {
+    StringBuilder sb = new StringBuilder();
+
+    if (enable && isGenerateComments() && BrowserMenuBar.getInstance().checkScriptNames()) {
+      if (!object.name.isEmpty()) {
+        Set<ResourceEntry> set = CreMapCache.getCreForScriptName(object.name);
+        if (set != null && !set.isEmpty()) {
+          // First available entry should suffice
+          ResourceEntry e = set.iterator().next();
+          String s = e.getSearchString();
+          if (s != null && !s.isEmpty()) {
+            sb.append(s);
+          } else {
+            sb.append(e.getResourceName());
           }
-          else {
-            code.append(temp);
-          }
-        }
-        else {
-          code.append(nr);
-          if (generateErrors)
-            idsErrors.put(new Integer(lineNr), nr + " not found in " + map.toString());
-        }
-      }
-      else {
-        code.append(nr);
-        if (generateErrors) {
-          idsErrors.put(new Integer(lineNr), "Could not find " + idsFile);
         }
       }
     }
-    else {
-      code.append(nr);
-    }
+
+    return sb.toString();
   }
 
-  private String decompileOB(StringTokenizer st)
+  // Symbols with invalid characters are enclosed in five consecutive double quotes
+  private String getNormalizedSymbol(String symbol)
   {
-    int numbers[] = new int[15];
-    int numbersIndex = 0;
-    String value = st.nextToken();
-    while (value.charAt(0) != '"' && value.charAt(0) != '[') {
-      numbers[numbersIndex++] = Integer.parseInt(value);
-      value = st.nextToken();
-    }
-    while (value.charAt(0) == '"' && !(value.endsWith("\"") || value.endsWith("OB")))
-      value = value + ' ' + st.nextToken();
-
-    String coord = null;
-    String name = value;
-    if (name.charAt(0) == '[') { // Object Coordinate
-      StringTokenizer coordst = new StringTokenizer(name.substring(1, name.length() - 1), ".");
-      while (coordst.hasMoreTokens())
-        if (!coordst.nextToken().equals("-1")) {
-          coord = name;
-          break;
-        }
-      name = st.nextToken(); // ToDo: IWD can't handle spaces in objstring
-      // this opens a fat can of stupid with Icewind2 (below); IWD2 still has
-      // problems decompiling from "dirty" BCS source (in source view)
-    }
-    if (name.endsWith("OB"))
-      name = name.substring(0, name.length() - 2);
-    else {
-      value = st.nextToken();
-      if (!value.equalsIgnoreCase("OB")) { // Icewind2
-        numbers[numbersIndex++] = Integer.parseInt(value);
-        numbers[numbersIndex++] = Integer.parseInt(st.nextToken());
-        st.nextToken(); // OB
-      }
-    }
-
-    String ids[] = new String[numbersIndex - 5];
-    int index = 0;
-    ids[index] = lookup(IdsMapCache.get("EA.IDS"), numbers[index++]);
-    if (numbersIndex == 14) {
-      ids[index] = lookup(IdsMapCache.get("FACTION.IDS"), numbers[index++]);
-      ids[index] = lookup(IdsMapCache.get("TEAM.IDS"), numbers[index++]);
-    }
-    ids[index] = lookup(IdsMapCache.get("GENERAL.IDS"), numbers[index++]);
-    ids[index] = lookup(IdsMapCache.get("RACE.IDS"), numbers[index++]);
-    ids[index] = lookup(IdsMapCache.get("CLASS.IDS"), numbers[index++]);
-    ids[index] = lookup(IdsMapCache.get("SPECIFIC.IDS"), numbers[index++]);
-    ids[index] = lookup(IdsMapCache.get("GENDER.IDS"), numbers[index++]);
-    if (numbersIndex == 15) {
-      ids[index] = lookup(IdsMapCache.get("ALIGNMNT.IDS"), numbers[index++]);
-      ids[index] = lookup(IdsMapCache.get("SUBRACE.IDS"), numbers[index++]);
-    }
-    else {
-      ids[index] = lookup(IdsMapCache.get("ALIGN.IDS"), numbers[index++]);
-    }
-
-    IdsMap objectMap = IdsMapCache.get("OBJECT.IDS");
-    String obj[] = {
-      lookup(objectMap, numbers[index++]),
-      lookup(objectMap, numbers[index++]),
-      lookup(objectMap, numbers[index++]),
-      lookup(objectMap, numbers[index++]),
-      lookup(objectMap, numbers[index++])};
-
-    if (numbersIndex == 15) {
-      ids[index - 5] = lookup(IdsMapCache.get("CLASS.IDS"), numbers[index++]);
-      ids[index - 5] = lookup(IdsMapCache.get("CLASSMSK.IDS"), numbers[index++]);
-    }
-
-    StringBuilder code = new StringBuilder();
-    StringBuilder endcode = new StringBuilder();
-    for (int i = 4; i > 0; i--) {
-      if (obj[i] != null) {
-        code.append(obj[i]).append('(');
-        endcode.append(')');
-      }
-    }
-    if (obj[0] != null)
-      code.append(obj[0]);
-
-    if (!name.trim().equals("\"\"")) {
-      if (code.length() == 0)
-        code.append(name);
-      else {
-        code.append('(').append(name);
-        endcode.append(')');
-      }
-    }
-    else {
-      int maxids = ids.length - 1;
-      while (maxids >= 0 && ids[maxids] == null)
-        maxids--;
-      if (maxids == -1 && code.length() == 0)
-        code.append("[ANYONE]");
-      else if (maxids >= 0) {
-        if (code.length() > 0) {
-          code.append('(');
-          endcode.append(')');
-        }
-        code.append('[');
-        if (ids[0] == null)
-          code.append('0');
-        else
-          code.append(ids[0]);
-        for (int i = 1; i <= maxids; i++) {
-          if (ids[i] == null)
-            code.append(".0");
-          else
-            code.append('.').append(ids[i]);
-        }
-        code.append(']');
-      }
-      if (coord != null)
-        code.append(coord);
-    }
-    return code.append(endcode).toString();
-  }
-
-  private void decompileRE(StringBuilder code, StringTokenizer st)
-  {
-    String token = st.nextToken();
-    int i = token.indexOf("AC");
-    if (i != -1) {
-      code.append(indent).append("RESPONSE #").append(token.substring(0, i)).append('\n');
-      lineNr++;
-      token = token.substring(i);
-    }
-    else if (token.indexOf("RE") != -1) {
-      code.append(indent).append("RESPONSE #").append(token.substring(0, token.indexOf("RE"))).append('\n');
-      lineNr++;
-      return;
-    }
-    else {
-      code.append(indent).append("RESPONSE #").append(token).append('\n');
-      lineNr++;
-      token = st.nextToken();
-    }
-    while (token.equalsIgnoreCase("AC")) {
-      code.append(indent).append(indent);
-      decompileAC(code, st);
-      token = st.nextToken();
-    }
-  }
-
-  private void decompileRS(StringBuilder code, StringTokenizer st)
-  {
-    code.append("THEN\n");
-    lineNr++;
-    String token = st.nextToken();
-    while (st.hasMoreTokens() && !token.equalsIgnoreCase("RS")) {
-      if (token.equalsIgnoreCase("RE"))
-        decompileRE(code, st);
-      token = st.nextToken();
-    }
-  }
-
-  private static ResourceEntry decompileStringCheck(String value, String[] fileTypes)
-  {
-    for (final String fileType : fileTypes) {
-      if (ResourceFactory.resourceExists(value + fileType, true)) {
-        return ResourceFactory.getResourceEntry(value + fileType, true);
-      }
-    }
-    return null;
-  }
-
-  private String decompileTR(StringTokenizer st)
-  {
-    int triggercode = Integer.parseInt(st.nextToken());
-    IdsMapEntry trigger = IdsMapCache.get("TRIGGER.IDS").getValue((long)triggercode);
-
-    if (trigger == null) {
-      trigger = IdsMapCache.get("TRIGGER.IDS").getValue((long)(0x4000 + triggercode));
-      triggercode += 0x4000;
-    }
-    if (trigger == null) {
-      while (!st.nextToken().equals("TR"))
-        ;
-      if (generateErrors)
-        idsErrors.put(new Integer(lineNr), triggercode - 0x4000 + " not found in TRIGGER.IDS");
-      lineNr++;
-      return "Error - Could not find trigger " + (triggercode - 0x4000) + '\n';
-    }
-
-    String object, coord = null;
-    int numbers[] = new int[3];
-    String strings[] = null;
-
-    StringBuilder code = new StringBuilder();
-    String comment = null;
-    String token = st.nextToken();
-    if (token.endsWith("OB")) {
-      numbers[0] = Integer.parseInt(token.substring(0, token.length() - 2));
-      object = decompileOB(st);
-      st.nextToken(); // TR
-    }
-    else {
-      numbers[0] = Integer.parseInt(token);
-      if ((Integer.parseInt(st.nextToken()) & 1) == 1) // Not flag
-        code.append('!');
-      numbers[1] = Integer.parseInt(st.nextToken());
-      numbers[2] = Integer.parseInt(st.nextToken());
-      String string1 = st.nextToken();
-      if (string1.charAt(0) == '[') {
-        coord = string1;
-        string1 = st.nextToken();
-      }
-      while (string1.charAt(0) == '"' && string1.charAt(string1.length() - 1) != '"')
-        string1 += ' ' + st.nextToken();
-      String string2 = st.nextToken();
-      while (string2.charAt(0) == '"' && string2.charAt(string2.length() - 1) != '"')
-        string2 += ' ' + st.nextToken();
-      st.nextToken(); // OB
-      object = decompileOB(st);
-      st.nextToken(); // TR
-
-      strings = modifyStrings(string1, string2);
-    }
-
-    StringTokenizer defParam = new StringTokenizer(trigger.getParameters(), ",");
-
-    IdsMapEntry trigger2 = IdsMapCache.get("TRIGGER.IDS").getOverflowValue((long)triggercode);
-    if (trigger2 != null) {
-      if (useOverflowCommand(defParam, numbers, 0, 0, new String[]{object}, strings))
-        trigger = trigger2;
-      defParam = new StringTokenizer(trigger.getParameters(), ",");
-    }
-    code.append(trigger.getString());
-
-    int index_i = 0, index_s = 0;
-    boolean first = true;
-    while (defParam.hasMoreTokens()) {
-      if (!first)
-        code.append(',');
-      String p = defParam.nextToken();
-      if (p.substring(0, 2).equals("S:")) {
-        String newp = strings[index_s++];
-        String function = trigger.getString().substring(0, trigger.getString().length() - 1);
-        comment = getResourceName(function, p, newp.substring(1, newp.length() - 1));
-        code.append(newp);
-      }
-      else if (p.substring(0, 2).equals("O:"))
-        code.append(object);
-      else if (p.substring(0, 2).equals("P:"))
-        code.append(coord.replaceFirst(",", "."));   // for WeiDU compatability
-      else if (p.substring(0, 2).equals("I:")) {
-        int nr = numbers[index_i++];
-        decompileInteger(code, (long)nr, p);
-        StringBuilder sb = new StringBuilder();
-        decompileInteger(sb, (long)nr, p);
-        comment = getResourceFileName(p, sb.toString());
-      }
-      first = false;
-    }
-
-    lineNr++;
-    if (comment != null) {
-      return code.append(") // ").append(comment.replace('\n', ' ')).append('\n').toString();
-    } else {
-      return code.append(")\n").toString();
-    }
-  }
-
-  private String getResourceName(String function, String definition, String value)
-  {
-    if (BrowserMenuBar.getInstance().checkScriptNames()) {
-      if (definition.startsWith("S:") && value.length() > 8)
-        return null;
-      ResourceEntry entry = null;
-      if (definition.equalsIgnoreCase("S:DialogFile*"))
-        entry = decompileStringCheck(value, new String[]{".DLG", ".VEF", ".VVC", ".BAM"});
-      else if (definition.equalsIgnoreCase("S:CutScene*") || definition.equalsIgnoreCase("S:ScriptFile*")
-               || definition.equalsIgnoreCase("S:Script*"))
-        entry = decompileStringCheck(value, new String[]{".BCS"});
-      else if (definition.equalsIgnoreCase("S:Item*") || definition.equalsIgnoreCase("S:Take*")
-               || definition.equalsIgnoreCase("S:Give*") || definition.equalsIgnoreCase("S:OldObject*"))
-        entry = decompileStringCheck(value, new String[]{".ITM"});
-      else if (definition.equalsIgnoreCase("S:Sound*") || definition.equalsIgnoreCase("S:Voice*"))
-        entry = decompileStringCheck(value, new String[]{".WAV"});
-      else if (definition.equalsIgnoreCase("S:TextList*"))
-        entry = decompileStringCheck(value, new String[]{".2DA"});
-      else if (definition.equalsIgnoreCase("S:Effect*"))
-        entry = decompileStringCheck(value, new String[]{".VEF", ".VVC", ".BAM"});
-      else if (definition.equalsIgnoreCase("S:Parchment*"))
-        entry = decompileStringCheck(value, new String[]{".MOS"});
-      else if (definition.equalsIgnoreCase("S:Spell*") || definition.equalsIgnoreCase("S:Res*"))
-        entry = decompileStringCheck(value, new String[]{".SPL"});
-      else if (definition.equalsIgnoreCase("S:Store*"))
-        entry = decompileStringCheck(value, new String[]{".STO"});
-      else if (definition.equalsIgnoreCase("S:ToArea*") || definition.equalsIgnoreCase("S:Areaname*")
-               || definition.equalsIgnoreCase("S:FromArea*") || definition.equalsIgnoreCase("S:Area*")
-               || definition.equalsIgnoreCase("S:Area1*") || definition.equalsIgnoreCase("S:Area2*"))
-        entry = decompileStringCheck(value, new String[]{".ARE"});
-      else if (definition.equalsIgnoreCase("S:BamResRef*"))
-        entry = decompileStringCheck(value, new String[]{".BAM"});
-      else if (definition.equalsIgnoreCase("S:Pool*"))
-        entry = decompileStringCheck(value, new String[]{".SRC"});
-      else if (definition.equalsIgnoreCase("S:Palette*"))
-        entry = decompileStringCheck(value, new String[]{".BMP"});
-      else if (definition.equalsIgnoreCase("S:ResRef*")) {
-        entry = decompileStringCheck(value, getResRefType(function));
-      }
-      else if (definition.equalsIgnoreCase("S:Object*")) {
-        entry = decompileStringCheck(value, getResRefType(function));
-      }
-      else if (definition.equalsIgnoreCase("S:NewObject*")) {
-        entry = decompileStringCheck(value, getResRefType(function));
-      }
-      else if (definition.equalsIgnoreCase("I:Spell*Spell")) {
-        String refValue = org.infinity.resource.spl.Viewer.getResourceName(value, false);
-        if (refValue != null) {
-          entry = decompileStringCheck(refValue, new String[]{".SPL"});
-        }
-      }
-  //    else
-  //      System.out.println("Decompiler.getResourceName: " + definition + " - " + value);
-      if (entry != null) {
-        if (generateErrors) {
-          resourcesUsed.add(entry);
-        }
-        return entry.getSearchString();
-      }
-    }
-    return null;
-  }
-
-  private String getResourceFileName(String definition, String value)
-  {
-    if (!definition.startsWith("I:")) {
-      return null;
-    }
-    ResourceEntry entry = null;
-    if (BrowserMenuBar.getInstance().checkScriptNames()) {
-      if (definition.equalsIgnoreCase("I:Spell*Spell")) {
-        String refName = org.infinity.resource.spl.Viewer.getResourceName(value, false);
-        if (refName != null) {
-          entry = decompileStringCheck(refName, new String[]{".SPL"});
-        }
-      }
-    }
-
     String retVal = null;
-    if (entry != null) {
-      if (generateErrors) {
-        resourcesUsed.add(entry);
+
+    if (symbol != null) {
+      final Pattern p = Pattern.compile("([a-zA-Z_][0-9a-zA-Z#_!-]*)|([a-zA-Z#_][a-zA-Z#_!-][0-9a-zA-Z#_!-]*)");
+      if (p.matcher(symbol).matches()) {
+        retVal = symbol;
+      } else {
+        retVal = "\"\"\"\"\"" + symbol + "\"\"\"\"\"";
       }
-      retVal = String.format("%1$s (%2$s)", entry.getResourceName(), entry.getSearchString());
-    }
-    return retVal;
-  }
-
-  private String lookup(IdsMap idsmap, int code)
-  {
-    if (idsmap == null || code == 0) return null;
-    IdsMapEntry entry = idsmap.getValue((long)code);
-    if (entry != null)
-      return entry.getString();
-    else {
-      if (generateErrors)
-        idsErrors.put(new Integer(lineNr), code + " not found in " + idsmap.toString());
-      return String.valueOf(code);
-    }
-  }
-
-  private static String[] modifyStrings(String string1, String string2)
-  {
-    String newStrings[] = new String[4];
-    int index = 0;
-
-    if (string1.length() > 9 && (string1.charAt(7) != '*') &&
-        (Compiler.isPossibleNamespace(string1.substring(0, 7) + '\"') ||
-         ResourceFactory.resourceExists(string1.substring(1, 7) + ".ARE"))) {
-      newStrings[index++] = '\"' + string1.substring(7);
-      newStrings[index++] = string1.substring(0, 7) + '\"';
-    }
-    else
-      newStrings[index++] = string1;
-
-    if (string2.length() > 9 && (string2.charAt(7) != '*') &&
-        (Compiler.isPossibleNamespace(string2.substring(0, 7) + '\"') ||
-         ResourceFactory.resourceExists(string2.substring(1, 7) + ".ARE"))) {
-      newStrings[index++] = '\"' + string2.substring(7);
-      newStrings[index++] = string2.substring(0, 7) + '\"';
-    }
-    else {
-      String[] splitted = splitString(string2);
-      for (int i = 0; i < splitted.length; i++) {
-        newStrings[index++] = splitted[i];
-      }
-    }
-
-    return newStrings;
-  }
-
-  private static String[] splitString(String string)
-  {
-    String[] values = string.split(":");
-    String[] retVal = new String[values.length];
-    for (int i = 0; i < values.length; i++) {
-      StringBuilder sb = new StringBuilder(values[i].length() + 2);
-      if (values[i].length() == 0 || values[i].charAt(0) != '"') {
-        sb.append('"');
-      }
-      sb.append(values[i]);
-      if (values[i].length() < 2 || values[i].charAt(values[i].length() - 1) != '"') {
-        sb.append('"');
-      }
-      retVal[i] = sb.toString();
     }
 
     return retVal;
   }
 
-  private static boolean useOverflowCommand(StringTokenizer defParam, int numbers[], int x, int y,
-                                            String objects[], String strings[])
+  // Removes line breaks from strings to prevent parsing errors
+  private String getNormalizedString(String string)
   {
-    // Count definition parameters
-    int i_c1 = 0, p_c1 = 0, o_c1 = 0, s_c1 = 0;
-    while (defParam.hasMoreTokens()) {
-      String param = defParam.nextToken().substring(0, 2);
-      if (param.equals("I:"))
-        i_c1++;
-      else if (param.equals("P:"))
-        p_c1++;
-      else if (param.equals("O:"))
-        o_c1++;
-      else if (param.equals("S:"))
-        s_c1++;
+    String retVal = null;
+
+    if (string != null) {
+      retVal = string.replaceAll("[\r\n]+", " ");
     }
 
-    // Count supplied parameters
-    int i_count = 0, p_count = 0, o_count = 0, s_count = 0;
-    for (final int number : numbers)
-      if (number != 0)
-        i_count++;
-    if (x != 0 || y != 0)
-      p_count = 1;
-    for (final String object : objects)
-      if (!object.equals("[ANYONE]"))
-        o_count++;
-    for (final String string : strings)
-      if (string != null && !string.equals("\"\""))
-        s_count++;
-
-    // Decide...
-    if (i_count > i_c1 || p_count > p_c1 || o_count > o_c1 || s_count > s_c1)
-      return true;
-    return false; // Don't use overflow action/trigger
+    return retVal;
   }
 }
-

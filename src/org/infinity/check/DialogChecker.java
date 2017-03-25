@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.swing.BorderFactory;
@@ -51,6 +51,8 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.bcs.Compiler;
+import org.infinity.resource.bcs.ScriptMessage;
+import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
@@ -335,18 +337,25 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
 
   private static final class ActionErrorsTableLine implements TableItem
   {
+    public enum Type {
+      ERROR,
+      WARNING,
+    }
+
     private final ResourceEntry resourceEntry;
     private final StructEntry structEntry;
     private final Integer lineNr;
     private final String error;
+    private final Type type;
 
     private ActionErrorsTableLine(ResourceEntry resourceEntry, StructEntry structEntry, Integer lineNr,
-                                  String error)
+                                  String error, Type type)
     {
       this.resourceEntry = resourceEntry;
       this.structEntry = structEntry;
       this.lineNr = lineNr;
       this.error = error;
+      this.type = type;
     }
 
     @Override
@@ -364,8 +373,9 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
     @Override
     public String toString()
     {
-      return String.format("File: %1$s  Type: %2$s  Error: %3$s  Line: %4$d",
-                           resourceEntry.toString(), structEntry.getName(), error, lineNr);
+      String type = (this.type == Type.ERROR) ? "Error" : "Warning";
+      return String.format("File: %s  Type: %s  %s: %s  Line: %d",
+                           resourceEntry.toString(), structEntry.getName(), type, error, lineNr);
     }
   }
 
@@ -389,21 +399,21 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
             if (o instanceof AbstractCode) {
               AbstractCode dialogCode = (AbstractCode)o;
               Compiler compiler = new Compiler(dialogCode.toString(),
-                                               (dialogCode instanceof Action) ? Compiler.ScriptType.ACTION :
-                                                                                Compiler.ScriptType.TRIGGER);
+                                                 (dialogCode instanceof Action) ? ScriptType.ACTION :
+                                                                                  ScriptType.TRIGGER);
               compiler.getCode();
-              SortedMap<Integer, String> errorMap = compiler.getErrors();
-              for (final Integer lineNr : errorMap.keySet()) {
-                String error = errorMap.get(lineNr);
+              SortedSet<ScriptMessage> errorMap = compiler.getErrors();
+              for (final ScriptMessage sm: errorMap) {
                 synchronized (errorTable) {
-                  errorTable.addTableItem(new ActionErrorsTableLine(entry, dialogCode, lineNr, error));
+                  errorTable.addTableItem(new ActionErrorsTableLine(entry, dialogCode, sm.getLine(), sm.getMessage(),
+                                                                    ActionErrorsTableLine.Type.ERROR));
                 }
               }
-              SortedMap<Integer, String> warningMap = compiler.getWarnings();
-              for (final Integer lineNr : warningMap.keySet()) {
-                String warning = warningMap.get(lineNr);
+              SortedSet<ScriptMessage> warningMap = compiler.getWarnings();
+              for (final ScriptMessage sm : warningMap) {
                 synchronized (warningTable) {
-                  warningTable.addTableItem(new ActionErrorsTableLine(entry, dialogCode, lineNr, warning));
+                  warningTable.addTableItem(new ActionErrorsTableLine(entry, dialogCode, sm.getLine(), sm.getMessage(),
+                                                                      ActionErrorsTableLine.Type.WARNING));
                 }
               }
             }

@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Locale;
 
 import org.infinity.resource.StructEntry;
+import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
-import org.infinity.util.LongIntegerHashMap;
 
 public final class IwdRef extends ResourceBitmap
 {
@@ -64,15 +64,11 @@ public final class IwdRef extends ResourceBitmap
 
   private static List<RefEntry> createIwdRefList(String idsFile)
   {
-    LongIntegerHashMap<IdsMapEntry> map = IdsMapCache.get(idsFile).getMap();
-    List<RefEntry> retVal = new ArrayList<ResourceBitmap.RefEntry>(map.size());
+    IdsMap idsMap = IdsMapCache.get(idsFile);
 
-    long[] keys = map.keys();
-    for (final long key: keys) {
-      IdsMapEntry entry = map.get(key);
-      if (entry != null) {
-        retVal.add(new RefEntry(key, entry.getString().toUpperCase(Locale.ENGLISH) + ".SPL"));
-      }
+    List<RefEntry> retVal = new ArrayList<ResourceBitmap.RefEntry>(idsMap.size());
+    for (final IdsMapEntry e: idsMap.getAllValues()) {
+      retVal.add(new RefEntry(e.getID(), e.getSymbol().toUpperCase(Locale.ENGLISH) + ".SPL"));
     }
 
     return retVal;

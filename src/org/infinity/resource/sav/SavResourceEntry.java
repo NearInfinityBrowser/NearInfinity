@@ -16,6 +16,7 @@ import java.util.zip.Inflater;
 
 import org.infinity.resource.Writeable;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.util.io.ByteBufferInputStream;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
@@ -96,7 +97,13 @@ public class SavResourceEntry extends ResourceEntry implements Writeable
   }
 
   @Override
-  public String getTreeFolder()
+  public String getTreeFolderName()
+  {
+    return null;
+  }
+
+  @Override
+  public ResourceTreeFolder getTreeFolder()
   {
     return null;
   }

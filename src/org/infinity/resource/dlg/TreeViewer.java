@@ -74,7 +74,7 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 
 
 /** Show dialog content as tree structure. */
@@ -226,14 +226,16 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
  {
    // Insertion or removal of nodes not yet supported
    if (e.getType() == TableModelEvent.UPDATE) {
-     if (e.getSource() instanceof State) {
-       State state = (State)e.getSource();
-       dlgModel.updateState(state);
-     } else if (e.getSource() instanceof Transition) {
-       Transition trans = (Transition)e.getSource();
-       dlgModel.updateTransition(trans);
-     } else if (e.getSource() instanceof DlgResource) {
-       dlgModel.updateRoot();
+     if (dlgModel != null) {
+       if (e.getSource() instanceof State) {
+         State state = (State)e.getSource();
+         dlgModel.updateState(state);
+       } else if (e.getSource() instanceof Transition) {
+         Transition trans = (Transition)e.getSource();
+         dlgModel.updateTransition(trans);
+       } else if (e.getSource() instanceof DlgResource) {
+         dlgModel.updateRoot();
+       }
      }
    }
  }
@@ -273,7 +275,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     if (si != null && si.getDialog() != null && si.getState() != null) {
       DlgResource curDlg = si.getDialog();
       State state = si.getState();
-      boolean showStrrefs = BrowserMenuBar.getInstance().showStrrefs();
 
       // updating info box title
       StringBuilder sb = new StringBuilder(state.getName() + ", ");
@@ -288,13 +289,11 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
       // updating state text
       dlgInfo.showControl(ItemInfo.Type.STATE_TEXT, true);
-      dlgInfo.updateControlText(ItemInfo.Type.STATE_TEXT,
-                                StringResource.getStringRef(state.getResponse().getValue(),
-                                                            showStrrefs));
+      dlgInfo.updateControlText(ItemInfo.Type.STATE_TEXT, StringTable.getStringRef(state.getResponse().getValue()));
 
       // updating state WAV Res
-      String responseText = StringResource.getWavResource(state.getResponse().getValue());
-      if (responseText != null) {
+      String responseText = StringTable.getSoundResource(state.getResponse().getValue());
+      if (!responseText.isEmpty()) {
         dlgInfo.showControl(ItemInfo.Type.STATE_WAV, true);
         dlgInfo.updateControlText(ItemInfo.Type.STATE_WAV, responseText + ".WAV");
       } else {
@@ -331,7 +330,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     if (ti != null && ti.getDialog() != null && ti.getTransition() != null) {
       DlgResource curDlg = ti.getDialog();
       Transition trans = ti.getTransition();
-      boolean showStrrefs = BrowserMenuBar.getInstance().showStrrefs();
       StructEntry entry;
 
       // updating info box title
@@ -349,8 +347,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       if (trans.getFlag().isFlagSet(0)) {
         dlgInfo.showControl(ItemInfo.Type.RESPONSE_TEXT, true);
         dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TEXT,
-                                  StringResource.getStringRef(trans.getAssociatedText().getValue(),
-                                                              showStrrefs));
+                                  StringTable.getStringRef(trans.getAssociatedText().getValue()));
       } else {
         dlgInfo.showControl(ItemInfo.Type.RESPONSE_TEXT, false);
       }
@@ -359,8 +356,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       if (trans.getFlag().isFlagSet(4)) {
         dlgInfo.showControl(ItemInfo.Type.RESPONSE_JOURNAL, true);
         dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_JOURNAL,
-                                  StringResource.getStringRef(trans.getJournalEntry().getValue(),
-                                                              showStrrefs));
+                                  StringTable.getStringRef(trans.getJournalEntry().getValue()));
       } else {
         dlgInfo.showControl(ItemInfo.Type.RESPONSE_JOURNAL, false);
       }
@@ -935,7 +931,8 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     public String toString()
     {
       if (state != null) {
-        String text = StringResource.getStringRef(state.getResponse().getValue(), showStrrefs(), true);
+        String text = StringTable.getStringRef(state.getResponse().getValue(),
+                                               showStrrefs() ? StringTable.Format.STRREF_PREFIX : StringTable.Format.NONE);
         if (text.length() > MAX_LENGTH) {
           text = text.substring(0, MAX_LENGTH) + "...";
         }
@@ -988,7 +985,8 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       if (trans != null) {
         if (trans.getFlag().isFlagSet(0)) {
           // Transition contains text
-          String text = StringResource.getStringRef(trans.getAssociatedText().getValue(), showStrrefs(), true);
+          String text = StringTable.getStringRef(trans.getAssociatedText().getValue(),
+                                                 showStrrefs() ? StringTable.Format.STRREF_PREFIX : StringTable.Format.NONE);
           if (text.length() > MAX_LENGTH) {
             text = text.substring(0, MAX_LENGTH) + "...";
           }

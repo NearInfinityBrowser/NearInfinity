@@ -541,7 +541,7 @@ public final class StructureFactory
     int idx;
     if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V90)) { // IWD, IWD2
       idx = 2;
-    } else if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V11)) { // PST
+    } else if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V11)) { // PST, PSTEE
       idx = 1;
     } else {  // BG1, BG2, EE
       idx = 0;

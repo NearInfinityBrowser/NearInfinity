@@ -199,7 +199,16 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     else {
       addField(new DecNumber(buffer, offset + 132, 2, ARE_TRIGGER_ACTIVATION_POINT_X));
       addField(new DecNumber(buffer, offset + 134, 2, ARE_TRIGGER_ACTIVATION_POINT_Y));
-      addField(new Unknown(buffer, offset + 136, 60));
+      if (Profile.getGame() == Profile.Game.PSTEE) {
+        addField(new Unknown(buffer, offset + 136, 36));
+        addField(new ResourceRef(buffer, offset + 172, ARE_TRIGGER_SOUND, "WAV"));
+        addField(new DecNumber(buffer, offset + 180, 2, ARE_TRIGGER_SPEAKER_POINT_X));
+        addField(new DecNumber(buffer, offset + 182, 2, ARE_TRIGGER_SPEAKER_POINT_Y));
+        addField(new StringRef(buffer, offset + 184, ARE_TRIGGER_SPEAKER_NAME));
+        addField(new ResourceRef(buffer, offset + 188, ARE_TRIGGER_DIALOG, "DLG"));
+      } else {
+        addField(new Unknown(buffer, offset + 136, 60));
+      }
     }
     return offset + 196;
   }

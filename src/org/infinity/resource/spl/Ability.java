@@ -10,10 +10,10 @@ import javax.swing.JComponent;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.Flag;
 import org.infinity.datatype.ProRef;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnsignDecNumber;
 import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractAbility;
@@ -33,9 +33,6 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
   public static final String SPL_ABIL_HOSTILITY           = "Hostility";
   public static final String SPL_ABIL_MIN_LEVEL           = "Minimum level";
   public static final String SPL_ABIL_CASTING_SPEED       = "Casting speed";
-
-  public static final String[] s_hostility = {"Hostile", "", "", "", "Non-hostile"};
-  public static final String[] s_abilityuse = {"", "", "Spell slots", "", "Innate slots"};
 
   Ability() throws Exception
   {
@@ -112,13 +109,9 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
-    if (Profile.getEngine() == Profile.Engine.PST) {
-      addField(new Bitmap(buffer, offset, 1, ABILITY_TYPE, s_type));
-      addField(new Bitmap(buffer, offset + 1, 1, SPL_ABIL_HOSTILITY, s_hostility));
-    } else {
-      addField(new Bitmap(buffer, offset, 2, ABILITY_TYPE, s_type));
-    }
-    addField(new Bitmap(buffer, offset + 2, 2, ABILITY_LOCATION, s_abilityuse));
+    addField(new Bitmap(buffer, offset, 1, ABILITY_TYPE, s_type));
+    addField(new Flag(buffer, offset + 1, 1, ABILITY_TYPE_FLAGS, s_type_flags));
+    addField(new Bitmap(buffer, offset + 2, 2, ABILITY_LOCATION, org.infinity.resource.itm.Ability.s_abilityuse));
     addField(new ResourceRef(buffer, offset + 4, ABILITY_ICON, "BAM"));
     addField(new Bitmap(buffer, offset + 12, 1, ABILITY_TARGET, s_targettype));
     addField(new UnsignDecNumber(buffer, offset + 13, 1, ABILITY_NUM_TARGETS));
@@ -133,7 +126,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
     addField(new SectionCount(buffer, offset + 30, 2, ABILITY_NUM_EFFECTS, Effect.class));
     addField(new DecNumber(buffer, offset + 32, 2, ABILITY_FIRST_EFFECT_INDEX));
     addField(new DecNumber(buffer, offset + 34, 2, ABILITY_NUM_CHARGES));
-    addField(new Unknown(buffer, offset + 36, 2));
+    addField(new Bitmap(buffer, offset + 36, 2, ABILITY_WHEN_DRAINED, s_drain));
     if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
       addField(new ProRef(buffer, offset + 38, ABILITY_PROJECTILE));
     } else if (Profile.getEngine() == Profile.Engine.PST) {

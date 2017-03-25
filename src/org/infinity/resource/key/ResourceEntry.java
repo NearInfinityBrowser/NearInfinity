@@ -174,6 +174,8 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
           try (InputStream is = getResourceDataAsStream()) {
             searchString = StoResource.getSearchString(is);
           }
+        } else if (extension.equalsIgnoreCase("ARE") && Profile.isEnhancedEdition()) {
+          searchString = AreResource.getSearchString(this);
         }
       } catch (Exception e) {
         if ((NearInfinity.getInstance() != null) &&
@@ -249,7 +251,9 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
 
   public abstract String getResourceName();
 
-  public abstract String getTreeFolder();
+  public abstract String getTreeFolderName();
+
+  public abstract ResourceTreeFolder getTreeFolder();
 
   public abstract boolean hasOverride();
 }

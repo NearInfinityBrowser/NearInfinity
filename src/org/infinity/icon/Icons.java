@@ -38,6 +38,7 @@ public class Icons
   public static final String ICON_DOWN_16             = "Down16.gif";
   public static final String ICON_EDIT_16             = "Edit16.gif";
   public static final String ICON_END_16              = "End16.gif";
+  public static final String ICON_ERROR_16            = "Error16.png";
   public static final String ICON_EXIT_16             = "Exit16.gif";
   public static final String ICON_EXPAND_16           = "Expand16.png";
   public static final String ICON_EXPAND_ALL_24       = "ExpandAll24.png";
@@ -49,6 +50,7 @@ public class Icons
   public static final String ICON_HELP_16             = "Help16.gif";
   public static final String ICON_HISTORY_16          = "History16.gif";
   public static final String ICON_IMPORT_16           = "Import16.gif";
+  public static final String ICON_INFORMATION_16      = "Information16.png";
   public static final String ICON_MAGNIFY_16          = "Magnify16.png";
   public static final String ICON_MOVIE_16            = "Movie16.gif";
   public static final String ICON_NEW_16              = "New16.gif";
@@ -71,6 +73,7 @@ public class Icons
   public static final String ICON_UNDO_16             = "Undo16.gif";
   public static final String ICON_UP_16               = "Up16.gif";
   public static final String ICON_VOLUME_16           = "Volume16.gif";
+  public static final String ICON_WARNING_16          = "Warning16.png";
   public static final String ICON_YELLOW_CIRCLE_16    = "YellowCircle16.gif";
   public static final String ICON_YELLOW_CIRCLE_20    = "YellowCircle20.gif";
   public static final String ICON_ZOOM_16             = "Zoom16.gif";

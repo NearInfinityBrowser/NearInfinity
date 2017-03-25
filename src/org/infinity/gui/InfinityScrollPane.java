@@ -44,6 +44,9 @@ public class InfinityScrollPane extends RTextScrollPane
   public InfinityScrollPane(Component comp, boolean applySettings)
   {
     super(comp);
+    if (comp instanceof InfinityTextArea) {
+      ((InfinityTextArea)comp).setScrollPane(this);
+    }
     if (applySettings) {
       applySettings();
     }

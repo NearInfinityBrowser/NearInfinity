@@ -51,15 +51,15 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
     binsert.setToolTipText("Inserts selected text into script displayed in main window");
     getRootPane().setDefaultButton(binsert);
 
-    IdsMap idsmap = IdsMapCache.get(idsfiles.getSelectedItem().toString());
-    list = new TextListPanel(idsmap.getAllValues());
+    IdsMap idsMap = IdsMapCache.get(idsfiles.getSelectedItem().toString());
+    list = new TextListPanel(idsMap.getAllStringValues());
     list.addMouseListener(new MouseAdapter()
     {
       @Override
       public void mouseClicked(MouseEvent e)
       {
         if (e.getClickCount() == 2)
-          insertString(((IdsMapEntry)list.getSelectedValue()).getString());
+          insertString(((IdsMapEntry)list.getSelectedValue()).getSymbol());
       }
     });
 
@@ -98,15 +98,15 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
     if (event.getSource() == idsfiles)
       refreshList();
     else if (event.getSource() == binsert)
-      insertString(((IdsMapEntry)list.getSelectedValue()).getString());
+      insertString(((IdsMapEntry)list.getSelectedValue()).getSymbol());
   }
 
 // --------------------- End Interface ActionListener ---------------------
 
   public void refreshList()
   {
-    IdsMap idsmap = IdsMapCache.get(idsfiles.getSelectedItem().toString());
-    list.setValues(idsmap.getAllValues());
+    IdsMap idsMap = IdsMapCache.get(idsfiles.getSelectedItem().toString());
+    list.setValues(idsMap.getAllStringValues());
   }
 
   private void insertString(String s)

@@ -4,6 +4,7 @@
 
 package org.infinity.resource.wmp;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -38,6 +39,7 @@ import javax.swing.event.ListSelectionListener;
 import org.infinity.NearInfinity;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -49,13 +51,14 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.gui.ViewerUtil.ListValueRenderer;
 import org.infinity.gui.ViewerUtil.StructListPanel;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.MosDecoder;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 
 public class ViewerMap extends JPanel
 {
@@ -65,6 +68,8 @@ public class ViewerMap extends JPanel
   private final JPopupMenu pmOptions = new JPopupMenu("Options");
   private final JCheckBoxMenuItem miShowIcons = new JCheckBoxMenuItem("Show all map icons", true);
   private final JCheckBoxMenuItem miShowDistances = new JCheckBoxMenuItem("Show travel distances", false);
+  private final JCheckBoxMenuItem miScaling =
+      new JCheckBoxMenuItem("Scale map icons", Profile.getGame() == Profile.Game.PSTEE);
   private final BufferedImage iconDot;
   private final Listeners listeners = new Listeners();
   private final MapEntry mapEntry;
@@ -73,6 +78,7 @@ public class ViewerMap extends JPanel
   private BufferedImage mapOrig;
   private BamDecoder mapIcons;
   private BamControl mapIconsCtrl;
+  private float mapScaleX, mapScaleY;
   private StructListPanel listPanel;
   private BufferedImage dotBackup;
   private int dotX, dotY;
@@ -102,8 +108,12 @@ public class ViewerMap extends JPanel
       miShowIcons.addActionListener(listeners);
       miShowDistances.setMnemonic('d');
       miShowDistances.addActionListener(listeners);
+      miScaling.setMnemonic('s');
+      miScaling.addActionListener(listeners);
+      miScaling.setToolTipText("Scales map icon locations according to the worldmap's scaling factor. (Needed for some games)");
       pmOptions.add(miShowIcons);
       pmOptions.add(miShowDistances);
+      pmOptions.add(miScaling);
 
       try {
         mapIcons = null;
@@ -121,6 +131,13 @@ public class ViewerMap extends JPanel
           rcMap = new RenderCanvas(ColorConvert.cloneImage(mapOrig));
           rcMap.addMouseListener(listeners);
           rcMap.addMouseMotionListener(listeners);
+
+          int mapTargetWidth = ((IsNumeric)mapEntry.getAttribute(MapEntry.WMP_MAP_WIDTH)).getValue();
+          if (mapTargetWidth <= 0) { mapTargetWidth = mapOrig.getWidth(); }
+          int mapTargetHeight = ((IsNumeric)mapEntry.getAttribute(MapEntry.WMP_MAP_HEIGHT)).getValue();
+          if (mapTargetHeight <= 0) { mapTargetHeight = mapOrig.getHeight(); }
+          mapScaleX = (float)mapOrig.getWidth() / (float)mapTargetWidth;
+          mapScaleY = (float)mapOrig.getHeight() / (float)mapTargetHeight;
 
           listPanel = (StructListPanel)ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class, AreaEntry.WMP_AREA_CURRENT,
                                                                 new WmpAreaListRenderer(mapIcons), listeners);
@@ -214,15 +231,14 @@ public class ViewerMap extends JPanel
             int frameIndex = mapIconsCtrl.cycleGetFrameIndexAbsolute(iconIndex, 0);
             if (frameIndex >= 0) {
               BufferedImage mapIcon = (BufferedImage)mapIcons.frameGet(mapIconsCtrl, frameIndex);
-              int x = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
-              int y = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
+              Point p = getAreaEntryPosition(area, isScaling());
               int width = mapIcons.getFrameInfo(frameIndex).getWidth();
               int height = mapIcons.getFrameInfo(frameIndex).getHeight();
               int cx = mapIcons.getFrameInfo(frameIndex).getCenterX();
               int cy = mapIcons.getFrameInfo(frameIndex).getCenterY();
-              x -= cx;
-              y -= cy;
-              g.drawImage(mapIcon, x, y, x+width, y+height, 0, 0, width, height, null);
+              p.x -= cx;
+              p.y -= cy;
+              g.drawImage(mapIcon, p.x, p.y, p.x+width, p.y+height, 0, 0, width, height, null);
             }
           }
         }
@@ -240,7 +256,7 @@ public class ViewerMap extends JPanel
               if (strref < 0) {
                 strref = ((StringRef)area.getAttribute(AreaEntry.WMP_AREA_TOOLTIP)).getValue();
               }
-              String mapName = (strref >= 0) ? StringResource.getStringRef(strref) : null;
+              String mapName = (strref >= 0) ? StringTable.getStringRef(strref) : null;
               if (mapName != null && mapName.trim().length() == 0) {
                 mapName = null;
               }
@@ -253,14 +269,13 @@ public class ViewerMap extends JPanel
                 mapCode = "";
               }
 
-              int x = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
-              int y = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
+              Point p = getAreaEntryPosition(area, isScaling());
               int width = mapIcons.getFrameInfo(frameIndex).getWidth();
               int height = mapIcons.getFrameInfo(frameIndex).getHeight();
               int cx = mapIcons.getFrameInfo(frameIndex).getCenterX();
               int cy = mapIcons.getFrameInfo(frameIndex).getCenterY();
-              x -= cx;
-              y -= cy;
+              p.x -= cx;
+              p.y -= cy;
 
               // printing label
               if (!mapCode.isEmpty()) {
@@ -279,8 +294,8 @@ public class ViewerMap extends JPanel
                   Rectangle2D rectText = g.getFont().getStringBounds(label, g.getFontRenderContext());
                   int boxWidth = rectText.getBounds().width;
                   int boxHeight = rectText.getBounds().height;
-                  int textX = x + (width - boxWidth) / 2;
-                  int textY = y + height + ofsY;
+                  int textX = p.x + (width - boxWidth) / 2;
+                  int textY = p.y + height + ofsY;
 
                   g.setColor(WHITE_BLENDED);
                   g.fillRect(textX - 2, textY, boxWidth + 4, boxHeight);
@@ -389,41 +404,55 @@ public class ViewerMap extends JPanel
     }
   }
 
+  // Returns a properly scaled map icon position
+  private Point getAreaEntryPosition(AreaEntry areaEntry, boolean scaled)
+  {
+    Point p = new Point();
+    if (areaEntry != null) {
+      p.x = ((IsNumeric)areaEntry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
+      p.y = ((IsNumeric)areaEntry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
+      if (scaled) {
+        p.x = (int)(p.x * mapScaleX);
+        p.y = (int)(p.y * mapScaleY);
+      }
+    }
+    return p;
+  }
+
   // Returns a pixel coordinate for one of the edges of the specified area icon
   private Point getMapIconCoordinate(int areaIndex, Direction dir)
   {
     AreaEntry area = getAreaEntry(areaIndex);
     if (area != null) {
-      int x = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
-      int y = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
+      Point p = getAreaEntryPosition(area, isScaling());
       int iconIndex = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue();
       int frameIndex = mapIconsCtrl.cycleGetFrameIndexAbsolute(iconIndex, 0);
       int width, height;
       if (frameIndex >= 0) {
         width = mapIcons.getFrameInfo(frameIndex).getWidth();
         height = mapIcons.getFrameInfo(frameIndex).getHeight();
-        x -= mapIcons.getFrameInfo(frameIndex).getCenterX();
-        y -= mapIcons.getFrameInfo(frameIndex).getCenterY();
+        p.x -= mapIcons.getFrameInfo(frameIndex).getCenterX();
+        p.y -= mapIcons.getFrameInfo(frameIndex).getCenterY();
       } else {
         width = height = 0;
       }
       Point retVal = new Point();
       switch (dir) {
         case NORTH:
-          retVal.x = x + (width / 2);
-          retVal.y = y;
+          retVal.x = p.x + (width / 2);
+          retVal.y = p.y;
           break;
         case WEST:
-          retVal.x = x;
-          retVal.y = y + (height / 2);
+          retVal.x = p.x;
+          retVal.y = p.y + (height / 2);
           break;
         case SOUTH:
-          retVal.x = x + (width / 2);
-          retVal.y = y + height - 1;
+          retVal.x = p.x + (width / 2);
+          retVal.y = p.y + height - 1;
           break;
         case EAST:
-          retVal.x = x + width - 1;
-          retVal.y = y + (height / 2);
+          retVal.x = p.x + width - 1;
+          retVal.y = p.y + (height / 2);
           break;
       }
       return retVal;
@@ -450,13 +479,16 @@ public class ViewerMap extends JPanel
     if (entry != null) {
       storeDot(entry);
       int x = ((DecNumber)entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
+      x = (int)(x * mapScaleX);
       int y = ((DecNumber)entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
+      y = (int)(y * mapScaleY);
       int width = iconDot.getWidth();
       int height = iconDot.getHeight();
       int xofs = width / 2;
       int yofs = height / 2;
       Graphics2D g = ((BufferedImage)rcMap.getImage()).createGraphics();
       try {
+        g.setComposite(AlphaComposite.Src);
         g.drawImage(iconDot, x-xofs, y-yofs, x-xofs+width, y-yofs+height, 0, 0, width, height, null);
       } finally {
         g.dispose();
@@ -470,13 +502,16 @@ public class ViewerMap extends JPanel
   {
     if (entry != null) {
       int x = ((DecNumber)entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_X)).getValue();
+      x = (int)(x * mapScaleX);
       int y = ((DecNumber)entry.getAttribute(AreaEntry.WMP_AREA_COORDINATE_Y)).getValue();
+      y = (int)(y * mapScaleY);
       int width = dotBackup.getWidth();
       int height = dotBackup.getHeight();
       int xofs = width / 2;
       int yofs = height / 2;
       Graphics2D g = dotBackup.createGraphics();
       try {
+        g.setComposite(AlphaComposite.Src);
         g.drawImage(rcMap.getImage(), 0, 0, width, height, x-xofs, y-yofs, x-xofs+width, y-yofs+height, null);
         dotX = x-xofs;
         dotY = y-yofs;
@@ -497,6 +532,7 @@ public class ViewerMap extends JPanel
       int height = dotBackup.getHeight();
       Graphics2D g = ((BufferedImage)rcMap.getImage()).createGraphics();
       try {
+        g.setComposite(AlphaComposite.Src);
         g.drawImage(dotBackup, x, y, x+width, y+height, 0, 0, width, height, null);
         dotX = -1;
         dotY = -1;
@@ -517,6 +553,12 @@ public class ViewerMap extends JPanel
       g.dispose();
       g = null;
     }
+  }
+
+  // Returns whether to apply map scaling factor
+  private boolean isScaling()
+  {
+    return miScaling.isSelected();
   }
 
   // Shows specified coordinates as text info. Hides display for negative coordinates.
@@ -557,6 +599,15 @@ public class ViewerMap extends JPanel
             miShowIcons.setSelected(true);
           }
           showOverlays(miShowIcons.isSelected(), miShowDistances.isSelected());
+        } finally {
+          WindowBlocker.blockWindow(false);
+        }
+      } else if (e.getSource() == miScaling) {
+        try {
+          WindowBlocker.blockWindow(true);
+          if (miShowIcons.isSelected()) {
+            showOverlays(miShowIcons.isSelected(), miShowDistances.isSelected());
+          }
         } finally {
           WindowBlocker.blockWindow(false);
         }
@@ -687,7 +738,9 @@ public class ViewerMap extends JPanel
         ResourceRef areaRef = (ResourceRef)struct.getAttribute(AreaEntry.WMP_AREA_CURRENT);
         String text1 = null, text2 = null;
         if (areaName.getValue() >= 0) {
-          text1 = areaName.toString(BrowserMenuBar.getInstance().showStrrefs());
+          StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+                                                                              : StringTable.Format.NONE;
+          text1 = areaName.toString(fmt);
         } else {
           text1 = "";
         }

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -24,6 +25,8 @@ import org.infinity.datatype.SectionOffset;
 import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
+import org.infinity.datatype.UpdateEvent;
+import org.infinity.datatype.UpdateListener;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
@@ -33,14 +36,16 @@ import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Effect;
 import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.HasViewerTabs;
+import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
-public final class SplResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
+public final class SplResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs,
+                                                                 UpdateListener
 {
   // SPL-specific field labels
   public static final String SPL_NAME                             = "Spell name";
@@ -77,33 +82,52 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
                                          "Swirl blue", "Swirl gold", "Swirl green",
                                          "Swirl magenta", "Swirl purple", "Swirl red",
                                          "Swirl white"};
+  public static final String[] s_anim_pst = {"None", "", "", "", "", "", "", "", "", "", "", "",
+                                             "", "", "", "", "", "", "", "", "", "", "", "", "",
+                                             "", "", "", "", "", "", "", "", "", "",
+                                             "Abjuration", "Alteration", "Conjuration", "Enchantment",
+                                             "Divination", "Illusion", "Invocation", "Necromancy", "Innate"};
+
   public static final String[] s_spellflag = {"No flags set", "", "", "", "", "", "", "", "",
                                               "", "", "Hostile", "No LOS required", "Allow spotting",
                                               "Outdoors only", "Ignore dead/wild magic", "Ignore wild surge",
                                               "Non-combat ability", "", "", "", "", "", "", "",
                                               "Ex: Can target invisible", "EE/Ex: Castable when silenced"};
-  public static final String[] s_exclude = { "None",
-                                             "Chaotic/Berserker;Includes Chaotic Good, Chaotic Neutral and Chaotic Evil as well as Berserkers",
-                                             "Evil/Wizard Slayer;Includes Lawful Evil, Neutral Evil and Chaotic Evil as well as Wizard Slayers",
-                                             "Good/Kensai;Includes Lawful Good, Neutral Good and Chaotic Good as well as Kensais",
-                                             "...Neutral/Cavalier;Includes Lawful Neutral, True Neutral and Chaotic Neutral as well as Cavaliers",
-                                             "Lawful/Inquisitor;Includes Lawful Good, Lawful Neutral and Lawful Evil as well as Inquisitors",
-                                             "Neutral.../Undead Hunter;Includes Neutral Good, True Neutral and Neutral Evil as well as Undead Hunters",
-                                             "Abjurer", "Conjurer", "Diviner", "Enchanter",
-                                             "Illusionist", "Invoker", "Necromancer", "Transmuter",
-                                             "Generalist;Includes trueclass mages, sorcerers and bards",
-                                             "Archer", "Stalker", "Beastmaster", "Assassin", "Bounty Hunter",
-                                             "Swashbuckler", "Blade", "Jester", "Skald", "Priest of Talos",
-                                             "Priest of Helm", "Priest of Lathander", "Totemic Druid",
-                                             "Shapeshifter", "Avenger", "Cleric/Paladin/Barbarian",
-                                             "Druid/Ranger/Wildmage"};
+  public static final String[] s_exclude =
+    { "None",
+      "Berserker", "Wizard slayer", "Kensai", "Cavalier", "Inquisitor", "Undead hunter",
+      "Abjurer", "Conjurer", "Diviner", "Enchanter", "Illusionist", "Invoker", "Necromancer",
+      "Transmuter", "Generalist;Includes trueclass mages, sorcerers and bards",
+      "Archer", "Stalker", "Beastmaster", "Assasin", "Bounty hunter", "Swashbuckler", "Blade",
+      "Jester", "Skald", "Cleric of Talos", "Cleric of Helm", "Cleric of Lathander",
+      "Totemic druid", "Shapeshifter", "Avenger", "Barbarian", "Wild mage"};
+  public static final String[] s_exclude_priest =
+    { "None",
+      "Chaotic;Includes Chaotic Good, Chaotic Neutral and Chaotic Evil",
+      "Evil;Includes Lawful Evil, Neutral Evil and Chaotic Evil",
+      "Good;Includes Lawful Good, Neutral Good and Chaotic Good",
+      "... Neutral;Includes Lawful Neutral, True Neutral and Chaotic Neutral",
+      "Lawful;Includes Lawful Good, Lawful Neutral and Lawful Evil",
+      "Neutral ...;Includes Neutral Good, True Neutral and Neutral Evil",
+      "Unused", "Unused", "Unused", "Unused", "Unused", "Unused", "Unused", "Unused",
+      "Unused", "Unused", "Unused", "Unused", "Unused", "Unused", "Unused", "Unused",
+      "Unused", "Unused", "Unused", "Unused", "Unused", "Unused", "Unused", "Unused",
+      "Cleric/Paladin", "Druid/Ranger/Shaman"};
+  public static final String[] s_exclude_combined =
+    { "None",
+      "Chaotic/Berserker", "Evil/Wizard slayer", "Good/Kensai", "... Neutral/Cavalier",
+      "Lawful/Inquisitor", "Neutral .../Undead hunter", "Abjurer", "Conjurer", "Diviner",
+      "Enchanter", "Illusionist", "Invoker", "Necromancer", "Transmuter",  "Generalist",
+      "Archer", "Stalker", "Beastmaster", "Assasin", "Bounty hunter", "Swashbuckler", "Blade",
+      "Jester", "Skald", "Cleric of Talos", "Cleric of Helm", "Cleric of Lathander", "Totemic druid",
+      "Shapeshifter", "Avenger", "Cleric/Paladin/Barbarian", "Druid/Ranger/Wild mage"};
 
   private StructHexViewer hexViewer;
 
   public static String getSearchString(InputStream is) throws IOException
   {
     is.skip(8);
-    return StringResource.getStringRef(StreamUtils.readInt(is)).trim();
+    return StringTable.getStringRef(StreamUtils.readInt(is)).trim();
   }
 
   public SplResource(ResourceEntry entry) throws Exception
@@ -200,6 +224,30 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+// --------------------- Begin Interface UpdateListener ---------------------
+
+  @Override
+  public boolean valueUpdated(UpdateEvent event)
+  {
+    if (event.getSource() instanceof Bitmap &&
+        SPL_TYPE.equals(((Bitmap)event.getSource()).getName())) {
+      Flag curFlags = (Flag)getAttribute(SPL_EXCLUSION_FLAGS);
+      if (curFlags != null) {
+        int type = ((Bitmap)event.getSource()).getValue();
+        int size = curFlags.getSize();
+        int offset = curFlags.getOffset();
+        ByteBuffer b = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN).putInt(curFlags.getValue());
+        Flag newFlags = new Flag(b, 0, size, SPL_EXCLUSION_FLAGS, (type == 2) ? s_exclude_priest : s_exclude);
+        newFlags.setOffset(offset);
+        replaceEntry(newFlags);
+        return true;
+      }
+    }
+    return false;
+  }
+
+// --------------------- End Interface UpdateListener ---------------------
 
   @Override
   protected void viewerInitialized(StructViewer viewer)
@@ -303,9 +351,16 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
     addField(new StringRef(buffer, offset + 12, SPL_NAME_IDENTIFIED));
     addField(new ResourceRef(buffer, offset + 16, SPL_CASTING_SOUND, "WAV"));
     addField(new Flag(buffer, offset + 24, 4, SPL_FLAGS, s_spellflag));
-    addField(new Bitmap(buffer, offset + 28, 2, SPL_TYPE, s_spelltype));
-    addField(new Flag(buffer, offset + 30, 4, SPL_EXCLUSION_FLAGS, s_exclude));   // 0x1e
-    addField(new Bitmap(buffer, offset + 34, 2, SPL_CASTING_ANIMATION, s_anim));  // 0x22
+    Bitmap spellType = new Bitmap(buffer, offset + 28, 2, SPL_TYPE, s_spelltype);   // 0x1c
+    spellType.addUpdateListener(this);
+    addField(spellType);
+    addField(new Flag(buffer, offset + 30, 4, SPL_EXCLUSION_FLAGS,
+                      (spellType.getValue() == 2) ? s_exclude_priest : s_exclude));   // 0x1e
+    if (Profile.getGame() == Profile.Game.PST || Profile.getGame() == Profile.Game.PSTEE) {
+      addField(new Bitmap(buffer, offset + 34, 2, SPL_CASTING_ANIMATION, s_anim_pst));  // 0x22
+    } else {
+      addField(new Bitmap(buffer, offset + 34, 2, SPL_CASTING_ANIMATION, s_anim));  // 0x22
+    }
     addField(new Unknown(buffer, offset + 36, 1));                                    // 0x23
     addField(new PriTypeBitmap(buffer, offset + 37, 1, SPL_PRIMARY_TYPE)); // 0x25
     addField(new Unknown(buffer, offset + 38, 1));

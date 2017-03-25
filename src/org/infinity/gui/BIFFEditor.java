@@ -158,7 +158,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
         return;
       }
       FileResourceEntry fileEntry = new FileResourceEntry(file, true);
-      ResourceFactory.getResourceTreeModel().addResourceEntry(fileEntry, fileEntry.getTreeFolder(), true);
+      ResourceFactory.getResourceTreeModel().addResourceEntry(fileEntry, fileEntry.getTreeFolderName(), true);
     }
     progress.setProgress(2, true);
 
@@ -206,7 +206,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       Path file = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(),
                                     origbiflist.get(i).toString());
       FileResourceEntry fileEntry = new FileResourceEntry(file, true);
-      ResourceFactory.getResourceTreeModel().addResourceEntry(fileEntry, fileEntry.getTreeFolder(), true);
+      ResourceFactory.getResourceTreeModel().addResourceEntry(fileEntry, fileEntry.getTreeFolderName(), true);
     }
     progress.setProgress(5, true);
 

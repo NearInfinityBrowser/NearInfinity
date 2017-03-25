@@ -16,6 +16,8 @@ import java.util.Locale;
 
 /**
  * Central hub for accessing game-related I/O resources.
+ * TODO: cache files for faster access
+ * TODO: add Filesystem Watcher functionality to automatically update cached directories
  */
 public class FileManager
 {

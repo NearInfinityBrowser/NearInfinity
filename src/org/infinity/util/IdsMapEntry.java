@@ -4,50 +4,64 @@
 
 package org.infinity.util;
 
-public final class IdsMapEntry implements Comparable<IdsMapEntry>
+import java.util.ArrayDeque;
+import java.util.Iterator;
+
+public class IdsMapEntry
 {
-  private final String string;
-  private final String parameters;
+  private final ArrayDeque<String> symbols = new ArrayDeque<>();
   private final long id;
 
-  public IdsMapEntry(long id, String string, String parameters)
+  public IdsMapEntry(long id, String symbol)
   {
     this.id = id;
-    this.string = string;
-    this.parameters = parameters;
+    addSymbol(symbol);
   }
 
-// --------------------- Begin Interface Comparable ---------------------
-
-  @Override
-  public int compareTo(IdsMapEntry o)
-  {
-    return toString().compareToIgnoreCase(o.toString());
-  }
-
-// --------------------- End Interface Comparable ---------------------
-
-  @Override
-  public String toString()
-  {
-    if (parameters == null)
-      return string + " - " + id;
-    return string + parameters + ") - " + id;
-  }
-
+  /** Returns the numeric value of the entry. */
   public long getID()
   {
     return id;
   }
 
-  public String getParameters()
+  /** Returns number of available symbolic names. */
+  public int getNumSymbols()
   {
-    return parameters;
+    return symbols.size();
   }
 
-  public String getString()
+  /** Returns the most recently added symbolic name. */
+  public String getSymbol()
   {
-    return string;
+    return symbols.peek();
+  }
+
+  /** Returns an iterator over the whole collection of available symbols. */
+  public Iterator<String> getSymbols()
+  {
+    return symbols.iterator();
+  }
+
+  /** Adds the specified symbolic name if it does not yet exist. */
+  public void addSymbol(String symbol)
+  {
+    if (symbol == null) {
+      throw new NullPointerException();
+    }
+
+    if (!symbol.isEmpty() && !symbols.contains(symbol)) {
+      symbols.push(symbol);
+    }
+  }
+
+  @Override
+  public String toString()
+  {
+    return toString(getID(), getSymbol());
+  }
+
+  public static String toString(long id, String symbol)
+  {
+    return symbol + " - " + id;
   }
 }
-

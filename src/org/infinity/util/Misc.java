@@ -18,7 +18,7 @@ import javax.swing.JComponent;
  */
 public class Misc
 {
-  /** The default ANSI charset. */
+  /** The default ANSI charset (Windows-1252). */
   public static final Charset CHARSET_DEFAULT = Charset.forName("windows-1252");
   /** The UTF-8 charset. */
   public static final Charset CHARSET_UTF8    = Charset.forName("UTF-8");

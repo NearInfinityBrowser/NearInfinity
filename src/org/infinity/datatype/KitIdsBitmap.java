@@ -52,7 +52,7 @@ public class KitIdsBitmap extends IdsBitmap
   private void init()
   {
     // adding "No Kit" value if needed
-    addIdsMapEntry(new IdsMapEntry(0L, "NO_KIT", null));
+    addIdsMapEntry(new IdsMapEntry(0L, "NO_KIT"));
 
     // fixing word order of kit id value
     setValue(swapWords(getValue()));

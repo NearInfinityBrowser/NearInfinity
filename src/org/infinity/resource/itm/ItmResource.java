@@ -39,7 +39,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
 public final class ItmResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
@@ -102,7 +102,8 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Telescopes", "Bottles", "Greatswords", "Bags",
            "Furs and pelts", "Leather armor", "Studded leather", "Chain mail",
            "Splint mail", "Plate mail", "Full plate", "Hide armor", "Robes",
-           "Scale mail", "Bastard swords", "Scarves", "Rations", "Hats", "Gloves"};
+           "Scale mail", "Bastard swords", "Scarves", "Rations", "Hats", "Gloves",
+           "Eyeballs", "Earrings", "Teeth", "Bracelets"};
   public static final String[] s_categories11 =
           {"Miscellaneous", "Amulets and necklaces", "Armor", "Belts and girdles",
            "Boots", "Arrows", "Bracers and gauntlets", "Headgear",
@@ -122,6 +123,11 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Steel", "Conversable",
            "Pulsating"};
+  public static final String[] s_flags_pstee =
+          {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
+           "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Steel", "Conversable",
+           "EE: Fake two-handed", "EE: Forbid off-hand weapon", "Usable in inventory", "EE: Adamantine",
+           "", "", "", "", "", "", "", "", "EE/Ex: Undispellable", "EE/Ex: Toggle critical hits"};
   public static final String[] s_usability =
           {"None",
            "Chaotic;Includes Chaotic Good, Chaotic Neutral and Chaotic Evil",
@@ -149,7 +155,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Mercykiller", "Indep", "Figher-Thief", "Mage",
            "Mage-Thief", "Dak'kon", "Fall-From-Grace", "Thief",
            "Vhailor", "Ignus", "Morte", "Nordom",
-           "Human", "Annah", "", "Nameless One", ""
+           "Human", "Annah", "EE: Monk", "Nameless One", "EE: Half-Orc"
           };
   public static final String[] s_usability20 =
           {"None", "Barbarian", "Bard", "Cleric", "Druid",
@@ -165,7 +171,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Dwarf", "Half-elf", "Halfling", "Human", "Gnome"
           };
   public static final String[] s_kituse1 =
-          {"None", "Cleric of talos", "Cleric of helm", "Cleric of lathander",
+          {"None", "Cleric of Talos", "Cleric of Helm", "Cleric of Lathander",
            "Totemic druid", "Shapeshifter", "Avenger", "Barbarian", "Wild mage"};
   public static final String[] s_kituse2 =
           {"None", "Stalker", "Beastmaster", "Assassin", "Bounty hunter",
@@ -232,8 +238,8 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   public static String getSearchString(InputStream is) throws IOException
   {
     is.skip(8);
-    String defName = StringResource.getStringRef(StreamUtils.readInt(is)).trim();
-    String name = StringResource.getStringRef(StreamUtils.readInt(is)).trim();
+    String defName = StringTable.getStringRef(StreamUtils.readInt(is)).trim();
+    String name = StringTable.getStringRef(StreamUtils.readInt(is)).trim();
     if (name.isEmpty() || name.equalsIgnoreCase("No such index")) {
       return defName;
     } else {
@@ -436,10 +442,16 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     addField(version);
     addField(new StringRef(buffer, 8, ITM_NAME_GENERAL));
     addField(new StringRef(buffer, 12, ITM_NAME_IDENTIFIED));
-    if (version.toString().equalsIgnoreCase("V1.1")) {
+    if (version.getText().equalsIgnoreCase("V1.1") ||
+        (version.getText().equalsIgnoreCase("V1  ") && Profile.getGame() == Profile.Game.PSTEE)) {
       addField(new ResourceRef(buffer, 16, ITM_DROP_SOUND, "WAV"));
-      addField(new Flag(buffer, 24, 4, ITM_FLAGS, s_flags11));
-      addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, s_categories11));
+      if (Profile.getGame() == Profile.Game.PSTEE) {
+        addField(new Flag(buffer, 24, 4, ITM_FLAGS, s_flags_pstee));
+        addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, s_categories));
+      } else {
+        addField(new Flag(buffer, 24, 4, ITM_FLAGS, s_flags11));
+        addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, s_categories11));
+      }
       addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, s_usability11));
       addField(new TextBitmap(buffer, 34, 2, ITM_EQUIPPED_APPEARANCE, s_tag11, s_anim11));
     }

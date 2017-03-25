@@ -78,11 +78,8 @@ public class PriTypeBitmap extends HashBitmap
         // using SCHOOL.IDS
         typeMap.put(Long.valueOf(0L), "NONE");
         IdsMap map = IdsMapCache.get(TableName);
-        LongIntegerHashMap<IdsMapEntry> entries = map.getMap();
-        long[] keys = entries.keys();
-        for (int i = 0; i < keys.length; i++) {
-          Long id = Long.valueOf(keys[i]);
-          typeMap.put(id, entries.get(id).getString().toUpperCase(Locale.ENGLISH));
+        for (final IdsMapEntry e: map.getAllValues()) {
+          typeMap.put(Long.valueOf(e.getID()), e.getSymbol().toUpperCase(Locale.ENGLISH));
         }
       } else {
         // using predefined values
@@ -100,7 +97,7 @@ public class PriTypeBitmap extends HashBitmap
     if (TableName.endsWith(".2DA")) {
       Table2daCache.cacheInvalid(ResourceFactory.getResourceEntry(TableName));
     } else if (TableName.endsWith(".IDS")) {
-      IdsMapCache.cacheInvalid(ResourceFactory.getResourceEntry(TableName));
+      IdsMapCache.remove(ResourceFactory.getResourceEntry(TableName));
     }
   }
 }

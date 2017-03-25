@@ -38,7 +38,6 @@ import org.infinity.gui.IdsBrowser;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.bcs.BafResource;
 import org.infinity.resource.bcs.BcsResource;
-import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.chu.ChuResource;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.dlg.DlgResource;
@@ -56,6 +55,7 @@ import org.infinity.resource.key.Keyfile;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
+import org.infinity.resource.maze.MazeResource;
 import org.infinity.resource.mus.MusResource;
 import org.infinity.resource.other.EffResource;
 import org.infinity.resource.other.FntResource;
@@ -79,10 +79,10 @@ import org.infinity.resource.video.WbmResource;
 import org.infinity.resource.wed.WedResource;
 import org.infinity.resource.wmp.WmpResource;
 import org.infinity.util.StaticSimpleXorDecryptor;
+import org.infinity.util.CreMapCache;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.Misc;
-import org.infinity.util.StringResource;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -194,6 +194,8 @@ public final class ResourceFactory
         res = new FntResource(entry);
       } else if (ext.equalsIgnoreCase("TTF") && Profile.isEnhancedEdition()) {
         res = new TtfResource(entry);
+      } else if (ext.equalsIgnoreCase("MAZE") && Profile.getGame() == Profile.Game.PSTEE) {
+        res = new MazeResource(entry);
       } else {
         res = detectResource(entry);
         if (res == null) {
@@ -257,6 +259,8 @@ public final class ResourceFactory
               res = getResource(entry, "IDS");
             } else if ("ITM ".equals(sig)) {
               res = getResource(entry, "ITM");
+            } else if ("MAZE".equals(sig)) {
+              res = getResource(entry, "MAZE");
             } else if ("MOS ".equals(sig) || "MOSC".equals(sig)) {
               res = getResource(entry, "MOS");
             } else if ("PLT ".equals(sig)) {
@@ -542,6 +546,30 @@ public final class ResourceFactory
   {
     if (getInstance() != null) {
       getInstance().loadResourcesInternal();
+    }
+  }
+
+  /**
+   * Registers specified resource in resource tree if it's located in a supported override folder.
+   * Should be called after the resource has been updated.
+   * TODO: improve implementation
+   */
+  public static void registerResource(Path resource)
+  {
+    if (getInstance() != null) {
+      getInstance().registerResourceInternal(resource);
+    }
+  }
+
+  /**
+   * Removes the specified entry from the resource tree.
+   * Should be called before before the resource is updated.
+   * TODO: improve implementation
+   */
+  public static void unregisterResource(ResourceEntry entry)
+  {
+    if (getInstance() != null) {
+      getInstance().unregisterResourceInternal(entry);
     }
   }
 
@@ -897,6 +925,76 @@ public final class ResourceFactory
     }
   }
 
+  // TODO: improve implementation
+  private void unregisterResourceInternal(ResourceEntry entry)
+  {
+    if (entry != null) {
+      if (entry instanceof BIFFResourceEntry) {
+        treeModel.removeResourceEntry(entry, entry.getTreeFolderName());
+      }
+    }
+  }
+
+  // TODO: improve implementation
+  private void registerResourceInternal(Path resource)
+  {
+    if (resource != null && Files.isRegularFile(resource)) {
+      Path resPath = resource.getParent();
+      Path resName = resource.getFileName();
+
+      // 1. checking extra folders
+      List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
+      for (final Path path: extraPaths) {
+        if (resource.startsWith(path)) {
+          // finding correct subfolder
+          int startIndex = path.getNameCount() - 1; // include main folder
+          int endIndex = resPath.getNameCount();
+          Path subPath = resPath.subpath(startIndex, endIndex);
+
+          ResourceTreeFolder folder = (ResourceTreeFolder)treeModel.getRoot();
+          for (int idx = 0, cnt = subPath.getNameCount(); idx < cnt && folder != null; idx++) {
+            String folderName = subPath.getName(idx).toString();
+            List<ResourceTreeFolder> folders = folder.getFolders();
+            folder = null;
+            for (final ResourceTreeFolder subFolder: folders) {
+              if (folderName.equalsIgnoreCase(subFolder.folderName())) {
+                folder = subFolder;
+                break;
+              }
+            }
+          }
+
+          if (folder != null && folder.folderName().equalsIgnoreCase(resPath.getFileName().toString())) {
+            ResourceEntry newEntry = new FileResourceEntry(resource, false);
+            folder.addResourceEntry(newEntry, true);
+            folder.sortChildren(false);
+            treeModel.updateFolders(folder);
+            NearInfinity.getInstance().showResourceEntry(newEntry);
+            return;
+          }
+        }
+      }
+
+      // 2. checking override folders
+      List<Path> overrides = Profile.getProperty(Profile.Key.GET_GAME_OVERRIDE_FOLDERS);
+      for (final Path override: overrides) {
+        Path comparePath = override.resolve(resName);
+        try {
+          if (Files.exists(comparePath) && Files.isSameFile(resource, comparePath)) {
+            ResourceEntry newEntry = new FileResourceEntry(resource, true);
+            ResourceTreeFolder folder = treeModel.addResourceEntry(newEntry, newEntry.getTreeFolderName(), true);
+            folder.sortChildren(false);
+            treeModel.updateFolders(folder);
+            NearInfinity.getInstance().showResourceEntry(newEntry);
+            return;
+          }
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+
   private void loadResourcesInternal() throws Exception
   {
     treeModel = new ResourceTreeModel();
@@ -904,7 +1002,6 @@ public final class ResourceFactory
     // Get resources from keyfile
     NearInfinity.advanceProgress("Loading BIFF resources...");
     keyfile.populateResourceTree(treeModel);
-    StringResource.init(Profile.getProperty(Profile.Key.GET_GAME_DIALOG_FILE));
 
     // Add resources from extra folders
     NearInfinity.advanceProgress("Loading extra resources...");
@@ -927,7 +1024,7 @@ public final class ResourceFactory
             if (Files.isRegularFile(path)) {
               ResourceEntry entry = getResourceEntry(path.getFileName().toString());
               if (entry instanceof FileResourceEntry) {
-                treeModel.addResourceEntry(entry, entry.getTreeFolder(), true);
+                treeModel.addResourceEntry(entry, entry.getTreeFolderName(), true);
               } else if (entry instanceof BIFFResourceEntry) {
                 ((BIFFResourceEntry)entry).setOverride(true);
                 if (overrideInOverride) {
@@ -1094,7 +1191,7 @@ public final class ResourceFactory
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), entry.toString() + " copied to " + outFile,
                                     "Copy complete", JOptionPane.INFORMATION_MESSAGE);
       ResourceEntry newEntry = new FileResourceEntry(outFile, !entry.getExtension().equalsIgnoreCase("bs"));
-      treeModel.addResourceEntry(newEntry, newEntry.getTreeFolder(), true);
+      treeModel.addResourceEntry(newEntry, newEntry.getTreeFolderName(), true);
       treeModel.sort();
       NearInfinity.getInstance().showResourceEntry(newEntry);
     } catch (Exception e) {
@@ -1180,12 +1277,12 @@ public final class ResourceFactory
     JOptionPane.showMessageDialog(parent, "File saved to \"" + outPath.toAbsolutePath() + '\"',
                                   "Save complete", JOptionPane.INFORMATION_MESSAGE);
     if (resource.getResourceEntry().getExtension().equals("IDS")) {
-      IdsMapCache.cacheInvalid(resource.getResourceEntry());
+      IdsMapCache.remove(resource.getResourceEntry());
       IdsBrowser idsbrowser = (IdsBrowser)ChildFrame.getFirstFrame(IdsBrowser.class);
       if (idsbrowser != null) {
         idsbrowser.refreshList();
       }
-      Compiler.restartCompiler();
+      CreMapCache.reset();
     } else if (resource.getResourceEntry().toString().equalsIgnoreCase(Song2daBitmap.getTableName())) {
       Song2daBitmap.resetSonglist();
     } else if (resource.getResourceEntry().toString().equalsIgnoreCase(Summon2daBitmap.getTableName())) {

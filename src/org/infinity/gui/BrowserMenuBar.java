@@ -38,7 +38,6 @@ import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -52,7 +51,6 @@ import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.infinity.NearInfinity;
 import org.infinity.check.BCSIDSChecker;
@@ -89,7 +87,7 @@ import org.infinity.updater.UpdaterSettings;
 import org.infinity.util.MassExporter;
 import org.infinity.util.ObjectString;
 import org.infinity.util.Pair;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 import org.infinity.util.io.FileManager;
 
 public final class BrowserMenuBar extends JMenuBar
@@ -189,6 +187,11 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionCheckScriptNames.isSelected();
   }
 
+  public boolean showMoreCompileWarnings()
+  {
+    return optionsMenu.optionMoreCompileWarnings.isSelected();
+  }
+
   public boolean showStrrefs()
   {
     return optionsMenu.optionShowStrrefs.isSelected();
@@ -245,11 +248,7 @@ public final class BrowserMenuBar extends JMenuBar
   /** Returns the selected BCS color scheme. */
   public String getBcsColorScheme()
   {
-    if (NearInfinity.isDebug() && optionsMenu.getDebugColorScheme() != null) {
-      return optionsMenu.getDebugColorScheme();
-    } else {
-      return optionsMenu.getBcsColorScheme();
-    }
+    return optionsMenu.getBcsColorScheme();
   }
 
   /** Returns state of "BCS: Enable Syntax Highlighting" */
@@ -270,40 +269,28 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionBCSEnableAutoIndent.isSelected();
   }
 
-//  /** Returns state of "BCS: Enable Auto-Completion" */
-//  public boolean getBcsAutoCompleteEnabled()
-//  {
-//    return optionsMenu.optionBCSEnableAutoComplete.isSelected();
-//  }
-
   /** Returns the selected GLSL color scheme. */
   public String getGlslColorScheme()
   {
-    if (NearInfinity.isDebug() && optionsMenu.getDebugColorScheme() != null) {
-      return optionsMenu.getDebugColorScheme();
-    } else {
-      return optionsMenu.getGlslColorScheme();
-    }
+    return optionsMenu.getGlslColorScheme();
   }
 
   /** Returns the selected LUA color scheme. */
   public String getLuaColorScheme()
   {
-    if (NearInfinity.isDebug() && optionsMenu.getDebugColorScheme() != null) {
-      return optionsMenu.getDebugColorScheme();
-    } else {
-      return optionsMenu.getLuaColorScheme();
-    }
+    return optionsMenu.getLuaColorScheme();
   }
 
   /** Returns the selected SQL color scheme. */
   public String getSqlColorScheme()
   {
-    if (NearInfinity.isDebug() && optionsMenu.getDebugColorScheme() != null) {
-      return optionsMenu.getDebugColorScheme();
-    } else {
-      return optionsMenu.getSqlColorScheme();
-    }
+    return optionsMenu.getSqlColorScheme();
+  }
+
+  /** Returns the selected TLK color scheme. */
+  public String getTlkColorScheme()
+  {
+    return optionsMenu.getTlkColorScheme();
   }
 
   /** Returns state of "Enable Syntax Highlighting for GLSL" */
@@ -322,6 +309,12 @@ public final class BrowserMenuBar extends JMenuBar
   public boolean getSqlSyntaxHighlightingEnabled()
   {
     return optionsMenu.optionSQLEnableSyntax.isSelected();
+  }
+
+  /** Returns state of "Enable Syntax Highlighting for TLK" */
+  public boolean getTlkSyntaxHighlightingEnabled()
+  {
+    return optionsMenu.optionTLKEnableSyntax.isSelected();
   }
 
   /** Returns state of "Enable Code Folding for GLSL" */
@@ -814,7 +807,6 @@ public final class BrowserMenuBar extends JMenuBar
           }
         }
       } else if (event.getSource() == gameCloseTLK) {
-        StringResource.close();
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Read lock released",
                                       "Release Dialog.tlk", JOptionPane.INFORMATION_MESSAGE);
       } else if (event.getSource() == gameProperties) {
@@ -870,7 +862,7 @@ public final class BrowserMenuBar extends JMenuBar
                                           Profile.Game.IWD, Profile.Game.IWDHoW, Profile.Game.IWDHowTotLM,
                                           Profile.Game.IWD2, Profile.Game.BG2SoA, Profile.Game.BG2ToB,
                                           Profile.Game.BG1EE, Profile.Game.BG1SoD, Profile.Game.BG2EE,
-                                          Profile.Game.IWDEE, Profile.Game.EET});
+                                          Profile.Game.IWDEE, Profile.Game.PSTEE, Profile.Game.EET});
       }
 
       public ResInfo(StructureFactory.ResType id, String text, Profile.Game[] games) {
@@ -908,38 +900,38 @@ public final class BrowserMenuBar extends JMenuBar
                   new Profile.Game[]{Profile.Game.BG1, Profile.Game.BG1TotSC,
                                      Profile.Game.BG2SoA, Profile.Game.BG2ToB,
                                      Profile.Game.BG1EE, Profile.Game.BG1SoD, Profile.Game.BG2EE,
-                                     Profile.Game.IWDEE, Profile.Game.EET}),
+                                     Profile.Game.IWDEE, Profile.Game.PSTEE, Profile.Game.EET}),
       new ResInfo(StructureFactory.ResType.RES_IDS, "IDS"),
       new ResInfo(StructureFactory.ResType.RES_ITM, "ITM"),
       new ResInfo(StructureFactory.ResType.RES_INI, "INI",
                   new Profile.Game[]{Profile.Game.PST, Profile.Game.IWD, Profile.Game.IWDHoW,
                                      Profile.Game.IWDHowTotLM, Profile.Game.IWD2,
                                      Profile.Game.BG1EE, Profile.Game.BG1SoD, Profile.Game.BG2EE,
-                                     Profile.Game.IWDEE, Profile.Game.EET}),
+                                     Profile.Game.IWDEE, Profile.Game.PSTEE, Profile.Game.EET}),
       new ResInfo(StructureFactory.ResType.RES_PRO, "PRO",
                   new Profile.Game[]{Profile.Game.BG2SoA, Profile.Game.BG2ToB,
                                      Profile.Game.BG1EE, Profile.Game.BG1SoD, Profile.Game.BG2EE,
-                                     Profile.Game.IWDEE, Profile.Game.EET}),
+                                     Profile.Game.IWDEE, Profile.Game.PSTEE, Profile.Game.EET}),
       new ResInfo(StructureFactory.ResType.RES_RES, "RES",
                   new Profile.Game[]{Profile.Game.IWD, Profile.Game.IWDHoW, Profile.Game.IWDHowTotLM,
                                      Profile.Game.IWD2}),
       new ResInfo(StructureFactory.ResType.RES_SPL, "SPL"),
       new ResInfo(StructureFactory.ResType.RES_SRC, "SRC",
-                  new Profile.Game[]{Profile.Game.PST, Profile.Game.IWD2}),
+                  new Profile.Game[]{Profile.Game.PST, Profile.Game.IWD2, Profile.Game.PSTEE}),
       new ResInfo(StructureFactory.ResType.RES_STO, "STO"),
       new ResInfo(StructureFactory.ResType.RES_VEF, "VEF",
                   new Profile.Game[]{Profile.Game.BG2SoA, Profile.Game.BG2ToB,
                                      Profile.Game.BG1EE, Profile.Game.BG1SoD, Profile.Game.BG2EE,
-                                     Profile.Game.IWDEE, Profile.Game.EET}),
+                                     Profile.Game.IWDEE, Profile.Game.PSTEE, Profile.Game.EET}),
       new ResInfo(StructureFactory.ResType.RES_VVC, "VVC",
                   new Profile.Game[]{Profile.Game.BG2SoA, Profile.Game.BG2ToB,
                                      Profile.Game.BG1EE, Profile.Game.BG1SoD, Profile.Game.BG2EE,
-                                     Profile.Game.IWDEE, Profile.Game.EET}),
+                                     Profile.Game.IWDEE, Profile.Game.PSTEE, Profile.Game.EET}),
       new ResInfo(StructureFactory.ResType.RES_WED, "WED"),
       new ResInfo(StructureFactory.ResType.RES_WFX, "WFX",
                   new Profile.Game[]{Profile.Game.BG2SoA, Profile.Game.BG2ToB,
                                      Profile.Game.BG1EE, Profile.Game.BG1SoD, Profile.Game.BG2EE,
-                                     Profile.Game.IWDEE, Profile.Game.EET}),
+                                     Profile.Game.IWDEE, Profile.Game.PSTEE, Profile.Game.EET}),
       new ResInfo(StructureFactory.ResType.RES_WMAP, "WMAP"),
     };
 
@@ -1045,7 +1037,7 @@ public final class BrowserMenuBar extends JMenuBar
 
   private static final class EditMenu extends JMenu implements ActionListener
   {
-    private final JMenuItem editString, editString2, editBIFF, editVarVar, editIni;
+    private final JMenuItem editString, editBIFF, editVarVar, editIni;
 
     private EditMenu()
     {
@@ -1053,10 +1045,8 @@ public final class BrowserMenuBar extends JMenuBar
       setMnemonic(KeyEvent.VK_E);
 
       editString =
-      makeMenuItem("Dialog.tlk", KeyEvent.VK_D, Icons.getIcon(Icons.ICON_EDIT_16), KeyEvent.VK_S, this);
+          makeMenuItem("String table", KeyEvent.VK_S, Icons.getIcon(Icons.ICON_EDIT_16), KeyEvent.VK_S, this);
       add(editString);
-      editString2 = makeMenuItem("DialogF.tlk", KeyEvent.VK_F, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
-      add(editString2);
       editIni = makeMenuItem("baldur.ini", KeyEvent.VK_I, Icons.getIcon(Icons.ICON_EDIT_16), -1, NearInfinity.getInstance());
       editIni.setActionCommand("GameIni");
       add(editIni);
@@ -1081,14 +1071,8 @@ public final class BrowserMenuBar extends JMenuBar
         editIni.setEnabled(false);
         editIni.setToolTipText("Ini file not available");
       }
-      editString2.setEnabled(Profile.getProperty(Profile.Key.GET_GAME_DIALOGF_FILE) != null);
       Path varFile = FileManager.query(Profile.getRootFolders(), "VAR.VAR");
       editVarVar.setEnabled(varFile != null && Files.isRegularFile(varFile));
-      if (editString2.isEnabled()) {
-        editString2.setToolTipText("");
-      } else {
-        editString2.setToolTipText("DialogF.tlk not found");
-      }
       if (editVarVar.isEnabled()) {
         editVarVar.setToolTipText("");
       } else {
@@ -1103,29 +1087,10 @@ public final class BrowserMenuBar extends JMenuBar
         StringEditor editor = null;
         List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
         for (int i = 0; i < frames.size(); i++) {
-          StringEditor e = (StringEditor)frames.get(i);
-          if (e.getPath().equals(StringResource.getPath())) {
-            editor = e;
-          }
+          editor = (StringEditor)frames.get(i);
         }
         if (editor == null) {
-          new StringEditor(StringResource.getPath(), 0);
-        } else {
-          editor.setVisible(true);
-        }
-      }
-      else if (event.getSource() == editString2) {
-        StringEditor editor = null;
-        Path file = Profile.getProperty(Profile.Key.GET_GAME_DIALOGF_FILE);
-        List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
-        for (int i = 0; i < frames.size(); i++) {
-          StringEditor e = (StringEditor)frames.get(i);
-          if (e.getPath().equals(file)) {
-            editor = e;
-          }
-        }
-        if (editor == null) {
-          new StringEditor(file, 0);
+          new StringEditor();
         } else {
           editor.setVisible(true);
         }
@@ -1554,7 +1519,6 @@ public final class BrowserMenuBar extends JMenuBar
       {InfinityTextArea.SchemeMonokai, "Monokai", "A dark color scheme inspired by \"Monokai\""},
       {InfinityTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
       {InfinityTextArea.SchemeBCS, "BCS Light", "A color scheme which is loosely based on the WeiDU Syntax Highlighter for Notepad++"},
-//      {null, "External color scheme...", "Use an external color scheme definition file"},
     };
     // Available color schemes for remaining highlighted formats (scheme, title, description)
     private static final String[][] COLORSCHEME = {
@@ -1564,7 +1528,6 @@ public final class BrowserMenuBar extends JMenuBar
       {InfinityTextArea.SchemeIdea, "IntelliJ IDEA", "Mimics IntelliJ IDEA's default color scheme"},
       {InfinityTextArea.SchemeMonokai, "Monokai", "A dark color scheme inspired by \"Monokai\""},
       {InfinityTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
-//      {null, "External color scheme...", "Use an external color scheme definition file"},
     };
 
     static {
@@ -1587,6 +1550,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_AUTOCHECK_BCS            = "AutocheckBCS";
     private static final String OPTION_CACHEOVERRIDE            = "CacheOverride";
     private static final String OPTION_CHECKSCRIPTNAMES         = "CheckScriptNames";
+    private static final String OPTION_MORECOMPILERWARNINGS     = "MoreCompilerWarnings";
     private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
     private static final String OPTION_DLG_SHOWICONS            = "DlgShowIcons";
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
@@ -1610,7 +1574,6 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_BCS_COLORSCHEME          = "BcsColorScheme";
     private static final String OPTION_BCS_CODEFOLDING          = "BcsCodeFolding";
     private static final String OPTION_BCS_AUTO_INDENT          = "BcsAutoIndent";
-//    private static final String OPTION_BCS_AUTOCOMPLETE         = "BcsAutoComplete";
     private static final String OPTION_BCS_INDENT               = "BcsIndent";
     private static final String OPTION_GLSL_SYNTAXHIGHLIGHTING  = "GlslSyntaxHighlighting";
     private static final String OPTION_GLSL_COLORSCHEME         = "GlslColorScheme";
@@ -1619,8 +1582,8 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_LUA_COLORSCHEME          = "LuaColorScheme";
     private static final String OPTION_SQL_SYNTAXHIGHLIGHTING   = "SqlSyntaxHighlighting";
     private static final String OPTION_SQL_COLORSCHEME          = "SqlColorScheme";
-    private static final String OPTION_TEXT_DEBUG_ENABLECOLORSCHEME = "DebugColorSchemeEnabled";
-    private static final String OPTION_TEXT_DEBUG_COLORSCHEME       = "DebugColorSchemeFile";
+    private static final String OPTION_TLK_SYNTAXHIGHLIGHTING   = "TlkSyntaxHighlighting";
+    private static final String OPTION_TLK_COLORSCHEME          = "TlkColorScheme";
     // this preferences key can be used internally to reset incorrectly set default values after a public release
     private static final String OPTION_OPTION_FIXED             = "OptionFixedInternal";
 
@@ -1629,9 +1592,6 @@ public final class BrowserMenuBar extends JMenuBar
 
     // Identifier for autodetected game language
     private static final String LANGUAGE_AUTODETECT             = "Auto";
-
-    // For debugging purposes only
-    private static String DEBUGCOLORSCHEME = "";
 
     private final List<DataRadioButtonMenuItem> lookAndFeel = new ArrayList<DataRadioButtonMenuItem>();
 
@@ -1645,20 +1605,21 @@ public final class BrowserMenuBar extends JMenuBar
     private final JRadioButtonMenuItem[] selectGlslColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
     private final JRadioButtonMenuItem[] selectLuaColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
     private final JRadioButtonMenuItem[] selectSqlColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
+    private final JRadioButtonMenuItem[] selectTlkColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
+
     private JCheckBoxMenuItem optionTextHightlightCurrent, optionTextLineNumbers,
                               optionTextShowWhiteSpace, optionTextShowEOL, optionTextTabEmulate,
                               optionBCSEnableSyntax, optionBCSEnableCodeFolding,
                               optionBCSEnableAutoIndent, optionGLSLEnableSyntax, optionLUAEnableSyntax,
-                              optionSQLEnableSyntax,
-//                              optionBCSEnableAutoComplete,
-                              optionGLSLEnableCodeFolding,
-                              optionTextDebugColorSchemeEnabled;
-    private JMenuItem optionTextDebugColorSchemeSelect;
+                              optionSQLEnableSyntax, optionTLKEnableSyntax,
+                              optionGLSLEnableCodeFolding;
+
+    private JCheckBoxMenuItem optionAutocheckBCS, optionCheckScriptNames, optionMoreCompileWarnings;
 
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride,
-                              optionIgnoreReadErrors, optionAutocheckBCS, optionCacheOverride,
-                              optionCheckScriptNames, optionShowStrrefs, optionDlgShowIcons,
-                              optionShowHexColored, optionShowUnknownResources;
+                              optionIgnoreReadErrors, optionCacheOverride,
+                              optionShowStrrefs,
+                              optionDlgShowIcons, optionShowHexColored, optionShowUnknownResources;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
     private String languageDefinition;
@@ -1695,19 +1656,11 @@ public final class BrowserMenuBar extends JMenuBar
       optionShowOffset =
           new JCheckBoxMenuItem("Show Hex Offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETS, false));
       add(optionShowOffset);
-      optionAutocheckBCS =
-          new JCheckBoxMenuItem("Autocheck BCS", getPrefs().getBoolean(OPTION_AUTOCHECK_BCS, true));
-      add(optionAutocheckBCS);
       optionCacheOverride =
           new JCheckBoxMenuItem("Autocheck for Overrides", getPrefs().getBoolean(OPTION_CACHEOVERRIDE, false));
       optionCacheOverride.setToolTipText("Without this option selected, Refresh Tree is required " +
                                          "to discover new override files added while NI is open");
       add(optionCacheOverride);
-      optionCheckScriptNames =
-          new JCheckBoxMenuItem("Interactive script and resource names", getPrefs().getBoolean(OPTION_CHECKSCRIPTNAMES, true));
-      optionCheckScriptNames.setToolTipText("With this option disabled, performance may be boosted " +
-                                            "but many features involving script or resource names will be disabled.");
-      add(optionCheckScriptNames);
       optionShowStrrefs =
           new JCheckBoxMenuItem("Show Strrefs in View tabs", getPrefs().getBoolean(OPTION_SHOWSTRREFS, false));
       add(optionShowStrrefs);
@@ -1720,19 +1673,27 @@ public final class BrowserMenuBar extends JMenuBar
 
       addSeparator();
 
+      // Options->Script Compiler
+      JMenu compilerMenu = new JMenu("Script Compiler");
+      add(compilerMenu);
+      optionAutocheckBCS =
+          new JCheckBoxMenuItem("Autocheck BCS", getPrefs().getBoolean(OPTION_AUTOCHECK_BCS, true));
+      optionAutocheckBCS.setToolTipText("Automatically scans scripts for compile error with this option enabled.");
+      compilerMenu.add(optionAutocheckBCS);
+      optionCheckScriptNames =
+          new JCheckBoxMenuItem("Interactive script and resource names", getPrefs().getBoolean(OPTION_CHECKSCRIPTNAMES, true));
+      optionCheckScriptNames.setToolTipText("With this option disabled, performance may be boosted, " +
+                                            "but many features involving script or resource names will be disabled.");
+      compilerMenu.add(optionCheckScriptNames);
+      optionMoreCompileWarnings =
+          new JCheckBoxMenuItem("Show more compiler warnings", getPrefs().getBoolean(OPTION_MORECOMPILERWARNINGS, false));
+      optionMoreCompileWarnings.setToolTipText("Script compiler will generate an additional set of less severe " +
+                                               "warning messages with this option enabled.");
+      compilerMenu.add(optionMoreCompileWarnings);
+
       // Options->Text Editor
       JMenu textMenu = new JMenu("Text Editor");
       add(textMenu);
-      // Options->Text Editor->Show Symbols
-      JMenu textSymbols = new JMenu("Show Symbols");
-      textMenu.add(textSymbols);
-      optionTextShowWhiteSpace =
-          new JCheckBoxMenuItem("Show Spaces and Tabs", getPrefs().getBoolean(OPTION_TEXT_SYMBOLWHITESPACE, false));
-      textSymbols.add(optionTextShowWhiteSpace);
-      optionTextShowEOL =
-          new JCheckBoxMenuItem("Show End of Line", getPrefs().getBoolean(OPTION_TEXT_SYMBOLEOL, false));
-      textSymbols.add(optionTextShowEOL);
-
       // Options->Text Viewer/Editor->Tab Settings
       JMenu textTabs = new JMenu("Tab Settings");
       textMenu.add(textTabs);
@@ -1794,11 +1755,6 @@ public final class BrowserMenuBar extends JMenuBar
 //        optionBCSEnableAutoIndent = new JCheckBoxMenuItem("Enable Automatic Indentation",
 //                                                          getPrefs().getBoolean(OPTION_BCS_AUTO_INDENT, false));
       textBCS.add(optionBCSEnableAutoIndent);
-      // TODO: add auto-complete support
-//      optionBCSEnableAutoComplete = new JCheckBoxMenuItem("Enable Auto-Completion",
-//                                                          getPrefs().getBoolean(OPTION_BCS_AUTOCOMPLETE, false));
-//      optionBCSEnableAutoComplete.setVisible(false);
-//      textBCS.add(optionBCSEnableAutoComplete);
 
       // Options->Text Viewer/Editor->Misc. Resource Types
       JMenu textMisc = new JMenu("Misc. Resource Types");
@@ -1845,6 +1801,20 @@ public final class BrowserMenuBar extends JMenuBar
         bg.add(selectSqlColorScheme[i]);
       }
 
+      JMenu textTLKColors = new JMenu("Color Scheme for text strings");
+      textMisc.add(textTLKColors);
+      bg = new ButtonGroup();
+      int selectedTLKScheme = getPrefs().getInt(OPTION_TLK_COLORSCHEME, 0);
+      if (selectedTLKScheme < 0 || selectedTLKScheme >= COLORSCHEME.length) {
+        selectedTLKScheme = 0;
+      }
+      for (int i = 0; i < COLORSCHEME.length; i++) {
+        selectTlkColorScheme[i] = new JRadioButtonMenuItem(COLORSCHEME[i][1], selectedTLKScheme == i);
+        selectTlkColorScheme[i].setToolTipText(COLORSCHEME[i][2]);
+        textTLKColors.add(selectTlkColorScheme[i]);
+        bg.add(selectTlkColorScheme[i]);
+      }
+
       optionGLSLEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting for GLSL",
                                                      getPrefs().getBoolean(OPTION_GLSL_SYNTAXHIGHLIGHTING, true));
       textMisc.add(optionGLSLEnableSyntax);
@@ -1854,32 +1824,26 @@ public final class BrowserMenuBar extends JMenuBar
       optionSQLEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting for SQL",
                                                     getPrefs().getBoolean(OPTION_SQL_SYNTAXHIGHLIGHTING, true));
       textMisc.add(optionSQLEnableSyntax);
+      optionTLKEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting for text strings",
+                                                    getPrefs().getBoolean(OPTION_TLK_SYNTAXHIGHLIGHTING, true));
+      textMisc.add(optionTLKEnableSyntax);
       optionGLSLEnableCodeFolding = new JCheckBoxMenuItem("Enable Code Folding for GLSL",
                                                           getPrefs().getBoolean(OPTION_GLSL_CODEFOLDING, false));
       textMisc.add(optionGLSLEnableCodeFolding);
 
       // Options->Text Editor (continued)
+      optionTextShowWhiteSpace =
+          new JCheckBoxMenuItem("Show Spaces and Tabs", getPrefs().getBoolean(OPTION_TEXT_SYMBOLWHITESPACE, false));
+      textMenu.add(optionTextShowWhiteSpace);
+      optionTextShowEOL =
+          new JCheckBoxMenuItem("Show End of Line", getPrefs().getBoolean(OPTION_TEXT_SYMBOLEOL, false));
+      textMenu.add(optionTextShowEOL);
       optionTextHightlightCurrent = new JCheckBoxMenuItem("Show Highlighted Current Line",
                                                           getPrefs().getBoolean(OPTION_TEXT_SHOWCURRENTLINE, true));
       textMenu.add(optionTextHightlightCurrent);
       optionTextLineNumbers = new JCheckBoxMenuItem("Show Line Numbers",
                                                     getPrefs().getBoolean(OPTION_TEXT_SHOWLINENUMBERS, true));
       textMenu.add(optionTextLineNumbers);
-
-      // Options->Text Editor->Debug: External color scheme
-      if (NearInfinity.isDebug()) {
-        JMenu textDebug = new JMenu("Debug: External color scheme");
-        textMenu.add(textDebug);
-        optionTextDebugColorSchemeEnabled =
-            new JCheckBoxMenuItem("Color scheme enabled",
-                                  getPrefs().getBoolean(OPTION_TEXT_DEBUG_ENABLECOLORSCHEME, true));
-        textDebug.add(optionTextDebugColorSchemeEnabled);
-        textDebug.addSeparator();
-        optionTextDebugColorSchemeSelect = new JMenuItem("Select color scheme...");
-        optionTextDebugColorSchemeSelect.addActionListener(this);
-        textDebug.add(optionTextDebugColorSchemeSelect);
-        loadDebugColorScheme(getPrefs().get(OPTION_TEXT_DEBUG_COLORSCHEME, ""));
-      }
 
       // Options->Show ResourceRefs As
       JMenu showresrefmenu = new JMenu("Show ResourceRefs As");
@@ -2000,8 +1964,8 @@ public final class BrowserMenuBar extends JMenuBar
         System.err.println(String.format("Charset \"%1$s\" not available.", charset));
         charset = DefaultCharset;
       }
-      if (!charsetName(charset).equals(StringResource.getCharset().name())) {
-        StringResource.setCharset(charsetName(charset));
+      if (!charsetName(charset).equals(StringTable.getCharset().name())) {
+        StringTable.setCharset(charsetName(charset));
       }
       mCharsetMenu = initCharsetMenu(charset);
       add(mCharsetMenu);
@@ -2263,7 +2227,7 @@ public final class BrowserMenuBar extends JMenuBar
     private void gameLoaded()
     {
       // update charset selection
-      StringResource.setCharset(charsetName(getSelectedButtonData()));
+      StringTable.setCharset(charsetName(getSelectedButtonData()));
       // update language selection
       resetGameLanguage();
     }
@@ -2278,6 +2242,7 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());
       getPrefs().putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
       getPrefs().putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
+      getPrefs().putBoolean(OPTION_MORECOMPILERWARNINGS, optionMoreCompileWarnings.isSelected());
       getPrefs().putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
       getPrefs().putBoolean(OPTION_DLG_SHOWICONS, optionDlgShowIcons.isSelected());
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
@@ -2307,23 +2272,20 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_BCS_SYNTAXHIGHLIGHTING, optionBCSEnableSyntax.isSelected());
       getPrefs().putBoolean(OPTION_BCS_CODEFOLDING, optionBCSEnableCodeFolding.isSelected());
       getPrefs().putBoolean(OPTION_BCS_AUTO_INDENT, optionBCSEnableAutoIndent.isSelected());
-//      prefs.putBoolean(OPTION_BCS_AUTOCOMPLETE, optionBCSEnableAutoComplete.isSelected());
       selectColorScheme = getSelectedButtonIndex(selectGlslColorScheme, 0);
       getPrefs().putInt(OPTION_GLSL_COLORSCHEME, selectColorScheme);
       selectColorScheme = getSelectedButtonIndex(selectLuaColorScheme, 0);
       getPrefs().putInt(OPTION_LUA_COLORSCHEME, selectColorScheme);
       selectColorScheme = getSelectedButtonIndex(selectSqlColorScheme, 0);
       getPrefs().putInt(OPTION_SQL_COLORSCHEME, selectColorScheme);
+      selectColorScheme = getSelectedButtonIndex(selectTlkColorScheme, 0);
+      getPrefs().putInt(OPTION_TLK_COLORSCHEME, selectColorScheme);
       getPrefs().putBoolean(OPTION_GLSL_SYNTAXHIGHLIGHTING, optionGLSLEnableSyntax.isSelected());
       getPrefs().putBoolean(OPTION_LUA_SYNTAXHIGHLIGHTING, optionLUAEnableSyntax.isSelected());
       getPrefs().putBoolean(OPTION_SQL_SYNTAXHIGHLIGHTING, optionSQLEnableSyntax.isSelected());
+      getPrefs().putBoolean(OPTION_TLK_SYNTAXHIGHLIGHTING, optionTLKEnableSyntax.isSelected());
       getPrefs().putBoolean(OPTION_GLSL_CODEFOLDING, optionGLSLEnableCodeFolding.isSelected());
       getPrefs().putInt(OPTION_OPTION_FIXED, optionFixedInternal);
-      if (NearInfinity.isDebug()) {
-        getPrefs().putBoolean(OPTION_TEXT_DEBUG_ENABLECOLORSCHEME,
-                              optionTextDebugColorSchemeEnabled.isSelected());
-        getPrefs().put(OPTION_TEXT_DEBUG_COLORSCHEME, DEBUGCOLORSCHEME);
-      }
 
       String charset = getSelectedButtonData();
       getPrefs().put(OPTION_TLKCHARSET, charset);
@@ -2508,33 +2470,6 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
-//    // Returns the path to a color scheme definition file
-//    private String getColorSchemeFile(String rootPath)
-//    {
-//      if (rootPath == null) {
-//        if (ResourceFactory.getInstance() != null) {
-//          rootPath = ResourceFactory.getRootDir().toString();
-//        } else {
-//          rootPath = ".";
-//        }
-//      }
-//      JFileChooser fc = new JFileChooser(rootPath);
-//      File file = new File(rootPath);
-//      if (!file.isDirectory()) {
-//        fc.setSelectedFile(file);
-//      }
-//      fc.setDialogTitle("Select color scheme definition file");
-//      fc.setDialogType(JFileChooser.OPEN_DIALOG);
-//      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-//      fc.setMultiSelectionEnabled(false);
-//      fc.addChoosableFileFilter(new FileNameExtensionFilter("Color Scheme Definitions (*.xml)", "xml"));
-//      fc.setFileFilter(fc.getChoosableFileFilters()[0]);
-//      if (fc.showOpenDialog(NearInfinity.getInstance()) == JFileChooser.APPROVE_OPTION) {
-//        return fc.getSelectedFile().toString();
-//      }
-//      return null;
-//    }
-
     private void applyCustomFont(Font font)
     {
       int index = FONTS.length - 1;
@@ -2617,35 +2552,10 @@ public final class BrowserMenuBar extends JMenuBar
       return COLORSCHEME[idx][0];
     }
 
-
-    // Registers the specified filename as an external color scheme
-    public void loadDebugColorScheme(String fileName)
+    public String getTlkColorScheme()
     {
-      if (NearInfinity.isDebug()) {
-        if (fileName != null && !fileName.isEmpty() &&
-            Files.isRegularFile(FileManager.resolve(fileName))) {
-          // adding specified file reference to list
-          DEBUGCOLORSCHEME = fileName;
-          optionTextDebugColorSchemeSelect
-            .setToolTipText(String.format("Color scheme \"%1$s\" selected", fileName));
-        } else {
-          // removing file reference from list
-          DEBUGCOLORSCHEME = "";
-          optionTextDebugColorSchemeSelect.setToolTipText("No color scheme selected");
-        }
-      }
-    }
-
-    // Returns the selected external color scheme file (only if enabled and file exists)
-    public String getDebugColorScheme()
-    {
-      if (NearInfinity.isDebug() && optionTextDebugColorSchemeEnabled.isSelected()) {
-        if (DEBUGCOLORSCHEME != null &&
-            Files.isRegularFile(FileManager.resolve(DEBUGCOLORSCHEME))) {
-          return DEBUGCOLORSCHEME;
-        }
-      }
-      return null;
+      int idx = getSelectedButtonIndex(selectTlkColorScheme, 0);
+      return COLORSCHEME[idx][0];
     }
 
 
@@ -2701,35 +2611,11 @@ public final class BrowserMenuBar extends JMenuBar
         DataRadioButtonMenuItem dmi = (DataRadioButtonMenuItem)event.getSource();
         String csName = (String)dmi.getData();
         if (csName != null) {
-          StringResource.setCharset(charsetName(csName));
+          StringTable.setCharset(charsetName(csName));
           // re-read strings
           ActionEvent refresh = new ActionEvent(dmi, 0, "Refresh");
           NearInfinity.getInstance().actionPerformed(refresh);
         }
-      } else if (event.getSource() == optionTextDebugColorSchemeSelect) {
-        // Debug: loading external color scheme file
-        Path file = null;
-        if (DEBUGCOLORSCHEME != null) {
-          file = FileManager.resolve(DEBUGCOLORSCHEME);
-          if (!Files.isRegularFile(file)) {
-            file = null;
-          }
-        }
-        Path rootPath = (file != null) ? file.getParent() : Profile.getGameRoot();
-        JFileChooser fc = new JFileChooser(rootPath.toFile());
-        if (file != null) {
-          fc.setSelectedFile(file.toFile());
-        }
-        fc.setDialogTitle("Select color scheme file");
-        fc.setDialogType(JFileChooser.OPEN_DIALOG);
-        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fc.setMultiSelectionEnabled(false);
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("Color Scheme files (*.xml)", "xml");
-        fc.setFileFilter(filter);
-        if (fc.showOpenDialog(NearInfinity.getInstance()) == JFileChooser.APPROVE_OPTION) {
-          loadDebugColorScheme(fc.getSelectedFile().toString());
-        }
-        fc = null;
       }
     }
 

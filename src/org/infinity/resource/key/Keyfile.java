@@ -37,6 +37,7 @@ public class Keyfile
   public static final int TYPE_WAV    = 0x004;
   public static final int TYPE_WFX    = 0x005;
   public static final int TYPE_PLT    = 0x006;
+  public static final int TYPE_TGA    = 0x3b8;  // TODO: confirm!
   public static final int TYPE_BAM    = 0x3e8;
   public static final int TYPE_WED    = 0x3e9;
   public static final int TYPE_CHU    = 0x3ea;
@@ -75,6 +76,7 @@ public class Keyfile
   public static final int TYPE_BAH    = 0x44c;
   public static final int TYPE_INI    = 0x802;
   public static final int TYPE_SRC    = 0x803;
+  public static final int TYPE_MAZE   = 0x804;
   public static final int TYPE_MUS    = 0xffe;  // not in bif?
   public static final int TYPE_ACM    = 0xfff;  // not in bif?
 
@@ -204,6 +206,8 @@ public class Keyfile
     resourceIcons.put("PNG", ICON_IMAGE);
     extMap.put(TYPE_MUS, "MUS");
     resourceIcons.put("MUS", ICON_SOUND);
+    extMap.put(TYPE_MAZE, "MAZE");
+    resourceIcons.put("MAZE", ICON_STRUCT);
     extMap.put(TYPE_ACM, "ACM");
     resourceIcons.put("ACM", ICON_SOUND);
     resourceIcons.put("SAV", ICON_BUNDLE);
@@ -568,8 +572,7 @@ public class Keyfile
     BIFFResourceEntry retVal = null;
     if (entry != null) {
       String key = entry.toString();
-      retVal = resourceEntries.get(key);
-      resourceEntries.put(key, entry);
+      retVal = resourceEntries.put(key, entry);
     }
     return retVal;
   }

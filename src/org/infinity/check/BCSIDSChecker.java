@@ -46,6 +46,7 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Decompiler;
+import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
@@ -260,20 +261,26 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
 
   private void checkScript(BcsResource script)
   {
-    Decompiler decompiler = new Decompiler(script.getCode(), Decompiler.ScriptType.BCS, true);
-    decompiler.decompile();
-    SortedMap<Integer, String> idsErrors = decompiler.getIdsErrors();
-    for (final Integer lineNr: idsErrors.keySet()) {
-      String error = idsErrors.get(lineNr);
-      if (error.indexOf("GTIMES.IDS") == -1 &&
-          error.indexOf("SCROLL.IDS") == -1 &&
-          error.indexOf("SHOUTIDS.IDS") == -1 &&
-          error.indexOf("SPECIFIC.IDS") == -1 &&
-          error.indexOf("TIME.IDS") == -1) {
-        synchronized (table) {
-          table.addTableItem(new BCSIDSErrorTableLine(script.getResourceEntry(), error, lineNr));
+    Decompiler decompiler = new Decompiler(script.getCode(), ScriptType.BCS, true);
+    decompiler.setGenerateComments(false);
+    decompiler.setGenerateResourcesUsed(true);
+    try {
+      decompiler.decompile();
+      SortedMap<Integer, String> idsErrors = decompiler.getIdsErrors();
+      for (final Integer lineNr: idsErrors.keySet()) {
+        String error = idsErrors.get(lineNr);
+        if (error.indexOf("GTIMES.IDS") == -1 &&
+            error.indexOf("SCROLL.IDS") == -1 &&
+            error.indexOf("SHOUTIDS.IDS") == -1 &&
+            error.indexOf("SPECIFIC.IDS") == -1 &&
+            error.indexOf("TIME.IDS") == -1) {
+          synchronized (table) {
+            table.addTableItem(new BCSIDSErrorTableLine(script.getResourceEntry(), error, lineNr));
+          }
         }
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 

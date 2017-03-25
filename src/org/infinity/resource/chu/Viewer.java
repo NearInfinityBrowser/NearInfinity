@@ -62,7 +62,7 @@ import org.infinity.resource.graphics.MosV1Decoder;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.BamDecoder.FrameEntry;
 import org.infinity.resource.graphics.BamV1Decoder.BamV1Control;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 
 
 final class Viewer extends JPanel implements ActionListener, TableModelListener, ListSelectionListener,
@@ -1812,7 +1812,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2. drawing control
             if (isVisible()) {
-              String text = StringResource.getStringRef(((StringRef)getResource().getAttribute(Control.CHU_CONTROL_LBL_TEXT)).getValue());
+              String text = StringTable.getStringRef(((StringRef)getResource().getAttribute(Control.CHU_CONTROL_LBL_TEXT)).getValue());
               if (text != null) {
                 String resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_LBL_FONT)).getResourceName();
                 resName = resName.toUpperCase(Locale.ENGLISH).replace(".FNT", ".BAM");

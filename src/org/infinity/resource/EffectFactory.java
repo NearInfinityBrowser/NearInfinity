@@ -37,7 +37,7 @@ import org.infinity.resource.are.Actor;
 import org.infinity.resource.itm.ItmResource;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.LongIntegerHashMap;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.ByteBufferOutputStream;
@@ -680,16 +680,40 @@ public final class EffectFactory
       if (effType != null) {
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         switch (opcode) {
+          case 1: // Modify attacks per round
+            return updateOpcode1(struct);
           case 78:  // Disease
               return updateOpcode78(struct);
           case 232:     // Cast spell on condition
             return updateOpcode232(struct);
           case 319:     // Item Usability
             return updateOpcode319(struct);
-          case 328:     // Set state
+          case 328:     // Set spell state
             return updateOpcode328(struct);
           case 342:     // Override creature data
             return updateOpcode342(struct);
+        }
+      }
+    }
+    return false;
+  }
+
+  // Effect type "Modify attacks per round" (1)
+  private static boolean updateOpcode1(AbstractStruct struct) throws Exception
+  {
+    if (struct != null) {
+      if (Profile.isEnhancedEdition()) {
+        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        if (opcode == 1) {
+          int param2 = ((Bitmap)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
+          if (param2 == 2) {  // Set % of
+            replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
+                         new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value"));
+          } else {
+            replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
+                         new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value", s_attacks));
+          }
+          return true;
         }
       }
     }
@@ -751,8 +775,8 @@ public final class EffectFactory
               break;
             case 21:
               replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
-                  new IdsBitmap(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4,
-                                             EFFECT_SPECIAL, "SPLSTATE.IDS"));
+                           new IdsBitmap(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4,
+                                         EFFECT_SPECIAL, "SPLSTATE.IDS"));
               break;
             default:
               replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
@@ -914,8 +938,8 @@ public final class EffectFactory
             "Play sound", "Hold creature", "Movement rate bonus 2", "Use EFF file",
             "THAC0 vs. type bonus", "Damage vs. type bonus",
             // 180..189
-            "Disallow item", "Disallow item type", "Apply effect on equip item",
-            "Apply effect on equip type", "No collision detection", "Hold creature 2", "DestroySelf() on target",
+            "Disallow item", "Disallow item type", "Use EFF file (do not use)", "Use EFF file on equip type",
+            "No collision detection", "Hold creature 2", "DestroySelf() on target",
             "Set local variable", "Increase spells cast per round", "Increase casting speed factor",
             // 190..
             "Increase attack speed factor", "Casting level bonus"};
@@ -995,8 +1019,8 @@ public final class EffectFactory
             "Play sound", "Hold creature", "Movement rate bonus 2", "Use EFF file",
             "THAC0 vs. type bonus", "Damage vs. type bonus",
             // 180..189
-            "Disallow item", "Disallow item type", "Apply effect on equip item",
-            "Apply effect on equip type", "No collision detection", "Hold creature 2",
+            "Disallow item", "Disallow item type", "Use EFF file (do not use)",
+            "Use EFF file on equip type", "No collision detection", "Hold creature 2",
             "Move creature", "Set local variable", "Increase spells cast per round",
             "Increase casting speed factor",
             // 190..199
@@ -1125,8 +1149,8 @@ public final class EffectFactory
             "Play sound", "Hold creature", "Movement rate bonus 2", "Use EFF file",
             "THAC0 vs. type bonus", "Damage vs. type bonus",
             // 180..189
-            "Disallow item", "Disallow item type", "Apply effect on equip item",
-            "Apply effect on equip type", "No collision detection", "Hold creature 2",
+            "Disallow item", "Disallow item type", "Use EFF file (do not use)",
+            "Use EFF file while on type", "No collision detection", "Hold creature 2",
             "Move creature", "Set local variable", "Increase spells cast per round",
             "Increase casting speed factor",
             // 190..199
@@ -1192,15 +1216,20 @@ public final class EffectFactory
             // 340..349
             "Backstab hit effect", "Critical hit effect", "Override creature data",
             "HP swap", "Enchantment vs. creature type", "Enchantment bonus", "Save vs. school bonus",
-            "Unknown (347)", "Unknown (348)", "Unknown (349)",
+            "Move view to target", "Unknown (348)", "Unknown (349)",
             // 350..359
-            "Unknown (350)", "Unknown (351)", "Unknown (352)", "Unknown (353)", "Unknown (354)",
-            "Unknown (355)", "Unknown (356)", "Unknown (357)", "Unknown (358)", "Unknown (359)",
-            // 360
+            "Unknown (350)", "Unknown (351)", "Change Background", "Tint screen", "Flash screen",
+            "Soul exodus", "Stop all actions", "Set state", "Set AI script", "Unknown (359)",
+            // 360..369
             "Ignore reputation breaking point", "Cast spell on critical miss", "Critical miss bonus",
             "Movement rate check", "Unknown (364)", "Make unselectable", "Apply spell on movement",
-            "Minimum base stats"
-            };
+            "Minimum base stats", "Unknown (368)", "Play BAM file (single/dual)",
+            // 370..379
+            "Play BAM file", "Play BAM file 2", "Play BAM file 3", "Play BAM file 4",
+            "Special spell hit", "Play BAM with effects", "Detect evil", "Unknown (377)", "Prayer",
+            "Curse",
+            // 380..
+            "Embalm", "Induce hiccups", "Fist of iron", "Hit point transfer"};
         break;
 
       case PST:
@@ -1362,8 +1391,8 @@ public final class EffectFactory
             "Play sound", "Hold creature", "Movement rate bonus 2", "Use EFF file",
             "THAC0 vs. type bonus", "Damage vs. type bonus",
             // 180..189
-            "Disallow item", "Disallow item type", "Apply effect on equip item",
-            "Apply effect on equip type", "No collision detection", "Hold creature 2",
+            "Disallow item", "Disallow item type", "Use EFF file (do not use)",
+            "Use EFF file while on type", "No collision detection", "Hold creature 2",
             "Move creature", "Set local variable", "Increase spells cast per round",
             "Increase casting speed factor",
             // 190..199
@@ -1482,8 +1511,8 @@ public final class EffectFactory
             "Play sound", "Hold creature", "Movement rate penalty", "Use EFF file",
             "THAC0 vs. type bonus", "Damage vs. type bonus",
             // 180..189
-            "Disallow item", "Disallow item type", "Apply effect on equip item",
-            "Apply effect on equip type", "No collision detection", "Hold creature 2",
+            "Disallow item", "Disallow item type", "Use EFF file (do not use)",
+            "Use EFF file while on type", "No collision detection", "Hold creature 2",
             "Move creature", "Set local variable", "Increase spells cast per round",
             "Increase casting speed factor",
             // 190..199
@@ -1619,7 +1648,7 @@ public final class EffectFactory
               int idx = Integer.parseInt(table.get(i, 0));
               int strref = Integer.parseInt(table.get(i, 1));
               if (idx >= 0 && strref >= 0) {
-                s_poricon[idx] = StringResource.getStringRef(strref);
+                s_poricon[idx] = StringTable.getStringRef(strref);
               }
             } catch (NumberFormatException e) {
             }
@@ -1719,12 +1748,24 @@ public final class EffectFactory
                            new String[]{"0 attacks per round", "1 attack per round",
                                         "2 attacks per round", "3 attacks per round",
                                         "4 attacks per round", "5 attacks per round"}));
+        } else if (Profile.isEnhancedEdition()) {
+          int type = buffer.getInt(offset + 4);
+          if (type == 2) {
+            s.add(new DecNumber(buffer, offset, 4, "Value"));
+          } else {
+            s.add(new Bitmap(buffer, offset, 4, "Value", s_attacks));
+          }
         } else {
           s.add(new Bitmap(buffer, offset, 4, "Value", s_attacks));
         }
+
         if (Profile.isEnhancedEdition()) {
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
-                           new String[]{"Increment", "Set", "Set % of", "Set final"}));
+          Bitmap item = new Bitmap(buffer, offset + 4, 4, "Modifier type",
+                                   new String[]{"Increment", "Set", "Set % of", "Set final"});
+          if (parent != null && parent instanceof UpdateListener) {
+            item.addUpdateListener((UpdateListener)parent);
+          }
+          s.add(item);
         } else {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
         }
@@ -2324,7 +2365,7 @@ public final class EffectFactory
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
           IdsBitmap ids = new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS");
-          ids.addIdsMapEntry(new IdsMapEntry(0L, "None", null));
+          ids.addIdsMapEntry(new IdsMapEntry(0L, "None"));
           s.add(ids);
         } else {
           LongIntegerHashMap<String> idsmap;
@@ -2537,10 +2578,10 @@ public final class EffectFactory
       case 138: // Set animation sequence
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.BG1 || Profile.getEngine() == Profile.Engine.IWD) {
-        s.add(new Bitmap(buffer, offset + 4, 4, "Sequence",
-                         new String[]{"", "Lay down (short)", "Move hands (short)", "Move hands (long)",
-                                      "Move shoulder (short)", "Move shoulder (long)", "Lay down (long)",
-                                      "Breathe rapidly (short)", "Breath rapidly (long)"}));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Sequence",
+                           new String[]{"", "Lay down (short)", "Move hands (short)", "Move hands (long)",
+                                        "Move shoulder (short)", "Move shoulder (long)", "Lay down (long)",
+                                        "Breathe rapidly (short)", "Breath rapidly (long)"}));
         } else {
           String ids;
           if (Profile.getEngine() == Profile.Engine.PST) {
@@ -2833,15 +2874,12 @@ public final class EffectFactory
         }
         break;
 
-      case 182: // Apply effect on equip item
+      case 182: // Use EFF file (do not use)
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
-        if (Profile.getEngine() != Profile.Engine.PST) {
-          restype = "ITM";
-        }
         break;
 
-      case 183: // Apply effect on equip type
+      case 183: // Use EFF file on equip type
         if (Profile.getEngine() == Profile.Engine.PST) {
           makeEffectParamsDefault(buffer, offset, s);
         } else {
@@ -2851,6 +2889,7 @@ public final class EffectFactory
             s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           }
           s.add(new Bitmap(buffer, offset + 4, 4, "Item type", ItmResource.s_categories));
+          restype = "EFF";
         }
         break;
 
@@ -3022,7 +3061,7 @@ public final class EffectFactory
       {
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         IdsBitmap ids = new IdsBitmap(buffer, offset + 4, 4, "Projectile", "PROJECTL.IDS");
-        ids.addIdsMapEntry(new IdsMapEntry(0L, "None", null));
+        ids.addIdsMapEntry(new IdsMapEntry(0L, "None"));
         s.add(ids);
         break;
       }
@@ -3081,10 +3120,19 @@ public final class EffectFactory
         break;
 
       case 214: // Select spell
+      {
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Show", new String[]{"From 2DA", "Known spells"}));
+        String[] list;
+        if (Profile.isEnhancedEdition()) {
+          list = new String[]{"From 2DA", "Known spells",
+                              "Known spells with unset spell flags bit 15 (Ignore wild surge)"};
+        } else {
+          list = new String[]{"From 2DA", "Known spells"};
+        }
+        s.add(new Bitmap(buffer, offset + 4, 4, "Show", list));
         restype = "2DA";
         break;
+      }
 
       case 215: // Play visual effect
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
@@ -3195,7 +3243,8 @@ public final class EffectFactory
         s.add(new MultiNumber(buffer, offset, 4, "# stars", 3, 2,
                               new String[]{"Active class", "Original class"}));
         if (isTobEx || Profile.isEnhancedEdition()) {
-          s.add(new IdsBitmap(buffer, offset + 4, 2, "Proficiency", "STATS.IDS"));
+          final String idsFile = (Profile.getGame() == Profile.Game.PSTEE) ? "WPROF.IDS" : "STATS.IDS";
+          s.add(new IdsBitmap(buffer, offset + 4, 2, "Proficiency", idsFile));
           s.add(new Bitmap(buffer, offset + 6, 2, "Behavior", new String[]{"Set if higher", "Increment"}));
         } else {
           s.add(new IdsBitmap(buffer, offset + 4, 4, "Proficiency", "STATS.IDS"));
@@ -3381,13 +3430,15 @@ public final class EffectFactory
       case 273: // Zone of sweet air
       {
         if (isTobEx) {
-          s.add(new Bitmap(buffer, offset, 4, "Mode", new String[]{
-              "Remove CLEARAIR.2DA only", "Remove CLEARAIR.2DA and resource"}));
-          restype = "2DA";
+          s.add(new Bitmap(buffer, offset, 4, "Mode", new String[]{ "Remove from CLEARAIR.2DA",
+                                                                    "Remove from resource"}));
         } else {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         }
         s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+        if (isTobEx || Profile.isEnhancedEdition()) {
+          restype = "2DA";
+        }
         break;
       }
 
@@ -3809,6 +3860,97 @@ public final class EffectFactory
         }
         break;
 
+      case 347: // Move view to target
+        // TODO: PSTEE confirm!
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          s.add(new DecNumber(buffer, offset, 4, "Scroll speed"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 352: // Change Background
+        // TODO: PSTEE confirm!
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          s.add(new DecNumber(buffer, offset, 4, "Duration modifier"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+          restype = "BMP";
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 353: // Tint screen
+        // TODO: PSTEE confirm!
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          s.add(new ColorPicker(buffer, offset, "Color", ColorPicker.Format.RGBX));
+          final String[] s_method = {"Quick fade light->dark->light",
+                                     "Quick fade light->dark->light",
+                                     "Quick fade light->dark, instant fade light",
+                                     "Quick fade light->dark, instant fade light",
+                                     "Fade light->dark->light (duration)",
+                                     "Fade light->dark->light (duration)",
+                                     "Fade light->dark->light (duration)",
+                                     "Fade light->dark->light (duration)",
+                                     "No effect",
+                                     "Very fast light->black->light",
+                                     "Instant black for duration, instant light"};
+          s.add(new Bitmap(buffer, offset + 4, 4, "Method", s_method));
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 354: // Flash screen
+        // TODO: PSTEE confirm!
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          s.add(new ColorPicker(buffer, offset, "Color", ColorPicker.Format.RGBX));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 355: // Soul exodus
+      case 376: // Detect evil
+      case 381: // Induce hiccups
+      case 382: // Fist of iron
+        // TODO: PSTEE confirm!
+        makeEffectParamsDefault(buffer, offset, s);
+        break;
+
+      case 356: // Stop all actions
+        // TODO: PSTEE confirm!
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          s.add(new DecNumber(buffer, offset, 4, "Stat value"));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Mode", new String[]{"Pause actions", "Unpause actions"}));
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 357: // Set state
+        // TODO: PSTEE confirm!
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          s.add(new Bitmap(buffer, offset, 4, "Action", new String[]{"Clear", "Set"}));
+          s.add(new IdsFlag(buffer, offset + 4, 4, "State", "STATE.IDS"));
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 358: // Set AI script
+        // TODO: PSTEE confirm!
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+          s.add(new IdsBitmap(buffer, offset + 4, 4, "Script level", "SCRLEV.IDS"));
+          restype = "BCS";
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
       case 360: // Ignore reputation breaking point
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
@@ -3830,7 +3972,7 @@ public final class EffectFactory
 
       case 362: // Critical miss bonus
         if (Profile.isEnhancedEdition()) {
-          s.add(new Bitmap(buffer, offset, 4, "Modifier type", s_inctype));
+          s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Current weapon only?", s_noyes));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
@@ -3869,6 +4011,98 @@ public final class EffectFactory
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           s.add(new Bitmap(buffer, offset + 4, 4, "Enabled?", s_noyes));
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 369: // Play BAM file (single/dual)
+        // TODO: PSTEE confirm!
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          s.add(new ColorPicker(buffer, offset, "Color", ColorPicker.Format.RGBX));
+          s.add(new Flag(buffer, offset + 4, 4, "Method",
+                         new String[]{"Default", "Repeat animation", "Remove stickiness"}));
+          restype = "BAM";
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 370: // Play BAM file
+      case 371: // Play BAM file 2
+      case 372: // Play BAM file 3
+      case 373: // Play BAM file 4
+        // TODO: PSTEE confirm!
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          s.add(new ColorPicker(buffer, offset, "Color", ColorPicker.Format.RGBX));
+          s.add(new Flag(buffer, offset + 4, 4, "Flags",
+                         new String[]{"", "Random placement", "", "", "", "Undetermined", "", "", "",
+                                      "", "", "", "", "Sticky", "", "", "", "Undetermined (repeat)",
+                                      "Foreground (repeat)", "", "",
+                                      "Fade out transparency (blended)",
+                                      "Color & transparency (blended)"}));
+          restype = "BAM";
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 374: // Special spell hit
+        // TODO: PSTEE confirm!
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Effect",
+                           new String[]{"Adder's kiss", "Ball lightning", "Fizzle"}));
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 375: // Play BAM with effects
+        // TODO: PSTEE confirm!
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Effect",
+                           new String[]{"Cloak of warding", "Shield", "Black-barbed shield",
+                                        "Pain mirror", "Guardian mantle", "", "Enoll eva's duplication",
+                                        "Armor", "Antimagic shell", "", "", "Flame walk",
+                                        "Protection from evil", "Conflagration", "Infernal shield",
+                                        "Submerge the will", "Balance in all things"}));
+          restype = "BAM";
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 378: // Prayer
+      case 379: // Curse
+        // TODO: PSTEE confirm!
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          s.add(new DecNumber(buffer, offset, 4, "Amount"));
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 380: // Embalm
+        // TODO: PSTEE confirm!
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Embalming type", new String[]{"Normal", "Greater"}));
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 383: // Hit point transfer
+        // TODO: PSTEE confirm!
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          s.add(new DecNumber(buffer, offset, 4, "Amount"));
+          s.add(new Bitmap(buffer, offset + 4, 2, "Direction",
+                           new String[]{"Source to target", "Target to source", "Swap HP",
+                                        "Source to target even over max. HP"}));
+          s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -3986,7 +4220,7 @@ public final class EffectFactory
         break;
 
       case 205: // Move view to target
-        s.add(new IdsBitmap(buffer, offset, 4, "Speed", "SCROLL.IDS"));
+        s.add(new DecNumber(buffer, offset, 4, "Scroll speed"));
         s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         break;
 
@@ -4686,6 +4920,7 @@ public final class EffectFactory
   {
     if (isV1) {
       s.add(new HashBitmap(buffer, offset, 1, EFFECT_TIMING_MODE, m_duration, false));
+//      s.add(new Flag(buffer, offset + 1, 1, Effect2.EFFECT_DISPEL_TYPE, Effect2.s_dispel));
       s.add(new Bitmap(buffer, offset + 1, 1, Effect2.EFFECT_DISPEL_TYPE, Effect2.s_dispel));
       offset += 2;
     } else {
@@ -4833,7 +5068,7 @@ public final class EffectFactory
           s.add(new StringRef(buffer, offset, "Description note"));
           break;
 
-        case 328:   // Set state (BGEE/IWDEE)
+        case 328:   // Set spell state (BGEE/IWDEE)
           Bitmap bmp = new Bitmap(buffer, offset, 4, "Mode", new String[]{"IWD mode", "IWD2 mode"});
           s.add(bmp);
           if (parent != null && parent instanceof UpdateListener) {

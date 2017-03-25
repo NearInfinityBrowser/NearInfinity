@@ -549,10 +549,10 @@ public class SpellProtType extends Bitmap
     } else {
       IdsMap map = IdsMapCache.get(idsFile);
       if (map != null) {
-        IdsMapEntry entry = map.getValue((long)value);
+        IdsMapEntry entry = map.get((long)value);
         if (entry != null) {
-          if (entry.getString() != null && !entry.getString().isEmpty()) {
-            return entry.getString();
+          if (entry.getSymbol() != null && !entry.getSymbol().isEmpty()) {
+            return entry.getSymbol();
           }
         }
       }

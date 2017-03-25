@@ -60,6 +60,7 @@ import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.SimpleListModel;
+import org.infinity.util.StringTable;
 
 public final class ViewerUtil
 {
@@ -74,7 +75,9 @@ public final class ViewerUtil
       text = new LinkButton((ResourceRef)entry);
     } else {
       if (entry instanceof StringRef) {
-        text = new JLabel(((StringRef)entry).toString(BrowserMenuBar.getInstance().showStrrefs()));
+        StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+                                                                            : StringTable.Format.NONE;
+        text = new JLabel(((StringRef)entry).toString(fmt));
       } else {
         text = new JLabel(entry.toString());
       }
@@ -248,7 +251,9 @@ public final class ViewerUtil
   {
     String text;
     if (entry instanceof StringRef) {
-      text = ((StringRef)entry).toString(BrowserMenuBar.getInstance().showStrrefs());
+      StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+                                                                          : StringTable.Format.NONE;
+      text = ((StringRef)entry).toString(fmt);
     } else {
       text = entry.toString();
     }

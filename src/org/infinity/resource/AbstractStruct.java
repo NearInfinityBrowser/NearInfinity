@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -544,9 +545,11 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
    */
   public void clearFields()
   {
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry e = list.remove(i);
+    Iterator<StructEntry> iter = list.iterator();
+    while (iter.hasNext()) {
+      StructEntry e = iter.next();
       e.setParent(null);
+      iter.remove();
     }
   }
 
@@ -877,6 +880,23 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
     bb.position(0);
     return bb;
+  }
+
+  /** Replaces an old StructEntry instance by the specified instance if offset and size are equal. */
+  public boolean replaceEntry(StructEntry newEntry)
+  {
+    if (newEntry != null) {
+      List<StructEntry> list = getList();
+      for (int i = 0, size = list.size(); i < size; i++) {
+        StructEntry oldEntry = list.get(i);
+        if (oldEntry.getOffset() == newEntry.getOffset() &&
+            oldEntry.getSize() == newEntry.getSize()) {
+          list.set(i, newEntry);
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public void setListEntry(int index, StructEntry structEntry)

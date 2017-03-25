@@ -16,30 +16,67 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.Iterator;
+import java.util.Locale;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.concurrent.locks.ReentrantLock;
 
-import javax.swing.JMenuItem;
+import javax.swing.Icon;
 import javax.swing.JPopupMenu;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 
 import org.fife.ui.rsyntaxtextarea.Token;
-import org.fife.ui.rsyntaxtextarea.folding.Fold;
+import org.fife.ui.rsyntaxtextarea.TokenImpl;
 import org.infinity.NearInfinity;
-import org.infinity.resource.Resource;
+import org.infinity.icon.Icons;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.bcs.Compiler;
-import org.infinity.resource.bcs.Decompiler;
+import org.infinity.resource.bcs.ScriptInfo;
+import org.infinity.resource.bcs.Signatures;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.modes.BCSTokenMaker;
+import org.infinity.util.CreMapCache;
 import org.infinity.util.IdsMapCache;
-import org.infinity.util.IdsMapEntry;
 
-public class ScriptTextArea extends InfinityTextArea
+/**
+ * Extends {@link InfinityTextArea} by script-specific features.
+ */
+public class ScriptTextArea extends InfinityTextArea implements DocumentListener
 {
-  private ScriptPopupMenu menu = new ScriptPopupMenu();
+  private enum IconType {
+    INFORMATION,
+    WARNING,
+    ERROR
+  }
 
-  public ScriptTextArea() {
+  private static final Stroke STROKE_LINK  = new BasicStroke(0.75f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+                                                             1.0f, new float[]{1.0f, 2.0f}, 0.0f);
+
+  private static final EnumMap<IconType, Icon> icons = new EnumMap<>(IconType.class);
+  static {
+    icons.put(IconType.INFORMATION, Icons.getIcon(Icons.ICON_INFORMATION_16));
+    icons.put(IconType.WARNING, Icons.getIcon(Icons.ICON_WARNING_16));
+    icons.put(IconType.ERROR, Icons.getIcon(Icons.ICON_ERROR_16));
+  }
+
+  // Contains tokens that require special attention
+  private final TreeMap<Integer, InteractiveToken> tokenMap = new TreeMap<>();
+  // Controls concurrent access to tokenMap instance
+  private final ReentrantLock tokenMapLock = new ReentrantLock();
+  // Special popup menu for interactive resource references
+  private final ScriptPopupMenu menu = new ScriptPopupMenu();
+
+  private boolean isInteractive;  // Whether interactive elements are enabled
+  private Signatures triggers;
+  private Signatures actions;
+
+  public ScriptTextArea()
+  {
     super(true);
 
     Language lang;
@@ -51,369 +88,678 @@ public class ScriptTextArea extends InfinityTextArea
     }
     applyExtendedSettings(lang, null);
 
-    addMouseListener(new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent ev) {
-        handlePopup(ev);
-      }
+    this.isInteractive = BrowserMenuBar.getInstance().checkScriptNames();
 
-      @Override
-      public void mouseReleased(MouseEvent ev) {
-        handlePopup(ev);
+    if (isInteractive()) {
+      triggers = Signatures.getTriggers();
+      actions = Signatures.getActions();
+
+      if (triggers != null && actions != null) {
+        getDocument().addDocumentListener(this);
+
+        addMouseListener(new MouseAdapter() {
+          @Override
+          public void mousePressed(MouseEvent e) { handlePopup(e); }
+
+          @Override
+          public void mouseReleased(MouseEvent e) { handlePopup(e); }
+        });
+      } else {
+        isInteractive = false;
       }
-    });
+    }
   }
 
   @Override
   public void setText(String text)
   {
-    // prevent undo to remove the text
     super.setText(text);
     discardAllEdits();
   }
 
-  // try to paint an indicator below "crosslinks"
   @Override
-  protected void paintComponent(Graphics g) {
+  protected void paintComponent(Graphics g)
+  {
     super.paintComponent(g);
+
+    if (!isInteractive()) {
+      return;
+    }
+
+    // getting range of affected lines
     Rectangle rect = g.getClipBounds();
-
-    // try to get the "lines" which need to be painted
-    int upperLine = 0;
-    int lowerLine = 0;
+    int offsetMin;
+    int offsetMax;
     try {
-      upperLine = getLineOfOffset(viewToModel(new Point(rect.x, rect.y)));
-      lowerLine = getLineOfOffset(viewToModel(new Point(rect.x + rect.width,
-                                                        rect.y + rect.height)));
-    } catch (BadLocationException e) { }
-    //System.err.println("would consider drawing from lines " + upperLine + " to " + lowerLine);
-    for (int line = upperLine; line <= lowerLine; line++) {
+      int lineMin = getLineOfOffset(viewToModel(rect.getLocation()));
+      int lineMax = getLineOfOffset(viewToModel(new Point(rect.x + rect.width, rect.y + rect.height)));
+      offsetMin = getLineStartOffset(lineMin);
+      offsetMax = getLineEndOffset(lineMax);
+    } catch (BadLocationException ble) {
+      offsetMin = offsetMax = -1;
+    }
+
+    if (offsetMin >= 0 && offsetMax >= offsetMin && tokenMapLock.tryLock()) {
       try {
-        int start = getLineStartOffset(line);
-        int end = getLineEndOffset(line) - 1; // newline
+        SortedMap<Integer, InteractiveToken> map =
+            tokenMap.subMap(Integer.valueOf(offsetMin), Integer.valueOf(offsetMax));
 
-        int[][] linkOffsets = findLinksInSection(start, end);
-        if (linkOffsets.length == 0) {
-          continue;
-        }
+        // processing interactive tokens of visible area
+        Iterator<Integer> iter = map.keySet().iterator();
+        while (iter.hasNext()) {
+          Integer key = iter.next();
+          InteractiveToken itoken = map.get(key);
 
-        Graphics2D g2d = (Graphics2D) g;
-        // clear that line before doing anything
-        Color oldColor = g2d.getColor();
-        g2d.setColor(getBackground());
-        Rectangle rectStart = modelToView(start);
-        Rectangle rectEnd = modelToView(end);
-        g2d.drawLine(rectStart.x, rectStart.y + rectStart.height,
-                     rectEnd.x, rectEnd.y + rectEnd.height);
-        g2d.setColor(oldColor);
+          if (itoken.isLink() && !itoken.isSilent()) {
+            try {
+              Rectangle rectStart = modelToView(itoken.position);
+              Rectangle rectEnd = modelToView(itoken.position + itoken.length);
 
-        Stroke oldStroke = g2d.getStroke();
-        g2d.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
-                                      1, new float[] { 1, 2 }, 0));
-        // now underline the crosslinks
-        for (int[] pair : linkOffsets) {
-          // convert into view coordinates
-          rectStart = modelToView(pair[0]);
-          rectEnd = modelToView(pair[1]);
-          g2d.drawLine(rectStart.x, rectStart.y + rectStart.height - 1,
-                     rectEnd.x, rectEnd.y + rectEnd.height - 1);
-        }
-        g2d.setStroke(oldStroke);
-      } catch (BadLocationException e) { }
-    }
-  }
+              // 1. clearing line
+              Graphics2D g2d = (Graphics2D) g;
+              Stroke oldStroke = g2d.getStroke();
+              Color oldColor = g2d.getColor();
+              g2d.setStroke(STROKE_LINK);
+              g2d.setColor(getBackground());
+              g2d.drawLine(rectStart.x, rectStart.y + rectStart.height - 1, rectEnd.x, rectEnd.y + rectEnd.height - 1);
 
-  // looks for "crosslinks" in script lines
-  private int[][] findLinksInSection(int start, int end) throws BadLocationException {
-    ArrayList<int[]> links = new ArrayList<int[]>();
-
-    int startLine = getLineOfOffset(start);
-    int endLine = getLineOfOffset(end);
-    for (int i = startLine; i <= endLine; i++) {
-      // skipping folded lines
-      boolean folded = false;
-      for (int j = 0; j < getFoldManager().getFoldCount(); j++) {
-        Fold fold = getFoldManager().getFold(j);
-        if (fold.isCollapsed() && i >= fold.getStartLine() && i <= fold.getEndLine()) {
-          folded = true;
-          break;
-        }
-      }
-      if (folded) {
-        continue;
-      }
-
-      // looking for crosslinks
-      String lineText = getText().substring(getLineStartOffset(i), getLineEndOffset(i));
-      Token token = getTokenListForLine(i);
-      while (token != null && token.getType() != Token.NULL) {
-        if (token.getOffset() >= start && token.getOffset() + token.length() <= end) {
-          if (token.getType() == BCSTokenMaker.TOKEN_STRING && token.length() > 2) {
-            int ofsTokenFromLineStart = token.getOffset() - getLineStartOffset(i);
-            String text = token.getLexeme().substring(1, token.length() - 1);
-            if (findResEntry(lineText, ofsTokenFromLineStart + 1, text) != null) {
-              // add it to our list of crosslinks
-              links.add(new int[]{start + ofsTokenFromLineStart + 1,
-                                  start + ofsTokenFromLineStart + token.length() - 1});
-            }
-          } else if (token.getType() == BCSTokenMaker.TOKEN_SYMBOL_SPELL) {
-            int ofsTokenFromLineStart = token.getOffset() - getLineStartOffset(i);
-            String text = token.getLexeme();
-            if (findResEntry(lineText, ofsTokenFromLineStart + 1, text) != null) {
-              // add it to our list of crosslinks
-              links.add(new int[]{start + ofsTokenFromLineStart,
-                                  start + ofsTokenFromLineStart + token.length()});
+              // 2. drawing decorations
+              g2d.setColor(itoken.color);
+              g2d.drawLine(rectStart.x, rectStart.y + rectStart.height - 1, rectEnd.x, rectEnd.y + rectEnd.height - 1);
+              g2d.setStroke(oldStroke);
+              g2d.setColor(oldColor);
+            } catch (BadLocationException ble) {
             }
           }
         }
-        token = token.getNextToken();
+      } finally {
+        tokenMapLock.unlock();
       }
     }
-    return links.toArray(new int[0][0]);
   }
 
-  private void handlePopup(MouseEvent ev) {
-    if (ev.isPopupTrigger()) {
+  @Override
+  public String getToolTipText(MouseEvent e)
+  {
+    String retVal = super.getToolTipText(e);
+
+    if (isInteractive()) {
+      tokenMapLock.lock();
       try {
-        // get "word" under click
-        Document doc = getDocument();
-        int offset = viewToModel(ev.getPoint());
-        final int lineNr = getLineOfOffset(offset);
-        final int lineStart = getLineStartOffset(lineNr);
-        String line = doc.getText(lineStart, getLineEndOffset(lineNr) - lineStart);
-        offset = offset - lineStart;
+        int offset = viewToModel(e.getPoint());
+        int line = getLineOfOffset(offset);
+        int ofsMin = getLineStartOffset(line);
+        int ofsMax = getLineEndOffset(line);
+        SortedMap<Integer, InteractiveToken> map =
+            tokenMap.subMap(Integer.valueOf(ofsMin), Integer.valueOf(ofsMax));
+        Iterator<InteractiveToken> iter = map.values().iterator();
 
-        String token = getToken(line, offset, "\"", "(), "); // quoted
-        if (token == null) {
-          // fall back to ids token parsing
-          token = getToken(line, offset, ",()", "[].\" "); // IDS
-          if (token == null) {
-            return;
-          }
-        }
-
-        ResourceEntry resEntry = findResEntry(line, offset, token);
-        menu.setResEntry(resEntry);
-
-        if (resEntry != null) {
-          menu.show(this, ev.getX(), ev.getY());
-        }
-      }
-      catch (BadLocationException ble) {}
-    }
-  }
-
-  private String getToken(String line, int offset, String delims, String invalidChars) {
-    int tokenStart, tokenEnd;
-    for (tokenStart = offset; tokenStart > 0; tokenStart--) {
-      char current = line.charAt(tokenStart);
-      if (delims.indexOf(current) != -1) {
-        tokenStart++;
-        break;
-      }
-      else if (invalidChars.indexOf(current) != -1) {
-        return null;
-      }
-    }
-    for (tokenEnd = offset + 1; tokenEnd < line.length(); tokenEnd++) {
-      char current = line.charAt(tokenEnd);
-      if (delims.indexOf(current) != -1) {
-        break;
-      }
-      else if (invalidChars.indexOf(current) != -1) {
-        return null;
-      }
-    }
-    return line.substring(tokenStart, tokenEnd);
-  }
-
-  private ResourceEntry findResEntry(String line, int offset, String token) {
-    // determine function name and param position
-    int parenLevel = 0;
-    int paramPos = 0;
-    int idx;
-    for (idx = offset; idx > 0; idx--) {
-      char current = line.charAt(idx);
-      if (current == ')') {
-        parenLevel++;
-      }
-      else if ((current == ',') && (parenLevel == 0)) {
-        paramPos++;
-      }
-      else if (current == '(') {
-        if (parenLevel == 0) {
-          // found end of corresponding function name
-          break;
-        }
-        parenLevel--;
-      }
-    }
-
-    int endPos = idx;
-    while ((idx > 0) && (Character.isLetter(line.charAt(idx - 1)))) {
-      idx--;
-    }
-    String function = line.substring(idx, endPos);
-
-    // lookup function name in trigger.ids / action.ids
-    String[] idsFiles = new String[] { "trigger.ids", "action.ids" };
-    for (final String idsFile : idsFiles) {
-      IdsMapEntry idsEntry = IdsMapCache.get(idsFile).lookup(function + "(");
-      if (idsEntry != null) {
-        String[] paramDefs = idsEntry.getParameters().split(",");
-        String definition;
-        if (paramPos >= 0 && paramPos < paramDefs.length) {
-          definition = paramDefs[paramPos];
-        } else {
-          definition = "";
-        }
-
-        // check script names (death var)
-        if (definition.equalsIgnoreCase("O:Object*")
-         || definition.equalsIgnoreCase("O:Target*")
-         || definition.equalsIgnoreCase("O:Actor*")
-         || (definition.equalsIgnoreCase("S:Name*")
-          && (function.equalsIgnoreCase("Dead")
-           || function.equalsIgnoreCase("Name")
-           || function.equalsIgnoreCase("NumDead")
-           || function.equalsIgnoreCase("NumDeadGT")
-           || function.equalsIgnoreCase("NumDeadLT")))) {
-          Compiler bcscomp = new Compiler();
-          if (bcscomp.hasScriptName(token)) {
-            Set<ResourceEntry> entries = bcscomp.getResForScriptName(token);
-            for (ResourceEntry entry : entries) {
-              // for now, just return the first entry
-              return entry;
+        while (iter.hasNext()) {
+          InteractiveToken itoken = iter.next();
+          if (itoken.isTooltip()) {
+            if (offset >= itoken.position && offset < itoken.position + itoken.length) {
+              retVal = itoken.tooltip;
+              break;
             }
           }
-          else {
-            return null;
+        }
+      } catch (BadLocationException ble) {
+      } finally {
+        tokenMapLock.unlock();
+      }
+    }
+
+    return retVal;
+  }
+
+//--------------------- Begin Interface DocumentListener ---------------------
+
+  @Override
+  public void insertUpdate(DocumentEvent e)
+  {
+    updateInteractiveTokens(true);
+    repaint();
+  }
+
+  @Override
+  public void removeUpdate(DocumentEvent e)
+  {
+    updateInteractiveTokens(true);
+    repaint();
+  }
+
+  @Override
+  public void changedUpdate(DocumentEvent e)
+  {
+    // ignore?
+  }
+
+//--------------------- End Interface DocumentListener ---------------------
+
+//--------------------- Begin Interface ChangeListener ---------------------
+
+  @Override
+  public void stateChanged(ChangeEvent e)
+  {
+    // important: stateChanged() is registered by super class
+    super.stateChanged(e);
+
+    if (isInteractive()) {
+      updateInteractiveTokens(false);
+      repaint();
+    }
+  }
+
+//--------------------- End Interface ChangeListener ---------------------
+
+  /** Returns whether interactive elements are generated. */
+  public boolean isInteractive() { return isInteractive; }
+
+  /**
+   * Adds a new error notification to the gutter at the left edge.
+   * @param line The (one-based) line where to add the icon.
+   * @param message A tooltip message
+   * @param overwrite Set to {@code true} if this message should always replace older messages.
+   *                  Set to {@code false} to skip this message if a message of higher or equal
+   *                  priority has already been added to this line.
+   */
+  public void setLineError(int line, String message, boolean overwrite)
+  {
+    if (!overwrite) {
+      GutterIcon item = getGutterIconInfo(line);
+      if (item != null) {
+        if (item.icon == icons.get(IconType.ERROR)) {
+          return;
+        }
+      }
+    }
+    line--; // 1-based to 0-based index
+    removeGutterIcon(line);
+    addGutterIcon(line, icons.get(IconType.ERROR), message);
+  }
+
+  /**
+   * Adds a new warning notification to the gutter at the left edge.
+   * @param line The (one-based) line where to add the icon.
+   * @param message A tooltip message
+   * @param overwrite Set to {@code true} if this message should always replace older messages.
+   *                  Set to {@code false} to skip this message if a message of higher or equal
+   *                  priority has already been added to this line.
+   */
+  public void setLineWarning(int line, String message, boolean overwrite)
+  {
+    if (!overwrite) {
+      GutterIcon item = getGutterIconInfo(line);
+      if (item != null) {
+        if (item.icon == icons.get(IconType.ERROR) ||
+            item.icon == icons.get(IconType.WARNING)) {
+          return;
+        }
+      }
+    }
+    line--; // 1-based to 0-based index
+    removeGutterIcon(line);
+    addGutterIcon(line, icons.get(IconType.WARNING), message);
+  }
+
+  /**
+   * Adds a new information notification to the gutter at the left edge.
+   * @param line The (one-based) line where to add the icon.
+   * @param message A tooltip message
+   * @param overwrite Set to {@code true} if this message should always replace older messages.
+   *                  Set to {@code false} to skip this message if a message of higher or equal
+   *                  priority has already been added to this line.
+   */
+  public void setLineInformation(int line, String message, boolean overwrite)
+  {
+    if (!overwrite) {
+      GutterIcon item = getGutterIconInfo(line);
+      if (item != null) {
+        if (item.icon == icons.get(IconType.ERROR) ||
+            item.icon == icons.get(IconType.WARNING) ||
+            item.icon == icons.get(IconType.INFORMATION)) {
+          return;
+        }
+      }
+    }
+    line--; // 1-based to 0-based index
+    removeGutterIcon(line);
+    addGutterIcon(line, icons.get(IconType.INFORMATION), message);
+  }
+
+  private void handlePopup(MouseEvent e)
+  {
+    if (e.isPopupTrigger()) {
+      tokenMapLock.lock();
+      try {
+        int offset = viewToModel(e.getPoint());
+        int line = getLineOfOffset(offset);
+        int minOffset = getLineStartOffset(line);
+        int maxOffset = getLineEndOffset(line);
+
+        SortedMap<Integer, InteractiveToken> map =
+            tokenMap.subMap(Integer.valueOf(minOffset), Integer.valueOf(maxOffset));
+
+        Iterator<InteractiveToken> iter = map.values().iterator();
+        while (iter.hasNext()) {
+          InteractiveToken token = iter.next();
+          // generate list of resource links
+          menu.clearResEntries();
+          if (token.isLink()) {
+            for (final ResourceEntry entry: token.resourceEntries) {
+              menu.addResEntry(entry);
+            }
+            if (offset >= token.position && offset < token.position + token.length) {
+              menu.show(this, e.getX(), e.getY());
+              break;
+            }
+          }
+        }
+      } catch (BadLocationException ble) {
+      } finally {
+        tokenMapLock.unlock();
+      }
+    }
+  }
+
+  // Processes a change in the document regarding interactive tokens
+  private void updateInteractiveTokens(boolean reset)
+  {
+    tokenMapLock.lock();
+    try {
+      Point range = getVisibleLineRange(null);
+      if (range.x < 0 || range.y < 0) {
+        return;
+      }
+
+      if (reset) {
+        tokenMap.clear();
+      } else {
+        SortedMap<Integer, InteractiveToken> submap;
+        if (range.x > 0) {
+          try {
+            int offset = getLineStartOffset(range.x);
+            submap = tokenMap.subMap(Integer.valueOf(0), Integer.valueOf(offset));
+            Iterator<Integer> iter = submap.keySet().iterator();
+            while (iter.hasNext()) {
+              iter.next();
+              iter.remove();
+            }
+          } catch (BadLocationException ble) {
           }
         }
 
-        // spell.ids
-        if (definition.equalsIgnoreCase("I:Spell*Spell")) {
-          // retrieving spell resource specified by symbolic spell name
-          String resName = org.infinity.resource.spl.Viewer.getResourceName(token, true);
-          if (resName != null && !resName.isEmpty() &&
-              ResourceFactory.resourceExists(resName, true)) {
-            return ResourceFactory.getResourceEntry(resName, true);
+        try {
+          int offset = getLineEndOffset(range.y);
+          submap = tokenMap.subMap(Integer.valueOf(offset), Integer.valueOf(Integer.MAX_VALUE));
+          Iterator<Integer> iter = submap.keySet().iterator();
+          while (iter.hasNext()) {
+            iter.next();
+            iter.remove();
+          }
+        } catch (BadLocationException ble) {
+        }
+      }
+
+      // processing new content
+      try {
+        int offset = getLineStartOffset(range.x);
+        int endOffset = getLineEndOffset(range.y);
+        while (offset < endOffset) {
+          Token token = null;
+          while (offset <= endOffset && token == null) {
+            token = modelToToken(offset++);
+          }
+
+          if (token != null) {
+            offset = token.getEndOffset();
+            InteractiveToken result = null;
+            Integer key = Integer.valueOf(token.getOffset());
+            if (!tokenMap.containsKey(key)) {
+              Token curToken = new TokenImpl(token);  // make sure content of current token doesn't change
+              switch (curToken.getType()) {
+                case BCSTokenMaker.TOKEN_ACTION:
+                  result = updateFunctionToken(curToken, actions);
+                  break;
+                case BCSTokenMaker.TOKEN_TRIGGER:
+                  result = updateFunctionToken(curToken, triggers);
+                  break;
+                case BCSTokenMaker.TOKEN_SYMBOL:
+                case BCSTokenMaker.TOKEN_SYMBOL_SPELL:
+                  result = updateSymbolToken(curToken);
+                  break;
+                case BCSTokenMaker.TOKEN_STRING:
+                  result = updateStringToken(curToken);
+                  break;
+              }
+
+              if (result != null) {
+                tokenMap.put(key, result);
+              }
+            }
+          }
+        }
+      } catch (BadLocationException ble) {
+      }
+    } finally {
+      tokenMapLock.unlock();
+    }
+  }
+
+  // Process action or trigger name
+  private InteractiveToken updateFunctionToken(Token token, Signatures sig)
+  {
+    InteractiveToken retVal = null;
+    String name = token.getLexeme();
+    Signatures.Function function = sig.getFunction(name);
+    if (function != null) {
+      retVal = new InteractiveToken(token.getOffset(), token.length(), function.toString(),
+                                    null, getForegroundForToken(token));
+    }
+    return retVal;
+  }
+
+  // Process symbol or symbolic spell name
+  private InteractiveToken updateSymbolToken(Token token)
+  {
+    InteractiveToken retVal = null;
+    Signatures.Function.Parameter param = getFunctionParameter(token);
+    if (param != null) {
+      if (param.getType() == Signatures.Function.Parameter.TYPE_INTEGER) {
+        String idsRef = param.getIdsRef().toUpperCase(Locale.ENGLISH);
+        if (!idsRef.isEmpty()) {
+          if (idsRef.equals("SPELL")) {
+            // resolving symbolic spell name
+            String resRef = org.infinity.resource.spl.Viewer.getResourceName(token.getLexeme(), true);
+            if (resRef != null) {
+              ResourceEntry entry = ResourceFactory.getResourceEntry(resRef);
+              String name = null;
+              if (entry != null) {
+                name = entry.getSearchString();
+              }
+              String text = (name != null) ? resRef + " (" + name + ")" : resRef;
+              retVal = new InteractiveToken(token.getOffset(), token.length(), text, entry,
+                                            getForegroundForToken(token));
+              retVal.resourceEntries.add(ResourceFactory.getResourceEntry("SPELL.IDS"));
+            }
           } else {
-            return null;
+            // resolving regular symbol
+            idsRef = idsRef + ".IDS";
+            Long value = IdsMapCache.getIdsValue(idsRef, token.getLexeme(), null);
+            if (value != null) {
+              retVal = new InteractiveToken(token.getOffset(), token.length(),
+                                            idsRef + ": " + value.toString() + " (0x" + Long.toHexString(value.longValue()) + ")",
+                                            ResourceFactory.getResourceEntry(idsRef), getForegroundForToken(token));
+            }
           }
         }
-
-        // guessing
-        String[] possibleExtensions = guessExtension(function, definition);
-        for (final String ext : possibleExtensions) {
-          if (ResourceFactory.resourceExists(token + ext, true)) {
-            return ResourceFactory.getResourceEntry(token + ext, true);
+      } else if (param.getType() == Signatures.Function.Parameter.TYPE_OBJECT) {
+        String idsRef = getIdsTargetResRef(token);
+        if (idsRef != null) {
+          idsRef = IdsMapCache.getValidIdsRef(idsRef);
+          Long value = IdsMapCache.getIdsValue(idsRef, token.getLexeme(), null);
+          if (value != null) {
+            retVal = new InteractiveToken(token.getOffset(), token.length(),
+                                          idsRef + ": " + value.longValue() + " (0x" + Long.toHexString(value.longValue()) + ")",
+                                          ResourceFactory.getResourceEntry(idsRef), getForegroundForToken(token));
           }
         }
-
-        break;
       }
     }
-    return null;
+    return retVal;
   }
 
-  // most parts stolen from Compiler.java
-  private String[] guessExtension(String function, String definition) {
-    definition = definition.trim();
-    // first the unique values
-    if (definition.equalsIgnoreCase("S:Area*")
-     || definition.equalsIgnoreCase("S:Area1*")
-     || definition.equalsIgnoreCase("S:Area2*")
-     || definition.equalsIgnoreCase("S:ToArea*")
-     || definition.equalsIgnoreCase("S:Areaname*")
-     || definition.equalsIgnoreCase("S:FromArea*")) {
-      return new String[] { ".ARE" };
-    }
-    else if (definition.equalsIgnoreCase("S:BamResRef*")) {
-      return new String[] { ".BAM" };
-    }
-    else if (definition.equals("S:CutScene*")
-          || definition.equalsIgnoreCase("S:ScriptFile*")
-          || definition.equalsIgnoreCase("S:Script*")) {
-      return new String[] { ".BCS" };
-    }
-    else if (definition.equalsIgnoreCase("S:Palette*")) {
-      return new String[] { ".BMP" };
-    }
-    else if (definition.equalsIgnoreCase("S:Item*")
-          || definition.equalsIgnoreCase("S:Take*")
-          || definition.equalsIgnoreCase("S:Give*")
-          || definition.equalsIgnoreCase("S:Item")
-          || definition.equalsIgnoreCase("S:OldObject*")) {
-      return new String[] { ".ITM" };
-    }
-    else if (definition.equalsIgnoreCase("S:Parchment*")) {
-      return new String[] { ".MOS" };
-    }
-    else if (definition.equalsIgnoreCase("S:Spell*")
-          || definition.equalsIgnoreCase("S:Res*")) {
-      return new String[] { ".SPL" };
-    }
-    else if (definition.equalsIgnoreCase("S:Pool*")) {
-      return new String[] { ".SRC" };
-    }
-    else if (definition.startsWith("S:Store*")) {
-      return new String[] { ".STO" };
-    }
-    else if (definition.equalsIgnoreCase("S:Sound*")
-          || definition.equalsIgnoreCase("S:Voice*")) {
-      return new String[] { ".WAV" };
-    }
-    else if (definition.equalsIgnoreCase("S:TextList*")) {
-      return new String[] { ".2DA" };
-    }
-    // and now the ambiguous
-    else if (definition.equalsIgnoreCase("S:Effect*")) {
-      return new String[] { ".VEF", ".VVC", ".BAM" };
-    }
-    else if (definition.equalsIgnoreCase("S:DialogFile*")) {
-      return new String[] { ".DLG", ".VEF", ".VVC", ".BAM" };
-    }
-    else if (definition.equalsIgnoreCase("S:Object*")) {
-      return Decompiler.getResRefType(function);
-    }
-    else if (definition.equalsIgnoreCase("S:NewObject*")) {
-      return Decompiler.getResRefType(function);
-    }
-    else if (definition.equalsIgnoreCase("S:ResRef*")) {
-      return Decompiler.getResRefType(function);
-    }
+  // Process string
+  private InteractiveToken updateStringToken(Token token)
+  {
+    InteractiveToken retVal = null;
+    Signatures.Function.Parameter param = getFunctionParameter(token);
+    if (param != null &&
+        (param.getType() == Signatures.Function.Parameter.TYPE_STRING ||
+         param.getType() == Signatures.Function.Parameter.TYPE_OBJECT)) {
+      // getting string content
+      String value = token.getLexeme();
+      if (value != null && value.length() >= 2) {
+        String delim = "\"~%";
+        int v1 = delim.indexOf(value.charAt(0));
+        int v2 = delim.indexOf(value.charAt(value.length() - 1));
+        if (v1 > -1 && v2 > -1 && v1 == v2) {
+          value = value.substring(1, value.length() - 1);
+        }
+      }
 
-    return new String[] {};
+      String[] types;
+      if (param.getType() == Signatures.Function.Parameter.TYPE_OBJECT) {
+        types = new String[]{Signatures.Function.Parameter.RESTYPE_SCRIPT};
+      } else {
+        types = param.getResourceType();
+      }
+
+      for (String type: types) {
+        if (type.equals(Signatures.Function.Parameter.RESTYPE_SCRIPT)) {
+          // script name
+          Set<ResourceEntry> set = CreMapCache.getCreForScriptName(value);
+          if (set != null && !set.isEmpty()) {
+            ResourceEntry entry = set.iterator().next();
+            String name = entry.getSearchString();
+            String text = (name != null) ? entry.getResourceName() + " (" + name + ")" : entry.getResourceName();
+            retVal = new InteractiveToken(token.getOffset() + 1, token.length() - 2, text, entry,
+                                          getForegroundForToken(token));
+            break;
+          }
+        } else if (type.equals(Signatures.Function.Parameter.RESTYPE_SPELL_LIST)) {
+          // list of spell codes
+          String text = "";
+          ArrayList<ResourceEntry> resList = new ArrayList<>();
+          for (int i = 0, cnt = value.length() / 4; i < cnt; i++) {
+            String snum = value.substring(i*4, i*4 + 4);
+            String res = null;
+            try {
+              long num = Long.parseLong(snum);
+              res = IdsMapCache.getIdsSymbol("SPELL.IDS", num);
+              String resRef = org.infinity.resource.spl.Viewer.getResourceName((int)num, true);
+              if (ResourceFactory.resourceExists(resRef)) {
+                resList.add(ResourceFactory.getResourceEntry(resRef));
+              }
+            } catch (NumberFormatException e) {
+            }
+            if (res != null) {
+              if (i > 0) { text += ", "; }
+              text += res;
+            }
+          }
+          retVal = new InteractiveToken(token.getOffset() + 1, token.length() - 2, text, null,
+                                        getForegroundForToken(token));
+          retVal.resourceEntries.addAll(resList);
+          retVal.resourceEntries.add(ResourceFactory.getResourceEntry("SPELL.IDS"));
+          break;
+        } else if (Character.isUpperCase(type.charAt(0))) {
+          // regular resource
+          if (!"ARE".equals(type) || !ScriptInfo.getInfo().isGlobalScope(token.getLexeme())) {
+            String resRef = value + '.' + type;
+            ResourceEntry entry = ResourceFactory.getResourceEntry(resRef, true);
+            if (entry != null) {
+              String name = entry.getSearchString();
+              String text = (name != null) ? entry.getResourceName() + " (" + name + ")" : entry.getResourceName();
+              retVal = new InteractiveToken(token.getOffset() + 1, token.length() - 2, text, entry,
+                                            getForegroundForToken(token));
+              break;
+            }
+          }
+        }
+      }
+    }
+    return retVal;
   }
 
+  private Signatures.Function.Parameter getFunctionParameter(Token token)
+  {
+    Signatures.Function.Parameter retVal = null;
+
+    if (token != null) {
+      int offset = token.getOffset();
+      Token resultToken = null;
+      int index = 0;
+      while (offset > 0) {
+        token = null;
+        while (offset > 0 && token == null) {
+          token = modelToToken(--offset);
+        }
+
+        if (token != null) {
+          offset = token.getOffset();
+          if (token.getType() == BCSTokenMaker.TOKEN_ACTION ||
+              token.getType() == BCSTokenMaker.TOKEN_TRIGGER) {
+            resultToken = token;
+            break;
+          } else if (token.getType() == BCSTokenMaker.TOKEN_KEYWORD) {
+            break;
+          } else if (token.getType() == BCSTokenMaker.TOKEN_OPERATOR &&
+                     token.getLexeme().indexOf(',') >= 0) {
+            index++;
+          }
+        }
+      }
+
+      if (resultToken != null) {
+        Signatures.Function function = null;
+        if (resultToken.getType() == BCSTokenMaker.TOKEN_ACTION) {
+          function = actions.getFunction(resultToken.getLexeme());
+        } else if (resultToken.getType() == BCSTokenMaker.TOKEN_TRIGGER) {
+          function = triggers.getFunction(resultToken.getLexeme());
+        }
+        if (function != null) {
+          if (index >= 0 && index < function.getNumParameters()) {
+            retVal = function.getParameter(index);
+          }
+        }
+      }
+    }
+
+    return retVal;
+  }
+
+  private String getIdsTargetResRef(Token token)
+  {
+    String retVal = null;
+
+    if (token != null && token.getType() == BCSTokenMaker.TOKEN_SYMBOL) {
+      int offset = token.getOffset();
+      Token resultToken = null;
+      int index = 0;
+      while (offset > 0) {
+        token = null;
+        while (offset > 0 && token == null) {
+          token = modelToToken(--offset);
+        }
+
+        if (token != null) {
+          offset = token.getOffset();
+          if (token.getType() == BCSTokenMaker.TOKEN_OPERATOR && token.getLexeme().indexOf('[') >= 0) {
+            resultToken = token;
+            break;
+          } else if (token.getType() == BCSTokenMaker.TOKEN_KEYWORD ||
+                     token.getType() == BCSTokenMaker.TOKEN_ACTION ||
+                     token.getType() == BCSTokenMaker.TOKEN_TRIGGER) {
+            break;
+          } else if (token.getType() == BCSTokenMaker.TOKEN_OPERATOR &&
+                     (token.getLexeme().indexOf(',') >= 0 || token.getLexeme().indexOf('(') >= 0)) {
+            break;
+          } else if (token.getType() == BCSTokenMaker.TOKEN_OPERATOR &&
+                     token.getLexeme().indexOf('.') >= 0) {
+            index++;
+          }
+        }
+      }
+
+      if (resultToken != null) {
+        String[] idsFiles = ScriptInfo.getInfo().getObjectIdsList();
+        if (index >= 0 && index < idsFiles.length) {
+          retVal = idsFiles[index];
+        }
+      }
+    }
+
+    return retVal;
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 
-  private class ScriptPopupMenu extends JPopupMenu implements ActionListener {
-    private ResourceEntry resourceEntry = null;
-    private final JMenuItem mi_open = new JMenuItem("Open");
-    private final JMenuItem mi_opennew = new JMenuItem("Open in new window");
+  private static class InteractiveToken
+  {
+    public final ArrayList<ResourceEntry> resourceEntries = new ArrayList<>();
+    public final int position;    // position within the text
+    public final int length;      // length of token
+    public final String tooltip;
+    public final Color color;
 
-    ScriptPopupMenu() {
-      add(mi_open);
-      add(mi_opennew);
+    public boolean silent;
 
-      mi_open.addActionListener(this);
-      mi_opennew.addActionListener(this);
-    }
-
-    public void setResEntry(ResourceEntry resEntry) {
-      this.resourceEntry = resEntry;
-    }
-    @Override
-    public void actionPerformed(ActionEvent ev) {
-      if (ev.getSource() == mi_open) {
-        NearInfinity.getInstance().showResourceEntry(resourceEntry);
+    public InteractiveToken(int position, int length, String tooltip, ResourceEntry resourceEntry, Color color)
+    {
+      this.position = position;
+      this.length = length;
+      this.tooltip = tooltip;
+      this.color = color;
+      if (resourceEntry != null) {
+        resourceEntries.add(resourceEntry);
       }
-      else if (ev.getSource() == mi_opennew) {
-        Resource res = ResourceFactory.getResource(resourceEntry);
-        new ViewFrame(NearInfinity.getInstance(), res);
+    }
+
+    public boolean isTooltip() { return (tooltip != null) && !tooltip.isEmpty(); }
+
+    public boolean isLink() { return !resourceEntries.isEmpty(); }
+
+    public boolean isSilent() { return silent || !isTooltip(); }
+  }
+
+  private static class ScriptPopupMenu extends JPopupMenu implements ActionListener
+  {
+    private final ArrayList<DataMenuItem> itemsOpen = new ArrayList<>();
+    private final ArrayList<DataMenuItem> itemsOpenNew = new ArrayList<>();
+
+    public ScriptPopupMenu()
+    {
+    }
+
+    public void addResEntry(ResourceEntry resEntry)
+    {
+      if (!itemsOpen.isEmpty()) {
+        addSeparator();
+      }
+
+      DataMenuItem item = new DataMenuItem("Open \"" + resEntry.getResourceName() + "\"", null, resEntry);
+      item.addActionListener(this);
+      itemsOpen.add(item);
+      add(item);
+      item = new DataMenuItem("Open \"" + resEntry.getResourceName() + "\" in new window", null, resEntry);
+      item.addActionListener(this);
+      itemsOpenNew.add(item);
+      add(item);
+    }
+
+    public void clearResEntries()
+    {
+      itemsOpen.forEach((item) -> { item.removeActionListener(this); });
+      itemsOpen.clear();
+      itemsOpenNew.forEach((item) -> { item.removeActionListener(this); });
+      itemsOpenNew.clear();
+      removeAll();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+      if (e.getSource() instanceof DataMenuItem) {
+        DataMenuItem item = (DataMenuItem)e.getSource();
+        ResourceEntry entry = (item.getData() instanceof ResourceEntry) ? (ResourceEntry)item.getData() : null;
+        if (entry != null) {
+          if (itemsOpen.contains(e.getSource())) {
+            NearInfinity.getInstance().showResourceEntry(entry);
+          } else if (itemsOpenNew.contains(e.getSource())) {
+            new ViewFrame(NearInfinity.getInstance(), ResourceFactory.getResource(entry));
+          }
+        }
       }
     }
   }

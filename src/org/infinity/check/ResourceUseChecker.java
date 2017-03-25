@@ -58,6 +58,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.Decompiler;
+import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
@@ -67,7 +68,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 
 public final class ResourceUseChecker implements Runnable, ListSelectionListener, ActionListener
 {
@@ -352,14 +353,16 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
         AbstractCode code = (AbstractCode)flatList.get(i);
         try {
           Compiler compiler = new Compiler(code.toString(),
-                                           (code instanceof Action) ? Compiler.ScriptType.ACTION :
-                                                                      Compiler.ScriptType.TRIGGER);
+                                             (code instanceof Action) ? ScriptType.ACTION :
+                                                                        ScriptType.TRIGGER);
           String compiled = compiler.getCode();
-          Decompiler decompiler = new Decompiler(compiled, Decompiler.ScriptType.BCS, true);
+          Decompiler decompiler = new Decompiler(compiled, ScriptType.BCS, true);
+          decompiler.setGenerateComments(false);
+          decompiler.setGenerateResourcesUsed(true);
           if (code instanceof Action) {
-            decompiler.setScriptType(Decompiler.ScriptType.ACTION);
+            decompiler.setScriptType(ScriptType.ACTION);
           } else {
-            decompiler.setScriptType(Decompiler.ScriptType.TRIGGER);
+            decompiler.setScriptType(ScriptType.TRIGGER);
           }
           decompiler.decompile();
           Set<ResourceEntry> resourcesUsed = decompiler.getResourcesUsed();
@@ -379,8 +382,8 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
           if (subList.get(j) instanceof StringRef) {
             StringRef ref = (StringRef)subList.get(j);
             if (ref.getValue() >= 0) {
-              String wav = StringResource.getWavResource(ref.getValue());
-              if (wav != null) {
+              String wav = StringTable.getSoundResource(ref.getValue());
+              if (!wav.isEmpty()) {
                 wav += ".WAV";
                 synchronized (checkList) {
                   for (Iterator<ResourceEntry> k = checkList.iterator(); k.hasNext();) {
@@ -401,12 +404,18 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
   private void checkScript(BcsResource script)
   {
     Decompiler decompiler = new Decompiler(script.getCode(), true);
-    decompiler.decompile();
-    Set<ResourceEntry> resourcesUsed = decompiler.getResourcesUsed();
-    for (final ResourceEntry resourceEntry : resourcesUsed) {
-      synchronized (checkList) {
-        checkList.remove(resourceEntry);
+    decompiler.setGenerateComments(false);
+    decompiler.setGenerateResourcesUsed(true);
+    try {
+      decompiler.decompile();
+      Set<ResourceEntry> resourcesUsed = decompiler.getResourcesUsed();
+      for (final ResourceEntry resourceEntry : resourcesUsed) {
+        synchronized (checkList) {
+          checkList.remove(resourceEntry);
+        }
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
@@ -430,8 +439,8 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       else if (checkType.equalsIgnoreCase("WAV") && flatList.get(i) instanceof StringRef) {
         StringRef ref = (StringRef)flatList.get(i);
         if (ref.getValue() >= 0) {
-          String wav = StringResource.getWavResource(ref.getValue());
-          if (wav != null) {
+          String wav = StringTable.getSoundResource(ref.getValue());
+          if (!wav.isEmpty()) {
             wav += ".WAV";
             synchronized (checkList) {
               for (Iterator<ResourceEntry> j = checkList.iterator(); j.hasNext();) {

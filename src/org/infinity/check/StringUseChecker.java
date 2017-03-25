@@ -50,6 +50,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.Decompiler;
+import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
@@ -59,7 +60,7 @@ import org.infinity.search.SearchClient;
 import org.infinity.search.SearchMaster;
 import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 
 public final class StringUseChecker implements Runnable, ListSelectionListener, SearchClient, ActionListener
 {
@@ -122,8 +123,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
       table = new SortableTable(Arrays.asList(new String[]{"String", "StrRef"}),
                                 colClasses, Arrays.asList(new Integer[]{450, 20}));
 
-      StringResource.getStringRef(0);
-      strUsed = new boolean[StringResource.getMaxIndex() + 1];
+      strUsed = new boolean[StringTable.getNumEntries() + 1];
       boolean isCancelled = false;
       Debugging.timerReset();
       for (int i = 0; i < files.size(); i++) {
@@ -298,14 +298,16 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
         AbstractCode code = (AbstractCode)flatList.get(i);
         try {
           Compiler compiler = new Compiler(code.toString(),
-                                           (code instanceof Action) ? Compiler.ScriptType.ACTION :
-                                                                      Compiler.ScriptType.TRIGGER);
+                                             (code instanceof Action) ? ScriptType.ACTION :
+                                                                        ScriptType.TRIGGER);
           String compiled = compiler.getCode();
           Decompiler decompiler = new Decompiler(compiled, true);
+          decompiler.setGenerateComments(false);
+          decompiler.setGenerateResourcesUsed(true);
           if (code instanceof Action) {
-            decompiler.setScriptType(Decompiler.ScriptType.ACTION);
+            decompiler.setScriptType(ScriptType.ACTION);
           } else {
-            decompiler.setScriptType(Decompiler.ScriptType.TRIGGER);
+            decompiler.setScriptType(ScriptType.TRIGGER);
           }
           decompiler.decompile();
           Set<Integer> used = decompiler.getStringRefsUsed();
@@ -327,15 +329,21 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
   private void checkScript(BcsResource script)
   {
     Decompiler decompiler = new Decompiler(script.getCode(), true);
-    decompiler.decompile();
-    Set<Integer> used = decompiler.getStringRefsUsed();
-    for (final Integer stringRef : used) {
-      int u = stringRef.intValue();
-      if (u >= 0 && u < strUsed.length) {
-        synchronized (strUsed) {
-          strUsed[u] = true;
+    decompiler.setGenerateComments(false);
+    decompiler.setGenerateResourcesUsed(true);
+    try {
+      decompiler.decompile();
+      Set<Integer> used = decompiler.getStringRefsUsed();
+      for (final Integer stringRef : used) {
+        int u = stringRef.intValue();
+        if (u >= 0 && u < strUsed.length) {
+          synchronized (strUsed) {
+            strUsed[u] = true;
+          }
         }
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
@@ -391,7 +399,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
     private UnusedStringTableItem(Integer strRef)
     {
       this.strRef = strRef;
-      string = StringResource.getStringRef(strRef.intValue());
+      string = StringTable.getStringRef(strRef.intValue(), StringTable.Format.NONE);
     }
 
     @Override

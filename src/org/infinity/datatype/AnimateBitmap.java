@@ -111,9 +111,9 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
 
     if (animRes == null && idsMap != null) {
       // checking for 2DA
-      IdsMapEntry entry = idsMap.getValue(value);
+      IdsMapEntry entry = idsMap.get(value);
       if (entry != null) {
-        String[] symbols = entry.getString().split("[ \t]");
+        String[] symbols = entry.getSymbol().split("[ \t]");
         if (symbols.length > 1) {
           animRes = symbols[0].trim() + ".2DA";
           if (!ResourceFactory.resourceExists(animRes)) {

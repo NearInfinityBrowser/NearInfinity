@@ -67,10 +67,11 @@ import org.infinity.resource.are.AreResource;
 import org.infinity.resource.gam.GamResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
+import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.LongIntegerHashMap;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
 public final class CreResource extends AbstractStruct
@@ -280,8 +281,8 @@ public final class CreResource extends AbstractStruct
   public static final String CRE_DEFAULT_VISIBILITY           = "Default visibility";
   public static final String CRE_OFFSET_OVERLAYS              = "Overlays offset";
   public static final String CRE_OVERLAYS_SIZE                = "Overlays size";
-  public static final String CRE_XP_SECOND_CLASS              = "XP second class";
-  public static final String CRE_XP_THIRD_CLASS               = "XP third class";
+  public static final String CRE_XP_SECOND_CLASS              = "Thief XP";
+  public static final String CRE_XP_THIRD_CLASS               = "Mage XP";
   public static final String CRE_GOOD_INC                     = "Good increment by";
   public static final String CRE_LAW_INC                      = "Law increment by";
   public static final String CRE_LADY_INC                     = "Lady increment by";
@@ -289,6 +290,8 @@ public final class CreResource extends AbstractStruct
   public static final String CRE_CHARACTER_TYPE               = "Character type";
   public static final String CRE_DIALOG_ACTIVATION_RADIUS     = "Dialogue activation radius";
   public static final String CRE_COLLISION_RADIUS             = "Collision radius";
+  public static final String CRE_SHIELD_FLAGS                 = "Shield flags";
+  public static final String CRE_FIELD_OF_VISION              = "Field of vision";
   public static final String CRE_NUM_COLORS                   = "# colors";
   public static final String CRE_COLOR_FMT                    = "Color %d";
   public static final String CRE_COLOR_PLACEMENT_FMT          = "Color %d placement";
@@ -310,6 +313,7 @@ public final class CreResource extends AbstractStruct
   public static final String CRE_VISIBILITY                   = "Visibility";
   public static final String CRE_SKILL_POINTS_UNUSED          = "Unused skill points";
   public static final String CRE_PROFICIENCIES_UNSPENT        = "Unspent proficiencies";
+  public static final String CRE_NUM_ITEM_SLOTS               = "# item slots";
   public static final String CRE_ALLEGIANCE                   = "Allegiance";
   public static final String CRE_GENERAL                      = "General";
   public static final String CRE_RACE                         = "Race";
@@ -382,7 +386,7 @@ public final class CreResource extends AbstractStruct
   public static final String CRE_ITEM_SLOT_SHIELD_FMT         = "Shield %d";
   public static final String CRE_ITEM_SLOT_QUIVER_FMT         = "Quiver %d";
   public static final String CRE_ITEM_SLOT_CLOAK              = "Cloak";
-  public static final String CRE_ITEM_SLOT_RIGHT_EARRING      = "Right earring";
+  public static final String CRE_ITEM_SLOT_RIGHT_EARRING      = "Right earring/Eye";
   public static final String CRE_ITEM_SLOT_CHEST              = "Chest";
   public static final String CRE_ITEM_SLOT_LEFT_TATTOO        = "Left tattoo";
   public static final String CRE_ITEM_SLOT_HAND               = "Hand";
@@ -392,6 +396,7 @@ public final class CreResource extends AbstractStruct
   public static final String CRE_ITEM_SLOT_RIGHT_TATTOO_UPPER = "Right tattoo (upper)";
   public static final String CRE_ITEM_SLOT_QUICK_FMT          = "Quick item %d";
   public static final String CRE_ITEM_SLOT_INVENTORY_FMT      = "Inventory %d";
+  public static final String CRE_ITEM_SLOT_UNUSED_FMT         = "Unused %d";
   public static final String CRE_ITEM_SLOT_MAGIC_WEAPON       = "Magically created weapon";
   public static final String CRE_SELECTED_WEAPON_SLOT         = "Weapon slot selected";
   public static final String CRE_SELECTED_WEAPON_ABILITY      = "Weapon ability selected";
@@ -403,9 +408,9 @@ public final class CreResource extends AbstractStruct
     "Original class: Fighter", "Original class: Mage", "Original class: Cleric", "Original class: Thief",
     "Original class: Druid", "Original class: Ranger", "Fallen paladin", "Fallen ranger",
     "Export allowed", "Hide status", "Large creature", "Moving between areas", "Been in party",
-    "Holding item", "Clear all flags", "", "", "", "", "EE: Ignore nightmare mode", "EE: No tooltip",
-    "Allegiance tracking", "General tracking", "Race tracking", "Class tracking", "Specifics tracking",
-    "Gender tracking", "Alignment tracking", "Uninterruptible"};
+    "Holding item", "Clear all flags", "", "", "EE: No exploding death", "", "EE: Ignore nightmare mode",
+    "EE: No tooltip", "Allegiance tracking", "General tracking", "Race tracking", "Class tracking",
+    "Specifics tracking", "Gender tracking", "Alignment tracking", "Uninterruptible"};
   public static final String[] s_feats1 = {
     "No feats selected", "Aegis of rime", "Ambidexterity", "Aqua mortis", "Armor proficiency", "Armored arcana",
     "Arterial strike", "Blind fight", "Bullheaded", "Cleave", "Combat casting", "Courteous magocracy", "Crippling strike",
@@ -431,10 +436,10 @@ public final class CreResource extends AbstractStruct
       "Aamimar/Drow/Gold dwarf/Strongheart halfling/Deep gnome",
       "Tiefling/Wild elf/Gray dwarf/Ghostwise halfling"};
   public static final String[] s_attributes_pst = {
-    "No flags set", "", "Transparent", "", "", "Increment death variable", "Increment kill count",
-    "Script name only", "Increment faction kills", "Increment team kills", "Invulnerable",
-    "Good increment on death", "Law increment on death", "Lady increment on death", "Murder increment on death",
-    "Don't face speaker", "Call for help", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Died"};
+    "No flags set", "Auto-calc marker rect", "Translucent", "", "", "Track script name", "Increment kill count",
+    "Script name only", "Track faction death", "Track team death", "Invulnerable",
+    "Modify good on death", "Modify law on death", "Modify lady on death", "Modify murder on death",
+    "No dialogue turn", "Call for help", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Death globals set (internal)", "Area supplemental"};
   public static final String[] s_attributes_iwd2 = {"No flags set", "Mental fortitude", "Critical hit immunity",
                                                     "Cannot be paladin", "Cannot be monk"};
   public static final String[] s_attacks = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};
@@ -500,16 +505,29 @@ public final class CreResource extends AbstractStruct
       ByteBuffer buffer = entry.getResourceBuffer();
       String signature = StreamUtils.readString(buffer, 0, 4);
       String scriptName = "";
-      if (signature.equalsIgnoreCase("CRE ")) {
+      int offset = 0;
+
+      // CHR header is ignored
+      if (signature.equalsIgnoreCase("CHR ")) {
         String version = StreamUtils.readString(buffer, 4, 4);
+        if (version.equalsIgnoreCase("V2.2")) {
+          offset += 0x224;
+        } else {
+          offset += 0x64;
+        }
+        signature = StreamUtils.readString(buffer, offset + 0, 4);
+      }
+
+      if (signature.equalsIgnoreCase("CRE ")) {
+        String version = StreamUtils.readString(buffer, offset + 4, 4);
         if (version.equalsIgnoreCase("V1.0")) {
-          scriptName = StreamUtils.readString(buffer, 640, 32);
+          scriptName = StreamUtils.readString(buffer, offset + 640, 32);
         } else if (version.equalsIgnoreCase("V1.1") || version.equalsIgnoreCase("V1.2")) {
-          scriptName = StreamUtils.readString(buffer, 804, 32);
+          scriptName = StreamUtils.readString(buffer, offset + 804, 32);
         } else if (version.equalsIgnoreCase("V2.2")) {
-          scriptName = StreamUtils.readString(buffer, 916, 32);
+          scriptName = StreamUtils.readString(buffer, offset + 916, 32);
         } else if (version.equalsIgnoreCase("V9.0")) {
-          scriptName = StreamUtils.readString(buffer, 744, 32);
+          scriptName = StreamUtils.readString(buffer, offset + 744, 32);
         }
         if (scriptName.equals("") || scriptName.equalsIgnoreCase("None")) {
           return;
@@ -670,8 +688,8 @@ public final class CreResource extends AbstractStruct
     if (sig.equals("CHR ")) {
       retVal = StreamUtils.readString(is, 32);
     } else {
-      String name = StringResource.getStringRef(StreamUtils.readInt(is));
-      String shortName = StringResource.getStringRef(StreamUtils.readInt(is));
+      String name = StringTable.getStringRef(StreamUtils.readInt(is));
+      String shortName = StringTable.getStringRef(StreamUtils.readInt(is));
       if (name.equals(shortName)) {
         retVal = name;
       } else {
@@ -1053,13 +1071,14 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 141, 1, CRE_LEVEL_WIZARD));
     addField(new Unknown(buffer, offset + 142, 22));
 
-    LongIntegerHashMap<IdsMapEntry> sndmap = null;
+    IdsMap sndMap = null;
     if (ResourceFactory.resourceExists("SOUNDOFF.IDS")) {
-      sndmap = IdsMapCache.get("SOUNDOFF.IDS").getMap();
+      sndMap = IdsMapCache.get("SOUNDOFF.IDS");
     }
-    if (sndmap != null) {
+    if (sndMap != null) {
       for (int i = 0; i < 64; i++) {
-        String label = sndmap.containsKey((long)i) ? sndmap.get((long)i).getString() : "Unknown";
+        IdsMapEntry e = sndMap.get((long)i);
+        String label = (e != null) ? e.getSymbol() : "Unknown";
         addField(new StringRef(buffer, offset + 164 + (i * 4), String.format(CRE_SOUND_SLOT_FMT, label)));
       }
     }
@@ -1421,6 +1440,8 @@ public final class CreResource extends AbstractStruct
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
       addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BAM"));
+    } else if (version.equalsIgnoreCase("V1.0") && Profile.getGame() == Profile.Game.PSTEE) {
+      addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BAM"));
     } else {
       addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BMP"));
     }
@@ -1474,7 +1495,13 @@ public final class CreResource extends AbstractStruct
       addField(new MultiNumber(buffer, offset + 108, 1, CRE_PROFICIENCY_AXE, 3, 2, s_profLabels));
       addField(new MultiNumber(buffer, offset + 109, 1, CRE_PROFICIENCY_MISSILE, 3, 2, s_profLabels));
       if (Profile.isEnhancedEdition()) {
-        addField(new Unknown(buffer, offset + 110, 7));
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          addField(new Unknown(buffer, offset + 110, 5));
+          addField(new UnsignDecNumber(buffer, offset + 115, 1, CRE_PROFICIENCIES_UNSPENT));
+          addField(new SectionCount(buffer, offset + 116, 1, CRE_NUM_ITEM_SLOTS, Unknown.class));
+        } else {
+          addField(new Unknown(buffer, offset + 110, 7));
+        }
         addField(new Bitmap(buffer, offset + 117, 1, CRE_NIGHTMARE_MODE, s_noyes));
         addField(new UnsignDecNumber(buffer, offset + 118, 1, CRE_TRANSLUCENCY));
         addField(new DecNumber(buffer, offset + 119, 1, CRE_REPUTATION_MOD_KILLED));
@@ -1517,16 +1544,35 @@ public final class CreResource extends AbstractStruct
     }
     addField(new DecNumber(buffer, offset + 122, 1, CRE_UNDEAD_LEVEL));
     addField(new DecNumber(buffer, offset + 123, 1, CRE_TRACKING));
-    addField(new TextString(buffer, offset + 124, 32, CRE_TARGET));
-    LongIntegerHashMap<IdsMapEntry> sndmap = null;
-    if (ResourceFactory.resourceExists("SNDSLOT.IDS")) {
-      sndmap = IdsMapCache.get("SNDSLOT.IDS").getMap();
-    } else if (ResourceFactory.resourceExists("SOUNDOFF.IDS")) {
-      sndmap = IdsMapCache.get("SOUNDOFF.IDS").getMap();
+    if (Profile.getGame() == Profile.Game.PSTEE) {
+      addField(new DecNumber(buffer, offset + 124, 4, CRE_XP_SECOND_CLASS));
+      addField(new DecNumber(buffer, offset + 128, 4, CRE_XP_THIRD_CLASS));
+      addField(new DecNumber(buffer, offset + 132, 1, CRE_GOOD_INC));
+      addField(new DecNumber(buffer, offset + 133, 1, CRE_LAW_INC));
+      addField(new DecNumber(buffer, offset + 134, 1, CRE_LADY_INC));
+      addField(new IdsBitmap(buffer, offset + 135, 1, CRE_FACTION, "FACTION.IDS"));
+      addField(new IdsBitmap(buffer, offset + 136, 1, CRE_TEAM, "TEAM.IDS"));
+      addField(new IdsBitmap(buffer, offset + 137, 1, CRE_SPECIES, "RACE.IDS"));
+      addField(new DecNumber(buffer, offset + 138, 1, CRE_DIALOG_ACTIVATION_RADIUS));
+      addField(new DecNumber(buffer, offset + 139, 1, CRE_COLLISION_RADIUS));
+      addField(new Flag(buffer, offset + 140, 1, CRE_SHIELD_FLAGS,
+                        new String[]{"No flags set", "Normal shield", "Black barbed shield"}));
+      addField(new DecNumber(buffer, offset + 141, 1, CRE_FIELD_OF_VISION));
+      addField(new Flag(buffer, offset + 142, 4, CRE_ATTRIBUTES, s_attributes_pst));
+      addField(new Unknown(buffer, offset + 146, 10));
+    } else {
+      addField(new TextString(buffer, offset + 124, 32, CRE_TARGET));
     }
-    if (sndmap != null) {
+    IdsMap sndMap = null;
+    if (ResourceFactory.resourceExists("SNDSLOT.IDS")) {
+      sndMap = IdsMapCache.get("SNDSLOT.IDS");
+    } else if (ResourceFactory.resourceExists("SOUNDOFF.IDS")) {
+      sndMap = IdsMapCache.get("SOUNDOFF.IDS");
+    }
+    if (sndMap != null) {
       for (int i = 0; i < 100; i++) {
-        String label = sndmap.containsKey((long)i) ? sndmap.get((long)i).getString() : "Unknown";
+        IdsMapEntry e = sndMap.get((long)i);
+        String label = (e != null) ? e.getSymbol() : COMMON_UNKNOWN;
         addField(new StringRef(buffer, offset + 156 + (i * 4), String.format(CRE_SOUND_SLOT_FMT, label)));
       }
     } else {
@@ -1579,11 +1625,11 @@ public final class CreResource extends AbstractStruct
       addField(new Unknown(buffer, offset + 656, 4, CRE_OVERLAYS_SIZE));
       addField(new DecNumber(buffer, offset + 660, 4, CRE_XP_SECOND_CLASS));
       addField(new DecNumber(buffer, offset + 664, 4, CRE_XP_THIRD_CLASS));
-      LongIntegerHashMap<IdsMapEntry> intMap = IdsMapCache.get("INTERNAL.IDS").getMap();
+      IdsMap intMap = IdsMapCache.get("INTERNAL.IDS");
       for (int i = 0; i < 10; i++) {
-        if (intMap.containsKey((long)i)) {
-          addField(new DecNumber(buffer, offset + 668 + i * 2, 2,
-                                ((IdsMapEntry)intMap.get((long)i)).getString()));
+        IdsMapEntry e = intMap.get((long)i);
+        if (e != null) {
+          addField(new DecNumber(buffer, offset + 668 + i * 2, 2, e.getSymbol()));
         } else {
           addField(new DecNumber(buffer, offset + 668 + i * 2, 2, String.format(CRE_INTERNAL_FMT, i)));
         }
@@ -1720,6 +1766,7 @@ public final class CreResource extends AbstractStruct
     }
 
     offset = getExtraOffset() + offsetItemslots.getValue();
+    int slotCount = 0;
     if (version.equalsIgnoreCase("V1.2")) {
       addField(new DecNumber(buffer, offset, 2, CRE_ITEM_SLOT_RIGHT_EARRING));
       addField(new DecNumber(buffer, offset + 2, 2, CRE_ITEM_SLOT_CHEST));
@@ -1730,50 +1777,113 @@ public final class CreResource extends AbstractStruct
       addField(new DecNumber(buffer, offset + 12, 2, CRE_ITEM_SLOT_LEFT_EARRING));
       addField(new DecNumber(buffer, offset + 14, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_LOWER));
       addField(new DecNumber(buffer, offset + 16, 2, CRE_ITEM_SLOT_WRIST));
+      slotCount += 9;
       for (int i = 0; i < 4; i++) {
         addField(new DecNumber(buffer, offset + 18 + (i * 2), 2,
                                String.format(CRE_ITEM_SLOT_WEAPON_FMT, i+1)));
       }
+      slotCount += 4;
       for (int i = 0; i < 6; i++) {
         addField(new DecNumber(buffer, offset + 26 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i+1)));
       }
       addField(new DecNumber(buffer, offset + 38, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_UPPER));
+      slotCount += 7;
       for (int i = 0; i < 5; i++) {
         addField(new DecNumber(buffer, offset + 40 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i+1)));
       }
+      slotCount += 5;
       for (int i = 0; i < 20; i++) {
         addField(new DecNumber(buffer, offset + 50 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i+1)));
       }
+      slotCount += 20;
       addField(new DecNumber(buffer, offset + 90, 2, CRE_ITEM_SLOT_MAGIC_WEAPON));
       addField(new DecNumber(buffer, offset + 92, 2, CRE_SELECTED_WEAPON_SLOT));
       addField(new DecNumber(buffer, offset + 94, 2, CRE_SELECTED_WEAPON_ABILITY));
+      slotCount += 3;
     }
     else {
-      addField(new DecNumber(buffer, offset, 2, CRE_ITEM_SLOT_HELMET));
-      addField(new DecNumber(buffer, offset + 2, 2, CRE_ITEM_SLOT_ARMOR));
-      addField(new DecNumber(buffer, offset + 4, 2, CRE_ITEM_SLOT_SHIELD));
-      addField(new DecNumber(buffer, offset + 6, 2, CRE_ITEM_SLOT_GLOVES));
-      addField(new DecNumber(buffer, offset + 8, 2, CRE_ITEM_SLOT_LEFT_RING));
-      addField(new DecNumber(buffer, offset + 10, 2, CRE_ITEM_SLOT_RIGHT_RING));
-      addField(new DecNumber(buffer, offset + 12, 2, CRE_ITEM_SLOT_AMULET));
-      addField(new DecNumber(buffer, offset + 14, 2, CRE_ITEM_SLOT_BELT));
-      addField(new DecNumber(buffer, offset + 16, 2, CRE_ITEM_SLOT_BOOTS));
+      if (Profile.getGame() == Profile.Game.PSTEE) {
+        // REMEMBER: ITMSLOTS.2DA can be used as reference for item slot layout
+        addField(new DecNumber(buffer, offset, 2, CRE_ITEM_SLOT_LEFT_EARRING));
+        addField(new DecNumber(buffer, offset + 2, 2, CRE_ITEM_SLOT_CHEST));
+        addField(new DecNumber(buffer, offset + 4, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_LOWER));
+        addField(new DecNumber(buffer, offset + 6, 2, CRE_ITEM_SLOT_HAND));
+        addField(new DecNumber(buffer, offset + 8, 2, CRE_ITEM_SLOT_RIGHT_RING));
+        addField(new DecNumber(buffer, offset + 10, 2, CRE_ITEM_SLOT_LEFT_RING));
+        addField(new DecNumber(buffer, offset + 12, 2, CRE_ITEM_SLOT_RIGHT_EARRING));
+        addField(new DecNumber(buffer, offset + 14, 2, CRE_ITEM_SLOT_LEFT_TATTOO));
+        addField(new DecNumber(buffer, offset + 16, 2, CRE_ITEM_SLOT_WRIST));
+        slotCount += 9;
+      } else {
+        addField(new DecNumber(buffer, offset, 2, CRE_ITEM_SLOT_HELMET));
+        addField(new DecNumber(buffer, offset + 2, 2, CRE_ITEM_SLOT_ARMOR));
+        addField(new DecNumber(buffer, offset + 4, 2, CRE_ITEM_SLOT_SHIELD));
+        addField(new DecNumber(buffer, offset + 6, 2, CRE_ITEM_SLOT_GLOVES));
+        addField(new DecNumber(buffer, offset + 8, 2, CRE_ITEM_SLOT_LEFT_RING));
+        addField(new DecNumber(buffer, offset + 10, 2, CRE_ITEM_SLOT_RIGHT_RING));
+        addField(new DecNumber(buffer, offset + 12, 2, CRE_ITEM_SLOT_AMULET));
+        addField(new DecNumber(buffer, offset + 14, 2, CRE_ITEM_SLOT_BELT));
+        addField(new DecNumber(buffer, offset + 16, 2, CRE_ITEM_SLOT_BOOTS));
+        slotCount += 9;
+      }
       for (int i = 0; i < 4; i++) {
         addField(new DecNumber(buffer, offset + 18 + (i * 2), 2, String.format(CRE_ITEM_SLOT_WEAPON_FMT, i+1)));
+        slotCount++;
       }
       for (int i = 0; i < 4; i++) {
         addField(new DecNumber(buffer, offset + 26 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, i+1)));
+        slotCount++;
       }
-      addField(new DecNumber(buffer, offset + 34, 2, CRE_ITEM_SLOT_CLOAK));
+      if (Profile.getGame() == Profile.Game.PSTEE) {
+        addField(new DecNumber(buffer, offset + 34, 2, CRE_ITEM_SLOT_RIGHT_TATTOO_UPPER));
+        slotCount++;
+      } else {
+        addField(new DecNumber(buffer, offset + 34, 2, CRE_ITEM_SLOT_CLOAK));
+        slotCount++;
+      }
       for (int i = 0; i < 3; i++) {
         addField(new DecNumber(buffer, offset + 36 + (i * 2), 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, i+1)));
+        slotCount++;
       }
       for (int i = 0; i < 16; i++) {
         addField(new DecNumber(buffer, offset + 42 + (i * 2), 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i+1)));
+        slotCount++;
       }
       addField(new DecNumber(buffer, offset + 74, 2, CRE_ITEM_SLOT_MAGIC_WEAPON));
-      addField(new DecNumber(buffer, offset + 76, 2, CRE_SELECTED_WEAPON_SLOT));
-      addField(new DecNumber(buffer, offset + 78, 2, CRE_SELECTED_WEAPON_ABILITY));
+      slotCount++;
+      StructEntry se = getAttribute(CRE_NUM_ITEM_SLOTS);
+      int maxSlotCount = 0;
+      if (se instanceof IsNumeric) {
+        maxSlotCount = ((IsNumeric)getAttribute(CRE_NUM_ITEM_SLOTS)).getValue();
+      }
+      if (Profile.getGame() == Profile.Game.PSTEE && slotCount + 8 < maxSlotCount) {
+        // registered characters gain additional item slots
+        addField(new DecNumber(buffer, offset + 76, 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, 5)));
+        addField(new DecNumber(buffer, offset + 78, 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, 6)));
+        addField(new DecNumber(buffer, offset + 80, 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, 4)));
+        addField(new DecNumber(buffer, offset + 82, 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, 5)));
+        slotCount += 4;
+        offset += 84;
+        for (int i = 0; i < 4; i++) {
+          addField(new DecNumber(buffer, offset, 2, String.format(CRE_ITEM_SLOT_INVENTORY_FMT, i+17)));
+          slotCount++;
+          offset += 2;
+        }
+        // filling the gap with placeholder slots
+        for (int i = 0, imax = maxSlotCount - slotCount - 1; i < imax; i++) {
+          addField(new DecNumber(buffer, offset, 2, String.format(CRE_ITEM_SLOT_UNUSED_FMT, i)));
+          slotCount++;
+          offset += 2;
+        }
+        addField(new DecNumber(buffer, offset, 2, CRE_SELECTED_WEAPON_SLOT));
+        offset += 2;
+        addField(new DecNumber(buffer, offset, 2, CRE_SELECTED_WEAPON_ABILITY));
+        offset += 2;
+      } else {
+        addField(new DecNumber(buffer, offset + 76, 2, CRE_SELECTED_WEAPON_SLOT));
+        addField(new DecNumber(buffer, offset + 78, 2, CRE_SELECTED_WEAPON_ABILITY));
+        offset += 80;
+      }
     }
     int endoffset = offset;
     for (int i = 0; i < getFieldCount(); i++) {

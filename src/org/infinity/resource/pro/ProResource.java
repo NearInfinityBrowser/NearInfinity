@@ -5,7 +5,6 @@
 package org.infinity.resource.pro;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 
 import javax.swing.JComponent;
 
@@ -265,7 +264,19 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       }
       addField(new ResourceRef(buffer, 68, PRO_SPELL_DEFAULT, "SPL"));
       addField(new ResourceRef(buffer, 76, PRO_SPELL_SUCCESS, "SPL"));
-      addField(new Unknown(buffer, offset + 84, 172));
+      if (Profile.getGame() == Profile.Game.PSTEE) {
+        addField(new DecNumber(buffer, 84, 2, "Angle increase minimum"));
+        addField(new DecNumber(buffer, 86, 2, "Angle increase maximum"));
+        addField(new DecNumber(buffer, 88, 2, "Curve minimum"));
+        addField(new DecNumber(buffer, 90, 2, "Curve maximum"));
+        addField(new DecNumber(buffer, 92, 2, "THAC0 bonus"));
+        addField(new DecNumber(buffer, 94, 2, "THAC0 bonus (non-actor)"));
+        addField(new DecNumber(buffer, 96, 2, "Radium minimum"));
+        addField(new DecNumber(buffer, 98, 2, "Radium maximum"));
+        addField(new Unknown(buffer, offset + 100, 156));
+      } else {
+        addField(new Unknown(buffer, offset + 84, 172));
+      }
     } else {
       addField(new Unknown(buffer, offset + 42, 214));
     }
@@ -339,8 +350,8 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
         StructEntry newValue = newType.createCreatureValueFromType(valueBuffer, 0);
         newValue.setOffset(offset);
 
-        replaceEntry(struct, newValue);
-        replaceEntry(struct, newType);
+        replaceEntry(newValue);
+        replaceEntry(newType);
         return true;
       }
     }
@@ -361,26 +372,9 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
         StructEntry newValue = newType.createIdsValueFromType(valueBuffer, 0);
         newValue.setOffset(offset);
 
-        replaceEntry(struct, newValue);
-        replaceEntry(struct, newType);
+        replaceEntry(newValue);
+        replaceEntry(newType);
         return true;
-      }
-    }
-    return false;
-  }
-
-  // Replaces an old StructEntry instance by the specified instance if offset and size are equal
-  private boolean replaceEntry(AbstractStruct struct, StructEntry newEntry)
-  {
-    if (struct != null && newEntry != null) {
-      List<StructEntry> list = getList();
-      for (int i = 0, size = list.size(); i < size; i++) {
-        StructEntry oldEntry = list.get(i);
-        if (oldEntry.getOffset() == newEntry.getOffset() &&
-            oldEntry.getSize() == newEntry.getSize()) {
-          list.set(i, newEntry);
-          return true;
-        }
       }
     }
     return false;

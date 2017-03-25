@@ -12,9 +12,9 @@ import java.util.Locale;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
-import org.infinity.util.LongIntegerHashMap;
 
 public final class ProRef extends ResourceBitmap
 {
@@ -76,28 +76,29 @@ public final class ProRef extends ResourceBitmap
   {
     if (proMissileList.isEmpty()) {
       // preparing cached list
-      LongIntegerHashMap<IdsMapEntry> mslMap = IdsMapCache.get("MISSILE.IDS").getMap();
-      LongIntegerHashMap<IdsMapEntry> proMap = IdsMapCache.get("PROJECTL.IDS").getMap();
+      IdsMap mslMap = IdsMapCache.get("MISSILE.IDS");
+      IdsMap proMap = IdsMapCache.get("PROJECTL.IDS");
+
       int maxSize = Math.max(mslMap.size(), proMap.size());
       proMissileList.ensureCapacity(2 + maxSize);
 
-      if (!mslMap.containsKey(Long.valueOf(0L))) {
+      if (mslMap.get(0L) == null) {
         proMissileList.add(new RefEntry(0L, "None", "Default"));
       }
-      if (!mslMap.containsKey(Long.valueOf(1L))) {
+      if (mslMap.get(1L) == null) {
         proMissileList.add(new RefEntry(1L, "None", "None"));
       }
 
-      long[] keys = mslMap.keys();
-      for (final long key: keys) {
-        IdsMapEntry mslEntry = mslMap.get(Long.valueOf(key));
-        IdsMapEntry proEntry = proMap.get(Long.valueOf(key - 1L));
+      for (final Long key: mslMap.getKeys()) {
+        long k = key.longValue();
+        IdsMapEntry mslEntry = mslMap.get(k);
+        IdsMapEntry proEntry = proMap.get(k);
         RefEntry entry = null;
         if (proEntry != null) {
-          entry = new RefEntry(key, proEntry.getString().toUpperCase(Locale.ENGLISH) + ".PRO",
-                               mslEntry.getString());
+          entry = new RefEntry(k, proEntry.getSymbol().toUpperCase(Locale.ENGLISH) + ".PRO",
+                               mslEntry.getSymbol());
         } else {
-          entry = new RefEntry(key, "None", mslEntry.getString());
+          entry = new RefEntry(key, "None", mslEntry.getSymbol());
         }
         proMissileList.add(entry);
       }
@@ -108,17 +109,15 @@ public final class ProRef extends ResourceBitmap
   private static synchronized List<RefEntry> createProRefList()
   {
     if (proList.isEmpty()) {
-      LongIntegerHashMap<IdsMapEntry> proMap = IdsMapCache.get("PROJECTL.IDS").getMap();
+      IdsMap proMap = IdsMapCache.get("PROJECTL.IDS");
       proList.ensureCapacity(2 + proMap.size());
 
-      if (!proMap.containsKey(Long.valueOf(0L))) {
+      if (proMap.get(0L) == null) {
         proList.add(new RefEntry(0L, "None", "None"));
       }
 
-      long[] keys = proMap.keys();
-      for (final long key: keys) {
-        IdsMapEntry proEntry = proMap.get(Long.valueOf(key));
-        proList.add(new RefEntry(key, proEntry.getString().toUpperCase(Locale.ENGLISH) + ".PRO"));
+      for (final IdsMapEntry e: proMap.getAllValues()) {
+        proList.add(new RefEntry(e.getID(), e.getSymbol().toUpperCase(Locale.ENGLISH) + ".PRO"));
       }
     }
     return proList;

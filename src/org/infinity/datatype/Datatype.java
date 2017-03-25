@@ -177,7 +177,7 @@ public abstract class Datatype implements StructEntry
    */
   protected void fireValueUpdated(UpdateEvent event)
   {
-    if (event != null) {
+    if (event != null && event.getStructure() != null) {
       // don't lose current selection
       if (event.getStructure().getViewer() != null) {
         event.getStructure().getViewer().storeCurrentSelection();

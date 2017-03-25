@@ -39,7 +39,7 @@ public final class ResourceTreeModel implements TreeModel
 // --------------------- Begin Interface TreeModel ---------------------
 
   @Override
-  public Object getRoot()
+  public ResourceTreeFolder getRoot()
   {
     return root;
   }
@@ -210,7 +210,7 @@ public final class ResourceTreeModel implements TreeModel
   {
     List<Object> path = new ArrayList<>(4);
     path.add(entry);
-    ResourceTreeFolder parent = folders.get(entry.getTreeFolder());
+    ResourceTreeFolder parent = entry.getTreeFolder();
     while (parent != null) {
       path.add(parent);
       parent = parent.getParentFolder();
@@ -271,7 +271,7 @@ public final class ResourceTreeModel implements TreeModel
 
   public void removeResourceEntry(ResourceEntry entry)
   {
-    removeResourceEntry(entry, entry.getTreeFolder());
+    removeResourceEntry(entry, entry.getTreeFolderName());
   }
 
   public void removeResourceEntry(ResourceEntry entry, String folder)
@@ -317,7 +317,14 @@ public final class ResourceTreeModel implements TreeModel
   public void sort()
   {
     root.sortChildren(true);
-    fireTreeStructureChanged(new TreePath(new Object[]{root}));
+    updateFolders(root);
+  }
+
+  public void updateFolders(ResourceTreeFolder... folders)
+  {
+    if (folders != null && folders.length > 0) {
+      fireTreeStructureChanged(new TreePath(folders));
+    }
   }
 
   private void fireTreeStructureChanged(TreePath changed)

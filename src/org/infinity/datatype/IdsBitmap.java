@@ -70,27 +70,23 @@ public class IdsBitmap extends HashBitmap
     LongIntegerHashMap<IdsMapEntry> retVal = null;
     IdsMap idsMap = IdsMapCache.get(resource);
     if (idsMap != null) {
-      if (idsStart != 0) {
-        LongIntegerHashMap<IdsMapEntry> orgMap = idsMap.getMap();
-        retVal = new LongIntegerHashMap<IdsMapEntry>();
-
-        long[] keys = orgMap.keys();
-        for (final long id : keys) {
-          if (id >= idsStart) {
-            IdsMapEntry entry = orgMap.get(id);
-            long newid = id - (long)idsStart;
-            retVal.put(newid, new IdsMapEntry(newid, entry.getString(), entry.getParameters()));
-          }
+      retVal = new LongIntegerHashMap<IdsMapEntry>();
+      for (final IdsMapEntry e: idsMap.getAllValues()) {
+        long id = e.getID();
+        if (id >= idsStart) {
+          id -= idsStart;
+          retVal.put(Long.valueOf(id), new IdsMapEntry(id, e.getSymbol()));
         }
-      } else {
-        retVal = idsMap.getMap();
       }
 
-      // XXX: ugly hack to add EA.IDS/ANYONE
-      if (resource.equalsIgnoreCase("EA.IDS") && !retVal.containsKey(0L)) {
-        retVal.put(0L, new IdsMapEntry(0L, "ANYONE", null));
+      // Add a fitting symbol for "0" to IDS list if needed
+      if (!retVal.containsKey(0L)) {
+        if (resource.equalsIgnoreCase("EA.IDS")) {
+          retVal.put(0L, new IdsMapEntry(0L, "ANYONE"));
+        } else {
+          retVal.put(0L, new IdsMapEntry(0L, "NONE"));
+        }
       }
-
     }
     return retVal;
   }

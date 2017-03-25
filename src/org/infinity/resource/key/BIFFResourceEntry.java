@@ -237,7 +237,7 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
   }
 
   @Override
-  public String getTreeFolder()
+  public String getTreeFolderName()
   {
     if ((BrowserMenuBar.getInstance() != null) &&
         (BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE) &&
@@ -245,6 +245,12 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
       return Profile.getOverrideFolderName();
     }
     return getExtension();
+  }
+
+  @Override
+  public ResourceTreeFolder getTreeFolder()
+  {
+    return ResourceFactory.getResourceTreeModel().getFolder(getTreeFolderName());
   }
 
   public int getType()

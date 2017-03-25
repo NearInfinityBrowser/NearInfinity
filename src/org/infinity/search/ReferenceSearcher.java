@@ -20,6 +20,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.Decompiler;
+import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
@@ -83,15 +84,17 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
         AbstractCode sourceCode = (AbstractCode)o;
         try {
           Compiler compiler = new Compiler(sourceCode.toString(),
-                                           (sourceCode instanceof Action) ? Compiler.ScriptType.ACTION :
-                                                                            Compiler.ScriptType.TRIGGER);
+                                             (sourceCode instanceof Action) ? ScriptType.ACTION :
+                                                                              ScriptType.TRIGGER);
           String code = compiler.getCode();
           if (compiler.getErrors().size() == 0) {
             Decompiler decompiler = new Decompiler(code, true);
+            decompiler.setGenerateComments(false);
+            decompiler.setGenerateResourcesUsed(true);
             if (o instanceof Action) {
-              decompiler.setScriptType(Decompiler.ScriptType.ACTION);
+              decompiler.setScriptType(ScriptType.ACTION);
             } else {
-              decompiler.setScriptType(Decompiler.ScriptType.TRIGGER);
+              decompiler.setScriptType(ScriptType.TRIGGER);
             }
             decompiler.decompile();
             for (final ResourceEntry resourceUsed : decompiler.getResourcesUsed()) {
@@ -151,17 +154,23 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
   {
     boolean hit = false;
     Decompiler decompiler = new Decompiler(bcsfile.getCode(), true);
-    String code = decompiler.decompile();
-    if (decompiler.getResourcesUsed().contains(targetEntry)) {
-      hit = true;
-      addHit(entry, entry.getSearchString(), null);
-    }
-    if (!hit && targetEntryName != null) {
-      Pattern p = Pattern.compile("\\b" + targetEntryName + "\\b", Pattern.CASE_INSENSITIVE);
-      Matcher m = p.matcher(code);
-      if (m.find()) {
-        addHit(entry, targetEntryName, null);
+    decompiler.setGenerateComments(false);
+    decompiler.setGenerateResourcesUsed(true);
+    try {
+      String code = decompiler.decompile();
+      if (decompiler.getResourcesUsed().contains(targetEntry)) {
+        hit = true;
+        addHit(entry, entry.getSearchString(), null);
       }
+      if (!hit && targetEntryName != null) {
+        Pattern p = Pattern.compile("\\b" + targetEntryName + "\\b", Pattern.CASE_INSENSITIVE);
+        Matcher m = p.matcher(code);
+        if (m.find()) {
+          addHit(entry, targetEntryName, null);
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 

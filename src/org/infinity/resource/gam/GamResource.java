@@ -266,7 +266,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     TextString version = new TextString(buffer, offset + 4, 4, COMMON_VERSION);
     addField(version);
     addField(new DecNumber(buffer, offset + 8, 4, GAM_GAME_TIME));
-    if (Profile.getEngine() == Profile.Engine.PST) {
+    if (Profile.getEngine() == Profile.Engine.PST || Profile.getGame() == Profile.Game.PSTEE) {
       addField(new Bitmap(buffer, offset + 12, 2, GAM_SELECTED_FORMATION, s_torment));
     } else {
       addField(new Bitmap(buffer, offset + 12, 2, GAM_SELECTED_FORMATION, s_formation));

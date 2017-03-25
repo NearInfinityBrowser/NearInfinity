@@ -92,6 +92,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
     RES_TYPES.put(Profile.Key.IS_SUPPORTED_ITM_V20, "ITM V2.0");
     RES_TYPES.put(Profile.Key.IS_SUPPORTED_KEY, "KEY V1");
     RES_TYPES.put(Profile.Key.IS_SUPPORTED_LUA, "LUA");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_MAZE, "MAZE");
     RES_TYPES.put(Profile.Key.IS_SUPPORTED_MENU, "MENU");
     RES_TYPES.put(Profile.Key.IS_SUPPORTED_MOS_V1, "MOS V1");
     RES_TYPES.put(Profile.Key.IS_SUPPORTED_MOSC_V1, "MOSC V1");

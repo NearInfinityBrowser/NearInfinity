@@ -1,0 +1,473 @@
+// Near Infinity - An Infinity Engine Browser and Editor
+// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// See LICENSE.txt for license information
+
+/**
+ * A BAF grammar for Infinity Engine game scripts that closely resembles the 
+ * grammar used by the WeiDU compiler.
+ */
+
+/*
+ * List of node names and their potential meanings:
+ * - SC:        Start of script (for type=script)
+ * - SEQ_TR:    Start of trigger sequence (for type=trigger)
+ * - SEQ_AC:    Start of action sequence (for type=action)
+ * - CR:        Condition-Response block
+ * - CO:        Condition block
+ * - RS:        Response-Set block
+ * - RE:        Response block
+ * - TR:        A trigger or object target structure
+ * - AC:        An action or object target structure
+ * - PARAM:     A function parameter follows
+ * - PARAM_STR: A string or object parameter (script name) follows
+ * - PARAM_NUM: A numeric or symbolic value follows - may consist of several elements (see below)
+ * - PARAM_SYM: A potential unnested object target parameter follows
+ * - PARAM_TGT: A target specifier or point parameter follows
+ * - NAME:      Potential function name, symbolic name or object target name
+ * - NUMERIC:   A numeric or symbolic value
+ * - OR_EXPR:   Follows a PARAM_NUM node if the numeric value has to be computed from one or more OR expressions
+ * - STRING:    A string in double quotes
+ * - TARGET:    The actual target specifier (e.g. [PC.HUMANOID.0]) or point structure
+ * - OBJECT:    A potential target object or function parameter definition
+ * - SYMBOL:    A symbolic value or single target object
+ * - RECT:      A rectangle definition
+ * - UINT:      An unsigned number of any supported notation
+ * - SINT:      A signed number of any supported notation
+ * - SIGN:      The sign of a numeric value
+ * - NEG:       Negation operator that may precede trigger definitions
+ */
+
+options {
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
+  JAVA_UNICODE_ESCAPE = true;
+  TRACK_TOKENS = true;
+  NODE_PACKAGE = "org.infinity.resource.bcs.parser";
+  NODE_CLASS = "BafNode";
+  STATIC = false;
+}
+
+PARSER_BEGIN(BafParser)
+
+// Near Infinity - An Infinity Engine Browser and Editor
+// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// See LICENSE.txt for license information
+
+package org.infinity.resource.bcs.parser;
+
+import org.infinity.resource.bcs.ScriptType;
+
+public class BafParser
+{
+  private ScriptType scriptType;
+
+  public BafParser(ScriptType type, java.io.InputStream stream)
+  {
+    this(stream);
+    this.scriptType = type;
+  }
+
+  public BafParser(ScriptType type, java.io.InputStream stream, String encoding)
+  {
+    this(stream, encoding);
+    this.scriptType = type;
+  }
+
+  public BafParser(ScriptType type, java.io.Reader stream)
+  {
+    this(stream);
+    this.scriptType = type;
+  }
+
+  public BafParser(ScriptType type, BafParserTokenManager tm)
+  {
+    this(tm);
+    this.scriptType = type;
+  }
+
+  /** 
+   * Returns the script type of the input data.
+   * Supported {@link ScriptType} values: {@link ScriptType#BAF}, {@link ScriptType#TRIGGER} and 
+   *                                      {@link ScriptType#ACTION}.
+   */
+  public ScriptType getType()
+  {
+    return scriptType;
+  }
+
+  /**
+   * Defines type of input data.
+   * Supported {@link ScriptType} values: {@link ScriptType#BAF}, {@link ScriptType#TRIGGER} and 
+   *                                      {@link ScriptType#ACTION}.
+   */
+  public void setType(ScriptType type)
+  {
+    this.scriptType = type;
+  }
+
+  /**
+   * Returns the root node of the current script.
+   * @return Root node of the current script.
+   * @throws ParseException if current script type is unsupported or invalid.
+   */
+  public BafNode getRoot() throws ParseException
+  {
+    switch (scriptType) {
+      case BAF:     return Script();
+      case TRIGGER: return TriggerList();
+      case ACTION:  return ActionList();
+      default: throw new ParseException("Unsupported script type: " + scriptType.toString());
+    }
+  }
+
+  /**
+   * Returns the node name indicated by the specified index constant. Use one of the JJTxxx 
+   * integer constants from {@link BafParserTreeConstants} for best results.
+   * <b>Note:</b> See {@code BafParser.jjt} for more details.
+   * @param jjtIndex Node index as defined in {@code BafParserTreeConstants}. 
+   * @return node name, or {@code null} if undefined.
+   */
+  public static String getNodeName(int jjtIndex)
+  {
+    if (jjtIndex >= 0 && jjtIndex < jjtNodeName.length) {
+      return jjtNodeName[jjtIndex];
+    }
+    return null;
+  }
+}
+
+PARSER_END(BafParser)
+
+
+/* WHITE SPACE */
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| "\f"
+}
+
+/* COMMENTS */
+
+// This expression works correctly even if comment is closed by <EOF>
+SPECIAL_TOKEN :
+{
+  < SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")? >
+}
+
+MORE :
+{
+  "/*" : IN_MULTI_LINE_COMMENT
+}
+
+<IN_MULTI_LINE_COMMENT>
+SPECIAL_TOKEN :
+{
+  < MULTI_LINE_COMMENT: "*/" > : DEFAULT
+}
+
+<IN_MULTI_LINE_COMMENT>
+MORE :
+{
+  < ~[] >
+}
+
+/* RESERVED KEYWORDS */
+TOKEN :
+{
+  < IF: "IF" >
+| < THEN: "THEN" >
+| < RESPONSE: "RESPONSE" >
+| < END: "END" >
+}
+
+/* LITERALS */
+
+TOKEN :
+{
+  < NUMBER_LITERAL: <DEC_LITERAL> | <HEX_LITERAL> | <BIN_LITERAL> >
+| < #DEC_LITERAL: (["0"-"9"])+ >
+| < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
+| < #BIN_LITERAL: "0" ["b","B"] (["0","1"])+ >
+| < STRING_LITERAL: <STRING_QUOTE> | <STRING_PERCENT> | <STRING_POUND> | <STRING_MULTI_TILDE> | <STRING_TILDE> >
+| < #STRING_QUOTE: "\"" (~["\"","\n","\r"])* "\"" >
+| < #STRING_PERCENT: "%" (~["%","\n","\r"])* "%" >
+| < #STRING_POUND: "#" (~["#","\n","\r"])* "#" >
+| < #STRING_TILDE: "~" (~["~","\n","\r"])* "~" >
+| < #STRING_MULTI_TILDE: "~~~~~" (~["\n","\r"])* "~~~~~" >
+}
+
+/* IDENTIFIERS */
+TOKEN :
+{
+  < IDENTIFIER: <LETTER> ( <LETTER> | <SPECIAL_LETTER> | <DIGIT> )* >
+// Special expression to display IDS symbols with characters not normally 
+// allowed in identifiers
+| < IDENTIFIER_ESCAPED:
+    "\"" "\"" "\"" "\"" "\"" 
+    ( ~["\"","\n","\r"] )*
+    "\"" "\"" "\"" "\"" "\"" 
+  >
+| < #LETTER:
+    [
+      "\u0041"-"\u005a",  // A .. Z
+      "\u005f",           // _
+      "\u0061"-"\u007a",  // a .. z
+      "\u00c0"-"\u00d6",  // À .. Ö
+      "\u00d8"-"\u00f6",  // Ø .. ö
+      "\u00f8"-"\u00ff"   // ø .. ÿ
+    ]
+  >
+| < #SPECIAL_LETTER:
+    [
+      "\u0021",   // !
+      "\u0023",   // #
+      "\u002d"    // -
+    ]
+  >
+| < #DIGIT:
+    [
+      "\u0030"-"\u0039"   // 0 .. 9
+    ]
+  >
+}
+
+/* SEPARATORS */
+TOKEN :
+{
+  < LPAREN: "(" >
+| < RPAREN: ")" >
+| < LBRACKET: "[" >
+| < RBRACKET: "]" >
+| < COMMA: "," >
+| < DOT: "." >
+}
+
+/* OPERATORS */
+TOKEN :
+{
+  < BANG: "!" >
+| < OR: "|" >
+| < MINUS: "-" >
+| < PLUS: "+" >
+| < POUND: "#" >
+}
+
+
+/**************************************
+ * THE BAF SCRIPT GRAMMAR STARTS HERE *
+ **************************************/
+
+/** Root node for processing a full BAF script source. */
+BafNode Script() #SC : {}
+{
+  ( ConditionResponse() )* <EOF>
+  { return jjtThis; }
+}
+
+/** Root node for processing a sequence of script triggers. */
+BafNode TriggerList() #SEQ_TR : {}
+{
+  ( Trigger() )* <EOF>
+  { return jjtThis; }
+}
+
+/** Root node for processing a sequence of script actions. */
+BafNode ActionList() #SEQ_AC : {}
+{
+  ( Action() )* <EOF>
+  { return jjtThis; }
+}
+
+
+void ConditionResponse() #CR : {}
+{
+  Condition() ResponseSet() <END>
+}
+
+void Condition() #CO : {}
+{
+  <IF> ( Trigger() )*
+}
+
+void ResponseSet() #RS : {}
+{
+  <THEN> ( Response() )*
+}
+
+void Response() #RE : {}
+{
+  <RESPONSE> <POUND> UnsignedNumber() ( Action() )*
+}
+
+void Trigger() #void : {}
+{
+  LOOKAHEAD( TriggerOverride() ) TriggerOverride()
+| TriggerGeneric()
+}
+
+void TriggerOverride() #TR : {}
+{
+  ( Negate() )? Name() <LPAREN> ObjectParameter() <COMMA> TriggerParam() <RPAREN>
+}
+
+void TriggerParam() #PARAM : {}
+{
+  TriggerGeneric()
+}
+
+void TriggerGeneric() #TR : {}
+{
+  ( Negate() )? Name() <LPAREN> ( ParameterList() )? <RPAREN>
+}
+
+void Action() #void : {}
+{
+  LOOKAHEAD( ActionOverride() ) ActionOverride()
+| ActionGeneric()
+}
+
+void ActionOverride() #AC : {}
+{
+  Name() <LPAREN> ObjectParameter() <COMMA> ActionParam() <RPAREN>
+}
+
+void ActionParam() #PARAM : {}
+{
+  ActionGeneric()
+}
+
+void ActionGeneric() #AC : {}
+{
+  Name() <LPAREN> ( ParameterList() )? <RPAREN>
+}
+
+void ParameterList() #void : {}
+{
+  Parameter() ( <COMMA> Parameter() )*
+}
+
+void Parameter() #PARAM : {}
+{
+  StringParameter()
+| TargetParameter()
+| NumberParameter()
+| LOOKAHEAD(2) CombinedSymbolParameter()
+| LOOKAHEAD(2) TargetObjectParameter()
+| SymbolParameter()
+}
+
+void ObjectParameter() #PARAM : {}
+{
+  StringParameter()
+| TargetParameter()
+| LOOKAHEAD(2) TargetObjectParameter()
+| SymbolParameter()
+}
+
+void StringParameter() #PARAM_STR : {}
+{
+  StringExpression() ( LOOKAHEAD(2) Rectangle() )?
+}
+
+void NumberParameter() #PARAM_NUM : {}
+{
+  SignedNumber() ( OrNumberExpression() )*
+}
+
+void CombinedSymbolParameter() #PARAM_NUM : {}
+{
+  Name() ( OrNumberExpression() )+
+}
+
+void OrNumberExpression() #OR_EXPR : {}
+{
+  <OR> NumberExpression()
+}
+
+void SymbolParameter() #PARAM_SYM : {}
+{
+  Name() ( Rectangle() )?
+}
+
+void TargetParameter() #PARAM_TGT : {}
+{
+  TargetExpression() ( Rectangle() )?
+}
+
+void TargetObjectParameter() #void : {}
+{
+  TargetObject() ( LOOKAHEAD(2) Rectangle() )?
+}
+
+void Name() #NAME : {}
+{
+  <IDENTIFIER>
+| <IDENTIFIER_ESCAPED>
+}
+
+void NumberExpression() #NUMERIC : {}
+{
+  SignedNumber() | Name()
+}
+
+void StringExpression() #STRING : {}
+{
+  <STRING_LITERAL>
+}
+
+void TargetExpression() #TARGET : {}
+{
+  <LBRACKET> NumberExpression() ( <DOT> NumberExpression() )* <RBRACKET>
+}
+
+void TargetObject() #OBJECT : {}
+{
+  Name() ( TargetObjectArgument() )+
+}
+
+void TargetObjectArgument() #void : {}
+{
+  <LPAREN> ( TargetObjectArgumentType() )? <RPAREN>
+}
+
+void TargetObjectArgumentType() #void : {}
+{
+  StringExpression()
+| TargetExpression()
+| LOOKAHEAD(2) TargetObject()
+| TargetSymbol()
+}
+
+void TargetSymbol() #SYMBOL : {}
+{
+  Name()
+}
+
+void Rectangle() #RECT : {}
+{
+  <LBRACKET> SignedNumber() <DOT> SignedNumber() <DOT> SignedNumber() <DOT> SignedNumber() <RBRACKET>
+}
+
+void UnsignedNumber() #UINT : {}
+{
+  <NUMBER_LITERAL>
+}
+
+void SignedNumber() #SINT : {}
+{
+  ( Sign() )? UnsignedNumber()
+}
+
+void Sign() #SIGN : {}
+{
+  <MINUS> | <PLUS>
+}
+
+void Negate() #NEG : {}
+{
+  <BANG>
+}

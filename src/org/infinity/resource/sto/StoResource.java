@@ -34,7 +34,7 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
 public final class StoResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
@@ -84,7 +84,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
   public static String getSearchString(InputStream is) throws IOException
   {
     is.skip(12);
-    return StringResource.getStringRef(StreamUtils.readInt(is)).trim();
+    return StringTable.getStringRef(StreamUtils.readInt(is)).trim();
   }
 
   public StoResource(ResourceEntry entry) throws Exception
@@ -355,7 +355,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
           items = new ResourceRef[cnt.getValue()];
           for (int i = 0; i < cnt.getValue(); i++) {
             String itemStruct = String.format(SearchOptions.getResourceName(SearchOptions.STO_Item), i);
-            if (Profile.getEngine() == Profile.Engine.PST) {
+            if (Profile.getEngine() == Profile.Engine.PST || Profile.getGame() == Profile.Game.PSTEE) {
               ItemSale11 item = (ItemSale11)sto.getAttribute(itemStruct, false);
               if (item != null) {
                 items[i] = (ResourceRef)item.getAttribute(itemLabel, false);

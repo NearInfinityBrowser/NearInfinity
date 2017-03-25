@@ -826,17 +826,20 @@ public class SearchResource extends ChildFrame
       bpwCustomFilter = new ButtonPopupWindow(setOptionsText, pCustomFilter);
 
       String[] areType;
-      if (Profile.getEngine() == Profile.Engine.EE) {
-        areType = AreResource.s_atype_ee;
-      } else if (Profile.getEngine() == Profile.Engine.PST) {
+      if (Profile.getEngine() == Profile.Engine.PST) {
         areType = AreResource.s_atype_torment;
       } else if (Profile.getEngine() == Profile.Engine.IWD2) {
         areType = AreResource.s_atype_iwd2;
+      } else if (Profile.getGame() == Profile.Game.PSTEE) {
+        areType = AreResource.s_atype_pstee;
+      } else if (Profile.getEngine() == Profile.Engine.EE) {
+        areType = AreResource.s_atype_ee;
       } else {
         areType = AreResource.s_atype;
       }
-      String[] areFlags = (Profile.getEngine() == Profile.Engine.PST) ?
-                          AreResource.s_flag_torment : AreResource.s_flag;
+      String[] areFlags =
+          (Profile.getEngine() == Profile.Engine.PST || Profile.getGame() == Profile.Game.PSTEE) ?
+          AreResource.s_flag_torment : AreResource.s_flag;
       pType = new FlagsPanel(4, areType);
       bpwType = new ButtonPopupWindow(setOptionsText, pType);
       bpwType.addActionListener(this);
@@ -2042,7 +2045,11 @@ public class SearchResource extends ChildFrame
         sFlags = ItmResource.s_flags;
         sCat = ItmResource.s_categories;
       } else {
-        sFlags = ItmResource.s_flags;
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          sFlags = ItmResource.s_flags_pstee;
+        } else {
+          sFlags = ItmResource.s_flags;
+        }
         sCat = ItmResource.s_categories;
       }
 
@@ -2775,10 +2782,14 @@ public class SearchResource extends ChildFrame
 
       cbSpellType = new AutoComboBox<>(IndexedString.createArray(SplResource.s_spelltype, 0, 0));
 
-      pExclusion = new FlagsPanel(4, SplResource.s_exclude);
+      pExclusion = new FlagsPanel(4, SplResource.s_exclude_combined);
       bpwExclusion = new ButtonPopupWindow(setOptionsText, pExclusion);
 
-      cbCastingAnim = new AutoComboBox<>(IndexedString.createArray(SplResource.s_anim, 0, 0));
+      if (Profile.getGame() == Profile.Game.PST || Profile.getGame() == Profile.Game.PSTEE) {
+        cbCastingAnim = new AutoComboBox<>(IndexedString.createArray(SplResource.s_anim_pst, 0, 0));
+      } else {
+        cbCastingAnim = new AutoComboBox<>(IndexedString.createArray(SplResource.s_anim, 0, 0));
+      }
 
       String[] priType = PriTypeBitmap.getTypeArray();
       ObjectString[] prim = new ObjectString[priType.length];
@@ -4540,14 +4551,14 @@ public class SearchResource extends ChildFrame
             new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Allegiance", "KIT.IDS"));
         kitList = new StorageString[ids.length];
         for (int i = 0; i < kitList.length; i++) {
-          kitList[i] = new ObjectString(ids[i].getString(), new Integer((int)ids[i].getID()));
+          kitList[i] = new ObjectString(ids[i].getSymbol(), new Integer((int)ids[i].getID()));
         }
       } else if (hasKit) {
         KitIdsBitmap kit = new KitIdsBitmap(StreamUtils.getByteBuffer(4), 0, "");
         kitList = new StorageString[kit.getIdsMapEntryCount()];
         for (int i = 0; i < kitList.length; i++) {
           IdsMapEntry e = kit.getIdsMapEntryByIndex(i);
-          kitList[i] = new ObjectString(e.getString(), new Integer((int)e.getID()));
+          kitList[i] = new ObjectString(e.getSymbol(), new Integer((int)e.getID()));
         }
       } else {
         kitList = new StorageString[]{};
@@ -5114,7 +5125,8 @@ public class SearchResource extends ChildFrame
       }
 
       String[] sUnusable;
-      if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V11)) {
+      if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V11) ||
+          Profile.getGame() == Profile.Game.PSTEE) {
         sUnusable = ItmResource.s_usability11;
       } else if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V20)) {
         sUnusable = ItmResource.s_usability20;
@@ -5849,7 +5861,7 @@ public class SearchResource extends ChildFrame
       }
 
       cbType = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(AbstractAbility.s_type, 0, 0)));
-      cbLocation = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(org.infinity.resource.spl.Ability.s_abilityuse, 0, 0)));
+      cbLocation = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(org.infinity.resource.itm.Ability.s_abilityuse, 0, 0)));
       cbTarget = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(AbstractAbility.s_targettype, 0, 0)));
 
       StorageString[] pro;

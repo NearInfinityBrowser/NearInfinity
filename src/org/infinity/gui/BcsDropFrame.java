@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.SortedMap;
+import java.util.SortedSet;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -56,6 +56,8 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.Decompiler;
+import org.infinity.resource.bcs.ScriptMessage;
+import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileManager;
@@ -237,7 +239,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
 
 // --------------------- End Interface ListSelectionListener ---------------------
 
-  private SortedMap<Integer, String> compileFile(Path file)
+  private SortedSet<ScriptMessage> compileFile(Path file)
   {
     StringBuffer source = new StringBuffer();
     try (BufferedReader br = Files.newBufferedReader(file)) {
@@ -252,10 +254,10 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     }
     Compiler compiler = new Compiler(source.toString());
     String compiled = compiler.getCode();
-    SortedMap<Integer, String> errors = compiler.getErrors();
-    SortedMap<Integer, String> warnings = compiler.getWarnings();
+    SortedSet<ScriptMessage> errors = compiler.getErrors();
+    SortedSet<ScriptMessage> warnings = compiler.getWarnings();
     if (!cbIgnoreWarnings.isSelected()) {
-      errors.putAll(warnings);
+      errors.addAll(warnings);
     }
     if (errors.size() == 0) {
       String filename = file.getFileName().toString();
@@ -302,11 +304,11 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     } else {
       output = FileManager.resolve(tfOtherDir.getText(), filename);
     }
-    Decompiler decompiler = new Decompiler(code.toString(), Decompiler.ScriptType.BCS, true);
+    Decompiler decompiler = new Decompiler(code.toString(), ScriptType.BCS, true);
     try (BufferedWriter bw = Files.newBufferedWriter(output)) {
       bw.write(decompiler.getSource().replaceAll("\r?\n", Misc.LINE_SEPARATOR));
       bw.newLine();
-    } catch (IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
       return false;
     }
@@ -332,15 +334,15 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
           }
         }
         else if (file.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".BAF")) {
-          SortedMap<Integer, String> errors = compileFile(file);
+          SortedSet<ScriptMessage> errors = compileFile(file);
           if (errors == null) {
             failed++;
           } else {
             if (errors.size() == 0) {
               ok++;
             } else {
-              for (final Integer lineNr : errors.keySet()) {
-                table.addTableItem(new CompileError(file, lineNr.intValue(), errors.get(lineNr)));
+              for (final ScriptMessage sm: errors) {
+                table.addTableItem(new CompileError(file, sm.getLine(), sm.getMessage()));
               }
               failed++;
             }

@@ -48,7 +48,7 @@
       <style token="FUNCTION" fg="ff0000" bold="true"/>                         <!-- TOKEN_ACTION -->
       <style token="LITERAL_BOOLEAN" fg="7f0055" bold="true"/>
       <style token="LITERAL_NUMBER_DECIMAL_INT" fg="800000"/>                   <!-- TOKEN_NUMBER -->
-      <style token="LITERAL_NUMBER_FLOAT" fg="000000"/>
+      <style token="LITERAL_NUMBER_FLOAT" fg="800000"/>                         <!-- TOKEN_BINNUMBER -->
       <style token="LITERAL_NUMBER_HEXADECIMAL" fg="800000"/>                   <!-- TOKEN_HEXNUMBER -->
       <style token="LITERAL_STRING_DOUBLE_QUOTE" fg="400080"/>                  <!-- TOKEN_STRING -->
       <style token="LITERAL_CHAR" fg="2900ff"/>

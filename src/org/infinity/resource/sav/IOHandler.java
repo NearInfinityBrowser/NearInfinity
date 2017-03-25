@@ -126,7 +126,7 @@ public final class IOHandler implements Writeable
   private Path createTempFolder()
   {
     for (int idx = 0; idx < Integer.MAX_VALUE; idx++) {
-      Path path = Profile.getHomeRoot().resolve(String.format("%s.%03d", entry.getTreeFolder(), idx));
+      Path path = Profile.getHomeRoot().resolve(String.format("%s.%03d", entry.getTreeFolderName(), idx));
       if (!Files.exists(path)) {
         return path;
       }

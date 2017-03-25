@@ -72,7 +72,6 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.ViewableContainer;
-import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;
@@ -82,10 +81,11 @@ import org.infinity.updater.UpdateCheck;
 import org.infinity.updater.UpdateInfo;
 import org.infinity.updater.Updater;
 import org.infinity.updater.Utils;
+import org.infinity.util.CreMapCache;
 import org.infinity.util.FileDeletionHook;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IniMapCache;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.DlcManager;
 import org.infinity.util.io.FileManager;
@@ -93,8 +93,6 @@ import org.infinity.util.io.FileManager;
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
 {
   private static final int[] JAVA_VERSION = {1, 8};   // the minimum java version supported
-
-  private static final boolean DEBUG = false;    // indicates whether to enable debugging features
 
   private static final InfinityTextArea consoletext = new InfinityTextArea(true);
   private static final String KEYFILENAME         = "chitin.key";
@@ -109,7 +107,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private static final String TABLE_WIDTH_OFS     = "TableColWidthOfs";
   private static final String TABLE_PANEL_HEIGHT  = "TablePanelHeight";
 
-  private static final String STATUSBAR_TEXT_FMT = "Welcome to Near Infinity! - %1$s @ %2$s - %3$d files available";
+  private static final String STATUSBAR_TEXT_FMT = "Welcome to Near Infinity! - %s @ %s - %d files available";
 
   private static NearInfinity browser;
 
@@ -126,11 +124,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private int tablePanelHeight;
   private ProgressMonitor pmProgress;
   private int progressIndex;
-
-  public static boolean isDebug()
-  {
-    return DEBUG;
-  }
 
   private static Path findKeyfile()
   {
@@ -191,23 +184,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     System.out.println("  -t type         Force the current or specified game to be of");
     System.out.println("                  specific type. (Use with care!)");
     System.out.println("                  Supported game types:");
-    System.out.println("                    BG1");
-    System.out.println("                    BG1TotSC");
-    System.out.println("                    Tutu");
-    System.out.println("                    BG1EE");
-    System.out.println("                    BG1SoD");
-    System.out.println("                    BG2SoA");
-    System.out.println("                    BG2ToB");
-    System.out.println("                    BG2EE");
-    System.out.println("                    BGT");
-    System.out.println("                    EET");
-    System.out.println("                    IWD");
-    System.out.println("                    IWDHoW");
-    System.out.println("                    IWDHowTotLM");
-    System.out.println("                    IWDEE");
-    System.out.println("                    IWD2");
-    System.out.println("                    PST");
-    System.out.println("                    Unknown");
+    for (final Profile.Game game: Profile.Game.values()) {
+      System.out.println("                    " + game.toString());
+    }
     System.out.println("\nExamples:");
     System.out.format("Specify game path: java -jar %s \"C:\\Games\\Baldurs Gate II\"", jarFile).println();
     System.out.format("Force game type:   java -jar %s -t bg2tob", jarFile).println();
@@ -329,7 +308,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
         advanceProgress("Initializing GUI...");
         BrowserMenuBar.getInstance().gameLoaded(Profile.Game.Unknown, null);
-        Compiler.restartCompiler();
+        CreMapCache.reset();
 
         return null;
       }
@@ -648,12 +627,12 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     try {
       Profile.Game oldGame = Profile.getGame();
       String oldFile = Profile.getChitinKey().toString();
-      clearCache();
+      ChildFrame.closeWindows();
+      clearCache(false);
       EffectFactory.init();
       Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
-      Compiler.restartCompiler();
+      CreMapCache.reset();
       removeViewable();
-      ChildFrame.closeWindows();
       ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
       updateWindowTitle();
       final String msg = String.format(STATUSBAR_TEXT_FMT,
@@ -698,7 +677,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     if (removeViewable()) {
       ChildFrame.closeWindows();
       storePreferences();
-      clearCache();
+      clearCache(false);
       System.exit(0);
     }
   }
@@ -811,23 +790,23 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return retVal;
   }
 
-  private static boolean reloadFactory(boolean refreshonly)
+  private static boolean reloadFactory(boolean refreshOnly)
   {
     boolean retVal = false;
-    clearCache();
-    Path keyFile = refreshonly ? Profile.getChitinKey() : findKeyfile();
+    clearCache(refreshOnly);
+    Path keyFile = refreshOnly ? Profile.getChitinKey() : findKeyfile();
     if (keyFile != null) {
       EffectFactory.init();
       retVal = Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
       if (retVal) {
-        Compiler.restartCompiler();
+        CreMapCache.reset();
       }
     }
     return retVal;
   }
 
   // Central method for clearing cached data
-  private static void clearCache()
+  private static void clearCache(boolean refreshOnly)
   {
     if (ResourceFactory.getKeyfile() != null) {
       ResourceFactory.getKeyfile().closeBIFFFiles();
@@ -837,8 +816,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     IdsMapCache.clearCache();
     IniMapCache.clearCache();
     Table2daCache.clearCache();
+    CreMapCache.clearCache();
     SearchFrame.clearCache();
-    StringResource.close();
+    StringTable.resetAll();
     ProRef.clearCache();
   }
 

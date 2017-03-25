@@ -17,7 +17,7 @@ import org.infinity.datatype.StringRef;
 import org.infinity.icon.Icons;
 import org.infinity.search.SearchClient;
 import org.infinity.search.SearchMaster;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 
 final class StringLookup extends ChildFrame implements SearchClient
 {
@@ -60,9 +60,10 @@ final class StringLookup extends ChildFrame implements SearchClient
   @Override
   public String getText(int index)
   {
-    if (index < 0 || index >= StringResource.getMaxIndex())
+    if (index < 0 || index >= StringTable.getNumEntries()) {
       return null;
-    return StringResource.getStringRef(index);
+    }
+    return StringTable.getStringRef(index);
   }
 
   @Override

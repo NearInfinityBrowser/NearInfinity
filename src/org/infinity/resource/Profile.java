@@ -87,6 +87,8 @@ public final class Profile
     BG2EE,
     /** Icewind Dale: Enhanced Edition */
     IWDEE,
+    /** Planescape Torment: Enhanced Edition */
+    PSTEE,
     /** Enhanced Edition Trilogy */
     EET,
   }
@@ -286,6 +288,8 @@ public final class Profile
     IS_SUPPORTED_KEY,
     /** Property: ({@code Boolean}) Are {@code LUA} resources supported? */
     IS_SUPPORTED_LUA,
+    /** Property: ({@code Boolean}) Are {@code MAZE} resources supported? */
+    IS_SUPPORTED_MAZE,
     /** Property: ({@code Boolean}) Are {@code MENU} resources supported? */
     IS_SUPPORTED_MENU,
     /** Property: ({@code Boolean}) Are {@code MOS V1} resources supported? */
@@ -399,6 +403,7 @@ public final class Profile
     GAME_TITLE.put(Game.BG1SoD, "Baldur's Gate: Siege of Dragonspear");
     GAME_TITLE.put(Game.BG2EE, "Baldur's Gate II: Enhanced Edition");
     GAME_TITLE.put(Game.IWDEE, "Icewind Dale: Enhanced Edition");
+    GAME_TITLE.put(Game.PSTEE, "Planescape Torment: Enhanced Edition");
     GAME_TITLE.put(Game.EET, "Baldur's Gate - Enhanced Edition Trilogy");
 
     // initializing extra folders for each supported game
@@ -424,6 +429,7 @@ public final class Profile
     GAME_EXTRA_FOLDERS.put(Game.BG1SoD, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.BG2EE, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.IWDEE, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
+    GAME_EXTRA_FOLDERS.put(Game.PSTEE, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.EET, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
 
     // initializing home folder names for Enhanced Edition games
@@ -432,6 +438,7 @@ public final class Profile
     GAME_HOME_FOLDER.put(Game.BG2EE, "Baldur's Gate II - Enhanced Edition");
     GAME_HOME_FOLDER.put(Game.EET, GAME_HOME_FOLDER.get(Game.BG2EE));
     GAME_HOME_FOLDER.put(Game.IWDEE, "Icewind Dale - Enhanced Edition");
+    GAME_HOME_FOLDER.put(Game.PSTEE, "Planescape Torment - Enhanced Edition");
 
     // static properties are always available
     initStaticProperties();
@@ -1121,6 +1128,12 @@ public final class Profile
         Files.isRegularFile(FileManager.query(gameRoots, "movies/howseer.wbm"))) {
       if (game == null) game = Game.IWDEE;
       // Note: baldur.ini is initialized later
+    } else if (game == Game.PSTEE ||
+               (Files.isRegularFile(FileManager.query(gameRoots, "data/MrtGhost.bif")) &&
+                Files.isRegularFile(FileManager.query(gameRoots, "data/shaders.bif")) &&
+                getLuaValue(FileManager.query(gameRoots, "engine.lua"), "engine_mode", "0", false).equals("3"))) {
+      if (game == null) game = Game.PSTEE;
+      // Note: baldur.ini is initialized later
     } else if (game == Game.EET || game == Game.BG2EE ||
                Files.isRegularFile(FileManager.query(gameRoots, "movies/pocketzz.wbm"))) {
       if ((Files.isRegularFile(FileManager.query(gameRoots, "override/EET.flag"))) ||
@@ -1194,6 +1207,7 @@ public final class Profile
       }
     } else {
       // game == Game.Unknown
+      // TODO: present list of available game types to choose from
       if (game == null) game = Game.Unknown;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
@@ -1317,6 +1331,7 @@ public final class Profile
       case BG1SoD:
       case BG2EE:
       case IWDEE:
+      case PSTEE:
       case EET:
         engine = Engine.EE;
         break;
@@ -1438,6 +1453,14 @@ public final class Profile
       }
       Path homeRoot = getHomeRoot();
       List<Path> dlcRoots = getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE);
+
+      // create default override folder if it doesn't exist yet
+      if (FileManager.queryExisting(gameRoot, "override") == null) {
+        try {
+          Files.createDirectory(FileManager.query(gameRoot, "override"));
+        } catch (Throwable t) {
+        }
+      }
 
       // putting all root folders into a list ordered by priority (highest first)
       List<Path> gameRoots = new ArrayList<>();
@@ -1574,6 +1597,8 @@ public final class Profile
 
     addEntry(Key.IS_SUPPORTED_LUA, Type.BOOLEAN, isEnhancedEdition());
 
+    addEntry(Key.IS_SUPPORTED_MAZE, Type.BOOLEAN, game == Game.PSTEE);
+
     addEntry(Key.IS_SUPPORTED_MENU, Type.BOOLEAN, isEnhancedEdition());
 
     addEntry(Key.IS_SUPPORTED_MOS_V1, Type.BOOLEAN, Boolean.valueOf(true));
@@ -1606,13 +1631,14 @@ public final class Profile
 
     addEntry(Key.IS_SUPPORTED_SQL, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(Key.IS_SUPPORTED_SRC_PST, Type.BOOLEAN, (engine == Engine.PST));
+    addEntry(Key.IS_SUPPORTED_SRC_PST, Type.BOOLEAN, (engine == Engine.PST || game == Game.PSTEE));
 
     addEntry(Key.IS_SUPPORTED_SRC_IWD2, Type.BOOLEAN, (engine == Engine.IWD2));
 
-    addEntry(Key.IS_SUPPORTED_STO_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
-                                                      engine == Engine.EE || engine == Engine.Unknown));
-    addEntry(Key.IS_SUPPORTED_STO_V11, Type.BOOLEAN, (engine == Engine.PST));
+    addEntry(Key.IS_SUPPORTED_STO_V10, Type.BOOLEAN, ((engine == Engine.BG1 || engine == Engine.BG2 ||
+                                                       engine == Engine.EE || engine == Engine.Unknown) &&
+                                                      game != Game.PSTEE));
+    addEntry(Key.IS_SUPPORTED_STO_V11, Type.BOOLEAN, (engine == Engine.PST || game == Game.PSTEE));
     addEntry(Key.IS_SUPPORTED_STO_V90, Type.BOOLEAN, (engine == Engine.IWD || engine == Engine.IWD2));
 
     addEntry(Key.IS_SUPPORTED_TIS_V1, Type.BOOLEAN, Boolean.valueOf(true));
@@ -1652,7 +1678,7 @@ public final class Profile
 
     // Are Kits supported?
     addEntry(Key.IS_SUPPORTED_KITS, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD2 ||
-                                               engine == Engine.EE));
+                                                   engine == Engine.EE));
 
     // the actual name of the "Alignment" IDS resource
     addEntry(Key.GET_IDS_ALIGNMENT, Type.STRING, (engine == Engine.IWD2) ? "ALIGNMNT.IDS" : "ALIGNMEN.IDS");
