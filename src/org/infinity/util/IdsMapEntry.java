@@ -7,7 +7,7 @@ package org.infinity.util;
 import java.util.ArrayDeque;
 import java.util.Iterator;
 
-public class IdsMapEntry
+public class IdsMapEntry implements Comparable<IdsMapEntry>
 {
   private final ArrayDeque<String> symbols = new ArrayDeque<>();
   private final long id;
@@ -64,4 +64,14 @@ public class IdsMapEntry
   {
     return symbol + " - " + id;
   }
+
+//--------------------- Begin Interface Comparable ---------------------
+
+  @Override
+  public int compareTo(IdsMapEntry o)
+  {
+    return toString().compareToIgnoreCase(o.toString());
+  }
+
+//--------------------- End Interface Comparable ---------------------
 }
