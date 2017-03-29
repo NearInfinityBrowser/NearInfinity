@@ -4,23 +4,30 @@
 
 package org.infinity.util.io;
 
+import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Stream;
+
+import org.infinity.util.io.FileWatcher.FileWatchEvent;
+import org.infinity.util.io.FileWatcher.FileWatchListener;
 
 /**
  * Central hub for accessing game-related I/O resources.
- * TODO: cache files for faster access
- * TODO: add Filesystem Watcher functionality to automatically update cached directories
  */
-public class FileManager
+public class FileManager implements FileWatchListener
 {
+  private static final HashMap<Path, HashSet<Path>> pathCache = new HashMap<>();
+
   private static FileManager instance;
 
   // Stores whether filesystems use case-sensitive filenames
@@ -28,6 +35,10 @@ public class FileManager
 
   public static void reset()
   {
+    pathCache.clear();
+    if (instance != null) {
+      instance.close();
+    }
     instance = null;
   }
 
@@ -189,6 +200,37 @@ public class FileManager
   }
 
   /**
+   * Removes the specified directory from the cache.
+   * @param dir The directory to remove from the cache.
+   */
+  public static void invalidateDirectory(Path dir)
+  {
+    _invalidateDirectory(dir);
+  }
+
+  /**
+   * Registers the specified file in the file cache.
+   * This method should always be called if one or more individual files have been added to a
+   * game directory. Does nothing if the parent directory has not been cached yet.
+   * @param file The file to register.
+   */
+  public static void registerFile(Path file)
+  {
+    _registerFile(file);
+  }
+
+  /**
+   * Removes the specified file from the file cache.
+   * This method should always be called if one or more individual files have been removed from a
+   * game directory. Does nothing if the parent directory has not been cached yet.
+   * @param file The file to unregister.
+   */
+  public static void unregisterFile(Path file)
+  {
+    _unregisterFile(file);
+  }
+
+  /**
    * Returns whether the file system the specified {@code path} is pointing to
    * is restricted to read-only operations.
    * @param path The path to test.
@@ -220,7 +262,63 @@ public class FileManager
     return false;
   }
 
-  private FileManager() {}
+  /**
+   * Returns whether a listed path entry points to the same file as {@code path}.
+   * @param path The path.
+   * @param list List of potential matches.
+   * @return {@code true} if a match is found, {@code false} otherwise.
+   */
+  public static boolean isSamePath(Path path, List<Path> list)
+  {
+    if (path != null && list != null) {
+      for (final Path p: list) {
+        try {
+          if (Files.isSameFile(path, p)) {
+            return true;
+          }
+        } catch (IOException e) {
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns whether a listed path entry is parent of or equal to {@code path}.
+   * @param path The path.
+   * @param list List of potential parent paths.
+   * @return {@code true} if a match is found, {@code false} otherwise.
+   */
+  public static boolean containsPath(Path path, List<Path> list)
+  {
+    return (getContainedPath(path, list) != null);
+  }
+
+  /**
+   * Returns the first {@link Path} instance which is parent or the same path as {@code path}.
+   * @param path The path.
+   * @param list List of potential parent paths.
+   * @return A {@link Path} object if a match is found, {@code null} otherwise.
+   */
+  public static Path getContainedPath(Path path, List<Path> list)
+  {
+    Path retVal = null;
+    if (path != null && list != null) {
+      for (final Path p: list) {
+        if (path.startsWith(p)) {
+          retVal = p;
+          break;
+        }
+      }
+    }
+    return retVal;
+  }
+
+
+  private FileManager()
+  {
+    FileWatcher.getInstance().addFileWatchListener(this);
+  }
 
   private Path _query(Path rootPath, String path, String... more)
   {
@@ -332,6 +430,26 @@ public class FileManager
     return curPath;
   }
 
+  private void close()
+  {
+    FileWatcher.getInstance().removeFileWatchListener(this);
+  }
+
+  @Override
+  public void fileChanged(FileWatchEvent e)
+  {
+    if (e.getKind() == StandardWatchEventKinds.ENTRY_CREATE) {
+      if (Files.isDirectory(e.getPath())) {
+        // load whole directory into cache
+        _cacheDirectory(e.getPath(), true);
+      } else {
+        _registerFile(e.getPath());
+      }
+    } else if (e.getKind() == StandardWatchEventKinds.ENTRY_DELETE) {
+      _unregisterFile(e.getPath());
+    }
+  }
+
   private static FileManager getInstance()
   {
     if (instance == null) {
@@ -380,13 +498,77 @@ public class FileManager
     return retVal;
   }
 
+  private static void _registerFile(Path file)
+  {
+    if (file != null) {
+      file = _resolve(file);
+      HashSet<Path> set = pathCache.get(file.getParent());
+      if (set != null) {
+        set.add(file);
+      }
+    }
+  }
+
+  private static void _unregisterFile(Path file)
+  {
+    if (file != null) {
+      file = _resolve(file);
+      HashSet<Path> set = pathCache.get(file.getParent());
+      if (set != null) {
+        set.remove(file);
+        if (set.isEmpty()) {
+          pathCache.remove(file.getParent());
+        }
+      } else if (pathCache.containsKey(file)) {
+        pathCache.remove(file);
+      }
+    }
+  }
+
+  private static void _invalidateDirectory(Path dir)
+  {
+    if (dir != null && pathCache.containsKey(dir)) {
+      pathCache.remove(dir);
+    }
+  }
+
   private static Path _resolveExisting(Path path)
   {
     Path retVal = _resolve(path);
-    if (retVal != null && !Files.exists(retVal)) {
-      retVal = null;
+    if (retVal != null) {
+      Path folder = retVal.getParent();
+      HashSet<Path> list = pathCache.get(folder);
+      if (list == null) {
+        list = _cacheDirectory(folder, false);
+      }
+      if (!list.contains(retVal)) {
+        retVal = null;
+      }
     }
+//    if (retVal != null && !Files.exists(retVal)) {
+//      retVal = null;
+//    }
+    return retVal;
+  }
 
+  private static HashSet<Path> _cacheDirectory(Path path, boolean force)
+  {
+    HashSet<Path> retVal = null;
+    if (path != null && Files.isDirectory(path)) {
+      if (force) {
+        pathCache.remove(path);
+      }
+      retVal = pathCache.get(path);
+      if (retVal == null) {
+        HashSet<Path> fileList = new HashSet<>();
+        try (Stream<Path> pathStream = Files.list(path)) {
+          pathStream.forEach((file) -> { fileList.add(file); });
+        } catch (IOException e) {
+        }
+        retVal = fileList;
+        pathCache.put(path, retVal);
+      }
+    }
     return retVal;
   }
 

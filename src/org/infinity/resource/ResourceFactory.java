@@ -16,6 +16,7 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -84,18 +85,22 @@ import org.infinity.util.DynamicArray;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileManager;
+import org.infinity.util.io.FileWatcher;
+import org.infinity.util.io.FileWatcher.FileWatchEvent;
+import org.infinity.util.io.FileWatcher.FileWatchListener;
 import org.infinity.util.io.StreamUtils;
 
 /**
  * Handles game-specific resource access.
  */
-public final class ResourceFactory
+public final class ResourceFactory implements FileWatchListener
 {
   private static ResourceFactory instance;
 
   private JFileChooser fc;
   private Keyfile keyfile;
   private ResourceTreeModel treeModel;
+  private Path pendingSelection;
 
   public static Keyfile getKeyfile()
   {
@@ -550,26 +555,23 @@ public final class ResourceFactory
   }
 
   /**
-   * Registers specified resource in resource tree if it's located in a supported override folder.
-   * Should be called after the resource has been updated.
-   * TODO: improve implementation
+   * Adds the specified resource to the resource tree if it's located in any of the supported
+   * override or extra folders.
    */
-  public static void registerResource(Path resource)
+  public static void registerResource(Path resource, boolean autoselect)
   {
     if (getInstance() != null) {
-      getInstance().registerResourceInternal(resource);
+      getInstance().registerResourceInternal(resource, autoselect);
     }
   }
 
   /**
-   * Removes the specified entry from the resource tree.
-   * Should be called before before the resource is updated.
-   * TODO: improve implementation
+   * Removes the specified resource from the resource tree.
    */
-  public static void unregisterResource(ResourceEntry entry)
+  public static void unregisterResource(Path resource)
   {
     if (getInstance() != null) {
-      getInstance().unregisterResourceInternal(entry);
+      getInstance().unregisterResourceInternal(resource);
     }
   }
 
@@ -844,6 +846,7 @@ public final class ResourceFactory
       }
 
       loadResourcesInternal();
+      FileWatcher.getInstance().addFileWatchListener(this);
     } catch (Exception e) {
       JOptionPane.showMessageDialog(null, "No Infinity Engine game found", "Error",
                                     JOptionPane.ERROR_MESSAGE);
@@ -854,6 +857,7 @@ public final class ResourceFactory
   // Cleans up resources
   private void close()
   {
+    FileWatcher.getInstance().removeFileWatchListener(this);
     // nothing to do yet...
   }
 
@@ -912,6 +916,7 @@ public final class ResourceFactory
     // exporting resource
     if (output != null) {
       try {
+        setPendingSelection(output);
         try (OutputStream os = StreamUtils.getOutputStream(output, true)) {
           StreamUtils.writeBytes(os, buffer);
         }
@@ -920,79 +925,191 @@ public final class ResourceFactory
                                         JOptionPane.INFORMATION_MESSAGE);
         }
       } catch (IOException e) {
+        setPendingSelection(null);
         throw new Exception("Error while exporting " + entry);
       }
     }
   }
 
-  // TODO: improve implementation
-  private void unregisterResourceInternal(ResourceEntry entry)
+  private void unregisterResourceInternal(Path resource)
   {
+    if (resource == null) {
+      return;
+    }
+
+    // 1. checking extra folders
+    List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
+    Path match = FileManager.getContainedPath(resource, extraPaths);
+    if (match != null) {
+      // finding correct subfolder
+      Path resPath = resource.getParent();
+      int startIdx = match.getNameCount() - 1; // include main folder
+      int endIdx = resPath.getNameCount();
+      Path subPath = resPath.subpath(startIdx, endIdx);
+
+      ResourceTreeFolder folder = (ResourceTreeFolder)treeModel.getRoot();
+      for (int idx = 0, cnt = subPath.getNameCount(); idx < cnt && folder != null; idx++) {
+        String folderName = subPath.getName(idx).toString();
+        List<ResourceTreeFolder> folders = folder.getFolders();
+        folder = null;
+        for (final ResourceTreeFolder subFolder: folders) {
+          if (folderName.equalsIgnoreCase(subFolder.folderName())) {
+            folder = subFolder;
+            break;
+          }
+        }
+      }
+
+      if (folder != null && folder.folderName().equalsIgnoreCase(resPath.getFileName().toString())) {
+        for (final ResourceEntry entry: folder.getResourceEntries()) {
+          if (entry.getResourceName().equalsIgnoreCase(resource.getFileName().toString())) {
+            folder.removeResourceEntry(entry);
+            if (folder.getChildCount() == 0) {
+              ResourceTreeFolder parentFolder = folder.getParentFolder();
+              parentFolder.removeFolder(folder);
+              treeModel.updateFolders(parentFolder);
+            } else {
+              treeModel.updateFolders(folder);
+            }
+            return;
+          }
+        }
+      }
+    }
+
+    // 2. checking override
+    ResourceEntry entry = getResourceEntry(resource.getFileName().toString());
     if (entry != null) {
-      if (entry instanceof BIFFResourceEntry) {
-        treeModel.removeResourceEntry(entry, entry.getTreeFolderName());
+      ResourceTreeFolder folder = entry.getTreeFolder();
+      String name = entry.getTreeFolderName();
+      treeModel.removeResourceEntry(entry, name);
+
+      if (entry instanceof FileResourceEntry) {
+        Path newPath = FileManager.queryExisting(Profile.getOverrideFolders(false), entry.getResourceName());
+        if (newPath != null) {
+          // another override file found
+          treeModel.addResourceEntry(new FileResourceEntry(newPath, entry.hasOverride()), folder.folderName(), true);
+          treeModel.updateFolders(folder);
+        } else {
+          // handle potential BIFF resource
+          BIFFResourceEntry newEntry = keyfile.getResourceEntry(entry.getResourceName());
+          if (newEntry != null) {
+            newEntry.setOverride(false);
+            treeModel.addResourceEntry(newEntry, newEntry.getTreeFolderName(), true);
+            treeModel.updateFolders(newEntry.getTreeFolder());
+          }
+        }
+      }
+
+      if (folder.getChildCount() == 0) {
+        ResourceTreeFolder parentFolder = folder.getParentFolder();
+        parentFolder.removeFolder(folder);
+        treeModel.updateFolders(parentFolder);
+      } else {
+        treeModel.updateFolders(folder);
       }
     }
   }
 
-  // TODO: improve implementation
-  private void registerResourceInternal(Path resource)
+  private void registerResourceInternal(Path resource, boolean autoselect)
   {
-    if (resource != null && Files.isRegularFile(resource)) {
-      Path resPath = resource.getParent();
-      Path resName = resource.getFileName();
+    if (resource == null || !Files.isRegularFile(resource)) {
+      return;
+    }
 
-      // 1. checking extra folders
-      List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
-      for (final Path path: extraPaths) {
-        if (resource.startsWith(path)) {
-          // finding correct subfolder
-          int startIndex = path.getNameCount() - 1; // include main folder
-          int endIndex = resPath.getNameCount();
-          Path subPath = resPath.subpath(startIndex, endIndex);
+    // 1. checking if resource has already been added to resource tree
+    ResourceEntry entry = treeModel.getResourceEntry(resource.getFileName().toString());
+    if (entry != null && resource.equals(entry.getActualPath())) {
+      if (autoselect) {
+        NearInfinity.getInstance().showResourceEntry(entry);
+      }
+      return;
+    }
+    Path resPath = resource.getParent();
 
-          ResourceTreeFolder folder = (ResourceTreeFolder)treeModel.getRoot();
-          for (int idx = 0, cnt = subPath.getNameCount(); idx < cnt && folder != null; idx++) {
-            String folderName = subPath.getName(idx).toString();
-            List<ResourceTreeFolder> folders = folder.getFolders();
-            folder = null;
-            for (final ResourceTreeFolder subFolder: folders) {
-              if (folderName.equalsIgnoreCase(subFolder.folderName())) {
-                folder = subFolder;
-                break;
-              }
-            }
+    // 2. checking extra folders
+    List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
+    Path match = FileManager.getContainedPath(resource, extraPaths);
+    if (match != null) {
+      // finding correct subfolder
+      int startIdx = match.getNameCount() - 1; // include main folder
+      int endIdx = resPath.getNameCount();
+      Path subPath = resPath.subpath(startIdx, endIdx);
+
+      ResourceTreeFolder parentFolder = null;
+      ResourceTreeFolder folder = (ResourceTreeFolder)treeModel.getRoot();
+      for (int idx = 0, cnt = subPath.getNameCount(); idx < cnt && folder != null; idx++) {
+        String folderName = subPath.getName(idx).toString();
+        List<ResourceTreeFolder> folders = folder.getFolders();
+        parentFolder = folder;
+        folder = null;
+
+        for (final ResourceTreeFolder subFolder: folders) {
+          if (folderName.equalsIgnoreCase(subFolder.folderName())) {
+            folder = subFolder;
+            break;
           }
+        }
 
-          if (folder != null && folder.folderName().equalsIgnoreCase(resPath.getFileName().toString())) {
-            ResourceEntry newEntry = new FileResourceEntry(resource, false);
-            folder.addResourceEntry(newEntry, true);
-            folder.sortChildren(false);
-            treeModel.updateFolders(folder);
-            NearInfinity.getInstance().showResourceEntry(newEntry);
-            return;
-          }
+        if (folder == null) {
+          folder = treeModel.addFolder(parentFolder, folderName);
         }
       }
 
-      // 2. checking override folders
-      List<Path> overrides = Profile.getProperty(Profile.Key.GET_GAME_OVERRIDE_FOLDERS);
-      for (final Path override: overrides) {
-        Path comparePath = override.resolve(resName);
-        try {
-          if (Files.exists(comparePath) && Files.isSameFile(resource, comparePath)) {
-            ResourceEntry newEntry = new FileResourceEntry(resource, true);
-            ResourceTreeFolder folder = treeModel.addResourceEntry(newEntry, newEntry.getTreeFolderName(), true);
-            folder.sortChildren(false);
-            treeModel.updateFolders(folder);
-            NearInfinity.getInstance().showResourceEntry(newEntry);
-            return;
-          }
-        } catch (IOException e) {
-          e.printStackTrace();
+      if (folder != null && folder.folderName().equalsIgnoreCase(resPath.getFileName().toString())) {
+        ResourceEntry newEntry = new FileResourceEntry(resource, false);
+        folder.addResourceEntry(newEntry, true);
+        folder.sortChildren(false);
+        treeModel.updateFolders(folder);
+        if (autoselect) {
+          NearInfinity.getInstance().showResourceEntry(newEntry);
         }
+        return;
       }
     }
+
+    // 3. checking override folders
+    if (FileManager.isSamePath(resPath, Profile.getOverrideFolders(false))) {
+      entry = getResourceEntry(resource.getFileName().toString());
+      String folderName = null;
+      if (entry instanceof BIFFResourceEntry) {
+        boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
+                                      BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
+        if (overrideInOverride) {
+          treeModel.removeResourceEntry(entry, entry.getExtension());
+        }
+        folderName = overrideInOverride ? Profile.getOverrideFolderName() : entry.getExtension();
+        entry = new FileResourceEntry(resource, true);
+      } else {
+        folderName = (entry != null) ? entry.getTreeFolderName() : Profile.getOverrideFolderName();
+        entry = new FileResourceEntry(resource, entry != null && entry.hasOverride());
+      }
+      treeModel.addResourceEntry(entry, folderName, true);
+      treeModel.getFolder(folderName).sortChildren(false);
+      treeModel.updateFolders(treeModel.getFolder(folderName));
+      if (autoselect) {
+        NearInfinity.getInstance().showResourceEntry(entry);
+      }
+    }
+  }
+
+  private boolean isPendingSelection(Path path, boolean autoRemove)
+  {
+    boolean retVal = (pendingSelection == path);
+
+    if (pendingSelection != null && path != null) {
+      retVal = path.equals(pendingSelection);
+      if (retVal && autoRemove) {
+        pendingSelection = null;
+      }
+    }
+
+    return retVal;
+  }
+
+  private void setPendingSelection(Path path)
+  {
+    pendingSelection = path;
   }
 
   private void loadResourcesInternal() throws Exception
@@ -1183,6 +1300,7 @@ public final class ResourceFactory
         return;
     }
     try {
+      setPendingSelection(outFile);
       ByteBuffer bb = entry.getResourceBuffer();
       try (OutputStream os = StreamUtils.getOutputStream(outFile, true)) {
         WritableByteChannel wbc = Channels.newChannel(os);
@@ -1190,10 +1308,6 @@ public final class ResourceFactory
       }
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), entry.toString() + " copied to " + outFile,
                                     "Copy complete", JOptionPane.INFORMATION_MESSAGE);
-      ResourceEntry newEntry = new FileResourceEntry(outFile, !entry.getExtension().equalsIgnoreCase("bs"));
-      treeModel.addResourceEntry(newEntry, newEntry.getTreeFolderName(), true);
-      treeModel.sort();
-      NearInfinity.getInstance().showResourceEntry(newEntry);
     } catch (Exception e) {
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error while copying " + entry,
                                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -1294,4 +1408,19 @@ public final class ResourceFactory
     }
     return true;
   }
+
+//--------------------- Begin Interface FileWatchListener ---------------------
+
+  @Override
+  public void fileChanged(FileWatchEvent e)
+  {
+//    System.out.println("ResourceFactory.fileChanged(): " + e.getKind().toString() + " - " + e.getPath());
+    if (e.getKind() == StandardWatchEventKinds.ENTRY_CREATE) {
+      registerResource(e.getPath(), isPendingSelection(e.getPath(), true));
+    } else if (e.getKind() == StandardWatchEventKinds.ENTRY_DELETE) {
+      unregisterResource(e.getPath());
+    }
+  }
+
+//--------------------- End Interface FileWatchListener ---------------------
 }

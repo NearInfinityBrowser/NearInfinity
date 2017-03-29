@@ -394,6 +394,15 @@ public class Keyfile
     }
   }
 
+  public BIFFResourceEntry getResourceEntry(String resourceName)
+  {
+    BIFFResourceEntry retVal = null;
+    if (resourceName != null) {
+      retVal = resourceEntries.get(resourceName);
+    }
+    return retVal;
+  }
+
   public void write() throws IOException
   {
     List<BIFFEntry> biffs = getBIFFList(getKeyfile(), false);

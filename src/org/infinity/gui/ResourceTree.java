@@ -258,7 +258,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       e.printStackTrace();
       return;
     }
-    ResourceFactory.getResourceTreeModel().resourceEntryChanged(entry);
+//    ResourceFactory.getResourceTreeModel().resourceEntryChanged(entry);
   }
 
   /** Attempts to delete the specified resource if it exists as a file in the game path. */

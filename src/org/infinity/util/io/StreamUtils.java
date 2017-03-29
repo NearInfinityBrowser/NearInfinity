@@ -163,7 +163,7 @@ public class StreamUtils
    */
   public static InputStream getInputStream(Path file, OpenOption... options) throws IOException
   {
-    return new BufferedInputStream(Files.newInputStream(file, StandardOpenOption.READ));
+    return new BufferedInputStream(Files.newInputStream(file, options));
   }
 
   /**

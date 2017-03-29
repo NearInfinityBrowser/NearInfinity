@@ -10,6 +10,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,6 +29,8 @@ import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.DlcManager;
 import org.infinity.util.io.FileManager;
+import org.infinity.util.io.FileWatcher;
+import org.infinity.util.io.FileWatcher.FileWatchEvent;
 
 /**
  * Provides engine- and game-specific properties of the currently opened Infinity Engine game.<br>
@@ -35,7 +38,7 @@ import org.infinity.util.io.FileManager;
  * Properties can be accessed by unique identifiers. The returned property can be
  * of any type defined by the enum {@link Profile.Type} or {@code null}.
  */
-public final class Profile
+public final class Profile implements FileWatcher.FileWatchListener
 {
   /** Supported data types for properties. */
   public enum Type {
@@ -493,6 +496,7 @@ public final class Profile
     try {
       closeGame();
       instance = new Profile(keyFile, desc, forcedGame);
+      FileWatcher.getInstance().addFileWatchListener(instance);
       return true;
     } catch (Exception e) {
       e.printStackTrace();
@@ -956,6 +960,8 @@ public final class Profile
   {
     properties.clear();
     initStaticProperties();
+    FileWatcher.getInstance().removeFileWatchListener(instance);
+    FileWatcher.getInstance().reset();
     instance = null;
   }
 
@@ -1411,6 +1417,8 @@ public final class Profile
       listRoots.add(root);
     });
 
+    listRoots.forEach((path) -> { FileWatcher.getInstance().register(path, false); });
+
     addEntry(Key.GET_GAME_ROOT_FOLDERS_AVAILABLE, Type.PATH, listRoots);
   }
 
@@ -1431,6 +1439,9 @@ public final class Profile
       Collections.sort(list);
       pathList.addAll(list);
     });
+
+    pathList.forEach((path) -> { FileWatcher.getInstance().register(path, true); });
+
     if (getProperty(Key.GET_GAME_EXTRA_FOLDERS) != null) {
       updateProperty(Key.GET_GAME_EXTRA_FOLDERS, pathList);
     } else {
@@ -1455,9 +1466,9 @@ public final class Profile
       List<Path> dlcRoots = getProperty(Key.GET_GAME_DLC_FOLDERS_AVAILABLE);
 
       // create default override folder if it doesn't exist yet
-      if (FileManager.queryExisting(gameRoot, "override") == null) {
+      if (FileManager.queryExisting(gameRoot, getOverrideFolderName().toLowerCase(Locale.ENGLISH)) == null) {
         try {
-          Files.createDirectory(FileManager.query(gameRoot, "override"));
+          Files.createDirectory(FileManager.query(gameRoot, getOverrideFolderName().toLowerCase(Locale.ENGLISH)));
         } catch (Throwable t) {
         }
       }
@@ -1514,6 +1525,9 @@ public final class Profile
       path = FileManager.query(root, "Override");
       if (path != null && Files.isDirectory(path)) { list.add(path); }
     }
+
+    list.forEach((path) -> { FileWatcher.getInstance().register(path, false); });
+
     addEntry(Key.GET_GAME_OVERRIDE_FOLDERS, Type.LIST, list);
   }
 
@@ -1867,6 +1881,44 @@ public final class Profile
       return null;
     }
   }
+
+//--------------------- Begin Interface FileWatchListener ---------------------
+
+  @Override
+  public void fileChanged(FileWatchEvent e)
+  {
+//    System.out.println("Profile.fileChanged(): " + e.getKind().toString() + " - " + e.getPath());
+    if (e.getKind() == StandardWatchEventKinds.ENTRY_CREATE) {
+      Path path = e.getPath();
+
+      if (Files.isDirectory(path)) {
+        // checking if path is an extra folder
+        List<Path> extraDirs = getProperty(Key.GET_GAME_EXTRA_FOLDERS);
+        if (FileManager.containsPath(path, extraDirs)) {
+          FileWatcher.getInstance().register(path, true);
+          return;
+        }
+
+        // new override folders must be initialized first
+        initOverrides();
+
+        // checking if path is an override folder
+        if (FileManager.isSamePath(path, getOverrideFolders(true))) {
+          FileWatcher.getInstance().register(path, false);
+          return;
+        }
+      }
+    } else if (e.getKind() == StandardWatchEventKinds.ENTRY_DELETE) {
+      Path path = e.getPath();
+
+      FileWatcher.getInstance().unregister(path, true);
+      if (FileManager.isSamePath(path, getOverrideFolders(true))) {
+        initOverrides();
+      }
+    }
+  }
+
+//--------------------- End Interface FileWatchListener ---------------------
 
 //-------------------------- INNER CLASSES --------------------------
 
