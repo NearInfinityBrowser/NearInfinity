@@ -11,10 +11,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -34,6 +35,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.MapTree;
 import org.infinity.util.Misc;
@@ -261,14 +263,27 @@ public class QuickSearch extends JPanel implements Runnable
     // populating list with new entries
     ResourceTreeModel model = tree.getModel();
     if (model != null) {
-      List<ResourceEntry> entries = ResourceFactory.getResources();
+      SortedSet<ResourceEntry> entries = generateResourceList(model.getRoot(), null);
       if (entries != null) {
-        for (final ResourceEntry entry: entries) {
-          list.add(entry);
-        }
+        list.addAll(entries);
       }
-      Collections.sort(list);
     }
+  }
+
+  // Returns a set of resource entries from the resource tree
+  private SortedSet<ResourceEntry> generateResourceList(ResourceTreeFolder folder, SortedSet<ResourceEntry> set)
+  {
+    if (set == null) {
+      set = new TreeSet<ResourceEntry>();
+    }
+
+    if (folder != null) {
+      set.addAll(folder.getResourceEntries());
+      for (final ResourceTreeFolder subFolder: folder.getFolders()) {
+        generateResourceList(subFolder, set);
+      }
+    }
+    return set;
   }
 
   // Creates a new node with a list of matching resources based on the specified node and the new character
