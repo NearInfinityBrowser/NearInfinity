@@ -310,7 +310,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         advanceProgress("Initializing GUI...");
         BrowserMenuBar.getInstance().gameLoaded(Profile.Game.Unknown, null);
         CreMapCache.reset();
-        FileWatcher.getInstance().start();
+        if (BrowserMenuBar.getInstance().getMonitorFileChanges()) {
+          FileWatcher.getInstance().start();
+        }
 
         return null;
       }

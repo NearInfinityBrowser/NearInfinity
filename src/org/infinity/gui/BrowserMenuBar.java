@@ -89,6 +89,7 @@ import org.infinity.util.ObjectString;
 import org.infinity.util.Pair;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileManager;
+import org.infinity.util.io.FileWatcher;
 
 public final class BrowserMenuBar extends JMenuBar
 {
@@ -205,6 +206,11 @@ public final class BrowserMenuBar extends JMenuBar
   public boolean getHexColorMapEnabled()
   {
     return optionsMenu.optionShowHexColored.isSelected();
+  }
+
+  public boolean getMonitorFileChanges()
+  {
+    return optionsMenu.optionMonitorFileChanges.isSelected();
   }
 
   public boolean cacheOverride()
@@ -1554,6 +1560,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
     private static final String OPTION_DLG_SHOWICONS            = "DlgShowIcons";
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
+    private static final String OPTION_MONITORFILECHANGES       = "MonitorFileChanges";
     private static final String OPTION_SHOWOVERRIDES            = "ShowOverridesIn";
     private static final String OPTION_SHOWRESREF               = "ShowResRef";
     private static final String OPTION_LOOKANDFEELCLASS         = "LookAndFeelClass";
@@ -1617,9 +1624,9 @@ public final class BrowserMenuBar extends JMenuBar
     private JCheckBoxMenuItem optionAutocheckBCS, optionCheckScriptNames, optionMoreCompileWarnings;
 
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride,
-                              optionIgnoreReadErrors, optionCacheOverride,
-                              optionShowStrrefs,
-                              optionDlgShowIcons, optionShowHexColored, optionShowUnknownResources;
+                              optionIgnoreReadErrors, optionCacheOverride, optionShowStrrefs,
+                              optionDlgShowIcons, optionShowHexColored, optionShowUnknownResources,
+                              optionMonitorFileChanges;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
     private String languageDefinition;
@@ -1656,6 +1663,11 @@ public final class BrowserMenuBar extends JMenuBar
       optionShowOffset =
           new JCheckBoxMenuItem("Show Hex Offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETS, false));
       add(optionShowOffset);
+      optionMonitorFileChanges =
+          new JCheckBoxMenuItem("Autoupdate resource tree", getPrefs().getBoolean(OPTION_MONITORFILECHANGES, true));
+      optionMonitorFileChanges.addActionListener(this);
+      optionMonitorFileChanges.setToolTipText("Automatically updates the resource tree whenever a file change occurs in game-specific directories.");
+      add(optionMonitorFileChanges);
       optionCacheOverride =
           new JCheckBoxMenuItem("Autocheck for Overrides", getPrefs().getBoolean(OPTION_CACHEOVERRIDE, false));
       optionCacheOverride.setToolTipText("Without this option selected, Refresh Tree is required " +
@@ -2246,6 +2258,7 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
       getPrefs().putBoolean(OPTION_DLG_SHOWICONS, optionDlgShowIcons.isSelected());
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
+      getPrefs().putBoolean(OPTION_MONITORFILECHANGES, optionMonitorFileChanges.isSelected());
       getPrefs().putInt(OPTION_SHOWRESREF, getResRefMode());
       getPrefs().putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
       getPrefs().put(OPTION_LOOKANDFEELCLASS, getLookAndFeel().getClassName());
@@ -2597,7 +2610,13 @@ public final class BrowserMenuBar extends JMenuBar
     @Override
     public void actionPerformed(ActionEvent event)
     {
-      if (event.getSource() == selectFont[selectFont.length - 1]) {
+      if (event.getSource() == optionMonitorFileChanges) {
+        if (optionMonitorFileChanges.isSelected()) {
+          FileWatcher.getInstance().start();
+        } else {
+          FileWatcher.getInstance().stop();
+        }
+      } else if (event.getSource() == selectFont[selectFont.length - 1]) {
         int index = FONTS.length - 1;
         FontChooser fc = new FontChooser();
         if (FONTS[index] != null) {
