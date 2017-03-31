@@ -5031,7 +5031,9 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           break;
 
-        case 181:   // Disallow item type
+        case 181: // Disallow item type
+        case 318: // Protection from spell
+        case 319: // Restrict item (BGEE)
           s.add(new StringRef(buffer, offset, "Description note"));
           break;
 
@@ -5055,20 +5057,16 @@ public final class EffectFactory
           }
           break;
 
-        case 301:   // Critical hit bonus
-        case 341:   // Critical hit effect
-        case 361:   // Cast spell on critical miss
-        case 362:   // Critical miss bonus
+        case 301: // Critical hit bonus
+        case 341: // Critical hit effect
+        case 361: // Cast spell on critical miss
+        case 362: // Critical miss bonus
           s.add(new Bitmap(buffer, offset, 4, "Attack type",
                            new String[]{"Any attack type", "Melee attack only", "Ranged attack only",
                                         "Magical attack only"}));
           break;
 
-        case 319:   // Restrict item (BGEE)
-          s.add(new StringRef(buffer, offset, "Description note"));
-          break;
-
-        case 328:   // Set spell state (BGEE/IWDEE)
+        case 328: // Set spell state (BGEE/IWDEE)
           Bitmap bmp = new Bitmap(buffer, offset, 4, "Mode", new String[]{"IWD mode", "IWD2 mode"});
           s.add(bmp);
           if (parent != null && parent instanceof UpdateListener) {
@@ -5076,12 +5074,12 @@ public final class EffectFactory
           }
           break;
 
-        case 331:
+        case 331: // Summon creatures 2
           s.add(new Bitmap(buffer, offset, 4, "Mode",
                            new String[]{"Use dice", "Use dice", "Use caster level"}));
           break;
 
-        case 333:   // Static charge
+        case 333: // Static charge
           s.add(new DecNumber(buffer, offset, 4, "Delay"));
           break;
 
@@ -5089,7 +5087,7 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, "Eye group"));
           break;
 
-        case 339:   // Alter visual animation effect
+        case 339: // Alter visual animation effect
           s.add(new DecNumber(buffer, offset, 4, "Range"));
           break;
 
@@ -5127,7 +5125,7 @@ public final class EffectFactory
       s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       switch (effectType) {
-        case 12:    // Damage
+        case 12:  // Damage
           s.add(new Flag(buffer, offset, 4, "Specific visual for",
                          new String[]{"None", "The Nameless One", "Annah", "Grace", "Nordom",
                                       "Vhailor", "Morte", "Dakkon", "Ignus"}));
