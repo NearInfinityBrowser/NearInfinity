@@ -938,6 +938,7 @@ public final class ResourceFactory implements FileWatchListener
     if (resource == null) {
       return;
     }
+    ResourceEntry selectedEntry = NearInfinity.getInstance().getResourceTree().getSelected();
 
     // 1. checking extra folders
     List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
@@ -972,6 +973,9 @@ public final class ResourceFactory implements FileWatchListener
               treeModel.updateFolders(parentFolder);
             } else {
               treeModel.updateFolders(folder);
+            }
+            if (selectedEntry != null && !selectedEntry.equals(entry)) {
+              NearInfinity.getInstance().getResourceTree().select(selectedEntry, true);
             }
             return;
           }
@@ -1009,6 +1013,12 @@ public final class ResourceFactory implements FileWatchListener
         treeModel.updateFolders(parentFolder);
       } else {
         treeModel.updateFolders(folder);
+      }
+      if (selectedEntry != null) {
+        if (selectedEntry.equals(entry)) {
+          selectedEntry = treeModel.getResourceEntry(selectedEntry.getResourceName());
+        }
+        NearInfinity.getInstance().getResourceTree().select(selectedEntry, true);
       }
     }
   }
@@ -1107,6 +1117,9 @@ public final class ResourceFactory implements FileWatchListener
       if (autoselect) {
         NearInfinity.getInstance().showResourceEntry(entry);
       } else if (selectedEntry != null) {
+        if (entry.equals(selectedEntry)) {
+          selectedEntry = entry;
+        }
         NearInfinity.getInstance().getResourceTree().select(selectedEntry, true);
       }
     }
