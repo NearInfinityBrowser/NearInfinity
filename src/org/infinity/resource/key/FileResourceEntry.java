@@ -105,12 +105,19 @@ public final class FileResourceEntry extends ResourceEntry
   @Override
   public String getTreeFolderName()
   {
-    if ((BrowserMenuBar.getInstance() != null) &&
-        (BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_THREE) &&
-        (ResourceFactory.getKeyfile().getExtensionType(getExtension()) != -1)) {
-      return getExtension();
-    } else if (hasOverride()) {
-        return Profile.getOverrideFolderName();
+    if (BrowserMenuBar.getInstance() != null) {
+      int mode = BrowserMenuBar.getInstance().getOverrideMode();
+      if (ResourceFactory.getKeyfile().getExtensionType(getExtension()) != -1) {
+        if (mode == BrowserMenuBar.OVERRIDE_IN_THREE) {
+          return getExtension();
+        } else if (mode == BrowserMenuBar.OVERRIDE_SPLIT &&
+                   ResourceFactory.getKeyfile().getResourceEntry(getResourceName()) != null) {
+          return getExtension();
+        }
+      }
+    }
+    if (hasOverride()) {
+      return Profile.getOverrideFolderName();
     } else {
       return file.getParent().getFileName().toString();
     }

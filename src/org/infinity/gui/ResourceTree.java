@@ -135,8 +135,10 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         prevnextnode = entry;
       }
       if (showresource) {
-        shownresource = entry;
-        NearInfinity.getInstance().setViewable(ResourceFactory.getResource(entry));
+        if (!entry.equals(shownresource)) {
+          shownresource = entry;
+          NearInfinity.getInstance().setViewable(ResourceFactory.getResource(entry));
+        }
       }
     }
     else
@@ -166,9 +168,14 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
 
   public void select(ResourceEntry entry)
   {
-    if (entry == null)
+    select(entry, false);
+  }
+
+  public void select(ResourceEntry entry, boolean forced)
+  {
+    if (entry == null) {
       tree.clearSelection();
-    else if (entry != shownresource) {
+    } else if (forced || entry != shownresource) {
       TreePath tp = ResourceFactory.getResourceTreeModel().getPathToNode(entry);
       tree.scrollPathToVisible(tp);
       tree.addSelectionPath(tp);

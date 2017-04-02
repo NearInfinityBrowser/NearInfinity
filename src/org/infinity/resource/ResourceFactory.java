@@ -916,7 +916,9 @@ public final class ResourceFactory implements FileWatchListener
     // exporting resource
     if (output != null) {
       try {
-        setPendingSelection(output);
+        if (output.getFileName().toString().equalsIgnoreCase(entry.getResourceName())) {
+          setPendingSelection(output);
+        }
         try (OutputStream os = StreamUtils.getOutputStream(output, true)) {
           StreamUtils.writeBytes(os, buffer);
         }
@@ -1019,12 +1021,25 @@ public final class ResourceFactory implements FileWatchListener
 
     // 1. checking if resource has already been added to resource tree
     ResourceEntry entry = treeModel.getResourceEntry(resource.getFileName().toString());
-    if (entry != null && resource.equals(entry.getActualPath())) {
-      if (autoselect) {
-        NearInfinity.getInstance().showResourceEntry(entry);
+    if (entry != null) {
+      boolean match = false;
+      if (entry instanceof BIFFResourceEntry) {
+        boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
+                                      BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
+        if (overrideInOverride && entry.getTreeFolderName().equalsIgnoreCase(Profile.getOverrideFolderName())) {
+          match = true;
+        }
+      } else if (resource.equals(entry.getActualPath())) {
+        match = true;
       }
-      return;
+      if (match) {
+        if (autoselect) {
+          NearInfinity.getInstance().showResourceEntry(entry);
+        }
+        return;
+      }
     }
+    ResourceEntry selectedEntry = NearInfinity.getInstance().getResourceTree().getSelected();
     Path resPath = resource.getParent();
 
     // 2. checking extra folders
@@ -1063,6 +1078,8 @@ public final class ResourceFactory implements FileWatchListener
         treeModel.updateFolders(folder);
         if (autoselect) {
           NearInfinity.getInstance().showResourceEntry(newEntry);
+        } else if (selectedEntry != null) {
+          NearInfinity.getInstance().getResourceTree().select(selectedEntry, true);
         }
         return;
       }
@@ -1089,6 +1106,8 @@ public final class ResourceFactory implements FileWatchListener
       treeModel.updateFolders(treeModel.getFolder(folderName));
       if (autoselect) {
         NearInfinity.getInstance().showResourceEntry(entry);
+      } else if (selectedEntry != null) {
+        NearInfinity.getInstance().getResourceTree().select(selectedEntry, true);
       }
     }
   }
@@ -1109,7 +1128,10 @@ public final class ResourceFactory implements FileWatchListener
 
   private void setPendingSelection(Path path)
   {
-    pendingSelection = path;
+    if (BrowserMenuBar.getInstance() != null &&
+        BrowserMenuBar.getInstance().getMonitorFileChanges()) {
+      pendingSelection = path;
+    }
   }
 
   private void loadResourcesInternal() throws Exception
@@ -1416,9 +1438,9 @@ public final class ResourceFactory implements FileWatchListener
   {
 //    System.out.println("ResourceFactory.fileChanged(): " + e.getKind().toString() + " - " + e.getPath());
     if (e.getKind() == StandardWatchEventKinds.ENTRY_CREATE) {
-      registerResource(e.getPath(), isPendingSelection(e.getPath(), true));
+      registerResourceInternal(e.getPath(), isPendingSelection(e.getPath(), true));
     } else if (e.getKind() == StandardWatchEventKinds.ENTRY_DELETE) {
-      unregisterResource(e.getPath());
+      unregisterResourceInternal(e.getPath());
     }
   }
 
