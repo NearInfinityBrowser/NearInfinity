@@ -1666,7 +1666,7 @@ public final class BrowserMenuBar extends JMenuBar
       optionMonitorFileChanges =
           new JCheckBoxMenuItem("Autoupdate resource tree", getPrefs().getBoolean(OPTION_MONITORFILECHANGES, true));
       optionMonitorFileChanges.addActionListener(this);
-      optionMonitorFileChanges.setToolTipText("Automatically updates the resource tree whenever a file change occurs in game-specific directories.");
+      optionMonitorFileChanges.setToolTipText("Automatically updates the resource tree whenever a file change occurs in any supported override folders.");
       add(optionMonitorFileChanges);
       optionCacheOverride =
           new JCheckBoxMenuItem("Autocheck for Overrides", getPrefs().getBoolean(OPTION_CACHEOVERRIDE, false));

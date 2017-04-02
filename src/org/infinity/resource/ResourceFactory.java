@@ -940,48 +940,48 @@ public final class ResourceFactory implements FileWatchListener
     }
     ResourceEntry selectedEntry = NearInfinity.getInstance().getResourceTree().getSelected();
 
-    // 1. checking extra folders
-    List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
-    Path match = FileManager.getContainedPath(resource, extraPaths);
-    if (match != null) {
-      // finding correct subfolder
-      Path resPath = resource.getParent();
-      int startIdx = match.getNameCount() - 1; // include main folder
-      int endIdx = resPath.getNameCount();
-      Path subPath = resPath.subpath(startIdx, endIdx);
-
-      ResourceTreeFolder folder = (ResourceTreeFolder)treeModel.getRoot();
-      for (int idx = 0, cnt = subPath.getNameCount(); idx < cnt && folder != null; idx++) {
-        String folderName = subPath.getName(idx).toString();
-        List<ResourceTreeFolder> folders = folder.getFolders();
-        folder = null;
-        for (final ResourceTreeFolder subFolder: folders) {
-          if (folderName.equalsIgnoreCase(subFolder.folderName())) {
-            folder = subFolder;
-            break;
-          }
-        }
-      }
-
-      if (folder != null && folder.folderName().equalsIgnoreCase(resPath.getFileName().toString())) {
-        for (final ResourceEntry entry: folder.getResourceEntries()) {
-          if (entry.getResourceName().equalsIgnoreCase(resource.getFileName().toString())) {
-            folder.removeResourceEntry(entry);
-            if (folder.getChildCount() == 0) {
-              ResourceTreeFolder parentFolder = folder.getParentFolder();
-              parentFolder.removeFolder(folder);
-              treeModel.updateFolders(parentFolder);
-            } else {
-              treeModel.updateFolders(folder);
-            }
-            if (selectedEntry != null && !selectedEntry.equals(entry)) {
-              NearInfinity.getInstance().getResourceTree().select(selectedEntry, true);
-            }
-            return;
-          }
-        }
-      }
-    }
+    // 1. checking extra folders <- skipped because of issues on Windows systems
+//    List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
+//    Path match = FileManager.getContainedPath(resource, extraPaths);
+//    if (match != null) {
+//      // finding correct subfolder
+//      Path resPath = resource.getParent();
+//      int startIdx = match.getNameCount() - 1; // include main folder
+//      int endIdx = resPath.getNameCount();
+//      Path subPath = resPath.subpath(startIdx, endIdx);
+//
+//      ResourceTreeFolder folder = (ResourceTreeFolder)treeModel.getRoot();
+//      for (int idx = 0, cnt = subPath.getNameCount(); idx < cnt && folder != null; idx++) {
+//        String folderName = subPath.getName(idx).toString();
+//        List<ResourceTreeFolder> folders = folder.getFolders();
+//        folder = null;
+//        for (final ResourceTreeFolder subFolder: folders) {
+//          if (folderName.equalsIgnoreCase(subFolder.folderName())) {
+//            folder = subFolder;
+//            break;
+//          }
+//        }
+//      }
+//
+//      if (folder != null && folder.folderName().equalsIgnoreCase(resPath.getFileName().toString())) {
+//        for (final ResourceEntry entry: folder.getResourceEntries()) {
+//          if (entry.getResourceName().equalsIgnoreCase(resource.getFileName().toString())) {
+//            folder.removeResourceEntry(entry);
+//            if (folder.getChildCount() == 0) {
+//              ResourceTreeFolder parentFolder = folder.getParentFolder();
+//              parentFolder.removeFolder(folder);
+//              treeModel.updateFolders(parentFolder);
+//            } else {
+//              treeModel.updateFolders(folder);
+//            }
+//            if (selectedEntry != null && !selectedEntry.equals(entry)) {
+//              NearInfinity.getInstance().getResourceTree().select(selectedEntry, true);
+//            }
+//            return;
+//          }
+//        }
+//      }
+//    }
 
     // 2. checking override
     ResourceEntry entry = getResourceEntry(resource.getFileName().toString());
@@ -1014,11 +1014,15 @@ public final class ResourceFactory implements FileWatchListener
       } else {
         treeModel.updateFolders(folder);
       }
+
       if (selectedEntry != null) {
         if (selectedEntry.equals(entry)) {
           selectedEntry = treeModel.getResourceEntry(selectedEntry.getResourceName());
         }
         NearInfinity.getInstance().getResourceTree().select(selectedEntry, true);
+        if (selectedEntry == null) {
+          NearInfinity.getInstance().setViewable(null);
+        }
       }
     }
   }
@@ -1052,48 +1056,48 @@ public final class ResourceFactory implements FileWatchListener
     ResourceEntry selectedEntry = NearInfinity.getInstance().getResourceTree().getSelected();
     Path resPath = resource.getParent();
 
-    // 2. checking extra folders
-    List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
-    Path match = FileManager.getContainedPath(resource, extraPaths);
-    if (match != null) {
-      // finding correct subfolder
-      int startIdx = match.getNameCount() - 1; // include main folder
-      int endIdx = resPath.getNameCount();
-      Path subPath = resPath.subpath(startIdx, endIdx);
-
-      ResourceTreeFolder parentFolder = null;
-      ResourceTreeFolder folder = (ResourceTreeFolder)treeModel.getRoot();
-      for (int idx = 0, cnt = subPath.getNameCount(); idx < cnt && folder != null; idx++) {
-        String folderName = subPath.getName(idx).toString();
-        List<ResourceTreeFolder> folders = folder.getFolders();
-        parentFolder = folder;
-        folder = null;
-
-        for (final ResourceTreeFolder subFolder: folders) {
-          if (folderName.equalsIgnoreCase(subFolder.folderName())) {
-            folder = subFolder;
-            break;
-          }
-        }
-
-        if (folder == null) {
-          folder = treeModel.addFolder(parentFolder, folderName);
-        }
-      }
-
-      if (folder != null && folder.folderName().equalsIgnoreCase(resPath.getFileName().toString())) {
-        ResourceEntry newEntry = new FileResourceEntry(resource, false);
-        folder.addResourceEntry(newEntry, true);
-        folder.sortChildren(false);
-        treeModel.updateFolders(folder);
-        if (autoselect) {
-          NearInfinity.getInstance().showResourceEntry(newEntry);
-        } else if (selectedEntry != null) {
-          NearInfinity.getInstance().getResourceTree().select(selectedEntry, true);
-        }
-        return;
-      }
-    }
+    // 2. checking extra folders <- skipped because of issues on Windows systems
+//    List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
+//    Path match = FileManager.getContainedPath(resource, extraPaths);
+//    if (match != null) {
+//      // finding correct subfolder
+//      int startIdx = match.getNameCount() - 1; // include main folder
+//      int endIdx = resPath.getNameCount();
+//      Path subPath = resPath.subpath(startIdx, endIdx);
+//
+//      ResourceTreeFolder parentFolder = null;
+//      ResourceTreeFolder folder = (ResourceTreeFolder)treeModel.getRoot();
+//      for (int idx = 0, cnt = subPath.getNameCount(); idx < cnt && folder != null; idx++) {
+//        String folderName = subPath.getName(idx).toString();
+//        List<ResourceTreeFolder> folders = folder.getFolders();
+//        parentFolder = folder;
+//        folder = null;
+//
+//        for (final ResourceTreeFolder subFolder: folders) {
+//          if (folderName.equalsIgnoreCase(subFolder.folderName())) {
+//            folder = subFolder;
+//            break;
+//          }
+//        }
+//
+//        if (folder == null) {
+//          folder = treeModel.addFolder(parentFolder, folderName);
+//        }
+//      }
+//
+//      if (folder != null && folder.folderName().equalsIgnoreCase(resPath.getFileName().toString())) {
+//        ResourceEntry newEntry = new FileResourceEntry(resource, false);
+//        folder.addResourceEntry(newEntry, true);
+//        folder.sortChildren(false);
+//        treeModel.updateFolders(folder);
+//        if (autoselect) {
+//          NearInfinity.getInstance().showResourceEntry(newEntry);
+//        } else if (selectedEntry != null) {
+//          NearInfinity.getInstance().getResourceTree().select(selectedEntry, true);
+//        }
+//        return;
+//      }
+//    }
 
     // 3. checking override folders
     if (FileManager.isSamePath(resPath, Profile.getOverrideFolders(false))) {

@@ -1440,7 +1440,8 @@ public final class Profile implements FileWatcher.FileWatchListener
       pathList.addAll(list);
     });
 
-    pathList.forEach((path) -> { FileWatcher.getInstance().register(path, true); });
+    // Note: disabled because of issues on Windows systems
+//    pathList.forEach((path) -> { FileWatcher.getInstance().register(path, true); });
 
     if (getProperty(Key.GET_GAME_EXTRA_FOLDERS) != null) {
       updateProperty(Key.GET_GAME_EXTRA_FOLDERS, pathList);
@@ -1892,12 +1893,12 @@ public final class Profile implements FileWatcher.FileWatchListener
       Path path = e.getPath();
 
       if (Files.isDirectory(path)) {
-        // checking if path is an extra folder
-        List<Path> extraDirs = getProperty(Key.GET_GAME_EXTRA_FOLDERS);
-        if (FileManager.containsPath(path, extraDirs)) {
-          FileWatcher.getInstance().register(path, true);
-          return;
-        }
+        // Note: skipping extra folders because of issues on Windows systems
+//        List<Path> extraDirs = getProperty(Key.GET_GAME_EXTRA_FOLDERS);
+//        if (FileManager.containsPath(path, extraDirs)) {
+//          FileWatcher.getInstance().register(path, true);
+//          return;
+//        }
 
         // new override folders must be initialized first
         initOverrides();
