@@ -241,10 +241,22 @@ public final class ResourceTreeModel implements TreeModel
   public ResourceEntry getResourceEntry(String entryname)
   {
     if (entryname != null) {
-      return entries.get(entryname.toUpperCase(Locale.ENGLISH));
-    } else {
-      return null;
+      entryname = entryname.toUpperCase(Locale.ENGLISH);
+      ResourceEntry entry = entries.get(entryname);
+      if (entry != null) {
+        return entry;
+      } else {
+        for (final ResourceTreeFolder folder: folders.values()) {
+          List<ResourceEntry> entries = folder.getResourceEntries();
+          for (final ResourceEntry curEntry: entries) {
+            if (curEntry.getResourceName().equalsIgnoreCase(entryname)) {
+              return curEntry;
+            }
+          }
+        }
+      }
     }
+    return null;
   }
 
   public List<ResourceEntry> removeDirectory(ResourceTreeFolder parentFolder, String folderName)

@@ -984,14 +984,14 @@ public final class ResourceFactory implements FileWatchListener
 //    }
 
     // 2. checking override
-    ResourceEntry entry = getResourceEntry(resource.getFileName().toString());
+    ResourceEntry entry = getResourceEntry(resource.getFileName().toString(), true);
     if (entry != null) {
       ResourceTreeFolder folder = entry.getTreeFolder();
       String name = entry.getTreeFolderName();
       treeModel.removeResourceEntry(entry, name);
 
       if (entry instanceof FileResourceEntry) {
-        Path newPath = FileManager.queryExisting(Profile.getOverrideFolders(false), entry.getResourceName());
+        Path newPath = FileManager.queryExisting(Profile.getOverrideFolders(true), entry.getResourceName());
         if (newPath != null) {
           // another override file found
           treeModel.addResourceEntry(new FileResourceEntry(newPath, entry.hasOverride()), folder.folderName(), true);
@@ -1100,7 +1100,7 @@ public final class ResourceFactory implements FileWatchListener
 //    }
 
     // 3. checking override folders
-    if (FileManager.isSamePath(resPath, Profile.getOverrideFolders(false))) {
+    if (FileManager.isSamePath(resPath, Profile.getOverrideFolders(true))) {
       entry = getResourceEntry(resource.getFileName().toString());
       String folderName = null;
       if (entry instanceof BIFFResourceEntry) {
@@ -1112,7 +1112,7 @@ public final class ResourceFactory implements FileWatchListener
         folderName = overrideInOverride ? Profile.getOverrideFolderName() : entry.getExtension();
         entry = new FileResourceEntry(resource, true);
       } else {
-        folderName = (entry != null) ? entry.getTreeFolderName() : Profile.getOverrideFolderName();
+        folderName = (entry != null) ? entry.getTreeFolderName() : resPath.getFileName().toString();
         entry = new FileResourceEntry(resource, entry != null && entry.hasOverride());
       }
       treeModel.addResourceEntry(entry, folderName, true);
