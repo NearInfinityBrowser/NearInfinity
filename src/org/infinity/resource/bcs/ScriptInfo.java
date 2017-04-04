@@ -621,7 +621,7 @@ public class ScriptInfo
   public boolean isCommentAllowed(int code, int paramIndex)
   {
     if (FUNCTION_PARAM_COMMENT.containsKey(Integer.valueOf(code))) {
-      return (FUNCTION_PARAM_COMMENT.get(Integer.valueOf(code)).intValue() >= paramIndex);
+      return (paramIndex >= FUNCTION_PARAM_COMMENT.get(Integer.valueOf(code)).intValue());
     } else {
       return true;
     }

@@ -1017,7 +1017,7 @@ public final class ResourceFactory implements FileWatchListener
 
       if (selectedEntry != null) {
         if (selectedEntry.equals(entry)) {
-          selectedEntry = treeModel.getResourceEntry(selectedEntry.getResourceName());
+          selectedEntry = treeModel.getResourceEntry(selectedEntry.getResourceName(), true);
         }
         NearInfinity.getInstance().getResourceTree().select(selectedEntry, true);
         if (selectedEntry == null) {
@@ -1034,7 +1034,7 @@ public final class ResourceFactory implements FileWatchListener
     }
 
     // 1. checking if resource has already been added to resource tree
-    ResourceEntry entry = treeModel.getResourceEntry(resource.getFileName().toString());
+    ResourceEntry entry = treeModel.getResourceEntry(resource.getFileName().toString(), true);
     if (entry != null) {
       boolean match = false;
       if (entry instanceof BIFFResourceEntry) {

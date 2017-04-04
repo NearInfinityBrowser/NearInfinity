@@ -240,12 +240,19 @@ public final class ResourceTreeModel implements TreeModel
 
   public ResourceEntry getResourceEntry(String entryname)
   {
+    return getResourceEntry(entryname, false);
+  }
+
+  public ResourceEntry getResourceEntry(String entryname, boolean includeExtraFolders)
+  {
+    ResourceEntry retVal = null;
+
     if (entryname != null) {
       entryname = entryname.toUpperCase(Locale.ENGLISH);
       ResourceEntry entry = entries.get(entryname);
       if (entry != null) {
-        return entry;
-      } else {
+        retVal = entry;
+      } else if (includeExtraFolders) {
         for (final ResourceTreeFolder folder: folders.values()) {
           List<ResourceEntry> entries = folder.getResourceEntries();
           for (final ResourceEntry curEntry: entries) {
@@ -256,7 +263,8 @@ public final class ResourceTreeModel implements TreeModel
         }
       }
     }
-    return null;
+
+    return retVal;
   }
 
   public List<ResourceEntry> removeDirectory(ResourceTreeFolder parentFolder, String folderName)
