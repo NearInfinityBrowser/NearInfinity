@@ -281,7 +281,11 @@ public class FileWatcher implements Runnable
     if (event != null) {
       for (FileWatchListener l: listeners) {
         if (l != null) {
-          l.fileChanged(event);
+          try {
+            l.fileChanged(event);
+          } catch (Throwable t) {
+            t.printStackTrace();
+          }
         }
       }
     }

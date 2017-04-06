@@ -935,6 +935,10 @@ public final class ResourceFactory implements FileWatchListener
 
   private void unregisterResourceInternal(Path resource)
   {
+    if (!BrowserMenuBar.getInstance().showUnknownResourceTypes() &&
+        !Profile.isResourceTypeSupported(FileManager.getFileExtension(resource))) {
+      return;
+    }
     if (resource == null) {
       return;
     }
@@ -1029,6 +1033,10 @@ public final class ResourceFactory implements FileWatchListener
 
   private void registerResourceInternal(Path resource, boolean autoselect)
   {
+    if (!BrowserMenuBar.getInstance().showUnknownResourceTypes() &&
+        !Profile.isResourceTypeSupported(FileManager.getFileExtension(resource))) {
+      return;
+    }
     if (resource == null || !Files.isRegularFile(resource)) {
       return;
     }

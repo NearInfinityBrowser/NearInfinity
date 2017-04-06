@@ -89,7 +89,6 @@ import org.infinity.util.StringTable;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.DlcManager;
 import org.infinity.util.io.FileManager;
-import org.infinity.util.io.FileWatcher;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
 {
@@ -310,9 +309,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         advanceProgress("Initializing GUI...");
         BrowserMenuBar.getInstance().gameLoaded(Profile.Game.Unknown, null);
         CreMapCache.reset();
-        if (BrowserMenuBar.getInstance().getMonitorFileChanges()) {
-          FileWatcher.getInstance().start();
-        }
+//        if (BrowserMenuBar.getInstance().getMonitorFileChanges()) {
+//          FileWatcher.getInstance().start();
+//        }
 
         return null;
       }
@@ -679,7 +678,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   public void quit()
   {
     if (removeViewable()) {
-      FileWatcher.getInstance().stop();
+//      FileWatcher.getInstance().stop();
       ChildFrame.closeWindows();
       storePreferences();
       clearCache(false);

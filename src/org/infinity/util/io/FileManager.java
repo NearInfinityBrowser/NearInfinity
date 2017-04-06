@@ -314,6 +314,26 @@ public class FileManager implements FileWatchListener
     return retVal;
   }
 
+  /**
+   * Returns the file extension of the specified path.
+   * @param path File or folder path.
+   * @return the empty or non-empty file extension, or {@code null} on error.
+   */
+  public static String getFileExtension(Path path)
+  {
+    String retVal = null;
+    if (path != null) {
+      String leaf = path.getFileName().toString();
+      int p = leaf.lastIndexOf('.');
+      if (p >= 0) {
+        retVal = leaf.substring(p+1);
+      } else {
+        retVal = "";
+      }
+    }
+    return retVal;
+  }
+
 
   private FileManager()
   {
