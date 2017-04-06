@@ -120,6 +120,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     Object node = tree.getLastSelectedPathComponent();
     if (node == null) {
       tree.clearSelection();
+      shownresource = null;
       BrowserMenuBar.getInstance().resourceEntrySelected(null);
     }
     else if (node instanceof ResourceEntry) {
