@@ -668,7 +668,6 @@ public class Signatures
         final Pattern patParam    = Pattern.compile("([AIO0PST]):([0-9a-zA-Z_# ]+)\\*?([0-9a-zA-Z_#]*)");
         final Pattern patParamSep = Pattern.compile(" *, *");
         pos = 0;
-        int numStrings = 0;
 
         while (pos < param.length()) {
           Matcher m = patParam.matcher(param);
@@ -699,11 +698,6 @@ public class Signatures
               Parameter p = new Parameter(type, name, idsRef);
               ScriptInfo info = ScriptInfo.getInfo();
               p.setResourceType(info.getResType(funcType, id, p, retVal.size()));
-              if (type == 'S') {
-                p.setCombinedString(info.isCombinedString(id, numStrings));
-                p.setColonSeparatedString(info.isColonSeparatedString(id, numStrings));
-                numStrings++;
-              }
               retVal.add(p);
 
               // preparing next parameter match
@@ -717,6 +711,17 @@ public class Signatures
           } else {
             // no parameter found
             pos = param.length();
+          }
+        }
+
+        // finalizations
+        int numStrings = 0;
+        for (final Parameter p: retVal) {
+          ScriptInfo info = ScriptInfo.getInfo();
+          if (p.getType() == Parameter.TYPE_STRING) {
+            p.setCombinedString(info.isCombinedString(id, numStrings, retVal.size()));
+            p.setColonSeparatedString(info.isColonSeparatedString(id, numStrings, retVal.size()));
+            numStrings++;
           }
         }
 

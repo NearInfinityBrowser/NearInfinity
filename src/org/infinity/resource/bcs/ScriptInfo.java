@@ -103,11 +103,11 @@ public class ScriptInfo
     si.FUNCTION_RESTYPE.put(key(Function.FunctionType.ACTION, 279, 'S', 0), "SPL"); // AddSpecialAbility
     si.FUNCTION_RESTYPE.put(key(Function.FunctionType.ACTION, 272, 'S', 0), "VEF:VVC:BAM"); // CreateVisualEffect
     si.FUNCTION_RESTYPE.put(key(Function.FunctionType.ACTION, 273, 'S', 0), "VEF:VVC:BAM"); // CreateVisualEffectObject
+    si.FUNCTION_CONCAT.put(Integer.valueOf(246), Integer.valueOf(0x0001)); // CreateCreatureAtLocation
     si.FUNCTION_CONCAT.put(Integer.valueOf(256), Integer.valueOf(0x0001)); // CreateItemGlobal
     si.FUNCTION_CONCAT.put(Integer.valueOf(268), Integer.valueOf(0x0001)); // RealSetGlobalTimer
-    si.FUNCTION_CONCAT.put(Integer.valueOf(335), Integer.valueOf(0x0001)); // SetTokenGlobal
-    si.FUNCTION_CONCAT.put(Integer.valueOf(246), Integer.valueOf(0x0001)); // CreateCreatureAtLocation
     si.FUNCTION_CONCAT.put(Integer.valueOf(297), Integer.valueOf(0x0001)); // MoveToSavedLocation
+    si.FUNCTION_CONCAT.put(Integer.valueOf(335), Integer.valueOf(0x0001)); // SetTokenGlobal
     si.FUNCTION_PARAM_COMMENT.put(Integer.valueOf(246), Integer.valueOf(2));  // CreateCreatureAtLocation
     si.FUNCTION_PARAM_COMMENT.put(Integer.valueOf(256), Integer.valueOf(2));  // CreateItemGlobal
     si.FUNCTION_PARAM_COMMENT.put(Integer.valueOf(262), Integer.valueOf(1));  // DisplayStringNoName
@@ -131,7 +131,7 @@ public class ScriptInfo
     si.FUNCTION_CONCAT.put(Integer.valueOf(0x4109), Integer.valueOf(0x0001)); // StuffGlobalRandom (PSTEE)
     si.FUNCTION_CONCAT.put(Integer.valueOf(364), Integer.valueOf(0x0001)); // SetGlobalRandom
     si.FUNCTION_CONCAT.put(Integer.valueOf(377), Integer.valueOf(0x0001)); // SetGlobalTimerRandom
-    si.FUNCTION_CONCAT.put(Integer.valueOf(446), Integer.valueOf(0x0011)); // IncrementGlobalOnce (PSTEE)
+    si.FUNCTION_CONCAT.put(Integer.valueOf(446), Integer.valueOf(0x0011 | (5 << 16))); // IncrementGlobalOnce (PSTEE)
     si.FUNCTION_PARAM_COMMENT.put(Integer.valueOf(362), Integer.valueOf(1));  // RemoveStoreItem
     si.FUNCTION_PARAM_COMMENT.put(Integer.valueOf(363), Integer.valueOf(1));  // AddStoreItem
     si.FUNCTION_PARAM_COMMENT.put(Integer.valueOf(376), Integer.valueOf(1));  // DisplayStringNoNameDlg
@@ -349,10 +349,12 @@ public class ScriptInfo
    * specified by code.
    * @param Key The trigger or action function code.
    * @param Value A numeric code:
-   *              Bit 0: Whether first string parameter consists of two separate strings
-   *              Bit 4: Whether second string parameter consists of two separate strings
-   *              Bit 8: Whether first string parameter is separated by fixed-size string (0) or is colon-separated (1)
-   *              Bit 12: Whether second string parameter is separated by fixed-size string (0) or is colon-separated (1)
+   *              Bit 0: Whether first string parameter consists of two separate strings.<br>
+   *              Bit 4: Whether second string parameter consists of two separate strings.<br>
+   *              Bit 8: Whether first string parameter is separated by fixed-size string (0) or is colon-separated (1).<br>
+   *              Bit 12: Whether second string parameter is separated by fixed-size string (0) or is colon-separated (1).<br>
+   *              Bits 16..31: Optional number of expected parameter. This is useful to distinguish functions with
+   *                           identical code, but different signatures.
    */
   public final Map<Integer, Integer> FUNCTION_CONCAT = new HashMap<>(64);
 
@@ -632,24 +634,28 @@ public class ScriptInfo
    * from a string parameter.
    * @param code Trigger or action function code.
    * @param position Relative string argument position (in range: [0, 3]).
+   * @param numParameters Number of expected parameters for this function. Specify 0 to ignore.
    * @return {@code true} if argument is part of a combined string parameter, {@code false} otherwise.
    */
-  public boolean isCombinedString(int code, int position)
+  public boolean isCombinedString(int code, int position, int numParameters)
   {
     boolean retVal = false;
     Integer v = FUNCTION_CONCAT.get(Integer.valueOf(code));
     if (v != null) {
-      int mask = v & 0xff;
-      int pos = 0;
-      while (pos < position) {
-        int ofs = ((mask & 1) != 0) ? 2 : 1;
-        if (position < pos + ofs) {
-          break;
+      int numParams = (v >> 16) & 0xffff;
+      if (numParams == 0 || numParameters == 0 || numParams == numParameters) {
+        int mask = v & 0xff;
+        int pos = 0;
+        while (pos < position) {
+          int ofs = ((mask & 1) != 0) ? 2 : 1;
+          if (position < pos + ofs) {
+            break;
+          }
+          pos += ofs;
+          mask >>= 4;
         }
-        pos += ofs;
-        mask >>= 4;
+        retVal = (mask & 1) != 0;
       }
-      retVal = (mask & 1) != 0;
     }
     return retVal;
   }
@@ -658,26 +664,30 @@ public class ScriptInfo
    * Returns whether the string argument is included in a colon-separated string parameter.
    * @param code Trigger of action function code.
    * @param position Relative string argument position (in range: [0, 3]).
+   * @param numParameters Number of expected parameters for this function. Specify 0 to ignore.
    * @return {@code true} if argument is part of a colon-separated string parameter, {@code false} otherwise.
    */
-  public boolean isColonSeparatedString(int code, int position)
+  public boolean isColonSeparatedString(int code, int position, int numParameters)
   {
     boolean retVal = false;
     Integer v = FUNCTION_CONCAT.get(Integer.valueOf(code));
     if (v != null) {
-      int mask1 = v & 0xff;
-      int mask2 = (v >> 8) & 0xff;
-      int pos = 0;
-      while (pos < position) {
-        int ofs = ((mask1 & 1) != 0) ? 2 : 1;
-        if (position < pos + ofs) {
-          break;
+      int numParams = (v >> 16) & 0xffff;
+      if (numParams == 0 || numParameters == 0 || numParams == numParameters) {
+        int mask1 = v & 0xff;
+        int mask2 = (v >> 8) & 0xff;
+        int pos = 0;
+        while (pos < position) {
+          int ofs = ((mask1 & 1) != 0) ? 2 : 1;
+          if (position < pos + ofs) {
+            break;
+          }
+          pos += ofs;
+          mask1 >>= 4;
+          mask2 >>= 4;
         }
-        pos += ofs;
-        mask1 >>= 4;
-        mask2 >>= 4;
+        retVal = (mask2 & 1) != 0;
       }
-      retVal = (mask2 & 1) != 0;
     }
     return retVal;
   }
