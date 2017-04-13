@@ -202,8 +202,10 @@ public class FileWatcher implements Runnable
               Kind<?>[] kinds = list.toArray(new Kind<?>[list.size()]);
               key = dir.register(watcher, kinds);
               pathMap.put(key, dir);
-            } catch (IOException e) {
-              e.printStackTrace();
+            } catch (UnsupportedOperationException uoe) {
+              // no feedback necessary
+            } catch (IOException ioe) {
+              ioe.printStackTrace();
             }
           }
         }
