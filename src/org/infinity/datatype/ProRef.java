@@ -92,7 +92,7 @@ public final class ProRef extends ResourceBitmap
       for (final Long key: mslMap.getKeys()) {
         long k = key.longValue();
         IdsMapEntry mslEntry = mslMap.get(k);
-        IdsMapEntry proEntry = proMap.get(k);
+        IdsMapEntry proEntry = proMap.get(k - 1L);
         RefEntry entry = null;
         if (proEntry != null) {
           entry = new RefEntry(k, proEntry.getSymbol().toUpperCase(Locale.ENGLISH) + ".PRO",
