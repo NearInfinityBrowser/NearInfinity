@@ -509,7 +509,12 @@ public class ScriptInfo
     this((objectSpecifierIds != null) ? objectSpecifierIds : obj.OBJECT_SPECIFIER_IDS, obj.SCOPES);
     this.FUNCTION_RESTYPE.putAll(obj.FUNCTION_RESTYPE);
     this.FUNCTION_CONCAT.putAll(obj.FUNCTION_CONCAT);
-    this.FUNCTION_SIGNATURES.putAll(obj.FUNCTION_SIGNATURES);
+    for (final Function.FunctionType ft: obj.FUNCTION_SIGNATURES.keySet()) {
+      List<String> oldList = obj.FUNCTION_SIGNATURES.get(ft);
+      if (oldList != null) {
+        this.FUNCTION_SIGNATURES.put(ft, new ArrayList<String>(oldList));
+      }
+    }
   }
 
   /** Returns object specifier IDS resource names. */
