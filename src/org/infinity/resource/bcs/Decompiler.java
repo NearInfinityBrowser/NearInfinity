@@ -633,7 +633,7 @@ public final class Decompiler
           if (isGenerateErrors()) {
             idsErrors.put(Integer.valueOf(lineNr), "Unknown type for parameter " + i + ".");
           }
-          return String.format("// Error - %s: Unknown type for parameter %d", function.getName(), trigger.id);
+          return String.format("// Error - %s: Unknown type for parameter %d", function.getName(), i);
       }
     }
 
