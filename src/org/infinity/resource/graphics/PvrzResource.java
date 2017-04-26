@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -38,7 +39,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
   private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
-  private JMenuItem miExport, miPNG;
+  private JMenuItem miExport, miPNG, miPVR;
   private RenderCanvas rcImage;
   private JPanel panel;
 
@@ -58,6 +59,22 @@ public class PvrzResource implements Resource, ActionListener, Closeable
     else if (event.getSource() == miExport) {
       // export as original PVRZ
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
+    } else if (event.getSource() == miPVR) {
+      ByteBuffer decompressed = null;
+      try {
+        decompressed = Compressor.decompress(getResourceEntry().getResourceBuffer(), 0);
+      } catch (Exception e) {
+        decompressed = null;
+        e.printStackTrace();
+      }
+      if (decompressed != null) {
+        String fileName = entry.toString().replace(".PVRZ", ".PVR");
+        ResourceFactory.exportResource(entry, decompressed, fileName, panel.getTopLevelAncestor());
+      } else {
+        JOptionPane.showMessageDialog(panel.getTopLevelAncestor(),
+                                      "Error while exporting " + entry, "Error",
+                                      JOptionPane.ERROR_MESSAGE);
+      }
     } else if (event.getSource() == miPNG) {
       try {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -117,8 +134,10 @@ public class PvrzResource implements Resource, ActionListener, Closeable
     miExport.addActionListener(this);
     miPNG = new JMenuItem("as PNG");
     miPNG.addActionListener(this);
+    miPVR = new JMenuItem("as PVR (uncompressed)");
+    miPVR.addActionListener(this);
     ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
-    bpmExport.setMenuItems(new JMenuItem[]{miExport, miPNG});
+    bpmExport.setMenuItems(new JMenuItem[]{miExport, miPVR, miPNG});
 
     rcImage = new RenderCanvas();
     rcImage.setHorizontalAlignment(SwingConstants.CENTER);
