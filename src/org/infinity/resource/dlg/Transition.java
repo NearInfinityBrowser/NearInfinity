@@ -27,8 +27,10 @@ public final class Transition extends AbstractStruct implements AddRemovable
   public static final String DLG_TRANS_NEXT_DIALOG_STATE  = "Next dialogue state";
 
   private static final String[] s_flag = {"No flags set", "Text associated", "Trigger", "Action",
-                                          "Terminates dialogue", "Journal entry", "", "Add unsolved quest",
-                                          "Add journal note", "Add solved quest"};
+                                          "Terminates dialogue", "Journal entry", "Interrupt",
+                                          "Add unsolved quest", "Add journal note", "Add solved quest",
+                                          "EE: Execute immediate;Attempt to execute non-blocking script actions instantly.",
+                                          "EE: Clear actions"};
   private int nr;
 
   Transition() throws Exception
