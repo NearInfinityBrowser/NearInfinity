@@ -95,7 +95,7 @@ public class WavBuffer extends AudioBuffer
 
     // decoding data
     int adpcmSize = fmt.dataSize;
-    int pcmBlockSize = (fmt.samplesPerBlock * fmt.numChannels);;
+    int pcmBlockSize = (fmt.samplesPerBlock * fmt.numChannels);
     while (adpcmSize > 0) {
       for (int channel = 0; channel < fmt.numChannels; channel++) {
         short lastSample = DynamicArray.getShort(buffer, offset + (channel << 2));

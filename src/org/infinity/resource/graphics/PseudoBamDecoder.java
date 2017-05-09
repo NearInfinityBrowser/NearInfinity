@@ -676,7 +676,7 @@ public class PseudoBamDecoder extends BamDecoder
 
         // rudimentary palette check
         if (palette == null) {
-          final int Green = 0x0000ff00;;
+          final int Green = 0x0000ff00;
           IndexColorModel cm = (IndexColorModel)entry.getFrame().getColorModel();
           palette = new int[1 << cm.getPixelSize()];
           cm.getRGBs(palette);

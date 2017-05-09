@@ -61,7 +61,7 @@ public final class StructureFactory
     resExt.put(ResType.RES_WED, "WED");
     resExt.put(ResType.RES_WFX, "WFX");
     resExt.put(ResType.RES_WMAP, "WMP");
-  };
+  }
 
 
   public static StructureFactory getInstance()

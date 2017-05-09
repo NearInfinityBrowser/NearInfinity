@@ -52,7 +52,7 @@ public class SavResourceEntry extends ResourceEntry implements Writeable
     byte[] udata = StreamUtils.toArray(entry.getResourceBuffer(true));
     if (udata.length == 0) {
       uncomprLength = 0;
-      comprLength = 8;;
+      comprLength = 8;
       udata = new byte[]{0x78, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01};
     } else {
       cdata = StreamUtils.getByteBuffer(udata.length * 2);
