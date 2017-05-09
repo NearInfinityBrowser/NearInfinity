@@ -94,7 +94,7 @@ public class Icons
    * Returns an ImageIcon object of the specified graphics filename.
    * @param c A class located in the same package as the specified graphics file. The full package name
    *          of the class will be used to determine the correct path of the graphics file.
-   * @param name The graphics filename.
+   * @param fileName The graphics filename.
    * @return The ImageIcon object, or {@code null} on error.
    */
   public static ImageIcon getIcon(Class<?> c, String fileName)
@@ -113,7 +113,7 @@ public class Icons
 
   /**
    * Returns an Image object of the specified graphics filename.
-   * @param name The graphics filename, can include a path relative to the current class path.
+   * @param fileName The graphics filename, can include a path relative to the current class path.
    * @return The Image object, or {@code null} on error.
    */
   public static Image getImage(String fileName)
@@ -125,7 +125,7 @@ public class Icons
    * Returns an Image object of the specified graphics filename.
    * @param c A class located in the same package as the specified graphics file. The full package name
    *          of the class will be used to determine the correct path of the graphics file.
-   * @param name The graphics filename.
+   * @param fileName The graphics filename.
    * @return The Image object, or {@code null} on error.
    */
   public static Image getImage(Class<?> c, String fileName)

@@ -130,7 +130,7 @@ public final class Decompiler
   /**
    * Specifies new script type.
    * <b>Note:</b> Automatically invalidates previously decompiled script code.
-   * @param type
+   * @param type Type of Script
    */
   public void setScriptType(ScriptType type)
   {

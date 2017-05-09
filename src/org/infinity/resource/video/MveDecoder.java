@@ -224,7 +224,7 @@ public class MveDecoder
   /**
    * Connects a video output object with the decoder. (Note: The decoder calls
    * {@code VideoBuffer.flip()} automatically after each successfully processed frame.
-   * @param renderer The VideoBuffer object to render the decoded frames into.
+   * @param videoOut The VideoBuffer object to render the decoded frames into.
    */
   public void setVideoOutput(VideoBuffer videoOut)
   {

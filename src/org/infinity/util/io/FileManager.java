@@ -59,7 +59,7 @@ public class FileManager implements FileWatchListener
   /**
    * Returns a {@link Path} to the first matching file of the specified path in one of the listed
    * root paths.
-   * @param rootPaths List of {@code Path} objects which are searched in order to find {@path}.
+   * @param rootPaths List of {@code Path} objects which are searched in order to find {@code path}.
    *                  Specify {@code null} to use the current working directory instead.
    * @param path Relative path to a file or directory.
    * @param more More optional path elements that are appended to {@code path}.
@@ -73,10 +73,10 @@ public class FileManager implements FileWatchListener
 
   /**
    * Returns a {@link Path} to the first matching file of the specified path in one of the listed
-   * {@code rootPaths} filtered by {@rootFilter}.
+   * {@code rootPaths} filtered by {@code rootFilter}.
    * @param rootFilter Limit search to {@code rootPaths} which are based on this root {@code Path}.
    *                   Specify {@code null} to ignore {@code rootFilter}.
-   * @param rootPaths List of {@code Path} objects which are searched in order to find {@path}.
+   * @param rootPaths List of {@code Path} objects which are searched in order to find {@code path}.
    * @param path Relative path to a file or directory.
    * @param more More optional path elements that are appended to {@code path}.
    * @return The {@code Path} to the first matching file. Returns a {@code Path} based on the
@@ -107,7 +107,7 @@ public class FileManager implements FileWatchListener
   /**
    * Returns a {@link Path} to the first matching file of the specified path in one of the listed
    * root paths.
-   * @param rootPaths List of {@code Path} objects which are searched in order to find {@path}.
+   * @param rootPaths List of {@code Path} objects which are searched in order to find {@code path}.
    *                  Specify {@code null} to search in registered root {@code Path}s instead.
    * @param path Relative path to a file or directory.
    * @param more More optional path elements that are appended to {@code path}.
@@ -121,10 +121,10 @@ public class FileManager implements FileWatchListener
 
   /**
    * Returns a {@link Path} to the first matching file of the specified path in one of the listed
-   * {@code rootPaths} filtered by {@rootFilter}.
+   * {@code rootPaths} filtered by {@code rootFilter}.
    * @param rootFilter Limit search to {@code rootPaths} which are based on this root {@code Path}.
    *                   Specify {@code null} to ignore {@code rootFilter}.
-   * @param rootPaths List of {@code Path} objects which are searched in order to find {@path}.
+   * @param rootPaths List of {@code Path} objects which are searched in order to find {@code path}.
    * @param path Relative path to a file or directory.
    * @param more More optional path elements that are appended to {@code path}.
    * @return The {@code Path} to the first matching file.

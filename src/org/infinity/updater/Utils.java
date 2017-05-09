@@ -234,7 +234,6 @@ public class Utils
   /**
    * Calculates the hash value from input stream data using the specified hash type.
    * @param is The input stream to read the data from.
-   * @param hashType The has type (One of MD5, SHA-1 and SHA-256).
    */
   public static String generateMD5Hash(InputStream is)
   {

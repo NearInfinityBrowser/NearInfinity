@@ -426,7 +426,7 @@ public final class BrowserMenuBar extends JMenuBar
 
   /**
    * Attempts to find a matching bookmark and returns its name.
-   * @param keyPath The path to the game's chitin.key.
+   * @param keyFile The path to the game's chitin.key.
    * @return The bookmark name of a matching game or {@code null} otherwise.
    */
   public String getBookmarkName(Path keyFile)

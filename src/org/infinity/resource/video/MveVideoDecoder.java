@@ -35,7 +35,7 @@ public class MveVideoDecoder
 
   /**
    * Returns a new MveVideoDecoder object, asociated with the specified MveDecoder.
-   * @param mve The parent MveDecoder object
+   * @param info The parent MveDecoder object
    * @return A new MveVideoDecoder object associated with the specified MveDecoder or null on error.
    */
   public static MveVideoDecoder createDecoder(MveInfo info)

@@ -373,7 +373,7 @@ public class Signatures
     /**
      * Attempts to parse the specified line into a Function object.
      * @param line A single function definition (e.g. from ACTION.IDS or TRIGGER.IDS).
-     * @param funcType Function type
+     * @param isTrigger Function type (TRIGGER or not)
      * @return The parsed function as {@code Function} object, or {@code null} on error.
      */
     private static Function parse(String line, boolean isTrigger)

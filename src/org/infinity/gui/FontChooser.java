@@ -59,7 +59,7 @@ import javax.swing.text.Position;
  *      Font font = fontChooser.getSelectedFont();
  *      System.out.println("Selected Font : " + font);
  * }
- * <pre>
+ * </pre>
  *
  * Based on JFontChooser (http://osdn.jp/projects/jfontchooser/)
  **/
@@ -310,7 +310,7 @@ public class FontChooser extends JComponent
    * @param name
    *          the family name of the selected font.
    *
-   * @see getSelectedFontFamily
+   * @see #getSelectedFontFamily()
    **/
   public void setSelectedFontFamily(String name)
   {

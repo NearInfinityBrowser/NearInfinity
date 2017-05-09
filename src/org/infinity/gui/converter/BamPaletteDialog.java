@@ -299,7 +299,7 @@ class BamPaletteDialog extends JDialog
     }
   }
 
-  /** Returns whether the palette has been modified after the last call to {@link #paletteUpdate()}. */
+  /** Returns whether the palette has been modified after the last call to {@link #updatePalette()}. */
   public boolean isPaletteModified()
   {
     return paletteModified;

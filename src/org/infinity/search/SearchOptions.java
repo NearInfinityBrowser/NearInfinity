@@ -340,7 +340,7 @@ public class SearchOptions
 
   /**
    * Returns the nested level of the option key.
-   * @param name The option key to extract the resource index from.
+   * @param key The option key to extract the resource index from.
    * @return The nested level (0=no resource type defined, 1=first level resource type, ...)
    */
   public static int getResourceNameLevel(String key)

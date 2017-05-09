@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Continuously monitors one or more registered paths for content changes and notifies registered
  * listeners about the changes.
- * TODO: watched directories are locked on Windows and can't be properly deleted <- find workaround
+ * TODO: watched directories are locked on Windows and can't be properly deleted - find workaround
  */
 public class FileWatcher implements Runnable
 {
@@ -83,7 +83,7 @@ public class FileWatcher implements Runnable
   /**
    * Removes the specified filewatch listener so that it no longer receives events from this
    * FileWatcher instance.
-   * @param l
+   * @param l the filewatch listener
    */
   public void removeFileWatchListener(FileWatchListener l)
   {
