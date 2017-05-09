@@ -24,14 +24,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractButton;
@@ -875,9 +868,7 @@ public final class BrowserMenuBar extends JMenuBar
         resId = id;
         label = text;
         if (games != null)
-          for (final Profile.Game g : games) {
-            supportedGames.add(g);
-          }
+          Collections.addAll(supportedGames, games);
       }
 
       public boolean gameSupported(Profile.Game game)

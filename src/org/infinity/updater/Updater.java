@@ -12,11 +12,7 @@ import java.net.Proxy;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.jar.JarFile;
 import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
@@ -535,9 +531,7 @@ public class Updater
 
     // Fallback: add static servers to list
     if (serverList.isEmpty()) {
-      for (int i = 0; i < DEFAULT_SERVERS.length; i++) {
-        serverList.add(DEFAULT_SERVERS[i]);
-      }
+      Collections.addAll(serverList, DEFAULT_SERVERS);
     }
   }
 

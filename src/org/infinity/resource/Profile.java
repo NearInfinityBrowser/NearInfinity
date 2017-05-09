@@ -780,9 +780,7 @@ public final class Profile implements FileWatcher.FileWatchListener
   {
     if (SUPPORTED_RESOURCE_TYPES.isEmpty()) {
       String[] types = getAvailableResourceTypes(true);
-      for (final String type: types) {
-        SUPPORTED_RESOURCE_TYPES.add(type);
-      }
+      Collections.addAll(SUPPORTED_RESOURCE_TYPES, types);
     }
 
     if (extension != null) {
@@ -973,9 +971,8 @@ public final class Profile implements FileWatcher.FileWatchListener
 
     // setting list of supported games and associated data
     List<Game> gameList = new ArrayList<Game>();
-    for (Game game : Game.values()) {
-      gameList.add(game);
-    }
+    Collections.addAll(gameList, Game.values());
+
     addEntry(Key.GET_GLOBAL_GAMES, Type.LIST, gameList);
     addEntry(Key.GET_GLOBAL_GAME_TITLE, Type.STRING, GAME_TITLE);
     addEntry(Key.GET_GLOBAL_EXTRA_FOLDER_NAMES, Type.LIST, GAME_EXTRA_FOLDERS);

@@ -5,6 +5,7 @@
 package org.infinity.resource.are.viewer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -246,9 +247,7 @@ public class Settings
   public static List<ViewerConstants.LayerStackingType> getDefaultLayerOrder()
   {
     List<ViewerConstants.LayerStackingType> list = new ArrayList<ViewerConstants.LayerStackingType>();
-    for (int i = 0; i < DefaultLayerOrder.length; i++) {
-      list.add(DefaultLayerOrder[i]);
-    }
+    Collections.addAll(list, DefaultLayerOrder);
     return list;
   }
 
