@@ -69,7 +69,7 @@ public final class UnknownBinary extends Unknown
       sb.append('b');
       return sb.toString();
     } else
-      return new String();
+      return "";
   }
 }
 

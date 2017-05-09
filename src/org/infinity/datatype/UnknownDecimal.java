@@ -72,7 +72,7 @@ public final class UnknownDecimal extends Unknown
       sb.append('d');
       return sb.toString();
     } else
-      return new String();
+      return "";
   }
 }
 
