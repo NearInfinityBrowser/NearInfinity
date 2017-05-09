@@ -291,9 +291,7 @@ public class BamV2Decoder extends BamDecoder
         int maxHeight = (dstHeight < srcHeight + top) ? dstHeight : srcHeight;
         int srcOfs = 0, dstOfs = top*dstWidth + left;
         for (int y = 0; y < maxHeight; y++) {
-          for (int x = 0; x < maxWidth; x++) {
-            dstBuffer[dstOfs+x] = srcBuffer[srcOfs+x];
-          }
+          System.arraycopy(srcBuffer, srcOfs, dstBuffer, dstOfs, maxWidth);
           srcOfs += srcWidth;
           dstOfs += dstWidth;
         }
@@ -303,9 +301,7 @@ public class BamV2Decoder extends BamDecoder
         int maxWidth = (dstWidth < srcWidth) ? dstWidth : srcWidth;
         int maxHeight = (dstHeight < srcHeight) ? dstHeight : srcHeight;
         for (int y = 0; y < maxHeight; y++) {
-          for (int x = 0; x < maxWidth; x++) {
-            dstBuffer[dstOfs+x] = srcBuffer[srcOfs+x];
-          }
+          System.arraycopy(srcBuffer, srcOfs, dstBuffer, dstOfs, maxWidth);
           srcOfs += srcWidth;
           dstOfs += dstWidth;
         }

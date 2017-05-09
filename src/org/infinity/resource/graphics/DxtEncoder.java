@@ -969,9 +969,7 @@ public final class DxtEncoder
       int[] remapped = new int[16];
       if (a <= b) {
         // use the indices directly
-        for (int i = 0; i < 16; i++) {
-          remapped[i] = indices[i];
-        }
+        System.arraycopy(indices, 0, remapped, 0, 16);
       } else {
         // swap a and b
         int tmp = a; a = b; b = tmp;
@@ -1011,8 +1009,7 @@ public final class DxtEncoder
         }
       } else {
         // use the indices directly
-        for (int i = 0; i < 16; i++)
-          remapped[i] = indices[i];
+        System.arraycopy(indices, 0, remapped, 0, 16);
       }
 
       // write the block
