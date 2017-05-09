@@ -570,7 +570,7 @@ public class PvrDecoder
           case 26: pixelFormat = PixelFormat.EAC_R11_RGB_S; break;
           case 27: pixelFormat = PixelFormat.EAC_RG11_RGB_U; break;
           case 28: pixelFormat = PixelFormat.EAC_RG11_RGB_S; break;
-          default: throw new Exception(String.format("Unsupported pixel format: %1$d", Integer.toString((int)l)));
+          default: throw new Exception(String.format("Unsupported pixel format: %s", Integer.toString((int)l)));
         }
         pixelFormatEx = new byte[0];
       }
