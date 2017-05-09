@@ -236,7 +236,7 @@ public class LayerObjectAnimation extends LayerObject
         if (isWBM) {
           // using icon as placeholder
           // generating key from icon hashcode
-          keyAnim = String.format(String.format("%1$08x", Icon[iconIdx][0].hashCode()));
+          keyAnim = String.format("%1$08x", Icon[iconIdx][0].hashCode());
           BamDecoder bam = null;
           if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
             bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(Icon[iconIdx][0], true, false), Center);
@@ -252,7 +252,7 @@ public class LayerObjectAnimation extends LayerObject
         } else if (isPVRZ) {
           // using icon as placeholder
           // generating key from icon hashcode
-          keyAnim = String.format(String.format("%1$08x", Icon[iconIdx][0].hashCode()));
+          keyAnim = String.format("%1$08x", Icon[iconIdx][0].hashCode());
           BamDecoder bam = null;
           if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
             bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(Icon[iconIdx][0], true, false), Center);
