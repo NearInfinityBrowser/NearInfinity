@@ -500,7 +500,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     @Override
     public void keyTyped(KeyEvent event)
     {
-      currentkey += new Character(event.getKeyChar()).toString().toUpperCase(Locale.ENGLISH);
+      currentkey += Character.toString(event.getKeyChar()).toUpperCase(Locale.ENGLISH);
       if (timer.isRunning())
         timer.restart();
       else

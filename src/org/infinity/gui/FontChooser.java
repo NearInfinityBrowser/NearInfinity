@@ -544,7 +544,7 @@ public class FontChooser extends JComponent
         }
         targetList.ensureIndexIsVisible(index);
 
-        String matchedName = targetList.getModel().getElementAt(index).toString();
+        String matchedName = targetList.getModel().getElementAt(index);
         if (newValue.equalsIgnoreCase(matchedName)) {
           if (index != targetList.getSelectedIndex()) {
             SwingUtilities.invokeLater(new ListSelector(index));
