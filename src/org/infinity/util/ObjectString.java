@@ -33,7 +33,7 @@ public class ObjectString implements CharSequence, Comparable<ObjectString>
       int size = Math.max(strings.length, objects.length);
       retVal = new ObjectString[size];
       for (int i = 0; i < size; i++) {
-        String s = (i < strings.length) ? strings[i] : new String();
+        String s = (i < strings.length) ? strings[i] : "";
         Object o = (i < objects.length) ? objects[i] : null;
         retVal[i] = new ObjectString(s, o, fmt);
       }

@@ -192,7 +192,7 @@ public class Unknown extends Datatype implements Editable, IsBinary
       sb.append('h');
       return sb.toString();
     } else
-      return new String();
+      return "";
   }
 }
 

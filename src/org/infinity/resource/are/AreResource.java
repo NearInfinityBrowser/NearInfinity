@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
@@ -829,9 +830,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
     // adding static labels
     if (flags != null && flags.length > 1) {
-      for (final String f: flags) {
-        list.add(f);
-      }
+      Collections.addAll(list, flags);
     } else {
       list.add(null); // empty flags label
     }

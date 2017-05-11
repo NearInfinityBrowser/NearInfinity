@@ -91,7 +91,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
    * @param location Map location
    * @param viewable Associated Viewable object
    * @param msg An arbitrary text message
-   * @param frames An array of Frame objects defining the animation for this layer item
+   * @param anim An array of Frame objects defining the animation for this layer item
    */
   public AnimatedLayerItem(Point location, Viewable viewable, String msg, BasicAnimationProvider anim)
   {

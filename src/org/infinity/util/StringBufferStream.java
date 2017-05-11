@@ -263,7 +263,7 @@ public class StringBufferStream
 
   /**
    * Adds the current string position to the stack. Each call adds a new mark to the stack
-   * which will be restored by a subsequent {@link reset()} call.
+   * which will be restored by a subsequent {@link #reset()} call.
    * @return This stream.
    */
   public StringBufferStream mark()
@@ -273,7 +273,7 @@ public class StringBufferStream
   }
 
   /**
-   * Removes the previously set mark from the stack. Use {@link hasMark()} if a mark is available.
+   * Removes the previously set mark from the stack. Use {@link #hasMark()} if a mark is available.
    * @throws InvalidMarkException if no mark has been set.
    */
   public StringBufferStream unmark()

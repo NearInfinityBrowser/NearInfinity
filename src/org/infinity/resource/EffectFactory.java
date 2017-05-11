@@ -2666,7 +2666,7 @@ public final class EffectFactory
         if (isTobEx || Profile.isEnhancedEdition()) {
           int size = isTobEx ? 15 : 16;
           String[] buttons = new String[size];
-          for (int i = 0; i < 14; i++) { buttons[i] = s_button[i]; }
+          System.arraycopy(s_button, 0, buttons, 0, 14);
           buttons[10] = "Bard song";
           buttons[14] = "Find traps";
           if (Profile.isEnhancedEdition()) {
@@ -3446,7 +3446,7 @@ public final class EffectFactory
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (isTobEx) {
           String[] buttons = new String[15];
-          for (int i = 0; i < 14; i++) { buttons[i] = s_button[i]; }
+          System.arraycopy(s_button, 0, buttons, 0, 14);
           buttons[10] = "Bard song";
           buttons[14] = "Find traps";
           s.add(new Bitmap(buffer, offset + 4, 4, "Button", buttons));

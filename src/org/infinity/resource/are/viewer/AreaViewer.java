@@ -132,7 +132,7 @@ public class AreaViewer extends ChildFrame
   private final Map map;
   private final Point mapCoordinates = new Point();
   private final String windowTitle;
-  private final JCheckBox[] cbLayers = new JCheckBox[LayerManager.getLayerTypeCount()];;
+  private final JCheckBox[] cbLayers = new JCheckBox[LayerManager.getLayerTypeCount()];
   private final JCheckBox[] cbLayerRealAnimation = new JCheckBox[2];
   private final JCheckBox[] cbMiniMaps = new JCheckBox[3];
   private final JToggleButton[] tbAddLayerItem = new JToggleButton[LayerManager.getLayerTypeCount()];

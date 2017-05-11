@@ -37,6 +37,7 @@ public class DlcManager
    * @return The {@link FileSystem} object created from the file or fetched from the cache
    *         if it had been already registered. Returns {@code null} if the file does not point to
    *         a valid DLC archive.
+   * @throws IOException on error.
    */
   public static FileSystem register(Path dlcFile) throws IOException
   {

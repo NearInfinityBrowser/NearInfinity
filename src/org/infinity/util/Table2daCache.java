@@ -29,7 +29,7 @@ public class Table2daCache
 
   /**
    * Returns a Table2da object based on the specified 2DA resource.
-   * @param entry 2DA resource name.
+   * @param resource 2DA resource name.
    * @return 2DA content as Table2da object or {@code null} on error.
    */
   public static Table2da get(String resource)

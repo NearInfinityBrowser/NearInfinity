@@ -220,9 +220,7 @@ public class ButtonPopupMenu extends JButton
   {
     List<JMenuItem> list = new ArrayList<JMenuItem>();
     if (menuItems != null) {
-      for (int i = 0; i < menuItems.length; i++) {
-        list.add(menuItems[i]);
-      }
+      Collections.addAll(list, menuItems);
     }
     setMenuItems(list, sorted);
   }

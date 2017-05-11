@@ -95,7 +95,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     if (cmd != null) {
       actionCommand = cmd;
     } else {
-      actionCommand = new String();
+      actionCommand = "";
     }
   }
 
@@ -186,7 +186,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     if (location != null) {
       this.location = location;
     } else {
-      location = new Point(0, 0);
+      this.location = new Point(0, 0);
     }
   }
 
@@ -197,9 +197,9 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   public void setMessage(String msg)
   {
     if (msg != null) {
-      message = new String(msg);
+      message = msg;
     } else {
-      message = new String();
+      message = "";
     }
   }
 
