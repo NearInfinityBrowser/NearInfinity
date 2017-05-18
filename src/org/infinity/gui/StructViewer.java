@@ -495,8 +495,11 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       StructClipboard.getInstance().copy(struct, table.getSelectionModel().getMinSelectionIndex(),
                                          table.getSelectionModel().getMaxSelectionIndex());
     } else if (event.getActionCommand().equals(CMD_PASTE)) {
-      table.clearSelection();
-      table.scrollRectToVisible(table.getCellRect(StructClipboard.getInstance().paste(struct), 1, true));
+      int row = StructClipboard.getInstance().paste(struct);
+      if (row >= 0) {
+        table.getSelectionModel().setSelectionInterval(row, row);
+        table.scrollRectToVisible(table.getCellRect(row, 1, true));
+      }
     } else if (event.getActionCommand().equals(CMD_TOHEX)) {
       convertAttribute(table.getSelectedRow(), miToHex);
     } else if (event.getActionCommand().equals(CMD_TOBIN)) {
