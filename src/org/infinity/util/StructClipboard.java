@@ -68,6 +68,15 @@ public final class StructClipboard
     listeners.add(listener);
   }
 
+  /**
+   * Returns the number of {@code StructEntry} items currently available in the clipboard.
+   * @return number of items in the clipboard.
+   */
+  public int size()
+  {
+    return contents.size();
+  }
+
   public void clear()
   {
     contents.clear();
