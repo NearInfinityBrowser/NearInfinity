@@ -1206,7 +1206,7 @@ public final class EffectFactory
             "Stoneskin protection", "Remove animation", "Rest", "Haste 2", "Protection from spell",
             "Restrict item",
             // 320..329
-            "Change weather", "Remove effects by resource", "AoE evade check",
+            "Change weather", "Remove effects by resource", "AoE evade check (deprecated)",
             "Turn undead level", "Immunity to spell and message", "All saving throws bonus",
             "Apply effects list", "Show visual effect", "Set spell state", "Slow poison",
             // 330..339
@@ -3625,7 +3625,7 @@ public final class EffectFactory
         }
         break;
 
-      case 322: // AoE evade check
+      case 322: // AoE evade check (deprecated)
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
