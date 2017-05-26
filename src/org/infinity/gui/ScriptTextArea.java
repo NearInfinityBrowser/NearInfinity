@@ -573,7 +573,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
           retVal.resourceEntries.addAll(resList);
           retVal.resourceEntries.add(ResourceFactory.getResourceEntry("SPELL.IDS"));
           break;
-        } else if (Character.isUpperCase(type.charAt(0))) {
+        } else if (Character.isUpperCase(type.charAt(0)) || Character.isDigit(type.charAt(0))) {
           // regular resource
           if (!"ARE".equals(type) || !ScriptInfo.getInfo().isGlobalScope(token.getLexeme())) {
             String resRef = value + '.' + type;

@@ -730,7 +730,7 @@ public class Compiler
                 checkSpellList(param, value, node);
                 found = true;
                 break;
-              } else if (Character.isUpperCase(resType.charAt(0))) {
+              } else if (Character.isUpperCase(resType.charAt(0)) || Character.isDigit(resType.charAt(0)) ) {
                 if (value.length() <= 8) {
                   // checking resource
                   if (value.isEmpty()) {

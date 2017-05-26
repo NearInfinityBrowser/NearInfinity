@@ -1143,7 +1143,8 @@ public final class Decompiler
           }
           sb.append(']');
           break;
-        } else if (Character.isUpperCase(type.charAt(0)) && value.length() <= 8) {
+        } else if ((Character.isUpperCase(type.charAt(0)) || Character.isDigit(type.charAt(0))) &&
+                   value.length() <= 8) {
           if (!type.equals("ARE") || !ScriptInfo.getInfo().isGlobalScope(value)) {
             // resolving resource name
             String resRef = value + '.' + type;
