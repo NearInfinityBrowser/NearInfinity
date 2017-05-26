@@ -48,7 +48,7 @@ public final class CreMapCache
 
   public static void clearCache()
   {
-    if (!isInitialized()) {
+    if (isInitialized()) {
       scriptNamesCre.clear();
       scriptNamesAre.clear();
       initialized = false;
