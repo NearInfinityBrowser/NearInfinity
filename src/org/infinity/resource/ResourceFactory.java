@@ -193,14 +193,14 @@ public final class ResourceFactory implements FileWatchListener
         res = new TohResource(entry);
       } else if (ext.equalsIgnoreCase("TOT")) {
         res = new TotResource(entry);
-      } else if (ext.equalsIgnoreCase("PVRZ") && Profile.isEnhancedEdition()) {
-        res = new PvrzResource(entry);
-      } else if (ext.equalsIgnoreCase("FNT") && Profile.isEnhancedEdition()) {
-        res = new FntResource(entry);
-      } else if (ext.equalsIgnoreCase("TTF") && Profile.isEnhancedEdition()) {
-        res = new TtfResource(entry);
-      } else if (ext.equalsIgnoreCase("MAZE") && Profile.getGame() == Profile.Game.PSTEE) {
-        res = new MazeResource(entry);
+      } else if (ext.equalsIgnoreCase("PVRZ")) {
+        res = Profile.isEnhancedEdition() ? new PvrzResource(entry) : new UnknownResource(entry);
+      } else if (ext.equalsIgnoreCase("FNT")) {
+        res = Profile.isEnhancedEdition() ? new FntResource(entry) : new UnknownResource(entry);
+      } else if (ext.equalsIgnoreCase("TTF")) {
+        res = Profile.isEnhancedEdition() ? new TtfResource(entry) : new UnknownResource(entry);
+      } else if (ext.equalsIgnoreCase("MAZE")) {
+        res = (Profile.getGame() == Profile.Game.PSTEE) ? new MazeResource(entry) : new UnknownResource(entry);
       } else {
         res = detectResource(entry);
         if (res == null) {
