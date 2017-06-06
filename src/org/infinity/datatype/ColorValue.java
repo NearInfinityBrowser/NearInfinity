@@ -15,6 +15,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.HashSet;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -31,10 +32,15 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.graphics.GraphicsResource;
+import org.infinity.util.Table2da;
+import org.infinity.util.Table2daCache;
 
 public final class ColorValue extends Datatype implements Editable, IsNumeric, ChangeListener, ActionListener
 {
+  private static final HashSet<Integer> randomColors = new HashSet<>();
   private static BufferedImage image;
+  private static int numColors = -1;
+
   private JLabel colors[], infolabel;
   private JSlider slider;
   private JTextField tfield;
@@ -57,7 +63,7 @@ public final class ColorValue extends Datatype implements Editable, IsNumeric, C
     if (image == null) {
       initImage();
     }
-    return image.getHeight();
+    return 256;
   }
 
   private static int getRangeSize()
@@ -75,6 +81,24 @@ public final class ColorValue extends Datatype implements Editable, IsNumeric, C
         image = new GraphicsResource(ResourceFactory.getResourceEntry("RANGES12.BMP")).getImage();
       } else {
         image = new GraphicsResource(ResourceFactory.getResourceEntry("MPALETTE.BMP")).getImage();
+      }
+      numColors = image.getHeight();
+
+      if (ResourceFactory.resourceExists("RANDCOLR.2DA")) {
+        Table2da table = Table2daCache.get("RANDCOLR.2DA");
+        for (int col = 1; col < table.getColCount(); ++col) {
+          String s = table.get(0, col);
+          if (s != null) {
+            try {
+              Integer v = Integer.valueOf(Math.max(0, Math.min(255, Integer.parseInt(s))));
+              if (!randomColors.contains(v)) {
+                randomColors.add(v);
+                numColors = Math.max(numColors, v+1);
+              }
+            } catch (NumberFormatException nfe) {
+            }
+          }
+        }
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -288,17 +312,18 @@ public final class ColorValue extends Datatype implements Editable, IsNumeric, C
       if (c != null) {
         colors[i].setText("     ");
         colors[i].setBackground(c);
+        infolabel.setText("");
       }
       else {
         colors[i].setText(" ? ");
         colors[i].setBackground(Color.white);
+        if (randomColors.contains(Integer.valueOf(shownnumber))) {
+          infolabel.setText("Color drawn from RANDCOLR.2DA");
+        } else {
+          infolabel.setText("Invalid color");
+        }
       }
       colors[i].repaint();
     }
-    if (shownnumber > 199 && ResourceFactory.resourceExists("RANDCOLR.2DA"))
-      infolabel.setText("Color drawn from RANDCOLR.2DA");
-    else
-      infolabel.setText("");
   }
 }
-
