@@ -48,6 +48,9 @@ public class BamFilterFactory
     FilterInfoList.add(new FilterInfo(BamFilterOutputDefault.getFilterName(),
                                       BamFilterOutputDefault.getFilterDesc(),
                                       BamFilterOutputDefault.class));
+    FilterInfoList.add(new FilterInfo(BamFilterOutputCombine.getFilterName(),
+                                      BamFilterOutputCombine.getFilterDesc(),
+                                      BamFilterOutputCombine.class));
     FilterInfoList.add(new FilterInfo(BamFilterOutputSplitted.getFilterName(),
                                       BamFilterOutputSplitted.getFilterDesc(),
                                       BamFilterOutputSplitted.class));
