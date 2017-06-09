@@ -21,6 +21,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -829,21 +831,25 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         }
 
         // finding and storing initial states (sorted by trigger index in ascending order)
-        for (int i = 0; i < numStates; i++) {
-          entry = getDialog().getAttribute(State.DLG_STATE + " " +  i);
-          if (entry instanceof State) {
-            int triggerIndex = ((State)entry).getTriggerIndex();
-            if (triggerIndex >= 0) {
-              int j = 0;
-              for (; j < states.size(); j++) {
-                if (states.get(j).getState().getTriggerIndex() > triggerIndex) {
-                  break;
-                }
-              }
-              states.add(j, new StateItem(getDialog(), (State)entry));
+        int count = 0;
+        for (StructEntry e: getDialog().getList()) {
+          if (e instanceof State) {
+            ++count;
+            if (((State)e).getTriggerIndex() >= 0) {
+              states.add(new StateItem(getDialog(), (State)e));
+            }
+            if (count >= numStates) {
+              break;
             }
           }
         }
+        Collections.sort(states, new Comparator<StateItem>() {
+          @Override
+          public int compare(StateItem o1, StateItem o2)
+          {
+            return o1.getState().getTriggerIndex() - o2.getState().getTriggerIndex();
+          }
+        });
       }
     }
 
