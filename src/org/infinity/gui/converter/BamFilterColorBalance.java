@@ -338,9 +338,14 @@ public class BamFilterColorBalance extends BamFilterBaseColor
         int width = srcImage.getWidth();
         int height = srcImage.getHeight();
         BufferedImage dstImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, cm2);
+        byte[] srcPixels = ((DataBufferByte)srcImage.getRaster().getDataBuffer()).getData();
+        byte[] dstPixels = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+        System.arraycopy(srcPixels, 0, dstPixels, 0, srcPixels.length);
         srcImage = dstImage;
+        srcPixels = null; dstPixels = null;
       }
     }
+
     return srcImage;
   }
 }
