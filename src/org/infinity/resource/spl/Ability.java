@@ -30,7 +30,6 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
 {
   // SPL/Ability-specific field labels (more fields defined in AbstractAbility)
   public static final String SPL_ABIL                     = "Spell ability";
-  public static final String SPL_ABIL_HOSTILITY           = "Hostility";
   public static final String SPL_ABIL_MIN_LEVEL           = "Minimum level";
   public static final String SPL_ABIL_CASTING_SPEED       = "Casting speed";
 
