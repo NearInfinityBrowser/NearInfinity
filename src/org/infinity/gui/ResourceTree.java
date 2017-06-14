@@ -136,7 +136,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         prevnextnode = entry;
       }
       if (showresource) {
-        if (!entry.equals(shownresource)) {
+        if (!entry.equals(shownresource, true)) {
           shownresource = entry;
           NearInfinity.getInstance().setViewable(ResourceFactory.getResource(entry));
         }

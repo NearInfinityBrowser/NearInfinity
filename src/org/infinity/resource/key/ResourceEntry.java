@@ -96,10 +96,32 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
   @Override
   public boolean equals(Object o)
   {
+    return equals(o, false);
+  }
+
+  /**
+   * Indicates whether the specified object argument is equal to this one.
+   * @param o  the reference object with which to compare.
+   * @param exact whether to compare path in addition to resource name.
+   * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
+   */
+  public boolean equals(Object o, boolean exact)
+  {
     if (o == this) {
       return true;
     } else if (o instanceof ResourceEntry) {
-      return getResourceName().equalsIgnoreCase(((ResourceEntry)o).getResourceName());
+      ResourceEntry entry = (ResourceEntry)o;
+      boolean bRet = getResourceName().equalsIgnoreCase(entry.getResourceName());
+      if (bRet && exact) {
+        if (getActualPath() != entry.getActualPath()) {
+          if (getActualPath() != null) {
+            bRet = getActualPath().equals(entry.getActualPath());
+          } else {
+            bRet = entry.getActualPath().equals(getActualPath());
+          }
+        }
+      }
+      return bRet;
     }
     return false;
   }
