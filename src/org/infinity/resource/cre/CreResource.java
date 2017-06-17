@@ -1858,8 +1858,9 @@ public final class CreResource extends AbstractStruct
       }
       if (Profile.getGame() == Profile.Game.PSTEE && slotCount + 8 < maxSlotCount) {
         // registered characters gain additional item slots
+        int idxUnused = 1;
         addField(new DecNumber(buffer, offset + 76, 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, 5)));
-        addField(new DecNumber(buffer, offset + 78, 2, String.format(CRE_ITEM_SLOT_QUIVER_FMT, 6)));
+        addField(new DecNumber(buffer, offset + 78, 2, String.format(CRE_ITEM_SLOT_UNUSED_FMT, idxUnused++)));
         addField(new DecNumber(buffer, offset + 80, 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, 4)));
         addField(new DecNumber(buffer, offset + 82, 2, String.format(CRE_ITEM_SLOT_QUICK_FMT, 5)));
         slotCount += 4;
@@ -1871,7 +1872,7 @@ public final class CreResource extends AbstractStruct
         }
         // filling the gap with placeholder slots
         for (int i = 0, imax = maxSlotCount - slotCount - 1; i < imax; i++) {
-          addField(new DecNumber(buffer, offset, 2, String.format(CRE_ITEM_SLOT_UNUSED_FMT, i)));
+          addField(new DecNumber(buffer, offset, 2, String.format(CRE_ITEM_SLOT_UNUSED_FMT, idxUnused++)));
           slotCount++;
           offset += 2;
         }
