@@ -615,10 +615,20 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       StringRef assText = trans.getAssociatedText();
       StringRef jouText = trans.getJournalEntry();
       String text = "";
-      if (trans.getFlag().isFlagSet(0))
+      if (trans.getFlag().isFlagSet(0)) {
         text = assText.toString() + "\n(StrRef: " + assText.getValue() + ")\n";
-      if (trans.getFlag().isFlagSet(4))
-        text += "\nJournal entry:\n" + jouText.toString() + "\n(StrRef: " + jouText.getValue() + ')';
+      }
+      if (trans.getFlag().isFlagSet(4)) {
+        if (trans.getFlag().isFlagSet(6)) {
+          text += "\nUnsolved journal entry:\n" + jouText.toString() + "\n(StrRef: " + jouText.getValue() + ')';
+        } else if (trans.getFlag().isFlagSet(7)) {
+          text += "\nInfo journal entry:\n" + jouText.toString() + "\n(StrRef: " + jouText.getValue() + ')';
+        } else if (trans.getFlag().isFlagSet(8)) {
+          text += "\nSolved journal entry:\n" + jouText.toString() + "\n(StrRef: " + jouText.getValue() + ')';
+        } else {
+          text += "\nJournal entry:\n" + jouText.toString() + "\n(StrRef: " + jouText.getValue() + ')';
+        }
+      }
       bPlay.setEnabled(!StringTable.getSoundResource(assText.getValue()).isEmpty());
       textArea.setText(text);
       textArea.setCaretPosition(0);
