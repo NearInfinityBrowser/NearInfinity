@@ -192,7 +192,6 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
     addField(new DecNumber(buffer, offset + 36, 2, ARE_ACTOR_DEST_X));
     addField(new DecNumber(buffer, offset + 38, 2, ARE_ACTOR_DEST_Y));
     if (Profile.getEngine() == Profile.Engine.IWD ||
-        Profile.getEngine() == Profile.Engine.IWD2 ||
         Profile.getEngine() == Profile.Engine.PST) {
       addField(new Flag(buffer, offset + 40, 4, ARE_ACTOR_FLAGS, s_flags_iwd));
     } else {
