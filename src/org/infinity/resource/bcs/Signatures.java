@@ -105,18 +105,11 @@ public class Signatures
   }
 
   /**
-   * Returns a new set of function signatures defined by the specified IDS resource,
-   * bypassing cached information.
-   * @param resource  The IDS resource.
-   * @param isTrigger Indicates whether function definitions are considered triggers ({@code true})
-   *                  or actions ({@code false}).
-   * @return {@code Signatures} instances.
+   * Removes all function signatures from cache.
    */
-  public static Signatures reset(String resource, boolean isTrigger)
+  public static void clearCache()
   {
-    resource = normalizedName(resource);
-    instances.remove(resource);
-    return get(resource, isTrigger);
+    instances.clear();
   }
 
   /** Convenience method for getting trigger signatures. */
