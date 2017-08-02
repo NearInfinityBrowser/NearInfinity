@@ -1355,6 +1355,10 @@ public final class ResourceFactory implements FileWatchListener
       }
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), entry.toString() + " copied to " + outFile,
                                     "Copy complete", JOptionPane.INFORMATION_MESSAGE);
+      ResourceEntry newEntry = new FileResourceEntry(outFile, !entry.getExtension().equalsIgnoreCase("bs"));
+      treeModel.addResourceEntry(newEntry, newEntry.getTreeFolderName(), true);
+      treeModel.sort();
+      NearInfinity.getInstance().showResourceEntry(newEntry);
     } catch (Exception e) {
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error while copying " + entry,
                                     "Error", JOptionPane.ERROR_MESSAGE);
