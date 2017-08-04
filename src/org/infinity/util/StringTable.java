@@ -1135,8 +1135,18 @@ public class StringTable
       int ofsString = ofsStrings + headerData.getInt();
       int lenString = headerData.getInt();
       headerData.position(0);
-      ch.position(ofsString);
-      String text = StreamUtils.readString(ch, lenString, getCharset());
+      String text = null;
+      if (lenString > 0) {
+        try {
+          ch.position(ofsString);
+          text = StreamUtils.readString(ch, lenString, getCharset());
+        } catch (IllegalArgumentException e) {
+          System.err.println("Error: Illegal offset " + ofsString + " for string entry " + index);
+          text = "";
+        }
+      } else {
+        text = "";
+      }
       entry = new StringEntry(this, flags, soundRef, volume, pitch, text);
     }
     return entry;
