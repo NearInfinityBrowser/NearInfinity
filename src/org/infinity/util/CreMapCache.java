@@ -30,6 +30,7 @@ public final class CreMapCache
   private static final Map<String, Set<ResourceEntry>> scriptNamesCre = new HashMap<>();
   private static final Set<String> scriptNamesAre = new HashSet<>();
 
+  private static boolean enabled = false;
   private static boolean initialized = false;
 
   public static void creInvalid(ResourceEntry entry)
@@ -52,15 +53,22 @@ public final class CreMapCache
       scriptNamesCre.clear();
       scriptNamesAre.clear();
       initialized = false;
+      enabled = false;
     }
   }
 
   public static void reset()
   {
-    if (BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().checkScriptNames()) {
+    enabled = BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().checkScriptNames();
+    if (enabled) {
       clearCache();
       init();
     }
+  }
+
+  public static boolean isEnabled()
+  {
+    return enabled;
   }
 
   public static boolean isInitialized()
@@ -83,7 +91,7 @@ public final class CreMapCache
     if (isInitialized() && name != null) {
       return scriptNamesCre.containsKey(normalized(name));
     } else {
-      return false;
+      return !isEnabled();
     }
   }
 
@@ -93,7 +101,7 @@ public final class CreMapCache
     if (isInitialized() && name != null) {
       return scriptNamesAre.contains(normalized(name));
     } else {
-      return false;
+      return !isEnabled();
     }
   }
 
@@ -120,7 +128,7 @@ public final class CreMapCache
   private static boolean ensureInitialized(int timeOutMS)
   {
     long timeOut = (timeOutMS >= 0) ? System.nanoTime() + (timeOutMS * 1000000L) : -1L;
-    while (!isInitialized() &&
+    while (isEnabled() && !isInitialized() &&
            (timeOut == -1L || System.nanoTime() < timeOut)) {
       try {
         Thread.sleep(1);
