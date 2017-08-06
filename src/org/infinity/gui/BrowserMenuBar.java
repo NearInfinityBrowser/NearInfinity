@@ -175,11 +175,6 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionAutocheckBCS.isSelected();
   }
 
-  public boolean checkScriptNames()
-  {
-    return optionsMenu.optionCheckScriptNames.isSelected();
-  }
-
   public boolean showMoreCompileWarnings()
   {
     return optionsMenu.optionMoreCompileWarnings.isSelected();
@@ -1546,7 +1541,6 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_SHOWUNKNOWNRESOURCES     = "ShowUnknownResources";
     private static final String OPTION_AUTOCHECK_BCS            = "AutocheckBCS";
     private static final String OPTION_CACHEOVERRIDE            = "CacheOverride";
-    private static final String OPTION_CHECKSCRIPTNAMES         = "CheckScriptNames";
     private static final String OPTION_MORECOMPILERWARNINGS     = "MoreCompilerWarnings";
     private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
     private static final String OPTION_DLG_SHOWICONS            = "DlgShowIcons";
@@ -1612,7 +1606,7 @@ public final class BrowserMenuBar extends JMenuBar
                               optionSQLEnableSyntax, optionTLKEnableSyntax,
                               optionGLSLEnableCodeFolding;
 
-    private JCheckBoxMenuItem optionAutocheckBCS, optionCheckScriptNames, optionMoreCompileWarnings;
+    private JCheckBoxMenuItem optionAutocheckBCS, optionMoreCompileWarnings;
 
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride,
                               optionIgnoreReadErrors, optionCacheOverride, optionShowStrrefs,
@@ -1683,11 +1677,6 @@ public final class BrowserMenuBar extends JMenuBar
           new JCheckBoxMenuItem("Autocheck BCS", getPrefs().getBoolean(OPTION_AUTOCHECK_BCS, true));
       optionAutocheckBCS.setToolTipText("Automatically scans scripts for compile error with this option enabled.");
       compilerMenu.add(optionAutocheckBCS);
-      optionCheckScriptNames =
-          new JCheckBoxMenuItem("Interactive script and resource names", getPrefs().getBoolean(OPTION_CHECKSCRIPTNAMES, true));
-      optionCheckScriptNames.setToolTipText("With this option disabled, performance may be boosted, " +
-                                            "but many features involving script or resource names will be disabled.");
-      compilerMenu.add(optionCheckScriptNames);
       optionMoreCompileWarnings =
           new JCheckBoxMenuItem("Show more compiler warnings", getPrefs().getBoolean(OPTION_MORECOMPILERWARNINGS, false));
       optionMoreCompileWarnings.setToolTipText("Script compiler will generate an additional set of less severe " +
@@ -2244,7 +2233,6 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_SHOWUNKNOWNRESOURCES, optionShowUnknownResources.isSelected());
       getPrefs().putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());
       getPrefs().putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
-      getPrefs().putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
       getPrefs().putBoolean(OPTION_MORECOMPILERWARNINGS, optionMoreCompileWarnings.isSelected());
       getPrefs().putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
       getPrefs().putBoolean(OPTION_DLG_SHOWICONS, optionDlgShowIcons.isSelected());

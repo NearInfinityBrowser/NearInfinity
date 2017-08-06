@@ -14,7 +14,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.StatusBar;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
@@ -30,7 +29,6 @@ public final class CreMapCache
   private static final Map<String, Set<ResourceEntry>> scriptNamesCre = new HashMap<>();
   private static final Set<String> scriptNamesAre = new HashSet<>();
 
-  private static boolean enabled = false;
   private static boolean initialized = false;
 
   public static void creInvalid(ResourceEntry entry)
@@ -53,22 +51,13 @@ public final class CreMapCache
       scriptNamesCre.clear();
       scriptNamesAre.clear();
       initialized = false;
-      enabled = false;
     }
   }
 
   public static void reset()
   {
-    enabled = BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().checkScriptNames();
-    if (enabled) {
-      clearCache();
-      init();
-    }
-  }
-
-  public static boolean isEnabled()
-  {
-    return enabled;
+    clearCache();
+    init();
   }
 
   public static boolean isInitialized()
@@ -91,7 +80,7 @@ public final class CreMapCache
     if (isInitialized() && name != null) {
       return scriptNamesCre.containsKey(normalized(name));
     } else {
-      return !isEnabled();
+      return false;
     }
   }
 
@@ -101,7 +90,7 @@ public final class CreMapCache
     if (isInitialized() && name != null) {
       return scriptNamesAre.contains(normalized(name));
     } else {
-      return !isEnabled();
+      return false;
     }
   }
 
@@ -128,7 +117,7 @@ public final class CreMapCache
   private static boolean ensureInitialized(int timeOutMS)
   {
     long timeOut = (timeOutMS >= 0) ? System.nanoTime() + (timeOutMS * 1000000L) : -1L;
-    while (isEnabled() && !isInitialized() &&
+    while (!isInitialized() &&
            (timeOut == -1L || System.nanoTime() < timeOut)) {
       try {
         Thread.sleep(1);
