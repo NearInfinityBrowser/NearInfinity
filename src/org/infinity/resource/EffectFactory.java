@@ -5121,7 +5121,8 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           break;
       }
-    } else if (Profile.getEngine() == Profile.Engine.BG2) {
+    } else if (Profile.getEngine() == Profile.Engine.BG2 ||
+               Profile.getEngine() == Profile.Engine.IWD2) {
       s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       switch (effectType) {

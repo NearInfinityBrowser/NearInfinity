@@ -55,6 +55,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
   public static final String SPL_TYPE                             = "Spell type";
   public static final String SPL_EXCLUSION_FLAGS                  = "Exclusion flags";
   public static final String SPL_CASTING_ANIMATION                = "Casting animation";
+  public static final String SPL_MINIMUM_LEVEL                    = "Minimum level (unused)";
   public static final String SPL_PRIMARY_TYPE                     = "Primary type (school)";
   public static final String SPL_SECONDARY_TYPE                   = "Secondary type";
   public static final String SPL_LEVEL                            = "Spell level";
@@ -361,21 +362,21 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
     } else {
       addField(new Bitmap(buffer, offset + 34, 2, SPL_CASTING_ANIMATION, s_anim));  // 0x22
     }
-    addField(new Unknown(buffer, offset + 36, 1));                                    // 0x23
+    addField(new Unknown(buffer, offset + 36, 1, COMMON_UNUSED));               // 0x24
     addField(new PriTypeBitmap(buffer, offset + 37, 1, SPL_PRIMARY_TYPE)); // 0x25
-    addField(new Unknown(buffer, offset + 38, 1));
+    addField(new Unknown(buffer, offset + 38, 1, COMMON_UNUSED));
     addField(new SecTypeBitmap(buffer, offset + 39, 1, SPL_SECONDARY_TYPE));       // 0x27
-    addField(new Unknown(buffer, offset + 40, 12));
+    addField(new Unknown(buffer, offset + 40, 12, COMMON_UNUSED));
     addField(new DecNumber(buffer, offset + 52, 4, SPL_LEVEL));
-    addField(new Unknown(buffer, offset + 56, 2));
+    addField(new Unknown(buffer, offset + 56, 2, COMMON_UNUSED));
     addField(new ResourceRef(buffer, offset + 58, SPL_ICON, "BAM"));
-    addField(new Unknown(buffer, offset + 66, 2));
-    addField(new ResourceRef(buffer, offset + 68, SPL_ICON_GROUND, "BAM"));
-    addField(new Unknown(buffer, offset + 76, 4));
+    addField(new Unknown(buffer, offset + 66, 2, COMMON_UNUSED));
+    addField(new Unknown(buffer, offset + 68, 8, COMMON_UNUSED));
+    addField(new Unknown(buffer, offset + 76, 4, COMMON_UNUSED));
     addField(new StringRef(buffer, offset + 80, SPL_DESCRIPTION));
     addField(new StringRef(buffer, offset + 84, SPL_DESCRIPTION_IDENTIFIED));
     addField(new ResourceRef(buffer, offset + 88, SPL_DESCRIPTION_IMAGE, "BAM"));
-    addField(new Unknown(buffer, offset + 96, 4));
+    addField(new Unknown(buffer, offset + 96, 4, COMMON_UNUSED));
     SectionOffset abil_offset = new SectionOffset(buffer, offset + 100, SPL_OFFSET_ABILITIES,
                                                   Ability.class);
     addField(abil_offset);

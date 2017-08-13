@@ -71,6 +71,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   public static final String ARE_OVERLAY_TRANSPARENCY     = "Overlay transparency";
   public static final String ARE_AREA_DIFFICULTY_2        = "Area difficulty 2";
   public static final String ARE_AREA_DIFFICULTY_3        = "Area difficulty 3";
+  public static final String ARE_AREA_CUR_DIFFICULTY      = "Current area difficulty";  // confirm!
   public static final String ARE_OFFSET_ACTORS            = "Actors offset";
   public static final String ARE_OFFSET_TRIGGERS          = "Triggers offset";
   public static final String ARE_OFFSET_SPAWN_POINTS      = "Spawn points offset";
@@ -495,7 +496,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     if (version.toString().equalsIgnoreCase("V9.1")) {
       addField(new DecNumber(buffer, offset + 84, 1, ARE_AREA_DIFFICULTY_2));
       addField(new DecNumber(buffer, offset + 85, 1, ARE_AREA_DIFFICULTY_3));
-      addField(new Unknown(buffer, offset + 86, 14));
+      addField(new DecNumber(buffer, offset + 86, 2, ARE_AREA_CUR_DIFFICULTY));
+      addField(new Unknown(buffer, offset + 88, 12));
       offset += 16;
     }
     SectionOffset offset_actors = new SectionOffset(buffer, offset + 84, ARE_OFFSET_ACTORS,
