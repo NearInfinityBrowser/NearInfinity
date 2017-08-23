@@ -77,6 +77,7 @@ import org.infinity.updater.UpdateCheck;
 import org.infinity.updater.UpdateInfo;
 import org.infinity.updater.Updater;
 import org.infinity.updater.UpdaterSettings;
+import org.infinity.util.CharsetDetector;
 import org.infinity.util.MassExporter;
 import org.infinity.util.ObjectString;
 import org.infinity.util.Pair;
@@ -365,7 +366,7 @@ public final class BrowserMenuBar extends JMenuBar
 
   public String getSelectedCharset()
   {
-    return optionsMenu.charsetName(optionsMenu.getSelectedButtonData());
+    return optionsMenu.charsetName(optionsMenu.getSelectedButtonData(), true);
   }
 
   public boolean backupOnSave()
@@ -1956,8 +1957,8 @@ public final class BrowserMenuBar extends JMenuBar
         System.err.println(String.format("Charset \"%1$s\" not available.", charset));
         charset = DefaultCharset;
       }
-      if (!charsetName(charset).equals(StringTable.getCharset().name())) {
-        StringTable.setCharset(charsetName(charset));
+      if (!charsetName(charset, false).equals(StringTable.getCharset().name())) {
+        StringTable.setCharset(charsetName(charset, false));
       }
       mCharsetMenu = initCharsetMenu(charset);
       add(mCharsetMenu);
@@ -2053,7 +2054,7 @@ public final class BrowserMenuBar extends JMenuBar
       DataRadioButtonMenuItem dmi =
           new DataRadioButtonMenuItem("Autodetect Charset", false, DefaultCharset);
       dmi.setToolTipText("Attempts to determine the correct character encoding automatically. " +
-                         "May not work reliably for non-english games.");
+                         "May not work reliably for all game languages.");
       dmi.addActionListener(this);
       bgCharsetButtons.add(dmi);
       menu.add(dmi);
@@ -2187,18 +2188,14 @@ public final class BrowserMenuBar extends JMenuBar
     }
 
     // Attempts to determine the correct charset for the current game
-    private String charsetName(String charset)
+    private String charsetName(String charset, boolean detect)
     {
-      // TODO: detect specific localizations
       if (DefaultCharset.equalsIgnoreCase(charset)) {
-        if (Profile.isEnhancedEdition()) {
-          return "UTF-8";
-        } else {
-          return "windows-1252";
-        }
+        charset = CharsetDetector.guessCharset(detect);
       } else {
-        return charset;
+        charset = CharsetDetector.setCharset(charset);
       }
+      return charset;
     }
 
     private boolean charsetAvailable(String charset)
@@ -2219,7 +2216,7 @@ public final class BrowserMenuBar extends JMenuBar
     private void gameLoaded()
     {
       // update charset selection
-      StringTable.setCharset(charsetName(getSelectedButtonData()));
+      StringTable.setCharset(charsetName(getSelectedButtonData(), true));
       // update language selection
       resetGameLanguage();
     }
@@ -2610,7 +2607,8 @@ public final class BrowserMenuBar extends JMenuBar
         DataRadioButtonMenuItem dmi = (DataRadioButtonMenuItem)event.getSource();
         String csName = (String)dmi.getData();
         if (csName != null) {
-          StringTable.setCharset(charsetName(csName));
+          CharsetDetector.clearCache();
+          StringTable.setCharset(charsetName(csName, true));
           // re-read strings
           ActionEvent refresh = new ActionEvent(dmi, 0, "Refresh");
           NearInfinity.getInstance().actionPerformed(refresh);

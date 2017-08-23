@@ -82,6 +82,7 @@ import org.infinity.updater.UpdateCheck;
 import org.infinity.updater.UpdateInfo;
 import org.infinity.updater.Updater;
 import org.infinity.updater.Utils;
+import org.infinity.util.CharsetDetector;
 import org.infinity.util.CreMapCache;
 import org.infinity.util.FileDeletionHook;
 import org.infinity.util.IdsMapCache;
@@ -815,6 +816,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   {
     if (ResourceFactory.getKeyfile() != null) {
       ResourceFactory.getKeyfile().closeBIFFFiles();
+    }
+    if (refreshOnly == false) {
+      CharsetDetector.clearCache();
     }
     DlcManager.close();
     FileManager.reset();
