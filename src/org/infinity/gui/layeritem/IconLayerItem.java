@@ -39,7 +39,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
    */
   public IconLayerItem()
   {
-    this(null, null, null, null, null);
+    this(null);
   }
 
   /**
@@ -48,7 +48,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
    */
   public IconLayerItem(Point location)
   {
-    this(location, null, null, null, null);
+    this(location, null);
   }
 
   /**
@@ -58,18 +58,18 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
    */
   public IconLayerItem(Point location, Viewable viewable)
   {
-    this(location, viewable, null, null, null);
+    this(location, viewable, null);
   }
 
   /**
    * Initialize object with a specific map location, associated Viewable and an additional text message.
    * @param location Map location
    * @param viewable Associated Viewable object
-   * @param msg An arbitrary text message
+   * @param message An arbitrary text message
    */
-  public IconLayerItem(Point location, Viewable viewable, String msg)
+  public IconLayerItem(Point location, Viewable viewable, String message)
   {
-    this(location, viewable, msg, null, null);
+    this(location, viewable, message, message);
   }
 
   /**
@@ -77,12 +77,26 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
    * and an image for the visual representation.
    * @param location Map location
    * @param viewable Associated Viewable object
-   * @param msg An arbitrary text message
+   * @param message An arbitrary text message
+   * @param tooltip A short text message shown as tooltip or menu item text
+   */
+  public IconLayerItem(Point location, Viewable viewable, String message, String tooltip)
+  {
+    this(location, viewable, message, tooltip, null);
+  }
+
+  /**
+   * Initialize object with a specific map location, associated Viewable, an additional text message
+   * and an image for the visual representation.
+   * @param location Map location
+   * @param viewable Associated Viewable object
+   * @param message An arbitrary text message
+   * @param tooltip A short text message shown as tooltip or menu item text
    * @param image The image to display
    */
-  public IconLayerItem(Point location, Viewable viewable, String msg, Image image)
+  public IconLayerItem(Point location, Viewable viewable, String message, String tooltip, Image image)
   {
-    this(location, viewable, msg, image, null);
+    this(location, viewable, message, tooltip, image, null);
   }
 
   /**
@@ -90,13 +104,15 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
    * an image for the visual representation and a locical center position within the icon.
    * @param location Map location
    * @param viewable Associated Viewable object
-   * @param msg An arbitrary text message
+   * @param message An arbitrary text message
+   * @param tooltip A short text message shown as tooltip or menu item text
    * @param image The image to display
    * @param center Logical center position within the icon
    */
-  public IconLayerItem(Point location, Viewable viewable, String msg, Image image, Point center)
+  public IconLayerItem(Point location, Viewable viewable, String message, String tooltip,
+                       Image image, Point center)
   {
-    super(location, viewable, msg);
+    super(location, viewable, message, tooltip);
     setLayout(new BorderLayout());
     images = new EnumMap<ItemState, Image>(ItemState.class);
     frames = new EnumMap<ItemState, FrameInfo>(ItemState.class);

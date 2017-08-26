@@ -340,7 +340,7 @@ public class LayerObjectAnimation extends LayerObject
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
-      IconLayerItem item1 = new IconLayerItem(location, anim, msg, icon[0], Center);
+      IconLayerItem item1 = new IconLayerItem(location, anim, msg, msg, icon[0], Center);
       item1.setData(keyIcon);
       item1.setName(getCategory());
       item1.setToolTipText(msg);
@@ -348,7 +348,7 @@ public class LayerObjectAnimation extends LayerObject
       item1.setVisible(isVisible());
       items[0] = item1;
 
-      AnimatedLayerItem item2 = new AnimatedLayerItem(location, anim, msg, animation);
+      AnimatedLayerItem item2 = new AnimatedLayerItem(location, anim, msg, msg, animation);
       item2.setData(keyAnim);
       item2.setName(getCategory());
       item2.setToolTipText(msg);

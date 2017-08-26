@@ -10,6 +10,7 @@ import java.awt.Point;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IdsBitmap;
+import org.infinity.datatype.IsTextual;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
@@ -78,10 +79,12 @@ public class LayerObjectAreActor extends LayerObjectActor
   private void init()
   {
     if (actor != null) {
-      String msg = "";
+      String actorName = "";
+      String actorCreName = "";
       Image[] icon = IconNeutral;
       int ea = 128;   // default: neutral
       try {
+        actorName = ((IsTextual)actor.getAttribute(Actor.ARE_ACTOR_NAME)).getText();
         location.x = ((DecNumber)actor.getAttribute(Actor.ARE_ACTOR_POS_X)).getValue();
         location.y = ((DecNumber)actor.getAttribute(Actor.ARE_ACTOR_POS_Y)).getValue();
 
@@ -99,7 +102,7 @@ public class LayerObjectAreActor extends LayerObjectActor
           }
         }
         if (cre != null) {
-          msg = ((StringRef)cre.getAttribute(Actor.ARE_ACTOR_NAME)).toString();
+          actorCreName = ((StringRef)cre.getAttribute(Actor.ARE_ACTOR_NAME)).toString();
           ea = (int)((IdsBitmap)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
         }
         if (ea >= 2 && ea <= 30) {
@@ -123,9 +126,14 @@ public class LayerObjectAreActor extends LayerObjectActor
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
-      item = new IconLayerItem(location, actor, msg, icon[0], Center);
+      String info = actorName.isEmpty() ? actorCreName : actorName;
+      String msg = actorName;
+      if (!actorCreName.equals(actorName)) {
+        msg += " (" + actorCreName + ")";
+      }
+      item = new IconLayerItem(location, actor, msg, info, icon[0], Center);
       item.setName(getCategory());
-      item.setToolTipText(msg);
+      item.setToolTipText(info);
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.setVisible(isVisible());
     }

@@ -132,7 +132,7 @@ public class LayerObjectRegion extends LayerObject
       }
 
       location.x = bounds.x; location.y = bounds.y;
-      item = new ShapedLayerItem(location, region, msg, poly);
+      item = new ShapedLayerItem(location, region, msg, msg, poly);
       item.setName(getCategory());
       item.setToolTipText(msg);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, Color[0]);

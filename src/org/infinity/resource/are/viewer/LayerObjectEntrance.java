@@ -124,7 +124,7 @@ public class LayerObjectEntrance extends LayerObject
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
-      item = new IconLayerItem(location, entrance, msg, icon[0], Center);
+      item = new IconLayerItem(location, entrance, msg, msg, icon[0], Center);
       item.setName(getCategory());
       item.setToolTipText(msg);
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
