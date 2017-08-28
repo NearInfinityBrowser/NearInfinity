@@ -86,7 +86,7 @@ public class RenderCanvas extends JComponent implements SwingConstants
         currentImage.flush();
       }
       currentImage = image;
-      updateSize();
+      update();
     }
   }
 
@@ -233,7 +233,7 @@ public class RenderCanvas extends JComponent implements SwingConstants
   {
     if (newWidth > 0 && newWidth != scaledWidth) {
       scaledWidth = newWidth;
-      updateSize();
+      update();
     }
   }
 
@@ -255,7 +255,7 @@ public class RenderCanvas extends JComponent implements SwingConstants
   {
     if (newHeight > 0 && newHeight != scaledHeight) {
       scaledHeight = newHeight;
-      updateSize();
+      update();
     }
   }
 
@@ -288,11 +288,12 @@ public class RenderCanvas extends JComponent implements SwingConstants
   }
 
 
-  protected void updateSize()
+  protected void update()
   {
-    setPreferredSize(getCanvasSize().getSize());
-    setSize(getPreferredSize());
-    repaint();
+    invalidate();
+    if (getParent() != null) {
+      getParent().repaint();
+    }
   }
 
   protected Rectangle getCanvasSize()
