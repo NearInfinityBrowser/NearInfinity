@@ -223,6 +223,7 @@ public class LayerObjectAmbient extends LayerObject
 
       // creating sound item
       itemIcon = new IconLayerItem(location, ambient, msg, msg, icon[0], Center);
+      itemIcon.setLabelEnabled(Settings.ShowLabelSounds);
       itemIcon.setName(getCategory());
       itemIcon.setToolTipText(msg);
       itemIcon.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);

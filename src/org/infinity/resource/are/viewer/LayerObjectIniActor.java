@@ -151,6 +151,7 @@ public class LayerObjectIniActor extends LayerObjectActor
 
       ini.setHighlightedLine(creData.getLine() + 1);
       item = new IconLayerItem(location, ini, msg, info, icon[0], Center);
+      item.setLabelEnabled(Settings.ShowLabelActorsIni);
       item.setName(getCategory());
       item.setToolTipText(info);
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);

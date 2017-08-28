@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.EnumMap;
 
+import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 
 import org.infinity.gui.RenderCanvas;
@@ -29,10 +30,13 @@ import org.infinity.resource.graphics.ColorConvert;
 public class IconLayerItem extends AbstractLayerItem implements LayerItemListener
 {
   private static final Image DefaultImage = ColorConvert.createCompatibleImage(1, 1, true);
+  private static final Color COLOR_BG_NORMAL = new Color(0x80ffffff, true);
+  private static final Color COLOR_BG_HIGHLIGHTED = new Color(0xc0ffffff, true);
 
   private EnumMap<ItemState, Image> images;
   private EnumMap<ItemState, FrameInfo> frames;
   private RenderCanvas rcCanvas;
+  private JLabel label;
 
   /**
    * Initialize object with default settings.
@@ -114,14 +118,38 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
   {
     super(location, viewable, message, tooltip);
     setLayout(new BorderLayout());
+    // preparing icon
     images = new EnumMap<ItemState, Image>(ItemState.class);
     frames = new EnumMap<ItemState, FrameInfo>(ItemState.class);
     rcCanvas = new FrameCanvas(this);
+//    rcCanvas.setBorder(BorderFactory.createLineBorder(Color.RED));  // DEBUG
     rcCanvas.setHorizontalAlignment(SwingConstants.CENTER);
     rcCanvas.setVerticalAlignment(SwingConstants.CENTER);
     add(rcCanvas, BorderLayout.CENTER);
+    // preparing icon label
+    String msg = (tooltip != null && !tooltip.isEmpty()) ? tooltip : message;
+    if (msg == null) { msg = ""; }
+    label = new JLabel(msg);
+    label.setHorizontalAlignment(SwingConstants.CENTER);
+    label.setVerticalAlignment(SwingConstants.CENTER);
+    label.setIconTextGap(2);
+    label.setBackground(COLOR_BG_NORMAL);
+    label.setForeground(Color.BLACK);
+    label.setOpaque(true);
+    label.setVisible(false);  // labels are disabled by default
+    add(label, BorderLayout.NORTH);
     setImage(ItemState.NORMAL, image);
+
+    if (center != null) {
+      // adjusting center position
+      int gap = label.getIconTextGap();
+      int shiftX = gap*2 + label.getPreferredSize().width - image.getWidth(null);
+      shiftX = Math.max(0, shiftX / 2);
+      int shiftY = gap + label.getPreferredSize().height;
+      center = new Point(center.x + shiftX, center.y + shiftY);
+    }
     setCenterPosition(center);
+
     setCurrentImage(getItemState());
     addLayerItemListener(this);
   }
@@ -274,6 +302,17 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
     }
   }
 
+  public boolean isLabelEnabled()
+  {
+    return label.isVisible();
+  }
+
+  public void setLabelEnabled(boolean set)
+  {
+    label.setVisible(set);
+    validate();
+  }
+
 //--------------------- Begin Interface LayerItemListener ---------------------
 
   @Override
@@ -292,8 +331,8 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
   {
     BufferedImage image = ColorConvert.toBufferedImage(getCurrentImage(), true);
     if (image != null) {
-      Rectangle region = new Rectangle((getSize().width - image.getWidth()) / 2,
-                                       (getSize().height - image.getHeight()) / 2,
+      Rectangle region = new Rectangle((getSize().width - image.getWidth() + rcCanvas.getX()) / 2,
+                                       (getSize().height - image.getHeight() + rcCanvas.getY()) / 2,
                                         image.getWidth(),
                                         image.getHeight());
       if (region.contains(pt)) {
@@ -318,6 +357,9 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
       r.width = Math.max(r.width, image.getWidth(null));
       r.height = Math.max(r.height, image.getHeight(null));
     }
+    int gap = label.getIconTextGap() * 2;
+    r.width = Math.max(r.width, label.getPreferredSize().width + gap);
+    r.height += label.getPreferredSize().height + gap;
     setPreferredSize(r.getSize());
     setBounds(r);
   }
@@ -330,8 +372,13 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
   private void setCurrentImage(ItemState state)
   {
     if (state != null) {
+      switch (state) {
+        case NORMAL: label.setBackground(COLOR_BG_NORMAL); break;
+        case HIGHLIGHTED: label.setBackground(COLOR_BG_HIGHLIGHTED); break;
+      }
       rcCanvas.setImage(getImage(state));
     } else {
+      label.setBackground(new Color(0, true));
       rcCanvas.setImage(null);
     }
   }

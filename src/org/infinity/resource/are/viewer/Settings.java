@@ -80,6 +80,17 @@ public class Settings
   public static double MiniMapAlpha = getDefaultMiniMapAlpha();
   // One of the MAP_XXX constants for minimaps
   public static int MiniMap = getDefaultMiniMap();
+  // Show label for various layer item types
+  public static boolean ShowLabelActorsAre = getDefaultLabelActorsAre();
+  public static boolean ShowLabelActorsIni = getDefaultLabelActorsIni();
+  public static boolean ShowLabelRegions = getDefaultLabelRegions();
+  public static boolean ShowLabelEntrances = getDefaultLabelEntrances();
+  public static boolean ShowLabelContainers = getDefaultLabelContainers();
+  public static boolean ShowLabelSounds = getDefaultLabelSounds();
+  public static boolean ShowLabelDoors = getDefaultLabelDoors();
+  public static boolean ShowLabelAnimations = getDefaultLabelAnimations();
+  public static boolean ShowLabelMapNotes = getDefaultLabelMapNotes();
+  public static boolean ShowLabelSpawnPoints = getDefaultLabelSpawnPoints();
 
   // Preferences keys for specific settings
   private static final String PREFS_STORESETTINGS           = "StoreSettings";
@@ -102,6 +113,16 @@ public class Settings
   private static final String PREFS_FRAMERATE_ANIMS         = "FrameRateAnims";
   private static final String PREFS_MINIMAP_ALPHA           = "MiniMapAlpha";
   private static final String PREFS_MINIMAP                 = "MiniMap";
+  private static final String PREFS_LABEL_ACTOR_ARE         = "LabelActorAre";
+  private static final String PREFS_LABEL_ACTOR_INI         = "LabelActorIni";
+  private static final String PREFS_LABEL_REGIONS           = "LabelRegions";
+  private static final String PREFS_LABEL_ENTRANCES         = "LabelEntrances";
+  private static final String PREFS_LABEL_CONTAINERS        = "LabelContainers";
+  private static final String PREFS_LABEL_SOUNDS            = "LabelSounds";
+  private static final String PREFS_LABEL_DOORS             = "LabelDoors";
+  private static final String PREFS_LABEL_ANIMATIONS        = "LabelAnimations";
+  private static final String PREFS_LABEL_MAPNOTES          = "LabelMapNotes";
+  private static final String PREFS_LABEL_SPAWNPOINTS       = "LabelSpawnPoints";
 
   private static boolean SettingsLoaded = false;
 
@@ -123,6 +144,16 @@ public class Settings
       FrameRateOverlays = prefs.getDouble(PREFS_FRAMERATE_OVERLAYS, getDefaultFrameRateOverlays());
       FrameRateAnimations = prefs.getDouble(PREFS_FRAMERATE_ANIMS, getDefaultFrameRateAnimations());
       MiniMapAlpha = prefs.getDouble(PREFS_MINIMAP_ALPHA, getDefaultMiniMapAlpha());
+      ShowLabelActorsAre = prefs.getBoolean(PREFS_LABEL_ACTOR_ARE, getDefaultLabelActorsAre());
+      ShowLabelActorsIni = prefs.getBoolean(PREFS_LABEL_ACTOR_INI, getDefaultLabelActorsIni());
+      ShowLabelRegions = prefs.getBoolean(PREFS_LABEL_REGIONS, getDefaultLabelRegions());
+      ShowLabelEntrances = prefs.getBoolean(PREFS_LABEL_ENTRANCES, getDefaultLabelEntrances());
+      ShowLabelContainers = prefs.getBoolean(PREFS_LABEL_CONTAINERS, getDefaultLabelContainers());
+      ShowLabelSounds = prefs.getBoolean(PREFS_LABEL_SOUNDS, getDefaultLabelSounds());
+      ShowLabelDoors = prefs.getBoolean(PREFS_LABEL_DOORS, getDefaultLabelDoors());
+      ShowLabelAnimations = prefs.getBoolean(PREFS_LABEL_ANIMATIONS, getDefaultLabelAnimations());
+      ShowLabelMapNotes = prefs.getBoolean(PREFS_LABEL_MAPNOTES, getDefaultLabelMapNotes());
+      ShowLabelSpawnPoints = prefs.getBoolean(PREFS_LABEL_SPAWNPOINTS, getDefaultLabelSpawnPoints());
 
       // loading layer z-order
       ListLayerOrder.clear();
@@ -172,6 +203,16 @@ public class Settings
     prefs.putDouble(PREFS_FRAMERATE_OVERLAYS, FrameRateOverlays);
     prefs.putDouble(PREFS_FRAMERATE_ANIMS, FrameRateAnimations);
     prefs.putDouble(PREFS_MINIMAP_ALPHA, MiniMapAlpha);
+    prefs.putBoolean(PREFS_LABEL_ACTOR_ARE, ShowLabelActorsAre);
+    prefs.putBoolean(PREFS_LABEL_ACTOR_INI, ShowLabelActorsIni);
+    prefs.putBoolean(PREFS_LABEL_REGIONS, ShowLabelRegions);
+    prefs.putBoolean(PREFS_LABEL_ENTRANCES, ShowLabelEntrances);
+    prefs.putBoolean(PREFS_LABEL_CONTAINERS, ShowLabelContainers);
+    prefs.putBoolean(PREFS_LABEL_SOUNDS, ShowLabelSounds);
+    prefs.putBoolean(PREFS_LABEL_DOORS, ShowLabelDoors);
+    prefs.putBoolean(PREFS_LABEL_ANIMATIONS, ShowLabelAnimations);
+    prefs.putBoolean(PREFS_LABEL_MAPNOTES, ShowLabelMapNotes);
+    prefs.putBoolean(PREFS_LABEL_SPAWNPOINTS, ShowLabelSpawnPoints);
 
     // storing layer z-order
     for (int i = 0; i < ListLayerOrder.size(); i++) {
@@ -346,6 +387,55 @@ public class Settings
     return ViewerConstants.MAP_NONE;
   }
 
+  public static boolean getDefaultLabelActorsAre()
+  {
+    return true;
+  }
+
+  public static boolean getDefaultLabelActorsIni()
+  {
+    return true;
+  }
+
+  public static boolean getDefaultLabelRegions()
+  {
+    return false;
+  }
+
+  public static boolean getDefaultLabelEntrances()
+  {
+    return false;
+  }
+
+  public static boolean getDefaultLabelContainers()
+  {
+    return false;
+  }
+
+  public static boolean getDefaultLabelSounds()
+  {
+    return false;
+  }
+
+  public static boolean getDefaultLabelDoors()
+  {
+    return false;
+  }
+
+  public static boolean getDefaultLabelAnimations()
+  {
+    return false;
+  }
+
+  public static boolean getDefaultLabelMapNotes()
+  {
+    return false;
+  }
+
+  public static boolean getDefaultLabelSpawnPoints()
+  {
+    return false;
+  }
 
   // Converts values from LayerStackingType to LayerType
   public static LayerType stackingToLayer(LayerStackingType type)

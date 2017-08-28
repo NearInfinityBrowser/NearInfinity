@@ -124,6 +124,7 @@ public class LayerObjectAutomapPST extends LayerObject
       }
 
       item = new IconLayerItem(location, note, msg, msg, icon[0], Center);
+      item.setLabelEnabled(Settings.ShowLabelMapNotes);
       item.setName(getCategory());
       item.setToolTipText(msg);
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);

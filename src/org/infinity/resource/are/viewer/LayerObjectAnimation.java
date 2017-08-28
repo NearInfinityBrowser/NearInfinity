@@ -342,6 +342,7 @@ public class LayerObjectAnimation extends LayerObject
 
       IconLayerItem item1 = new IconLayerItem(location, anim, msg, msg, icon[0], Center);
       item1.setData(keyIcon);
+      item1.setLabelEnabled(Settings.ShowLabelAnimations);
       item1.setName(getCategory());
       item1.setToolTipText(msg);
       item1.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
