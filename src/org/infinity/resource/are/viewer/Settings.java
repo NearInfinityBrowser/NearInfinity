@@ -83,11 +83,11 @@ public class Settings
   // Show label for various layer item types
   public static boolean ShowLabelActorsAre = getDefaultLabelActorsAre();
   public static boolean ShowLabelActorsIni = getDefaultLabelActorsIni();
-  public static boolean ShowLabelRegions = getDefaultLabelRegions();
+//  public static boolean ShowLabelRegions = getDefaultLabelRegions();
   public static boolean ShowLabelEntrances = getDefaultLabelEntrances();
-  public static boolean ShowLabelContainers = getDefaultLabelContainers();
+//  public static boolean ShowLabelContainers = getDefaultLabelContainers();
   public static boolean ShowLabelSounds = getDefaultLabelSounds();
-  public static boolean ShowLabelDoors = getDefaultLabelDoors();
+//  public static boolean ShowLabelDoors = getDefaultLabelDoors();
   public static boolean ShowLabelAnimations = getDefaultLabelAnimations();
   public static boolean ShowLabelMapNotes = getDefaultLabelMapNotes();
   public static boolean ShowLabelSpawnPoints = getDefaultLabelSpawnPoints();
@@ -115,11 +115,11 @@ public class Settings
   private static final String PREFS_MINIMAP                 = "MiniMap";
   private static final String PREFS_LABEL_ACTOR_ARE         = "LabelActorAre";
   private static final String PREFS_LABEL_ACTOR_INI         = "LabelActorIni";
-  private static final String PREFS_LABEL_REGIONS           = "LabelRegions";
+//  private static final String PREFS_LABEL_REGIONS           = "LabelRegions";
   private static final String PREFS_LABEL_ENTRANCES         = "LabelEntrances";
-  private static final String PREFS_LABEL_CONTAINERS        = "LabelContainers";
+//  private static final String PREFS_LABEL_CONTAINERS        = "LabelContainers";
   private static final String PREFS_LABEL_SOUNDS            = "LabelSounds";
-  private static final String PREFS_LABEL_DOORS             = "LabelDoors";
+//  private static final String PREFS_LABEL_DOORS             = "LabelDoors";
   private static final String PREFS_LABEL_ANIMATIONS        = "LabelAnimations";
   private static final String PREFS_LABEL_MAPNOTES          = "LabelMapNotes";
   private static final String PREFS_LABEL_SPAWNPOINTS       = "LabelSpawnPoints";
@@ -146,11 +146,11 @@ public class Settings
       MiniMapAlpha = prefs.getDouble(PREFS_MINIMAP_ALPHA, getDefaultMiniMapAlpha());
       ShowLabelActorsAre = prefs.getBoolean(PREFS_LABEL_ACTOR_ARE, getDefaultLabelActorsAre());
       ShowLabelActorsIni = prefs.getBoolean(PREFS_LABEL_ACTOR_INI, getDefaultLabelActorsIni());
-      ShowLabelRegions = prefs.getBoolean(PREFS_LABEL_REGIONS, getDefaultLabelRegions());
+//      ShowLabelRegions = prefs.getBoolean(PREFS_LABEL_REGIONS, getDefaultLabelRegions());
       ShowLabelEntrances = prefs.getBoolean(PREFS_LABEL_ENTRANCES, getDefaultLabelEntrances());
-      ShowLabelContainers = prefs.getBoolean(PREFS_LABEL_CONTAINERS, getDefaultLabelContainers());
+//      ShowLabelContainers = prefs.getBoolean(PREFS_LABEL_CONTAINERS, getDefaultLabelContainers());
       ShowLabelSounds = prefs.getBoolean(PREFS_LABEL_SOUNDS, getDefaultLabelSounds());
-      ShowLabelDoors = prefs.getBoolean(PREFS_LABEL_DOORS, getDefaultLabelDoors());
+//      ShowLabelDoors = prefs.getBoolean(PREFS_LABEL_DOORS, getDefaultLabelDoors());
       ShowLabelAnimations = prefs.getBoolean(PREFS_LABEL_ANIMATIONS, getDefaultLabelAnimations());
       ShowLabelMapNotes = prefs.getBoolean(PREFS_LABEL_MAPNOTES, getDefaultLabelMapNotes());
       ShowLabelSpawnPoints = prefs.getBoolean(PREFS_LABEL_SPAWNPOINTS, getDefaultLabelSpawnPoints());
@@ -205,11 +205,11 @@ public class Settings
     prefs.putDouble(PREFS_MINIMAP_ALPHA, MiniMapAlpha);
     prefs.putBoolean(PREFS_LABEL_ACTOR_ARE, ShowLabelActorsAre);
     prefs.putBoolean(PREFS_LABEL_ACTOR_INI, ShowLabelActorsIni);
-    prefs.putBoolean(PREFS_LABEL_REGIONS, ShowLabelRegions);
+//    prefs.putBoolean(PREFS_LABEL_REGIONS, ShowLabelRegions);
     prefs.putBoolean(PREFS_LABEL_ENTRANCES, ShowLabelEntrances);
-    prefs.putBoolean(PREFS_LABEL_CONTAINERS, ShowLabelContainers);
+//    prefs.putBoolean(PREFS_LABEL_CONTAINERS, ShowLabelContainers);
     prefs.putBoolean(PREFS_LABEL_SOUNDS, ShowLabelSounds);
-    prefs.putBoolean(PREFS_LABEL_DOORS, ShowLabelDoors);
+//    prefs.putBoolean(PREFS_LABEL_DOORS, ShowLabelDoors);
     prefs.putBoolean(PREFS_LABEL_ANIMATIONS, ShowLabelAnimations);
     prefs.putBoolean(PREFS_LABEL_MAPNOTES, ShowLabelMapNotes);
     prefs.putBoolean(PREFS_LABEL_SPAWNPOINTS, ShowLabelSpawnPoints);
@@ -397,30 +397,30 @@ public class Settings
     return true;
   }
 
-  public static boolean getDefaultLabelRegions()
-  {
-    return false;
-  }
+//  public static boolean getDefaultLabelRegions()
+//  {
+//    return false;
+//  }
 
   public static boolean getDefaultLabelEntrances()
   {
     return false;
   }
 
-  public static boolean getDefaultLabelContainers()
-  {
-    return false;
-  }
+//  public static boolean getDefaultLabelContainers()
+//  {
+//    return false;
+//  }
 
   public static boolean getDefaultLabelSounds()
   {
     return false;
   }
 
-  public static boolean getDefaultLabelDoors()
-  {
-    return false;
-  }
+//  public static boolean getDefaultLabelDoors()
+//  {
+//    return false;
+//  }
 
   public static boolean getDefaultLabelAnimations()
   {

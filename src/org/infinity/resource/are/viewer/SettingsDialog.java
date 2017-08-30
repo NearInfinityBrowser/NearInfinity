@@ -63,15 +63,15 @@ public class SettingsDialog extends JDialog
                                              "Door Polygons", "Wall Polygons" };
   private static final int INDEX_LABEL_ACTORS_ARE   = 0;
   private static final int INDEX_LABEL_ACTORS_INI   = 1;
-  private static final int INDEX_LABEL_REGIONS      = 2;
-  private static final int INDEX_LABEL_ENTRANCES    = 3;
-  private static final int INDEX_LABEL_CONTAINERS   = 4;
-  private static final int INDEX_LABEL_SOUNDS       = 5;
-  private static final int INDEX_LABEL_DOORS        = 6;
-  private static final int INDEX_LABEL_ANIMATIONS   = 7;
-  private static final int INDEX_LABEL_MAPNOTES     = 8;
-  private static final int INDEX_LABEL_SPAWNPOINTS  = 9;
-  private static final int INDEX_LABEL_COUNT        = 10;
+//  private static final int INDEX_LABEL_REGIONS      = 2;
+  private static final int INDEX_LABEL_ENTRANCES    = 2;
+//  private static final int INDEX_LABEL_CONTAINERS   = 4;
+  private static final int INDEX_LABEL_SOUNDS       = 3;
+//  private static final int INDEX_LABEL_DOORS        = 6;
+  private static final int INDEX_LABEL_ANIMATIONS   = 4;
+  private static final int INDEX_LABEL_MAPNOTES     = 5;
+  private static final int INDEX_LABEL_SPAWNPOINTS  = 6;
+  private static final int INDEX_LABEL_COUNT        = 7;
 
   private JCheckBox[] cbLabels;
   private SimpleListModel<LayerEntry> modelLayers;
@@ -140,11 +140,11 @@ public class SettingsDialog extends JDialog
 
     Settings.ShowLabelActorsAre = cbLabels[INDEX_LABEL_ACTORS_ARE].isSelected();
     Settings.ShowLabelActorsIni = cbLabels[INDEX_LABEL_ACTORS_INI].isSelected();
-    Settings.ShowLabelRegions = cbLabels[INDEX_LABEL_REGIONS].isSelected();
+//    Settings.ShowLabelRegions = cbLabels[INDEX_LABEL_REGIONS].isSelected();
     Settings.ShowLabelEntrances = cbLabels[INDEX_LABEL_ENTRANCES].isSelected();
-    Settings.ShowLabelContainers = cbLabels[INDEX_LABEL_CONTAINERS].isSelected();
+//    Settings.ShowLabelContainers = cbLabels[INDEX_LABEL_CONTAINERS].isSelected();
     Settings.ShowLabelSounds = cbLabels[INDEX_LABEL_SOUNDS].isSelected();
-    Settings.ShowLabelDoors = cbLabels[INDEX_LABEL_DOORS].isSelected();
+//    Settings.ShowLabelDoors = cbLabels[INDEX_LABEL_DOORS].isSelected();
     Settings.ShowLabelAnimations = cbLabels[INDEX_LABEL_ANIMATIONS].isSelected();
     Settings.ShowLabelMapNotes = cbLabels[INDEX_LABEL_MAPNOTES].isSelected();
     Settings.ShowLabelSpawnPoints = cbLabels[INDEX_LABEL_SPAWNPOINTS].isSelected();
@@ -190,11 +190,11 @@ public class SettingsDialog extends JDialog
 
     cbLabels[INDEX_LABEL_ACTORS_ARE].setSelected(Settings.getDefaultLabelActorsAre());
     cbLabels[INDEX_LABEL_ACTORS_INI].setSelected(Settings.getDefaultLabelActorsIni());
-    cbLabels[INDEX_LABEL_REGIONS].setSelected(Settings.getDefaultLabelRegions());
+//    cbLabels[INDEX_LABEL_REGIONS].setSelected(Settings.getDefaultLabelRegions());
     cbLabels[INDEX_LABEL_ENTRANCES].setSelected(Settings.getDefaultLabelEntrances());
-    cbLabels[INDEX_LABEL_CONTAINERS].setSelected(Settings.getDefaultLabelContainers());
+//    cbLabels[INDEX_LABEL_CONTAINERS].setSelected(Settings.getDefaultLabelContainers());
     cbLabels[INDEX_LABEL_SOUNDS].setSelected(Settings.getDefaultLabelSounds());
-    cbLabels[INDEX_LABEL_DOORS].setSelected(Settings.getDefaultLabelDoors());
+//    cbLabels[INDEX_LABEL_DOORS].setSelected(Settings.getDefaultLabelDoors());
     cbLabels[INDEX_LABEL_ANIMATIONS].setSelected(Settings.getDefaultLabelAnimations());
     cbLabels[INDEX_LABEL_MAPNOTES].setSelected(Settings.getDefaultLabelMapNotes());
     cbLabels[INDEX_LABEL_SPAWNPOINTS].setSelected(Settings.getDefaultLabelSpawnPoints());
@@ -323,28 +323,28 @@ public class SettingsDialog extends JDialog
     // Initializing options
     // Icon labels
     JPanel pShowLabels = new JPanel(new GridBagLayout());
-    pShowLabels.setBorder(BorderFactory.createTitledBorder("Show item labels for: "));
+    pShowLabels.setBorder(BorderFactory.createTitledBorder("Show icon labels for: "));
     cbLabels = new JCheckBox[INDEX_LABEL_COUNT];
     cbLabels[INDEX_LABEL_ACTORS_ARE] = new JCheckBox("Actors (ARE)");
     cbLabels[INDEX_LABEL_ACTORS_ARE].setSelected(Settings.ShowLabelActorsAre);
     cbLabels[INDEX_LABEL_ACTORS_INI] = new JCheckBox("Actors (INI)");
     cbLabels[INDEX_LABEL_ACTORS_INI].setSelected(Settings.ShowLabelActorsIni);
-    cbLabels[INDEX_LABEL_REGIONS] = new JCheckBox("Regions");
-    cbLabels[INDEX_LABEL_REGIONS].setEnabled(false);
-    cbLabels[INDEX_LABEL_REGIONS].setToolTipText("Not yet supported");
-    cbLabels[INDEX_LABEL_REGIONS].setSelected(Settings.ShowLabelRegions);
+//    cbLabels[INDEX_LABEL_REGIONS] = new JCheckBox("Regions");
+//    cbLabels[INDEX_LABEL_REGIONS].setEnabled(false);
+//    cbLabels[INDEX_LABEL_REGIONS].setToolTipText("Not yet supported");
+//    cbLabels[INDEX_LABEL_REGIONS].setSelected(Settings.ShowLabelRegions);
     cbLabels[INDEX_LABEL_ENTRANCES] = new JCheckBox("Entrances");
     cbLabels[INDEX_LABEL_ENTRANCES].setSelected(Settings.ShowLabelEntrances);
-    cbLabels[INDEX_LABEL_CONTAINERS] = new JCheckBox("Containers");
-    cbLabels[INDEX_LABEL_CONTAINERS].setEnabled(false);
-    cbLabels[INDEX_LABEL_CONTAINERS].setToolTipText("Not yet supported");
-    cbLabels[INDEX_LABEL_CONTAINERS].setSelected(Settings.ShowLabelContainers);
+//    cbLabels[INDEX_LABEL_CONTAINERS] = new JCheckBox("Containers");
+//    cbLabels[INDEX_LABEL_CONTAINERS].setEnabled(false);
+//    cbLabels[INDEX_LABEL_CONTAINERS].setToolTipText("Not yet supported");
+//    cbLabels[INDEX_LABEL_CONTAINERS].setSelected(Settings.ShowLabelContainers);
     cbLabels[INDEX_LABEL_SOUNDS] = new JCheckBox("Ambient Sounds");
     cbLabels[INDEX_LABEL_SOUNDS].setSelected(Settings.ShowLabelSounds);
-    cbLabels[INDEX_LABEL_DOORS] = new JCheckBox("Doors");
-    cbLabels[INDEX_LABEL_DOORS].setEnabled(false);
-    cbLabels[INDEX_LABEL_DOORS].setToolTipText("Not yet supported");
-    cbLabels[INDEX_LABEL_DOORS].setSelected(Settings.ShowLabelDoors);
+//    cbLabels[INDEX_LABEL_DOORS] = new JCheckBox("Doors");
+//    cbLabels[INDEX_LABEL_DOORS].setEnabled(false);
+//    cbLabels[INDEX_LABEL_DOORS].setToolTipText("Not yet supported");
+//    cbLabels[INDEX_LABEL_DOORS].setSelected(Settings.ShowLabelDoors);
     cbLabels[INDEX_LABEL_ANIMATIONS] = new JCheckBox("Background Animations");
     cbLabels[INDEX_LABEL_ANIMATIONS].setSelected(Settings.ShowLabelAnimations);
     cbLabels[INDEX_LABEL_MAPNOTES] = new JCheckBox("Automap Notes");
