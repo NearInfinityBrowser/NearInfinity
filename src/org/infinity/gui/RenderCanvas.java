@@ -4,6 +4,7 @@
 
 package org.infinity.gui;
 
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -86,6 +87,12 @@ public class RenderCanvas extends JComponent implements SwingConstants
         currentImage.flush();
       }
       currentImage = image;
+
+      if (currentImage != null) {
+        setPreferredSize(new Dimension(currentImage.getWidth(null), currentImage.getHeight(null)));
+      } else {
+        setPreferredSize(new Dimension(16, 16));
+      }
       update();
     }
   }
