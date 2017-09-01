@@ -26,6 +26,8 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -449,6 +451,11 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setLocation(prefs.getInt(WINDOW_POSX, centerX), prefs.getInt(WINDOW_POSY, centerY));
     setVisible(true);
     setExtendedState(prefs.getInt(WINDOW_STATE, NORMAL));
+
+    // XXX: Workaround to trigger standard window closing callback on OSX when using command-Q
+    if (System.getProperty("os.name").startsWith("Mac OS X")) {
+      enableOSXQuitStrategy();
+    }
 
     tableColumnWidth[0] = Math.max(15, prefs.getInt(TABLE_WIDTH_ATTR, 300));
     tableColumnWidth[1] = 0;
@@ -944,6 +951,27 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
   }
 
+  // Enables command-Q on OSX to trigger the window closing callback
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private void enableOSXQuitStrategy()
+  {
+    try {
+      Class application = Class.forName("com.apple.eawt.Application");
+      Method getApplication = application.getMethod("getApplication");
+      Object instance = getApplication.invoke(application);
+      Class strategy = Class.forName("com.apple.eawt.QuitStrategy");
+      Enum closeAllWindows = Enum.valueOf(strategy, "CLOSE_ALL_WINDOWS");
+      Method method = application.getMethod("setQuitStrategy", strategy);
+      method.invoke(instance, closeAllWindows);
+    } catch (ClassNotFoundException |
+             NoSuchMethodException |
+             SecurityException |
+             IllegalAccessException |
+             IllegalArgumentException |
+             InvocationTargetException e) {
+      e.printStackTrace();
+    }
+  }
 
 // -------------------------- INNER CLASSES --------------------------
 
