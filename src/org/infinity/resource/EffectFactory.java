@@ -3001,7 +3001,7 @@ public final class EffectFactory
       case 189: // Increase casting speed factor
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
-                         new String[]{"Increment", "Set", "Set if higher"}));
+                         new String[]{"Increment", "Set", "Set if lower"}));
         break;
 
       case 190: // Increase attack speed factor
