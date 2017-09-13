@@ -55,6 +55,14 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   public static final String PRO_CREATURE_TYPE = "Creature type";
   public static final String PRO_SPELL_DEFAULT = "Default spell";
   public static final String PRO_SPELL_SUCCESS = "Success spell";
+  public static final String PRO_SPELL_ANGLE_MIN = "Angle increase minimum";
+  public static final String PRO_SPELL_ANGLE_MAX = "Angle increase maximum";
+  public static final String PRO_SPELL_CURVE_MIN = "Curve minimum";
+  public static final String PRO_SPELL_CURVE_MAX = "Curve maximum";
+  public static final String PRO_SPELL_THAC0_BONUS = "THAC0 bonus";
+  public static final String PRO_SPELL_THAC0_BONUS_2 = "THAC0 bonus (non-actor)";
+  public static final String PRO_SPELL_RADIUS_MIN = "Radius minimum";
+  public static final String PRO_SPELL_RADIUS_MAX = "Radius maximum";
 
   public static final String[] s_color = {"", "Black", "Blue", "Chromatic", "Gold",
                                            "Green", "Purple", "Red", "White", "Ice",
@@ -237,42 +245,33 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       addField(new ColorPicker(buffer, offset + 52, PRO_COLOR, ColorPicker.Format.BGRX));
       addField(new DecNumber(buffer, offset + 56, 2, PRO_COLOR_SPEED));
       addField(new DecNumber(buffer, offset + 58, 2, PRO_SCREEN_SHAKE_AMOUNT));
-      if (Profile.isEnhancedEdition()) {
-        flag.addUpdateListener(this);
-        if (flag.isFlagSet(30)) {
-          SpellProtType type = new SpellProtType(buffer, offset + 62, 2, PRO_CREATURE_TYPE, 1);
-          addField(type.createCreatureValueFromType(buffer, offset + 60));
-          addField(type);
-          type = new SpellProtType(buffer, offset + 66, 2, PRO_CREATURE_TYPE, 2);
-          addField(type.createCreatureValueFromType(buffer, offset + 64));
-          addField(type);
-        } else {
-          IdsTargetType type = new IdsTargetType(buffer, offset + 62, 2, null, 1, null, false);
-          addField(type.createIdsValueFromType(buffer));
-          addField(type);
-          type = new IdsTargetType(buffer, offset + 66, 2, null, 2, null, false);
-          addField(type.createIdsValueFromType(buffer));
-          addField(type);
-        }
+      flag.addUpdateListener(this);
+      if (flag.isFlagSet(30)) {
+        SpellProtType type = new SpellProtType(buffer, offset + 62, 2, PRO_CREATURE_TYPE, 1);
+        addField(type.createCreatureValueFromType(buffer, offset + 60));
+        addField(type);
+        type = new SpellProtType(buffer, offset + 66, 2, PRO_CREATURE_TYPE, 2);
+        addField(type.createCreatureValueFromType(buffer, offset + 64));
+        addField(type);
       } else {
         IdsTargetType type = new IdsTargetType(buffer, offset + 62, 2, null, 1, null, false);
         addField(type.createIdsValueFromType(buffer));
         addField(type);
-        type = new IdsTargetType(buffer, offset + 62, 2, null, 2, null, false);
+        type = new IdsTargetType(buffer, offset + 66, 2, null, 2, null, false);
         addField(type.createIdsValueFromType(buffer));
         addField(type);
       }
       addField(new ResourceRef(buffer, 68, PRO_SPELL_DEFAULT, "SPL"));
       addField(new ResourceRef(buffer, 76, PRO_SPELL_SUCCESS, "SPL"));
       if (Profile.getGame() == Profile.Game.PSTEE) {
-        addField(new DecNumber(buffer, 84, 2, "Angle increase minimum"));
-        addField(new DecNumber(buffer, 86, 2, "Angle increase maximum"));
-        addField(new DecNumber(buffer, 88, 2, "Curve minimum"));
-        addField(new DecNumber(buffer, 90, 2, "Curve maximum"));
-        addField(new DecNumber(buffer, 92, 2, "THAC0 bonus"));
-        addField(new DecNumber(buffer, 94, 2, "THAC0 bonus (non-actor)"));
-        addField(new DecNumber(buffer, 96, 2, "Radium minimum"));
-        addField(new DecNumber(buffer, 98, 2, "Radium maximum"));
+        addField(new DecNumber(buffer, 84, 2, PRO_SPELL_ANGLE_MIN));
+        addField(new DecNumber(buffer, 86, 2, PRO_SPELL_ANGLE_MAX));
+        addField(new DecNumber(buffer, 88, 2, PRO_SPELL_CURVE_MIN));
+        addField(new DecNumber(buffer, 90, 2, PRO_SPELL_CURVE_MAX));
+        addField(new DecNumber(buffer, 92, 2, PRO_SPELL_THAC0_BONUS));
+        addField(new DecNumber(buffer, 94, 2, PRO_SPELL_THAC0_BONUS_2));
+        addField(new DecNumber(buffer, 96, 2, PRO_SPELL_RADIUS_MIN));
+        addField(new DecNumber(buffer, 98, 2, PRO_SPELL_RADIUS_MAX));
         addField(new Unknown(buffer, offset + 100, 156));
       } else {
         addField(new Unknown(buffer, offset + 84, 172));
