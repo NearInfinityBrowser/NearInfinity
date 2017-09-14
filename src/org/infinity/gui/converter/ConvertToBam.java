@@ -63,6 +63,7 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -89,6 +90,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.infinity.NearInfinity;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.ChildFrame;
+import org.infinity.gui.DataMenuItem;
 import org.infinity.gui.FixedFocusTraversalPolicy;
 import org.infinity.gui.OpenResourceDialog;
 import org.infinity.gui.RenderCanvas;
@@ -183,6 +185,7 @@ public class ConvertToBam extends ChildFrame
   private JMenuItem miFramesAddFiles, miFramesAddResources, miFramesAddFolder, miFramesImportFile,
                     miFramesImportResource, miFramesRemove, miFramesRemoveAll, miFramesDropUnused,
                     miSessionExport, miSessionImport;
+  private JMenu miSessionHistory;
   private ButtonPopupMenu bpmFramesAdd, bpmFramesRemove, bpmSession;
   private JButton bOptions, bConvert, bCancel, bPalette, bVersionHelp, bCompressionHelp;
   private JButton bFramesUp, bFramesDown;
@@ -434,6 +437,12 @@ public class ConvertToBam extends ChildFrame
     return bamOutputFile;
   }
 
+  /** Predefines BAM output file or path. */
+  public void setBamOutput(Path path)
+  {
+    bamOutputFile = path;
+  }
+
   /** Returns whether BAM v1 output is compressed. */
   public boolean isBamV1Compressed()
   {
@@ -468,6 +477,7 @@ public class ConvertToBam extends ChildFrame
   @Override
   protected boolean windowClosing(boolean forced) throws Exception
   {
+    BamOptionsDialog.saveRecentSessions();
     if (forced || confirmCloseDialog()) {
       clear();
       return true;
@@ -675,6 +685,27 @@ public class ConvertToBam extends ChildFrame
       filterMoveDown();
     } else if (event.getSource() == cbFiltersShowMarker) {
       filterSetPreviewFrame(filterGetPreviewFrameIndex(), false);
+    } else if (event.getSource() instanceof DataMenuItem) {
+      DataMenuItem dmi = (DataMenuItem)event.getSource();
+      if (dmi.getData() instanceof Path) {
+        Path path = (Path)dmi.getData();
+        Exporter importer = new Exporter(this);
+        try {
+          if (importer.importData(path, false)) {
+            if (importer.isFramesSelected() || importer.isCenterSelected()) {
+              updateFramesList();
+            }
+            if (importer.isCyclesSelected()) {
+              updateCyclesList();
+            }
+            if (importer.isFiltersSelected()) {
+              updateFilterList();
+            }
+          }
+        } finally {
+          importer.close();
+        }
+      }
     }
   }
 
@@ -929,11 +960,16 @@ public class ConvertToBam extends ChildFrame
 
     // setting up bottom button bar
     GridBagConstraints c = new GridBagConstraints();
+    initSessionEntries();
     miSessionExport = new JMenuItem("Export session...");
     miSessionExport.addActionListener(this);
     miSessionImport = new JMenuItem("Import session...");
     miSessionImport.addActionListener(this);
-    bpmSession = new ButtonPopupMenu("BAM session", new JMenuItem[]{miSessionExport, miSessionImport});
+    bpmSession = new ButtonPopupMenu("BAM session");
+    bpmSession.addItem(miSessionHistory);
+    bpmSession.getPopupMenu().addSeparator();
+    bpmSession.addItem(miSessionExport);
+    bpmSession.addItem(miSessionImport);
     bpmSession.setToolTipText("Export or import BAM frame, cycle or filter definitions.");
     bpmSession.setIcon(Icons.getIcon(Icons.ICON_ARROW_UP_15));
     bpmSession.setIconTextGap(8);
@@ -2625,6 +2661,7 @@ public class ConvertToBam extends ChildFrame
       if (!cancelled) {
         if (replace) {
           clear();
+          setBamOutput(FileManager.query(Profile.getGameRoot(), entry.getResourceName()));
         }
         int frameBase = modelFrames.getSize();
         BamDecoder decoder = framesAddBam(frameBase, entry);
@@ -4157,6 +4194,39 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
+  // Updates current BAM session path list
+  private void updateRecentSession(Path session)
+  {
+    if (session != null) {
+      BamOptionsDialog.updateRecentSession(session);
+      initSessionEntries();
+    }
+  }
+
+  // (Re-)creates a list of recently accessed BAM session paths
+  private void initSessionEntries()
+  {
+    if (miSessionHistory == null) {
+      miSessionHistory = new JMenu("Load recent sessions");
+    } else {
+      Component[] comp = miSessionHistory.getComponents();
+      for (final Component c: comp) {
+        if (c instanceof DataMenuItem) {
+          ((DataMenuItem)c).removeActionListener(this);
+        }
+      }
+      miSessionHistory.removeAll();
+    }
+
+    List<Path> recentSessions = BamOptionsDialog.getRecentSessions();
+    for (final Path item: recentSessions) {
+      DataMenuItem dmi = new DataMenuItem(item.getFileName().toString(), -1, item);
+      dmi.setToolTipText(item.toString());
+      dmi.addActionListener(this);
+      miSessionHistory.add(dmi);
+    }
+    miSessionHistory.setEnabled(!recentSessions.isEmpty());
+  }
 
   // Initializes a new ProgressMonitor instance
   void initProgressMonitor(Component parent, String msg, String note, int maxProgress,
@@ -4924,6 +4994,7 @@ public class ConvertToBam extends ChildFrame
                                      new FileNameExtensionFilter[]{getIniFilter()}, 0);
       if (outFile != null) {
         outFile = StreamUtils.replaceFileExtension(outFile, "ini");
+        bam.updateRecentSession(outFile);
         if (getSelection(true)) {
           try {
             WindowBlocker.blockWindow(bam, true);
@@ -4951,6 +5022,30 @@ public class ConvertToBam extends ChildFrame
           files[0] = StreamUtils.replaceFileExtension(files[0], "ini");
         }
         if (loadData(files[0], silent)) {
+          bam.updateRecentSession(files[0]);
+          if (getSelection(false)) {
+            try {
+              WindowBlocker.blockWindow(bam, true);
+              return applyData(silent);
+            } finally {
+              WindowBlocker.blockWindow(bam, false);
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Imports selected data from the specified session file.
+     * Returns whether import was successful.
+     */
+    public boolean importData(Path session, boolean silent)
+    {
+      if (session != null) {
+        resetData();
+        if (loadData(session, silent)) {
+          bam.updateRecentSession(session);
           if (getSelection(false)) {
             try {
               WindowBlocker.blockWindow(bam, true);
