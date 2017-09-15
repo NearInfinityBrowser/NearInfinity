@@ -515,6 +515,7 @@ public class ScriptInfo
         this.FUNCTION_SIGNATURES.put(ft, new ArrayList<String>(oldList));
       }
     }
+    this.FUNCTION_PARAM_COMMENT.putAll(obj.FUNCTION_PARAM_COMMENT);
   }
 
   /** Returns object specifier IDS resource names. */
