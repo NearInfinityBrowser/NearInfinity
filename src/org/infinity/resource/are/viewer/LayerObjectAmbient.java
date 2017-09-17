@@ -222,7 +222,8 @@ public class LayerObjectAmbient extends LayerObject
       }
 
       // creating sound item
-      itemIcon = new IconLayerItem(location, ambient, msg, icon[0], Center);
+      itemIcon = new IconLayerItem(location, ambient, msg, msg, icon[0], Center);
+      itemIcon.setLabelEnabled(Settings.ShowLabelSounds);
       itemIcon.setName(getCategory());
       itemIcon.setToolTipText(msg);
       itemIcon.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
@@ -230,7 +231,7 @@ public class LayerObjectAmbient extends LayerObject
 
       // creating sound range item
       if (icon == IconLocal) {
-        itemShape = new ShapedLayerItem(location, ambient, msg, circle, new Point(radiusLocal, radiusLocal));
+        itemShape = new ShapedLayerItem(location, ambient, msg, msg, circle, new Point(radiusLocal, radiusLocal));
         itemShape.setName(getCategory());
         itemShape.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
         itemShape.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);

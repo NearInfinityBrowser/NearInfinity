@@ -143,7 +143,7 @@ public class LayerObjectContainer extends LayerObject
       }
 
       location.x = bounds.x; location.y = bounds.y;
-      item = new ShapedLayerItem(location, container, msg, poly);
+      item = new ShapedLayerItem(location, container, msg, msg, poly);
       item.setName(getCategory());
       item.setToolTipText(msg);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, Color[0]);

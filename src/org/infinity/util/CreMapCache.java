@@ -14,7 +14,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.StatusBar;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
@@ -57,10 +56,8 @@ public final class CreMapCache
 
   public static void reset()
   {
-    if (BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().checkScriptNames()) {
-      clearCache();
-      init();
-    }
+    clearCache();
+    init();
   }
 
   public static boolean isInitialized()

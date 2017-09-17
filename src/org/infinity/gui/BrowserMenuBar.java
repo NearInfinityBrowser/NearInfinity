@@ -77,6 +77,7 @@ import org.infinity.updater.UpdateCheck;
 import org.infinity.updater.UpdateInfo;
 import org.infinity.updater.Updater;
 import org.infinity.updater.UpdaterSettings;
+import org.infinity.util.CharsetDetector;
 import org.infinity.util.MassExporter;
 import org.infinity.util.ObjectString;
 import org.infinity.util.Pair;
@@ -85,7 +86,7 @@ import org.infinity.util.io.FileManager;
 
 public final class BrowserMenuBar extends JMenuBar
 {
-  public static final String VERSION = "v2.1-20170731";
+  public static final String VERSION = "v2.1-20170907";
   public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
@@ -173,11 +174,6 @@ public final class BrowserMenuBar extends JMenuBar
   public boolean autocheckBCS()
   {
     return optionsMenu.optionAutocheckBCS.isSelected();
-  }
-
-  public boolean checkScriptNames()
-  {
-    return optionsMenu.optionCheckScriptNames.isSelected();
   }
 
   public boolean showMoreCompileWarnings()
@@ -370,7 +366,7 @@ public final class BrowserMenuBar extends JMenuBar
 
   public String getSelectedCharset()
   {
-    return optionsMenu.charsetName(optionsMenu.getSelectedButtonData());
+    return optionsMenu.charsetName(optionsMenu.getSelectedButtonData(), true);
   }
 
   public boolean backupOnSave()
@@ -1546,7 +1542,6 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_SHOWUNKNOWNRESOURCES     = "ShowUnknownResources";
     private static final String OPTION_AUTOCHECK_BCS            = "AutocheckBCS";
     private static final String OPTION_CACHEOVERRIDE            = "CacheOverride";
-    private static final String OPTION_CHECKSCRIPTNAMES         = "CheckScriptNames";
     private static final String OPTION_MORECOMPILERWARNINGS     = "MoreCompilerWarnings";
     private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
     private static final String OPTION_DLG_SHOWICONS            = "DlgShowIcons";
@@ -1612,7 +1607,7 @@ public final class BrowserMenuBar extends JMenuBar
                               optionSQLEnableSyntax, optionTLKEnableSyntax,
                               optionGLSLEnableCodeFolding;
 
-    private JCheckBoxMenuItem optionAutocheckBCS, optionCheckScriptNames, optionMoreCompileWarnings;
+    private JCheckBoxMenuItem optionAutocheckBCS, optionMoreCompileWarnings;
 
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride,
                               optionIgnoreReadErrors, optionCacheOverride, optionShowStrrefs,
@@ -1683,11 +1678,6 @@ public final class BrowserMenuBar extends JMenuBar
           new JCheckBoxMenuItem("Autocheck BCS", getPrefs().getBoolean(OPTION_AUTOCHECK_BCS, true));
       optionAutocheckBCS.setToolTipText("Automatically scans scripts for compile error with this option enabled.");
       compilerMenu.add(optionAutocheckBCS);
-      optionCheckScriptNames =
-          new JCheckBoxMenuItem("Interactive script and resource names", getPrefs().getBoolean(OPTION_CHECKSCRIPTNAMES, true));
-      optionCheckScriptNames.setToolTipText("With this option disabled, performance may be boosted, " +
-                                            "but many features involving script or resource names will be disabled.");
-      compilerMenu.add(optionCheckScriptNames);
       optionMoreCompileWarnings =
           new JCheckBoxMenuItem("Show more compiler warnings", getPrefs().getBoolean(OPTION_MORECOMPILERWARNINGS, false));
       optionMoreCompileWarnings.setToolTipText("Script compiler will generate an additional set of less severe " +
@@ -1967,8 +1957,8 @@ public final class BrowserMenuBar extends JMenuBar
         System.err.println(String.format("Charset \"%1$s\" not available.", charset));
         charset = DefaultCharset;
       }
-      if (!charsetName(charset).equals(StringTable.getCharset().name())) {
-        StringTable.setCharset(charsetName(charset));
+      if (!charsetName(charset, false).equals(StringTable.getCharset().name())) {
+        StringTable.setCharset(charsetName(charset, false));
       }
       mCharsetMenu = initCharsetMenu(charset);
       add(mCharsetMenu);
@@ -2064,7 +2054,7 @@ public final class BrowserMenuBar extends JMenuBar
       DataRadioButtonMenuItem dmi =
           new DataRadioButtonMenuItem("Autodetect Charset", false, DefaultCharset);
       dmi.setToolTipText("Attempts to determine the correct character encoding automatically. " +
-                         "May not work reliably for non-english games.");
+                         "May not work reliably for all game languages.");
       dmi.addActionListener(this);
       bgCharsetButtons.add(dmi);
       menu.add(dmi);
@@ -2198,18 +2188,14 @@ public final class BrowserMenuBar extends JMenuBar
     }
 
     // Attempts to determine the correct charset for the current game
-    private String charsetName(String charset)
+    private String charsetName(String charset, boolean detect)
     {
-      // TODO: detect specific localizations
       if (DefaultCharset.equalsIgnoreCase(charset)) {
-        if (Profile.isEnhancedEdition()) {
-          return "UTF-8";
-        } else {
-          return "windows-1252";
-        }
+        charset = CharsetDetector.guessCharset(detect);
       } else {
-        return charset;
+        charset = CharsetDetector.setCharset(charset);
       }
+      return charset;
     }
 
     private boolean charsetAvailable(String charset)
@@ -2230,7 +2216,7 @@ public final class BrowserMenuBar extends JMenuBar
     private void gameLoaded()
     {
       // update charset selection
-      StringTable.setCharset(charsetName(getSelectedButtonData()));
+      StringTable.setCharset(charsetName(getSelectedButtonData(), true));
       // update language selection
       resetGameLanguage();
     }
@@ -2244,7 +2230,6 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_SHOWUNKNOWNRESOURCES, optionShowUnknownResources.isSelected());
       getPrefs().putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());
       getPrefs().putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
-      getPrefs().putBoolean(OPTION_CHECKSCRIPTNAMES, optionCheckScriptNames.isSelected());
       getPrefs().putBoolean(OPTION_MORECOMPILERWARNINGS, optionMoreCompileWarnings.isSelected());
       getPrefs().putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
       getPrefs().putBoolean(OPTION_DLG_SHOWICONS, optionDlgShowIcons.isSelected());
@@ -2622,7 +2607,8 @@ public final class BrowserMenuBar extends JMenuBar
         DataRadioButtonMenuItem dmi = (DataRadioButtonMenuItem)event.getSource();
         String csName = (String)dmi.getData();
         if (csName != null) {
-          StringTable.setCharset(charsetName(csName));
+          CharsetDetector.clearCache();
+          StringTable.setCharset(charsetName(csName, true));
           // re-read strings
           ActionEvent refresh = new ActionEvent(dmi, 0, "Refresh");
           NearInfinity.getInstance().actionPerformed(refresh);

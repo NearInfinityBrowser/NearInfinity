@@ -52,7 +52,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
    */
   public AnimatedLayerItem()
   {
-    this(null, null, null, null);
+    this(null);
   }
 
   /**
@@ -61,7 +61,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
    */
   public AnimatedLayerItem(Point location)
   {
-    this(location, null, null, null);
+    this(location, null);
   }
 
   /**
@@ -71,18 +71,30 @@ public class AnimatedLayerItem extends AbstractLayerItem
    */
   public AnimatedLayerItem(Point location, Viewable viewable)
   {
-    this(location, viewable, null, null);
+    this(location, viewable, null);
   }
 
   /**
    * Initialize object with a specific map location, associated Viewable and an additional text message.
    * @param location Map location
    * @param viewable Associated Viewable object
-   * @param msg An arbitrary text message
+   * @param message An arbitrary text message
    */
-  public AnimatedLayerItem(Point location, Viewable viewable, String msg)
+  public AnimatedLayerItem(Point location, Viewable viewable, String message)
   {
-    this(location, viewable, msg, null);
+    this(location, viewable, message, message);
+  }
+
+  /**
+   * Initialize object with a specific map location, associated Viewable and an additional text message.
+   * @param location Map location
+   * @param viewable Associated Viewable object
+   * @param message An arbitrary text message
+   * @param tooltip A short text message shown as tooltip or menu item text
+   */
+  public AnimatedLayerItem(Point location, Viewable viewable, String message, String tooltip)
+  {
+    this(location, viewable, message, tooltip, null);
   }
 
   /**
@@ -90,12 +102,14 @@ public class AnimatedLayerItem extends AbstractLayerItem
    * and an array of Frame object containing graphics data and frame centers.
    * @param location Map location
    * @param viewable Associated Viewable object
-   * @param msg An arbitrary text message
+   * @param message An arbitrary text message for the info box.
+   * @param tooltip A short text message shown as tooltip or menu item text
    * @param anim An array of Frame objects defining the animation for this layer item
    */
-  public AnimatedLayerItem(Point location, Viewable viewable, String msg, BasicAnimationProvider anim)
+  public AnimatedLayerItem(Point location, Viewable viewable, String message, String tooltip,
+                           BasicAnimationProvider anim)
   {
-    super(location, viewable, msg);
+    super(location, viewable, message, tooltip);
     init();
     initAnimation(anim);
   }

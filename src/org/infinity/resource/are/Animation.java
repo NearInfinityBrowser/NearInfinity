@@ -82,7 +82,9 @@ public final class Animation extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 60, 2, ARE_ANIMATION_START_RANGE));
     addField(new DecNumber(buffer, offset + 62, 1, ARE_ANIMATION_LOOP_PROBABILITY));
     addField(new DecNumber(buffer, offset + 63, 1, ARE_ANIMATION_START_DELAY));
-    if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
+    if (Profile.getEngine() == Profile.Engine.BG2 ||
+        Profile.getEngine() == Profile.Engine.IWD2 ||
+        Profile.isEnhancedEdition()) {
       addField(new ResourceRef(buffer, offset + 64, ARE_ANIMATION_PALETTE, "BMP"));
     } else {
       addField(new Unknown(buffer, offset + 64, 8));

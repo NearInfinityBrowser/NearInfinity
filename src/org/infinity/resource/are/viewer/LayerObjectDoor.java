@@ -160,7 +160,7 @@ public class LayerObjectDoor extends LayerObject
 
       for (int i = 0; i < 2; i++) {
         location[i].x = bounds[i].x; location[i].y = bounds[i].y;
-        items[i] = new ShapedLayerItem(location[i], door, msg[i], poly[i]);
+        items[i] = new ShapedLayerItem(location[i], door, msg[i], msg[i], poly[i]);
         items[i].setName(getCategory());
         items[i].setToolTipText(msg[i]);
         items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, Color[0]);

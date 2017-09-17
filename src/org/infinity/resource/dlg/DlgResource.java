@@ -96,21 +96,23 @@ public final class DlgResource extends AbstractStruct
       ButtonPanel panel = view.getButtonPanel();
 
       JButton b = (JButton)panel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON);
-      for (final ActionListener l: b.getActionListeners()) {
-        b.removeActionListener(l);
+      if (b != null) {
+        for (final ActionListener l: b.getActionListeners()) {
+          b.removeActionListener(l);
+        }
+        int position = panel.getControlPosition(b);
+        panel.removeControl(position);
+
+        ButtonPopupMenu bpmExport = new ButtonPopupMenu(b.getText());
+        bpmExport.setIcon(b.getIcon());
+
+        miExport = new JMenuItem("as DLG file");
+        miExport.addActionListener(this);
+        miExportWeiDUDialog = new JMenuItem("as WeiDU dialog file");
+        miExportWeiDUDialog.addActionListener(this);
+        bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportWeiDUDialog}, false);
+        panel.addControl(position, bpmExport);
       }
-      int position = panel.getControlPosition(b);
-      panel.removeControl(position);
-
-      ButtonPopupMenu bpmExport = new ButtonPopupMenu(b.getText());
-      bpmExport.setIcon(b.getIcon());
-
-      miExport = new JMenuItem("as DLG file");
-      miExport.addActionListener(this);
-      miExportWeiDUDialog = new JMenuItem("as WeiDU dialog file");
-      miExportWeiDUDialog.addActionListener(this);
-      bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportWeiDUDialog}, false);
-      panel.addControl(position, bpmExport);
     }
 
     return retVal;

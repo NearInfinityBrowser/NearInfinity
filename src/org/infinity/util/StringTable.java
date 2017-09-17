@@ -1140,6 +1140,9 @@ public class StringTable
         try {
           ch.position(ofsString);
           text = StreamUtils.readString(ch, lenString, getCharset());
+          if (!CharsetDetector.getLookup().isExcluded(index)) {
+            text = CharsetDetector.getLookup().decodeString(text);
+          }
         } catch (IllegalArgumentException e) {
           System.err.println("Error: Illegal offset " + ofsString + " for string entry " + index);
           text = "";
@@ -1328,8 +1331,17 @@ public class StringTable
         ArrayList<byte[]> stringList = new ArrayList<>(numEntries);
         buffer = StreamUtils.getByteBuffer(entrySize);
         int curStringOfs = 0;
-        for (final StringEntry entry: entries) {
-          byte[] data = entry.getTextBytes();
+        CharsetDetector.CharLookup lookup = CharsetDetector.getLookup();
+        for (int idx = 0, count = entries.size(); idx < count; idx++) {
+          final StringEntry entry = entries.get(idx);
+          // apply character encoding if required
+          String text;
+          if (lookup.isExcluded(idx)) {
+            text = entry.getText();
+          } else {
+            text = lookup.encodeString(entry.getText());
+          }
+          byte[] data = entry.getTextBytes(text);
           byte[] soundRef = entry.getSoundRefBytes();
           buffer.position(0);
           buffer.putShort(entry.getFlags());
@@ -1521,7 +1533,7 @@ public class StringTable
         newText = "";
       }
 
-      if (!newText.equals(text)) {
+      if (!normalizedText(newText).equals(normalizedText(text))) {
         text = newText;
         setModified();
       }
@@ -1545,16 +1557,32 @@ public class StringTable
       modified = false;
     }
 
-    private byte[] getSoundRefBytes()
+    public byte[] getSoundRefBytes()
     {
       byte[] retVal = new byte[8];
       System.arraycopy(soundRef.getBytes(Misc.CHARSET_DEFAULT), 0, retVal, 0, soundRef.length());
       return retVal;
     }
 
-    private byte[] getTextBytes()
+    public byte[] getTextBytes()
     {
       return text.getBytes(StringTable.getCharset());
+    }
+
+    public byte[] getTextBytes(String text)
+    {
+      return text.getBytes(StringTable.getCharset());
+    }
+
+    // Newline conversion should not affect string comparison
+    public String normalizedText(String text)
+    {
+      StringBuilder sb = new StringBuilder(text);
+      int idx;
+      while ((idx = sb.indexOf("\r")) >= 0) {
+        sb.deleteCharAt(idx);
+      }
+      return sb.toString();
     }
 
     @Override

@@ -14,8 +14,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
+import java.io.IOError;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -53,6 +57,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   private static final String PREFS_COMPRESSBAM   = "BCCompressBam";
   private static final String PREFS_COMPRESSTYPE  = "BCCompressionType";
   private static final String PREFS_PVRZINDEX     = "BCPvrzIndex";
+  private static final String PREFS_RECENT_SESSIONS = "RecentSessions";
 
   // Default settings
   private static final int DEFAULT_BAM_VERSION            = ConvertToBam.VERSION_BAMV1;
@@ -63,6 +68,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   private static final boolean DEFAULT_COMPRESS_BAM       = false;
   private static final int DEFAULT_COMPRESSION_TYPE       = ConvertToBam.COMPRESSION_AUTO;
   private static final int DEFAULT_PVRZ_INDEX             = 1000;
+  private static final int DEFAULT_RECENT_SESSIONS_MAX    = 10;
 
   // Current settings
   private static boolean settingsLoaded     = false;
@@ -74,6 +80,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   private static boolean compressBam        = DEFAULT_COMPRESS_BAM;
   private static int compressionType        = DEFAULT_COMPRESSION_TYPE;
   private static int pvrzIndex              = DEFAULT_PVRZ_INDEX;
+  private static List<Path> recentSessions  = new ArrayList<>();
 
   private JButton bOK, bCancel, bDefaults, bTransparencyHelp;
   private JComboBox<String> cbBamVersion, cbCompressionType;
@@ -98,10 +105,25 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
       compressBam = prefs.getBoolean(PREFS_COMPRESSBAM, DEFAULT_COMPRESS_BAM);
       compressionType = prefs.getInt(PREFS_COMPRESSTYPE, DEFAULT_COMPRESSION_TYPE);
       pvrzIndex = prefs.getInt(PREFS_PVRZINDEX, DEFAULT_PVRZ_INDEX);
+      loadRecentSessions(prefs.node(PREFS_RECENT_SESSIONS));
 
       validateSettings();
       settingsLoaded = true;
     }
+  }
+
+  /** Attempts to load the list of recently accessed BAM session paths. */
+  public static void loadRecentSessions()
+  {
+    Preferences prefs = Preferences.userNodeForPackage(ConvertToBam.class);
+    loadRecentSessions(prefs.node(PREFS_RECENT_SESSIONS));
+  }
+
+  /** Stores the current list of recently accessed BAM session paths. */
+  public static void saveRecentSessions()
+  {
+    Preferences prefs = Preferences.userNodeForPackage(ConvertToBam.class);
+    saveRecentSessions(prefs.node(PREFS_RECENT_SESSIONS));
   }
 
   /** Stores the current settings on disk. */
@@ -147,6 +169,69 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   public static int getCompressionType() { return compressionType; }
   /** Returns the default PVRZ index (BAM v2). */
   public static int getPvrzIndex() { return pvrzIndex; }
+
+  /** Returns list of recently accessed session paths. */
+  public static List<Path> getRecentSessions() { return recentSessions; }
+
+  /** Updates list of recently accessed session paths. New/updated session is added on top. */
+  public static void updateRecentSession(Path session)
+  {
+    if (session != null) {
+      try {
+        session = session.toAbsolutePath();
+        for (int idx = 0; idx < recentSessions.size(); idx++) {
+          if (recentSessions.get(idx).equals(session)) {
+            recentSessions.remove(idx);
+          }
+        }
+        if (recentSessions.size() >= DEFAULT_RECENT_SESSIONS_MAX) {
+          recentSessions.remove(recentSessions.size() - 1);
+        }
+        recentSessions.add(0, session);
+      } catch (IOError e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  // Loads path list of recently accessed sessions
+  private static void loadRecentSessions(Preferences prefs)
+  {
+    recentSessions.clear();
+    if (prefs != null) {
+      boolean finished = false;
+      for (int idx = 0; idx < DEFAULT_RECENT_SESSIONS_MAX; idx++) {
+        String key = Integer.toString(idx);
+        String value = prefs.get(key, null);
+        if (value != null) {
+          value = value.trim();
+          if (!finished && !value.isEmpty()) {
+            Path path = Paths.get(value);
+            if (Files.isRegularFile(path)) {
+              recentSessions.add(path);
+            }
+          }
+        } else {
+          break;
+        }
+      }
+    }
+  }
+
+  // Stores path list of recently accessed sessions
+  private static void saveRecentSessions(Preferences prefs)
+  {
+    if (prefs != null) {
+      for (int idx = 0; idx < DEFAULT_RECENT_SESSIONS_MAX; idx++) {
+        String key = Integer.toString(idx);
+        if (idx < recentSessions.size()) {
+          prefs.put(key, recentSessions.get(idx).toString());
+        } else {
+          prefs.remove(key);
+        }
+      }
+    }
+  }
 
 
   public BamOptionsDialog(ConvertToBam parent)

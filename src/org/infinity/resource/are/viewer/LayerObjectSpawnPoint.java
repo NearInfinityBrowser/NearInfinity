@@ -136,7 +136,8 @@ public class LayerObjectSpawnPoint extends LayerObject
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
-      item = new IconLayerItem(location, sp, msg, icon[0], Center);
+      item = new IconLayerItem(location, sp, msg, msg, icon[0], Center);
+      item.setLabelEnabled(Settings.ShowLabelSpawnPoints);
       item.setName(getCategory());
       item.setToolTipText(msg);
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);

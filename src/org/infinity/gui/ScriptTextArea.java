@@ -71,7 +71,6 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
   // Special popup menu for interactive resource references
   private final ScriptPopupMenu menu = new ScriptPopupMenu();
 
-  private boolean isInteractive;  // Whether interactive elements are enabled
   private Signatures triggers;
   private Signatures actions;
 
@@ -88,25 +87,19 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
     }
     applyExtendedSettings(lang, null);
 
-    this.isInteractive = BrowserMenuBar.getInstance().checkScriptNames();
+    triggers = Signatures.getTriggers();
+    actions = Signatures.getActions();
 
-    if (isInteractive()) {
-      triggers = Signatures.getTriggers();
-      actions = Signatures.getActions();
+    if (triggers != null && actions != null) {
+      getDocument().addDocumentListener(this);
 
-      if (triggers != null && actions != null) {
-        getDocument().addDocumentListener(this);
+      addMouseListener(new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) { handlePopup(e); }
 
-        addMouseListener(new MouseAdapter() {
-          @Override
-          public void mousePressed(MouseEvent e) { handlePopup(e); }
-
-          @Override
-          public void mouseReleased(MouseEvent e) { handlePopup(e); }
-        });
-      } else {
-        isInteractive = false;
-      }
+        @Override
+        public void mouseReleased(MouseEvent e) { handlePopup(e); }
+      });
     }
   }
 
@@ -121,10 +114,6 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
   protected void paintComponent(Graphics g)
   {
     super.paintComponent(g);
-
-    if (!isInteractive()) {
-      return;
-    }
 
     // getting range of affected lines
     Rectangle rect = g.getClipBounds();
@@ -183,30 +172,28 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
   {
     String retVal = super.getToolTipText(e);
 
-    if (isInteractive()) {
-      tokenMapLock.lock();
-      try {
-        int offset = viewToModel(e.getPoint());
-        int line = getLineOfOffset(offset);
-        int ofsMin = getLineStartOffset(line);
-        int ofsMax = getLineEndOffset(line);
-        SortedMap<Integer, InteractiveToken> map =
-            tokenMap.subMap(Integer.valueOf(ofsMin), Integer.valueOf(ofsMax));
-        Iterator<InteractiveToken> iter = map.values().iterator();
+    tokenMapLock.lock();
+    try {
+      int offset = viewToModel(e.getPoint());
+      int line = getLineOfOffset(offset);
+      int ofsMin = getLineStartOffset(line);
+      int ofsMax = getLineEndOffset(line);
+      SortedMap<Integer, InteractiveToken> map =
+          tokenMap.subMap(Integer.valueOf(ofsMin), Integer.valueOf(ofsMax));
+      Iterator<InteractiveToken> iter = map.values().iterator();
 
-        while (iter.hasNext()) {
-          InteractiveToken itoken = iter.next();
-          if (itoken.isTooltip()) {
-            if (offset >= itoken.position && offset < itoken.position + itoken.length) {
-              retVal = itoken.tooltip;
-              break;
-            }
+      while (iter.hasNext()) {
+        InteractiveToken itoken = iter.next();
+        if (itoken.isTooltip()) {
+          if (offset >= itoken.position && offset < itoken.position + itoken.length) {
+            retVal = itoken.tooltip;
+            break;
           }
         }
-      } catch (BadLocationException ble) {
-      } finally {
-        tokenMapLock.unlock();
       }
+    } catch (BadLocationException ble) {
+    } finally {
+      tokenMapLock.unlock();
     }
 
     return retVal;
@@ -244,16 +231,11 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
     // important: stateChanged() is registered by super class
     super.stateChanged(e);
 
-    if (isInteractive()) {
-      updateInteractiveTokens(false);
-      repaint();
-    }
+    updateInteractiveTokens(false);
+    repaint();
   }
 
 //--------------------- End Interface ChangeListener ---------------------
-
-  /** Returns whether interactive elements are generated. */
-  public boolean isInteractive() { return isInteractive; }
 
   /**
    * Adds a new error notification to the gutter at the left edge.

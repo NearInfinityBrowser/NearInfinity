@@ -1063,8 +1063,7 @@ public final class Decompiler
   {
     StringBuilder sb = new StringBuilder();
 
-    if (enable && (isGenerateComments() || isGenerateResourcesUsed()) &&
-        BrowserMenuBar.getInstance().checkScriptNames()) {
+    if (enable && (isGenerateComments() || isGenerateResourcesUsed())) {
       ResourceEntry entry = null;
       String[] types = param.getResourceType();
       for (String type: types) {
@@ -1102,8 +1101,7 @@ public final class Decompiler
   {
     StringBuilder sb = new StringBuilder();
 
-    if (enable && (isGenerateComments() || isGenerateResourcesUsed()) &&
-        BrowserMenuBar.getInstance().checkScriptNames() && !value.isEmpty()) {
+    if (enable && (isGenerateComments() || isGenerateResourcesUsed()) && !value.isEmpty()) {
       String[] types = param.getResourceType();
       for (String type: types) {
         if (type.equals(Signatures.Function.Parameter.RESTYPE_SCRIPT) &&
@@ -1173,7 +1171,7 @@ public final class Decompiler
   {
     StringBuilder sb = new StringBuilder();
 
-    if (enable && isGenerateComments() && BrowserMenuBar.getInstance().checkScriptNames()) {
+    if (enable && isGenerateComments()) {
       if (!object.name.isEmpty()) {
         Set<ResourceEntry> set = CreMapCache.getCreForScriptName(object.name);
         if (set != null && !set.isEmpty()) {

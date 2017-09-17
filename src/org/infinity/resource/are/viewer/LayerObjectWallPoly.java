@@ -106,7 +106,7 @@ public class LayerObjectWallPoly extends LayerObject
   {
     if (wall != null) {
       shapeCoords = null;
-      String msg = "";
+      String msg = "", info = "";
       Polygon poly = null;
       Rectangle bounds = null;
       int count = 0;
@@ -115,6 +115,7 @@ public class LayerObjectWallPoly extends LayerObject
         int ofs = wall.getOffset();
         count = (ofs - baseOfs) / wall.getSize();
         Flag flags = (Flag)wall.getAttribute(WallPolygon.WED_POLY_FLAGS);
+        info = "Wall polygon #" + count;
         msg = String.format("Wall polygon #%1$d %2$s", count,
                             createFlags(flags, org.infinity.resource.wed.Polygon.s_flags));
         int vNum = ((DecNumber)wall.getAttribute(WallPolygon.WED_POLY_NUM_VERTICES)).getValue();
@@ -137,9 +138,9 @@ public class LayerObjectWallPoly extends LayerObject
       }
 
       location.x = bounds.x; location.y = bounds.y;
-      item = new ShapedLayerItem(location, wall, msg, poly);
+      item = new ShapedLayerItem(location, wall, msg, info, poly);
       item.setName(getCategory());
-      item.setToolTipText(msg);
+      item.setToolTipText(info);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, Color[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color[1]);
       item.setFillColor(AbstractLayerItem.ItemState.NORMAL, Color[2]);

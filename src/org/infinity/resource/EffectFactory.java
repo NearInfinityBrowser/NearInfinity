@@ -2999,6 +2999,11 @@ public final class EffectFactory
         break;
 
       case 189: // Increase casting speed factor
+        s.add(new DecNumber(buffer, offset, 4, "Amount"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type",
+                         new String[]{"Increment", "Set", "Set if lower"}));
+        break;
+
       case 190: // Increase attack speed factor
         s.add(new DecNumber(buffer, offset, 4, "Amount"));
         s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
@@ -5121,7 +5126,8 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           break;
       }
-    } else if (Profile.getEngine() == Profile.Engine.BG2) {
+    } else if (Profile.getEngine() == Profile.Engine.BG2 ||
+               Profile.getEngine() == Profile.Engine.IWD2) {
       s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       switch (effectType) {

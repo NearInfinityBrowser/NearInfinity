@@ -169,6 +169,7 @@ public final class CreResource extends AbstractStruct
   public static final String CRE_LEVEL_WIZARD                 = "Wizard level";
   public static final String CRE_SOUND_SLOT_FMT               = "Sound: %s";
   public static final String CRE_SOUND_SLOT_GENERIC           = "Soundset string";
+  public static final String CRE_ENCHANTMENT_LEVEL            = "Enchantment level";
   public static final String CRE_FEATS_1                      = "Feats (1/3)";
   public static final String CRE_FEATS_2                      = "Feats (2/3)";
   public static final String CRE_FEATS_3                      = "Feats (3/3)";
@@ -1026,7 +1027,7 @@ public final class CreResource extends AbstractStruct
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BMP"));
     addField(new DecNumber(buffer, offset + 60, 1, CRE_REPUTATION));
-    addField(new Unknown(buffer, offset + 61, 1));
+    addField(new DecNumber(buffer, offset + 61, 1, CRE_HIDE_IN_SHADOWS));
     addField(new DecNumber(buffer, offset + 62, 2, CRE_ARMOR_CLASS));
     addField(new DecNumber(buffer, offset + 64, 2, CRE_AC_MOD_BLUDGEONING));
     addField(new DecNumber(buffer, offset + 66, 2, CRE_AC_MOD_MISSILE));
@@ -1090,7 +1091,8 @@ public final class CreResource extends AbstractStruct
 
     addField(new ResourceRef(buffer, offset + 420, CRE_SCRIPT_TEAM, "BCS"));
     addField(new ResourceRef(buffer, offset + 428, CRE_SCRIPT_SPECIAL_1, "BCS"));
-    addField(new Unknown(buffer, offset + 436, 4));
+    addField(new DecNumber(buffer, offset + 436, 2, CRE_ENCHANTMENT_LEVEL));
+    addField(new Unknown(buffer, offset + 438, 2));
     addField(new Flag(buffer, offset + 440, 4, CRE_FEATS_1, s_feats1));
     addField(new Flag(buffer, offset + 444, 4, CRE_FEATS_2, s_feats2));
     addField(new Flag(buffer, offset + 448, 4, CRE_FEATS_3, s_feats3));
