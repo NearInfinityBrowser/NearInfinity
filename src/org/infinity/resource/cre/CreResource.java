@@ -409,7 +409,7 @@ public final class CreResource extends AbstractStruct
     "Original class: Fighter", "Original class: Mage", "Original class: Cleric", "Original class: Thief",
     "Original class: Druid", "Original class: Ranger", "Fallen paladin", "Fallen ranger",
     "Export allowed", "Hide status", "Large creature", "Moving between areas", "Been in party",
-    "Holding item", "Clear all flags", "", "", "EE: No exploding death", "", "EE: Ignore nightmare mode",
+    "Holding item", "Reset bit 16", "", "", "EE: No exploding death", "", "EE: Ignore nightmare mode",
     "EE: No tooltip", "Allegiance tracking", "General tracking", "Race tracking", "Class tracking",
     "Specifics tracking", "Gender tracking", "Alignment tracking", "Uninterruptible"};
   public static final String[] s_feats1 = {
@@ -1506,9 +1506,14 @@ public final class CreResource extends AbstractStruct
         }
         addField(new Bitmap(buffer, offset + 117, 1, CRE_NIGHTMARE_MODE, s_noyes));
         addField(new UnsignDecNumber(buffer, offset + 118, 1, CRE_TRANSLUCENCY));
-        addField(new DecNumber(buffer, offset + 119, 1, CRE_REPUTATION_MOD_KILLED));
-        addField(new DecNumber(buffer, offset + 120, 1, CRE_REPUTATION_MOD_JOIN));
-        addField(new DecNumber(buffer, offset + 121, 1, CRE_REPUTATION_MOD_LEAVE));
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          addField(new DecNumber(buffer, offset + 119, 1, CRE_MURDER_INC));
+          addField(new Unknown(buffer, offset + 120, 2));
+        } else {
+          addField(new DecNumber(buffer, offset + 119, 1, CRE_REPUTATION_MOD_KILLED));
+          addField(new DecNumber(buffer, offset + 120, 1, CRE_REPUTATION_MOD_JOIN));
+          addField(new DecNumber(buffer, offset + 121, 1, CRE_REPUTATION_MOD_LEAVE));
+        }
       } else {
         addField(new Unknown(buffer, offset + 110, 12));
       }
