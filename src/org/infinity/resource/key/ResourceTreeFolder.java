@@ -13,6 +13,8 @@ import java.util.NoSuchElementException;
 import java.util.SortedSet;
 import java.util.Spliterator;
 
+import org.infinity.gui.ResourceTree;
+
 public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 {
   private final SortedListSet<ResourceEntry> resourceEntries = new SortedListSet<>();
@@ -145,15 +147,29 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
   // A thread-safe sorted set using an ArrayList as backend for indexed element access
   private static class SortedListSet<T extends Comparable<? super T>> extends ArrayList<T> implements SortedSet<T>
   {
+    // internally used comparator
+    private Comparator<T> comp;
+
     public SortedListSet()
     {
       super();
+      this.comp = new Comparator<T>() {
+        @Override
+        public int compare(T o1, T o2)
+        {
+          if (o1 instanceof ResourceEntry && o2 instanceof ResourceEntry) {
+            return ResourceTree.getResourceLabel((ResourceEntry)o1).compareToIgnoreCase(ResourceTree.getResourceLabel((ResourceEntry)o2));
+          } else {
+            return o1.compareTo(o2);
+          }
+        }
+      };
     }
 
     @Override
     public synchronized boolean add(T item)
     {
-      int index = Collections.binarySearch(this, item);
+      int index = Collections.binarySearch(this, item, comp);
       if (index >= 0) {
         return false;
       }
@@ -200,7 +216,7 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     public int indexOf(Object o)
     {
       @SuppressWarnings("unchecked")
-      int index = Collections.binarySearch(this, (T)o);
+      int index = Collections.binarySearch(this, (T)o, comp);
       return (index >= 0) ? index : -1;
     }
 
@@ -266,13 +282,7 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     @Override
     public Comparator<? super T> comparator()
     {
-      return new Comparator<T>() {
-        @Override
-        public int compare(T o1, T o2)
-        {
-          return o1.compareTo(o2);
-        }
-      };
+      return comp;
     }
 
     @Override
@@ -287,7 +297,7 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     @Override
     public synchronized SortedSet<T> headSet(T toElement)
     {
-      int toIdx = Collections.binarySearch(this, (T)toElement);
+      int toIdx = Collections.binarySearch(this, (T)toElement, comp);
       if (toIdx < 0) {
         toIdx = ~toIdx;
       } else {
@@ -308,11 +318,11 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     @Override
     public synchronized SortedSet<T> subSet(T fromElement, T toElement)
     {
-      int fromIdx = Collections.binarySearch(this, (T)fromElement);
+      int fromIdx = Collections.binarySearch(this, (T)fromElement, comp);
       if (fromIdx < 0) {
         fromIdx = ~fromIdx;
       }
-      int toIdx = Collections.binarySearch(this, (T)toElement);
+      int toIdx = Collections.binarySearch(this, (T)toElement, comp);
       if (toIdx < 0) {
         toIdx = ~toIdx;
       } else {
@@ -324,7 +334,7 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     @Override
     public synchronized SortedSet<T> tailSet(T fromElement)
     {
-      int fromIdx = Collections.binarySearch(this, (T)fromElement);
+      int fromIdx = Collections.binarySearch(this, (T)fromElement, comp);
       if (fromIdx < 0) {
         fromIdx = ~fromIdx;
       }

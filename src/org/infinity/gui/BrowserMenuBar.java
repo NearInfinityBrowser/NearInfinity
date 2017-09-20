@@ -196,6 +196,11 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionShowHexColored.isSelected();
   }
 
+  public boolean getShowNamedResourceTree()
+  {
+    return optionsMenu.optionNamedResourceTree.isSelected();
+  }
+
   public boolean getMonitorFileChanges()
   {
 //    return optionsMenu.optionMonitorFileChanges.isSelected();
@@ -1535,6 +1540,7 @@ public final class BrowserMenuBar extends JMenuBar
       CharsetsUsed.add(new String[]{"IBM-949", "x-IBM949", "Character set used in korean localizations."});
     }
 
+    private static final String OPTION_SHOWNAMEDRESTREE         = "ShowNamedResourceTree";
     private static final String OPTION_SHOWOFFSETS              = "ShowOffsets";
     private static final String OPTION_BACKUPONSAVE             = "BackupOnSave";
     private static final String OPTION_IGNOREOVERRIDE           = "IgnoreOverride";
@@ -1611,7 +1617,8 @@ public final class BrowserMenuBar extends JMenuBar
 
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride,
                               optionIgnoreReadErrors, optionCacheOverride, optionShowStrrefs,
-                              optionDlgShowIcons, optionShowHexColored, optionShowUnknownResources;
+                              optionDlgShowIcons, optionShowHexColored, optionShowUnknownResources,
+                              optionNamedResourceTree;
 //                              optionMonitorFileChanges;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
@@ -1649,6 +1656,11 @@ public final class BrowserMenuBar extends JMenuBar
       optionShowOffset =
           new JCheckBoxMenuItem("Show Hex Offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETS, false));
       add(optionShowOffset);
+      optionNamedResourceTree =
+          new JCheckBoxMenuItem("Show Search Names in Resource Tree", getPrefs().getBoolean(OPTION_SHOWNAMEDRESTREE, false));
+      optionNamedResourceTree.setActionCommand("Refresh");
+      optionNamedResourceTree.addActionListener(NearInfinity.getInstance());
+      add(optionNamedResourceTree);
 //      optionMonitorFileChanges =
 //          new JCheckBoxMenuItem("Autoupdate resource tree", getPrefs().getBoolean(OPTION_MONITORFILECHANGES, true));
 //      optionMonitorFileChanges.addActionListener(this);
@@ -2223,6 +2235,7 @@ public final class BrowserMenuBar extends JMenuBar
 
     private void storePreferences()
     {
+      getPrefs().putBoolean(OPTION_SHOWNAMEDRESTREE, optionNamedResourceTree.isSelected());
       getPrefs().putBoolean(OPTION_SHOWOFFSETS, optionShowOffset.isSelected());
       getPrefs().putBoolean(OPTION_BACKUPONSAVE, optionBackupOnSave.isSelected());
       getPrefs().putBoolean(OPTION_IGNOREOVERRIDE, optionIgnoreOverride.isSelected());
