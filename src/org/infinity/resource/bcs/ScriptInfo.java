@@ -136,7 +136,6 @@ public class ScriptInfo
     si.FUNCTION_PARAM_COMMENT.put(Integer.valueOf(363), Integer.valueOf(1));  // AddStoreItem
     si.FUNCTION_PARAM_COMMENT.put(Integer.valueOf(376), Integer.valueOf(1));  // DisplayStringNoNameDlg
     si.FUNCTION_PARAM_COMMENT.put(Integer.valueOf(388), Integer.valueOf(1));  // DisplayStringHeadNoLog
-    si.FUNCTION_PARAM_COMMENT.put(Integer.valueOf(408), Integer.valueOf(1));  // DisplayStringPointLog
     si.removeFunctionDefinition(Function.FunctionType.TRIGGER, "0x4100 TriggerOverride(O:Object*,T:Trigger*)"); // leftover from BG2 profile
     si.addFunctionDefinition(Function.FunctionType.TRIGGER, "0x40e0 TriggerOverride(O:Object*,T:Trigger*)");
 
