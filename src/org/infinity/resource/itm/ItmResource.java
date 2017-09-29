@@ -508,11 +508,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     if (version.toString().equalsIgnoreCase("V1.1")) {
       addField(new ResourceRef(buffer, 88, ITM_PICK_UP_SOUND, "WAV"));
     } else {
-      if (Profile.isEnhancedEdition()) {
-        addField(new ResourceRef(buffer, 88, ITM_DESCRIPTION_IMAGE, new String[]{"BAM", "BMP"}));
-      } else {
-        addField(new ResourceRef(buffer, 88, ITM_DESCRIPTION_IMAGE, "BAM"));
-      }
+      addField(new ResourceRef(buffer, 88, ITM_DESCRIPTION_IMAGE, "BAM"));
     }
     addField(new DecNumber(buffer, 96, 4, ITM_ENCHANTMENT));
     SectionOffset abil_offset = new SectionOffset(buffer, 100, ITM_OFFSET_ABILITIES,
