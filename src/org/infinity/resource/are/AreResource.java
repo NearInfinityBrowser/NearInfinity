@@ -744,10 +744,10 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
         ((HasVertices)o).readVertices(buffer, offset);
     }
 
-    if (offset_songs.getValue() > 0) {
+    if (offset_songs.getValue() > 0 && offset_songs.getValue() < buffer.limit()) {
       addField(new Song(this, buffer, offset_songs.getValue()));
     }
-    if (offset_rest.getValue() > 0) {
+    if (offset_rest.getValue() > 0 && offset_rest.getValue() < buffer.limit()) {
       addField(new RestSpawn(this, buffer, offset_rest.getValue()));
     }
 
