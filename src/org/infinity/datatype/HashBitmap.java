@@ -197,13 +197,13 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
     buffer.position(offset);
     switch (getSize()) {
       case 1:
-        value = buffer.get() & 0xff;
+        value = buffer.get() & 0xffL;
         break;
       case 2:
-        value = buffer.getShort() & 0xffff;
+        value = buffer.getShort() & 0xffffL;
         break;
       case 4:
-        value = buffer.getInt() & 0xffffffff;
+        value = buffer.getInt() & 0xffffffffL;
         break;
       default:
         throw new IllegalArgumentException();
@@ -217,7 +217,7 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
   @Override
   public String toString()
   {
-    Object o = idsmap.get(value);
+    Object o = idsmap.get(Long.valueOf(value));
     if (o == null) {
       return "Unknown - " + value;
     } else {
