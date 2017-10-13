@@ -2615,7 +2615,7 @@ public final class EffectFactory
         m_castglow.put(15L, "Invocation");
         m_castglow.put(16L, "Divination");
         if (Profile.isEnhancedEdition()) {
-          s.add(new ProRef(buffer, offset, "Projectile"));
+          s.add(new ProRef(buffer, offset, "Projectile", false));
           s.add(new DecNumber(buffer, offset + 2, 2, AbstractStruct.COMMON_UNUSED));
         } else {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
