@@ -5,6 +5,8 @@
 package org.infinity.datatype;
 
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -174,6 +176,10 @@ public final class ColorValue extends Datatype implements Editable, IsNumeric, C
       slider.setMajorTickSpacing(25);
       slider.setMinorTickSpacing(5);
       slider.setPaintTicks(true);
+      slider.setPaintLabels(true);
+      slider.setFont(slider.getFont().deriveFont(Font.PLAIN));
+      int w = Math.min(Math.max(268, (1+slider.getMaximum())*2 + 12), 524);
+      slider.setPreferredSize(new Dimension(w, slider.getPreferredSize().height));
       infolabel = new JLabel(" ", JLabel.CENTER);
     }
     tfield.setText(String.valueOf(number));
@@ -203,6 +209,7 @@ public final class ColorValue extends Datatype implements Editable, IsNumeric, C
     panel.add(tfield);
 
     gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.weightx = 1.0;
     gbl.setConstraints(slider, gbc);
     panel.add(slider);
 
