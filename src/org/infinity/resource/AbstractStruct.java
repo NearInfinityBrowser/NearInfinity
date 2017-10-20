@@ -403,10 +403,10 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return sb.toString();
   }
 
-  public int addDatatype(AddRemovable addedEntry)
+  // Returns the table row index where the specified AddRemovable structure can be inserted
+  public int getDatatypeIndex(AddRemovable addedEntry)
   {
     int index = 0;
-    // Find place to add
     if (viewer != null && viewer.getSelectedEntry() != null &&
         viewer.getSelectedEntry().getClass() == addedEntry.getClass()) {
       index = viewer.getSelectedRow();
@@ -433,8 +433,19 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     else {
       index = getAddedPosition();
     }
+    return index;
+  }
 
-    return addDatatype(addedEntry, index);
+  // Returns whether structure of currently selected table row is compatible with "addedEntry"
+  public boolean isCompatibleDatatypeSelection(AddRemovable addedEntry)
+  {
+    return viewer != null && viewer.getSelectedEntry() != null &&
+           viewer.getSelectedEntry().getClass() == addedEntry.getClass();
+  }
+
+  public int addDatatype(AddRemovable addedEntry)
+  {
+    return addDatatype(addedEntry, getDatatypeIndex(addedEntry));
   }
 
   public int addDatatype(AddRemovable addedEntry, int index)

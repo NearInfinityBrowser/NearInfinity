@@ -175,14 +175,19 @@ public final class StructClipboard
     try {
       for (int i = 0; i < contents.size(); i++) {
         AddRemovable pasteEntry = (AddRemovable)contents.get(i).clone();
+        int index = targetStruct.getDatatypeIndex(pasteEntry);
+        if (targetStruct.isCompatibleDatatypeSelection(pasteEntry)) {
+          index += i;
+        }
         if (pasteEntry instanceof HasAddRemovable) {
           ((HasAddRemovable)pasteEntry).getAddRemovables();
           List<AddRemovable> substructures = ((AbstractStruct)pasteEntry).removeAllRemoveables();
-          lastIndex = targetStruct.addDatatype(pasteEntry);
+          lastIndex = targetStruct.addDatatype(pasteEntry, index);
           pasteSubStructures((AbstractStruct)pasteEntry, substructures);
         }
-        else
-          lastIndex = targetStruct.addDatatype(pasteEntry);
+        else {
+          lastIndex = targetStruct.addDatatype(pasteEntry, index);
+        }
       }
     } catch (Exception e) {
       e.printStackTrace();
