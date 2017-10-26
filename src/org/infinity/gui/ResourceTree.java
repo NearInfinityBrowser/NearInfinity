@@ -241,21 +241,6 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     }
   }
 
-  /** Returns the label of a selectable entry in the resource tree. */
-  public static String getResourceLabel(ResourceEntry entry)
-  {
-    String retVal = null;
-    if (entry != null) {
-      String s = BrowserMenuBar.getInstance().getShowNamedResourceTree() ? entry.getSearchString() : null;
-      if (s != null && !s.isEmpty() && !s.equals("No such index")) {
-        retVal = s + " (" + entry.toString() + ")";
-      } else {
-        retVal = entry.toString();
-      }
-    }
-    return retVal;
-  }
-
   /** Attempts to rename the specified file resource entry. */
   static void renameResource(FileResourceEntry entry)
   {
@@ -526,7 +511,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
       for (int i = startrow; i < tree.getRowCount(); i++) {
         TreePath path = tree.getPathForRow(i);
         if (path != null && path.getLastPathComponent() instanceof ResourceEntry &&
-            getResourceLabel((ResourceEntry)path.getLastPathComponent()).toUpperCase(Locale.ENGLISH).startsWith(currentkey)) {
+            path.getLastPathComponent().toString().toUpperCase(Locale.ENGLISH).startsWith(currentkey)) {
           showresource = false;
           tree.scrollPathToVisible(path);
           tree.addSelectionPath(path);
@@ -537,7 +522,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         for (int i = 0; i < startrow; i++) {
           TreePath path = tree.getPathForRow(i);
           if (path != null && path.getLastPathComponent() instanceof ResourceEntry &&
-              getResourceLabel((ResourceEntry)path.getLastPathComponent()).toUpperCase(Locale.ENGLISH).startsWith(currentkey)) {
+              path.getLastPathComponent().toString().toUpperCase(Locale.ENGLISH).startsWith(currentkey)) {
             showresource = false;
             tree.scrollPathToVisible(path);
             tree.addSelectionPath(path);
@@ -699,8 +684,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
                                                   boolean leaf, int row, boolean hasFocus)
     {
       if (leaf && o instanceof ResourceEntry) {
-        String s = getResourceLabel((ResourceEntry)o);
-        super.getTreeCellRendererComponent(tree, s, sel, expanded, leaf, row, hasFocus);
+        super.getTreeCellRendererComponent(tree, o, sel, expanded, leaf, row, hasFocus);
         setIcon(((ResourceEntry)o).getIcon());
         return this;
       }
