@@ -174,7 +174,17 @@ public class BamFilterFactory
     @Override
     public String toString()
     {
-      return name;
+      String prefix;
+      if (BamFilterBaseColor.class.isAssignableFrom(filterClass)) {
+        prefix = "Color";
+      } else if (BamFilterBaseTransform.class.isAssignableFrom(filterClass)) {
+        prefix = "Transform";
+      } else if (BamFilterBaseOutput.class.isAssignableFrom(filterClass)) {
+        prefix = "Output";
+      } else {
+        prefix = "Filter";
+      }
+      return prefix + ": " + name;
     }
 
     @Override
