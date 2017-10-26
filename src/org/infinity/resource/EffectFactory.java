@@ -6,6 +6,7 @@ package org.infinity.resource;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 
@@ -682,6 +683,9 @@ public final class EffectFactory
         switch (opcode) {
           case 1: // Modify attacks per round
             return updateOpcode1(struct);
+          case 25:  // Poison
+          case 98:  // Regeneration
+            return updateOpcode25(struct);
           case 78:  // Disease
               return updateOpcode78(struct);
           case 232:     // Cast spell on condition
@@ -713,6 +717,33 @@ public final class EffectFactory
             replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
                          new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value", s_attacks));
           }
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // Effect types "Poison" (25) and "Regeneration" (98)
+  private static boolean updateOpcode25(AbstractStruct struct) throws Exception
+  {
+    if (struct != null) {
+      if (Profile.isEnhancedEdition()) {
+        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        if (opcode == 25 || opcode == 98) {
+          int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
+          String label = EFFECT_SPECIAL;
+          switch (param2) {
+            case 2:
+              label = "Frequency";
+              break;
+            case 3:
+            case 4:
+              label = "Frequency multiplier";
+              break;
+          }
+          replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
+                       new DecNumber(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4, label));
           return true;
         }
       }
@@ -2071,7 +2102,12 @@ public final class EffectFactory
             s_type[3] = "1 damage per amount+1 seconds";
           }
         }
-        s.add(new Bitmap(buffer, offset + 4, 4, "Poison type", s_type));
+        Bitmap bmp = new Bitmap(buffer, offset + 4, 4, "Poison type", s_type);
+        s.add(bmp);
+        if (parent != null && parent instanceof UpdateListener) {
+          bmp.addUpdateListener((UpdateListener)parent);
+        }
+
         break;
       }
 
@@ -2411,7 +2447,11 @@ public final class EffectFactory
         } else {
           s_type = s_regentype;
         }
-        s.add(new Bitmap(buffer, offset + 4, 4, "Regeneration type", s_type));
+        Bitmap bmp = new Bitmap(buffer, offset + 4, 4, "Regeneration type", s_type);
+        s.add(bmp);
+        if (parent != null && parent instanceof UpdateListener) {
+          bmp.addUpdateListener((UpdateListener)parent);
+        }
         break;
       }
 
@@ -5035,6 +5075,32 @@ public final class EffectFactory
                                       "Made save", "Does not wake sleepers"}));
           break;
 
+        case 25:  // Poison
+        case 98:  // Regeneration
+          switch (param2) {
+            case 2:
+              s.add(new DecNumber(buffer, offset, 4, "Frequency"));
+              break;
+            case 3:
+            case 4:
+              s.add(new DecNumber(buffer, offset, 4, "Frequency multiplier"));
+              break;
+            default:
+              s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
+          }
+          break;
+
+        case 39:  // Sleep
+        case 213: // Maze
+        case 218: // Stoneskin effect
+        {
+          String[] array = getIconDescArray();
+          array = Arrays.copyOf(array, array.length);
+          array[0] = "Default icon";
+          s.add(new Bitmap(buffer, offset, 4, "Icon", array));
+          break;
+        }
+
         case 78:
           switch (param2) {
             case 11:  // Mold touch/Single
@@ -5060,10 +5126,6 @@ public final class EffectFactory
         case 318: // Protection from spell
         case 319: // Restrict item (BGEE)
           s.add(new StringRef(buffer, offset, "Description note"));
-          break;
-
-        case 218: // Stoneskin effect
-          s.add(new Bitmap(buffer, offset, 4, "Icon", getIconDescArray()));
           break;
 
         case 232:   // Cast spell on condition
