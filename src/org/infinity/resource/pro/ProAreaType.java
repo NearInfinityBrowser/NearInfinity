@@ -130,8 +130,8 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 36, 2, PRO_AREA_CONE_WIDTH));
     if (Profile.isEnhancedEdition()) {
       addField(new Unknown(buffer, offset + 38, 2));
-      addField(new ResourceRef(buffer, offset + 40, PRO_AREA_SPREAD_ANIMATION, s_types));
-      addField(new ResourceRef(buffer, offset + 48, PRO_AREA_RING_ANIMATION, s_types));
+      addField(new ResourceRef(buffer, offset + 40, PRO_AREA_SPREAD_ANIMATION, "BAM"));
+      addField(new ResourceRef(buffer, offset + 48, PRO_AREA_RING_ANIMATION, "BAM"));
       addField(new ResourceRef(buffer, offset + 56, PRO_AREA_SOUND, "WAV"));
       addField(new Flag(buffer, offset + 64, 4, PRO_AREA_EX_FLAGS, s_areaflagsEx));
       addField(new UnsignDecNumber(buffer, offset + 68, 2, PRO_AREA_DICE_COUNT));
