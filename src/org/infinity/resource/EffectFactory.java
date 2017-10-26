@@ -3467,9 +3467,29 @@ public final class EffectFactory
         break;
 
       case 282: // Modify script state
+      {
+        final String[] list = new String[]{
+            "Scripting State 1", "Scripting State 2", "Scripting State 3", "Scripting State 4", "Scripting State 5",
+            "Scripting State 6", "Scripting State 7", "Scripting State 8", "Scripting State 9",
+            "Scripting State 10", "Melee THAC0 Bonus", "Melee Damage Bonus", "Missile Damage Bonus",
+            "Disable Circle", "Fist THAC0 Bonus", "Fist Damage Bonus", "Class String Override Mixed",
+            "Class String Override Lower", "Prevent Spell Protection Effects", "Immunity to Backstab",
+            "Lockpicking Bonus", "Move Silently Bonus", "Find Traps Bonus", "Pickpocket Bonus",
+            "Hide in Shadows Bonus", "Detect Illusions Bonus", "Set Traps Bonus", "Prevent AI Slowdown",
+            "Existance Delay Override", "Animation-only Haste", "No Permanent Death", "Immune to Turn Undead",
+            "Chaos Shield", "NPC Bump", "Use Any Item", "Assassinate", "Sex Changed", "Spell Failure Innate",
+            "Immune to Tracking", "Dead Magic", "Immune to Timestop", "Immune to Sequester", "Stoneskins Golem",
+            "Level Drain", "Do Not Draw"};
+        if (Profile.isEnhancedEdition()) {
+          list[6] = "Wizard Spell Immunity";
+          list[7] = "Wizard Protection from Energy";
+          list[8] = "Wizard Spell Trap";
+          list[9] = "Wizard Improved Alacrity";
+        }
         s.add(new DecNumber(buffer, offset, 4, "Value"));
-        s.add(new IdsBitmap(buffer, offset + 4, 4, "State", "STATS.IDS", 156));
+        s.add(new Bitmap(buffer, offset + 4, 4, "State", list));
         break;
+      }
 
       case 283: // Use EFF file as curse
       {
