@@ -16,23 +16,35 @@ public class IdsBitmap extends HashBitmap
 {
   public IdsBitmap(ByteBuffer buffer, int offset, int length, String name, String resource)
   {
-    this(null, buffer, offset, length, name, resource, 0);
+    this(null, buffer, offset, length, name, resource, 0, -1);
   }
 
   public IdsBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, String resource)
   {
-    this(parent, buffer, offset, length, name, resource, 0);
+    this(parent, buffer, offset, length, name, resource, 0, -1);
   }
 
   public IdsBitmap(ByteBuffer buffer, int offset, int length, String name, String resource, int idsStart)
   {
-    this(null, buffer, offset, length, name, resource, idsStart);
+    this(null, buffer, offset, length, name, resource, idsStart, -1);
+  }
+
+  public IdsBitmap(ByteBuffer buffer, int offset, int length, String name, String resource, int idsStart,
+                   int idsSize)
+  {
+    this(null, buffer, offset, length, name, resource, idsStart, idsSize);
   }
 
   public IdsBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, String resource,
                    int idsStart)
   {
-    super(parent, buffer, offset, length, name, createResourceList(resource, idsStart), true);
+    this(parent, buffer, offset, length, name, resource, idsStart, -1);
+  }
+
+  public IdsBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, String resource,
+                   int idsStart, int idsSize)
+  {
+    super(parent, buffer, offset, length, name, createResourceList(resource, idsStart, idsSize), true);
   }
 
   public int getIdsMapEntryCount()
@@ -65,7 +77,7 @@ public class IdsBitmap extends HashBitmap
     }
   }
 
-  private static LongIntegerHashMap<IdsMapEntry> createResourceList(String resource, int idsStart)
+  private static LongIntegerHashMap<IdsMapEntry> createResourceList(String resource, int idsStart, int idsSize)
   {
     LongIntegerHashMap<IdsMapEntry> retVal = null;
     IdsMap idsMap = IdsMapCache.get(resource);
@@ -73,7 +85,7 @@ public class IdsBitmap extends HashBitmap
       retVal = new LongIntegerHashMap<IdsMapEntry>();
       for (final IdsMapEntry e: idsMap.getAllValues()) {
         long id = e.getID();
-        if (id >= idsStart) {
+        if (idsSize > 0 && id >= idsStart && id < idsStart + idsSize) {
           id -= idsStart;
           retVal.put(Long.valueOf(id), new IdsMapEntry(id, e.getSymbol()));
         }
