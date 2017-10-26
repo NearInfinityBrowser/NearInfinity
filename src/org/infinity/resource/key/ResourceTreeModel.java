@@ -12,12 +12,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 import javax.swing.event.TreeModelEvent;
@@ -25,9 +23,6 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import org.infinity.gui.BrowserMenuBar;
-import org.infinity.resource.Profile;
-import org.infinity.resource.ResourceFactory;
 import org.infinity.util.Misc;
 
 public final class ResourceTreeModel implements TreeModel
@@ -36,7 +31,6 @@ public final class ResourceTreeModel implements TreeModel
   private final Map<String, ResourceEntry> entries = new HashMap<>(25000);
   private final Map<String, ResourceTreeFolder> folders = new TreeMap<>(Misc.getIgnoreCaseComparator());
   private final ResourceTreeFolder root = new ResourceTreeFolder(null, "");
-  private final Set<String> foldersReloaded = new HashSet<String>();
 
   public ResourceTreeModel()
   {
@@ -350,45 +344,6 @@ public final class ResourceTreeModel implements TreeModel
   {
     if (folders != null && folders.length > 0) {
       fireTreeStructureChanged(new TreePath(folders));
-    }
-  }
-
-  /**
-   * Reload content of the specified tree folder.
-   * @param folder The folder to reload.
-   * @param reloadOnce Whether to reload content only once per session.
-   */
-  public void reloadResources(ResourceTreeFolder folder, boolean reloadOnce)
-  {
-    if (folder != null && !folder.folderName().isEmpty()) {
-      if (!reloadOnce || !foldersReloaded.contains(folder.folderName())) {
-        List<ResourceEntry> resources = ResourceFactory.getResources(folder.folderName());
-        folder.reloadFolderContent(resources);
-        resources.forEach((resource) -> {
-          String key = resource.getResourceName().toUpperCase(Locale.ENGLISH);
-          entries.remove(key);
-          entries.put(key, resource);
-        });
-        foldersReloaded.add(folder.folderName());
-      }
-    }
-  }
-
-  /**
-   * Reload content of ARE subfolder.
-   * This is part of a workaround to ensure that named resource entries are listed in alphabetical order.
-   * @param folder The folder to reload.
-   * @param reloadOnce Whether to reload content only once per session.
-   */
-  public void reloadAreResources(ResourceTreeFolder folder, boolean reloadOnce)
-  {
-    if (folder != null) {
-      // currently only needed for ARE resources in PSTEE
-      if (Profile.getGame() == Profile.Game.PSTEE &&
-          BrowserMenuBar.getInstance().getShowNamedResourceTree() &&
-          folder.folderName().equalsIgnoreCase("ARE")) {
-        reloadResources(folder, reloadOnce);
-      }
     }
   }
 

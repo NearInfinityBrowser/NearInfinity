@@ -31,12 +31,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
-import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
@@ -50,7 +47,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
 
-public final class ResourceTree extends JPanel implements TreeSelectionListener, TreeWillExpandListener, ActionListener
+public final class ResourceTree extends JPanel implements TreeSelectionListener, ActionListener
 {
   private final JButton bnext = new JButton("Forward", Icons.getIcon(Icons.ICON_FORWARD_16));
   private final JButton bprev = new JButton("Back", Icons.getIcon(Icons.ICON_BACK_16));
@@ -71,7 +68,6 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     tree.setRootVisible(false);
     tree.addTreeSelectionListener(this);
-    tree.addTreeWillExpandListener(this);
     tree.setShowsRootHandles(true);
 
     bnext.addActionListener(this);
@@ -151,26 +147,6 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   }
 
 // --------------------- End Interface TreeSelectionListener ---------------------
-
-// --------------------- Begin Interface TreeWillExpandListener ---------------------
-
-  @Override
-  public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException
-  {
-    Object o = event.getPath().getLastPathComponent();
-    if (o instanceof ResourceTreeFolder) {
-      ResourceTreeFolder folder = (ResourceTreeFolder)o;
-      // XXX: a workaround to ensure folder content is listed in alphabetical order when search names are active
-      getModel().reloadAreResources(folder, true);
-    }
-  }
-
-  @Override
-  public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException
-  {
-  }
-
-// --------------------- End Interface TreeWillExpandListener ---------------------
 
   @Override
   public boolean requestFocusInWindow()

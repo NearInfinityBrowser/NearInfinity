@@ -141,13 +141,6 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     }
   }
 
-  public void reloadFolderContent(List<ResourceEntry> entries)
-  {
-    if (entries != null) {
-      resourceEntries.clear();
-      resourceEntries.addAll(entries);
-    }
-  }
 
 //-------------------------- INNER CLASSES --------------------------
 
