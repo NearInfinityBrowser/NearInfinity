@@ -3833,7 +3833,9 @@ public class ConvertToBam extends ChildFrame
       if (outList != null && !outList.isEmpty()) {
         for (int idx = 0; idx < outList.size(); idx++) {
           // processing output filter
-          outList.get(idx).process(bamDecoderFinal);
+          if (!outList.get(idx).process(bamDecoderFinal)) {
+            throw new Exception("Conversion failed.");
+          }
         }
       } else {
         throw new Exception("No output filter specified.");
