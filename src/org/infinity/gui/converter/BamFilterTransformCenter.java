@@ -165,10 +165,10 @@ public class BamFilterTransformCenter extends BamFilterBaseTransform
           spinnerBottom.setValue(bottom);
         }
         if (cx != Integer.MIN_VALUE) {
-          spinnerCenterX.setValue(bottom);
+          spinnerCenterX.setValue(cx);
         }
         if (cy != Integer.MIN_VALUE) {
-          spinnerCenterY.setValue(bottom);
+          spinnerCenterY.setValue(cy);
         }
         cbAdjustCenter.setSelected(a);
       }
