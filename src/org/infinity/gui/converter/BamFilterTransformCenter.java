@@ -1,3 +1,7 @@
+// Near Infinity - An Infinity Engine Browser and Editor
+// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// See LICENSE.txt for license information
+
 package org.infinity.gui.converter;
 
 import java.awt.GridBagConstraints;
@@ -413,8 +417,8 @@ public class BamFilterTransformCenter extends BamFilterBaseTransform
         // setting center position
         int cx = 0, cy = 0;
         if (cbAdjustCenter.isSelected()) {
-          cx = rect.width / 2;
-          cy = rect.height / 2;
+          cx = rect.x;
+          cy = rect.y;
         } else {
           cx = ((Integer)spinnerCenterX.getValue()).intValue();
           cy = ((Integer)spinnerCenterY.getValue()).intValue();
