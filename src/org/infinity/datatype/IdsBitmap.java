@@ -85,7 +85,7 @@ public class IdsBitmap extends HashBitmap
       retVal = new LongIntegerHashMap<IdsMapEntry>();
       for (final IdsMapEntry e: idsMap.getAllValues()) {
         long id = e.getID();
-        if (idsSize > 0 && id >= idsStart && id < idsStart + idsSize) {
+        if (idsSize < 0 || (id >= idsStart && id < idsStart + idsSize)) {
           id -= idsStart;
           retVal.put(Long.valueOf(id), new IdsMapEntry(id, e.getSymbol()));
         }
