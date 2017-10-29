@@ -55,9 +55,11 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
                                             "", "Hostile", "No LOS required", "Allow spotting", "Outdoors only",
                                             "Non-magical ability", "Trigger/Contingency", "Non-combat ability"};
   public static final String[] s_restype = {"None", "Spell", "Item"};
-  public static final String s_dispel[] = {"Natural/Nonmagical", "Dispel/Not bypass resistance",
+  public static final String[] s_dispel = {"Natural/Nonmagical", "Dispel/Not bypass resistance",
                                            "Not dispel/Bypass resistance", "Dispel/Bypass resistance"};
-//  public static final String[] s_dispel = {"None", "Dispellable", "Bypass resistance"};
+//  public static final String[] s_dispel_v1 = {"None", "Dispellable", "Bypass resistance"};
+//  public static final String[] s_dispel_v2 = {"None", "Dispellable", "Bypass resistance",
+//                                              "Bypass turn/reflect/absorb"};
 
   public static int readCommon(List<StructEntry> list, ByteBuffer buffer, int offset)
   {
