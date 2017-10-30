@@ -51,7 +51,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
   public static final LongIntegerHashMap<String> m_proj = new LongIntegerHashMap<String>();
   public static final String[] s_areaflags = {"Trap not visible", "Trap visible", "Triggered by inanimates",
                                               "Triggered by condition", "Delayed trigger", "Secondary projectile",
-                                              "Fragments", "Not affecting allies", "Not affecting enemies",
+                                              "Fragments", "Affect only enemies", "Affect only allies*;Only in combination with \"Affect only enemies (6)\"",
                                               "Mage-level duration", "Cleric-level duration", "Draw animation",
                                               "Cone-shaped", "Ignore LOS", "Delayed explosion",
                                               "Skip first condition", "Single target"};
