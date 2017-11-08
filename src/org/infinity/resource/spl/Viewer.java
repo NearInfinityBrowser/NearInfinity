@@ -139,7 +139,7 @@ public final class Viewer extends JPanel
 
   Viewer(SplResource spl)
   {
-    JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef)spl.getAttribute(SplResource.SPL_ICON), 0);
+    JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef)spl.getAttribute(SplResource.SPL_ICON), 0, 0);
     JPanel globaleffectsPanel = ViewerUtil.makeListPanel("Global effects", spl, Effect.class, EffectType.EFFECT_TYPE);
     JPanel abilitiesPanel = ViewerUtil.makeListPanel("Abilities", spl, Ability.class, AbstractAbility.ABILITY_TYPE);
     JPanel descPanel = ViewerUtil.makeTextAreaPanel(spl.getAttribute(SplResource.SPL_DESCRIPTION));

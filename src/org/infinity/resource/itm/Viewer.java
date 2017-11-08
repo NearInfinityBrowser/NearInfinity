@@ -28,7 +28,7 @@ final class Viewer extends JPanel
 {
   Viewer(ItmResource itm)
   {
-    JComponent iconPanel1 = ViewerUtil.makeBamPanel((ResourceRef)itm.getAttribute(ItmResource.ITM_ICON), 0, 0);
+    JComponent iconPanel1 = ViewerUtil.makeBamPanel((ResourceRef)itm.getAttribute(ItmResource.ITM_ICON), 1, 1);
     JComponent iconPanel2 = ViewerUtil.makeBamPanel((ResourceRef)itm.getAttribute(ItmResource.ITM_ICON_GROUND), 0);
     JPanel globaleffectsPanel = ViewerUtil.makeListPanel("Global effects", itm, Effect.class, EffectType.EFFECT_TYPE);
     JPanel abilitiesPanel = ViewerUtil.makeListPanel("Abilities", itm, Ability.class, AbstractAbility.ABILITY_TYPE);
