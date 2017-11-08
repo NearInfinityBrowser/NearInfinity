@@ -98,8 +98,8 @@ public class BamFilterTransformCenter extends BamFilterBaseTransform
         }
 
         if (params.length > 1) {
-          int min = ((Number)((SpinnerNumberModel)spinnerLeft.getModel()).getMinimum()).intValue();
-          int max = ((Number)((SpinnerNumberModel)spinnerLeft.getModel()).getMaximum()).intValue();
+          int min = ((Number)((SpinnerNumberModel)spinnerTop.getModel()).getMinimum()).intValue();
+          int max = ((Number)((SpinnerNumberModel)spinnerTop.getModel()).getMaximum()).intValue();
           top = decodeNumber(params[1], min, max, Integer.MIN_VALUE);
           if (top == Integer.MIN_VALUE) {
             return false;
@@ -107,8 +107,8 @@ public class BamFilterTransformCenter extends BamFilterBaseTransform
         }
 
         if (params.length > 2) {
-          int min = ((Number)((SpinnerNumberModel)spinnerLeft.getModel()).getMinimum()).intValue();
-          int max = ((Number)((SpinnerNumberModel)spinnerLeft.getModel()).getMaximum()).intValue();
+          int min = ((Number)((SpinnerNumberModel)spinnerRight.getModel()).getMinimum()).intValue();
+          int max = ((Number)((SpinnerNumberModel)spinnerRight.getModel()).getMaximum()).intValue();
           right = decodeNumber(params[2], min, max, Integer.MIN_VALUE);
           if (right == Integer.MIN_VALUE) {
             return false;
@@ -116,8 +116,8 @@ public class BamFilterTransformCenter extends BamFilterBaseTransform
         }
 
         if (params.length > 3) {
-          int min = ((Number)((SpinnerNumberModel)spinnerLeft.getModel()).getMinimum()).intValue();
-          int max = ((Number)((SpinnerNumberModel)spinnerLeft.getModel()).getMaximum()).intValue();
+          int min = ((Number)((SpinnerNumberModel)spinnerBottom.getModel()).getMinimum()).intValue();
+          int max = ((Number)((SpinnerNumberModel)spinnerBottom.getModel()).getMaximum()).intValue();
           bottom = decodeNumber(params[3], min, max, Integer.MIN_VALUE);
           if (bottom == Integer.MIN_VALUE) {
             return false;
