@@ -25,7 +25,7 @@ import org.infinity.resource.wed.WedResource;
  */
 public class LayerObjectWallPoly extends LayerObject
 {
-  private static final Color[] Color = {new Color(0xFF005046, true), new Color(0xFF005046, true),
+  private static final Color[] COLOR = {new Color(0xFF005046, true), new Color(0xFF005046, true),
                                         new Color(0x8020A060, true), new Color(0xA030B070, true)};
 
   private final WallPolygon wall;
@@ -141,10 +141,10 @@ public class LayerObjectWallPoly extends LayerObject
       item = new ShapedLayerItem(location, wall, msg, info, poly);
       item.setName(getCategory());
       item.setToolTipText(info);
-      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, Color[0]);
-      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color[1]);
-      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, Color[2]);
-      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color[3]);
+      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
+      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
+      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
+      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
       item.setStroked(true);
       item.setFilled(true);
       item.setVisible(isVisible());

@@ -30,7 +30,7 @@ import org.infinity.resource.wed.WedResource;
  */
 public class LayerObjectDoorPoly extends LayerObject
 {
-  private static final Color[] Color = {new Color(0xFF603080, true), new Color(0xFF603080, true),
+  private static final Color[] COLOR = {new Color(0xFF603080, true), new Color(0xFF603080, true),
                                         new Color(0x80A050C0, true), new Color(0xC0C060D0, true)};
 
   private final Door door;
@@ -267,10 +267,10 @@ public class LayerObjectDoorPoly extends LayerObject
         items[i] = new ShapedLayerItem(location[i], door, msg[i], info[i], poly[i]);
         items[i].setName(getCategory());
         items[i].setToolTipText(info[i]);
-        items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, Color[0]);
-        items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color[1]);
-        items[i].setFillColor(AbstractLayerItem.ItemState.NORMAL, Color[2]);
-        items[i].setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color[3]);
+        items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
+        items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
+        items[i].setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
+        items[i].setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
         items[i].setStroked(true);
         items[i].setFilled(true);
         items[i].setVisible(isVisible());

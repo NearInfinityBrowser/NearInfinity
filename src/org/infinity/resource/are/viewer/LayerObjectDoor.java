@@ -26,7 +26,7 @@ import org.infinity.resource.vertex.OpenVertex;
  */
 public class LayerObjectDoor extends LayerObject
 {
-  private static final Color[] Color = {new Color(0xFF400040, true), new Color(0xFF400040, true),
+  private static final Color[] COLOR = {new Color(0xFF400040, true), new Color(0xFF400040, true),
                                         new Color(0xC0800080, true), new Color(0xC0C000C0, true)};
 
   private final Door door;
@@ -163,10 +163,10 @@ public class LayerObjectDoor extends LayerObject
         items[i] = new ShapedLayerItem(location[i], door, msg[i], msg[i], poly[i]);
         items[i].setName(getCategory());
         items[i].setToolTipText(msg[i]);
-        items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, Color[0]);
-        items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color[1]);
-        items[i].setFillColor(AbstractLayerItem.ItemState.NORMAL, Color[2]);
-        items[i].setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color[3]);
+        items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
+        items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
+        items[i].setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
+        items[i].setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
         items[i].setStroked(true);
         items[i].setFilled(true);
         items[i].setVisible(isVisible());

@@ -26,13 +26,13 @@ import org.infinity.util.IniMapSection;
  */
 public class LayerObjectIniActor extends LayerObjectActor
 {
-  private static final Image[] IconGood = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_G_1),
-                                           Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_G_2)};
-  private static final Image[] IconNeutral = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_B_1),
-                                              Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_B_2)};
-  private static final Image[] IconEvil = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_R_1),
-                                           Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_R_2)};
-  private static final Point Center = new Point(12, 40);
+  private static final Image[] ICON_GOOD = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_G_1),
+                                            Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_G_2)};
+  private static final Image[] ICON_NEUTRAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_B_1),
+                                               Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_B_2)};
+  private static final Image[] ICON_EVIL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_R_1),
+                                            Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_R_2)};
+  private static final Point CENTER = new Point(12, 40);
 
   private final PlainTextResource ini;
   private final IniMapSection creData;
@@ -132,11 +132,11 @@ public class LayerObjectIniActor extends LayerObjectActor
       }
 
       if (ea >= 2 && ea <= 30) {
-        icon = IconGood;
+        icon = ICON_GOOD;
       } else if (ea >= 200) {
-        icon = IconEvil;
+        icon = ICON_EVIL;
       } else {
-        icon = IconNeutral;
+        icon = ICON_NEUTRAL;
       }
 
       // Using cached icons
@@ -150,7 +150,7 @@ public class LayerObjectIniActor extends LayerObjectActor
       }
 
       ini.setHighlightedLine(creData.getLine() + 1);
-      item = new IconLayerItem(location, ini, msg, info, icon[0], Center);
+      item = new IconLayerItem(location, ini, msg, info, icon[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelActorsIni);
       item.setName(getCategory());
       item.setToolTipText(info);

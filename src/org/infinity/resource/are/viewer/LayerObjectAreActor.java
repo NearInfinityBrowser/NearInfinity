@@ -30,13 +30,13 @@ import org.infinity.resource.cre.CreResource;
  */
 public class LayerObjectAreActor extends LayerObjectActor
 {
-  private static final Image[] IconGood = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_G_1),
-                                           Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_G_2)};
-  private static final Image[] IconNeutral = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_B_1),
-                                              Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_B_2)};
-  private static final Image[] IconEvil = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_R_1),
-                                           Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_R_2)};
-  private static final Point Center = new Point(12, 40);
+  private static final Image[] ICON_GOOD = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_G_1),
+                                            Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_G_2)};
+  private static final Image[] ICON_NEUTRAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_B_1),
+                                               Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_B_2)};
+  private static final Image[] ICON_EVIL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_R_1),
+                                            Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_R_2)};
+  private static final Point CENTER = new Point(12, 40);
 
   private final Actor actor;
   private Flag scheduleFlags;
@@ -81,7 +81,7 @@ public class LayerObjectAreActor extends LayerObjectActor
     if (actor != null) {
       String actorName = "";
       String actorCreName = "";
-      Image[] icon = IconNeutral;
+      Image[] icon = ICON_NEUTRAL;
       int ea = 128;   // default: neutral
       try {
         actorName = ((IsTextual)actor.getAttribute(Actor.ARE_ACTOR_NAME)).getText();
@@ -106,11 +106,11 @@ public class LayerObjectAreActor extends LayerObjectActor
           ea = (int)((IdsBitmap)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
         }
         if (ea >= 2 && ea <= 30) {
-          icon = IconGood;
+          icon = ICON_GOOD;
         } else if (ea >= 200) {
-          icon = IconEvil;
+          icon = ICON_EVIL;
         } else {
-          icon = IconNeutral;
+          icon = ICON_NEUTRAL;
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -131,7 +131,7 @@ public class LayerObjectAreActor extends LayerObjectActor
       if (!actorCreName.equals(actorName)) {
         msg += " (" + actorCreName + ")";
       }
-      item = new IconLayerItem(location, actor, msg, info, icon[0], Center);
+      item = new IconLayerItem(location, actor, msg, info, icon[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelActorsAre);
       item.setName(getCategory());
       item.setToolTipText(info);

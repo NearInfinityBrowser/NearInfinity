@@ -20,11 +20,11 @@ import org.infinity.resource.are.AreResource;
  */
 public class LayerObjectTransition extends LayerObject
 {
-  public static final String[] FieldName = {"Area north", "Area east", "Area south", "Area west"};
+  public static final String[] FIELD_NAME = {"Area north", "Area east", "Area south", "Area west"};
 
-  private static final Color[] Color = {new Color(0xFF404000, true), new Color(0xFF404000, true),
+  private static final Color[] COLOR = {new Color(0xFF404000, true), new Color(0xFF404000, true),
                                         new Color(0xC0808000, true), new Color(0xC0C0C000, true)};
-  private static final int Width = 16;    // "width" of the transition polygon
+  private static final int WIDTH = 16;    // "width" of the transition polygon
 
   private final AreResource are;
   private final Point location = new Point();
@@ -89,25 +89,25 @@ public class LayerObjectTransition extends LayerObject
         case ViewerConstants.EDGE_NORTH:
           shapeCoords[0].x = 0;    shapeCoords[0].y = 0;
           shapeCoords[1].x = mapW; shapeCoords[1].y = 0;
-          shapeCoords[2].x = mapW; shapeCoords[2].y = Width;
-          shapeCoords[3].x = 0;    shapeCoords[3].y = Width;
+          shapeCoords[2].x = mapW; shapeCoords[2].y = WIDTH;
+          shapeCoords[3].x = 0;    shapeCoords[3].y = WIDTH;
           break;
         case ViewerConstants.EDGE_EAST:
-          shapeCoords[0].x = mapW - Width; shapeCoords[0].y = 0;
+          shapeCoords[0].x = mapW - WIDTH; shapeCoords[0].y = 0;
           shapeCoords[1].x = mapW;         shapeCoords[1].y = 0;
           shapeCoords[2].x = mapW;         shapeCoords[2].y = mapH;
-          shapeCoords[3].x = mapW - Width; shapeCoords[3].y = mapH;
+          shapeCoords[3].x = mapW - WIDTH; shapeCoords[3].y = mapH;
           break;
         case ViewerConstants.EDGE_SOUTH:
-          shapeCoords[0].x = 0;    shapeCoords[0].y = mapH - Width;
-          shapeCoords[1].x = mapW; shapeCoords[1].y = mapH - Width;
+          shapeCoords[0].x = 0;    shapeCoords[0].y = mapH - WIDTH;
+          shapeCoords[1].x = mapW; shapeCoords[1].y = mapH - WIDTH;
           shapeCoords[2].x = mapW; shapeCoords[2].y = mapH;
           shapeCoords[3].x = 0;    shapeCoords[3].y = mapH;
           break;
         case ViewerConstants.EDGE_WEST:
           shapeCoords[0].x = 0;     shapeCoords[0].y = 0;
-          shapeCoords[1].x = Width; shapeCoords[1].y = 0;
-          shapeCoords[2].x = Width; shapeCoords[2].y = mapH;
+          shapeCoords[1].x = WIDTH; shapeCoords[1].y = 0;
+          shapeCoords[2].x = WIDTH; shapeCoords[2].y = mapH;
           shapeCoords[3].x = 0;     shapeCoords[3].y = mapH;
           break;
         default:
@@ -146,7 +146,7 @@ public class LayerObjectTransition extends LayerObject
       AreResource parent = (AreResource)getParentStructure();
       String msg = "";
       try {
-        ResourceRef ref = (ResourceRef)parent.getAttribute(FieldName[edge]);
+        ResourceRef ref = (ResourceRef)parent.getAttribute(FIELD_NAME[edge]);
         if (ref != null && !ref.getResourceName().isEmpty() &&
             !"None".equalsIgnoreCase(ref.getResourceName())) {
           msg = String.format("Transition to %1$s", ref.getResourceName());
@@ -159,10 +159,10 @@ public class LayerObjectTransition extends LayerObject
       item.setName(getCategory());
       item.setToolTipText(msg);
       update(1.0);
-      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, Color[0]);
-      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color[1]);
-      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, Color[2]);
-      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color[3]);
+      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
+      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
+      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
+      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
       item.setStroked(true);
       item.setFilled(true);
       item.setVisible(isVisible());

@@ -24,9 +24,9 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
  */
 public class LayerObjectEntrance extends LayerObject
 {
-  private static final Image[] Icon = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ENTRANCE_1),
+  private static final Image[] ICON = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ENTRANCE_1),
                                        Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ENTRANCE_2)};
-  private static Point Center = new Point(11, 18);
+  private static final Point CENTER = new Point(11, 18);
 
   private final Entrance entrance;
   private final Point location = new Point();
@@ -116,17 +116,17 @@ public class LayerObjectEntrance extends LayerObject
 
       // Using cached icons
       Image[] icon;
-      String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(Icon[0]),
-                                                 SharedResourceCache.createKey(Icon[1]));
+      String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(ICON[0]),
+                                                 SharedResourceCache.createKey(ICON[1]));
       if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
         icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon);
       } else {
-        icon = Icon;
+        icon = ICON;
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
-      item = new IconLayerItem(location, entrance, msg, info, icon[0], Center);
+      item = new IconLayerItem(location, entrance, msg, info, icon[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelEntrances);
       item.setName(getCategory());
       item.setToolTipText(info);

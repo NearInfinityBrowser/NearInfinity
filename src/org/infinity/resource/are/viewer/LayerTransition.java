@@ -31,8 +31,8 @@ public class LayerTransition extends BasicLayer<LayerObjectTransition>
       List<LayerObjectTransition> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();
-        for (int i = 0; i < LayerObjectTransition.FieldName.length; i++) {
-          ResourceRef ref = (ResourceRef)are.getAttribute(LayerObjectTransition.FieldName[i]);
+        for (int i = 0; i < LayerObjectTransition.FIELD_NAME.length; i++) {
+          ResourceRef ref = (ResourceRef)are.getAttribute(LayerObjectTransition.FIELD_NAME[i]);
           if (ref != null && !ref.getResourceName().isEmpty() && !"None".equalsIgnoreCase(ref.getResourceName())) {
             AreResource destAre = null;
             try {
