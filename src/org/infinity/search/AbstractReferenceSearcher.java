@@ -83,9 +83,9 @@ abstract class AbstractReferenceSearcher implements Runnable, ActionListener
         CreResource cre = new CreResource(targetEntry);
         StructEntry nameEntry = cre.getAttribute(CreResource.CRE_SCRIPT_NAME);
         if (nameEntry instanceof TextString) {
-          targetEntryName = ((TextString)nameEntry).toString();
+          targetEntryName = ((TextString)nameEntry).toString().trim();
           // ignore specific script names
-          if (targetEntryName.equalsIgnoreCase("None")) {
+          if (targetEntryName.isEmpty() || targetEntryName.equalsIgnoreCase("None")) {
             targetEntryName = null;
           }
         }
