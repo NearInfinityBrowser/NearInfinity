@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.JComponent;
 
-import org.infinity.gui.BrowserMenuBar;
+import org.infinity.NearInfinity;
 
 /**
  * A general-purpose class containing useful function not fitting elsewhere.
@@ -313,7 +313,7 @@ public class Misc
    */
   public static Font getScaledFont(Font font)
   {
-    int scale = (BrowserMenuBar.getInstance() != null) ? BrowserMenuBar.getInstance().getGlobalFontSize() : 100;
+    int scale = (NearInfinity.getInstance() != null) ? NearInfinity.getInstance().getGlobalFontSize() : 100;
     return getScaledFont(font, scale);
   }
 
@@ -342,8 +342,8 @@ public class Misc
     Dimension ret = null;
     if (dim != null) {
       int scale = 100;
-      if (BrowserMenuBar.getInstance() != null) {
-        scale = BrowserMenuBar.getInstance().getGlobalFontSize();
+      if (NearInfinity.getInstance() != null) {
+        scale = NearInfinity.getInstance().getGlobalFontSize();
       }
       ret = (scale != 100) ? new Dimension(dim.width * scale / 100, dim.height * scale / 100) : dim;
     }
@@ -357,7 +357,7 @@ public class Misc
    */
   public static float getScaledValue(float value)
   {
-    float scale = (BrowserMenuBar.getInstance() != null) ? BrowserMenuBar.getInstance().getGlobalFontSize() : 100.0f;
+    float scale = (NearInfinity.getInstance() != null) ? NearInfinity.getInstance().getGlobalFontSize() : 100.0f;
     return value * scale / 100.0f;
   }
 
@@ -368,7 +368,7 @@ public class Misc
    */
   public static int getScaledValue(int value)
   {
-    int scale = (BrowserMenuBar.getInstance() != null) ? BrowserMenuBar.getInstance().getGlobalFontSize() : 100;
+    int scale = (NearInfinity.getInstance() != null) ? NearInfinity.getInstance().getGlobalFontSize() : 100;
     return value * scale / 100;
   }
 

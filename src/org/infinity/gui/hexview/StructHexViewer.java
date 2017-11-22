@@ -75,6 +75,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Misc;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -443,7 +444,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
     hexView.setMouseOverHighlighted(false);
     hexView.setShowModified(true);
     hexView.setCaretColor(Color.BLACK);
-    hexView.setFontSize(13 * BrowserMenuBar.getInstance().getGlobalFontSize() / 100);
+    hexView.setFontSize(Misc.getScaledValue(13));
     hexView.setHeaderFontStyle(Font.BOLD);
     hexView.setFontColorHeader(new Color(0x0000c0));
     hexView.setBackgroundColorOffsetView(hexView.getBackground());
