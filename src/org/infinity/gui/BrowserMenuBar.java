@@ -1970,7 +1970,7 @@ public final class BrowserMenuBar extends JMenuBar
         if (FONTS[i] != null) {
           selectFont[i] = new JRadioButtonMenuItem(FONTS[i].getName() + ' ' + FONTS[i].getSize(),
                                                    i == selectedFont);
-          selectFont[i].setFont(FONTS[i].deriveFont(FONTS[i].getSize2D() * NearInfinity.getInstance().getGlobalFontSize() / 100.0f));
+          selectFont[i].setFont(Misc.getScaledFont(FONTS[i]));
         } else {
           Font font = null;
           String fontName = getPrefs().get(OPTION_FONT_NAME, "");
@@ -2502,7 +2502,7 @@ public final class BrowserMenuBar extends JMenuBar
       FONTS[index] = (font != null) ? font : UIManager.getFont("MenuItem.font").deriveFont(Font.PLAIN);
       selectFont[index].setText(String.format("Select font... (%1$s %2$d)",
                                               FONTS[index].getName(), FONTS[index].getSize()));
-      selectFont[index].setFont(FONTS[index].deriveFont(12.0f * NearInfinity.getInstance().getGlobalFontSize() / 100.0f));
+      selectFont[index].setFont(FONTS[index].deriveFont(Misc.getScaledValue(12.0f)));
     }
 
     // Returns defValue if masked bit is clear or value if masked bit is already set
