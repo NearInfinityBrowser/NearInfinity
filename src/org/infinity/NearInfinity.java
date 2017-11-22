@@ -8,6 +8,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Insets;
@@ -31,6 +32,7 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -52,6 +54,7 @@ import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.plaf.FontUIResource;
 
 import org.infinity.datatype.ProRef;
 import org.infinity.gui.BrowserMenuBar;
@@ -89,6 +92,7 @@ import org.infinity.util.CreMapCache;
 import org.infinity.util.FileDeletionHook;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IniMapCache;
+import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.DlcManager;
@@ -110,6 +114,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private static final String TABLE_WIDTH_ATTR    = "TableColWidthAttr";
   private static final String TABLE_WIDTH_OFS     = "TableColWidthOfs";
   private static final String TABLE_PANEL_HEIGHT  = "TablePanelHeight";
+  private static final String OPTION_GLOBAL_FONT_SIZE = "GlobalFontSize";
 
   private static final String STATUSBAR_TEXT_FMT = "Welcome to Near Infinity! - %s @ %s - %d files available";
 
@@ -127,7 +132,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private ButtonPopupWindow bpwQuickSearch;
   private int tablePanelHeight;
   private ProgressMonitor pmProgress;
-  private int progressIndex;
+  private int progressIndex, globalFontSize;
 
   private static Path findKeyfile()
   {
@@ -279,6 +284,10 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     // Migrate preferences from "infinity" to "org.infinity" if needed
     Preferences prefs = Preferences.userNodeForPackage(getClass());
     migratePreferences("infinity", prefs, true);
+
+    // updating relative default font size globally
+    globalFontSize = Math.max(50, Math.min(400, prefs.getInt(OPTION_GLOBAL_FONT_SIZE, 100)));
+    resizeUIFont(globalFontSize);
 
     new BrowserMenuBar();
     setJMenuBar(BrowserMenuBar.getInstance());
@@ -803,6 +812,14 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return retVal;
   }
 
+  /**
+   * Returns the currently selected global font size relative to UI defaults.
+   */
+  public int getGlobalFontSize()
+  {
+    return globalFontSize;
+  }
+
   private static boolean reloadFactory(boolean refreshOnly)
   {
     boolean retVal = false;
@@ -858,6 +875,20 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
   }
 
+  private static void resizeUIFont(int percent)
+  {
+    Enumeration<Object> keys = UIManager.getDefaults().keys();
+    while (keys.hasMoreElements()) {
+      Object key = keys.nextElement();
+      Object value = UIManager.get(key);
+      if (value instanceof FontUIResource) {
+        FontUIResource fr = (FontUIResource)value;
+        Font f = Misc.getScaledFont(fr, percent);
+        UIManager.put(key, new FontUIResource(f));
+      }
+    }
+  }
+
   private void storePreferences()
   {
     Preferences prefs = Preferences.userNodeForPackage(getClass());
@@ -876,6 +907,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     prefs.putInt(TABLE_WIDTH_ATTR, getTableColumnWidth(0));
     prefs.putInt(TABLE_WIDTH_OFS, getTableColumnWidth(2));
     prefs.putInt(TABLE_PANEL_HEIGHT, getTablePanelHeight());
+    prefs.putInt(OPTION_GLOBAL_FONT_SIZE, BrowserMenuBar.getInstance().getGlobalFontSize());
     BrowserMenuBar.getInstance().storePreferences();
     Updater.getInstance().saveUpdateSettings();
   }

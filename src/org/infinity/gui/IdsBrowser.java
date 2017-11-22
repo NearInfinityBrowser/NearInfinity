@@ -27,6 +27,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Misc;
 
 public final class IdsBrowser extends ChildFrame implements ActionListener
 {
@@ -86,7 +87,7 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
     gbl.setConstraints(binsert, gbc);
     pane.add(binsert);
 
-    setSize(350, 500);
+    setSize(Misc.getScaledValue(350), Misc.getScaledValue(500));
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 

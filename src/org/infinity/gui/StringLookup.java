@@ -17,6 +17,7 @@ import org.infinity.datatype.StringRef;
 import org.infinity.icon.Icons;
 import org.infinity.search.SearchClient;
 import org.infinity.search.SearchMaster;
+import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
 final class StringLookup extends ChildFrame implements SearchClient
@@ -51,7 +52,7 @@ final class StringLookup extends ChildFrame implements SearchClient
     gbl.setConstraints(findpanel, gbc);
     pane.add(findpanel);
 
-    setSize(540, 350);
+    setSize(Misc.getScaledValue(540), Misc.getScaledValue(350));
     Center.center(this, NearInfinity.getInstance().getBounds());
 
     // pre-caching string table to significantly reduce search time

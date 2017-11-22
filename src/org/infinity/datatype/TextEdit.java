@@ -144,8 +144,8 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
       panel.add(bUpdate, gbc);
     }
 
-    panel.setMinimumSize(DIM_BROAD);
-    panel.setPreferredSize(DIM_BROAD);
+    panel.setMinimumSize(Misc.getScaledDimension(DIM_BROAD));
+    panel.setPreferredSize(Misc.getScaledDimension(DIM_BROAD));
     return panel;
   }
 

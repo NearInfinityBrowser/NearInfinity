@@ -180,6 +180,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
     table.getSelectionModel().addListSelectionListener(this);
     table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.addMouseListener(new MouseAdapter()
     {
       @Override

@@ -5,6 +5,7 @@
 package org.infinity.util;
 
 import java.awt.Dimension;
+import java.awt.Font;
 import java.nio.charset.Charset;
 import java.util.Comparator;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -12,6 +13,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JComponent;
+
+import org.infinity.gui.BrowserMenuBar;
 
 /**
  * A general-purpose class containing useful function not fitting elsewhere.
@@ -303,6 +306,71 @@ public class Misc
     return d;
   }
 
+  /**
+   * Returns the specified font scaled to the global font scale value.
+   * @param font The font to scale.
+   * @return The scaled font.
+   */
+  public static Font getScaledFont(Font font)
+  {
+    int scale = (BrowserMenuBar.getInstance() != null) ? BrowserMenuBar.getInstance().getGlobalFontSize() : 100;
+    return getScaledFont(font, scale);
+  }
+
+  /**
+   * Returns the specified font scaled to the specified scale value.
+   * @param font The font to scale.
+   * @param scale The scale factor (in percent).
+   * @return The scaled font.
+   */
+  public static Font getScaledFont(Font font, int scale)
+  {
+    Font ret = null;
+    if (font != null) {
+      ret = (scale != 100) ? font.deriveFont(font.getSize2D() * scale / 100.0f) : font;
+    }
+    return ret;
+  }
+
+  /**
+   * Returns the specified Dimension structure scaled to the global font scale value.
+   * @param dim The Dimension structure to scale.
+   * @return The scaled Dimension structure.
+   */
+  public static Dimension getScaledDimension(Dimension dim)
+  {
+    Dimension ret = null;
+    if (dim != null) {
+      int scale = 100;
+      if (BrowserMenuBar.getInstance() != null) {
+        scale = BrowserMenuBar.getInstance().getGlobalFontSize();
+      }
+      ret = (scale != 100) ? new Dimension(dim.width * scale / 100, dim.height * scale / 100) : dim;
+    }
+    return ret;
+  }
+
+  /**
+   * Returns the specified numeric value scaled to the global font scale value.
+   * @param value The numeric value to scale.
+   * @return The scaled value.
+   */
+  public static float getScaledValue(float value)
+  {
+    float scale = (BrowserMenuBar.getInstance() != null) ? BrowserMenuBar.getInstance().getGlobalFontSize() : 100.0f;
+    return value * scale / 100.0f;
+  }
+
+  /**
+   * Returns the specified numeric value scaled to the global font scale value.
+   * @param value The numeric value to scale.
+   * @return The scaled value.
+   */
+  public static int getScaledValue(int value)
+  {
+    int scale = (BrowserMenuBar.getInstance() != null) ? BrowserMenuBar.getInstance().getGlobalFontSize() : 100;
+    return value * scale / 100;
+  }
 
   // Contains static functions only
   private Misc() {}

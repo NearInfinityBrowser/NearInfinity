@@ -25,6 +25,7 @@ import org.infinity.gui.TextListPanel;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Misc;
 
 public class Bitmap extends Datatype implements Editable, IsNumeric
 {
@@ -93,8 +94,8 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
     gbl.setConstraints(bUpdate, gbc);
     panel.add(bUpdate);
 
-    panel.setMinimumSize(DIM_MEDIUM);
-    panel.setPreferredSize(DIM_MEDIUM);
+    panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
+    panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
     return panel;
   }
 

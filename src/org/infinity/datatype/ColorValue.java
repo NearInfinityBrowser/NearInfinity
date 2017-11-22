@@ -53,6 +53,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 
@@ -124,8 +125,8 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
                            GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
    panel.add(bUpdate, gbc);
 
-   panel.setMinimumSize(DIM_MEDIUM);
-   panel.setPreferredSize(DIM_MEDIUM);
+   panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
+   panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
 
    return panel;
  }

@@ -35,6 +35,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.StringReferenceSearcher;
+import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
 public final class StringRef extends Datatype implements Editable, IsNumeric, IsTextual, ActionListener
@@ -114,6 +115,7 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
       if (BrowserMenuBar.getInstance().getTlkSyntaxHighlightingEnabled()) {
         taRefText.applyExtendedSettings(InfinityTextArea.Language.TLK, null);
       }
+      taRefText.setFont(Misc.getScaledFont(taRefText.getFont()));
       taRefText.setHighlightCurrentLine(false);
       taRefText.setEditable(false);
       taRefText.setLineWrap(true);
@@ -185,8 +187,8 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
     gbl.setConstraints(scroll, gbc);
     panel.add(scroll);
 
-    panel.setMinimumSize(DIM_BROAD);
-    panel.setPreferredSize(DIM_BROAD);
+    panel.setMinimumSize(Misc.getScaledDimension(DIM_BROAD));
+    panel.setPreferredSize(Misc.getScaledDimension(DIM_BROAD));
     return panel;
   }
 

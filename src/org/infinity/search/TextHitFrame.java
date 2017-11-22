@@ -44,6 +44,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Misc;
 
 final class TextHitFrame extends ChildFrame implements ActionListener, ListSelectionListener
 {
@@ -88,6 +89,7 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
     bopen.setEnabled(false);
     bopennew.setEnabled(false);
     table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.getSelectionModel().addListSelectionListener(this);
     final ChildFrame frame = this;
     table.addMouseListener(new MouseAdapter()
@@ -109,6 +111,7 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
     bopen.addActionListener(this);
     bopennew.addActionListener(this);
     bsave.addActionListener(this);
+    setPreferredSize(Misc.getScaledDimension(getPreferredSize()));
     pack();
     Center.center(this, parent.getBounds());
   }

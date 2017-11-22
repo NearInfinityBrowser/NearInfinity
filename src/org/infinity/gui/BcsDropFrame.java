@@ -198,7 +198,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     new DropTarget(compZone, new MyDropTargetListener(compZone));
     new DropTarget(decompZone, new MyDropTargetListener(decompZone));
 
-    setSize(500, 400);
+    setSize(Misc.getScaledValue(500), Misc.getScaledValue(400));
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 

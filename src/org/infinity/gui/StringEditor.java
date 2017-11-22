@@ -57,6 +57,7 @@ import org.infinity.resource.Profile;
 import org.infinity.search.SearchClient;
 import org.infinity.search.SearchMaster;
 import org.infinity.search.StringReferenceSearcher;
+import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileManager;
 
@@ -192,6 +193,7 @@ public class StringEditor extends ChildFrame implements SearchClient
   {
     setIconImage(Icons.getIcon(Icons.ICON_EDIT_16).getImage());
 
+    table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(listeners);
     table.setFont(BrowserMenuBar.getInstance().getScriptFont());
@@ -205,6 +207,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     if (BrowserMenuBar.getInstance().getTlkSyntaxHighlightingEnabled()) {
       taText.applyExtendedSettings(InfinityTextArea.Language.TLK, null);
     }
+    taText.setFont(Misc.getScaledFont(taText.getFont()));
     taText.setMargin(new Insets(3, 3, 3, 3));
     taText.setLineWrap(true);
     taText.setWrapStyleWord(true);

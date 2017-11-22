@@ -28,6 +28,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.LongIntegerHashMap;
+import org.infinity.util.Misc;
 import org.infinity.util.ObjectString;
 
 public class HashBitmap extends Datatype implements Editable, IsNumeric
@@ -149,8 +150,8 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
     gbl.setConstraints(p, gbc);
     panel.add(p);
 
-    panel.setMinimumSize(DIM_MEDIUM);
-    panel.setPreferredSize(DIM_MEDIUM);
+    panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
+    panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
     return panel;
   }
 

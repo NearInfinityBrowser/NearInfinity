@@ -443,7 +443,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
     hexView.setMouseOverHighlighted(false);
     hexView.setShowModified(true);
     hexView.setCaretColor(Color.BLACK);
-    hexView.setFontSize(13);
+    hexView.setFontSize(13 * BrowserMenuBar.getInstance().getGlobalFontSize() / 100);
     hexView.setHeaderFontStyle(Font.BOLD);
     hexView.setFontColorHeader(new Color(0x0000c0));
     hexView.setBackgroundColorOffsetView(hexView.getBackground());
@@ -714,6 +714,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       JTable table = new JTable(model);
       table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+      table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.setBorder(BorderFactory.createLineBorder(Color.GRAY));
       table.getTableHeader().setBorder(BorderFactory.createLineBorder(Color.GRAY));
       table.getTableHeader().setReorderingAllowed(false);

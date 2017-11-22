@@ -44,6 +44,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.ScriptMessage;
 import org.infinity.resource.bcs.ScriptType;
+import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
 public abstract class AbstractCode extends Datatype
@@ -214,8 +215,8 @@ public abstract class AbstractCode extends Datatype
     gbl.setConstraints(buttonPanel, gbc);
     panel.add(buttonPanel);
 
-    panel.setMinimumSize(DIM_BROAD);
-    panel.setPreferredSize(DIM_BROAD);
+    panel.setMinimumSize(Misc.getScaledDimension(DIM_BROAD));
+    panel.setPreferredSize(Misc.getScaledDimension(DIM_BROAD));
     return panel;
   }
 

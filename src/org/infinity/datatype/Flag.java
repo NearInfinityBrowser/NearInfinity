@@ -24,6 +24,7 @@ import javax.swing.JPanel;
 import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Misc;
 
 public class Flag extends Datatype implements Editable, IsNumeric, ActionListener
 {
@@ -163,8 +164,8 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     panel.add(boxPanel, BorderLayout.CENTER);
     panel.add(bPanel, BorderLayout.SOUTH);
 
-    panel.setMinimumSize(DIM_BROAD);
-    panel.setPreferredSize(DIM_WIDE);
+    panel.setMinimumSize(Misc.getScaledDimension(DIM_BROAD));
+    panel.setPreferredSize(Misc.getScaledDimension(DIM_WIDE));
 
     return panel;
   }

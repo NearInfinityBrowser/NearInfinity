@@ -79,6 +79,7 @@ import org.infinity.updater.Updater;
 import org.infinity.updater.UpdaterSettings;
 import org.infinity.util.CharsetDetector;
 import org.infinity.util.MassExporter;
+import org.infinity.util.Misc;
 import org.infinity.util.ObjectString;
 import org.infinity.util.Pair;
 import org.infinity.util.StringTable;
@@ -344,6 +345,11 @@ public final class BrowserMenuBar extends JMenuBar
   public LookAndFeelInfo getLookAndFeel()
   {
     return optionsMenu.getLookAndFeel();
+  }
+
+  public int getGlobalFontSize()
+  {
+    return optionsMenu.getGlobalFontSize();
   }
 
   public int getOverrideMode()
@@ -1494,6 +1500,7 @@ public final class BrowserMenuBar extends JMenuBar
 
   private static final class OptionsMenu extends JMenu implements ActionListener, ItemListener
   {
+    private static final int[] FONTSIZES = {50, 75, 100, 125, 150, 175, 200, 250, 300, 400, -1};
     private static final Font[] FONTS = {
       new Font(Font.MONOSPACED, Font.PLAIN, 12), new Font(Font.SERIF, Font.PLAIN, 12),
       new Font(Font.SANS_SERIF, Font.PLAIN, 12), new Font(Font.DIALOG, Font.PLAIN, 12), null};
@@ -1599,6 +1606,7 @@ public final class BrowserMenuBar extends JMenuBar
     private final JRadioButtonMenuItem[] selectLuaColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
     private final JRadioButtonMenuItem[] selectSqlColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
     private final JRadioButtonMenuItem[] selectTlkColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
+    private final DataRadioButtonMenuItem[] globalFontSize = new DataRadioButtonMenuItem[FONTSIZES.length];
 
     private JCheckBoxMenuItem optionTextHightlightCurrent, optionTextLineNumbers,
                               optionTextShowWhiteSpace, optionTextShowEOL, optionTextTabEmulate,
@@ -1890,6 +1898,34 @@ public final class BrowserMenuBar extends JMenuBar
       vieworeditmenu.add(viewOrEditShown[DEFAULT_VIEW]);
       vieworeditmenu.add(viewOrEditShown[DEFAULT_EDIT]);
 
+      // Options->Global Font Size
+      JMenu fontSizeMenu = new JMenu("Change Global Font Size");
+      add(fontSizeMenu);
+      bg = new ButtonGroup();
+      fontSizeMenu.addItemListener(this);
+      int selectedSize = NearInfinity.getInstance().getGlobalFontSize();
+      selectedSize = Math.min(Math.max(selectedSize, 50), 400);
+      boolean isCustom = true;
+      for (int i = 0; i < FONTSIZES.length; i++) {
+        int size = FONTSIZES[i];
+        if (size > 0) {
+          String msg = FONTSIZES[i] + " %" + (size == 100 ? " (Default)" : "");
+          globalFontSize[i] = new DataRadioButtonMenuItem(msg,
+                                                          FONTSIZES[i] == selectedSize,
+                                                          Integer.valueOf(FONTSIZES[i]));
+          if (FONTSIZES[i] == selectedSize) {
+            isCustom = false;
+          }
+        } else {
+          String msg = isCustom ? "Custom (" + selectedSize + " %)..." : "Custom...";
+          globalFontSize[i] = new DataRadioButtonMenuItem(msg, isCustom, isCustom ? selectedSize : size);
+        }
+        globalFontSize[i].setActionCommand("ChangeFontSize");
+        globalFontSize[i].addActionListener(this);
+        fontSizeMenu.add(globalFontSize[i]);
+        bg.add(globalFontSize[i]);
+      }
+
       // Options->Look and Feel
       JMenu lookandfeelmenu = new JMenu("Look and Feel");
       add(lookandfeelmenu);
@@ -2077,6 +2113,7 @@ public final class BrowserMenuBar extends JMenuBar
             }
           }
           dmi.setToolTipText(sb.toString());
+          dmi.setActionCommand("Charset");
           dmi.addActionListener(this);
           bgCharsetButtons.add(dmi);
           menu.add(dmi);
@@ -2576,6 +2613,11 @@ public final class BrowserMenuBar extends JMenuBar
       return DEFAULT_LOOKFEEL;
     }
 
+    public int getGlobalFontSize()
+    {
+      return ((Integer)globalFontSize[getSelectedButtonIndex(globalFontSize, 2)].getData()).intValue();
+    }
+
     public int getDefaultStructView()
     {
       if (viewOrEditShown[DEFAULT_VIEW].isSelected())
@@ -2603,7 +2645,40 @@ public final class BrowserMenuBar extends JMenuBar
           applyCustomFont(fc.getSelectedFont());
         }
       }
-      else if (event.getSource() instanceof DataRadioButtonMenuItem) {
+      else if (event.getActionCommand().equals("ChangeFontSize")) {
+        DataRadioButtonMenuItem dmi = (DataRadioButtonMenuItem)event.getSource();
+        int percent = ((Integer)dmi.getData()).intValue();
+        if (dmi == globalFontSize[globalFontSize.length - 1]) {
+          if (percent < 0) {
+            percent = NearInfinity.getInstance().getGlobalFontSize();
+          }
+          String ret = JOptionPane.showInputDialog(NearInfinity.getInstance(),
+                                                   "Enter font size in percent (50 - 400):",
+                                                   Integer.valueOf(percent));
+          if (ret == null) {
+            dmi.setData(Integer.valueOf(percent));
+            dmi.setText("Custom (" + percent + " %)...");
+            return;
+          }
+
+          int value = NearInfinity.getInstance().getGlobalFontSize();
+          try {
+            value = Math.max(50, Math.min(400, Integer.parseInt(ret)));
+          } catch (NumberFormatException nfe) {
+            JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                          "Invalid number entered. Using current value " + percent + ".");
+            return;
+          }
+          dmi.setData(Integer.valueOf(value));
+          dmi.setText("Custom (" + value + " %)...");
+          if (value == NearInfinity.getInstance().getGlobalFontSize()) return;
+        }
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                      "You have to restart Near Infinity\n" +
+                                          "for the font size change to take effect.");
+      }
+      else if (event.getActionCommand().equals("Charset")) {
+//      else if (event.getSource() instanceof DataRadioButtonMenuItem) {
         DataRadioButtonMenuItem dmi = (DataRadioButtonMenuItem)event.getSource();
         String csName = (String)dmi.getData();
         if (csName != null) {
@@ -2780,9 +2855,9 @@ public final class BrowserMenuBar extends JMenuBar
 
       // Fixed elements
       final Font defaultfont = UIManager.getFont("Label.font");
-      final Font font = defaultfont.deriveFont(13.0f);
-      final Font bigFont = defaultfont.deriveFont(Font.BOLD, 20.0f);
-      final Font smallFont = defaultfont.deriveFont(11.0f);
+      final Font font = defaultfont.deriveFont(Misc.getScaledValue(13.0f));
+      final Font bigFont = defaultfont.deriveFont(Font.BOLD, Misc.getScaledValue(20.0f));
+      final Font smallFont = defaultfont.deriveFont(Misc.getScaledValue(11.0f));
 
       GridBagConstraints gbc = new GridBagConstraints();
 
@@ -2850,7 +2925,7 @@ public final class BrowserMenuBar extends JMenuBar
         // adding title
         int row = 0;
         JLabel label = new JLabel("Additional Contributors (in chronological order):");
-        label.setFont(smallFont.deriveFont(12.0f));
+        label.setFont(smallFont.deriveFont(Misc.getScaledValue(12.0f)));
         gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 2, 0), 0, 0);
         pContrib.add(label, gbc);
@@ -2901,7 +2976,7 @@ public final class BrowserMenuBar extends JMenuBar
       {
         int row = 0;
         JLabel label = new JLabel("Near Infinity license:");
-        label.setFont(smallFont.deriveFont(12.0f));
+        label.setFont(smallFont.deriveFont(Misc.getScaledValue(12.0f)));
         gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 2, 0), 0, 0);
         pLicense.add(label, gbc);
@@ -2922,7 +2997,7 @@ public final class BrowserMenuBar extends JMenuBar
       {
         int row = 0;
         JLabel label = new JLabel("Additional licenses:");
-        label.setFont(smallFont.deriveFont(12.0f));
+        label.setFont(smallFont.deriveFont(Misc.getScaledValue(12.0f)));
         gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 2, 0), 0, 0);
         pMiscLicenses.add(label, gbc);
@@ -2964,11 +3039,11 @@ public final class BrowserMenuBar extends JMenuBar
     {
       JPanel panel = new JPanel(new BorderLayout());
       JTextPane tphelp = new JTextPane();
-      tphelp.setFont(new Font("Monospaced", Font.PLAIN, 12));
+      tphelp.setFont(new Font("Monospaced", Font.PLAIN, Misc.getScaledValue(12)));
       tphelp.setEditable(false);
       tphelp.setMargin(new Insets(3, 3, 3, 3));
       panel.add(new JScrollPane(tphelp), BorderLayout.CENTER);
-      panel.setPreferredSize(new Dimension(640, 480));
+      panel.setPreferredSize(Misc.getScaledDimension(new Dimension(640, 480)));
 
       try {
         tphelp.setPage(ClassLoader.getSystemResource(classPath));

@@ -5,6 +5,7 @@
 package org.infinity.datatype;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -28,6 +29,7 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Misc;
 
 /**
  * A Number object consisting of multiple values of a given number of bits.
@@ -114,10 +116,11 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
                             GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
     panel.add(bUpdate, gbc);
 
-    panel.setPreferredSize(DIM_MEDIUM);
+    Dimension dim = Misc.getScaledDimension(DIM_MEDIUM);
+    panel.setPreferredSize(dim);
 
     // making "Attribute" column wider
-    int tableWidth = DIM_MEDIUM.width - bUpdate.getPreferredSize().width - 8;
+    int tableWidth = dim.width - bUpdate.getPreferredSize().width - 8;
     tValues.getColumnModel().getColumn(0).setPreferredWidth(tableWidth * 3 / 4);
     tValues.getColumnModel().getColumn(1).setPreferredWidth(tableWidth * 1 / 4);
 
