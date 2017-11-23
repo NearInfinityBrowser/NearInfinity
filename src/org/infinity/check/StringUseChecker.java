@@ -114,7 +114,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
         files.addAll(ResourceFactory.getResources(fileType));
       String type = "WWWW";
       progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Searching...",
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Searching..." + Misc.MSG_EXPAND_SMALL,
                                      String.format(FMT_PROGRESS, type),
                                      0, files.size());
 

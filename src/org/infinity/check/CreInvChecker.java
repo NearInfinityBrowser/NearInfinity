@@ -148,7 +148,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
       creFiles = ResourceFactory.getResources("CRE");
       creFiles.addAll(ResourceFactory.getResources("CHR"));
       progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking inventories...",
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking inventories..." + Misc.MSG_EXPAND_LARGE,
                                      String.format(FMT_PROGRESS, creFiles.size(), creFiles.size()),
                                      0, creFiles.size());
       progress.setNote(String.format(FMT_PROGRESS, 0, creFiles.size()));

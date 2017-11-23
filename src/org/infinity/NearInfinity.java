@@ -312,7 +312,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       System.exit(10);
     }
 
-    showProgress("Starting Near Infinity", 6);
+    showProgress("Starting Near Infinity" + Misc.MSG_EXPAND_LARGE, 6);
     SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
       @Override
       protected Void doInBackground() throws Exception

@@ -1787,7 +1787,7 @@ public class AreaViewer extends ChildFrame
     releaseProgressMonitor();
     pmMax = maxProgress;
     pmCur = 0;
-    progress = new ProgressMonitor(parent, msg, note, 0, pmMax);
+    progress = new ProgressMonitor(parent, msg + "        \t", note, 0, pmMax);
     progress.setMillisToDecideToPopup(msDecide);
     progress.setMillisToPopup(msWait);
     progress.setProgress(pmCur);

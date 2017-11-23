@@ -149,7 +149,7 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
       bcsFiles = ResourceFactory.getResources("BCS");
       bcsFiles.addAll(ResourceFactory.getResources("BS"));
       progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking...",
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking..." + Misc.MSG_EXPAND_LARGE,
                                      String.format(FMT_PROGRESS, bcsFiles.size(), bcsFiles.size()),
                                      0, bcsFiles.size());
       progress.setNote(String.format(FMT_PROGRESS, 0, bcsFiles.size()));

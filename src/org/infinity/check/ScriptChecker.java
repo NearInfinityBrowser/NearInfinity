@@ -177,7 +177,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
       scriptFiles = ResourceFactory.getResources("BCS");
       scriptFiles.addAll(ResourceFactory.getResources("BS"));
       progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking scripts...",
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking scripts..." + Misc.MSG_EXPAND_LARGE,
                                      String.format(FMT_PROGRESS, scriptFiles.size(), scriptFiles.size()),
                                      0, scriptFiles.size());
       progress.setNote(String.format(FMT_PROGRESS, 0, scriptFiles.size()));

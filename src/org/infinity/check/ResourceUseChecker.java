@@ -218,7 +218,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       }
       ThreadPoolExecutor executor = Misc.createThreadPool();
       progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Searching...",
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Searching..." + Misc.MSG_EXPAND_LARGE,
                                      String.format(FMT_PROGRESS, files.size(), files.size()),
                                      0, files.size());
       progress.setNote(String.format(FMT_PROGRESS, 0, files.size()));

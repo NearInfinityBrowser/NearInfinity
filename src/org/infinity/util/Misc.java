@@ -31,6 +31,13 @@ public class Misc
   /** Returns the line separator string which is used by the current operating system. */
   public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
+  /** Can be used to slightly expand dialog message strings to force a bigger initial dialog width. */
+  public static final String MSG_EXPAND_SMALL = "        \t";
+  /** Can be used to expand dialog message strings to force a bigger initial dialog width. */
+  public static final String MSG_EXPAND_MEDIUM = "                \t";
+  /** Can be used to greatly expand dialog message strings to force a bigger initial dialog width. */
+  public static final String MSG_EXPAND_LARGE = "                                \t";
+
   /**
    * Returns a comparator that compares the string representation of the specified objects
    * in a case-insensitive way. */
