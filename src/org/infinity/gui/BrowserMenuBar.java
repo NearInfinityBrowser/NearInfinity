@@ -2663,19 +2663,30 @@ public final class BrowserMenuBar extends JMenuBar
 
           int value = NearInfinity.getInstance().getGlobalFontSize();
           try {
-            value = Math.max(50, Math.min(400, Integer.parseInt(ret)));
+            int radix = 10;
+            if (ret.toLowerCase().startsWith("0x")) {
+              ret = ret.substring(2);
+              radix = 16;
+            }
+            value = Integer.parseInt(ret, radix);
+            if (value < 50 || value > 400) {
+              JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                            "Number out of range. Using current value " + percent + ".");
+              value = NearInfinity.getInstance().getGlobalFontSize();
+            }
           } catch (NumberFormatException nfe) {
             JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                                           "Invalid number entered. Using current value " + percent + ".");
-            return;
           }
           dmi.setData(Integer.valueOf(value));
           dmi.setText("Custom (" + value + " %)...");
           if (value == NearInfinity.getInstance().getGlobalFontSize()) return;
         }
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                                      "You have to restart Near Infinity\n" +
-                                          "for the font size change to take effect.");
+        if (percent != NearInfinity.getInstance().getGlobalFontSize()) {
+          JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                        "You have to restart Near Infinity\n" +
+                                            "for the font size change to take effect.");
+        }
       }
       else if (event.getActionCommand().equals("Charset")) {
 //      else if (event.getSource() instanceof DataRadioButtonMenuItem) {
