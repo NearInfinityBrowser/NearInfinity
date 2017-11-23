@@ -5,7 +5,7 @@
 package org.infinity.gui.converter;
 
 import java.awt.AlphaComposite;
-import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -21,10 +21,12 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.IndexColorModel;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.SpinnerNumberModel;
@@ -54,7 +56,9 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
 
   private JComboBox<String> cbType;
   private JCheckBox cbAdjustCenter;
-  private JSpinner spinnerFactor;
+  private JRadioButton rbScaleBoth, rbScaleIndividually;
+  private JSpinner spinnerFactor, spinnerFactorX, spinnerFactorY;
+  private JLabel lFactor, lFactorX, lFactorY;
   private JTextArea taInfo;
 
   public static String getFilterName() { return FilterName; }
@@ -88,7 +92,10 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
   {
     StringBuilder sb = new StringBuilder();
     sb.append(cbType.getSelectedIndex()).append(';');
+    sb.append(rbScaleBoth.isSelected() ? 0 : 1).append(';');
     sb.append(((SpinnerNumberModel)spinnerFactor.getModel()).getNumber().doubleValue()).append(';');
+    sb.append(((SpinnerNumberModel)spinnerFactorX.getModel()).getNumber().doubleValue()).append(';');
+    sb.append(((SpinnerNumberModel)spinnerFactorY.getModel()).getNumber().doubleValue()).append(';');
     sb.append(cbAdjustCenter.isSelected());
     return sb.toString();
   }
@@ -102,8 +109,12 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
         String[] params = config.split(";");
         int type = -1;
         Double factor = Double.MIN_VALUE;
+        Double factorX = Double.MIN_VALUE;
+        Double factorY = Double.MIN_VALUE;
+        boolean uniformSelected = true;
         boolean adjust = true;
 
+        // loading legacy options
         if (params.length > 0) {
           type = Misc.toNumber(params[0], -1);
           if (type < 0 || type >= cbType.getModel().getSize()) {
@@ -111,19 +122,40 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
           }
         }
         if (params.length > 1) {
+          int index = (params.length >= 6) ? 2 : 1;
           double min = ((Number)((SpinnerNumberModel)spinnerFactor.getModel()).getMinimum()).doubleValue();
           double max = ((Number)((SpinnerNumberModel)spinnerFactor.getModel()).getMaximum()).doubleValue();
-          factor = decodeDouble(params[1], min, max, Double.MIN_VALUE);
+          factor = decodeDouble(params[index], min, max, Double.MIN_VALUE);
           if (factor == Double.MIN_VALUE) {
             return false;
           }
         }
         if (params.length > 2) {
-          if (params[2].equalsIgnoreCase("true")) {
+          int index = (params.length >= 6) ? 5 : 2;
+          if (params[index].equalsIgnoreCase("true")) {
             adjust = true;
-          } else if (params[2].equalsIgnoreCase("false")) {
+          } else if (params[index].equalsIgnoreCase("false")) {
             adjust = false;
           } else {
+            return false;
+          }
+        }
+
+        // loading revised options
+        if (params.length >= 6) {
+          uniformSelected = (Misc.toNumber(params[1], 0) == 0);
+
+          double min = ((Number)((SpinnerNumberModel)spinnerFactor.getModel()).getMinimum()).doubleValue();
+          double max = ((Number)((SpinnerNumberModel)spinnerFactor.getModel()).getMaximum()).doubleValue();
+          factorX = decodeDouble(params[3], min, max, Double.MIN_VALUE);
+          if (factorX == Double.MIN_VALUE) {
+            return false;
+          }
+
+          min = ((Number)((SpinnerNumberModel)spinnerFactor.getModel()).getMinimum()).doubleValue();
+          max = ((Number)((SpinnerNumberModel)spinnerFactor.getModel()).getMaximum()).doubleValue();
+          factorY = decodeDouble(params[4], min, max, Double.MIN_VALUE);
+          if (factorY == Double.MIN_VALUE) {
             return false;
           }
         }
@@ -131,8 +163,21 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
         if (type >= 0) {
           cbType.setSelectedIndex(type);
         }
+        if (uniformSelected) {
+          rbScaleBoth.setSelected(true);
+          actionPerformed(new ActionEvent(rbScaleBoth, ActionEvent.ACTION_PERFORMED, null));
+        } else {
+          rbScaleIndividually.setSelected(true);
+          actionPerformed(new ActionEvent(rbScaleIndividually, ActionEvent.ACTION_PERFORMED, null));
+        }
         if (factor != Double.MIN_VALUE) {
           spinnerFactor.setValue(factor);
+        }
+        if (factorX != Double.MIN_VALUE) {
+          spinnerFactorX.setValue(factorX);
+        }
+        if (factorY != Double.MIN_VALUE) {
+          spinnerFactorY.setValue(factorY);
         }
         cbAdjustCenter.setSelected(adjust);
       }
@@ -157,47 +202,100 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
     GridBagConstraints c = new GridBagConstraints();
 
     JLabel l1 = new JLabel("Type:");
-    JLabel l2 = new JLabel("Factor:");
+    lFactor = new JLabel("Factor:");
+    lFactorX = new JLabel("Factor X:");
+    lFactorX.setEnabled(false);
+    lFactorY = new JLabel("Factor Y:");
+    lFactorY.setEnabled(false);
     cbType = new JComboBox<>(ScalingTypeItems);
     cbType.addActionListener(this);
+    rbScaleBoth = new JRadioButton("Scale uniformly");
+    rbScaleIndividually = new JRadioButton("Scale individually");
+    ButtonGroup bg = new ButtonGroup();
+    bg.add(rbScaleBoth);
+    bg.add(rbScaleIndividually);
+    rbScaleBoth.setSelected(true);
+    rbScaleBoth.addActionListener(this);
+    rbScaleIndividually.addActionListener(this);
     spinnerFactor = new JSpinner(new SpinnerNumberModel(1.0, 0.01, 10.0, 0.05));
     spinnerFactor.addChangeListener(this);
+    spinnerFactorX = new JSpinner(new SpinnerNumberModel(1.0, 0.01, 10.0, 0.05));
+    spinnerFactorX.addChangeListener(this);
+    spinnerFactorX.setEnabled(false);
+    spinnerFactorY = new JSpinner(new SpinnerNumberModel(1.0, 0.01, 10.0, 0.05));
+    spinnerFactorY.addChangeListener(this);
+    spinnerFactorY.setEnabled(false);
     taInfo = new JTextArea(2, 0);
     taInfo.setEditable(false);
     taInfo.setFont(UIManager.getFont("Label.font"));
-    Color bg = UIManager.getColor("Label.background");
-    taInfo.setBackground(bg);
-    taInfo.setSelectionColor(bg);
-    taInfo.setSelectedTextColor(bg);
+    taInfo.setBackground(UIManager.getColor("Label.background"));
+    taInfo.setSelectionColor(UIManager.getColor("Label.background"));
+    taInfo.setSelectedTextColor(UIManager.getColor("Label.textColor"));
     taInfo.setWrapStyleWord(true);
     taInfo.setLineWrap(true);
+    int w = (lFactorX.getPreferredSize().width + spinnerFactorX.getPreferredSize().width + 32) * 2;
+    taInfo.setPreferredSize(new Dimension(Math.max(w, taInfo.getPreferredSize().width),
+                                          taInfo.getPreferredSize().height));
     cbAdjustCenter = new JCheckBox("Adjust center position", true);
     cbAdjustCenter.addActionListener(this);
 
-    JPanel p = new JPanel(new GridBagLayout());
+    JPanel p1 = new JPanel(new GridBagLayout());
     ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                       GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
-    p.add(l1, c);
+    p1.add(l1, c);
     ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                       GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
-    p.add(cbType, c);
-    ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 12, 0, 0), 0, 0);
-    p.add(l2, c);
-    ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
-    p.add(spinnerFactor, c);
-    ViewerUtil.setGBC(c, 0, 1, 4, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+    p1.add(cbType, c);
+    ViewerUtil.setGBC(c, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                       GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    p.add(taInfo, c);
-    ViewerUtil.setGBC(c, 0, 2, 4, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                      GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    p.add(cbAdjustCenter, c);
+    p1.add(taInfo, c);
+
+    JPanel p2 = new JPanel(new GridBagLayout());
+    ViewerUtil.setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    p2.add(rbScaleBoth, c);
+    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(4, 24, 0, 0), 0, 0);
+    p2.add(lFactor, c);
+    ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    p2.add(spinnerFactor, c);
+
+    JPanel p3 = new JPanel(new GridBagLayout());
+    ViewerUtil.setGBC(c, 0, 0, 4, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    p3.add(rbScaleIndividually, c);
+    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(4, 24, 0, 0), 0, 0);
+    p3.add(lFactorX, c);
+    ViewerUtil.setGBC(c, 1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    p3.add(spinnerFactorX, c);
+    ViewerUtil.setGBC(c, 2, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(4, 8, 0, 0), 0, 0);
+    p3.add(lFactorY, c);
+    ViewerUtil.setGBC(c, 3, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    p3.add(spinnerFactorY, c);
+
+    JPanel p4 = new JPanel(new GridBagLayout());
+    ViewerUtil.setGBC(c, 0, 1, 4, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    p4.add(cbAdjustCenter, c);
 
     JPanel panel = new JPanel(new GridBagLayout());
-    ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+    ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                       GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
-    panel.add(p, c);
+    panel.add(p1, c);
+    ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    panel.add(p2, c);
+    ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    panel.add(p3, c);
+    ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                      GridBagConstraints.NONE, new Insets(12, 0, 0, 0), 0, 0);
+    panel.add(p4, c);
 
     updateStatus();
 
@@ -209,7 +307,9 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == cbType) {
+    if (event.getSource() == cbType ||
+        event.getSource() == rbScaleBoth ||
+        event.getSource() == rbScaleIndividually) {
       updateStatus();
       fireChangeListener();
     } else if (event.getSource() == cbAdjustCenter) {
@@ -224,7 +324,9 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
   @Override
   public void stateChanged(ChangeEvent event)
   {
-    if (event.getSource() == spinnerFactor) {
+    if (event.getSource() == spinnerFactor ||
+        event.getSource() == spinnerFactorX ||
+        event.getSource() == spinnerFactorY) {
       fireChangeListener();
     }
   }
@@ -235,51 +337,95 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
   // Updates controls depending on current scaling type
   private void updateStatus()
   {
-    final String fmtSupport1 = "Supported target: %1$s";
-    final String fmtSupport2 = "Supported targets: %1$s, %2$s";
+    final String fmtSupport1 = "Supported target: %s";
+    final String fmtSupport2 = "Supported targets: %s, %s";
 
     int type = cbType.getSelectedIndex();
-    SpinnerNumberModel snm = (SpinnerNumberModel)spinnerFactor.getModel();
-    double factor;
-    if (snm.getValue() instanceof Double) {
-      factor = ((Double)snm.getValue()).doubleValue();
-    } else {
-      factor = ((Integer)snm.getValue()).doubleValue();
-    }
+    double factor = getFactor(spinnerFactor);
+    double factorX = getFactor(spinnerFactorX);
+    double factorY = getFactor(spinnerFactorY);
 
+    boolean uniformEnabled = rbScaleBoth.isSelected() && isTypeSupported(type);
+    boolean individualEnabled = rbScaleIndividually.isSelected() && isTypeSupported(type);
     switch (type) {
       case TYPE_NEAREST_NEIGHBOR:
         taInfo.setText(String.format(fmtSupport2, ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV1],
                                                   ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV2]));
-        setFactor(factor, 0.01, 10.0, 0.05);
-        spinnerFactor.setEnabled(true);
+        setFactor(spinnerFactor, factor, 0.01, 10.0, 0.05);
+        setFactor(spinnerFactorX, factorX, 0.01, 10.0, 0.05);
+        setFactor(spinnerFactorY, factorY, 0.01, 10.0, 0.05);
+        rbScaleIndividually.setEnabled(true);
+        lFactor.setEnabled(uniformEnabled);
+        lFactorX.setEnabled(individualEnabled);
+        lFactorY.setEnabled(individualEnabled);
+        spinnerFactor.setEnabled(uniformEnabled);
+        spinnerFactorX.setEnabled(individualEnabled);
+        spinnerFactorY.setEnabled(individualEnabled);
         break;
       case TYPE_BILINEAR:
         taInfo.setText(String.format(fmtSupport1, ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV2]));
-        setFactor(factor, 0.01, 10.0, 0.05);
-        spinnerFactor.setEnabled(!getConverter().isBamV1Selected());
+        setFactor(spinnerFactor, factor, 0.01, 10.0, 0.05);
+        setFactor(spinnerFactorX, factorX, 0.01, 10.0, 0.05);
+        setFactor(spinnerFactorY, factorY, 0.01, 10.0, 0.05);
+        rbScaleIndividually.setEnabled(true);
+        lFactor.setEnabled(uniformEnabled);
+        lFactorX.setEnabled(individualEnabled);
+        lFactorY.setEnabled(individualEnabled);
+        spinnerFactor.setEnabled(uniformEnabled);
+        spinnerFactorX.setEnabled(individualEnabled);
+        spinnerFactorY.setEnabled(individualEnabled);
         break;
       case TYPE_BICUBIC:
         taInfo.setText(String.format(fmtSupport1, ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV2]));
-        setFactor(factor, 0.01, 10.0, 0.05);
-        spinnerFactor.setEnabled(!getConverter().isBamV1Selected());
+        setFactor(spinnerFactor, factor, 0.01, 10.0, 0.05);
+        setFactor(spinnerFactorX, factorX, 0.01, 10.0, 0.05);
+        setFactor(spinnerFactorY, factorY, 0.01, 10.0, 0.05);
+        rbScaleIndividually.setEnabled(true);
+        lFactor.setEnabled(uniformEnabled);
+        lFactorX.setEnabled(individualEnabled);
+        lFactorY.setEnabled(individualEnabled);
+        spinnerFactor.setEnabled(uniformEnabled);
+        spinnerFactorX.setEnabled(individualEnabled);
+        spinnerFactorY.setEnabled(individualEnabled);
         break;
       case TYPE_SCALEX:
         taInfo.setText(String.format(fmtSupport2, ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV1],
                                                   ConvertToBam.BamVersionItems[ConvertToBam.VERSION_BAMV2]));
-        setFactor((int)factor, 2, 4, 1);
-        spinnerFactor.setEnabled(true);
+        setFactor(spinnerFactor, (int)factor, 2, 4, 1);
+        if (!rbScaleBoth.isSelected()) {
+          rbScaleBoth.setSelected(true);
+          actionPerformed(new ActionEvent(rbScaleBoth, ActionEvent.ACTION_PERFORMED, null));
+        }
+        spinnerFactor.setEnabled(isTypeSupported(type));
+        rbScaleIndividually.setEnabled(false);
+        lFactorX.setEnabled(false);
+        lFactorY.setEnabled(false);
+        spinnerFactorX.setEnabled(false);
+        spinnerFactorY.setEnabled(false);
         break;
       default:
-        taInfo.setText("");
-        setFactor(factor, 0.01, 10.0, 0.05);
+        taInfo.setText("No information available");
+        setFactor(spinnerFactor, factor, 0.01, 10.0, 0.05);
+        setFactor(spinnerFactorX, factorX, 0.01, 10.0, 0.05);
+        setFactor(spinnerFactorY, factorY, 0.01, 10.0, 0.05);
     }
   }
 
-  private void setFactor(Number current, Number min, Number max, Number step)
+  private boolean isTypeSupported(int type)
   {
-    if (spinnerFactor.getModel() instanceof SpinnerNumberModel) {
-      SpinnerNumberModel snm = (SpinnerNumberModel)spinnerFactor.getModel();
+    switch (type) {
+      case TYPE_BILINEAR:
+      case TYPE_BICUBIC:
+        return !getConverter().isBamV1Selected();
+      default:
+        return true;
+    }
+  }
+
+  private void setFactor(JSpinner spinner, Number current, Number min, Number max, Number step)
+  {
+    if (spinner != null && spinner.getModel() instanceof SpinnerNumberModel) {
+      SpinnerNumberModel snm = (SpinnerNumberModel)spinner.getModel();
       boolean isDouble = ((current instanceof Double) || (min instanceof Double) ||
                           (max instanceof Double) || (step instanceof Double));
       int curI = 0, minI = 0, maxI = 0, stepI = 0;
@@ -298,7 +444,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
       if (isDouble) {
         if (snm.getValue() instanceof Integer) {
           curD = Math.max(Math.min(curD, maxD), minD);
-          spinnerFactor.setModel(new SpinnerNumberModel(curD, minD, maxD, stepD));
+          spinner.setModel(new SpinnerNumberModel(curD, minD, maxD, stepD));
         } else {
           snm.setMinimum(minD);
           snm.setMaximum(maxD);
@@ -308,9 +454,9 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
       } else {
         if (snm.getValue() instanceof Double) {
           curI = Math.max(Math.min(curI, maxI), minI);
-          spinnerFactor.setModel(new SpinnerNumberModel(curI, minI, (maxI < 10) ? 10 : maxI, stepI));
+          spinner.setModel(new SpinnerNumberModel(curI, minI, (maxI < 10) ? 10 : maxI, stepI));
           if (maxI < 10) {
-            ((SpinnerNumberModel)spinnerFactor.getModel()).setMaximum(Integer.valueOf(maxI));
+            ((SpinnerNumberModel)spinner.getModel()).setMaximum(Integer.valueOf(maxI));
           }
         } else {
           snm.setMinimum(minI);
@@ -322,30 +468,35 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
     }
   }
 
-  private double getFactor()
+  private double getFactor(JSpinner spinner)
   {
-    SpinnerNumberModel snm = (SpinnerNumberModel)spinnerFactor.getModel();
-    return ((Number)snm.getValue()).doubleValue();
+    if (spinner != null) {
+      SpinnerNumberModel snm = (SpinnerNumberModel)spinner.getModel();
+      return ((Number)snm.getValue()).doubleValue();
+    } else {
+      return 1.0;
+    }
   }
 
   private PseudoBamFrameEntry applyEffect(PseudoBamFrameEntry entry)
   {
     if (entry != null && entry.getFrame() != null) {
       BufferedImage dstImage;
-      double factor = getFactor();
+      double factorX = getFactor(rbScaleBoth.isSelected() ? spinnerFactor : spinnerFactorX);
+      double factorY = getFactor(rbScaleBoth.isSelected() ? spinnerFactor : spinnerFactorY);
       int type = cbType.getSelectedIndex();
       switch (type) {
         case TYPE_NEAREST_NEIGHBOR:
-          dstImage = scaleNative(entry.getFrame(), factor, AffineTransformOp.TYPE_NEAREST_NEIGHBOR, true);
+          dstImage = scaleNative(entry.getFrame(), factorX, factorY, AffineTransformOp.TYPE_NEAREST_NEIGHBOR, true);
           break;
         case TYPE_BILINEAR:
-          dstImage = scaleNative(entry.getFrame(), factor, AffineTransformOp.TYPE_BILINEAR, false);
+          dstImage = scaleNative(entry.getFrame(), factorX, factorY, AffineTransformOp.TYPE_BILINEAR, false);
           break;
         case TYPE_BICUBIC:
-          dstImage = scaleNative(entry.getFrame(), factor, AffineTransformOp.TYPE_BICUBIC, false);
+          dstImage = scaleNative(entry.getFrame(), factorX, factorY, AffineTransformOp.TYPE_BICUBIC, false);
           break;
         case TYPE_SCALEX:
-          dstImage = scaleScaleX(entry.getFrame(), (int)factor);
+          dstImage = scaleScaleX(entry.getFrame(), (int)factorX);
           break;
         default:
           dstImage = entry.getFrame();
@@ -368,16 +519,16 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
 
 
   // Scales the specified image using Java's native scalers
-  private BufferedImage scaleNative(BufferedImage srcImage, double factor, int scaleType, boolean paletteSupported)
+  private BufferedImage scaleNative(BufferedImage srcImage, double factorX, double factorY, int scaleType, boolean paletteSupported)
   {
     BufferedImage dstImage = srcImage;
     boolean isValid = paletteSupported || srcImage.getType() != BufferedImage.TYPE_BYTE_INDEXED;
-    if (isValid && srcImage != null && factor > 0.0 && factor != 1.0) {
+    if (isValid && srcImage != null && factorX > 0.0 && factorY > 0.0 && (factorX != 1.0 || factorY != 1.0)) {
       int width = srcImage.getWidth();
       int height = srcImage.getHeight();
-      int newWidth = (int)((double)width * factor);
+      int newWidth = (int)((double)width * factorX);
       if (newWidth < 1) newWidth = 1;
-      int newHeight = (int)((double)height * factor);
+      int newHeight = (int)((double)height * factorY);
       if (newHeight < 1) newHeight = 1;
 
       // preparing target image
@@ -400,7 +551,7 @@ public class BamFilterTransformResize extends BamFilterBaseTransform
       Graphics2D g = dstImage.createGraphics();
       try {
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-        BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(factor, factor),
+        BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(factorX, factorY),
                                                    scaleType);
         g.drawImage(srcImage, op, 0, 0);
       } finally {
