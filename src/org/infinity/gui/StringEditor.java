@@ -196,7 +196,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(listeners);
-    table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     table.getTableHeader().setReorderingAllowed(false);
     table.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
     JScrollPane spTable = new JScrollPane(table);

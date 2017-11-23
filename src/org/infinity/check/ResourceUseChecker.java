@@ -293,7 +293,8 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
         pane.add(panel, BorderLayout.SOUTH);
         bopen.setEnabled(false);
         bopennew.setEnabled(false);
-        table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+        table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
         table.addMouseListener(new MouseAdapter()
         {
           @Override

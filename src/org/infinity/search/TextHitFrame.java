@@ -88,7 +88,7 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
     pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     bopen.setEnabled(false);
     bopennew.setEnabled(false);
-    table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.getSelectionModel().addListSelectionListener(this);
     final ChildFrame frame = this;

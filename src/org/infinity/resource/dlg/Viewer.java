@@ -48,6 +48,7 @@ import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.DialogSearcher;
+import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
 final class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener
@@ -556,7 +557,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         textArea.setWrapStyleWord(true);
       }
       textArea.setMargin(new Insets(3, 3, 3, 3));
-      textArea.setFont(BrowserMenuBar.getInstance().getScriptFont());
+      textArea.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
       if (!useHighlighting) {
         scroll.setLineNumbersEnabled(false);

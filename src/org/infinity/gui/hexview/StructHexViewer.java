@@ -714,7 +714,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       // creating table
       JTable table = new JTable(model);
       table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-      table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.setBorder(BorderFactory.createLineBorder(Color.GRAY));
       table.getTableHeader().setBorder(BorderFactory.createLineBorder(Color.GRAY));
@@ -724,7 +724,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       table.setEnabled(false);
 
       final String maxString = String.format("%1$080d", 0);
-      Font f = BrowserMenuBar.getInstance().getScriptFont();
+      Font f = Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont());
       FontMetrics fm = table.getFontMetrics(f);
       Rectangle2D rect = f.getStringBounds(maxString, fm.getFontRenderContext());
       Dimension d = table.getPreferredSize();

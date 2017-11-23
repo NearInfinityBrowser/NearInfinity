@@ -92,7 +92,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
   {
     tValues = new JTable(mValues);
     tValues.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    tValues.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    tValues.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     tValues.setRowHeight(tValues.getFontMetrics(tValues.getFont()).getHeight() + 1);
     tValues.setBorder(BorderFactory.createLineBorder(Color.GRAY));
     tValues.getTableHeader().setBorder(BorderFactory.createLineBorder(Color.GRAY));

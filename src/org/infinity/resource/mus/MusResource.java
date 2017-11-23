@@ -47,6 +47,7 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SongReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
+import org.infinity.util.Misc;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -285,7 +286,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     editor = new InfinityTextArea(text, true);
     editor.discardAllEdits();
     editor.addCaretListener(caretListener);
-    editor.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    editor.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     editor.setMargin(new Insets(3, 3, 3, 3));
     editor.setCaretPosition(0);
     editor.setLineWrap(false);

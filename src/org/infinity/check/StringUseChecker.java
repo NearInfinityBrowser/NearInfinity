@@ -203,7 +203,8 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
         bottomPanel.add(scrollText, BorderLayout.CENTER);
         bottomPanel.add(searchPanel, BorderLayout.EAST);
         pane.add(bottomPanel, BorderLayout.SOUTH);
-        table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+        table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
         pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
         table.getSelectionModel().addListSelectionListener(this);
         resultFrame.pack();

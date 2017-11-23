@@ -44,7 +44,7 @@ final class DebugConsole extends ChildFrame implements ActionListener
     taconsole.setFont(Misc.getScaledFont(taconsole.getFont()));
     taconsole.setHighlightCurrentLine(false);
     taconsole.setEditable(false);
-    taconsole.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    taconsole.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
 
     JPanel lowerpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
     lowerpanel.add(bclearconsole);

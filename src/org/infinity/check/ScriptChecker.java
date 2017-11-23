@@ -255,9 +255,11 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
         pane.add(panel, BorderLayout.SOUTH);
         bopen.setEnabled(false);
         bopennew.setEnabled(false);
-        errorTable.setFont(BrowserMenuBar.getInstance().getScriptFont());
+        errorTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+        errorTable.setRowHeight(errorTable.getFontMetrics(errorTable.getFont()).getHeight() + 1);
         errorTable.getSelectionModel().addListSelectionListener(this);
-        warningTable.setFont(BrowserMenuBar.getInstance().getScriptFont());
+        warningTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+        warningTable.setRowHeight(warningTable.getFontMetrics(warningTable.getFont()).getHeight() + 1);
         warningTable.getSelectionModel().addListSelectionListener(this);
         MouseListener listener = new MouseAdapter()
         {

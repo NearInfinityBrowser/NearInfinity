@@ -360,7 +360,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     sourceText = new ScriptTextArea();
     sourceText.setAutoIndentEnabled(BrowserMenuBar.getInstance().getBcsAutoIndentEnabled());
     sourceText.addCaretListener(container.getStatusBar());
-    sourceText.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    sourceText.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     sourceText.setMargin(new Insets(3, 3, 3, 3));
     sourceText.setLineWrap(false);
     sourceText.getDocument().addDocumentListener(this);
@@ -387,7 +387,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     decompiledPanel.add(bpDecompile, BorderLayout.SOUTH);
 
     codeText = new InfinityTextArea(text, true);
-    codeText.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    codeText.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     codeText.setMargin(new Insets(3, 3, 3, 3));
     codeText.setCaretPosition(0);
     codeText.setLineWrap(false);

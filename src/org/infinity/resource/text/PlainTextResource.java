@@ -248,7 +248,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     InfinityScrollPane pane = new InfinityScrollPane(editor, true);
     setSyntaxHighlightingEnabled(editor, pane);
     editor.addCaretListener(container.getStatusBar());
-    editor.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    editor.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     editor.setMargin(new Insets(3, 3, 3, 3));
     editor.setCaretPosition(0);
     editor.setLineWrap(false);
