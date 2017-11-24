@@ -1980,6 +1980,7 @@ public final class BrowserMenuBar extends JMenuBar
                             getPrefs().getInt(OPTION_FONT_SIZE, 12));
           }
           selectFont[i] = new JRadioButtonMenuItem("Select font...", i == selectedFont);
+          selectFont[i].setActionCommand("TextFont");
           selectFont[i].addActionListener(this);
           applyCustomFont(font);
         }
@@ -2635,7 +2636,7 @@ public final class BrowserMenuBar extends JMenuBar
 //          FileWatcher.getInstance().stop();
 //        }
 //      } else if (event.getSource() == selectFont[selectFont.length - 1]) {
-      if (event.getSource() == selectFont[selectFont.length - 1]) {
+      if (event.getActionCommand().equals("TextFont")) {
         int index = FONTS.length - 1;
         FontChooser fc = new FontChooser();
         if (FONTS[index] != null) {
@@ -2689,7 +2690,6 @@ public final class BrowserMenuBar extends JMenuBar
         }
       }
       else if (event.getActionCommand().equals("Charset")) {
-//      else if (event.getSource() instanceof DataRadioButtonMenuItem) {
         DataRadioButtonMenuItem dmi = (DataRadioButtonMenuItem)event.getSource();
         String csName = (String)dmi.getData();
         if (csName != null) {
