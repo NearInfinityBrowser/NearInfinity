@@ -78,7 +78,7 @@ public class SettingsDialog extends JDialog
   private JList<LayerEntry> listLayers;
   private JButton bUp, bDown, bDefaultOrder;
   private JComboBox<String> cbFrames, cbQualityMap, cbQualityAnim;
-  private JCheckBox cbOverrideAnimVisibility, cbStoreSettings;
+  private JCheckBox cbOverrideAnimVisibility, cbUseColorShades, cbStoreSettings;
   private JButton bDefaultSettings, bCancel, bOK;
   private JSpinner sOverlaysFps, sAnimationsFps;
   private JSlider sMiniMapAlpha;
@@ -160,6 +160,7 @@ public class SettingsDialog extends JDialog
 
     Settings.MiniMapAlpha = (double)sMiniMapAlpha.getValue() / 100.0;
 
+    Settings.UseColorShades = cbUseColorShades.isSelected();
     Settings.StoreVisualSettings = cbStoreSettings.isSelected();
 
     settingsChanged = true;
@@ -210,6 +211,7 @@ public class SettingsDialog extends JDialog
 
     sMiniMapAlpha.setValue((int)(Settings.getDefaultMiniMapAlpha()*100.0));
 
+    cbUseColorShades.setSelected(Settings.getDefaultUseColorShades());
     cbStoreSettings.setSelected(Settings.getDefaultStoreVisualSettings());
   }
 
@@ -466,8 +468,13 @@ public class SettingsDialog extends JDialog
     // Misc. settings
     JPanel pMisc = new JPanel(new GridBagLayout());
     pMisc.setBorder(BorderFactory.createTitledBorder("Misc. settings: "));
+    cbUseColorShades = new JCheckBox("Use individual color shades for region types");
+    cbUseColorShades.setSelected(Settings.UseColorShades);
     cbStoreSettings = new JCheckBox("Remember all visual settings");
     cbStoreSettings.setSelected(Settings.StoreVisualSettings);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 4), 0, 0);
+    pMisc.add(cbUseColorShades, c);
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(4, 4, 4, 4), 0, 0);
     pMisc.add(cbStoreSettings, c);
@@ -491,41 +498,50 @@ public class SettingsDialog extends JDialog
                           GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pButtons.add(bCancel, c);
 
-    // putting options together
-    JPanel pOptions = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-    pOptions.add(pShowLabels, c);
+    JPanel pCol1 = new JPanel(new GridBagLayout());
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    pCol1.add(pLayers, c);
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pOptions.add(pShowFrame, c);
+    pCol1.add(pShowLabels, c);
+
+
+    // putting options together
+    JPanel pCol2 = new JPanel(new GridBagLayout());
+//    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+//                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+//    pOptions.add(pShowLabels, c);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    pCol2.add(pShowFrame, c);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    pCol2.add(pQuality, c);
     c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pOptions.add(pQuality, c);
+    pCol2.add(pFrameRates, c);
     c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pOptions.add(pFrameRates, c);
+    pCol2.add(pMiniMap, c);
     c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pOptions.add(pMiniMap, c);
-    c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pOptions.add(pMisc, c);
-    c = ViewerUtil.setGBC(c, 0, 6, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+    pCol2.add(pMisc, c);
+    c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
-    pOptions.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 0, 7, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+    pCol2.add(new JPanel(), c);
+    c = ViewerUtil.setGBC(c, 0, 6, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-    pOptions.add(pButtons, c);
+    pCol2.add(pButtons, c);
 
     // putting all together
     JPanel pMain = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.BOTH, new Insets(8, 8, 8, 0), 0, 0);
-    pMain.add(pLayers, c);
+    pMain.add(pCol1, c);
     c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
-    pMain.add(pOptions, c);
+    pMain.add(pCol2, c);
 
     getContentPane().add(pMain, BorderLayout.CENTER);
     pack();
