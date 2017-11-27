@@ -12,6 +12,8 @@ import java.awt.Rectangle;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.HexNumber;
+import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.IsTextual;
 import org.infinity.datatype.TextString;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
@@ -116,7 +118,9 @@ public class LayerObjectRegion extends LayerObject
       try {
         type = ((Bitmap)region.getAttribute(ITEPoint.ARE_TRIGGER_TYPE)).getValue();
         if (type < 0) type = 0; else if (type >= TYPE.length) type = TYPE.length - 1;
-        msg = String.format("%1$s (%2$s)", ((TextString)region.getAttribute(ITEPoint.ARE_TRIGGER_NAME)).toString(), TYPE[type]);
+        msg = String.format("%s (%s) %s",
+                            ((TextString)region.getAttribute(ITEPoint.ARE_TRIGGER_NAME)).toString(),
+                            TYPE[type], getAttributes());
         int vNum = ((DecNumber)region.getAttribute(ITEPoint.ARE_TRIGGER_NUM_VERTICES)).getValue();
         int vOfs = ((HexNumber)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
         shapeCoords = loadVertices(region, vOfs, 0, vNum, Vertex.class);
@@ -135,17 +139,52 @@ public class LayerObjectRegion extends LayerObject
         }
       }
 
+      int colorType = Settings.UseColorShades ? type : 0;
       location.x = bounds.x; location.y = bounds.y;
       item = new ShapedLayerItem(location, region, msg, msg, poly);
       item.setName(getCategory());
       item.setToolTipText(msg);
-      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[type][0]);
-      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[type][1]);
-      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[type][2]);
-      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[type][3]);
+      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[colorType][0]);
+      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[colorType][1]);
+      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[colorType][2]);
+      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[colorType][3]);
       item.setStroked(true);
       item.setFilled(true);
       item.setVisible(isVisible());
     }
+  }
+
+  private String getAttributes()
+  {
+    StringBuilder sb = new StringBuilder();
+    if (region != null) {
+      sb.append('[');
+
+      boolean isTrapped = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_TRAPPED)).getValue() != 0;
+      if (isTrapped) {
+        int v = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_TRAP_REMOVAL_DIFFICULTY)).getValue();
+        if (v > 0) sb.append("Trapped (").append(v).append(')');
+      }
+
+      String script = ((IsTextual)region.getAttribute(ITEPoint.ARE_TRIGGER_SCRIPT)).getText();
+      if (!script.isEmpty() && !script.equalsIgnoreCase("NONE")) {
+        if (sb.length() > 1) sb.append(", ");
+        sb.append("Script: ").append(script).append(".BCS");
+      }
+
+      String area = ((IsTextual)region.getAttribute(ITEPoint.ARE_TRIGGER_DESTINATION_AREA)).getText();
+      if (!area.isEmpty() && !area.equalsIgnoreCase("NONE")) {
+        if (sb.length() > 1) sb.append(", ");
+        sb.append("Destination: ").append(area).append(".ARE");
+        String entrance = ((IsTextual)region.getAttribute(ITEPoint.ARE_TRIGGER_ENTRANCE_NAME)).getText();
+        if (!entrance.isEmpty() && !entrance.equalsIgnoreCase("NONE")) {
+          sb.append('>').append(entrance);
+        }
+      }
+
+      if (sb.length() == 1) sb.append("No flags");
+      sb.append(']');
+    }
+    return sb.toString();
   }
 }

@@ -11,7 +11,10 @@ import java.awt.Rectangle;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.Flag;
 import org.infinity.datatype.HexNumber;
+import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.IsTextual;
 import org.infinity.datatype.TextString;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
@@ -123,7 +126,9 @@ public class LayerObjectContainer extends LayerObject
       try {
         int type = ((Bitmap)container.getAttribute(Container.ARE_CONTAINER_TYPE)).getValue();
         if (type < 0) type = 0; else if (type >= TYPE.length) type = TYPE.length - 1;
-        msg = String.format("%1$s (%2$s)", ((TextString)container.getAttribute(Container.ARE_CONTAINER_NAME)).toString(), TYPE[type]);
+        msg = String.format("%s (%s) %s",
+                            ((TextString)container.getAttribute(Container.ARE_CONTAINER_NAME)).toString(),
+                            TYPE[type], getAttributes());
         int vNum = ((DecNumber)container.getAttribute(Container.ARE_CONTAINER_NUM_VERTICES)).getValue();
         int vOfs = ((HexNumber)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
         shapeCoords = loadVertices(container, vOfs, 0, vNum, Vertex.class);
@@ -154,5 +159,44 @@ public class LayerObjectContainer extends LayerObject
       item.setFilled(true);
       item.setVisible(isVisible());
     }
+  }
+
+  private String getAttributes()
+  {
+    StringBuilder sb = new StringBuilder();
+    if (container != null) {
+      sb.append('[');
+
+      boolean isLocked = ((Flag)container.getAttribute(Container.ARE_CONTAINER_FLAGS)).isFlagSet(0);
+      if (isLocked) {
+        int v = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_LOCK_DIFFICULTY)).getValue();
+        if (v > 0) {
+          sb.append("Locked (").append(v).append(')');
+          String key = ((IsTextual)container.getAttribute(Container.ARE_CONTAINER_KEY)).getText();
+          if (!key.isEmpty() && !key.equalsIgnoreCase("NONE")) {
+            sb.append(", Key: ").append(key).append(".ITM");
+          }
+        }
+      }
+
+      boolean isTrapped = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_TRAPPED)).getValue() != 0;
+      if (isTrapped) {
+        int v = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_TRAP_REMOVAL_DIFFICULTY)).getValue();
+        if (v > 0) {
+          if (sb.length() > 1) sb.append(", ");
+          sb.append("Trapped (").append(v).append(')');
+        }
+      }
+
+      String script = ((IsTextual)container.getAttribute(Container.ARE_CONTAINER_SCRIPT_TRAP)).getText();
+      if (!script.isEmpty() && !script.equalsIgnoreCase("NONE")) {
+        if (sb.length() > 1) sb.append(", ");
+        sb.append("Script: ").append(script).append(".BCS");
+      }
+
+      if (sb.length() == 1) sb.append("No Flags");
+      sb.append(']');
+    }
+    return sb.toString();
   }
 }
