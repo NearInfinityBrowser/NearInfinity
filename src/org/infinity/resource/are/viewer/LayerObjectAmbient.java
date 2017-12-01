@@ -212,7 +212,7 @@ public class LayerObjectAmbient extends LayerObject
       }
 
       // Using cached icons
-      String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(icon[0]),
+      String keyIcon = String.format("%s%s", SharedResourceCache.createKey(icon[0]),
                                                  SharedResourceCache.createKey(icon[1]));
       if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
         icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();

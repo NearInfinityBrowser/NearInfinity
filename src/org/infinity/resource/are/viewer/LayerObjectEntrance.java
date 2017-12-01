@@ -108,7 +108,7 @@ public class LayerObjectEntrance extends LayerObject
         int o = ((Bitmap)entrance.getAttribute(Entrance.ARE_ENTRANCE_ORIENTATION)).getValue();
         if (o < 0) o = 0; else if (o >= Actor.s_orientation.length) o = Actor.s_orientation.length - 1;
         info = ((TextString)entrance.getAttribute(Entrance.ARE_ENTRANCE_NAME)).toString();
-        msg = String.format("%1$s (%2$s)", ((TextString)entrance.getAttribute(Entrance.ARE_ENTRANCE_NAME)).toString(),
+        msg = String.format("%s (%s)", ((TextString)entrance.getAttribute(Entrance.ARE_ENTRANCE_NAME)).toString(),
                             Actor.s_orientation[o]);
       } catch (Exception e) {
         e.printStackTrace();
@@ -116,7 +116,7 @@ public class LayerObjectEntrance extends LayerObject
 
       // Using cached icons
       Image[] icon;
-      String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(ICON[0]),
+      String keyIcon = String.format("%s%s", SharedResourceCache.createKey(ICON[0]),
                                                  SharedResourceCache.createKey(ICON[1]));
       if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
         icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();

@@ -245,7 +245,7 @@ public class BamV2Decoder extends BamDecoder
   {
     try {
       pvrIndices.add(Integer.valueOf(page));
-      String name = String.format("MOS%1$04d.PVRZ", page);
+      String name = String.format("MOS%04d.PVRZ", page);
       ResourceEntry entry = null;
       if (bamPath != null) {
         // preferring PVRZ files from the BAM's base path

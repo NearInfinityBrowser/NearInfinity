@@ -128,7 +128,7 @@ public class ConvertToMos extends ChildFrame
 
     ProgressMonitor progress = null;
     try {
-      String note = "Converting tile %1$d / %2$d";
+      String note = "Converting tile %d / %d";
       int progressIndex = 0, progressMax = tileCount;
       if (showProgress) {
         progress = new ProgressMonitor(parent, "Converting MOS...",
@@ -206,7 +206,7 @@ public class ConvertToMos extends ChildFrame
           // error handling
           dst = null;
           result.add(null);
-          result.add(String.format("Error processing tile #%1$d. Conversion cancelled.", tileIdx));
+          result.add(String.format("Error processing tile #%d. Conversion cancelled.", tileIdx));
           return false;
         }
 
@@ -348,7 +348,7 @@ public class ConvertToMos extends ChildFrame
       if (pvrzIndex + pageList.size() > 100000) {
         result.add(null);
         result.add(String.format("One or more PVRZ indices exceed the max. possible value of 99999.\n" +
-                                 "Please choose a start index smaller than or equal to %1$d.",
+                                 "Please choose a start index smaller than or equal to %d.",
                                  100000 - pageList.size()));
         return false;
       }
@@ -436,7 +436,7 @@ public class ConvertToMos extends ChildFrame
       pageMax = Math.max(pageMax, e.page);
     }
 
-    String note = "Generating PVRZ file %1$s / %2$s";
+    String note = "Generating PVRZ file %s / %s";
     int curProgress = 1;
     if (progress != null) {
       progress.setMinimum(0);
@@ -932,7 +932,7 @@ public class ConvertToMos extends ChildFrame
   private String pvrzInfoString(Object o)
   {
     int index = getPvrzIndex(o);
-    return String.format("Resulting in MOS%1$04d.PVRZ, MOS%2$04d.PVRZ, ...", index, index+1);
+    return String.format("Resulting in MOS%04d.PVRZ, MOS%04d.PVRZ, ...", index, index+1);
   }
 
   private String getImageFileName(Path path)
@@ -979,7 +979,7 @@ public class ConvertToMos extends ChildFrame
     Path inFile = FileManager.resolve(tfInputV1.getText());
     if (!Files.isRegularFile(inFile)) {
       result.add(null);
-      result.add(String.format("Input file \"%1$s\" does not exist.", tfInputV1.getText()));
+      result.add(String.format("Input file \"%s\" does not exist.", tfInputV1.getText()));
       return result;
     }
 

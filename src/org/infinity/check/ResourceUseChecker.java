@@ -512,7 +512,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
     @Override
     public String toString()
     {
-      return String.format("File: %1$s  Name: %2$s", file.toString(), file.getSearchString());
+      return String.format("File: %s  Name: %s", file.toString(), file.getSearchString());
     }
   }
 

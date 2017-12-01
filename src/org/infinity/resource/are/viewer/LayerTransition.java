@@ -15,7 +15,7 @@ import org.infinity.resource.are.AreResource;
  */
 public class LayerTransition extends BasicLayer<LayerObjectTransition>
 {
-  private static final String AvailableFmt = "Map transitions: %1$d";
+  private static final String AvailableFmt = "Map transitions: %d";
 
   public LayerTransition(AreResource are, AreaViewer viewer)
   {

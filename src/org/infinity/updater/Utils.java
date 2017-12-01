@@ -105,20 +105,20 @@ public class Utils
     }
 
     StringBuilder sb = new StringBuilder();
-    sb.append(String.format("%1$04d", cal.get(Calendar.YEAR)));
-    sb.append('-').append(String.format("%1$02d", cal.get(Calendar.MONTH) + 1));
-    sb.append('-').append(String.format("%1$02d", cal.get(Calendar.DAY_OF_MONTH)));
-    sb.append('T').append(String.format("%1$02d", cal.get(Calendar.HOUR_OF_DAY)));
-    sb.append(':').append(String.format("%1$02d", cal.get(Calendar.MINUTE)));
-    sb.append(':').append(String.format("%1$02d", cal.get(Calendar.SECOND)));
+    sb.append(String.format("%04d", cal.get(Calendar.YEAR)));
+    sb.append('-').append(String.format("%02d", cal.get(Calendar.MONTH) + 1));
+    sb.append('-').append(String.format("%02d", cal.get(Calendar.DAY_OF_MONTH)));
+    sb.append('T').append(String.format("%02d", cal.get(Calendar.HOUR_OF_DAY)));
+    sb.append(':').append(String.format("%02d", cal.get(Calendar.MINUTE)));
+    sb.append(':').append(String.format("%02d", cal.get(Calendar.SECOND)));
     int ofs = cal.get(Calendar.ZONE_OFFSET);
     if (ofs != 0) {
       char sign = (ofs < 0) ? '-' : '+';
       ofs = Math.abs(ofs);
       int ofsHour = ofs / 3600000;
       int ofsMin = (ofs / 60000) % 60;
-      sb.append(sign).append(String.format("%1$02d", ofsHour));
-      sb.append(':').append(String.format("%1$02d", ofsMin));
+      sb.append(sign).append(String.format("%02d", ofsHour));
+      sb.append(':').append(String.format("%02d", ofsMin));
     }
 
     return sb.toString();

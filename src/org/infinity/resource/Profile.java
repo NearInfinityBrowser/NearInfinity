@@ -1957,7 +1957,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     @Override
     public String toString()
     {
-      return String.format("%1$d:[%2$s] = %3$s", key, type, data);
+      return String.format("%d:[%s] = %s", key, type, data);
     }
   }
 }

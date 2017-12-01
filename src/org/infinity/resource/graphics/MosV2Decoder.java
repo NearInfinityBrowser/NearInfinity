@@ -284,7 +284,7 @@ public class MosV2Decoder extends MosDecoder
   private PvrDecoder getPVR(int page)
   {
     try {
-      String name = String.format("MOS%1$04d.PVRZ", page);
+      String name = String.format("MOS%04d.PVRZ", page);
       ResourceEntry entry = ResourceFactory.getResourceEntry(name);
       if (entry != null) {
         return PvrDecoder.loadPvr(entry);

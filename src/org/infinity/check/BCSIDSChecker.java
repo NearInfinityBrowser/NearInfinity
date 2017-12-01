@@ -330,7 +330,7 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
     @Override
     public String toString()
     {
-      return String.format("File: %1$s  Error: %2$s  Line: %3$d",
+      return String.format("File: %s  Error: %s  Line: %d",
                            resourceEntry.toString(), error, lineNr);
     }
   }

@@ -116,7 +116,7 @@ public class LayerObjectWallPoly extends LayerObject
         count = (ofs - baseOfs) / wall.getSize();
         Flag flags = (Flag)wall.getAttribute(WallPolygon.WED_POLY_FLAGS);
         info = "Wall polygon #" + count;
-        msg = String.format("Wall polygon #%1$d %2$s", count,
+        msg = String.format("Wall polygon #%d %s", count,
                             createFlags(flags, org.infinity.resource.wed.Polygon.s_flags));
         int vNum = ((DecNumber)wall.getAttribute(WallPolygon.WED_POLY_NUM_VERTICES)).getValue();
         int vOfs = ((HexNumber)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();

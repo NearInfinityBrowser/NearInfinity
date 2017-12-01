@@ -256,11 +256,11 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
         String page = mArea.group(4);
         Pattern pTis;
         if (night.isEmpty()) {
-          pTis = Pattern.compile(String.format("%1$s.%2$s\\.TIS$",
+          pTis = Pattern.compile(String.format("%s.%s\\.TIS$",
                                                prefix.toUpperCase(Locale.ENGLISH), code),
                                  Pattern.CASE_INSENSITIVE);
         } else {
-          pTis = Pattern.compile(String.format("%1$s.%2$sN\\.TIS$",
+          pTis = Pattern.compile(String.format("%s.%sN\\.TIS$",
                                                prefix.toUpperCase(Locale.ENGLISH), code),
                                  Pattern.CASE_INSENSITIVE);
         }

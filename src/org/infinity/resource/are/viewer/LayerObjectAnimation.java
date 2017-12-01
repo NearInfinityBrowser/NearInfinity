@@ -236,7 +236,7 @@ public class LayerObjectAnimation extends LayerObject
         if (isWBM) {
           // using icon as placeholder
           // generating key from icon hashcode
-          keyAnim = String.format("%1$08x", ICON[iconIdx][0].hashCode());
+          keyAnim = String.format("%08x", ICON[iconIdx][0].hashCode());
           BamDecoder bam = null;
           if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
             bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(ICON[iconIdx][0], true, false), CENTER);
@@ -252,7 +252,7 @@ public class LayerObjectAnimation extends LayerObject
         } else if (isPVRZ) {
           // using icon as placeholder
           // generating key from icon hashcode
-          keyAnim = String.format("%1$08x", ICON[iconIdx][0].hashCode());
+          keyAnim = String.format("%08x", ICON[iconIdx][0].hashCode());
           BamDecoder bam = null;
           if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
             bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(ICON[iconIdx][0], true, false), CENTER);
@@ -297,7 +297,7 @@ public class LayerObjectAnimation extends LayerObject
           }
 
           // generating unique key from BAM filename and optional palette hashcode
-          keyAnim = String.format("%1$s", animFile);
+          keyAnim = String.format("%s", animFile);
           BamDecoder bam = null;
           if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
             ResourceEntry bamEntry = ResourceFactory.getResourceEntry(animFile);
@@ -330,7 +330,7 @@ public class LayerObjectAnimation extends LayerObject
 
       // Using cached icons
       Image[] icon;
-      String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(ICON[iconIdx][0]),
+      String keyIcon = String.format("%s%s", SharedResourceCache.createKey(ICON[iconIdx][0]),
                                                  SharedResourceCache.createKey(ICON[iconIdx][1]));
       if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
         icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();

@@ -17,7 +17,7 @@ import org.infinity.resource.are.Container;
  */
 public class LayerContainer extends BasicLayer<LayerObjectContainer>
 {
-  private static final String AvailableFmt = "Containers: %1$d";
+  private static final String AvailableFmt = "Containers: %d";
 
   public LayerContainer(AreResource are, AreaViewer viewer)
   {

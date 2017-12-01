@@ -63,8 +63,8 @@ class BamPaletteDialog extends JDialog
   public static final int TYPE_EXTERNAL   = 1;
 
   private static final String[] PaletteTypeInfo = {"Generated palette", "External palette"};
-  private static final String FmtInfoRGB    = "%1$d  %2$d  %3$d";
-  private static final String FmtInfoHexRGB = "#%1$02X%2$02X%3$02X";
+  private static final String FmtInfoRGB    = "%d  %d  %d";
+  private static final String FmtInfoHexRGB = "#%02X%02X%02X";
 
   // Stores all available color values of the current BAM and their number of occurence for faster palette creation
   private final LinkedHashMap<Integer, Integer> colorMap = new LinkedHashMap<Integer, Integer>();

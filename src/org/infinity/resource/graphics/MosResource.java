@@ -447,7 +447,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
       DynamicArray.putInt(buf, 16, 64);
       DynamicArray.putInt(buf, 20, palOfs);
 
-      String note = "Converting tile %1$d / %2$d";
+      String note = "Converting tile %d / %d";
       int progressIndex = 0, progressMax = tileCount;
       ProgressMonitor progress =
           new ProgressMonitor(panel.getTopLevelAncestor(), "Converting MOS...",

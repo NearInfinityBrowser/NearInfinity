@@ -450,7 +450,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           image = null;
         }
       } else {
-        throw new Exception(String.format("Error loading resource: %1$s", entry.getResourceName()));
+        throw new Exception(String.format("Error loading resource: %s", entry.getResourceName()));
       }
     }
   }
@@ -472,7 +472,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           image = null;
         }
       } else {
-        throw new Exception(String.format("Error loading resource: %1$s", entry.getResourceName()));
+        throw new Exception(String.format("Error loading resource: %s", entry.getResourceName()));
       }
     }
   }
@@ -515,7 +515,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           image = null;
         }
       } else {
-        throw new Exception(String.format("Error loading resource: %1$s", entry.getResourceName()));
+        throw new Exception(String.format("Error loading resource: %s", entry.getResourceName()));
       }
     }
   }

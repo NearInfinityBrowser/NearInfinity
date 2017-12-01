@@ -213,7 +213,7 @@ public final class ResourceFactory implements FileWatchListener
                                       "Error reading " + entry + '\n' + e.getMessage(),
                                       "Error", JOptionPane.ERROR_MESSAGE);
       } else {
-        final String msg = String.format("Error reading %1$s @ %2$s - %3$s",
+        final String msg = String.format("Error reading %s @ %s - %s",
                                          entry, entry.getActualPath(), e);
         NearInfinity.getInstance().getStatusBar().setMessage(msg);
       }

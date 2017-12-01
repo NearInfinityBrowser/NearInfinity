@@ -109,7 +109,7 @@ public class Settings
   private static final String PREFS_SHOWREALANIMS           = "ShowRealAnimations";
   private static final String PREFS_TIMEOFDAY               = "TimeOfDay";
   private static final String PREFS_ZOOMLEVEL               = "ZoomLevel";
-  private static final String PREFS_LAYERZORDER_FMT         = "LayerZOrder%1$d";
+  private static final String PREFS_LAYERZORDER_FMT         = "LayerZOrder%d";
   private static final String PREFS_INTERPOLATION_MAP       = "InterpolationMap";
   private static final String PREFS_INTERPOLATION_ANIMS     = "InterpolationAnims";
   private static final String PREFS_FRAMERATE_OVERLAYS      = "FrameRateOverlays";

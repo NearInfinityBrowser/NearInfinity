@@ -17,7 +17,7 @@ import org.infinity.resource.are.Entrance;
  */
 public class LayerEntrance extends BasicLayer<LayerObjectEntrance>
 {
-  private static final String AvailableFmt = "Entrances: %1$d";
+  private static final String AvailableFmt = "Entrances: %d";
 
   public LayerEntrance(AreResource are, AreaViewer viewer)
   {

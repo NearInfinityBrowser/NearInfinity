@@ -424,7 +424,7 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
   @Override
   public String toString()
   {
-    return String.format("Red: %1$d, Green: %2$d, Blue: %3$d",
+    return String.format("Red: %d, Green: %d, Blue: %d",
                          getRed(value), getGreen(value), getBlue(value));
   }
 

@@ -44,7 +44,7 @@ public class Updater
   private static final int PREFS_SERVER_COUNT           = 4;
 
   // The preferences key format string for server URLs
-  private static final String PREFS_SERVER_FMT          = "UpdateServer%1$d";
+  private static final String PREFS_SERVER_FMT          = "UpdateServer%d";
 
   // preferences key for determining whether to check for stable NI releases only
   private static final String PREFS_STABLEONLY          = "UpdateStableReleasesOnly";

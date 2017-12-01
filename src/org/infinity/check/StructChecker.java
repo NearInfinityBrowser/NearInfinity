@@ -450,22 +450,22 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
         boolean skip = false;
         if (width <= 0) {
           list.add(new Corruption(entry, ovlOfs + 0,
-                                  String.format("Overlay %1$d: Tileset width is <= 0", ovlIdx)));
+                                  String.format("Overlay %d: Tileset width is <= 0", ovlIdx)));
           skip = true;
         }
         if (height <= 0) {
           list.add(new Corruption(entry, ovlOfs + 2,
-                                  String.format("Overlay %1$d: Tileset height is <= 0", ovlIdx)));
+                                  String.format("Overlay %d: Tileset height is <= 0", ovlIdx)));
           skip = true;
         }
         if ((tileStartOfs <= ovlOfs + ovlCount*ovlSize) || (tileStartOfs >= struct.getSize())) {
           list.add(new Corruption(entry, ovlOfs + 16,
-                                  String.format("Overlay %1$d: Tilemap offset is invalid", ovlIdx)));
+                                  String.format("Overlay %d: Tilemap offset is invalid", ovlIdx)));
           skip = true;
         }
         if ((indexStartOfs < ovlOfs + ovlCount*ovlSize) || (indexStartOfs >= struct.getSize())) {
           list.add(new Corruption(entry, ovlOfs + 16,
-                                  String.format("Overlay %1$d: Tilemap lookup offset is invalid", ovlIdx)));
+                                  String.format("Overlay %d: Tilemap lookup offset is invalid", ovlIdx)));
           skip = true;
         }
         if (skip) {
@@ -517,16 +517,16 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
               if (tileLookupIndex != null) {
                 if (tileLookupIndex >= tisInfo[0]) {
                   list.add(new Corruption(entry, tileOfs + 0,
-                                          String.format("Overlay %1$d/Tilemap %2$d: Primary tile index %3$d " +
-                                                        "out of range [0..%4$d]",
+                                          String.format("Overlay %d/Tilemap %d: Primary tile index %d " +
+                                                        "out of range [0..%d]",
                                                         ovlIdx, tileIdx, j, tisInfo[0] - 1)));
                 }
               }
             }
             if (tileFlagValue > 0 && tileIdxSec >= tisInfo[0]) {
               list.add(new Corruption(entry, tileOfs + 4,
-                                      String.format("Overlay %1$d/Tilemap %2$d: Secondary tile index %3$d " +
-                                                    "out of range [0..%4$d]",
+                                      String.format("Overlay %d/Tilemap %d: Secondary tile index %d " +
+                                                    "out of range [0..%d]",
                                                     ovlIdx, tileIdx, tileIdxSec, tisInfo[0] - 1)));
             }
           }

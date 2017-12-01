@@ -333,7 +333,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
     @Override
     public String toString()
     {
-      return String.format("File: %1$s  Name: %2$s  %3$s",
+      return String.format("File: %s  Name: %s  %s",
                            resourceEntry.toString(), resourceEntry.getSearchString(), itemRef.toString());
     }
   }

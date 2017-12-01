@@ -94,7 +94,7 @@ public final class DxtEncoder
     if (pixels == null || pixels.length < width*height)
       throw new Exception("Insufficient source data.");
     if (output == null || output.length < calcImageSize(width, height, dxtType))
-      throw new Exception(String.format("Insufficient space in output array. Needed: %1$d bytes, available: %2$d bytes",
+      throw new Exception(String.format("Insufficient space in output array. Needed: %d bytes, available: %d bytes",
                           calcImageSize(width, height, dxtType), (output == null) ? 0 : output.length));
 
     int outputOfs = 0;    // points to the end of encoded data
@@ -129,7 +129,7 @@ public final class DxtEncoder
     if (pixels == null || pixels.length < 16)
       throw new Exception("Insufficient source data.");
     if (block == null || block.length < calcBlockSize(dxtType))
-      throw new Exception(String.format("Insufficient output space. Needed: %1$d bytes, available: %2$d bytes",
+      throw new Exception(String.format("Insufficient output space. Needed: %d bytes, available: %d bytes",
                           calcBlockSize(dxtType), (block == null) ? 0 : block.length));
 
     byte[] colorBlock = new byte[8];
@@ -2845,7 +2845,7 @@ public final class DxtEncoder
     @Override
     public String toString()
     {
-      return String.format("(%1$f, %2$f, %3$f, %4$f, %5$f, %6$f)", m[0], m[1], m[2], m[3], m[4], m[5]);
+      return String.format("(%f, %f, %f, %f, %f, %f)", m[0], m[1], m[2], m[3], m[4], m[5]);
     }
 
     @Override

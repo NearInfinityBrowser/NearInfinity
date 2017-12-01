@@ -402,10 +402,10 @@ public class PvrDecoder
       throw new Exception("Invalid dimensions specified");
     }
     if (!isSupported()) {
-      throw new Exception(String.format("Pixel format '%1$s' not supported", getPixelFormat().toString()));
+      throw new Exception(String.format("Pixel format '%s' not supported", getPixelFormat().toString()));
     }
     if (getChannelType() != ChannelType.UBYTE_NORM) {
-      throw new Exception(String.format("Channel type '%1$s' not supported", getChannelType().toString()));
+      throw new Exception(String.format("Channel type '%s' not supported", getChannelType().toString()));
     }
     Rectangle region = new Rectangle(x, y, width, height);
     switch (getPixelFormat()) {
@@ -529,7 +529,7 @@ public class PvrDecoder
       switch (v) {
         case 0: flags = Flags.NONE; break;
         case 1: flags = Flags.PRE_MULTIPLIED; break;
-        default: throw new Exception(String.format("Unsupported PVR flags: %1$d", v));
+        default: throw new Exception(String.format("Unsupported PVR flags: %d", v));
       }
 
       long l = DynamicArray.getLong(buffer, 8);
@@ -579,7 +579,7 @@ public class PvrDecoder
       switch (v) {
         case 0: colorSpace = ColorSpace.RGB; break;
         case 1: colorSpace = ColorSpace.SRGB; break;
-        default: throw new Exception(String.format("Unsupported color space: %1$d", v));
+        default: throw new Exception(String.format("Unsupported color space: %d", v));
       }
 
       v = DynamicArray.getInt(buffer, 20);
@@ -597,7 +597,7 @@ public class PvrDecoder
         case 10: channelType = ChannelType.UINT; break;
         case 11: channelType = ChannelType.SINT; break;
         case 12: channelType = ChannelType.FLOAT; break;
-        default: throw new Exception(String.format("Unsupported channel type: %1$d", v));
+        default: throw new Exception(String.format("Unsupported channel type: %d", v));
       }
 
       switch (pixelFormat) {

@@ -560,7 +560,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     boolean isSingle = inputFiles.length == 1;
 
     // preparing progress meter
-    final String note = "Converting file %1$d / %2$d";
+    final String note = "Converting file %d / %d";
     int progressIndex = 0, progressInc = 1;
     int progressMax = isSingle ? 100 : inputFiles.length;
     progress = new ProgressMonitor(this, "Converting PVRZ...",
@@ -599,7 +599,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
             skippedFiles++;
             continue;
           } else if (ask) {
-            String msg = String.format("File \"%1$s\" aready exists. Overwrite?", outFileName);
+            String msg = String.format("File \"%s\" aready exists. Overwrite?", outFileName);
             int ret = JOptionPane.showConfirmDialog(this, msg, "Overwrite?", JOptionPane.YES_NO_OPTION);
             if  (ret == JOptionPane.NO_OPTION) {
               skippedFiles++;
@@ -779,17 +779,17 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     } else {
       l.add(null);
       if (warnings > 0 && errors == 0) {
-        sb.append(String.format("Conversion finished with %1$d warning(s).", warnings));
+        sb.append(String.format("Conversion finished with %d warning(s).", warnings));
       } else {
-        sb.append(String.format("Conversion finished with %1$d warning(s) and %2$d error(s).",
+        sb.append(String.format("Conversion finished with %d warning(s) and %d error(s).",
                                 warnings, errors));
       }
     }
     if (skippedFiles > 0) {
       if (skippedFiles == 1) {
-        sb.append(String.format("\n%1$d file has been skipped.", skippedFiles));
+        sb.append(String.format("\n%d file has been skipped.", skippedFiles));
       } else {
-        sb.append(String.format("\n%1$d files have been skipped.", skippedFiles));
+        sb.append(String.format("\n%d files have been skipped.", skippedFiles));
       }
     }
     l.add(sb.toString());

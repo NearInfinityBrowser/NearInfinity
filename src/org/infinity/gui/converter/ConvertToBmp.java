@@ -498,12 +498,12 @@ public class ConvertToBmp extends ChildFrame
       if (!skippedFiles.isEmpty()) {
         StringBuilder sb = new StringBuilder();
         if (skippedFiles.size() == 1) {
-          sb.append(String.format("%1$d file has been skipped:\n", skippedFiles.size()));
+          sb.append(String.format("%d file has been skipped:\n", skippedFiles.size()));
         } else {
-          sb.append(String.format("%1$d files have been skipped:\n", skippedFiles.size()));
+          sb.append(String.format("%d files have been skipped:\n", skippedFiles.size()));
         }
         for (int i = 0; i < Math.min(5, skippedFiles.size()); i++) {
-          sb.append(String.format("  - %1$s\n", skippedFiles.get(i)));
+          sb.append(String.format("  - %s\n", skippedFiles.get(i)));
         }
         if (skippedFiles.size() > 5) {
           sb.append("  - ...\n");
@@ -552,12 +552,12 @@ public class ConvertToBmp extends ChildFrame
       if (!skippedFiles.isEmpty()) {
         StringBuilder sb = new StringBuilder();
         if (skippedFiles.size() == 1) {
-          sb.append(String.format("%1$d file has been skipped:\n", skippedFiles.size()));
+          sb.append(String.format("%d file has been skipped:\n", skippedFiles.size()));
         } else {
-          sb.append(String.format("%1$d files have been skipped:\n", skippedFiles.size()));
+          sb.append(String.format("%d files have been skipped:\n", skippedFiles.size()));
         }
         for (int i = 0; i < Math.min(5, skippedFiles.size()); i++) {
-          sb.append(String.format("  - %1$s\n", skippedFiles.get(i)));
+          sb.append(String.format("  - %s\n", skippedFiles.get(i)));
         }
         if (skippedFiles.size() > 5) {
           sb.append("  - ...\n");
@@ -610,7 +610,7 @@ public class ConvertToBmp extends ChildFrame
   private List<String> convert()
   {
     List<String> result = new ArrayList<String>(2);
-    final String progressMsg = "Converting file %1$d / %2$d";
+    final String progressMsg = "Converting file %d / %d";
     int progressIdx = 0, progressMax = modelInputFiles.size() + 1;
     ProgressMonitor progress = new ProgressMonitor(this, "Converting files...", "Preparing", 0, progressMax);
     progress.setMillisToDecideToPopup(250);
@@ -635,7 +635,7 @@ public class ConvertToBmp extends ChildFrame
         Path outFile = FileManager.resolve(outPath, StreamUtils.replaceFileExtension(inFile.getFileName().toString(), "BMP"));
         if (Files.exists(outFile)) {
           if (cbOverwrite.getSelectedIndex() == 0) {          // ask
-            String msg = String.format("File %1$s already exists. Overwrite?", outFile.getFileName());
+            String msg = String.format("File %s already exists. Overwrite?", outFile.getFileName());
             int ret = JOptionPane.showConfirmDialog(this, msg, "Overwrite?", JOptionPane.YES_NO_CANCEL_OPTION);
             if (ret == JOptionPane.NO_OPTION) {
               skipped++;
@@ -681,7 +681,7 @@ public class ConvertToBmp extends ChildFrame
       if (failed+skipped == 1) {
         msg = "1 input file has been skipped.";
       } else {
-        msg = String.format("%1$d input files have been skipped.", failed+skipped);
+        msg = String.format("%d input files have been skipped.", failed+skipped);
       }
       result.add(msg);
     } else {

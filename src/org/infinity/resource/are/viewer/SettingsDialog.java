@@ -451,7 +451,7 @@ public class SettingsDialog extends JDialog
 
     Hashtable<Integer, JLabel> table = new Hashtable<Integer, JLabel>();
     for (int i = 0; i <= 100; i+=25) {
-      table.put(Integer.valueOf(i), new JLabel(String.format("%1$d%%", i)));
+      table.put(Integer.valueOf(i), new JLabel(String.format("%d%%", i)));
     }
     sMiniMapAlpha = new JSlider(0, 100, (int)(Settings.MiniMapAlpha*100.0));
     sMiniMapAlpha.setSnapToTicks(false);
@@ -579,9 +579,9 @@ public class SettingsDialog extends JDialog
     public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                   boolean isSelected, boolean cellHasFocus)
     {
-      String template = "%1$0" +
-                        String.format("%1$d", Integer.toString(list.getModel().getSize()).length()) +
-                        "d - %2$s";
+      String template = "%0" +
+                        String.format("%d", Integer.toString(list.getModel().getSize()).length()) +
+                        "d - %s";
       return super.getListCellRendererComponent(list, String.format(template, index + startIndex, value),
                                                 index, isSelected, cellHasFocus);
     }

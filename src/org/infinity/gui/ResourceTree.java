@@ -369,7 +369,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
                 JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                                               "Error while restoring resource.\n" +
                                               "Near Infinity is unable to recover from the restore operation.\n" +
-                                              String.format("Please manually rename the file \"%1$s\" into \"%2$s\", located in \n + \"%3$s\"",
+                                              String.format("Please manually rename the file \"%s\" into \"%s\", located in \n + \"%s\"",
                                                             tmpName, curName, path),
                                               "Critical Error", JOptionPane.ERROR_MESSAGE);
                 e.printStackTrace();

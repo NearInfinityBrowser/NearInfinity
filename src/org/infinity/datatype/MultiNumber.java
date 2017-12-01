@@ -191,7 +191,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
   {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < getValueCount(); i++) {
-      sb.append(String.format("%1$s: %2$d", getValueName(i), getValue(i)));
+      sb.append(String.format("%s: %d", getValueName(i), getValue(i)));
       if (i+1 < getValueCount())
         sb.append(", ");
     }
@@ -368,7 +368,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     {
       StringBuilder sb = new StringBuilder();
       for (int i = 0; i < numValues; i++) {
-        sb.append(String.format("%1$s: %2$d", (String)data[ATTRIBUTE][i], ((Integer)data[VALUE][i]).intValue()));
+        sb.append(String.format("%s: %d", (String)data[ATTRIBUTE][i], ((Integer)data[VALUE][i]).intValue()));
         if (i+1 < numValues)
           sb.append(", ");
       }

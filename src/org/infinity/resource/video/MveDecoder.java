@@ -190,7 +190,7 @@ public class MveDecoder
           info.chunk.getNextType() == MVE_CHUNK_INIT_VIDEO) {
         if (info.chunk.loadChunk()) {
           if (!manageChunk(info.chunk)) {
-            throw new Exception("Error processing chunk: " + String.format("0x%1$02x", info.chunk.getType()));
+            throw new Exception("Error processing chunk: " + String.format("0x%02x", info.chunk.getType()));
           }
         } else {
           throw new Exception("Unable to load next chunk");
@@ -482,7 +482,7 @@ public class MveDecoder
           return true;
         }
         default:
-          throw new Exception("Invalid chunk type: " + String.format("0x%1$02x", chunk.getType()));
+          throw new Exception("Invalid chunk type: " + String.format("0x%02x", chunk.getType()));
       }
     }
     return false;
@@ -763,7 +763,7 @@ public class MveDecoder
     @Override
     public String toString()
     {
-      return String.format("Chunk 0x%1$02x (%2$d bytes): segment #%3$d (opcode=%4$02x, size=%5$d)",
+      return String.format("Chunk 0x%02x (%d bytes): segment #%d (opcode=%02x, size=%d)",
                            curChunkType, curChunkSize, segmentIndex,
                            segments.get(segmentIndex).opcode, segments.get(segmentIndex).size);
     }
@@ -1026,7 +1026,7 @@ public class MveDecoder
     @Override
     public String toString()
     {
-      return String.format("Segment 0x%1$02x (%2$d bytes): offset=#%3$d, ofsExtra=%4$d",
+      return String.format("Segment 0x%02x (%d bytes): offset=#%d, ofsExtra=%d",
                            opcode, size, dataOfs, dataOfs2);
     }
   }

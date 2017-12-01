@@ -282,11 +282,11 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       // updating info box title
       StringBuilder sb = new StringBuilder(state.getName() + ", ");
       if (curDlg != dlg) {
-        sb.append(String.format("Dialog: %1$s, ", curDlg.getResourceEntry().getResourceName()));
+        sb.append(String.format("Dialog: %s, ", curDlg.getResourceEntry().getResourceName()));
       }
-      sb.append(String.format("Responses: %1$d", state.getTransCount()));
+      sb.append(String.format("Responses: %d", state.getTransCount()));
       if (state.getTriggerIndex() >= 0) {
-        sb.append(String.format(", Weight: %1$d", state.getTriggerIndex()));
+        sb.append(String.format(", Weight: %d", state.getTriggerIndex()));
       }
       dlgInfo.updateControlBorder(ItemInfo.Type.STATE, sb.toString());
 
@@ -338,7 +338,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       // updating info box title
       StringBuilder sb = new StringBuilder(trans.getName());
       if (curDlg != dlg) {
-        sb.append(String.format(", Dialog: %1$s", curDlg.getResourceEntry().getResourceName()));
+        sb.append(String.format(", Dialog: %s", curDlg.getResourceEntry().getResourceName()));
       }
       dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE, sb.toString());
 
@@ -732,7 +732,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       if (progress != null) {
         progress.setMaximum(progress.getMaximum() + 1);
         if ((progress.getMaximum() - 1) % 100 == 0) {
-          progress.setNote(String.format("Processing node %1$d", progress.getMaximum() - 1));
+          progress.setNote(String.format("Processing node %d", progress.getMaximum() - 1));
         }
         progress.setProgress(progress.getMaximum() - 1);
       }
@@ -943,7 +943,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         if (text.length() > MAX_LENGTH) {
           text = text.substring(0, MAX_LENGTH) + "...";
         }
-        return String.format("%1$s: %2$s", state.getName(), text);
+        return String.format("%s: %s", state.getName(), text);
       } else {
         return "(Invalid state)";
       }
@@ -1000,9 +1000,9 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
           String dlg = getDialog().getResourceEntry().getResourceName();
           if (trans.getNextDialog().isEmpty() ||
               trans.getNextDialog().getResourceName().equalsIgnoreCase(dlg)) {
-            return String.format("%1$s: %2$s", trans.getName(), text);
+            return String.format("%s: %s", trans.getName(), text);
           } else {
-            return String.format("%1$s: %2$s [%3$s]",
+            return String.format("%s: %s [%s]",
                                  trans.getName(), text, trans.getNextDialog().getResourceName());
           }
         } else {
@@ -1010,9 +1010,9 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
           String dlg = getDialog().getResourceEntry().getResourceName();
           if (trans.getNextDialog().isEmpty() ||
               trans.getNextDialog().getResourceName().equalsIgnoreCase(dlg)) {
-            return String.format("%1$s: (No text)", trans.getName());
+            return String.format("%s: (No text)", trans.getName());
           } else {
-            return String.format("%1$s: (No text) [%2$s]",
+            return String.format("%s: (No text) [%s]",
                                  trans.getName(), trans.getNextDialog().getResourceName());
           }
         }

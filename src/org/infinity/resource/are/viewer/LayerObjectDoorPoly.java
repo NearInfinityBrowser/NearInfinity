@@ -191,9 +191,9 @@ public class LayerObjectDoorPoly extends LayerObject
             Flag flags = (Flag)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_FLAGS);
             info[i] = s;
             if (numOpen > 1) {
-              msg[i] = String.format("%1$s %2$d/%3$d %4$s", s, i+1, numOpen, createFlags(flags, desc));
+              msg[i] = String.format("%s %d/%d %s", s, i+1, numOpen, createFlags(flags, desc));
             } else {
-              msg[i] = String.format("%1$s %2$s", s, createFlags(flags, desc));
+              msg[i] = String.format("%s %s", s, createFlags(flags, desc));
             }
             int vNum = ((SectionCount)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_NUM_VERTICES)).getValue();
             int vOfs = ((HexNumber)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
@@ -211,9 +211,9 @@ public class LayerObjectDoorPoly extends LayerObject
             Flag flags = (Flag)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_FLAGS);
             info[numOpen+i] = s;
             if (numClosed > 1) {
-              msg[numOpen+i] = String.format("%1$s %2$d/%3$d %4$s", s, i+1, numClosed, createFlags(flags, desc));
+              msg[numOpen+i] = String.format("%s %d/%d %s", s, i+1, numClosed, createFlags(flags, desc));
             } else {
-              msg[numOpen+i] = String.format("%1$s %2$s", s, createFlags(flags, desc));
+              msg[numOpen+i] = String.format("%s %s", s, createFlags(flags, desc));
             }
             int vNum = ((SectionCount)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_NUM_VERTICES)).getValue();
             int vOfs = ((HexNumber)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();

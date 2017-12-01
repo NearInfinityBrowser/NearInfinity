@@ -153,7 +153,7 @@ public class ViewerMap extends JPanel
           add(split, BorderLayout.CENTER);
 
           JPanel pInfo = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 0));
-          lInfoSize = new JLabel(String.format("Worldmap size: %1$d x %2$d pixels", mapOrig.getWidth(), mapOrig.getHeight()));
+          lInfoSize = new JLabel(String.format("Worldmap size: %d x %d pixels", mapOrig.getWidth(), mapOrig.getHeight()));
           lInfoSize.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
           lInfoPos = new JLabel();
           lInfoPos.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
@@ -385,7 +385,7 @@ public class ViewerMap extends JPanel
               g.drawLine(ptOrigin.x, ptOrigin.y, ptTarget.x, ptTarget.y);
 
               // printing travel time (in hours)
-              String duration = String.format("%1$d h", ((DecNumber)destLink.getAttribute(AreaLink.WMP_LINK_DISTANCE_SCALE)).getValue() * 4);
+              String duration = String.format("%d h", ((DecNumber)destLink.getAttribute(AreaLink.WMP_LINK_DISTANCE_SCALE)).getValue() * 4);
               LineMetrics lm = g.getFont().getLineMetrics(duration, g.getFontRenderContext());
               Rectangle2D rectText = g.getFont().getStringBounds(duration, g.getFontRenderContext());
               int textX = ptOrigin.x + ((ptTarget.x - ptOrigin.x) - rectText.getBounds().width) / 2;
@@ -568,7 +568,7 @@ public class ViewerMap extends JPanel
   {
     if (lInfoPos != null) {
       if (x >= 0 && y >= 0) {
-        lInfoPos.setText(String.format("Cursor at (%1$d, %2$d)", x, y));
+        lInfoPos.setText(String.format("Cursor at (%d, %d)", x, y));
       } else {
         lInfoPos.setText("");
       }

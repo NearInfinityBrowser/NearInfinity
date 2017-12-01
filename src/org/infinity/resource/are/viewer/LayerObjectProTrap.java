@@ -117,7 +117,7 @@ public class LayerObjectProTrap extends LayerObject
 
       // Using cached icons
       Image[] icon;
-      String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(ICON[0]),
+      String keyIcon = String.format("%s%s", SharedResourceCache.createKey(ICON[0]),
                                                  SharedResourceCache.createKey(ICON[1]));
       if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
         icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();

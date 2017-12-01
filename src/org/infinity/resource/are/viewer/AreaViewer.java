@@ -211,7 +211,7 @@ public class AreaViewer extends ChildFrame
   public AreaViewer(Component parent, AreResource are)
   {
     super("");
-    windowTitle = String.format("Area Viewer: %1$s", (are != null) ? are.getName() : "[Unknown]");
+    windowTitle = String.format("Area Viewer: %s", (are != null) ? are.getName() : "[Unknown]");
     initProgressMonitor(parent, "Initializing " + are.getName(), "Loading ARE resource...", 3, 0, 0);
     listeners = new Listeners();
     map = new Map(this, are);
@@ -324,7 +324,7 @@ public class AreaViewer extends ChildFrame
 
     // Adding Visual State elements
     // Note: the string is required for setting the correct size of the button
-    bpwDayTime = new ButtonPopupWindow(String.format("  %1$s  ", DayTimePanel.getButtonText(21)),
+    bpwDayTime = new ButtonPopupWindow(String.format("  %s  ", DayTimePanel.getButtonText(21)),
                                        Icons.getIcon(Icons.ICON_ARROW_DOWN_15));
     Dimension d = bpwDayTime.getPreferredSize();
     bpwDayTime.setIconTextGap(8);
@@ -587,7 +587,7 @@ public class AreaViewer extends ChildFrame
 //    toolBar.addSeparator(dimSeparator);
 
     tbAre = new JButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_MAP_ARE));
-    tbAre.setToolTipText(String.format("Edit ARE structure (%1$s)", map.getAre().getName()));
+    tbAre.setToolTipText(String.format("Edit ARE structure (%s)", map.getAre().getName()));
     tbAre.addActionListener(getListeners());
     toolBar.add(tbAre);
     tbWed = new JButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_MAP_WED));
@@ -806,7 +806,7 @@ public class AreaViewer extends ChildFrame
 
     String gridState = isTileGridEnabled() ? "enabled" : "disabled";
 
-    setTitle(String.format("%1$s  (Time: %2$02d:00 (%3$s), Schedules: %4$s, Doors: %5$s, Overlays: %6$s, Grid: %7$s, Zoom: %8$d%%)",
+    setTitle(String.format("%s  (Time: %02d:00 (%s), Schedules: %s, Doors: %s, Overlays: %s, Grid: %s, Zoom: %d%%)",
                            windowTitle, getHour(), dayNight, scheduleState, doorState, overlayState, gridState, zoom));
   }
 
@@ -1774,7 +1774,7 @@ public class AreaViewer extends ChildFrame
   // Update toolbar-related stuff
   private void updateToolBarButtons()
   {
-    tbWed.setToolTipText(String.format("Edit WED structure (%1$s)", getCurrentWed().getName()));
+    tbWed.setToolTipText(String.format("Edit WED structure (%s)", getCurrentWed().getName()));
   }
 
   // Initializes a new progress monitor instance
@@ -2757,7 +2757,7 @@ public class AreaViewer extends ChildFrame
     {
       final String[] dayTime = new String[]{"Day", "Twilight", "Night"};
       String desc = dayTime[ViewerConstants.getDayTime(hour)];
-      return String.format("Time (%1$02d:00 - %2$s)", hour, desc);
+      return String.format("Time (%02d:00 - %s)", hour, desc);
     }
 
 
@@ -2887,22 +2887,22 @@ public class AreaViewer extends ChildFrame
       int dayTime = ViewerConstants.getDayTime(hour);
 
       ButtonGroup bg = new ButtonGroup();
-      String s = String.format("Day (%1$02d:00)", ViewerConstants.getHourOf(ViewerConstants.LIGHTING_DAY));
+      String s = String.format("Day (%02d:00)", ViewerConstants.getHourOf(ViewerConstants.LIGHTING_DAY));
       rbDayTime[ViewerConstants.LIGHTING_DAY] = new JRadioButton(s, (dayTime == ViewerConstants.LIGHTING_DAY));
       rbDayTime[ViewerConstants.LIGHTING_DAY].addActionListener(this);
       bg.add(rbDayTime[ViewerConstants.LIGHTING_DAY]);
-      s = String.format("Twilight (%1$02d:00)", ViewerConstants.getHourOf(ViewerConstants.LIGHTING_TWILIGHT));
+      s = String.format("Twilight (%02d:00)", ViewerConstants.getHourOf(ViewerConstants.LIGHTING_TWILIGHT));
       rbDayTime[ViewerConstants.LIGHTING_TWILIGHT] = new JRadioButton(s, (dayTime == ViewerConstants.LIGHTING_TWILIGHT));
       rbDayTime[ViewerConstants.LIGHTING_TWILIGHT].addActionListener(this);
       bg.add(rbDayTime[ViewerConstants.LIGHTING_TWILIGHT]);
-      s = String.format("Night (%1$02d:00)", ViewerConstants.getHourOf(ViewerConstants.LIGHTING_NIGHT));
+      s = String.format("Night (%02d:00)", ViewerConstants.getHourOf(ViewerConstants.LIGHTING_NIGHT));
       rbDayTime[ViewerConstants.LIGHTING_NIGHT] = new JRadioButton(s, (dayTime == ViewerConstants.LIGHTING_NIGHT));
       rbDayTime[ViewerConstants.LIGHTING_NIGHT].addActionListener(this);
       bg.add(rbDayTime[ViewerConstants.LIGHTING_NIGHT]);
 
       Hashtable<Integer, JLabel> table = new Hashtable<Integer, JLabel>();
       for (int i = 0; i < 24; i += 4) {
-        table.put(Integer.valueOf(i), new JLabel(String.format("%1$02d:00", i)));
+        table.put(Integer.valueOf(i), new JLabel(String.format("%02d:00", i)));
       }
       sHours = new JSlider(0, 23, hour);
       sHours.addChangeListener(this);

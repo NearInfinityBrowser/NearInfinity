@@ -619,7 +619,7 @@ public final class LayerManager
             loadLayer(layer, forced || wedChanged);
             break;
           default:
-            System.err.println(String.format("Unsupported layer type: %1$s", layer.toString()));
+            System.err.println(String.format("Unsupported layer type: %s", layer.toString()));
         }
       }
     }
@@ -775,7 +775,7 @@ public final class LayerManager
           break;
         }
         default:
-          System.err.println(String.format("Unsupported layer type: %1$s", layer.toString()));
+          System.err.println(String.format("Unsupported layer type: %s", layer.toString()));
       }
     }
     return retVal;

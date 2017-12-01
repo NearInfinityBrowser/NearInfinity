@@ -841,7 +841,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
         }
         max = decoder.frameCount();
         for (int i = 0; i < decoder.frameCount(); i++) {
-          String fileIndex = String.format("%1$05d", i);
+          String fileIndex = String.format("%05d", i);
           BufferedImage image = null;
           try {
             image = prepareFrameImage(decoder, i);
@@ -871,7 +871,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     // displaying results
     String msg = null;
     if (failCounter == 0 && counter == max) {
-      msg = String.format("All %1$d frames exported successfully.", max);
+      msg = String.format("All %d frames exported successfully.", max);
     } else {
       msg = String.format("%2$d/%1$d frame(s) exported.\n%3$d/%1$d frame(s) skipped.",
                           max, counter, failCounter);

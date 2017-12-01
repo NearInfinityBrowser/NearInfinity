@@ -212,12 +212,12 @@ public final class GameProperties extends ChildFrame implements ActionListener
       StringBuilder sb = new StringBuilder();
       s = ResourceFactory.autodetectGameLanguage(Profile.getProperty(Profile.Key.GET_GAME_INI_FILE));
       if (s != null) {
-        sb.append(String.format("Autodetect (%1$s)", getLanguageName(s)));
+        sb.append(String.format("Autodetect (%s)", getLanguageName(s)));
       }
       if (languages != null) {
         for (final String lang: languages) {
           if (lang != null && !lang.isEmpty()) {
-            sb.append(String.format(", %1$s", getLanguageName(lang)));
+            sb.append(String.format(", %s", getLanguageName(lang)));
           }
         }
       }

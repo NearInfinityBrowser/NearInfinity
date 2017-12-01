@@ -591,7 +591,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
     Status retVal = Status.ERROR;
     if (output != null) {
       if (tileImages != null && !tileImages.isEmpty()) {
-        String note = "Converting tile %1$d / %2$d";
+        String note = "Converting tile %d / %d";
         int progressIndex = 0, progressMax = decoder.getTileCount();
         ProgressMonitor progress = null;
         if (showProgress) {
@@ -1002,7 +1002,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
     DxtEncoder.DxtType dxtType = DxtEncoder.DxtType.DXT1;
     int dxtCode = 7;  // PVR code for DXT1
     byte[] output = new byte[DxtEncoder.calcImageSize(1024, 1024, dxtType)];
-    String note = "Generating PVRZ file %1$s / %2$s";
+    String note = "Generating PVRZ file %s / %s";
     if (progress != null) {
       progress.setMaximum(pageList.size() + 1);
       progress.setProgress(1);
@@ -1101,7 +1101,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
         tisName = tisName.substring(0, extOfs);
       }
       if (Pattern.matches(".{2,7}", tisName)) {
-        String pvrzName = String.format("%1$s%2$s%3$02d.PVRZ", tisName.substring(0, 1),
+        String pvrzName = String.format("%s%s%02d.PVRZ", tisName.substring(0, 1),
                                         tisName.substring(2, tisName.length()), page);
         return path.resolve(pvrzName);
       }
@@ -1146,8 +1146,8 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
         String fmt, newName = null;
         int maxNum;
         switch (name.length()) {
-          case 0:  fmt = name + "%1$s02d"; maxNum = 99; break;
-          default: fmt = name + "%1$s01d"; maxNum = 9; break;
+          case 0:  fmt = name + "%s02d"; maxNum = 99; break;
+          default: fmt = name + "%s01d"; maxNum = 9; break;
         }
         for (int i = 0; i < maxNum; i++) {
           String s = String.format(fmt, i) + (isNight ? "N" : "") + ext;

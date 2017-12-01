@@ -600,7 +600,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
         default:    // should never happen
         {
           try {
-            throw new Exception(String.format("Invalid token %1$d found at position %2$d",
+            throw new Exception(String.format("Invalid token %d found at position %d",
                                               currentTokenType, newStartOfs+i));
           } catch (Exception e) {
             e.printStackTrace();

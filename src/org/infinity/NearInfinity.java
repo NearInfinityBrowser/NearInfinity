@@ -256,7 +256,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       for (int i = 0; i < Math.min(JAVA_VERSION.length, javaVersion.length); i++) {
         if (Integer.parseInt(javaVersion[i]) < JAVA_VERSION[i]) {
           JOptionPane.showMessageDialog(null,
-                                        String.format("Version %1$d.%2$d or newer of Java is required!",
+                                        String.format("Version %d.%d or newer of Java is required!",
                                                       JAVA_VERSION[0], JAVA_VERSION[1]),
                                         "Error", JOptionPane.ERROR_MESSAGE);
           System.exit(10);
@@ -734,9 +734,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     String title = Profile.getProperty(Profile.Key.GET_GAME_TITLE);
     String desc = Profile.getProperty(Profile.Key.GET_GAME_DESC);
     if (desc != null && !desc.isEmpty()) {
-      setTitle(String.format("Near Infinity - %1$s (%2$s)", title, desc));
+      setTitle(String.format("Near Infinity - %s (%s)", title, desc));
     } else {
-      setTitle(String.format("Near Infinity - %1$s", title));
+      setTitle(String.format("Near Infinity - %s", title));
     }
   }
 
@@ -916,7 +916,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   {
     List<Image> list = new ArrayList<Image>();
     for (int i = 4; i < 8; i++) {
-      list.add(Icons.getImage(String.format("App%1$d.png", 1 << i)));
+      list.add(Icons.getImage(String.format("App%d.png", 1 << i)));
     }
     setIconImages(list);
   }

@@ -379,7 +379,7 @@ public class SpellProtType extends Bitmap
               break;
             case 0x10b: // GENERAL
               if (isBitwiseRelation(rel) && value != -1) {
-                label = String.format("GENERAL %s %s [0x%3$x]",
+                label = String.format("GENERAL %s %s [0x%x]",
                                       getRelation(rel),
                                       getIdsValue("GENERAL.IDS", value, isBitwiseRelation(rel)),
                                       value);

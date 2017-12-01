@@ -158,6 +158,6 @@ public class Pair<V> implements Cloneable
   @Override
   public String toString()
   {
-    return String.format("[%1$s, %2$s]", getFirst(), getSecond());
+    return String.format("[%s, %s]", getFirst(), getSecond());
   }
 }

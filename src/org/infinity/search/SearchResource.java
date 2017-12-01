@@ -163,7 +163,7 @@ public class SearchResource extends ChildFrame
       if (!isOptionsEmpty()) {
         (new Thread(this)).start();
       } else {
-        JOptionPane.showMessageDialog(this, String.format("No search parameters specified for \"%1$s\".",
+        JOptionPane.showMessageDialog(this, String.format("No search parameters specified for \"%s\".",
                                                           getCurrentResourceType()));
       }
     } else if (event.getSource() == bInsertRef) {
@@ -274,9 +274,9 @@ public class SearchResource extends ChildFrame
             bOpenNew.setEnabled(true);
           }
           if (found.size() == 1) {
-            lResults.setText(String.format("(%1$d match found)", found.size()));
+            lResults.setText(String.format("(%d match found)", found.size()));
           } else {
-            lResults.setText(String.format("(%1$d matches found)", found.size()));
+            lResults.setText(String.format("(%d matches found)", found.size()));
           }
         }
       } finally {
@@ -3604,10 +3604,10 @@ public class SearchResource extends ChildFrame
       for (int row = 0, col = 0, i = 0; i < bits; i++, row++) {
         String label = null, desc = null;
         if (i+1 >= table.length || table[i+1] == null || table[i+1].trim().isEmpty()) {
-          label = String.format("%1$s (%2$d)", "Unknown", i);
+          label = String.format("%s (%d)", "Unknown", i);
         } else {
           String[] s = table[i+1].split(";");
-          label = String.format("%1$s (%2$d)", s[0], i);
+          label = String.format("%s (%d)", s[0], i);
           if (s.length > 1) {
             desc = s[1];
           }
@@ -3745,7 +3745,7 @@ public class SearchResource extends ChildFrame
     {
       // initializing components
       for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("%1$s %2$d:", label, i+1));
+        cbLabel[i] = new JCheckBox(String.format("%s %d:", label, i+1));
         cbLabel[i].addActionListener(this);
 
         sEffects[i][0] = Utils.createNumberSpinner(Short.MIN_VALUE, Short.MAX_VALUE, 0, 999, 0, 1);
@@ -4023,7 +4023,7 @@ public class SearchResource extends ChildFrame
 
       // initializing components
       for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("%1$s %2$d:", label, i+1));
+        cbLabel[i] = new JCheckBox(String.format("%s %d:", label, i+1));
         cbLabel[i].addActionListener(this);
 
         cbFilterType[i] = new JComboBox<>(FilterText);
@@ -4789,7 +4789,7 @@ public class SearchResource extends ChildFrame
     {
       // initializing components
       for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("Item resource %1$d:", i+1));
+        cbLabel[i] = new JCheckBox(String.format("Item resource %d:", i+1));
         cbLabel[i].addActionListener(this);
 
         cbItems[i] = Utils.createNamedResourceComboBox(new String[]{"ITM"}, true);
@@ -4897,7 +4897,7 @@ public class SearchResource extends ChildFrame
     {
       // initializing components
       for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("Spell resource %1$d:", i+1));
+        cbLabel[i] = new JCheckBox(String.format("Spell resource %d:", i+1));
         cbLabel[i].addActionListener(this);
 
         cbSpells[i] = Utils.createNamedResourceComboBox(new String[]{"SPL"}, true);
@@ -5006,7 +5006,7 @@ public class SearchResource extends ChildFrame
     {
       // initializing components
       for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("Script %1$d:", i+1));
+        cbLabel[i] = new JCheckBox(String.format("Script %d:", i+1));
         cbLabel[i].addActionListener(this);
 
         cbScripts[i] = Utils.createNamedResourceComboBox(new String[]{"BCS"}, false);
@@ -6043,7 +6043,7 @@ public class SearchResource extends ChildFrame
     private void init()
     {
       for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("Category %1$d:", i+1));
+        cbLabel[i] = new JCheckBox(String.format("Category %d:", i+1));
         cbLabel[i].addActionListener(this);
 
         String[] cat = ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V11)) ?
@@ -6153,7 +6153,7 @@ public class SearchResource extends ChildFrame
     private void init()
     {
       for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("Item for sale %1$d:", i+1));
+        cbLabel[i] = new JCheckBox(String.format("Item for sale %d:", i+1));
         cbLabel[i].addActionListener(this);
         cbItems[i] = Utils.createNamedResourceComboBox(new String[]{"ITM"}, true);
       }
@@ -6256,7 +6256,7 @@ public class SearchResource extends ChildFrame
     @Override
     public String toString()
     {
-      return String.format("%1$s (%2$d)", s, index);
+      return String.format("%s (%d)", s, index);
     }
   }
 
@@ -6301,7 +6301,7 @@ public class SearchResource extends ChildFrame
     @Override
     public String toString()
     {
-      return String.format("%1$s (%2$s)", s, (o != null) ? o.toString() : "(null)");
+      return String.format("%s (%s)", s, (o != null) ? o.toString() : "(null)");
     }
   }
 
@@ -6338,9 +6338,9 @@ public class SearchResource extends ChildFrame
         } else {
           if (resName != null) {
             if (!resName.isEmpty()) {
-              return String.format("%1$s (%2$s)", entry.getResourceName(), resName);
+              return String.format("%s (%s)", entry.getResourceName(), resName);
             } else {
-              return String.format("%1$s (No such index)", entry.getResourceName());
+              return String.format("%s (No such index)", entry.getResourceName());
             }
           } else {
             return entry.getResourceName();

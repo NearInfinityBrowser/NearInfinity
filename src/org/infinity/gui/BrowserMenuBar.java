@@ -1709,7 +1709,7 @@ public final class BrowserMenuBar extends JMenuBar
       selectTextTabSize[2] = new JRadioButtonMenuItem("Expand by 8 Spaces", selectedTextTabSize == 2);
       for (int i = 0; i < selectTextTabSize.length; i++) {
         int cnt = 1 << (i + 1);
-        selectTextTabSize[i].setToolTipText(String.format("Each (real or emulated) tab will occupy %1$d spaces.", cnt));
+        selectTextTabSize[i].setToolTipText(String.format("Each (real or emulated) tab will occupy %d spaces.", cnt));
         textTabs.add(selectTextTabSize[i]);
         bg.add(selectTextTabSize[i]);
       }
@@ -1991,7 +1991,7 @@ public final class BrowserMenuBar extends JMenuBar
       // Options->TLK Charset
       String charset = getPrefs().get(OPTION_TLKCHARSET, DefaultCharset);
       if (!charsetAvailable(charset)) {
-        System.err.println(String.format("Charset \"%1$s\" not available.", charset));
+        System.err.println(String.format("Charset \"%s\" not available.", charset));
         charset = DefaultCharset;
       }
       if (!charsetName(charset, false).equals(StringTable.getCharset().name())) {
@@ -2033,7 +2033,7 @@ public final class BrowserMenuBar extends JMenuBar
         for (final String lang: languages) {
           String langName = getDisplayLanguage(lang);
           if (!langName.equalsIgnoreCase(lang)) {
-            rbmi = createLanguageMenuItem(lang, String.format("%1$s (%2$s)", langName, lang),
+            rbmi = createLanguageMenuItem(lang, String.format("%s (%s)", langName, lang),
                                           null, bg, selectedCode.equalsIgnoreCase(lang));
             mLanguageMenu.add(rbmi);
           } else {
@@ -2147,7 +2147,7 @@ public final class BrowserMenuBar extends JMenuBar
           }
 
           boolean official = !(name.startsWith("x-") || name.startsWith("X-"));
-          String desc = official ? name : String.format("%1$s (unofficial)", name.substring(2));
+          String desc = official ? name : String.format("%s (unofficial)", name.substring(2));
           dmi = new DataRadioButtonMenuItem(desc, false, name);
           Charset cs = Charset.forName(name);
           if (cs != null && !cs.aliases().isEmpty()) {
@@ -2388,7 +2388,7 @@ public final class BrowserMenuBar extends JMenuBar
       if (list != null) {
         for (Iterator<Pair<String>> iter = list.iterator(); iter.hasNext();) {
           Pair<String> pair = iter.next();
-          sb.append(String.format("%1$s=%2$s", pair.getFirst(), pair.getSecond()));
+          sb.append(String.format("%s=%s", pair.getFirst(), pair.getSecond()));
           if (iter.hasNext()) {
             sb.append(';');
           }
@@ -2462,7 +2462,7 @@ public final class BrowserMenuBar extends JMenuBar
         String newLangName = getDisplayLanguage(newLanguageCode);
         boolean success = false, showErrorMsg = false;
         if (JOptionPane.showConfirmDialog(NearInfinity.getInstance(),
-                                          String.format("Do you want to switch from \"%1$s\" to \"%2$s\"?", oldLangName, newLangName),
+                                          String.format("Do you want to switch from \"%s\" to \"%s\"?", oldLangName, newLangName),
                                           "Switch game language", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
           if (Profile.updateGameLanguage(newLanguageCode)) {
             languageDefinition =
@@ -2501,7 +2501,7 @@ public final class BrowserMenuBar extends JMenuBar
     {
       int index = FONTS.length - 1;
       FONTS[index] = (font != null) ? font : UIManager.getFont("MenuItem.font").deriveFont(Font.PLAIN);
-      selectFont[index].setText(String.format("Select font... (%1$s %2$d)",
+      selectFont[index].setText(String.format("Select font... (%s %d)",
                                               FONTS[index].getName(), FONTS[index].getSize()));
       selectFont[index].setFont(FONTS[index].deriveFont(Misc.getScaledValue(12.0f)));
     }
@@ -3072,9 +3072,9 @@ public final class BrowserMenuBar extends JMenuBar
   {
     // "Bookmarks" preferences entries (numbers are 1-based)
     private static final String BOOKMARK_NUM_ENTRIES  = "BookmarkEntries";
-    private static final String FMT_BOOKMARK_NAME     = "BookmarkName%1$d";
-    private static final String FMT_BOOKMARK_ID       = "BookmarkID%1$d";
-    private static final String FMT_BOOKMARK_PATH     = "BookmarkPath%1$d";
+    private static final String FMT_BOOKMARK_NAME     = "BookmarkName%d";
+    private static final String FMT_BOOKMARK_ID       = "BookmarkID%d";
+    private static final String FMT_BOOKMARK_PATH     = "BookmarkPath%d";
 
     private static final String MENUITEM_COMMAND      = "OpenBookmark";
 
@@ -3218,8 +3218,8 @@ public final class BrowserMenuBar extends JMenuBar
   {
     // "Recently opened games" preferences entries (numbers are 1-based)
     private static final int MAX_LASTGAME_ENTRIES = 10;
-    private static final String FMT_LASTGAME_IDS  = "LastGameID%1$d";
-    private static final String FMT_LASTGAME_PATH = "LastGamePath%1$d";
+    private static final String FMT_LASTGAME_IDS  = "LastGameID%d";
+    private static final String FMT_LASTGAME_PATH = "LastGamePath%d";
 
     private static final String MENUITEM_COMMAND  = "OpenOldGame";
 
@@ -3247,7 +3247,7 @@ public final class BrowserMenuBar extends JMenuBar
     public String toString()
     {
       if (index >= 0) {
-        return String.format("%1$d  %2$s", index+1,
+        return String.format("%d  %s", index+1,
                              Profile.getProperty(Profile.Key.GET_GLOBAL_GAME_TITLE, game));
       } else {
         return Profile.getProperty(Profile.Key.GET_GLOBAL_GAME_TITLE, game);
