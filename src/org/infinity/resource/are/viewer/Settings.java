@@ -35,10 +35,13 @@ public class Settings
       ViewerConstants.LayerStackingType.AMBIENT_RANGE,
       ViewerConstants.LayerStackingType.TRANSITION
   };
-  public static final String[] LabelZoomFactor = {"Auto-fit", "25%", "33%", "50%", "100%", "200%", "300%", "400%"};
-  public static final double[] ItemZoomFactor = {0.0, 0.25, 1.0/3.0, 0.5, 1.0, 2.0, 3.0, 4.0};
-  public static final int ZoomFactorIndexAuto = 0;       // points to the auto-fit zoom factor
-  public static final int ZoomFactorIndexDefault = 4;    // points to the default zoom factor (1x)
+  public static final String[] LabelZoomFactor = {"Auto-fit", "25%", "33%", "50%", "67%", "75%",
+                                                  "100%", "150%", "200%", "300%", "400%", "Custom"};
+  public static final double[] ItemZoomFactor = {0.0, 0.25, 1.0/3.0, 0.5, 2.0/3.0, 0.75,
+                                                 1.0, 1.5, 2.0, 3.0, 4.0, -1.0};
+  public static final double ZoomFactorAuto = 0.0;      // the auto-fit zoom factor
+  public static final double ZoomFactorDefault = 1.0;   // the default zoom factor
+  public static final double ZoomFactorMax = 10.0;      // maximum allowed zoom factor
 
   // Defines stacking order of layer items on the map
   public static final List<ViewerConstants.LayerStackingType> ListLayerOrder = getDefaultLayerOrder();
@@ -72,8 +75,8 @@ public class Settings
   public static int ShowRealAnimations = getDefaultShowRealAnimations();
   // The current time of day (in hours)
   public static int TimeOfDay = getDefaultTimeOfDay();
-  // The current zoom level of the map (as combobox item index)
-  public static int ZoomLevel = getDefaultZoomLevel();
+  // The current zoom factor used by the map
+  public static double ZoomFactor = getDefaultZoomFactor();
   // The frame rate for animated overlays
   public static double FrameRateOverlays = getDefaultFrameRateOverlays();
   // The frame rate for animated background animations
@@ -108,7 +111,7 @@ public class Settings
   private static final String PREFS_LAYERFLAGS              = "LayerFlags";
   private static final String PREFS_SHOWREALANIMS           = "ShowRealAnimations";
   private static final String PREFS_TIMEOFDAY               = "TimeOfDay";
-  private static final String PREFS_ZOOMLEVEL               = "ZoomLevel";
+  private static final String PREFS_ZOOMFACTOR              = "ZoomFactor";
   private static final String PREFS_LAYERZORDER_FMT         = "LayerZOrder%d";
   private static final String PREFS_INTERPOLATION_MAP       = "InterpolationMap";
   private static final String PREFS_INTERPOLATION_ANIMS     = "InterpolationAnims";
@@ -181,7 +184,7 @@ public class Settings
         LayerFlags = prefs.getInt(PREFS_LAYERFLAGS, getDefaultLayerFlags());
         ShowRealAnimations = prefs.getInt(PREFS_SHOWREALANIMS, getDefaultShowRealAnimations());
         TimeOfDay = prefs.getInt(PREFS_TIMEOFDAY, getDefaultTimeOfDay());
-        ZoomLevel = prefs.getInt(PREFS_ZOOMLEVEL, getDefaultZoomLevel());
+        ZoomFactor = prefs.getDouble(PREFS_ZOOMFACTOR, getDefaultZoomFactor());
         MiniMap = prefs.getInt(PREFS_MINIMAP, getDefaultMiniMap());
       }
       validateSettings();
@@ -235,7 +238,7 @@ public class Settings
       prefs.putInt(PREFS_LAYERFLAGS, LayerFlags);
       prefs.putInt(PREFS_SHOWREALANIMS, ShowRealAnimations);
       prefs.putInt(PREFS_TIMEOFDAY, TimeOfDay);
-      prefs.putInt(PREFS_ZOOMLEVEL, ZoomLevel);
+      prefs.putDouble(PREFS_ZOOMFACTOR, ZoomFactor);
       prefs.putInt(PREFS_MINIMAP, MiniMap);
     }
     try {
@@ -257,7 +260,7 @@ public class Settings
     ShowRealAnimations = Math.min(Math.max(ShowRealAnimations, ViewerConstants.ANIM_SHOW_NONE),
                                   ViewerConstants.ANIM_SHOW_ANIMATED);
     TimeOfDay = Math.min(Math.max(TimeOfDay, ViewerConstants.TIME_0), ViewerConstants.TIME_23);
-    ZoomLevel = Math.min(Math.max(ZoomLevel, 0), ItemZoomFactor.length - 1);
+    ZoomFactor = Math.min(Math.max(ZoomFactor, 0.0), ZoomFactorMax);
     InterpolationMap = Math.min(Math.max(InterpolationMap, ViewerConstants.FILTERING_AUTO),
                                 ViewerConstants.FILTERING_BILINEAR);
     InterpolationAnim = Math.min(Math.max(InterpolationAnim, ViewerConstants.FILTERING_AUTO),
@@ -372,9 +375,19 @@ public class Settings
     return ViewerConstants.getHourOf(ViewerConstants.LIGHTING_DAY);
   }
 
-  public static int getDefaultZoomLevel()
+  public static double getDefaultZoomFactor()
   {
-    return ZoomFactorIndexDefault;
+    return ZoomFactorDefault;
+  }
+
+  public static int getZoomLevelIndex(double value)
+  {
+    for (int idx = 0; idx < ItemZoomFactor.length; ++idx) {
+      if (value == ItemZoomFactor[idx]) {
+        return idx;
+      }
+    }
+    return ItemZoomFactor.length - 1;
   }
 
   public static double getDefaultFrameRateOverlays()

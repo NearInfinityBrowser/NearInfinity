@@ -161,6 +161,7 @@ public class AreaViewer extends ChildFrame
   private ProgressMonitor progress;
   private int pmCur, pmMax;
   private WindowBlocker blocker;
+  private boolean initialized;
 
 
   /**
@@ -282,6 +283,7 @@ public class AreaViewer extends ChildFrame
   // initialize GUI and structures
   private void init()
   {
+    initialized = false;
     advanceProgressMonitor("Initializing GUI...");
 
     GridBagConstraints c = new GridBagConstraints();
@@ -353,7 +355,7 @@ public class AreaViewer extends ChildFrame
 
     JLabel lZoomLevel = new JLabel("Zoom map:");
     cbZoomLevel = new JComboBox<>(Settings.LabelZoomFactor);
-    cbZoomLevel.setSelectedIndex(Settings.ZoomLevel);
+    cbZoomLevel.setSelectedIndex(Settings.getZoomLevelIndex(Settings.ZoomFactor));
     cbZoomLevel.addActionListener(getListeners());
     JPanel pZoom = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
@@ -675,6 +677,13 @@ public class AreaViewer extends ChildFrame
 
     updateWindowTitle();
     setVisible(true);
+    initialized = true;
+  }
+
+  // Returns whether area viewer is still being initialized
+  private boolean isInitialized()
+  {
+    return initialized;
   }
 
 
@@ -728,7 +737,7 @@ public class AreaViewer extends ChildFrame
     }
 
     // initializing zoom level
-    cbZoomLevel.setSelectedIndex(Settings.ZoomLevel);
+    cbZoomLevel.setSelectedIndex(Settings.getZoomLevelIndex(Settings.ZoomFactor));
 
     // initializing layers
     layerManager = new LayerManager(getCurrentAre(), getCurrentWed(), this);
@@ -777,7 +786,7 @@ public class AreaViewer extends ChildFrame
   // Updates the window title
   private void updateWindowTitle()
   {
-    int zoom = (int)(getZoomFactor()*100.0);
+    int zoom = (int)Math.round(getZoomFactor()*100.0);
 
     String dayNight;
     switch (getVisualState()) {
@@ -1085,17 +1094,15 @@ public class AreaViewer extends ChildFrame
     if (rcCanvas != null) {
       return rcCanvas.getZoomFactor();
     } else {
-      return Settings.ItemZoomFactor[Settings.ZoomLevel];
+      return Settings.ZoomFactor;
     }
   }
 
   // Sets a new zoom level to the map and associated structures
-  private void setZoomLevel(int zoomIndex)
+  private void setZoomFactor(double zoomFactor, double fallbackZoomFactor)
   {
-    zoomIndex = Math.min(Math.max(zoomIndex, 0), Settings.ItemZoomFactor.length - 1);
     updateViewpointCenter();
-    double zoom = 1.0;
-    if (zoomIndex == Settings.ZoomFactorIndexAuto) {
+    if (zoomFactor == Settings.ZoomFactorAuto) {
       // removing scrollbars (not needed in this mode)
       boolean needValidate = false;
       if (spCanvas.getHorizontalScrollBarPolicy() != ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER) {
@@ -1114,11 +1121,17 @@ public class AreaViewer extends ChildFrame
       Dimension mapDim = new Dimension(rcCanvas.getMapWidth(false), rcCanvas.getMapHeight(false));
       double zoomX = (double)viewDim.width / (double)mapDim.width;
       double zoomY = (double)viewDim.height / (double)mapDim.height;
-      zoom = zoomX;
+      zoomFactor = zoomX;
       if ((int)(zoomX*mapDim.height) > viewDim.height) {
-        zoom = zoomY;
+        zoomFactor = zoomY;
       }
     } else {
+      if (zoomFactor < 0.0) {
+        zoomFactor = isInitialized() ? getCustomZoomFactor(fallbackZoomFactor) : fallbackZoomFactor;
+        if (zoomFactor < 0.0) {
+          return;
+        }
+      }
       // (re-)activating scrollbars
       if (spCanvas.getHorizontalScrollBarPolicy() != ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED) {
         spCanvas.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -1126,19 +1139,47 @@ public class AreaViewer extends ChildFrame
       if (spCanvas.getVerticalScrollBarPolicy() != ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED) {
         spCanvas.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
       }
-      zoom = Settings.ItemZoomFactor[zoomIndex];
     }
     if (rcCanvas != null) {
-      rcCanvas.setZoomFactor(zoom);
+      rcCanvas.setZoomFactor(zoomFactor);
     }
-    Settings.ZoomLevel = zoomIndex;
+    Settings.ZoomFactor = zoomFactor;
     updateWindowTitle();
+  }
+
+  // Handles manual input of zoom factor (in percent)
+  private double getCustomZoomFactor(double defaultZoom)
+  {
+    String defInput = Integer.toString((int)Math.round(defaultZoom * 100.0));
+    Object ret = JOptionPane.showInputDialog(this, "Enter zoom factor (in percent):", "Area Map Zoom Factor",
+                                             JOptionPane.QUESTION_MESSAGE, null, null, defInput);
+    if (ret != null) {
+      try {
+        int idx = ret.toString().indexOf('%');
+        if (idx >= 0) {
+          ret = ret.toString().substring(0, idx);
+        }
+        ret = ret.toString().trim();
+        int value = (int)Math.round(Double.parseDouble(ret.toString()));
+        double f = (double)value / 100.0;
+        if (f > 0.0 && f <= Settings.ZoomFactorMax) {
+          defaultZoom = f;
+        } else {
+          int max = (int)(Settings.ZoomFactorMax * 100.0);
+          JOptionPane.showMessageDialog(this, "Number is outside of valid range (1-" + max + ").", "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
+      } catch (NumberFormatException nfe) {
+        JOptionPane.showMessageDialog(this, "Invalid number.", "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    }
+    return defaultZoom;
   }
 
   // Returns whether auto-fit has been selected
   private boolean isAutoZoom()
   {
-    return (Settings.ZoomLevel == Settings.ZoomFactorIndexAuto);
+    return (Settings.ZoomFactor == Settings.ZoomFactorAuto);
   }
 
 
@@ -2083,9 +2124,9 @@ public class AreaViewer extends ChildFrame
       } else if (event.getSource() == cbZoomLevel) {
         WindowBlocker.blockWindow(AreaViewer.this, true);
         try {
-          int previousZoomLevel = Settings.ZoomLevel;
+          double previousZoomFactor = Settings.ZoomFactor;
           try {
-            setZoomLevel(cbZoomLevel.getSelectedIndex());
+            setZoomFactor(Settings.ItemZoomFactor[cbZoomLevel.getSelectedIndex()], previousZoomFactor);
           } catch (OutOfMemoryError e) {
             e.printStackTrace();
             cbZoomLevel.hidePopup();
@@ -2093,8 +2134,8 @@ public class AreaViewer extends ChildFrame
             String msg = "Not enough memory to set selected zoom level.\n"
                 + "(Note: It is highly recommended to close and reopen the area viewer.)";
             JOptionPane.showMessageDialog(AreaViewer.this, msg, "Error", JOptionPane.ERROR_MESSAGE);
-            cbZoomLevel.setSelectedIndex(previousZoomLevel);
-            setZoomLevel(previousZoomLevel);
+            cbZoomLevel.setSelectedIndex(Settings.getZoomLevelIndex(previousZoomFactor));
+            setZoomFactor(previousZoomFactor, Settings.ZoomFactorDefault);
           }
         } finally {
           WindowBlocker.blockWindow(AreaViewer.this, false);
@@ -2333,7 +2374,7 @@ public class AreaViewer extends ChildFrame
       }
       if (event.getSource() == spCanvas) {
         if (isAutoZoom()) {
-          setZoomLevel(Settings.ZoomFactorIndexAuto);
+          setZoomFactor(Settings.ZoomFactorAuto, Settings.ZoomFactorDefault);
         }
         // centering the tileset if it fits into the viewport
         Dimension pDim = rcCanvas.getPreferredSize();
