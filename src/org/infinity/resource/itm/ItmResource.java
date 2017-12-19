@@ -182,10 +182,11 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   public static final String[] s_kituse4 =
           {"None", "Berserker", "Wizard slayer", "Kensai", "Cavalier", "Inquisitor",
            "Undead hunter", "Abjurer", "Conjurer"};
-  public static final String[] s_tag = {"  ", "2A", "3A", "4A", "2W", "3W", "4W", "AX", "BW",
-                                        "CB", "CL", "D1", "D2", "D3", "D4", "DD", "FL", "FS",
-                                        "H0", "H1", "H2", "H3", "H4", "H5", "H6", "HB", "MC",
-                                        "MS", "QS", "S1", "S2", "S3", "SC", "SL", "SP", "SS", "WH"};
+  public static final String[] s_tag =
+          {"  ", "2A", "3A", "4A", "2W", "3W", "4W", "AX", "BW",
+           "CB", "CL", "D1", "D2", "D3", "D4", "DD", "FL", "FS",
+           "H0", "H1", "H2", "H3", "H4", "H5", "H6", "HB", "MC",
+           "MS", "QS", "S1", "S2", "S3", "SC", "SL", "SP", "SS", "WH"};
   public static final String[] s_anim =
           {"None", "Leather armor", "Chain mail", "Plate mail",
            "Mage robe 1", "Mage robe 2", "Mage robe 3",
@@ -197,20 +198,22 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Long sword", "Two-handed sword", "Katana", "Scimitar",
            "Sling", "Spear", "Short sword", "War hammer"
           };
-  public static final String[] s_tag11 = {"  ", "AX", "CB", "CL", "DD", "S1", "WH"};
-  public static final String[] s_anim11 = {"None", "Axe", "Crossbow", "Club", "Dagger",
-                                           "Sword", "Hammer"};
-  public static final String[] s_tag_1pp = {"  ", "2A", "3A", "4A", "2W", "3W", "4W", "AX",
-                                            "BS", "BW", "C0", "C1", "C2", "C3", "C4", "C5",
-                                            "C6", "C7", "CB", "CL", "D1", "D2", "D3", "D4",
-                                            "DD", "F0", "F1", "F2", "F3",
-                                            "FL", "FS", "GS",
-                                            "H0", "H1", "H2", "H3", "H4", "H5", "H6", "HB",
-                                            "J0", "J1", "J2", "J3", "J4", "J5", "J6", "J7",
-                                            "J8", "J9", "JA", "JB", "JC", "M2", "MC",
-                                            "MS", "Q2", "Q3", "Q4",
-                                            "QS", "S0", "S1", "S2", "S3", "SC", "SL", "SP",
-                                            "SS", "WH", "YW", "ZW"};
+  public static final String[] s_tag11 =
+          {"  ", "AX", "CB", "CL", "DD", "S1", "WH"};
+  public static final String[] s_anim11 =
+          {"None", "Axe", "Crossbow", "Club", "Dagger", "Sword", "Hammer"};
+  public static final String[] s_tag_1pp =
+          {"  ", "2A", "3A", "4A", "2W", "3W", "4W", "AX",
+           "BS", "BW", "C0", "C1", "C2", "C3", "C4", "C5",
+           "C6", "C7", "CB", "CL", "D1", "D2", "D3", "D4",
+           "DD", "F0", "F1", "F2", "F3",
+           "FL", "FS", "GS",
+           "H0", "H1", "H2", "H3", "H4", "H5", "H6", "HB",
+           "J0", "J1", "J2", "J3", "J4", "J5", "J6", "J7",
+           "J8", "J9", "JA", "JB", "JC", "M2", "MC",
+           "MS", "Q2", "Q3", "Q4",
+           "QS", "S0", "S1", "S2", "S3", "SC", "SL", "SP",
+           "SS", "WH", "YW", "ZW"};
   public static final String[] s_anim_1pp =
           {"None", "Leather armor", "Chain mail", "Plate mail",
            "Mage robe 1", "Mage robe 2", "Mage robe 3",
@@ -230,7 +233,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Mace (alternate)", "Mace", "Morning star",
            "Quarterstaff (alternate 1)", "Quarterstaff (alternate 2)", "Quarterstaff (alternate 3)",
            "Quarterstaff", "Bastard sword", "Long sword", "Two-handed sword", "Katana", "Scimitar",
-           "Sling", "Spear", "Short sword", "War hammer", "Wings?", "Feathered wings"
+           "Sling", "Spear", "Short sword", "War hammer", "Wings (male) [1PP only]", "Wings (female)"
           };
 
   private StructHexViewer hexViewer;
@@ -464,7 +467,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       } else {
         addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, s_usability));
       }
-      if (Profile.isEnhancedEdition()) {
+      if (ResourceFactory.resourceExists("WQMZWA1.BAM")) {  // Is EE game or 1PP Wings installed?
         addField(new TextBitmap(buffer, 34, 2, ITM_EQUIPPED_APPEARANCE, s_tag_1pp, s_anim_1pp));
       }
       else {
