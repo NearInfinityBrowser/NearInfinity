@@ -63,6 +63,7 @@ import org.infinity.datatype.InlineEditable;
 import org.infinity.datatype.Readable;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
+import org.infinity.datatype.TextBitmap;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnknownBinary;
@@ -692,7 +693,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                               selected instanceof SectionCount ||
                               selected instanceof AbstractCode));
       miToString.setEnabled(isDataType && isReadable &&
-                            (selected instanceof Unknown || selected instanceof ResourceRef) &&
+                            (selected instanceof Unknown ||
+                             selected instanceof ResourceRef ||
+                             selected instanceof TextBitmap) &&
                             !(selected instanceof AbstractCode));
       miReset.setEnabled(isDataType && isReadable &&
                          isCachedStructEntry(((Datatype)selected).getOffset()) &&
