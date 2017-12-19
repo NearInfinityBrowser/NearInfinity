@@ -3629,7 +3629,7 @@ public final class EffectFactory
           SpellProtType param2 = new SpellProtType(buffer, offset + 4, 4);
           s.add(param2.createCreatureValueFromType(buffer, offset));
           s.add(param2);
-          restype = "SPL";
+          restype = "ITM:SPL";
         } else if (isTobEx) {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new IdsBitmap(buffer, offset + 4, 2, "Stat opcode", "STATS.IDS"));
@@ -3647,7 +3647,7 @@ public final class EffectFactory
           SpellProtType param2 = new SpellProtType(buffer, offset + 4, 4);
           s.add(param2.createCreatureValueFromType(buffer, offset));
           s.add(param2);
-          restype = "SPL";
+          restype = (effectType == 324) ? "ITM:SPL" : "SPL";
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
