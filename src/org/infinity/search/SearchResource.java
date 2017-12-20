@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -2059,15 +2060,16 @@ public class SearchResource extends ChildFrame
       pUsability = new ItmUsabilityPanel();
       bpwUsability = new ButtonPopupWindow(setOptionsText, pUsability);
 
-      ObjectString[] osAppearance = null;
-      if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V11)) {
-        osAppearance = ObjectString.createString(ItmResource.s_anim11, ItmResource.s_tag11);
-      } else if (Profile.isEnhancedEdition()) {
-        osAppearance = ObjectString.createString(ItmResource.s_anim_1pp, ItmResource.s_tag_1pp);
-      } else {
-        osAppearance = ObjectString.createString(ItmResource.s_anim, ItmResource.s_tag);
+      Map<String, String> map = Profile.getEquippedAppearanceMap();
+      String[] keys = new String[(map != null) ? map.size() : 0];
+      String[] values = new String[keys.length];
+      int idx = 0;
+      for (final String key: map.keySet()) {
+        keys[idx] = key;
+        values[idx] = map.get(key);
+        idx++;
       }
-      cbAppearance = new AutoComboBox<>(osAppearance);
+      cbAppearance = new AutoComboBox<>(ObjectString.createString(values, keys));
 
       cbCategory = new AutoComboBox<>(IndexedString.createArray(sCat, 0, 0));
 

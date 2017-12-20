@@ -15,13 +15,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.infinity.NearInfinity;
+import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.ObjectString;
@@ -50,6 +56,8 @@ public final class Profile implements FileWatcher.FileWatchListener
     STRING,
     /** Property data is of type {@link java.util.List}. */
     LIST,
+    /** Property data is of type {@link java.util.Map}. */
+    MAP,
     /** Property data is of type {@link java.nio.file.Path}. */
     PATH,
     /** Property data is of any custom data type. */
@@ -204,6 +212,10 @@ public final class Profile implements FileWatcher.FileWatchListener
      *            (Sorted by priority in descending order for Enhanced Editions,
      *             sorted by entries found in ini file for non-enhanced games) */
     GET_GAME_BIFF_FOLDERS,
+    /** Property: {@code Map<String, String>} Map of "Equipped appearance" codes with associated
+     *            descriptions. Map is generated on first call of {@code getEquippedAppearanceMap()}.
+     */
+    GET_GAME_EQUIPPED_APPEARANCES,
     /** Property: ({@code Boolean}) Is game an Enhanced Edition game? */
     IS_ENHANCED_EDITION,
     /** Property: ({@code Boolean}) Has current game been enhanced by TobEx? */
@@ -384,6 +396,7 @@ public final class Profile implements FileWatcher.FileWatchListener
   private static final EnumMap<Game, String> GAME_HOME_FOLDER = new EnumMap<Game, String>(Game.class);
   // Set of resource extensions supported by Infinity Engine games
   private static final HashSet<String> SUPPORTED_RESOURCE_TYPES = new HashSet<>();
+  private static final HashMap<String, String> KNOWN_EQUIPPED_APPEARANCE = new HashMap<>();
 
   // Using the singleton approach
   private static Profile instance = null;
@@ -442,6 +455,81 @@ public final class Profile implements FileWatcher.FileWatchListener
     GAME_HOME_FOLDER.put(Game.EET, GAME_HOME_FOLDER.get(Game.BG2EE));
     GAME_HOME_FOLDER.put(Game.IWDEE, "Icewind Dale - Enhanced Edition");
     GAME_HOME_FOLDER.put(Game.PSTEE, "Planescape Torment - Enhanced Edition");
+
+    // initializing known equipped appearance codes for items
+    KNOWN_EQUIPPED_APPEARANCE.put("  ", "None");
+    KNOWN_EQUIPPED_APPEARANCE.put("2A", "Leather armor");
+    KNOWN_EQUIPPED_APPEARANCE.put("3A", "Chain mail");
+    KNOWN_EQUIPPED_APPEARANCE.put("4A", "Plate mail");
+    KNOWN_EQUIPPED_APPEARANCE.put("2W", "Mage robe 1");
+    KNOWN_EQUIPPED_APPEARANCE.put("3W", "Mage robe 2");
+    KNOWN_EQUIPPED_APPEARANCE.put("4W", "Mage robe 3");
+    KNOWN_EQUIPPED_APPEARANCE.put("AX", "Battle axe");
+    KNOWN_EQUIPPED_APPEARANCE.put("BS", "Shortbow");
+    KNOWN_EQUIPPED_APPEARANCE.put("BW", "Longbow");
+    KNOWN_EQUIPPED_APPEARANCE.put("C0", "Small shield (alternate 1)");
+    KNOWN_EQUIPPED_APPEARANCE.put("C1", "Medium shield (alternate 1)");
+    KNOWN_EQUIPPED_APPEARANCE.put("C2", "Large shield (alternate 1)");
+    KNOWN_EQUIPPED_APPEARANCE.put("C3", "Medium shield (alternate 2)");
+    KNOWN_EQUIPPED_APPEARANCE.put("C4", "Small shield (alternate 2)");
+    KNOWN_EQUIPPED_APPEARANCE.put("C5", "Large shield (alternate 2)");
+    KNOWN_EQUIPPED_APPEARANCE.put("C6", "Large shield (alternate 3)");
+    KNOWN_EQUIPPED_APPEARANCE.put("C7", "Medium shield (alternate 3)");
+    KNOWN_EQUIPPED_APPEARANCE.put("CB", "Crossbow");
+    KNOWN_EQUIPPED_APPEARANCE.put("CL", "Club");
+    KNOWN_EQUIPPED_APPEARANCE.put("D0", "Small shield (alternate 3)");
+    KNOWN_EQUIPPED_APPEARANCE.put("D1", "Buckler");
+    KNOWN_EQUIPPED_APPEARANCE.put("D2", "Small shield");
+    KNOWN_EQUIPPED_APPEARANCE.put("D3", "Medium shield");
+    KNOWN_EQUIPPED_APPEARANCE.put("D4", "Large shield");
+    KNOWN_EQUIPPED_APPEARANCE.put("DD", "Dagger");
+    KNOWN_EQUIPPED_APPEARANCE.put("F0", "Flail (alternate 1)");
+    KNOWN_EQUIPPED_APPEARANCE.put("F1", "Flail (alternate 2)");
+    KNOWN_EQUIPPED_APPEARANCE.put("F2", "Flaming sword (blue)");
+    KNOWN_EQUIPPED_APPEARANCE.put("F3", "Flail (alternate 3");
+    KNOWN_EQUIPPED_APPEARANCE.put("FL", "Flail");
+    KNOWN_EQUIPPED_APPEARANCE.put("FS", "Flaming sword");
+    KNOWN_EQUIPPED_APPEARANCE.put("GS", "Glowing staff");
+    KNOWN_EQUIPPED_APPEARANCE.put("H0", "Helmet 1");
+    KNOWN_EQUIPPED_APPEARANCE.put("H1", "Helmet 2");
+    KNOWN_EQUIPPED_APPEARANCE.put("H2", "Helmet 3");
+    KNOWN_EQUIPPED_APPEARANCE.put("H3", "Helmet 4");
+    KNOWN_EQUIPPED_APPEARANCE.put("H4", "Helmet 5");
+    KNOWN_EQUIPPED_APPEARANCE.put("H5", "Helmet 6");
+    KNOWN_EQUIPPED_APPEARANCE.put("H6", "Helmet 7");
+    KNOWN_EQUIPPED_APPEARANCE.put("H7", "Helmet 8");
+    KNOWN_EQUIPPED_APPEARANCE.put("HB", "Halberd");
+    KNOWN_EQUIPPED_APPEARANCE.put("J0", "Helmet 9");
+    KNOWN_EQUIPPED_APPEARANCE.put("J1", "Helmet 10");
+    KNOWN_EQUIPPED_APPEARANCE.put("J2", "Helmet 11");
+    KNOWN_EQUIPPED_APPEARANCE.put("J3", "Helmet 12");
+    KNOWN_EQUIPPED_APPEARANCE.put("J4", "Helmet 13");
+    KNOWN_EQUIPPED_APPEARANCE.put("J5", "Helmet 14");
+    KNOWN_EQUIPPED_APPEARANCE.put("J6", "Helmet 15");
+    KNOWN_EQUIPPED_APPEARANCE.put("J7", "Helmet 16");
+    KNOWN_EQUIPPED_APPEARANCE.put("J8", "Helmet 17");
+    KNOWN_EQUIPPED_APPEARANCE.put("J9", "Helmet 18");
+    KNOWN_EQUIPPED_APPEARANCE.put("JA", "Helmet 19");
+    KNOWN_EQUIPPED_APPEARANCE.put("JB", "Circlet");
+    KNOWN_EQUIPPED_APPEARANCE.put("JC", "Helmet 20");
+    KNOWN_EQUIPPED_APPEARANCE.put("M2", "Mace (alternate)");
+    KNOWN_EQUIPPED_APPEARANCE.put("MC", "Mace");
+    KNOWN_EQUIPPED_APPEARANCE.put("MS", "Morning star");
+    KNOWN_EQUIPPED_APPEARANCE.put("Q2", "Quarterstaff (alternate 1)");
+    KNOWN_EQUIPPED_APPEARANCE.put("Q3", "Quarterstaff (alternate 2)");
+    KNOWN_EQUIPPED_APPEARANCE.put("Q4", "Quarterstaff (alternate 3)");
+    KNOWN_EQUIPPED_APPEARANCE.put("QS", "Quarterstaff");
+    KNOWN_EQUIPPED_APPEARANCE.put("S0", "Bastard sword");
+    KNOWN_EQUIPPED_APPEARANCE.put("S1", "Long sword");
+    KNOWN_EQUIPPED_APPEARANCE.put("S2", "Two-handed sword");
+    KNOWN_EQUIPPED_APPEARANCE.put("S3", "Katana");
+    KNOWN_EQUIPPED_APPEARANCE.put("SC", "Scimitar");
+    KNOWN_EQUIPPED_APPEARANCE.put("SL", "Sling");
+    KNOWN_EQUIPPED_APPEARANCE.put("SP", "Spear");
+    KNOWN_EQUIPPED_APPEARANCE.put("SS", "Short sword");
+    KNOWN_EQUIPPED_APPEARANCE.put("WH", "War hammer");
+    KNOWN_EQUIPPED_APPEARANCE.put("YW", "Wings (male)");
+    KNOWN_EQUIPPED_APPEARANCE.put("ZW", "Wings (female)");
 
     // static properties are always available
     initStaticProperties();
@@ -937,6 +1025,55 @@ public final class Profile implements FileWatcher.FileWatchListener
       retVal[i] = list.get(i);
     }
 
+    return retVal;
+  }
+
+  /**
+   * Returns a map of equipped appearance codes with associated descriptions.
+   */
+  public static Map<String, String> getEquippedAppearanceMap()
+  {
+    Map<String, String> retVal = getProperty(Key.GET_GAME_EQUIPPED_APPEARANCES);
+    if (retVal == null) {
+      Set<String> codes = new HashSet<>();
+      // determine armor types
+      List<ResourceEntry> entries = ResourceFactory.getResources(Pattern.compile(".[DHEIO][FM][BCFTW][^1]G1\\.BAM", Pattern.CASE_INSENSITIVE));
+      for (final ResourceEntry entry: entries) {
+        String code = entry.getResourceName().substring(4, 5).toUpperCase(Locale.ENGLISH);
+        codes.add(code + "A");
+        codes.add(code + "W");
+      }
+      // determine weapon types
+      entries = ResourceFactory.getResources(Pattern.compile("W[PQ][LMS]..G1\\.BAM", Pattern.CASE_INSENSITIVE));
+      for (final ResourceEntry entry: entries) {
+        codes.add(entry.getResourceName().substring(3, 5).toUpperCase(Locale.ENGLISH));
+      }
+
+      // fall back to fixed list if needed
+      if (codes.isEmpty()) {
+        codes.add("AX");
+        codes.add("CB");
+        codes.add("CL");
+        codes.add("DD");
+        codes.add("S1");
+        codes.add("WH");
+      }
+
+      // space for "no type"
+      codes.add("  ");
+
+      retVal = new TreeMap<String, String>();
+      for (final String code: codes) {
+        String desc = KNOWN_EQUIPPED_APPEARANCE.get(code);
+        if (desc != null) {
+          retVal.put(code, desc);
+        } else {
+          retVal.put(code, "Unknown (" + code + ")");
+        }
+      }
+
+      addEntry(Key.GET_GAME_EQUIPPED_APPEARANCES, Type.MAP, retVal);
+    }
     return retVal;
   }
 
