@@ -262,14 +262,15 @@ public final class EffectFactory
                                                   "Amount HP per round"};
   public static final String[] s_savetype = {"No save", "Spell", "Breath weapon",
                                              "Paralyze/Poison/Death", "Rod/Staff/Wand",
-                                             "Petrify/Polymorph", "", "", "",
-                                             "", "", "EE: Ignore primary", "EE: Ignore secondary",
+                                             "Petrify/Polymorph", "", "", "", "", "",
+                                             "EE: Ignore primary target;Line AoE projectile doesn't affect end target",
+                                             "EE: Ignore secondary target;Line AoE projectile doesn't affect bystanders",
                                              "", "", "", "", "", "", "", "", "", "", "", "",
                                              "EE/Ex: Bypass mirror image", "EE: Ignore difficulty"};
   public static final String[] s_savetype_tobex = {"No save", "Spell", "Breath weapon",
                                                    "Paralyze/Poison/Death", "Rod/Staff/Wand",
                                                    "Petrify/Polymorph", "", "", "",
-                                                   "", "", "EE: Ignore primary", "EE: Ignore secondary",
+                                                   "", "", "", "",
                                                    "", "", "", "", "", "", "", "", "", "", "", "",
                                                    "EE/Ex: Bypass mirror image", "Ex: Limit stacking"};
   public static final String[] s_savetype2 = {"No save", "", "", "Fortitude", "Reflex", "Will"};
@@ -3155,7 +3156,11 @@ public final class EffectFactory
       case 313: // High-level ability
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
-        restype = "SPL";
+        if (effectType == 258 || effectType == 260) {
+          restype = "ITM:SPL";
+        } else {
+          restype = "SPL";
+        }
         break;
 
       case 213: // Maze
@@ -3684,7 +3689,7 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset + 4, 4, "Type",
                            new String[]{"Default", "Equipped effects list only",
                                         "Timed effects list only"}));
-          restype = "SPL";
+          restype = "ITM:SPL";
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
