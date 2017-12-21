@@ -25,11 +25,13 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
   // Effect-specific field labels
   public static final String EFFECT                   = Effect.EFFECT;
   public static final String EFFECT_PRIMARY_TYPE      = "Primary type (school)";
+  public static final String EFFECT_USED_INTERNALLY   = "Used internally";
   public static final String EFFECT_MIN_LEVEL         = "Minimum level";
   public static final String EFFECT_MAX_LEVEL         = "Maximum level";
   public static final String EFFECT_DISPEL_TYPE       = "Dispel/Resistance";
   public static final String EFFECT_PARAMETER_3       = "Parameter 3";
   public static final String EFFECT_PARAMETER_4       = "Parameter 4";
+  public static final String EFFECT_PARAMETER_5       = "Parameter 5 (unused)";
   public static final String EFFECT_TIME_APPLIED      = "Time applied (ticks)";
   public static final String EFFECT_RESOURCE_2        = "Resource 2";
   public static final String EFFECT_RESOURCE_3        = "Resource 3";
@@ -64,18 +66,22 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
   public static int readCommon(List<StructEntry> list, ByteBuffer buffer, int offset)
   {
     list.add(new PriTypeBitmap(buffer, offset, 4, EFFECT_PRIMARY_TYPE));
-    list.add(new Unknown(buffer, offset + 4, 4));
+    if (Profile.isEnhancedEdition()) {
+      list.add(new DecNumber(buffer, offset + 4, 4, EFFECT_USED_INTERNALLY));
+    } else {
+      list.add(new DecNumber(buffer, offset + 4, 4, COMMON_UNUSED));
+    }
     list.add(new DecNumber(buffer, offset + 8, 4, EFFECT_MIN_LEVEL));
     list.add(new DecNumber(buffer, offset + 12, 4, EFFECT_MAX_LEVEL));
 //    list.add(new Flag(buffer, offset + 16, 4, EFFECT_DISPEL_TYPE, s_dispel));
     list.add(new Bitmap(buffer, offset + 16, 4, EFFECT_DISPEL_TYPE, s_dispel));
     list.add(new DecNumber(buffer, offset + 20, 4, EFFECT_PARAMETER_3));
     list.add(new DecNumber(buffer, offset + 24, 4, EFFECT_PARAMETER_4));
-    list.add(new Unknown(buffer, offset + 28, 4));
+    list.add(new DecNumber(buffer, offset + 28, 4, EFFECT_PARAMETER_5));
     if (Profile.isEnhancedEdition()) {
       list.add(new DecNumber(buffer, offset + 32, 4, EFFECT_TIME_APPLIED));
     } else {
-      list.add(new Unknown(buffer, offset + 32, 4));
+      list.add(new DecNumber(buffer, offset + 32, 4, COMMON_UNUSED));
     }
     list.add(new TextString(buffer, offset + 36, 8, EFFECT_RESOURCE_2));
     list.add(new TextString(buffer, offset + 44, 8, EFFECT_RESOURCE_3));
@@ -102,8 +108,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     list.add(new DecNumber(buffer, offset + 124, 4, EFFECT_CASTER_LEVEL));
     list.add(new Flag(buffer, offset + 128, 4, EFFECT_INTERNAL_FLAGS, null));
     list.add(new SecTypeBitmap(buffer, offset + 132, 4, EFFECT_SECONDARY_TYPE));
-    list.add(new Unknown(buffer, offset + 136, 4));
-    list.add(new Unknown(buffer, offset + 140, 56));
+    list.add(new Unknown(buffer, offset + 136, 60));
     return offset + 196;
   }
 
