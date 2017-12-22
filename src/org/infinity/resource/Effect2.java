@@ -5,6 +5,7 @@
 package org.infinity.resource;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -122,6 +123,11 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     super(superStruct, EFFECT + " " + number, buffer, offset);
   }
 
+  public Effect2(AbstractStruct superStruct, ByteBuffer buffer, int offset, String name) throws Exception
+  {
+    super(superStruct, name, buffer, offset);
+  }
+
 //--------------------- Begin Interface AddRemovable ---------------------
 
   @Override
@@ -148,6 +154,53 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     addToList(getList().size() - 1, list);
 
     return offset;
+  }
+
+  /**
+   * Creates a copy of the current structure, optionally converted to the EFF V1.0 format.
+   * @param asV2 {@code true} if result should be of {@link Effect} type.
+   * @return A copy of the current instance.
+   * @throws Exception
+   */
+  public Object clone(boolean asV1) throws Exception
+  {
+    StructEntry retVal = null;
+
+    if (asV1) {
+      ByteBuffer src = getDataBuffer().order(ByteOrder.LITTLE_ENDIAN);
+      ByteBuffer dst = StreamUtils.getByteBuffer(48);
+      byte[] resref = new byte[8];
+
+      dst.putShort((short)src.getInt(0x08)); // Type
+      dst.put((byte)src.getInt(0x0c)); // Target
+      dst.put((byte)src.getInt(0x10)); // Power
+      dst.putInt(src.getInt(0x14));  // Parameter 1
+      dst.putInt(src.getInt(0x18));  // Parameter 2
+      dst.put((byte)src.getInt(0x1c)); // Timing mode
+      dst.put((byte)src.getInt(0x54)); // Dispel/Resistance
+      dst.putInt(src.getInt(0x20));  // Duration
+      dst.put((byte)src.getShort(0x24));  // Probability 1
+      dst.put((byte)src.getShort(0x26));  // Probability 2
+      src.position(0x28);
+      src.get(resref);
+      dst.put(resref);  // Resource
+      src.position(0);
+      dst.putInt(src.getInt(0x30));  // # dice thrown/maximum level
+      dst.putInt(src.getInt(0x34));  // Dice size/minimum level
+      dst.putInt(src.getInt(0x38));  // Save type
+      dst.putInt(src.getInt(0x3c));  // Save bonus
+      dst.putInt(src.getInt(0x40));  // Special
+      dst.position(0);
+
+      int offset = getOffset();
+      retVal = new Effect(null, dst, 0, getName());
+      retVal.setOffset(offset);
+      ((AbstractStruct)retVal).realignStructOffsets();
+    } else {
+      retVal = (StructEntry)clone();
+    }
+
+    return retVal;
   }
 }
 

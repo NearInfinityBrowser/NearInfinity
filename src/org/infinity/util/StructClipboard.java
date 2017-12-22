@@ -10,10 +10,17 @@ import java.util.List;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.infinity.datatype.IsNumeric;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.resource.Effect;
+import org.infinity.resource.Effect2;
 import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.are.ProEffect;
+import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.itm.ItmResource;
+import org.infinity.resource.spl.SplResource;
 
 public final class StructClipboard
 {
@@ -155,15 +162,23 @@ public final class StructClipboard
       }
       if (targetClasses == null)
         targetClasses = new AddRemovable[0];
-      for (int i = 0; i < contents.size(); i++) {
-        Class<? extends StructEntry> c = contents.get(i).getClass();
+      for (final StructEntry entry: contents) {
+        if (entry instanceof AddRemovable) {
+          if (canConvertToEffectV1(struct, (AddRemovable)entry) ||
+              canConvertToEffectV2(struct, (AddRemovable)entry)) {
+            return CLIPBOARD_ENTRIES;
+          }
+        }
+
+        Class<? extends StructEntry> c = entry.getClass();
         boolean found = false;
         for (final AddRemovable targetClass : targetClasses) {
           if (targetClass != null && c.equals(targetClass.getClass()))
             found = true;
         }
-        if (!found)
+        if (!found) {
           return CLIPBOARD_EMPTY;
+        }
       }
       return CLIPBOARD_ENTRIES;
     }
@@ -174,7 +189,17 @@ public final class StructClipboard
     int lastIndex = 0;
     try {
       for (int i = 0; i < contents.size(); i++) {
-        AddRemovable pasteEntry = (AddRemovable)contents.get(i).clone();
+        AddRemovable pasteEntry = (AddRemovable)contents.get(i);
+
+        // Convert between effect type 1 and 2 if needed
+        if (canConvertToEffectV1(targetStruct, pasteEntry)) {
+          pasteEntry = (Effect)((Effect2)pasteEntry).clone(true);
+        } else if (canConvertToEffectV2(targetStruct, pasteEntry)) {
+          pasteEntry = (Effect2)((Effect)pasteEntry).clone(true);
+        } else {
+          pasteEntry = (AddRemovable)pasteEntry.clone();
+        }
+
         int index = targetStruct.getDatatypeIndex(pasteEntry);
         if (targetStruct.isCompatibleDatatypeSelection(pasteEntry)) {
           index += i;
@@ -221,6 +246,27 @@ public final class StructClipboard
   public void removeChangeListener(ChangeListener listener)
   {
     listeners.remove(listener);
+  }
+
+  // Returns whether "entry" is EFF V2 and can be converted to EFF V1
+  private boolean canConvertToEffectV1(AbstractStruct target, AddRemovable entry)
+  {
+    return (entry instanceof Effect2) &&
+            ((target instanceof SplResource) ||
+             (target instanceof ItmResource) ||
+             (target instanceof org.infinity.resource.itm.Ability) ||
+             (target instanceof org.infinity.resource.spl.Ability) ||
+             (target instanceof CreResource &&
+              ((IsNumeric)target.getAttribute(CreResource.CRE_EFFECT_VERSION)).getValue() == 0));
+  }
+
+  // Returns whether "entry" is EFF V1 and can be converted to EFF V2
+  private boolean canConvertToEffectV2(AbstractStruct target, AddRemovable entry)
+  {
+    return (entry instanceof Effect) &&
+            ((target instanceof ProEffect) ||
+             (target instanceof CreResource &&
+              ((IsNumeric)target.getAttribute(CreResource.CRE_EFFECT_VERSION)).getValue() == 1));
   }
 
   private void fireStateChanged()
