@@ -1602,7 +1602,8 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 568, 1, CRE_MORALE_BREAK));
     addField(new IdsBitmap(buffer, offset + 569, 1, CRE_RACIAL_ENEMY, "RACE.IDS"));
     addField(new DecNumber(buffer, offset + 570, 2, CRE_MORALE_RECOVERY));
-    if (ResourceFactory.resourceExists("KIT.IDS")) {
+    if (Profile.getGame() != Profile.Game.PSTEE &&
+        ResourceFactory.resourceExists("KIT.IDS")) {
       addField(new KitIdsBitmap(buffer, offset + 572, CRE_KIT));
     }
     else {
