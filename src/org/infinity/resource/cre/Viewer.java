@@ -30,6 +30,7 @@ import org.infinity.gui.ViewerUtil.ListValueRenderer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Effect;
 import org.infinity.resource.Effect2;
+import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 
@@ -48,7 +49,8 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RACE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CLASS), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GENDER), gbl, gbc, true);
-    if (ResourceFactory.resourceExists("KIT.IDS")) {
+    if (Profile.getGame() != Profile.Game.PSTEE &&
+        ResourceFactory.resourceExists("KIT.IDS")) {
       ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_KIT), gbl, gbc, true);
     } else {
       ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_MAGE_TYPE), gbl, gbc, true);
