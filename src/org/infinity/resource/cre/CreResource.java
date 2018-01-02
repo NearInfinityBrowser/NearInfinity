@@ -1431,13 +1431,14 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 28, 2, CRE_HP_CURRENT));
     addField(new DecNumber(buffer, offset + 30, 2, CRE_HP_MAX));
     addField(new AnimateBitmap(buffer, offset + 32, 4, CRE_ANIMATION, "ANIMATE.IDS"));
-    addField(new ColorValue(buffer, offset + 36, 1, CRE_COLOR_METAL));
-    addField(new ColorValue(buffer, offset + 37, 1, CRE_COLOR_MINOR));
-    addField(new ColorValue(buffer, offset + 38, 1, CRE_COLOR_MAJOR));
-    addField(new ColorValue(buffer, offset + 39, 1, CRE_COLOR_SKIN));
-    addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER));
-    addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR));
-    addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
+    String bmpFile = (Profile.getGame() == Profile.Game.PSTEE && version.equals("V1.0")) ? "PAL32.BMP" : null;
+    addField(new ColorValue(buffer, offset + 36, 1, CRE_COLOR_METAL, bmpFile));
+    addField(new ColorValue(buffer, offset + 37, 1, CRE_COLOR_MINOR, bmpFile));
+    addField(new ColorValue(buffer, offset + 38, 1, CRE_COLOR_MAJOR, bmpFile));
+    addField(new ColorValue(buffer, offset + 39, 1, CRE_COLOR_SKIN, bmpFile));
+    addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER, bmpFile));
+    addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR, bmpFile));
+    addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR, bmpFile));
     Bitmap effect_version = (Bitmap)addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
@@ -1653,8 +1654,10 @@ public final class CreResource extends AbstractStruct
       addField(new DecNumber(buffer, offset + 727, 1, CRE_NUM_COLORS));
       addField(new Flag(buffer, offset + 728, 4, CRE_ATTRIBUTES, s_attributes_pst));
       for (int i = 0; i < 7; i++) {
-        addField(new IdsBitmap(buffer, offset + 732 + (i * 2), 2,
-                               String.format(CRE_COLOR_FMT, i+1), "CLOWNCLR.IDS"));
+        addField(new ColorValue(buffer, offset + 732 + (i * 2), 2, String.format(CRE_COLOR_FMT, i+1),
+                                "PAL32.BMP"));
+//        addField(new IdsBitmap(buffer, offset + 732 + (i * 2), 2,
+//                               String.format(CRE_COLOR_FMT, i+1), "CLOWNCLR.IDS"));
       }
       addField(new Unknown(buffer, offset + 746, 3));
       for (int i = 0; i < 7; i++) {

@@ -7,6 +7,7 @@ package org.infinity.datatype;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -53,6 +54,9 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.IdsMap;
+import org.infinity.util.IdsMapCache;
+import org.infinity.util.IdsMapEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
@@ -64,15 +68,33 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
 
   private int number;
   private JList<Image> colorList;
+  private ResourceEntry colorEntry; // the source of color ranges
+  private IdsMap colorMap;          // provides an optional symbolic color name
+
+  public ColorValue(ByteBuffer buffer, int offset, int length, String name, String bmpFile)
+  {
+    this(null, buffer, offset, length, name, bmpFile);
+  }
 
   public ColorValue(ByteBuffer buffer, int offset, int length, String name)
   {
-    this(null, buffer, offset, length, name);
+    this(null, buffer, offset, length, name, null);
   }
 
   public ColorValue(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
   {
+    this(parent, buffer, offset, length, name, null);
+  }
+
+  public ColorValue(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, String bmpFile)
+  {
     super(parent, offset, length, name);
+    if (bmpFile != null && ResourceFactory.resourceExists(bmpFile)) {
+      this.colorEntry = ResourceFactory.getResourceEntry(bmpFile);
+    }
+    if (ResourceFactory.resourceExists("CLOWNCLR.IDS")) {
+      this.colorMap = IdsMapCache.get("CLOWNCLR.IDS");
+    }
     read(buffer, offset);
   }
 
@@ -81,8 +103,9 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
  @Override
  public JComponent edit(ActionListener container)
  {
-   colorList = new JList<Image>(new ColorListModel(DEFAULT_COLOR_WIDTH, DEFAULT_COLOR_HEIGHT));
-   colorList.setCellRenderer(new ColorCellRenderer());
+   int defaultColorWidth = (colorEntry == null) ? DEFAULT_COLOR_WIDTH : 0;
+   colorList = new JList<Image>(new ColorListModel(defaultColorWidth, DEFAULT_COLOR_HEIGHT, colorEntry));
+   colorList.setCellRenderer(new ColorCellRenderer(colorMap));
    colorList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
    colorList.setBorder(BorderFactory.createLineBorder(Color.GRAY));
    colorList.addMouseListener(new MouseAdapter() {
@@ -125,8 +148,9 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
                            GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
    panel.add(bUpdate, gbc);
 
-   panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
-   panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
+   Dimension dim = (colorMap != null) ? new Dimension(DIM_MEDIUM.width + 100, DIM_MEDIUM.height) : DIM_MEDIUM;
+   panel.setMinimumSize(Misc.getScaledDimension(dim));
+   panel.setPreferredSize(Misc.getScaledDimension(dim));
 
    return panel;
  }
@@ -208,7 +232,60 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
   @Override
   public String toString()
   {
-    return "Color index " + Integer.toString(number);
+    String retVal = "Color index " + Integer.toString(number);
+    String name = lookupColorName(colorMap, number, true);
+    if (name != null) {
+      retVal += " (" + name + ")";
+    }
+    return retVal;
+  }
+
+  /**
+   * Returns a symbolic color name based on the specified IDS lookup.
+   * Returns {@code null} if no lookup table is available.
+   */
+  public static String lookupColorName(IdsMap colorMap, int index, boolean prettify)
+  {
+    String retVal = null;
+    if (colorMap != null) {
+      IdsMapEntry e = colorMap.get(index);
+      if (e != null) {
+        retVal = prettify ? prettifyIdsSymbol(e.getSymbol()) : e.getSymbol();
+      } else {
+        retVal = "Unknown";
+      }
+    }
+    return retVal;
+  }
+
+  private static String prettifyIdsSymbol(String symbol)
+  {
+    if (symbol != null) {
+      StringBuilder sb = new StringBuilder(symbol);
+      boolean upper = true;
+      for (int idx = 0, len = sb.length(); idx < len; idx++) {
+        char ch = sb.charAt(idx);
+        if (upper) {
+          ch = Character.toUpperCase(ch);
+          upper = false;
+        } else {
+          ch = Character.toLowerCase(ch);
+        }
+        if (" ,-_".indexOf(ch) >= 0) {
+          if (ch == '_') ch =  ' ';
+          if (ch == '-') {
+            sb.insert(idx, " -");
+            ch = ' ';
+            idx += 2;
+            len += 2;
+          }
+          upper = true;
+        }
+        sb.setCharAt(idx, ch);
+      }
+      symbol = sb.toString();
+    }
+    return symbol;
   }
 
 //-------------------------- INNER CLASSES --------------------------
@@ -217,9 +294,12 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
   {
     private static final Border DEFAULT_NO_FOCUS_BORDER = new EmptyBorder(1, 1, 1, 1);
 
-    public ColorCellRenderer()
+    private final IdsMap colorMap;
+
+    public ColorCellRenderer(IdsMap colorMap)
     {
       super();
+      this.colorMap = colorMap;
       setVerticalAlignment(SwingConstants.CENTER);
       setHorizontalTextPosition(SwingConstants.RIGHT);
       setVerticalTextPosition(SwingConstants.CENTER);
@@ -238,7 +318,12 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
         setForeground(list.getForeground());
       }
 
-      setText("Index " + index);
+      String label = "Index " + index;
+      String name = lookupColorName(colorMap, index, true);
+      if (name != null) {
+        label += " (" + name + ")";
+      }
+      setText(label);
       if (value instanceof Image) {
         setIcon(new ImageIcon((Image)value));
       } else {
@@ -273,9 +358,9 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
     private final HashSet<Integer> randomColors = new HashSet<>();
     private final List<Image> colors = new ArrayList<>(256);
 
-    public ColorListModel(int defaultWidth, int defaultHeight)
+    public ColorListModel(int defaultWidth, int defaultHeight, ResourceEntry colorsEntry)
     {
-      initEntries(defaultWidth, defaultHeight);
+      initEntries(defaultWidth, defaultHeight, colorsEntry);
     }
 
     @Override
@@ -293,13 +378,14 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
       return null;
     }
 
-    private void initEntries(int defaultWidth, int defaultHeight)
+    private void initEntries(int defaultWidth, int defaultHeight, ResourceEntry colorsEntry)
     {
-      ResourceEntry colorsEntry = null;
-      if (ResourceFactory.resourceExists("RANGES12.BMP")) {
-        colorsEntry = ResourceFactory.getResourceEntry("RANGES12.BMP");
-      } else if (ResourceFactory.resourceExists("MPALETTE.BMP")) {
-        colorsEntry = ResourceFactory.getResourceEntry("MPALETTE.BMP");
+      if (colorsEntry == null) {
+        if (ResourceFactory.resourceExists("RANGES12.BMP")) {
+          colorsEntry = ResourceFactory.getResourceEntry("RANGES12.BMP");
+        } else if (ResourceFactory.resourceExists("MPALETTE.BMP")) {
+          colorsEntry = ResourceFactory.getResourceEntry("MPALETTE.BMP");
+        }
       }
 
       ResourceEntry randomEntry = null;
@@ -312,6 +398,10 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
         BufferedImage image = null;
         try {
           image = new GraphicsResource(colorsEntry).getImage();
+          if (defaultWidth <= 0) {
+            // auto-calculate color width
+            defaultWidth = 192 / image.getWidth();
+          }
           for (int y = 0; y < image.getHeight(); y++) {
             BufferedImage range = new BufferedImage(image.getWidth() * defaultWidth, defaultHeight, image.getType());
             Graphics2D g = range.createGraphics();
