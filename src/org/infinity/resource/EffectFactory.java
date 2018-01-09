@@ -1807,7 +1807,6 @@ public final class EffectFactory
       case 4: // Cure berserk
       case 11: // Cure poison
       case 14: // Defrost
-      case 32: // Raise dead
       case 38: // Silence
       case 40: // Slow
       case 43: // Stone to flesh
@@ -2117,6 +2116,15 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.PST) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Curse type",
                            new String[]{"Normal", "Jumble curse"}));
+        } else {
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+        }
+        break;
+
+      case 32: // Raise dead
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        if (Profile.isEnhancedEdition()) {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Restore creature animation?", s_noyes));
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
