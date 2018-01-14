@@ -77,8 +77,8 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
   private static final String[] FILETYPES = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE",
                                              "DLG", "EFF", "INI", "ITM", "PRO", "SPL", "STO",
                                              "VEF", "VVC", "WED", "WMP"};
-  private static final String[] CHECKTYPES = {"ARE", "BCS", "CRE", "DLG", "EFF", "ITM", "PRO", "SPL", "STO",
-                                              "TIS", "VEF", "VVC", "WAV", "WED"};
+  private static final String[] CHECKTYPES = {"ARE", "BAM", "BCS", "CRE", "DLG", "EFF", "ITM", "PRO",
+                                              "SPL", "STO", "TIS", "VEF", "VVC", "WAV", "WED"};
   private final ChildFrame selectframe = new ChildFrame("Find unused files", true);
   private final JButton bstart = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
   private final JButton bcancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
@@ -306,7 +306,9 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
                 ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
                 Resource resource = ResourceFactory.getResource(resourceEntry);
                 new ViewFrame(resultFrame, resource);
-                ((AbstractStruct)resource).getViewer().selectEntry((String)table.getValueAt(row, 1));
+                if (resource instanceof AbstractStruct) {
+                  ((AbstractStruct)resource).getViewer().selectEntry((String)table.getValueAt(row, 1));
+                }
               }
             }
           }
