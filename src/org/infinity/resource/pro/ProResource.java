@@ -70,7 +70,8 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   public static final String[] s_behave = {"No flags set", "Show sparks", "Use height",
                                             "Loop fire sound", "Loop impact sound", "Ignore center",
                                             "Draw as background",
-                                            "EE: Allow saving;Allows you to save the game while the projectile is still active."};
+                                            "EE: Allow saving;Allows you to save the game while the projectile is still active.",
+                                            "EE: Loop spread animation"};
   public static final String[] s_flagsEx = {
     "No flags set", "Bounce from walls", "Pass target", "Draw center VVC once", "Hit immediately",
     "Face target", "Curved path", "Start random frame", "Pillar", "Semi-trans. trail puff VEF",
