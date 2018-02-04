@@ -146,6 +146,9 @@ public final class Profile implements FileWatcher.FileWatchListener
     /** Property: ({@code List<String>}) Returns a list of extra folders for the specified game.
      *            Extra parameter: Desired {@link Game}. */
     GET_GLOBAL_EXTRA_FOLDER_NAMES,
+    /** Property: ({@code List<String>}) Returns a list of save folders for the specified game.
+     *            Extra parameter: Desired {@link Game}. */
+    GET_GLOBAL_SAVE_FOLDER_NAMES,
     /** Property: ({@code String}) Returns the game's home folder name.
      *            Extra parameter: Desired <em>Enhanced Edition</em> {@link Game}. */
     GET_GLOBAL_HOME_FOLDER_NAME,
@@ -189,6 +192,8 @@ public final class Profile implements FileWatcher.FileWatchListener
      *            sorted by root folder priority (in descending order) and
      *            alphabetically in ascending order. */
     GET_GAME_EXTRA_FOLDERS,
+    /** Property: ({@code List<String>}) List of save folder names, sorted alphabetically in ascending order. */
+    GET_GAME_SAVE_FOLDER_NAMES,
     /** Property: ({@code Path}) The game's {@code chitin.key}. */
     GET_GAME_CHITIN_KEY,
     /** Property: ({@code List<Path>}) List of {@code mod.key} files of available DLCs
@@ -392,6 +397,8 @@ public final class Profile implements FileWatcher.FileWatchListener
   private static final EnumMap<Game, String> GAME_TITLE = new EnumMap<Game, String>(Game.class);
   // List of supported extra folders for all supported games
   private static final EnumMap<Game, List<String>> GAME_EXTRA_FOLDERS = new EnumMap<Game, List<String>>(Game.class);
+  // List of supported saved game folders for all supported games
+  private static final EnumMap<Game, List<String>> GAME_SAVE_FOLDERS = new EnumMap<Game, List<String>>(Game.class);
   // Home folder name for Enhanced Edition Games
   private static final EnumMap<Game, String> GAME_HOME_FOLDER = new EnumMap<Game, String>(Game.class);
   // Set of resource extensions supported by Infinity Engine games
@@ -447,6 +454,27 @@ public final class Profile implements FileWatcher.FileWatchListener
     GAME_EXTRA_FOLDERS.put(Game.IWDEE, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.PSTEE, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
     GAME_EXTRA_FOLDERS.put(Game.EET, new ArrayList<>(Arrays.asList(EE_EXTRA_FOLDERS)));
+
+    final String[] BG_SAVE_FOLDERS  = { "MPSave", "Save" };
+    final String[] EE_SAVE_FOLDERS  = { "BPSave", "MPBPSave", "MPSave", "Save" };
+    GAME_SAVE_FOLDERS.put(Game.Unknown, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.BG1, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.BG1TotSC, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.BG2SoA, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.BG2ToB, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.Tutu, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.BGT, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.PST, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.IWD, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.IWDHoW, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.IWDHowTotLM, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.IWD2, new ArrayList<>(Arrays.asList(BG_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.BG1EE, new ArrayList<>(Arrays.asList(EE_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.BG1SoD, new ArrayList<>(Arrays.asList(EE_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.BG2EE, new ArrayList<>(Arrays.asList(EE_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.IWDEE, new ArrayList<>(Arrays.asList(EE_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.PSTEE, new ArrayList<>(Arrays.asList(EE_SAVE_FOLDERS)));
+    GAME_SAVE_FOLDERS.put(Game.EET, new ArrayList<>(Arrays.asList(EE_SAVE_FOLDERS)));
 
     // initializing home folder names for Enhanced Edition games
     GAME_HOME_FOLDER.put(Game.BG1EE, "Baldur's Gate - Enhanced Edition");
@@ -656,6 +684,7 @@ public final class Profile implements FileWatcher.FileWatchListener
         switch (key) {
           case GET_GLOBAL_GAME_TITLE:
           case GET_GLOBAL_EXTRA_FOLDER_NAMES:
+          case GET_GLOBAL_SAVE_FOLDER_NAMES:
           case GET_GLOBAL_HOME_FOLDER_NAME:
             if (param instanceof Game) {
               map = prop.getData();
@@ -1077,6 +1106,32 @@ public final class Profile implements FileWatcher.FileWatchListener
     return retVal;
   }
 
+  /**
+   * Returns whether the specified path is a saved game folder or a file belonging to a saved game.
+   * @param relPath Relative path of file or folder to check.
+   * @return {@code true} if the path is a saved game folder or file.
+   */
+  public static boolean isSaveGame(Path relPath)
+  {
+    boolean retVal = false;
+    if (relPath != null) {
+      List<Path> roots = getRootFolders();
+      for (final Path root: roots) {
+        Path savePath = root.resolve(relPath);
+        List<String> folderNames = getProperty(Key.GET_GAME_SAVE_FOLDER_NAMES);
+        for (final String saveFolder: folderNames) {
+          Path saveRootPath = FileManager.queryExisting(root, saveFolder);
+          if (saveRootPath != null && savePath.startsWith(saveRootPath)) {
+            retVal = true;
+            break;
+          }
+        }
+        if (retVal) break;
+      }
+    }
+    return retVal;
+  }
+
   // Returns the Property object assigned to the given key.
   private static Property getEntry(Key  key)
   {
@@ -1113,6 +1168,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     addEntry(Key.GET_GLOBAL_GAMES, Type.LIST, gameList);
     addEntry(Key.GET_GLOBAL_GAME_TITLE, Type.STRING, GAME_TITLE);
     addEntry(Key.GET_GLOBAL_EXTRA_FOLDER_NAMES, Type.LIST, GAME_EXTRA_FOLDERS);
+    addEntry(Key.GET_GLOBAL_SAVE_FOLDER_NAMES, Type.LIST, GAME_SAVE_FOLDERS);
     addEntry(Key.GET_GLOBAL_HOME_FOLDER_NAME, Type.STRING, GAME_HOME_FOLDER);
 
     // setting default override folder name
@@ -1358,6 +1414,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     // adding priliminary game type into storage
     addEntry(Key.GET_GAME_TYPE, Type.OBJECT, game);
     addEntry(Key.GET_GAME_EXTRA_FOLDER_NAMES, Type.LIST, GAME_EXTRA_FOLDERS.get(game));
+    addEntry(Key.GET_GAME_SAVE_FOLDER_NAMES, Type.LIST, GAME_SAVE_FOLDERS.get(game));
 
     // determining game engine
     initGameEngine();
@@ -1872,6 +1929,7 @@ public final class Profile implements FileWatcher.FileWatchListener
 
       // getting save folder names
       List<String> extraNames = getProperty(Key.GET_GAME_EXTRA_FOLDER_NAMES);
+      List<String> saveNames = getProperty(Key.GET_GAME_SAVE_FOLDER_NAMES);
       boolean available = false;
       for (int row = 0; row < table.getRowCount(); row++) {
         String save = table.get(row, col);
@@ -1889,10 +1947,12 @@ public final class Profile implements FileWatcher.FileWatchListener
           if (!checkSave) {
             available = true;
             extraNames.add(save);
+            saveNames.add(save);
           }
           if (!checkMPSave) {
             available = true;
             extraNames.add(mpsave);
+            saveNames.add(mpsave);
           }
         }
       }
@@ -1901,6 +1961,8 @@ public final class Profile implements FileWatcher.FileWatchListener
         // updating extra folder name and path list
         Collections.sort(extraNames);
         updateProperty(Key.GET_GAME_EXTRA_FOLDER_NAMES, extraNames);
+        Collections.sort(saveNames);
+        updateProperty(Key.GET_GAME_SAVE_FOLDER_NAMES, saveNames);
         initExtraFolders();
 
         // adding new paths to resource tree

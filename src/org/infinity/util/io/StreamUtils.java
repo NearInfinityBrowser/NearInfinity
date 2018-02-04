@@ -19,6 +19,8 @@ import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.infinity.util.Misc;
 
@@ -784,5 +786,35 @@ public class StreamUtils
       buffer.position(pos);
     }
     return retVal;
+  }
+
+  /**
+   * Creates a zip file out of the content of {@code sourceDir}.
+   * @param sourceDir The source directory to pack.
+   * @param zipFile Path to the resulting zip file.
+   * @param includeFolder Whether to include the top level folder in the zip archive.
+   * @throws IOException thrown on I/O related errors.
+   */
+  public static void createZip(Path sourceDir, Path zipFile, boolean includeFolder) throws IOException
+  {
+    try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zipFile))) {
+      Path baseDir = includeFolder ? sourceDir.getParent() : sourceDir;
+      Files.walk(sourceDir)
+        .filter(path -> !Files.isDirectory(path))
+        .forEach(path -> {
+          ZipEntry ze = new ZipEntry(baseDir.relativize(path).toString());
+          try {
+            ze.setLastModifiedTime(Files.getLastModifiedTime(path));
+          } catch (IOException e) {
+          }
+          try {
+            zos.putNextEntry(ze);
+            Files.copy(path, zos);
+            zos.closeEntry();
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        });
+    }
   }
 }
