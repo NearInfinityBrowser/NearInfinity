@@ -17,6 +17,8 @@ public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeab
 
   String getName();
 
+  void setName(String newName);
+
   int getOffset();
 
   StructEntry getParent();

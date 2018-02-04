@@ -250,42 +250,12 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
     if (colorMap != null) {
       IdsMapEntry e = colorMap.get(index);
       if (e != null) {
-        retVal = prettify ? prettifyIdsSymbol(e.getSymbol()) : e.getSymbol();
+        retVal = prettify ? Misc.prettifySymbol(e.getSymbol()) : e.getSymbol();
       } else {
         retVal = "Unknown";
       }
     }
     return retVal;
-  }
-
-  private static String prettifyIdsSymbol(String symbol)
-  {
-    if (symbol != null) {
-      StringBuilder sb = new StringBuilder(symbol);
-      boolean upper = true;
-      for (int idx = 0, len = sb.length(); idx < len; idx++) {
-        char ch = sb.charAt(idx);
-        if (upper) {
-          ch = Character.toUpperCase(ch);
-          upper = false;
-        } else {
-          ch = Character.toLowerCase(ch);
-        }
-        if (" ,-_".indexOf(ch) >= 0) {
-          if (ch == '_') ch =  ' ';
-          if (ch == '-') {
-            sb.insert(idx, " -");
-            ch = ' ';
-            idx += 2;
-            len += 2;
-          }
-          upper = true;
-        }
-        sb.setCharAt(idx, ch);
-      }
-      symbol = sb.toString();
-    }
-    return symbol;
   }
 
 //-------------------------- INNER CLASSES --------------------------

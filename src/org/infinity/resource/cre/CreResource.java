@@ -47,6 +47,8 @@ import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnsignDecNumber;
+import org.infinity.datatype.UpdateEvent;
+import org.infinity.datatype.UpdateListener;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.StructViewer;
@@ -70,12 +72,17 @@ import org.infinity.search.SearchOptions;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.IniMap;
+import org.infinity.util.IniMapCache;
+import org.infinity.util.IniMapEntry;
+import org.infinity.util.IniMapSection;
 import org.infinity.util.LongIntegerHashMap;
+import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
 public final class CreResource extends AbstractStruct
-  implements Resource, HasAddRemovable, AddRemovable, HasViewerTabs, ItemListener
+  implements Resource, HasAddRemovable, AddRemovable, HasViewerTabs, ItemListener, UpdateListener
 {
   // CHR-specific field labels
   public static final String CHR_NAME                         = "Character name";
@@ -1430,15 +1437,23 @@ public final class CreResource extends AbstractStruct
     addField(new IdsFlag(buffer, offset + 24, 4, CRE_STATUS, "STATE.IDS"));
     addField(new DecNumber(buffer, offset + 28, 2, CRE_HP_CURRENT));
     addField(new DecNumber(buffer, offset + 30, 2, CRE_HP_MAX));
-    addField(new AnimateBitmap(buffer, offset + 32, 4, CRE_ANIMATION, "ANIMATE.IDS"));
-    String bmpFile = (Profile.getGame() == Profile.Game.PSTEE && version.equals("V1.0")) ? "PAL32.BMP" : null;
-    addField(new ColorValue(buffer, offset + 36, 1, CRE_COLOR_METAL, bmpFile));
-    addField(new ColorValue(buffer, offset + 37, 1, CRE_COLOR_MINOR, bmpFile));
-    addField(new ColorValue(buffer, offset + 38, 1, CRE_COLOR_MAJOR, bmpFile));
-    addField(new ColorValue(buffer, offset + 39, 1, CRE_COLOR_SKIN, bmpFile));
-    addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER, bmpFile));
-    addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR, bmpFile));
-    addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR, bmpFile));
+    AnimateBitmap animate = new AnimateBitmap(buffer, offset + 32, 4, CRE_ANIMATION, "ANIMATE.IDS");
+    if (Profile.getGame() == Profile.Game.PSTEE && version.equals("V1.0")) {
+      // TODO: resolve issues with Listener queue filled with duplicate entries on each "Update" button click
+//      animate.addUpdateListener(this);
+    }
+    addField(animate);
+    if (Profile.getGame() == Profile.Game.PSTEE && version.equals("V1.0")) {
+      setColorFieldsPSTEE(animate.getValue(), buffer, offset + 36, false);
+    } else {
+      addField(new ColorValue(buffer, offset + 36, 1, CRE_COLOR_METAL));
+      addField(new ColorValue(buffer, offset + 37, 1, CRE_COLOR_MINOR));
+      addField(new ColorValue(buffer, offset + 38, 1, CRE_COLOR_MAJOR));
+      addField(new ColorValue(buffer, offset + 39, 1, CRE_COLOR_SKIN));
+      addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER));
+      addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR));
+      addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
+    }
     Bitmap effect_version = (Bitmap)addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
@@ -1936,6 +1951,69 @@ public final class CreResource extends AbstractStruct
 //    }
   }
 
+
+  // Adds or updates CRE color fields, returns offset behind last color field
+  private int setColorFieldsPSTEE(int animId, ByteBuffer buffer, int startOffset, boolean update)
+  {
+    int[] colorTypes = new int[7];
+    if (animId >= 0xf000 && animId < 0x10000) {
+      // determine color types
+      IniMap iniMap = IniMapCache.get(Integer.toHexString(animId) + ".INI");
+      if (iniMap != null) {
+        IniMapSection iniSection = iniMap.getSection("monster_planescape");
+        if (iniSection != null) {
+          IniMapEntry iniEntry = iniSection.getEntry("clown");
+          boolean isClown = (iniEntry != null && Misc.toNumber(iniEntry.getValue(), 0) > 0);
+          iniEntry = null;
+          for (int i = 0; i < colorTypes.length; i++) {
+            if (isClown) {
+              iniEntry = iniSection.getEntry("color" + (i+1));
+            }
+            if (iniEntry != null) {
+              colorTypes[i] = Misc.toNumber(iniEntry.getValue(), -1) >> 4;
+            } else {
+              colorTypes[i] = -1;
+            }
+          }
+        }
+      }
+    }
+
+    // generate color type names
+    String[] colorNames = new String[colorTypes.length];
+    IdsMap idsMap = IdsMapCache.get("CLOWNRGE.IDS");
+    if (idsMap != null) {
+      for (int i = 0; i < colorTypes.length; i++) {
+        if (colorTypes[i] > 0) {
+          IdsMapEntry idsEntry = idsMap.get(colorTypes[i]);
+          if (idsEntry != null) {
+            colorNames[i] = Misc.prettifySymbol(idsEntry.getSymbol()) + " color";
+          } else {
+            colorNames[i] = "Type " + Integer.toHexString(colorTypes[i]).toUpperCase() + " color";
+          }
+        } else {
+          colorNames[i] = "Unused color";
+        }
+      }
+    }
+
+    // add or update color fields
+    for (int i = 0; i < colorTypes.length; i++) {
+      if (update) {
+        StructEntry field = getAttribute(startOffset);
+        if (field instanceof ColorValue) {
+          field.setName(colorNames[i]);
+        }
+        startOffset += field.getSize();
+      } else {
+        addField(new ColorValue(buffer, startOffset, 1, colorNames[i], "PAL32.BMP"));
+        startOffset++;
+      }
+    }
+
+    return startOffset;
+  }
+
   //--------------------- Begin Interface ItemListener ---------------------
 
   @Override
@@ -1952,6 +2030,23 @@ public final class CreResource extends AbstractStruct
   }
 
 //--------------------- End Interface ItemListener ---------------------
+
+//--------------------- Begin Interface UpdateListener ---------------------
+
+  @Override
+  public boolean valueUpdated(UpdateEvent event)
+  {
+    // TODO: Listener queue fills with duplicate entries with each click on AnimateBitmap's "Update" button
+//    boolean retVal = false;
+//    if (event.getSource() instanceof AnimateBitmap) {
+//      AnimateBitmap animate = (AnimateBitmap)event.getSource();
+//      retVal = setColorFieldsPSTEE(animate.getValue(), null, 0x2c, true) > 0;
+//    }
+//    return retVal;
+    return false;
+  }
+
+//--------------------- End Interface UpdateListener ---------------------
 
 
   // Called by "Extended Search"

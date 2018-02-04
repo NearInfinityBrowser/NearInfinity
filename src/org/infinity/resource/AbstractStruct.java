@@ -219,6 +219,16 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   }
 
   @Override
+  public void setName(String newName)
+  {
+    if (newName != null) {
+      name = newName;
+    } else {
+      throw new NullPointerException();
+    }
+  }
+
+  @Override
   public int getOffset()
   {
     return startoffset;

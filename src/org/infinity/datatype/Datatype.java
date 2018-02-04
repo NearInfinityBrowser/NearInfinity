@@ -81,6 +81,16 @@ public abstract class Datatype implements StructEntry
   }
 
   @Override
+  public void setName(String newName)
+  {
+    if (newName != null) {
+      name = newName;
+    } else {
+      throw new NullPointerException();
+    }
+  }
+
+  @Override
   public int getOffset()
   {
     return offset;
