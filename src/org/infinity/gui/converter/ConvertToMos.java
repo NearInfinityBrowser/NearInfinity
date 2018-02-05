@@ -997,13 +997,17 @@ public class ConvertToMos extends ChildFrame
 
     // handling "auto" compression
     DxtEncoder.DxtType dxtType = DxtEncoder.DxtType.DXT1;
-    if (tabPane.getSelectedIndex() == 1 && cbCompression.getSelectedIndex() == 0) {
-      int[] pixels = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
-      for (int i = 0; i < pixels.length; i++) {
-        int alpha = pixels[i] >>> 24;
-        if (alpha > 0x20 && alpha < 0xe0) {
-          dxtType = DxtEncoder.DxtType.DXT5;
-          break;
+    if (tabPane.getSelectedIndex() == 1) {
+      if (cbCompression.getSelectedIndex() == 2) {
+        dxtType = DxtEncoder.DxtType.DXT5;
+      } else {
+        int[] pixels = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
+        for (int i = 0; i < pixels.length; i++) {
+          int alpha = pixels[i] >>> 24;
+          if (alpha > 0x20 && alpha < 0xe0) {
+            dxtType = DxtEncoder.DxtType.DXT5;
+            break;
+          }
         }
       }
     }
