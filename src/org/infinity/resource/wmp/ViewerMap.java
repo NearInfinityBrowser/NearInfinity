@@ -68,6 +68,7 @@ public class ViewerMap extends JPanel
 
   private final JPopupMenu pmOptions = new JPopupMenu("Options");
   private final JCheckBoxMenuItem miShowIcons = new JCheckBoxMenuItem("Show all map icons", true);
+  private final JCheckBoxMenuItem miShowIconLabels = new JCheckBoxMenuItem("Show icons labels", true);
   private final JCheckBoxMenuItem miShowDistances = new JCheckBoxMenuItem("Show travel distances", false);
   private final JCheckBoxMenuItem miScaling =
       new JCheckBoxMenuItem("Scale map icons", Profile.getGame() == Profile.Game.PSTEE);
@@ -107,12 +108,15 @@ public class ViewerMap extends JPanel
 
       miShowIcons.setMnemonic('i');
       miShowIcons.addActionListener(listeners);
+      miShowIconLabels.setMnemonic('l');
+      miShowIconLabels.addActionListener(listeners);
       miShowDistances.setMnemonic('d');
       miShowDistances.addActionListener(listeners);
       miScaling.setMnemonic('s');
       miScaling.addActionListener(listeners);
       miScaling.setToolTipText("Scales map icon locations according to the worldmap's scaling factor. (Needed for some games)");
       pmOptions.add(miShowIcons);
+      pmOptions.add(miShowIconLabels);
       pmOptions.add(miShowDistances);
       pmOptions.add(miScaling);
 
@@ -170,7 +174,7 @@ public class ViewerMap extends JPanel
       }
 
       // applying preselected overlays
-      showOverlays(miShowIcons.isSelected(), miShowDistances.isSelected());
+      showOverlays(miShowIcons.isSelected(), miShowIconLabels.isSelected(), miShowDistances.isSelected());
 
     } finally {
       WindowBlocker.blockWindow(false);
@@ -203,11 +207,14 @@ public class ViewerMap extends JPanel
   }
 
   // display either or both map icons and travel distances
-  private void showOverlays(boolean showIcons, boolean showDistances)
+  private void showOverlays(boolean showIcons, boolean showIconLabels, boolean showDistances)
   {
     resetMap();
     if (showIcons) {
       showMapIcons();
+      if (showIconLabels) {
+        showMapIconLabels();
+      }
       if (showDistances) {
         showMapDistances(listPanel.getList().getSelectedIndex());
       }
@@ -222,10 +229,6 @@ public class ViewerMap extends JPanel
     if (mapIcons != null) {
       Graphics2D g = ((BufferedImage)rcMap.getImage()).createGraphics();
       try {
-        g.setFont(Misc.getScaledFont(g.getFont()));
-        g.setFont(g.getFont().deriveFont(g.getFont().getSize2D()*0.9f));
-
-        // two passes are required to prevent text boxes to be covered by icons
         for (int i = 0, count = listPanel.getList().getModel().getSize(); i < count; i++) {
           AreaEntry area = getAreaEntry(i);
           if (area != null) {
@@ -244,8 +247,21 @@ public class ViewerMap extends JPanel
             }
           }
         }
+      } finally {
+        g.dispose();
+        g = null;
+      }
+    }
+  }
 
-        // second pass
+  // Draws map icon labels onto the map
+  private void showMapIconLabels()
+  {
+    if (mapIcons != null) {
+      Graphics2D g = ((BufferedImage)rcMap.getImage()).createGraphics();
+      try {
+        g.setFont(Misc.getScaledFont(g.getFont()));
+        g.setFont(g.getFont().deriveFont(g.getFont().getSize2D()*0.9f));
         final Color WHITE_BLENDED = new Color(0xc0ffffff, true);
         for (int i = 0, count = listPanel.getList().getModel().getSize(); i < count; i++) {
           AreaEntry area = getAreaEntry(i);
@@ -590,7 +606,17 @@ public class ViewerMap extends JPanel
           if (!miShowIcons.isSelected() && miShowDistances.isSelected()) {
             miShowDistances.setSelected(false);
           }
-          showOverlays(miShowIcons.isSelected(), miShowDistances.isSelected());
+          showOverlays(miShowIcons.isSelected(), miShowIconLabels.isSelected(), miShowDistances.isSelected());
+        } finally {
+          WindowBlocker.blockWindow(false);
+        }
+      } else if (e.getSource() == miShowIconLabels) {
+        WindowBlocker.blockWindow(true);
+        try {
+          if (miShowIconLabels.isSelected() && !miShowIcons.isSelected()) {
+            miShowIcons.setSelected(true);
+          }
+          showOverlays(miShowIcons.isSelected(), miShowIconLabels.isSelected(), miShowDistances.isSelected());
         } finally {
           WindowBlocker.blockWindow(false);
         }
@@ -600,7 +626,7 @@ public class ViewerMap extends JPanel
           if (miShowDistances.isSelected() && !miShowIcons.isSelected()) {
             miShowIcons.setSelected(true);
           }
-          showOverlays(miShowIcons.isSelected(), miShowDistances.isSelected());
+          showOverlays(miShowIcons.isSelected(), miShowIconLabels.isSelected(), miShowDistances.isSelected());
         } finally {
           WindowBlocker.blockWindow(false);
         }
@@ -608,7 +634,7 @@ public class ViewerMap extends JPanel
         try {
           WindowBlocker.blockWindow(true);
           if (miShowIcons.isSelected()) {
-            showOverlays(miShowIcons.isSelected(), miShowDistances.isSelected());
+            showOverlays(miShowIcons.isSelected(), miShowIconLabels.isSelected(), miShowDistances.isSelected());
           }
         } finally {
           WindowBlocker.blockWindow(false);
@@ -685,7 +711,7 @@ public class ViewerMap extends JPanel
       if (!event.getValueIsAdjusting()) {
         JList<?> list = (JList<?>)event.getSource();
         if (miShowDistances.isSelected()) {
-          showOverlays(miShowIcons.isSelected(), miShowDistances.isSelected());
+          showOverlays(miShowIcons.isSelected(), miShowIconLabels.isSelected(), miShowDistances.isSelected());
         } else {
           showDot((AreaEntry)list.getSelectedValue(), true);
         }
