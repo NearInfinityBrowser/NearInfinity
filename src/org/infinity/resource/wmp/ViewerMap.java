@@ -603,6 +603,49 @@ public class ViewerMap extends JPanel
     }
   }
 
+  // Exports current map to PNG
+  private void exportMap()
+  {
+    final Window wnd = SwingUtilities.getWindowAncestor(this);
+    WindowBlocker.blockWindow(wnd, true);
+
+    SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run()
+      {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        boolean bRet = false;
+        try {
+          restoreDot();
+          BufferedImage srcImage = (BufferedImage)rcMap.getImage();
+          BufferedImage dstImage = ColorConvert.createCompatibleImage(srcImage.getWidth(),
+                                                                      srcImage.getHeight(),
+                                                                      srcImage.getTransparency());
+          Graphics2D g = dstImage.createGraphics();
+          g.drawImage(srcImage, 0, 0, null);
+          g.dispose();
+          srcImage = null;
+          bRet = ImageIO.write(dstImage, "png", os);
+          dstImage.flush();
+          dstImage = null;
+        } catch (Exception e) {
+          e.printStackTrace();
+        } finally {
+          showDot((AreaEntry)listPanel.getList().getSelectedValue(), false);
+          WindowBlocker.blockWindow(wnd, false);
+        }
+        if (bRet) {
+          ResourceEntry re = ((AbstractStruct)getEntry().getParent()).getResourceEntry();
+          String fileName = re.getResourceName().toUpperCase(Locale.US).replace(".WMP", ".PNG");
+          ResourceFactory.exportResource(re, StreamUtils.getByteBuffer(os.toByteArray()), fileName, wnd);
+        } else {
+          JOptionPane.showMessageDialog(wnd, "Error while exporting map as graphics.", "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    });
+  }
+
 //-------------------------- INNER CLASSES --------------------------
 
   private class Listeners implements ActionListener, MouseListener, MouseMotionListener, ListSelectionListener
@@ -652,44 +695,7 @@ public class ViewerMap extends JPanel
           WindowBlocker.blockWindow(false);
         }
       } else if (e.getSource() == miExportMap) {
-        final Window wnd = SwingUtilities.getWindowAncestor(ViewerMap.this);
-        WindowBlocker.blockWindow(wnd, true);
-
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run()
-          {
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            boolean bRet = false;
-            try {
-              restoreDot();
-              BufferedImage srcImage = (BufferedImage)rcMap.getImage();
-              BufferedImage dstImage = ColorConvert.createCompatibleImage(srcImage.getWidth(),
-                                                                          srcImage.getHeight(),
-                                                                          srcImage.getTransparency());
-              Graphics2D g = dstImage.createGraphics();
-              g.drawImage(srcImage, 0, 0, null);
-              g.dispose();
-              srcImage = null;
-              bRet = ImageIO.write(dstImage, "png", os);
-              dstImage.flush();
-              dstImage = null;
-            } catch (Exception e) {
-              e.printStackTrace();
-            } finally {
-              showDot((AreaEntry)listPanel.getList().getSelectedValue(), false);
-              WindowBlocker.blockWindow(wnd, false);
-            }
-            if (bRet) {
-              ResourceEntry re = ((AbstractStruct)getEntry().getParent()).getResourceEntry();
-              String fileName = re.getResourceName().toUpperCase(Locale.US).replace(".WMP", ".PNG");
-              ResourceFactory.exportResource(re, StreamUtils.getByteBuffer(os.toByteArray()), fileName, wnd);
-            } else {
-              JOptionPane.showMessageDialog(wnd, "Error while exporting map as graphics.", "Error",
-                                            JOptionPane.ERROR_MESSAGE);
-            }
-          }
-        });
+        exportMap();
       }
     }
 
