@@ -13,6 +13,7 @@ import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -21,18 +22,23 @@ import java.awt.event.MouseMotionListener;
 import java.awt.font.LineMetrics;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.util.Locale;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -60,6 +66,7 @@ import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
+import org.infinity.util.io.StreamUtils;
 
 public class ViewerMap extends JPanel
 {
@@ -67,6 +74,7 @@ public class ViewerMap extends JPanel
   private enum Direction { NORTH, WEST, SOUTH, EAST }
 
   private final JPopupMenu pmOptions = new JPopupMenu("Options");
+  private final JMenuItem miExportMap = new JMenuItem("Export as PNG...");
   private final JCheckBoxMenuItem miShowIcons = new JCheckBoxMenuItem("Show all map icons", true);
   private final JCheckBoxMenuItem miShowIconLabels = new JCheckBoxMenuItem("Show icons labels", true);
   private final JCheckBoxMenuItem miShowDistances = new JCheckBoxMenuItem("Show travel distances", false);
@@ -106,6 +114,8 @@ public class ViewerMap extends JPanel
       dotBackup = new BufferedImage(iconDot.getWidth(), iconDot.getHeight(), iconDot.getType());
       dotX = dotY = -1;
 
+      miExportMap.setMnemonic('x');
+      miExportMap.addActionListener(listeners);
       miShowIcons.setMnemonic('i');
       miShowIcons.addActionListener(listeners);
       miShowIconLabels.setMnemonic('l');
@@ -115,6 +125,8 @@ public class ViewerMap extends JPanel
       miScaling.setMnemonic('s');
       miScaling.addActionListener(listeners);
       miScaling.setToolTipText("Scales map icon locations according to the worldmap's scaling factor. (Needed for some games)");
+      pmOptions.add(miExportMap);
+      pmOptions.addSeparator();
       pmOptions.add(miShowIcons);
       pmOptions.add(miShowIconLabels);
       pmOptions.add(miShowDistances);
@@ -639,6 +651,45 @@ public class ViewerMap extends JPanel
         } finally {
           WindowBlocker.blockWindow(false);
         }
+      } else if (e.getSource() == miExportMap) {
+        final Window wnd = SwingUtilities.getWindowAncestor(ViewerMap.this);
+        WindowBlocker.blockWindow(wnd, true);
+
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run()
+          {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            boolean bRet = false;
+            try {
+              restoreDot();
+              BufferedImage srcImage = (BufferedImage)rcMap.getImage();
+              BufferedImage dstImage = ColorConvert.createCompatibleImage(srcImage.getWidth(),
+                                                                          srcImage.getHeight(),
+                                                                          srcImage.getTransparency());
+              Graphics2D g = dstImage.createGraphics();
+              g.drawImage(srcImage, 0, 0, null);
+              g.dispose();
+              srcImage = null;
+              bRet = ImageIO.write(dstImage, "png", os);
+              dstImage.flush();
+              dstImage = null;
+            } catch (Exception e) {
+              e.printStackTrace();
+            } finally {
+              showDot((AreaEntry)listPanel.getList().getSelectedValue(), false);
+              WindowBlocker.blockWindow(wnd, false);
+            }
+            if (bRet) {
+              ResourceEntry re = ((AbstractStruct)getEntry().getParent()).getResourceEntry();
+              String fileName = re.getResourceName().toUpperCase(Locale.US).replace(".WMP", ".PNG");
+              ResourceFactory.exportResource(re, StreamUtils.getByteBuffer(os.toByteArray()), fileName, wnd);
+            } else {
+              JOptionPane.showMessageDialog(wnd, "Error while exporting map as graphics.", "Error",
+                                            JOptionPane.ERROR_MESSAGE);
+            }
+          }
+        });
       }
     }
 
