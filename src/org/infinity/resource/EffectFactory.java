@@ -293,28 +293,35 @@ public final class EffectFactory
     m_duration.put(10L, "Instant/Limited (ticks)");
     m_duration.put(4096L, "Absolute duration");
 
-    m_colorloc.put(0L, "Belt/Amulet");
-    m_colorloc.put(1L, "Minor color");
-    m_colorloc.put(2L, "Major color");
-    m_colorloc.put(3L, "Skin color");
-    m_colorloc.put(4L, "Strap/Leather");
-    m_colorloc.put(5L, "Armor/Trimming");
-    m_colorloc.put(6L, "Hair");
-    m_colorloc.put(16L, "Weapon head/blade/staff major");
-    m_colorloc.put(20L, "Weapon grip/staff minor");
-    m_colorloc.put(21L, "Weapon head/blade minor");
-    m_colorloc.put(32L, "Shield hub");
-    m_colorloc.put(33L, "Shield interior");
-    m_colorloc.put(34L, "Shield panel");
-    m_colorloc.put(35L, "Helm");
-    m_colorloc.put(36L, "Shield grip");
-    m_colorloc.put(37L, "Shield body/trim");
-    m_colorloc.put(48L, "Helm wings");
-    m_colorloc.put(49L, "Helm detail");
-    m_colorloc.put(50L, "Helm plume");
-    m_colorloc.put(52L, "Helm face");
-    m_colorloc.put(53L, "Helm exterior");
-    m_colorloc.put(255L, "Character color");
+    m_colorloc.put(0x00L, "Armor (grey): Belt/Amulet");
+    m_colorloc.put(0x01L, "Armor (teal): Minor color");
+    m_colorloc.put(0x02L, "Armor (pink): Major color");
+    m_colorloc.put(0x03L, "Armor (yellow): Skin color");
+    m_colorloc.put(0x04L, "Armor (red): Strap/Leather");
+    m_colorloc.put(0x05L, "Armor (blue): Armor/Trimming");
+    m_colorloc.put(0x06L, "Armor (green): Hair");
+    m_colorloc.put(0x10L, "Weapon (grey): Head/blade/staff major");
+    m_colorloc.put(0x11L, "Weapon (teal): Staff minor");
+    m_colorloc.put(0x12L, "Weapon (pink)");
+    m_colorloc.put(0x13L, "Weapon (yellow)");
+    m_colorloc.put(0x14L, "Weapon (red): Grip/staff minor");
+    m_colorloc.put(0x15L, "Weapon (blue): Head/blade minor");
+    m_colorloc.put(0x16L, "Weapon (green)");
+    m_colorloc.put(0x20L, "Shield (grey): Hub");
+    m_colorloc.put(0x21L, "Shield (teal): Interior");
+    m_colorloc.put(0x22L, "Shield (pink): Panel");
+    m_colorloc.put(0x23L, "Shield (yellow)");
+    m_colorloc.put(0x24L, "Shield (red): Grip");
+    m_colorloc.put(0x25L, "Shield (blue): Body/trim");
+    m_colorloc.put(0x26L, "Shield (green)");
+    m_colorloc.put(0x30L, "Helmet (grey): Wings");
+    m_colorloc.put(0x31L, "Helmet (teal): Detail");
+    m_colorloc.put(0x32L, "Helmet (pink): Plume");
+    m_colorloc.put(0x33L, "Helmet (yellow)");
+    m_colorloc.put(0x34L, "Helmet (red): Face");
+    m_colorloc.put(0x35L, "Helmet (blue): Exterior");
+    m_colorloc.put(0x36L, "Helmet (green)");
+    m_colorloc.put(0xffL, "Character color");
 
     m_proj_iwd.put(0L, "Instant");
     m_proj_iwd.put(1L, "Arrow");
@@ -1918,19 +1925,19 @@ public final class EffectFactory
 
       case 7: // Set color
         s.add(new ColorValue(buffer, offset, 4, "Color"));
-        s.add(new HashBitmap(buffer, offset + 4, 4, "Location", m_colorloc));
+        s.add(new HashBitmap(buffer, offset + 4, 4, "Location", m_colorloc, false));
         break;
 
       case 8: // Set color glow solid
       case 51: // Character tint solid
       case 52: // Character tint bright
         s.add(new ColorPicker(buffer, offset, "Color"));
-        s.add(new HashBitmap(buffer, offset + 4, 4, "Location", m_colorloc));
+        s.add(new HashBitmap(buffer, offset + 4, 4, "Location", m_colorloc, false));
         break;
 
       case 9: // Set color glow pulse
         s.add(new ColorPicker(buffer, offset, "Color"));
-        s.add(new HashBitmap(buffer, offset + 4, 2, "Location", m_colorloc));
+        s.add(new HashBitmap(buffer, offset + 4, 2, "Location", m_colorloc, false));
         s.add(new DecNumber(buffer, offset + 6, 2, "Cycle speed"));
         break;
 
@@ -2215,7 +2222,7 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
-          s.add(new HashBitmap(buffer, offset + 4, 1, "Location", m_colorloc));
+          s.add(new HashBitmap(buffer, offset + 4, 1, "Location", m_colorloc, false));
           s.add(new DecNumber(buffer, offset + 5, 1, AbstractStruct.COMMON_UNUSED));
           s.add(new UnsignDecNumber(buffer, offset + 6, 1, "Cycle speed"));
           s.add(new DecNumber(buffer, offset + 7, 1, AbstractStruct.COMMON_UNUSED));
@@ -3025,7 +3032,7 @@ public final class EffectFactory
       case 61: // Creature RGB color fade
         if (Profile.isEnhancedEdition()) {
           s.add(new ColorPicker(buffer, offset, "Color"));
-          s.add(new HashBitmap(buffer, offset + 4, 2, "Location", m_colorloc));
+          s.add(new HashBitmap(buffer, offset + 4, 2, "Location", m_colorloc, false));
           s.add(new DecNumber(buffer, offset + 6, 2, "Fade speed"));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
@@ -4422,7 +4429,7 @@ public final class EffectFactory
 
       case 232: // Creature RGB color fade
         s.add(new ColorPicker(buffer, offset, "Color"));
-        s.add(new HashBitmap(buffer, offset + 4, 2, "Location", m_colorloc));
+        s.add(new HashBitmap(buffer, offset + 4, 2, "Location", m_colorloc, false));
         s.add(new DecNumber(buffer, offset + 6, 2, "Speed"));
         break;
 
