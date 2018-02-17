@@ -59,6 +59,7 @@ import org.infinity.gui.ViewerUtil.StructListPanel;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.resource.StructEntry;
 import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.MosDecoder;
@@ -242,7 +243,7 @@ public class ViewerMap extends JPanel
       Graphics2D g = ((BufferedImage)rcMap.getImage()).createGraphics();
       try {
         for (int i = 0, count = listPanel.getList().getModel().getSize(); i < count; i++) {
-          AreaEntry area = getAreaEntry(i);
+          AreaEntry area = getAreaEntry(i, true);
           if (area != null) {
             int iconIndex = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue();
             int frameIndex = mapIconsCtrl.cycleGetFrameIndexAbsolute(iconIndex, 0);
@@ -276,7 +277,7 @@ public class ViewerMap extends JPanel
         g.setFont(g.getFont().deriveFont(g.getFont().getSize2D()*0.9f));
         final Color WHITE_BLENDED = new Color(0xc0ffffff, true);
         for (int i = 0, count = listPanel.getList().getModel().getSize(); i < count; i++) {
-          AreaEntry area = getAreaEntry(i);
+          AreaEntry area = getAreaEntry(i, true);
           if (area != null) {
             int iconIndex = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue();
             int frameIndex = mapIconsCtrl.cycleGetFrameIndexAbsolute(iconIndex, 0);
@@ -349,7 +350,7 @@ public class ViewerMap extends JPanel
   // Displays all map distances from the specified area (by index)
   private void showMapDistances(int areaIndex)
   {
-    AreaEntry area = getAreaEntry(areaIndex);
+    AreaEntry area = getAreaEntry(areaIndex, true);
     if (area != null) {
       final Direction[] srcDir = { Direction.NORTH, Direction.WEST, Direction.SOUTH, Direction.EAST };
       final Color[] dirColor = { Color.GREEN, Color.RED, Color.CYAN, Color.YELLOW };
@@ -367,7 +368,7 @@ public class ViewerMap extends JPanel
       links[7] = ((SectionCount)area.getAttribute(AreaEntry.WMP_AREA_NUM_LINKS_EAST)).getValue();
       for (int dir = 0; dir < srcDir.length; dir++) {
         Direction curDir = srcDir[dir];
-        Point ptOrigin = getMapIconCoordinate(areaIndex, curDir);
+        Point ptOrigin = getMapIconCoordinate(areaIndex, curDir, true);
         for (int dirIndex = 0, dirCount = links[dir * 2 + 1]; dirIndex < dirCount; dirIndex++) {
           int ofsLink = ofsLinkBase + (links[dir * 2] + dirIndex)*linkSize;
           AreaLink destLink = (AreaLink)area.getAttribute(ofsLink, false);
@@ -383,7 +384,7 @@ public class ViewerMap extends JPanel
             } else if (flag.isFlagSet(3)) {
               dstDir = Direction.WEST;
             }
-            Point ptTarget = getMapIconCoordinate(dstAreaIndex, dstDir);
+            Point ptTarget = getMapIconCoordinate(dstAreaIndex, dstDir, false);
 
             // checking for random encounters during travels
             boolean hasRandomEncounters = false;
@@ -450,9 +451,9 @@ public class ViewerMap extends JPanel
   }
 
   // Returns a pixel coordinate for one of the edges of the specified area icon
-  private Point getMapIconCoordinate(int areaIndex, Direction dir)
+  private Point getMapIconCoordinate(int areaIndex, Direction dir, boolean byPanel)
   {
-    AreaEntry area = getAreaEntry(areaIndex);
+    AreaEntry area = getAreaEntry(areaIndex, byPanel);
     if (area != null) {
       Point p = getAreaEntryPosition(area, isScaling());
       int iconIndex = ((DecNumber)area.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue();
@@ -491,13 +492,22 @@ public class ViewerMap extends JPanel
   }
 
   // Returns area structure of specified item index
-  private AreaEntry getAreaEntry(int index)
+  private AreaEntry getAreaEntry(int index, boolean byPanel)
   {
-    if (index >= 0 && index < listPanel.getList().getModel().getSize()) {
-      return (AreaEntry)listPanel.getList().getModel().getElementAt(index);
+    AreaEntry retVal = null;
+    if (byPanel) {
+      if (index >= 0 && index < listPanel.getList().getModel().getSize()) {
+        retVal = (AreaEntry)listPanel.getList().getModel().getElementAt(index);
+      }
     } else {
-      return null;
+      if (index >= 0 && index < ((IsNumeric)mapEntry.getAttribute(MapEntry.WMP_MAP_NUM_AREAS)).getValue()) {
+        StructEntry e = mapEntry.getAttribute(AreaEntry.WMP_AREA + " " + index);
+        if (e instanceof AreaEntry) {
+          retVal = (AreaEntry)e;
+        }
+      }
     }
+    return retVal;
   }
 
   // Show "dot" on specified map icon, optionally restore background graphics
