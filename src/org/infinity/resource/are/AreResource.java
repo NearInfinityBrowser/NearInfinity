@@ -111,26 +111,26 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   public static final String ARE_REST_MOVIE_NIGHT         = "Rest movie (night)";
   public static final String ARE_EXPLORED_BITMAP          = "Explored bitmap";
 
-  public static final String[] s_flag = {"No flags set", "Outdoor", "Day/Night",
+  public static final String[] s_flag = {"Indoors", "Outdoors", "Day/Night",
                                          "Weather", "City", "Forest", "Dungeon",
-                                         "Extended night", "Can rest"};
+                                         "Extended night", "Can rest indoors"};
   public static final String[] s_flag_torment = {"Indoors", "Hive", "Hive Night", "Clerk's ward",
                                                  "Lower ward", "Ravel's maze", "Baator", "Rubikon",
                                                  "Negative material plane", "Curst", "Carceri",
                                                  "Allow day/night"};
-  public static final String[] s_atype = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+  public static final String[] s_atype = {"Normal", "Save not allowed", "Tutorial area", "Dead magic zone",
                                           "Dream area"};
-  public static final String[] s_atype_ee = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+  public static final String[] s_atype_ee = {"Normal", "Save not allowed", "Tutorial area", "Dead magic zone",
                                              "Dream area", "Player1 can die;Allows death of party leader without ending the game",
-                                             "Can't rest", "Can't travel"};
-  public static final String[] s_atype_torment = {"Normal", "Can't save game",
-                                                  "Can't rest;Combined with bit 2: \"Can't rest without permission\"",
-                                                  "Too dangerous to rest;Combined with bit 1: \"Can't rest without permission\""};
-  public static final String[] s_atype_pstee = {"Normal", "Can't save game", "", "Dead magic zone",
+                                             "Rest not allowed", "Travel not allowed"};
+  public static final String[] s_atype_torment = {"Normal", "Save not allowed",
+                                                  "\"You cannot rest here.\";Combined with bit 2: \"You must obtain permission to rest here.\"",
+                                                  "\"Too dangerous to rest.\";Combined with bit 1: \"You must obtain permission to rest here.\""};
+  public static final String[] s_atype_pstee = {"Normal", "Save not allowed", "", "Dead magic zone",
                                                 "Dream area", "Player1 can die;The Nameless One can die without ending the game",
-                                                "Can't rest", "Can't travel",
-                                                "Can't rest;Combined with bit 8: \"Can't rest without permission\"",
-                                                "Too dangerous to rest;Combined with bit 7: \"Can't rest without permission\""};
+                                                "Rest not allowed", "Travel not allowed",
+                                                "\"You cannot rest here.\";Combined with bit 8: \"You must obtain permission to rest here.\"",
+                                                "\"Too dangerous to rest.\";Combined with bit 7: \"You must obtain permission to rest here.\""};
   public static final String[] s_atype_iwd2 = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
   public static final String[] s_edge = {"No flags set", "Party required", "Party enabled"};
 
