@@ -554,6 +554,9 @@ public class SpellProtType extends Bitmap
           if (entry.getSymbol() != null && !entry.getSymbol().isEmpty()) {
             return entry.getSymbol();
           }
+        } else if (value == 0 && "STATS.IDS".equalsIgnoreCase(idsFile)) {
+          // XXX: Workaround for EE since patch 2.5. Remove if symbol has been added to STATS.IDS.
+          return "CURHITPOINTS";
         }
       }
       return asHex ? "0x" + Integer.toHexString(value) : Integer.toString(value);
