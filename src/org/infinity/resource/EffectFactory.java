@@ -3141,6 +3141,7 @@ public final class EffectFactory
       case 201: // Spell deflection
         s.add(new DecNumber(buffer, offset, 4, "# levels"));
         s.add(new DecNumber(buffer, offset + 4, 4, "Spell level"));
+        if (Profile.isEnhancedEdition()) { restype = "SPL"; }
         break;
 
       case 202: // Reflect spell school
@@ -3258,12 +3259,14 @@ public final class EffectFactory
       case 227: // Spell school turning
         s.add(new DecNumber(buffer, offset, 4, "# levels"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
+        if (Profile.isEnhancedEdition()) { restype = "SPL"; }
         break;
 
       case 226: // Spell type deflection
       case 228: // Spell type turning
         s.add(new DecNumber(buffer, offset, 4, "# levels"));
         s.add(new SecTypeBitmap(buffer, offset + 4, 4, "Spell type"));
+        if (Profile.isEnhancedEdition()) { restype = "SPL"; }
         break;
 
       case 232: // Cast spell on condition
@@ -3439,6 +3442,7 @@ public final class EffectFactory
       case 259: // Spell trap
         s.add(new DecNumber(buffer, offset, 4, "# spells"));
         s.add(new DecNumber(buffer, offset + 4, 4, "Spell level"));
+        if (Profile.isEnhancedEdition()) { restype = "SPL"; }
         break;
 
       case 261: // Restore lost spells
