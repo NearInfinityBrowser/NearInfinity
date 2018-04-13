@@ -90,10 +90,10 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
                                              "Divination", "Illusion", "Invocation", "Necromancy", "Innate"};
 
   public static final String[] s_spellflag = {"No flags set", "", "", "", "", "", "", "", "",
-                                              "", "", "Hostile", "No LOS required", "Allow spotting",
-                                              "Outdoors only", "Ignore dead/wild magic", "Ignore wild surge",
-                                              "Non-combat ability", "", "", "", "", "", "", "",
-                                              "Ex: Can target invisible", "EE/Ex: Castable when silenced"};
+                                              "", "EE: Break Sanctuary", "Hostile", "No LOS required",
+                                              "Allow spotting", "Outdoors only", "Ignore dead/wild magic",
+                                              "Ignore wild surge", "Non-combat ability", "", "", "", "", "",
+                                              "", "", "Ex: Can target invisible", "EE/Ex: Castable when silenced"};
   public static final String[] s_exclude =
     { "None",
       "Berserker", "Wizard slayer", "Kensai", "Cavalier", "Inquisitor", "Undead hunter",
