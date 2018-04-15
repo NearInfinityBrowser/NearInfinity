@@ -2742,7 +2742,7 @@ public final class EffectFactory
                            new String[]{"All spells", "Non-innate", "Arcane", "Divine", "Innate"}));
         } else if (Profile.isEnhancedEdition()) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
-                           new String[]{"Wizard", "Priest", "Innate", "Innate, magical only"}));
+                           new String[]{"Wizard", "Priest", "Innate", "All, magical only"}));
         } else {
           s.add(new Bitmap(buffer, offset + 4, 4, "Spell class",
                            new String[]{"Wizard", "Priest", "Innate"}));
