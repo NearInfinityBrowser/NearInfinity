@@ -49,6 +49,8 @@ public class Settings
   public static boolean StoreVisualSettings = getDefaultStoreVisualSettings();
   // Indicates whether to use different color shades to distinguish between region types
   public static boolean UseColorShades = getDefaultUseColorShades();
+  // Indicates whether layer controls will be included when exporting the map as graphics
+  public static boolean ExportLayers = getDefaultExportLayers();
   // Current open/closed state of door tiles and structures
   public static boolean DrawClosed = getDefaultDrawClosed();
   // Current visibility state of overlays
@@ -100,6 +102,7 @@ public class Settings
   // Preferences keys for specific settings
   private static final String PREFS_STORESETTINGS           = "StoreSettings";
   private static final String PREFS_USECOLORSHADES          = "UseColorShades";
+  private static final String PREFS_EXPORTLAYERS            = "ExportLayers";
   private static final String PREFS_DRAWCLOSED              = "DrawClosed";
   private static final String PREFS_DRAWOVERLAYS            = "DrawOverlays";
   private static final String PREFS_DRAWGRID                = "DrawGrid";
@@ -144,6 +147,7 @@ public class Settings
       // loading required settings
       StoreVisualSettings = prefs.getBoolean(PREFS_STORESETTINGS, getDefaultStoreVisualSettings());
       UseColorShades = prefs.getBoolean(PREFS_USECOLORSHADES, getDefaultUseColorShades());
+      ExportLayers = prefs.getBoolean(PREFS_EXPORTLAYERS,getDefaultExportLayers());
       OverrideAnimVisibility = prefs.getBoolean(PREFS_OVERRIDEANIMVISIBILITY, getDefaultOverrideAnimVisibility());
       ShowFrame = prefs.getInt(PREFS_SHOWFRAME, getDefaultShowFrame());
       InterpolationMap = prefs.getInt(PREFS_INTERPOLATION_MAP, getDefaultInterpolationMap());
@@ -204,6 +208,7 @@ public class Settings
     // storing basic settings
     prefs.putBoolean(PREFS_STORESETTINGS, StoreVisualSettings);
     prefs.putBoolean(PREFS_USECOLORSHADES, UseColorShades);
+    prefs.putBoolean(PREFS_EXPORTLAYERS, ExportLayers);
     prefs.putBoolean(PREFS_OVERRIDEANIMVISIBILITY, OverrideAnimVisibility);
     prefs.putInt(PREFS_SHOWFRAME, ShowFrame);
     prefs.putInt(PREFS_INTERPOLATION_MAP, InterpolationMap);
@@ -306,6 +311,11 @@ public class Settings
   }
 
   public static boolean getDefaultUseColorShades()
+  {
+    return true;
+  }
+
+  public static boolean getDefaultExportLayers()
   {
     return true;
   }

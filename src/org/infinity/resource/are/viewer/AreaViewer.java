@@ -1088,6 +1088,13 @@ public class AreaViewer extends ChildFrame
   }
 
 
+  // Returns whether layer items should be included when exporting map as graphics
+  private boolean isExportLayersEnabled()
+  {
+    return Settings.ExportLayers;
+  }
+
+
   // Returns the currently used zoom factor of the canvas map
   private double getZoomFactor()
   {
@@ -1221,20 +1228,22 @@ public class AreaViewer extends ChildFrame
 
         JViewport vp = spCanvas.getViewport();
         Rectangle view = vp.getViewRect();
-        Point newViewPos = new Point(vpCenterExtent.x - (view.width / 2), vpCenterExtent.y - (view.height / 2));
-        if (newViewPos.x < 0) {
-          newViewPos.x = 0;
-        } else if (newViewPos.x + view.width > mapDim.width) {
-          newViewPos.x = mapDim.width - view.width;
-        }
-        if (newViewPos.y < 0) {
-          newViewPos.y = 0;
-        } else if (newViewPos.y + view.height > mapDim.height) {
-          newViewPos.y = mapDim.height - view.height;
+        if (view != null) {
+          Point newViewPos = new Point(vpCenterExtent.x - (view.width / 2), vpCenterExtent.y - (view.height / 2));
+          if (newViewPos.x < 0) {
+            newViewPos.x = 0;
+          } else if (newViewPos.x + view.width > mapDim.width) {
+            newViewPos.x = mapDim.width - view.width;
+          }
+          if (newViewPos.y < 0) {
+            newViewPos.y = 0;
+          } else if (newViewPos.y + view.height > mapDim.height) {
+            newViewPos.y = mapDim.height - view.height;
+          }
+          vp.setViewPosition(newViewPos);
         }
 
         vpCenterExtent = null;
-        vp.setViewPosition(newViewPos);
       }
     }
   }
@@ -1970,21 +1979,31 @@ public class AreaViewer extends ChildFrame
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         boolean bRet = false;
         try {
-          try {
+          BufferedImage dstImage = null;
+          if (isExportLayersEnabled()) {
+            double zoom = getZoomFactor();
+            setZoomFactor(1.0, 1.0);
+            try {
+              dstImage = new BufferedImage(rcCanvas.getWidth(), rcCanvas.getHeight(), BufferedImage.TYPE_INT_RGB);
+              Graphics2D g = dstImage.createGraphics();
+              rcCanvas.paint(g);
+              g.dispose();
+            } finally {
+              setZoomFactor(zoom, Settings.ZoomFactor);
+            }
+          } else {
             VolatileImage srcImage = (VolatileImage)rcCanvas.getImage();
-            BufferedImage dstImage = ColorConvert.createCompatibleImage(srcImage.getWidth(),
-                                                                        srcImage.getHeight(),
-                                                                        srcImage.getTransparency());
+            dstImage = ColorConvert.createCompatibleImage(srcImage.getWidth(), srcImage.getHeight(),
+                                                          srcImage.getTransparency());
             Graphics2D g = dstImage.createGraphics();
             g.drawImage(srcImage, 0, 0, null);
             g.dispose();
-            srcImage = null;
-            bRet = ImageIO.write(dstImage, "png", os);
-            dstImage.flush();
-            dstImage = null;
-          } catch (Exception e) {
-            e.printStackTrace();
           }
+          bRet = ImageIO.write(dstImage, "png", os);
+          dstImage.flush();
+          dstImage = null;
+        } catch (Exception e) {
+          e.printStackTrace();
         } finally {
           releaseProgressMonitor();
           WindowBlocker.blockWindow(AreaViewer.this, false);
