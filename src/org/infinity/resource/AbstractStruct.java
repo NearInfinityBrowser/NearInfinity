@@ -405,10 +405,16 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   @Override
   public String toString()
   {
-    StringBuffer sb = new StringBuffer(80);
-    for (int i = 0, count = getFieldCount(); i < count && sb.length() < 80; i++) { // < 80 to speed things up
+    // limit text length to speed things up
+    StringBuffer sb = new StringBuffer(160);
+    for (int i = 0, count = getFieldCount(); i < count; i++) {
       StructEntry datatype = getField(i);
-      sb.append(datatype.getName()).append(": ").append(datatype.toString()).append(',');
+      String text = datatype.getName() + ": " + datatype.toString() + ',';
+      if (sb.length() + text.length() < sb.capacity()) {
+        sb.append(text);
+      } else {
+        i = count;
+      }
     }
     return sb.toString();
   }
