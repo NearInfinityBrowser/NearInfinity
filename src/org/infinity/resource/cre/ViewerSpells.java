@@ -22,7 +22,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 
-import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.ToolTipTableCellRenderer;
 import org.infinity.gui.ViewFrame;
@@ -44,15 +44,16 @@ final class ViewerSpells extends JPanel implements ActionListener
     table = new JTable(tableModel);
     table.setDefaultRenderer(Object.class, new ToolTipTableCellRenderer());
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    table.getColumnModel().getColumn(0).setMaxWidth(45);
-    table.getColumnModel().getColumn(1).setMaxWidth(5);
+    table.getColumnModel().getColumn(0).setMaxWidth(60);
+    table.getColumnModel().getColumn(1).setMaxWidth(40);
+    table.getColumnModel().getColumn(2).setMaxWidth(20);
     table.addMouseListener(new MouseAdapter()
     {
       @Override
       public void mouseClicked(MouseEvent e)
       {
         if (e.getClickCount() == 2 && table.getSelectedRowCount() == 1) {
-          ResourceRef ref = (ResourceRef)tableModel.getValueAt(table.getSelectedRow(), 2);
+          ResourceRef ref = (ResourceRef)tableModel.getValueAt(table.getSelectedRow(), 3);
           if (ref != null) {
             Resource res = ResourceFactory.getResource(
                     ResourceFactory.getResourceEntry(ref.getResourceName()));
@@ -75,7 +76,7 @@ final class ViewerSpells extends JPanel implements ActionListener
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bOpen) {
-      ResourceRef ref = (ResourceRef)tableModel.getValueAt(table.getSelectedRow(), 2);
+      ResourceRef ref = (ResourceRef)tableModel.getValueAt(table.getSelectedRow(), 3);
       if (ref != null) {
         Resource res = ResourceFactory.getResource(
                 ResourceFactory.getResourceEntry(ref.getResourceName()));
@@ -108,19 +109,20 @@ final class ViewerSpells extends JPanel implements ActionListener
         StructEntry o = cre.getField(i);
         if (o instanceof SpellMemorization) {
           SpellMemorization inf = (SpellMemorization)o;
-          int lvl = ((DecNumber)inf.getAttribute(SpellMemorization.CRE_MEMORIZATION_LEVEL)).getValue();
+          int type = ((IsNumeric)inf.getAttribute(SpellMemorization.CRE_MEMORIZATION_TYPE)).getValue();
+          int lvl = ((IsNumeric)inf.getAttribute(SpellMemorization.CRE_MEMORIZATION_LEVEL)).getValue();
           for (int j = 0; j < inf.getFieldCount(); j++) {
             StructEntry p = inf.getField(j);
             if (p instanceof MemorizedSpells) {
               MemorizedSpells spell = (MemorizedSpells)p;
-              addSpell(lvl, (ResourceRef)spell.getAttribute(MemorizedSpells.CRE_MEMORIZED_RESREF));
+              addSpell(type, lvl, (ResourceRef)spell.getAttribute(MemorizedSpells.CRE_MEMORIZED_RESREF));
             }
           }
         }
       }
     }
 
-    private void addSpell(int lvl, ResourceRef spell)
+    private void addSpell(int type, int lvl, ResourceRef spell)
     {
       for (int i = 0; i < list.size(); i++) {
         MemSpellTableEntry entry = list.get(i);
@@ -129,7 +131,7 @@ final class ViewerSpells extends JPanel implements ActionListener
           return;
         }
       }
-      MemSpellTableEntry entry = new MemSpellTableEntry(lvl, spell);
+      MemSpellTableEntry entry = new MemSpellTableEntry(type, lvl, spell);
       list.add(entry);
     }
 
@@ -151,8 +153,9 @@ final class ViewerSpells extends JPanel implements ActionListener
     {
       MemSpellTableEntry entry = list.get(rowIndex);
       switch (columnIndex) {
-        case 0:  return new Integer(entry.lvl + 1);
-        case 1:  return new Integer(entry.count + 1);
+        case 0:  return entry.getTypeName();
+        case 1:  return new Integer(entry.lvl + 1);
+        case 2:  return new Integer(entry.count + 1);
         default: return entry.spell;
       }
     }
@@ -160,15 +163,16 @@ final class ViewerSpells extends JPanel implements ActionListener
     @Override
     public int getColumnCount()
     {
-      return 3;
+      return 4;
     }
 
     @Override
     public String getColumnName(int column)
     {
       switch (column) {
-        case 0:  return "Level";
-        case 1:  return "#";
+        case 0:  return "Type";
+        case 1:  return "Level";
+        case 2:  return "#";
         default: return "Spell";
       }
     }
@@ -176,14 +180,26 @@ final class ViewerSpells extends JPanel implements ActionListener
 
   private static final class MemSpellTableEntry
   {
+    private final int type;
     private final int lvl;
     private int count;
     private final ResourceRef spell;
 
-    private MemSpellTableEntry(int lvl, ResourceRef spell)
+    private MemSpellTableEntry(int type, int lvl, ResourceRef spell)
     {
+      this.type = type;
       this.lvl = lvl;
       this.spell = spell;
+    }
+
+    private String getTypeName()
+    {
+      switch (type) {
+        case 0: return "Priest";
+        case 1: return "Wizard";
+        case 2: return "Innate";
+        default: return "Unknown";
+      }
     }
   }
 }
