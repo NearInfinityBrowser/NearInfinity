@@ -21,6 +21,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
@@ -43,6 +44,7 @@ final class ViewerSpells extends JPanel implements ActionListener
     tableModel = new MemSpellTableModel(cre);
     table = new JTable(tableModel);
     table.setDefaultRenderer(Object.class, new ToolTipTableCellRenderer());
+    ((DefaultTableCellRenderer)table.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.LEFT);
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getColumnModel().getColumn(0).setMaxWidth(60);
     table.getColumnModel().getColumn(1).setMaxWidth(40);

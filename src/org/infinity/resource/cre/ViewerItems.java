@@ -23,6 +23,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.HexNumber;
@@ -71,6 +72,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
     });
     table = new JTable(tableModel);
     table.setDefaultRenderer(Object.class, new ToolTipTableCellRenderer());
+    ((DefaultTableCellRenderer)table.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.LEFT);
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(this);
     // calculating optimal width of slot name column
