@@ -413,6 +413,9 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       if (sb.length() + text.length() < sb.capacity()) {
         sb.append(text);
       } else {
+        if (sb.length() + text.length() / 2 < sb.capacity()) {
+          sb.append(text);
+        }
         i = count;
       }
     }
