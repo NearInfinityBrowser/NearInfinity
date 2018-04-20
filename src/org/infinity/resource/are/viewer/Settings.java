@@ -39,6 +39,8 @@ public class Settings
                                                   "100%", "150%", "200%", "300%", "400%", "Custom"};
   public static final double[] ItemZoomFactor = {0.0, 0.25, 1.0/3.0, 0.5, 2.0/3.0, 0.75,
                                                  1.0, 1.5, 2.0, 3.0, 4.0, -1.0};
+  public static final double[] WheelZoomFactor = {0.1, 0.2, 0.25, 1.0/3.0, 0.5, 2.0/3.0, 0.75,
+                                                  1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0};
   public static final double ZoomFactorAuto = 0.0;      // the auto-fit zoom factor
   public static final double ZoomFactorDefault = 1.0;   // the default zoom factor
   public static final double ZoomFactorMax = 10.0;      // maximum allowed zoom factor
@@ -51,6 +53,8 @@ public class Settings
   public static boolean UseColorShades = getDefaultUseColorShades();
   // Indicates whether layer controls will be included when exporting the map as graphics
   public static boolean ExportLayers = getDefaultExportLayers();
+  // Indicates whether to use the mouse wheel to change map zoom level
+  public static boolean MouseWheelZoom = getDefaultMouseWheelZoom();
   // Current open/closed state of door tiles and structures
   public static boolean DrawClosed = getDefaultDrawClosed();
   // Current visibility state of overlays
@@ -103,6 +107,7 @@ public class Settings
   private static final String PREFS_STORESETTINGS           = "StoreSettings";
   private static final String PREFS_USECOLORSHADES          = "UseColorShades";
   private static final String PREFS_EXPORTLAYERS            = "ExportLayers";
+  private static final String PREFS_MOUSEWHEELZOOM          = "MouseWheelZoom";
   private static final String PREFS_DRAWCLOSED              = "DrawClosed";
   private static final String PREFS_DRAWOVERLAYS            = "DrawOverlays";
   private static final String PREFS_DRAWGRID                = "DrawGrid";
@@ -148,6 +153,7 @@ public class Settings
       StoreVisualSettings = prefs.getBoolean(PREFS_STORESETTINGS, getDefaultStoreVisualSettings());
       UseColorShades = prefs.getBoolean(PREFS_USECOLORSHADES, getDefaultUseColorShades());
       ExportLayers = prefs.getBoolean(PREFS_EXPORTLAYERS,getDefaultExportLayers());
+      MouseWheelZoom = prefs.getBoolean(PREFS_MOUSEWHEELZOOM,getDefaultMouseWheelZoom());
       OverrideAnimVisibility = prefs.getBoolean(PREFS_OVERRIDEANIMVISIBILITY, getDefaultOverrideAnimVisibility());
       ShowFrame = prefs.getInt(PREFS_SHOWFRAME, getDefaultShowFrame());
       InterpolationMap = prefs.getInt(PREFS_INTERPOLATION_MAP, getDefaultInterpolationMap());
@@ -209,6 +215,7 @@ public class Settings
     prefs.putBoolean(PREFS_STORESETTINGS, StoreVisualSettings);
     prefs.putBoolean(PREFS_USECOLORSHADES, UseColorShades);
     prefs.putBoolean(PREFS_EXPORTLAYERS, ExportLayers);
+    prefs.putBoolean(PREFS_MOUSEWHEELZOOM, MouseWheelZoom);
     prefs.putBoolean(PREFS_OVERRIDEANIMVISIBILITY, OverrideAnimVisibility);
     prefs.putInt(PREFS_SHOWFRAME, ShowFrame);
     prefs.putInt(PREFS_INTERPOLATION_MAP, InterpolationMap);
@@ -320,6 +327,11 @@ public class Settings
     return true;
   }
 
+  public static boolean getDefaultMouseWheelZoom()
+  {
+    return false;
+  }
+
   public static boolean getDefaultDrawClosed()
   {
     return false;
@@ -392,12 +404,36 @@ public class Settings
 
   public static int getZoomLevelIndex(double value)
   {
-    for (int idx = 0; idx < ItemZoomFactor.length; ++idx) {
-      if (value == ItemZoomFactor[idx]) {
-        return idx;
+    if (value == 0.0) {
+      return 0;
+    } else {
+      for (int idx = 0; idx < ItemZoomFactor.length; ++idx) {
+        if (value == ItemZoomFactor[idx]) {
+          return idx;
+        }
+      }
+      return ItemZoomFactor.length - 1;
+    }
+  }
+
+  public static double getNextZoomFactor(double curValue, boolean increment)
+  {
+    double retVal = curValue;
+    double distMin = Double.MAX_VALUE;
+    for (int i = 0; i < WheelZoomFactor.length; i++) {
+      double dist = Double.MAX_VALUE;
+      if (increment && WheelZoomFactor[i] > curValue) {
+        dist = WheelZoomFactor[i] - curValue;
+      } else if (!increment && curValue > WheelZoomFactor[i]) {
+        dist = curValue - WheelZoomFactor[i];
+      }
+      if (dist < distMin) {
+        distMin = dist;
+        retVal = WheelZoomFactor[i];
       }
     }
-    return ItemZoomFactor.length - 1;
+
+    return retVal;
   }
 
   public static double getDefaultFrameRateOverlays()

@@ -25,6 +25,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.beans.PropertyChangeEvent;
@@ -141,7 +143,7 @@ public class AreaViewer extends ChildFrame
   private TilesetRenderer rcCanvas;
   private JPanel pCanvas;
   private JScrollPane spCanvas;
-  private Rectangle vpCenterExtent;   // combines map center and viewport extent in one structure
+  private Point vpMapCenter;    // contains map coordinate at the viewport center
   private JToolBar toolBar;
   private JToggleButton tbView, tbEdit;
   private JButton tbAre, tbWed, tbSongs, tbRest, tbSettings, tbRefresh, tbExportPNG;
@@ -302,6 +304,9 @@ public class AreaViewer extends ChildFrame
     rcCanvas.addComponentListener(getListeners());
     rcCanvas.addMouseListener(getListeners());
     rcCanvas.addMouseMotionListener(getListeners());
+    if (Settings.MouseWheelZoom) {
+      rcCanvas.addMouseWheelListener(getListeners());
+    }
     rcCanvas.addChangeListener(getListeners());
     rcCanvas.setHorizontalAlignment(RenderCanvas.CENTER);
     rcCanvas.setVerticalAlignment(RenderCanvas.CENTER);
@@ -1132,6 +1137,10 @@ public class AreaViewer extends ChildFrame
       if ((int)(zoomX*mapDim.height) > viewDim.height) {
         zoomFactor = zoomY;
       }
+      if (rcCanvas != null) {
+        rcCanvas.setZoomFactor(zoomFactor);
+      }
+      zoomFactor = 0.0;
     } else {
       if (zoomFactor < 0.0) {
         zoomFactor = isInitialized() ? getCustomZoomFactor(fallbackZoomFactor) : fallbackZoomFactor;
@@ -1146,10 +1155,11 @@ public class AreaViewer extends ChildFrame
       if (spCanvas.getVerticalScrollBarPolicy() != ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED) {
         spCanvas.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
       }
+      if (rcCanvas != null) {
+        rcCanvas.setZoomFactor(zoomFactor);
+      }
     }
-    if (rcCanvas != null) {
-      rcCanvas.setZoomFactor(zoomFactor);
-    }
+    setViewpointCenter();
     Settings.ZoomFactor = zoomFactor;
     updateWindowTitle();
   }
@@ -1193,57 +1203,41 @@ public class AreaViewer extends ChildFrame
   // Updates the map coordinate at the center of the current viewport
   private void updateViewpointCenter()
   {
-    if (vpCenterExtent == null) {
-      vpCenterExtent = new Rectangle();
+    if (vpMapCenter == null) {
+      vpMapCenter = new Point();
     }
-    Dimension mapDim = new Dimension(rcCanvas.getMapWidth(true), rcCanvas.getMapHeight(true));
-    JViewport vp = spCanvas.getViewport();
-    Rectangle view = vp.getViewRect();
-    vpCenterExtent.x = view.x + (view.width / 2);
-    vpCenterExtent.y = view.y + (view.height / 2);
-    if (view.width > mapDim.width) {
-      vpCenterExtent.x = mapDim.width / 2;
-    }
-    if (view.height > mapDim.height) {
-      vpCenterExtent.y = mapDim.height / 2;
-    }
-    // canvas coordinate -> map coordinate
-    vpCenterExtent.x = (int)((double)vpCenterExtent.x / getZoomFactor());
-    vpCenterExtent.y = (int)((double)vpCenterExtent.y / getZoomFactor());
-
-    vpCenterExtent.width = vp.getViewSize().width;
-    vpCenterExtent.height = vp.getViewSize().height;
+    int mapWidth = rcCanvas.getMapWidth(true);
+    int mapHeight = rcCanvas.getMapHeight(true);
+    Rectangle view = spCanvas.getViewport().getViewRect();
+    vpMapCenter.x = (view.width > mapWidth) ? mapWidth / 2 : view.x + (view.width / 2);
+    vpMapCenter.y = (view.height > mapHeight) ? mapHeight / 2 : view.y + (view.height / 2);
+    vpMapCenter.x = (int)((double)vpMapCenter.x / getZoomFactor());
+    vpMapCenter.y = (int)((double)vpMapCenter.y / getZoomFactor());
   }
 
   // Attempts to re-center the last known center coordinate in the current viewport
   private void setViewpointCenter()
   {
-    if (vpCenterExtent != null) {
-      if (!vpCenterExtent.getSize().equals(spCanvas.getViewport().getViewSize())) {
-        Dimension mapDim = new Dimension(rcCanvas.getMapWidth(true), rcCanvas.getMapHeight(true));
-
-        // map coordinate -> canvas coordinate
-        vpCenterExtent.x = (int)((double)vpCenterExtent.x * getZoomFactor());
-        vpCenterExtent.y = (int)((double)vpCenterExtent.y * getZoomFactor());
-
-        JViewport vp = spCanvas.getViewport();
-        Rectangle view = vp.getViewRect();
-        if (view != null) {
-          Point newViewPos = new Point(vpCenterExtent.x - (view.width / 2), vpCenterExtent.y - (view.height / 2));
-          if (newViewPos.x < 0) {
-            newViewPos.x = 0;
-          } else if (newViewPos.x + view.width > mapDim.width) {
-            newViewPos.x = mapDim.width - view.width;
-          }
-          if (newViewPos.y < 0) {
-            newViewPos.y = 0;
-          } else if (newViewPos.y + view.height > mapDim.height) {
-            newViewPos.y = mapDim.height - view.height;
-          }
-          vp.setViewPosition(newViewPos);
-        }
-
-        vpCenterExtent = null;
+    if (vpMapCenter != null) {
+      int mapWidth = rcCanvas.getMapWidth(true);
+      int mapHeight = rcCanvas.getMapHeight(true);
+      int centerX = (int)((double)vpMapCenter.x * getZoomFactor());
+      int centerY = (int)((double)vpMapCenter.y * getZoomFactor());
+      JViewport vp = spCanvas.getViewport();
+      Rectangle view = vp.getViewRect();
+      Point newView = new Point(view.getLocation());
+      if (view.width < mapWidth) {
+        newView.x = centerX - (view.width / 2);
+        newView.x = Math.max(newView.x, 0);
+        newView.x = Math.min(newView.x, mapWidth - view.width);
+      }
+      if (view.height < mapHeight) {
+        newView.y = centerY - (view.height / 2);
+        newView.y = Math.max(newView.y, 0);
+        newView.y = Math.min(newView.y, mapHeight - view.height);
+      }
+      if (!view.getLocation().equals(newView)) {
+        vp.setViewPosition(newView);
       }
     }
   }
@@ -1936,6 +1930,13 @@ public class AreaViewer extends ChildFrame
     // applying minimap alpha
     rcCanvas.setMiniMapTransparency((int)(Settings.MiniMapAlpha*255.0));
 
+    // applying mouse wheel zoom
+    if (Settings.MouseWheelZoom) {
+      rcCanvas.addMouseWheelListener(getListeners());
+    } else {
+      rcCanvas.removeMouseWheelListener(getListeners());
+    }
+
     if (layerManager != null) {
       // applying animation frame settings
       ((LayerAnimation)layerManager.getLayer(LayerType.ANIMATION)).setRealAnimationFrameState(Settings.ShowFrame);
@@ -2026,9 +2027,9 @@ public class AreaViewer extends ChildFrame
 //----------------------------- INNER CLASSES -----------------------------
 
   // Handles all events of the viewer
-  private class Listeners implements ActionListener, MouseListener, MouseMotionListener, ChangeListener,
-                                     TilesetChangeListener, PropertyChangeListener, LayerItemListener,
-                                     ComponentListener, TreeExpansionListener
+  private class Listeners implements ActionListener, MouseListener, MouseMotionListener, MouseWheelListener,
+                                     ChangeListener, TilesetChangeListener, PropertyChangeListener,
+                                     LayerItemListener, ComponentListener, TreeExpansionListener
   {
     public Listeners()
     {
@@ -2288,6 +2289,57 @@ public class AreaViewer extends ChildFrame
 
     //--------------------- End Interface MouseListener ---------------------
 
+    //--------------------- Begin Interface MouseWheelListener ---------------------
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent event)
+    {
+      if (event.getSource() == rcCanvas) {
+        int notches = event.getWheelRotation();
+        double zoom = getZoomFactor();
+        if (notches > 0) {
+          zoom = Settings.getNextZoomFactor(getZoomFactor(), false);
+        } else if (notches < 0) {
+          zoom = Settings.getNextZoomFactor(getZoomFactor(), true);
+        }
+        if (zoom != getZoomFactor()) {
+          WindowBlocker.blockWindow(AreaViewer.this, true);
+          try {
+            double previousZoomFactor = Settings.ZoomFactor;
+            try {
+              setZoomFactor(zoom, previousZoomFactor);
+            } catch (OutOfMemoryError e) {
+              e.printStackTrace();
+              cbZoomLevel.hidePopup();
+              WindowBlocker.blockWindow(AreaViewer.this, false);
+              String msg = "Not enough memory to set selected zoom level.\n"
+                  + "(Note: It is highly recommended to close and reopen the area viewer.)";
+              JOptionPane.showMessageDialog(AreaViewer.this, msg, "Error", JOptionPane.ERROR_MESSAGE);
+              cbZoomLevel.setSelectedIndex(Settings.getZoomLevelIndex(previousZoomFactor));
+              setZoomFactor(previousZoomFactor, Settings.ZoomFactorDefault);
+            }
+          } finally {
+            ActionListener[] list = cbZoomLevel.getActionListeners();
+            try {
+              for (final ActionListener l: list) {
+                cbZoomLevel.removeActionListener(l);
+              }
+              cbZoomLevel.setSelectedIndex(Settings.getZoomLevelIndex(getZoomFactor()));
+              treeControls.repaint();
+              treeControls.revalidate();
+            } finally {
+              for (final ActionListener l: list) {
+                cbZoomLevel.addActionListener(l);
+              }
+            }
+            WindowBlocker.blockWindow(AreaViewer.this, false);
+          }
+        }
+      }
+    }
+
+    //--------------------- End Interface MouseWheelListener ---------------------
+
     //--------------------- Begin Interface ChangeListener ---------------------
 
     @Override
@@ -2311,8 +2363,6 @@ public class AreaViewer extends ChildFrame
             workerLoadMap.execute();
           }
         }
-      } else if (event.getSource() == spCanvas.getViewport()) {
-        setViewpointCenter();
       }
     }
 

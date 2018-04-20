@@ -78,7 +78,8 @@ public class SettingsDialog extends JDialog
   private JList<LayerEntry> listLayers;
   private JButton bUp, bDown, bDefaultOrder;
   private JComboBox<String> cbFrames, cbQualityMap, cbQualityAnim;
-  private JCheckBox cbOverrideAnimVisibility, cbExportLayers, cbUseColorShades, cbStoreSettings;
+  private JCheckBox cbOverrideAnimVisibility, cbMouseWheelZoom, cbExportLayers, cbUseColorShades,
+                    cbStoreSettings;
   private JButton bDefaultSettings, bCancel, bOK;
   private JSpinner sOverlaysFps, sAnimationsFps;
   private JSlider sMiniMapAlpha;
@@ -160,6 +161,7 @@ public class SettingsDialog extends JDialog
 
     Settings.MiniMapAlpha = (double)sMiniMapAlpha.getValue() / 100.0;
 
+    Settings.MouseWheelZoom = cbMouseWheelZoom.isSelected();
     Settings.ExportLayers = cbExportLayers.isSelected();
     Settings.UseColorShades = cbUseColorShades.isSelected();
     Settings.StoreVisualSettings = cbStoreSettings.isSelected();
@@ -473,6 +475,8 @@ public class SettingsDialog extends JDialog
     cbExportLayers.setSelected(Settings.ExportLayers);
     cbUseColorShades = new JCheckBox("Use individual color shades for region types");
     cbUseColorShades.setSelected(Settings.UseColorShades);
+    cbMouseWheelZoom = new JCheckBox("Use mouse wheel to zoom map");
+    cbMouseWheelZoom.setSelected(Settings.MouseWheelZoom);
     cbStoreSettings = new JCheckBox("Remember all visual settings");
     cbStoreSettings.setSelected(Settings.StoreVisualSettings);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
@@ -482,6 +486,9 @@ public class SettingsDialog extends JDialog
                           GridBagConstraints.NONE, new Insets(4, 4, 0, 4), 0, 0);
     pMisc.add(cbUseColorShades, c);
     c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 4), 0, 0);
+    pMisc.add(cbMouseWheelZoom, c);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(4, 4, 4, 4), 0, 0);
     pMisc.add(cbStoreSettings, c);
 
