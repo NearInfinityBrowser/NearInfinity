@@ -37,6 +37,7 @@ import org.infinity.resource.text.modes.BCSFoldParser;
 import org.infinity.resource.text.modes.BCSTokenMaker;
 import org.infinity.resource.text.modes.GLSLTokenMaker;
 import org.infinity.resource.text.modes.TLKTokenMaker;
+import org.infinity.resource.text.modes.WeiDULogTokenMaker;
 
 /**
  * Extends {@link RSyntaxTextArea} by NearInfinity-specific features.
@@ -57,6 +58,8 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
     LUA,
     /** Select SQL highlighting. */
     SQL,
+    /** Select WeiDU.log highlighting. */
+    WEIDU,
   }
 
   /** Available color schemes for use when enabling syntax highlighting. */
@@ -111,6 +114,8 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
       .putMapping(BCSTokenMaker.SYNTAX_STYLE_BCS, "org.infinity.resource.text.modes.BCSTokenMaker");
     ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance())
       .putMapping(TLKTokenMaker.SYNTAX_STYLE_TLK, "org.infinity.resource.text.modes.TLKTokenMaker");
+    ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance())
+      .putMapping(WeiDULogTokenMaker.SYNTAX_STYLE_WEIDU, "org.infinity.resource.text.modes.WeiDULogTokenMaker");
     ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance())
       .putMapping(GLSLTokenMaker.SYNTAX_STYLE_GLSL, "org.infinity.resource.text.modes.GLSLTokenMaker");
 
@@ -297,6 +302,9 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
         case SQL:
           style = SyntaxConstants.SYNTAX_STYLE_SQL;
           break;
+        case WEIDU:
+          style = WeiDULogTokenMaker.SYNTAX_STYLE_WEIDU;
+          break;
         default:
           style = SyntaxConstants.SYNTAX_STYLE_NONE;
       }
@@ -338,6 +346,11 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
           case SQL:
             if (BrowserMenuBar.getInstance() != null) {
               schemePath = BrowserMenuBar.getInstance().getSqlColorScheme();
+            }
+            break;
+          case WEIDU:
+            if (BrowserMenuBar.getInstance() != null) {
+              schemePath = BrowserMenuBar.getInstance().getWeiDUColorScheme();
             }
             break;
           default:

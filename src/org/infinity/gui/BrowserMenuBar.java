@@ -5,6 +5,7 @@
 package org.infinity.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -69,6 +70,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructureFactory;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.text.PlainTextResource;
 import org.infinity.search.DialogSearcher;
 import org.infinity.search.SearchFrame;
 import org.infinity.search.SearchResource;
@@ -294,6 +296,12 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.getTlkColorScheme();
   }
 
+  /** Returns the selected WeiDU.log color scheme. */
+  public String getWeiDUColorScheme()
+  {
+    return optionsMenu.getWeiDUColorScheme();
+  }
+
   /** Returns state of "Enable Syntax Highlighting for GLSL" */
   public boolean getGlslSyntaxHighlightingEnabled()
   {
@@ -316,6 +324,12 @@ public final class BrowserMenuBar extends JMenuBar
   public boolean getTlkSyntaxHighlightingEnabled()
   {
     return optionsMenu.optionTLKEnableSyntax.isSelected();
+  }
+
+  /** Returns state of "Enable Syntax Highlighting for WeiDU.log" */
+  public boolean getWeiDUSyntaxHighlightingEnabled()
+  {
+    return optionsMenu.optionWeiDUEnableSyntax.isSelected();
   }
 
   /** Returns state of "Enable Code Folding for GLSL" */
@@ -1041,7 +1055,7 @@ public final class BrowserMenuBar extends JMenuBar
 
   private static final class EditMenu extends JMenu implements ActionListener
   {
-    private final JMenuItem editString, editBIFF, editVarVar, editIni;
+    private final JMenuItem editString, editBIFF, editVarVar, editIni, editWeiDU, editWeiDUBGEE;
 
     private EditMenu()
     {
@@ -1054,6 +1068,11 @@ public final class BrowserMenuBar extends JMenuBar
       editIni = makeMenuItem("baldur.ini", KeyEvent.VK_I, Icons.getIcon(Icons.ICON_EDIT_16), -1, NearInfinity.getInstance());
       editIni.setActionCommand("GameIni");
       add(editIni);
+      editWeiDU = makeMenuItem("WeiDU.log", KeyEvent.VK_W, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
+      add(editWeiDU);
+      editWeiDUBGEE = makeMenuItem("WeiDU-BGEE.log", -1, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
+      editWeiDUBGEE.setVisible(false);
+      add(editWeiDUBGEE);
       editVarVar = makeMenuItem("Var.var", KeyEvent.VK_V, Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16), -1, this);
       add(editVarVar);
       // TODO: reactive when fixed
@@ -1075,6 +1094,15 @@ public final class BrowserMenuBar extends JMenuBar
         editIni.setEnabled(false);
         editIni.setToolTipText("Ini file not available");
       }
+
+      Path weiduFile = FileManager.query(Profile.getRootFolders(), "WeiDU.log");
+      editWeiDU.setEnabled(weiduFile != null && Files.isRegularFile(weiduFile));
+      editWeiDUBGEE.setVisible(Profile.getGame() == Profile.Game.EET);
+      if (editWeiDUBGEE.isVisible()) {
+        weiduFile = FileManager.query(Profile.getRootFolders(), "WeiDU-BGEE.log");
+        editWeiDUBGEE.setEnabled(weiduFile != null && Files.isRegularFile(weiduFile));
+      }
+
       Path varFile = FileManager.query(Profile.getRootFolders(), "VAR.VAR");
       editVarVar.setEnabled(varFile != null && Files.isRegularFile(varFile));
       if (editVarVar.isEnabled()) {
@@ -1099,6 +1127,12 @@ public final class BrowserMenuBar extends JMenuBar
           editor.setVisible(true);
         }
       }
+      else if (event.getSource() == editWeiDU) {
+        showTextFile(NearInfinity.getInstance(), "WeiDU.log");
+      }
+      else if (event.getSource() == editWeiDUBGEE) {
+        showTextFile(NearInfinity.getInstance(), "WeiDU-BGEE.log");
+      }
       else if (event.getSource() == editVarVar) {
         new ViewFrame(NearInfinity.getInstance(),
                       ResourceFactory.getResource(
@@ -1107,6 +1141,22 @@ public final class BrowserMenuBar extends JMenuBar
       }
       else if (event.getSource() == editBIFF) {
 //        new BIFFEditor();
+      }
+    }
+
+    // Opens given file in text editor if file is found in the game's root folder
+    private void showTextFile(Component parent, String fileName)
+    {
+      Path logFile = FileManager.query(Profile.getRootFolders(), fileName);
+      try {
+        if (logFile != null && Files.isRegularFile(logFile)) {
+          new ViewFrame(parent, new PlainTextResource(new FileResourceEntry(logFile)));
+        } else {
+          throw new Exception();
+        }
+      } catch (Exception e) {
+        JOptionPane.showMessageDialog(parent, "Cannot open " + fileName + ".",
+                                      "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
   }
@@ -1590,6 +1640,8 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_SQL_COLORSCHEME          = "SqlColorScheme";
     private static final String OPTION_TLK_SYNTAXHIGHLIGHTING   = "TlkSyntaxHighlighting";
     private static final String OPTION_TLK_COLORSCHEME          = "TlkColorScheme";
+    private static final String OPTION_WEIDU_SYNTAXHIGHLIGHTING = "WeiDUSyntaxHighlighting";
+    private static final String OPTION_WEIDU_COLORSCHEME        = "WeiDUColorScheme";
     // this preferences key can be used internally to reset incorrectly set default values after a public release
     private static final String OPTION_OPTION_FIXED             = "OptionFixedInternal";
 
@@ -1612,13 +1664,14 @@ public final class BrowserMenuBar extends JMenuBar
     private final JRadioButtonMenuItem[] selectLuaColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
     private final JRadioButtonMenuItem[] selectSqlColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
     private final JRadioButtonMenuItem[] selectTlkColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
+    private final JRadioButtonMenuItem[] selectWeiDUColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
     private final DataRadioButtonMenuItem[] globalFontSize = new DataRadioButtonMenuItem[FONTSIZES.length];
 
     private JCheckBoxMenuItem optionTextHightlightCurrent, optionTextLineNumbers,
                               optionTextShowWhiteSpace, optionTextShowEOL, optionTextTabEmulate,
                               optionBCSEnableSyntax, optionBCSEnableCodeFolding,
                               optionBCSEnableAutoIndent, optionGLSLEnableSyntax, optionLUAEnableSyntax,
-                              optionSQLEnableSyntax, optionTLKEnableSyntax,
+                              optionSQLEnableSyntax, optionTLKEnableSyntax, optionWeiDUEnableSyntax,
                               optionGLSLEnableCodeFolding;
 
     private JCheckBoxMenuItem optionAutocheckBCS, optionMoreCompileWarnings;
@@ -1827,6 +1880,20 @@ public final class BrowserMenuBar extends JMenuBar
         bg.add(selectTlkColorScheme[i]);
       }
 
+      JMenu textWeiDUColors = new JMenu("Color Scheme for WeiDU.log");
+      textMisc.add(textWeiDUColors);
+      bg = new ButtonGroup();
+      int selectedWeiDUScheme = getPrefs().getInt(OPTION_WEIDU_COLORSCHEME, 0);
+      if (selectedWeiDUScheme < 0 || selectedWeiDUScheme >= COLORSCHEME.length) {
+        selectedWeiDUScheme = 0;
+      }
+      for (int i = 0; i < COLORSCHEME.length; i++) {
+        selectWeiDUColorScheme[i] = new JRadioButtonMenuItem(COLORSCHEME[i][1], selectedWeiDUScheme == i);
+        selectWeiDUColorScheme[i].setToolTipText(COLORSCHEME[i][2]);
+        textWeiDUColors.add(selectWeiDUColorScheme[i]);
+        bg.add(selectWeiDUColorScheme[i]);
+      }
+
       optionGLSLEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting for GLSL",
                                                      getPrefs().getBoolean(OPTION_GLSL_SYNTAXHIGHLIGHTING, true));
       textMisc.add(optionGLSLEnableSyntax);
@@ -1839,6 +1906,9 @@ public final class BrowserMenuBar extends JMenuBar
       optionTLKEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting for text strings",
                                                     getPrefs().getBoolean(OPTION_TLK_SYNTAXHIGHLIGHTING, true));
       textMisc.add(optionTLKEnableSyntax);
+      optionWeiDUEnableSyntax = new JCheckBoxMenuItem("Enable Syntax Highlighting for WeiDU.log",
+                                                      getPrefs().getBoolean(OPTION_WEIDU_SYNTAXHIGHLIGHTING, true));
+      textMisc.add(optionWeiDUEnableSyntax);
       optionGLSLEnableCodeFolding = new JCheckBoxMenuItem("Enable Code Folding for GLSL",
                                                           getPrefs().getBoolean(OPTION_GLSL_CODEFOLDING, false));
       textMisc.add(optionGLSLEnableCodeFolding);
@@ -2319,10 +2389,13 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putInt(OPTION_SQL_COLORSCHEME, selectColorScheme);
       selectColorScheme = getSelectedButtonIndex(selectTlkColorScheme, 0);
       getPrefs().putInt(OPTION_TLK_COLORSCHEME, selectColorScheme);
+      selectColorScheme = getSelectedButtonIndex(selectWeiDUColorScheme, 0);
+      getPrefs().putInt(OPTION_WEIDU_COLORSCHEME, selectColorScheme);
       getPrefs().putBoolean(OPTION_GLSL_SYNTAXHIGHLIGHTING, optionGLSLEnableSyntax.isSelected());
       getPrefs().putBoolean(OPTION_LUA_SYNTAXHIGHLIGHTING, optionLUAEnableSyntax.isSelected());
       getPrefs().putBoolean(OPTION_SQL_SYNTAXHIGHLIGHTING, optionSQLEnableSyntax.isSelected());
       getPrefs().putBoolean(OPTION_TLK_SYNTAXHIGHLIGHTING, optionTLKEnableSyntax.isSelected());
+      getPrefs().putBoolean(OPTION_WEIDU_SYNTAXHIGHLIGHTING, optionWeiDUEnableSyntax.isSelected());
       getPrefs().putBoolean(OPTION_GLSL_CODEFOLDING, optionGLSLEnableCodeFolding.isSelected());
       getPrefs().putInt(OPTION_OPTION_FIXED, optionFixedInternal);
 
@@ -2594,6 +2667,12 @@ public final class BrowserMenuBar extends JMenuBar
     public String getTlkColorScheme()
     {
       int idx = getSelectedButtonIndex(selectTlkColorScheme, 0);
+      return COLORSCHEME[idx][0];
+    }
+
+    public String getWeiDUColorScheme()
+    {
+      int idx = getSelectedButtonIndex(selectWeiDUColorScheme, 0);
       return COLORSCHEME[idx][0];
     }
 

@@ -364,6 +364,12 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
             BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.BCS;
         }
+      } else if ("WeiDU.log".equalsIgnoreCase(entry.getResourceName()) ||
+                 "WeiDU-BGEE.log".equalsIgnoreCase(entry.getResourceName())) {
+        if (BrowserMenuBar.getInstance() == null ||
+            BrowserMenuBar.getInstance().getWeiDUSyntaxHighlightingEnabled()) {
+          language = InfinityTextArea.Language.WEIDU;
+        }
       }
     }
     if (edit != null) {
