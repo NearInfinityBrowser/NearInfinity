@@ -197,6 +197,11 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionShowHexColored.isSelected();
   }
 
+  public boolean getKeepViewOnCopy()
+  {
+    return optionsMenu.optionKeepViewOnCopy.isSelected();
+  }
+
   public boolean getMonitorFileChanges()
   {
 //    return optionsMenu.optionMonitorFileChanges.isSelected();
@@ -1553,6 +1558,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
     private static final String OPTION_DLG_SHOWICONS            = "DlgShowIcons";
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
+    private static final String OPTION_KEEPVIEWONCOPY           = "UpdateTreeOnCopy";
 //    private static final String OPTION_MONITORFILECHANGES       = "MonitorFileChanges";
     private static final String OPTION_SHOWOVERRIDES            = "ShowOverridesIn";
     private static final String OPTION_SHOWRESREF               = "ShowResRef";
@@ -1619,7 +1625,8 @@ public final class BrowserMenuBar extends JMenuBar
 
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride,
                               optionIgnoreReadErrors, optionCacheOverride, optionShowStrrefs,
-                              optionDlgShowIcons, optionShowHexColored, optionShowUnknownResources;
+                              optionDlgShowIcons, optionShowHexColored, optionShowUnknownResources,
+                              optionKeepViewOnCopy;
 //                              optionMonitorFileChanges;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
@@ -1667,6 +1674,10 @@ public final class BrowserMenuBar extends JMenuBar
       optionCacheOverride.setToolTipText("Without this option selected, Refresh Tree is required " +
                                          "to discover new override files added while NI is open");
       add(optionCacheOverride);
+      optionKeepViewOnCopy =
+          new JCheckBoxMenuItem("Keep view after copy operations", getPrefs().getBoolean(OPTION_KEEPVIEWONCOPY, false));
+      optionKeepViewOnCopy.setToolTipText("With this option enabled the resource tree will not switch to the new resource created by an \"Add Copy Of\" operation.");
+      add(optionKeepViewOnCopy);
       optionShowStrrefs =
           new JCheckBoxMenuItem("Show Strrefs in View tabs", getPrefs().getBoolean(OPTION_SHOWSTRREFS, false));
       add(optionShowStrrefs);
@@ -2272,6 +2283,7 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
       getPrefs().putBoolean(OPTION_DLG_SHOWICONS, optionDlgShowIcons.isSelected());
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
+      getPrefs().putBoolean(OPTION_KEEPVIEWONCOPY, optionKeepViewOnCopy.isSelected());
 //      getPrefs().putBoolean(OPTION_MONITORFILECHANGES, optionMonitorFileChanges.isSelected());
       getPrefs().putInt(OPTION_SHOWRESREF, getResRefMode());
       getPrefs().putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
