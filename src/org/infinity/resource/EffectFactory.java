@@ -3727,6 +3727,14 @@ public final class EffectFactory
         break;
 
       case 323: // Turn undead level
+        if (Profile.isEnhancedEdition()) {
+          s.add(new DecNumber(buffer, offset, 4, "Value"));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
       case 325: // All saving throws bonus
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
