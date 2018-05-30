@@ -2141,9 +2141,9 @@ public final class EffectFactory
       case 34: // Save vs. wand bonus / Reflex save bonus
       case 35: // Save vs. polymorph bonus / Will save bonus
         s.add(new DecNumber(buffer, offset, 4, "Value"));
-        if (isTobEx) {
+        if (isTobEx || Profile.isEnhancedEdition()) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{
-              s_inctype[0], s_inctype[1], s_inctype[2], "Instantaneous"}));
+              s_inctype[0], s_inctype[1], s_inctype[2], "Increment instantaneously"}));
         } else {
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
         }
@@ -2155,9 +2155,9 @@ public final class EffectFactory
           makeEffectParamsDefault(buffer, offset, s);
         } else {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
-          if (isTobEx) {
+          if (isTobEx || Profile.isEnhancedEdition()) {
             s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{
-                s_inctype[0], s_inctype[1], s_inctype[2], "Instantaneous"}));
+                s_inctype[0], s_inctype[1], s_inctype[2], "Increment instantaneously"}));
           } else {
             s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
           }
@@ -3730,7 +3730,8 @@ public final class EffectFactory
       case 325: // All saving throws bonus
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", new String[]{
+              s_inctype[0], s_inctype[1], s_inctype[2], "Increment instantaneously"}));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
