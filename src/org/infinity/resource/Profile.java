@@ -1774,7 +1774,7 @@ public final class Profile implements FileWatcher.FileWatchListener
 
     addEntry(Key.IS_SUPPORTED_EFF, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
                                                   engine == Engine.IWD || engine == Engine.EE ||
-                                                  engine == Engine.Unknown));
+                                                  engine == Engine.IWD2 || engine == Engine.Unknown));
 
     addEntry(Key.IS_SUPPORTED_FNT, Type.BOOLEAN, isEnhancedEdition());
 
