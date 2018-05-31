@@ -224,8 +224,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
-    final String[] s_types = Profile.isEnhancedEdition() ? new String[]{"VVC", "BAM"}
-                                                         : new String[]{"VEF", "VVC", "BAM"};
+    final String[] s_types = new String[]{"VEF", "VVC", "BAM"};
 
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));

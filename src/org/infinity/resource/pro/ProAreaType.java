@@ -110,8 +110,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
-    final String[] s_types = Profile.isEnhancedEdition() ? new String[]{"VVC", "BAM"}
-                                                         : new String[]{"VEF", "VVC", "BAM"};
+    final String[] s_types = new String[]{"VEF", "VVC", "BAM"};
 
     addField(new Flag(buffer, offset, 2, PRO_AREA_FLAGS, s_areaflags));
     addField(new DecNumber(buffer, offset + 2, 2, PRO_AREA_RAY_COUNT));
