@@ -16,7 +16,7 @@ public interface HasAddRemovable
    * This method is called whenever an {@link AddRemovable} entry is about to be added
    * to the parent structure. It allows subclasses to make final modifications to the given
    * {@link AddRemovable} argument before it is added to the structure or to cancel the operation.
-   * @param struct The {@link AddRemovable} entry to add.
+   * @param entry The {@link AddRemovable} entry to add.
    * @return The {@link AddRemovable} entry to add.
    *         May return {@code null} to cancel the operation.
    */

@@ -5,25 +5,20 @@
 package org.infinity.gui;
 
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -32,304 +27,148 @@ import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSlider;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.ProgressMonitor;
+import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.infinity.NearInfinity;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Editable;
 import org.infinity.datatype.Flag;
-import org.infinity.datatype.InlineEditable;
 import org.infinity.datatype.ResourceRef;
-import org.infinity.datatype.Unknown;
 import org.infinity.icon.Icons;
-import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.search.SearchClient;
 import org.infinity.search.SearchMaster;
 import org.infinity.search.StringReferenceSearcher;
-import org.infinity.util.StringResource;
+import org.infinity.util.Misc;
+import org.infinity.util.StringTable;
 import org.infinity.util.io.FileManager;
-import org.infinity.util.io.StreamUtils;
 
-public final class StringEditor extends ChildFrame implements ActionListener, ListSelectionListener, SearchClient,
-                                                              ChangeListener, ItemListener
+public class StringEditor extends ChildFrame implements SearchClient
 {
-  private static final String s_flags[] = { "None", "Has text", "Has sound", "Has token" };
-  private static String signature, version;
-  private static int entry_size = 26; // V1
-  private final ButtonPopupMenu bfind;
-  private final CardLayout cards = new CardLayout();
-  private final Path stringPath;
-  private final JButton badd = new JButton("Add", Icons.getIcon(Icons.ICON_ADD_16));
-  private final JButton bdelete = new JButton("Delete", Icons.getIcon(Icons.ICON_REMOVE_16));
-  private final JButton breread = new JButton("Revert", Icons.getIcon(Icons.ICON_UNDO_16));
-  private final JButton bsave = new JButton("Save", Icons.getIcon(Icons.ICON_SAVE_16));
-  private final JButton bexport = new JButton("Export as TXT...", Icons.getIcon(Icons.ICON_EXPORT_16));
-  private final JMenuItem ifindattribute = new JMenuItem("selected attribute");
-  private final JMenuItem ifindstring = new JMenuItem("string");
-  private final JMenuItem ifindref = new JMenuItem("references to this entry");
-  private final JPanel editpanel = new JPanel();
-  private final JPanel editcontent = new JPanel();
+  public static final String TLK_FLAGS  = "Flags";
+  public static final String TLK_SOUND  = "Associated sound";
+  public static final String TLK_VOLUME = "Volume variance";
+  public static final String TLK_PITCH  = "Pitch variance";
+
+  public static final String[] s_flags = { "None", "Has text", "Has sound", "Has token" };
+
+  private final ArrayDeque<UndoAction> undoStack = new ArrayDeque<>();
+
+  private final Listeners listeners = new Listeners();
+  private final JTabbedPane tabPane = new JTabbedPane(JTabbedPane.TOP);
+  private final ButtonPopupMenu bpmFind = new ButtonPopupMenu("Find...", ButtonPopupMenu.Align.TOP);
+  private final ButtonPopupMenu bpmExport = new ButtonPopupMenu("Export...", ButtonPopupMenu.Align.TOP);
+  private final ButtonPopupMenu bpmRevert = new ButtonPopupMenu("Revert...", ButtonPopupMenu.Align.TOP);
+  private final JButton bAdd = new JButton("Add", Icons.getIcon(Icons.ICON_ADD_16));
+  private final JButton bDelete = new JButton("Delete", Icons.getIcon(Icons.ICON_REMOVE_16));
+  private final JButton bSave = new JButton("Save", Icons.getIcon(Icons.ICON_SAVE_16));
+  private final JButton bSync = new JButton("Sync entry", Icons.getIcon(Icons.ICON_REFRESH_16));
+  private final JMenuItem miFindAttribute = new JMenuItem("selected attribute");
+  private final JMenuItem miFindString = new JMenuItem("string");
+  private final JMenuItem miFindRef = new JMenuItem("references to this entry");
+  private final JMenuItem miExportTra = new JMenuItem("as TRA file");
+  private final JMenuItem miExportTxt = new JMenuItem("as TXT file");
+  private final JMenuItem miRevertLast = new JMenuItem("last operation");
+  private final JMenuItem miRevertAll = new JMenuItem("all");
+  private final JPanel pTabMain = new JPanel();  // contains whole tab content
+  private final JPanel pAttribEdit = new JPanel();
   private final JSlider slider = new JSlider(0, 100, 0);
   private final JTable table = new JTable();
-  private final RSyntaxTextArea tatext = new InfinityTextArea(true);
-  private final JTextField tstrref = new JTextField(5);
-  private final StringEditor editor;
-  private final java.util.List<StringEntry> added_entries = new ArrayList<StringEntry>();
-  private DecNumber entries_count, entries_offset;
+  private final InfinityTextArea taText = new InfinityTextArea(true);
+  private final JTextField tfStrref = new JTextField(6);
+
   private Editable editable;
-  private StringEntry entries[];
-  private Unknown unknown;
-  private int index_shown = -1, init_show;
+  private int selectedIndex = -1;
+  private StringTable.StringEntry selectedEntry = null;
 
-  public StringEditor(Path stringPath, int init_show)
+
+  public StringEditor()
   {
-    super("Edit: " + stringPath);
-    setIconImage(Icons.getIcon(Icons.ICON_EDIT_16).getImage());
-    this.stringPath = stringPath;
-    if (init_show >= 0) {
-      this.init_show = init_show;
-    }
-    StringResource.close();
-
-    JOptionPane.showMessageDialog(NearInfinity.getInstance(),
-                                  "Make sure you have a backup of " + stringPath.getFileName(),
-                                  "Warning", JOptionPane.WARNING_MESSAGE);
-
-    tstrref.addActionListener(this);
-    table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    table.getSelectionModel().addListSelectionListener(this);
-    table.setFont(BrowserMenuBar.getInstance().getScriptFont());
-    tatext.setMargin(new Insets(3, 3, 3, 3));
-    tatext.setLineWrap(true);
-    tatext.setWrapStyleWord(true);
-    ifindattribute.setEnabled(false);
-    breread.setToolTipText("Undo all changes");
-    bfind = new ButtonPopupMenu("Find...", new JMenuItem[]{ifindattribute, ifindstring, ifindref});
-    bfind.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
-    badd.setMnemonic('a');
-    bdelete.setMnemonic('d');
-    bsave.setMnemonic('s');
-    breread.setMnemonic('r');
-    bexport.setMnemonic('e');
-    badd.addActionListener(this);
-    bdelete.addActionListener(this);
-    bsave.addActionListener(this);
-    breread.addActionListener(this);
-    bfind.addItemListener(this);
-    bexport.addActionListener(this);
-    slider.setMajorTickSpacing(10000);
-    slider.setMinorTickSpacing(1000);
-    slider.setPaintTicks(true);
-    editpanel.setLayout(cards);
-    editpanel.add(new JPanel(), "Empty");
-    editpanel.add(editcontent, "Edit");
-    editpanel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 3));
-    cards.show(editpanel, "Empty");
-
-    // Construct GUI
-    JLabel label = new JLabel("StrRef: ");
-    label.setLabelFor(tstrref);
-    label.setFont(label.getFont().deriveFont((float)label.getFont().getSize() + 2.0f));
-    JPanel topleftPanel = new JPanel(new FlowLayout());
-    topleftPanel.add(label);
-    topleftPanel.add(tstrref);
-
-    JPanel topPanel = new JPanel(new BorderLayout());
-    topPanel.add(topleftPanel, BorderLayout.WEST);
-    topPanel.add(slider, BorderLayout.CENTER);
-
-    JPanel centerleft = new JPanel(new BorderLayout(0, 6));
-    centerleft.add(table, BorderLayout.NORTH);
-    centerleft.add(editpanel, BorderLayout.CENTER);
-    centerleft.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlShadow")));
-
-    JPanel attributePanel = new JPanel(new BorderLayout());
-    attributePanel.add(new JLabel("Attributes:"), BorderLayout.NORTH);
-    attributePanel.add(centerleft, BorderLayout.CENTER);
-
-    JPanel textPanel = new JPanel(new BorderLayout());
-    textPanel.add(new JLabel("String:"), BorderLayout.NORTH);
-    textPanel.add(new InfinityScrollPane(tatext, true), BorderLayout.CENTER);
-
-    JPanel centerPanel = new JPanel(new GridLayout(1, 3, 6, 0));
-    centerPanel.add(attributePanel);
-    centerPanel.add(textPanel);
-
-    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    buttonPanel.add(badd);
-    buttonPanel.add(bdelete);
-    buttonPanel.add(bfind);
-    buttonPanel.add(bexport);
-    buttonPanel.add(breread);
-    buttonPanel.add(bsave);
-
-    JPanel pane = (JPanel)getContentPane();
-    pane.setLayout(new BorderLayout(3, 3));
-
-    pane.add(topPanel, BorderLayout.NORTH);
-    pane.add(centerPanel, BorderLayout.CENTER);
-    pane.add(buttonPanel, BorderLayout.SOUTH);
-    pane.setBorder(BorderFactory.createEmptyBorder(3, 6, 3, 6));
-
-    setSize(750, 500);
-    Center.center(this, NearInfinity.getInstance().getBounds());
-
-    editor = this;
-    new Thread(new StrRefReader()).start();
+    this(0);
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
+  public StringEditor(int shownIndex)
+  {
+    super(getWindowTitle(StringTable.Type.MALE));
+
+    String msg = "Make sure you have a backup of ";
+    msg += StringTable.getPath(StringTable.Type.MALE).getFileName().toString();
+    if (StringTable.hasFemaleTable()) {
+      msg += " and " + StringTable.getPath(StringTable.Type.FEMALE).getFileName().toString();
+    }
+    msg += ".";
+    JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Warning", JOptionPane.WARNING_MESSAGE);
+
+    initUI(shownIndex);
+  }
 
   @Override
-  public void actionPerformed(ActionEvent event)
+  protected boolean windowClosing(boolean forced) throws Exception
   {
-    if (event.getSource() == tstrref) {
-      try {
-        int i = Integer.parseInt(tstrref.getText().trim());
-        if (i >= 0 && i < entries_count.getValue()) {
-          showEntry(i);
-        } else {
-          JOptionPane.showMessageDialog(this, "Entry not found", "Error", JOptionPane.ERROR_MESSAGE);
+    boolean retVal = true;
+    updateEntry(getSelectedEntry());
+    if (StringTable.isModified()) {
+      setVisible(true);
+      int optionType = forced ? JOptionPane.YES_NO_OPTION : JOptionPane.YES_NO_CANCEL_OPTION;
+      int result = JOptionPane.showConfirmDialog(this, "String table has been modified. Save changes to disk?",
+                                                 "Save changes", optionType, JOptionPane.QUESTION_MESSAGE);
+
+      if (result == JOptionPane.YES_OPTION) {
+        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+          @Override
+          protected Void doInBackground() throws Exception
+          {
+            WindowBlocker blocker = new WindowBlocker(StringEditor.this);
+            try {
+              blocker.setBlocked(true);
+              save(false);
+            } finally {
+              blocker.setBlocked(false);
+            }
+            return null;
+          }
+        };
+
+        try {
+          worker.execute();
+          worker.get();
+        } catch (InterruptedException | ExecutionException e) {
+          e.printStackTrace();
         }
-      } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "Not a number", "Error", JOptionPane.ERROR_MESSAGE);
       }
+
+      retVal = (result != JOptionPane.CANCEL_OPTION);
     }
-    else if (event.getSource() == bsave) {
-      if (index_shown != -1) {
-        updateEntry(index_shown);
-      }
-      new Thread(new StrRefWriter()).start();
-    }
-    else if (event.getSource() == breread) {
-      setVisible(false);
-      new Thread(new StrRefReader()).start();
-    }
-    else if (event.getActionCommand().equals(StructViewer.UPDATE_VALUE)) {
-      if (!editable.updateValue(null)) {
-        JOptionPane.showMessageDialog(this, "Error updating value", "Error", JOptionPane.ERROR_MESSAGE);
-      }
-      table.repaint();
-    }
-    else if (event.getSource() == badd) {
-      try {
-        showEntry(addEntry(new StringEntry()));
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
-    else if (event.getSource() == bdelete) {
-      if (index_shown == entries_count.getValue() - 1) {
-        deleteLastEntry();
-      } else {
-        JOptionPane.showMessageDialog(this, "You can only delete the last entry",
-                                      "Error", JOptionPane.ERROR_MESSAGE);
-      }
-    }
-    else if (event.getSource() == bexport) {
-      new Thread(new StrRefExporter()).start();
-    }
+    return retVal;
   }
 
-// --------------------- End Interface ActionListener ---------------------
-
-
-// --------------------- Begin Interface ChangeListener ---------------------
-
-  @Override
-  public void stateChanged(ChangeEvent event)
-  {
-    if (event.getSource() == slider) {
-      if (!slider.getValueIsAdjusting() && slider.getValue() != index_shown) {
-        showEntry(slider.getValue());
-      }
-    }
-  }
-
-// --------------------- End Interface ChangeListener ---------------------
-
-
-// --------------------- Begin Interface ItemListener ---------------------
-
-  @Override
-  public void itemStateChanged(ItemEvent event)
-  {
-    if (event.getSource() == bfind) {
-      //      JMenuItem item = (JMenuItem)event.getItem();  // Should have worked!
-      JMenuItem item = bfind.getSelectedItem();
-      if (item == ifindstring) {
-        SearchMaster.createAsFrame(this, "StringRef", this);
-      }
-      else if (item == ifindattribute) {
-        SearchMaster.createAsFrame(new AttributeSearcher(table.getSelectedRow()),
-                                   entries[0].getValueAt(table.getSelectedRow(), 0).toString(), this);
-      }
-      else if (item == ifindref) {
-        new StringReferenceSearcher(index_shown, this);
-      }
-    }
-  }
-
-// --------------------- End Interface ItemListener ---------------------
-
-
-// --------------------- Begin Interface ListSelectionListener ---------------------
-
-  @Override
-  public void valueChanged(ListSelectionEvent event)
-  {
-    if (event.getValueIsAdjusting()) return;
-    ListSelectionModel lsm = (ListSelectionModel)event.getSource();
-    ifindattribute.setEnabled(!lsm.isSelectionEmpty());
-    if (lsm.isSelectionEmpty()) {
-      tatext.setText("");
-      cards.show(editpanel, "Empty");
-    }
-    else {
-      Object selected = table.getModel().getValueAt(lsm.getMinSelectionIndex(), 1);
-      if (selected instanceof Editable) {
-        editable = (Editable)selected;
-        editcontent.removeAll();
-        editcontent.setLayout(new BorderLayout());
-        editcontent.add(editable.edit(this), BorderLayout.CENTER);
-        editcontent.revalidate();
-        editcontent.repaint();
-        cards.show(editpanel, "Edit");
-        editable.select();
-      }
-      else if (selected instanceof InlineEditable) {
-        cards.show(editpanel, "Empty");
-      }
-    }
-  }
-
-// --------------------- End Interface ListSelectionListener ---------------------
-
-
-// --------------------- Begin Interface SearchClient ---------------------
+//--------------------- Begin Interface SearchClient ---------------------
 
   @Override
   public String getText(int index)
   {
-    if (index < 0 || index >= entries_count.getValue()) {
-      return null;
+    if (index >= 0 && index < StringTable.getNumEntries(getSelectedDialogType())) {
+      return StringTable.getStringRef(index, StringTable.Format.NONE);
     }
-    if (index < entries.length) {
-      return entries[index].string;
-    }
-    StringEntry entry = added_entries.get(index - entries.length);
-    return entry.string;
+    return null;
   }
 
   @Override
@@ -338,452 +177,867 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
     showEntry(index);
   }
 
-// --------------------- End Interface SearchClient ---------------------
+//--------------------- End Interface SearchClient ---------------------
 
-  public Path getPath()
+  private static String getWindowTitle(StringTable.Type dlgType)
   {
-    return stringPath;
+    if (dlgType != null) {
+      return "Edit: " + StringTable.getPath(dlgType).toString() +
+                    " (" + StringTable.getNumEntries(dlgType) + " entries)";
+    } else {
+      return "String Editor";
+    }
+  }
+
+  private void initUI(int shownIndex)
+  {
+    setIconImage(Icons.getIcon(Icons.ICON_EDIT_16).getImage());
+
+    table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
+    table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    table.getSelectionModel().addListSelectionListener(listeners);
+    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+    table.getTableHeader().setReorderingAllowed(false);
+    table.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
+    JScrollPane spTable = new JScrollPane(table);
+    spTable.getViewport().setBackground(table.getBackground());
+    spTable.setBorder(BorderFactory.createEmptyBorder());
+
+    tfStrref.addActionListener(listeners);
+    if (BrowserMenuBar.getInstance().getTlkSyntaxHighlightingEnabled()) {
+      taText.applyExtendedSettings(InfinityTextArea.Language.TLK, null);
+    }
+    taText.setFont(Misc.getScaledFont(taText.getFont()));
+    taText.setMargin(new Insets(3, 3, 3, 3));
+    taText.setLineWrap(true);
+    taText.setWrapStyleWord(true);
+    taText.getDocument().addDocumentListener(listeners);
+
+    miFindAttribute.setEnabled(false);
+    bpmFind.setMenuItems(new JMenuItem[]{miFindAttribute, miFindString, miFindRef}, false);
+    bpmFind.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
+    bpmFind.addItemListener(listeners);
+    miExportTra.setToolTipText("Exports male and female string table into WeiDU TRA file");
+    miExportTxt.setToolTipText("Exports selected string table into text file");
+    bpmExport.setMenuItems(new JMenuItem[]{miExportTxt, miExportTra}, false);
+    bpmExport.setIcon(Icons.getIcon(Icons.ICON_EXPORT_16));
+    bpmExport.addItemListener(listeners);
+    miRevertAll.setEnabled(false);
+    miRevertAll.setToolTipText("Reverts all changes");
+    miRevertLast.setEnabled(false);
+    miRevertLast.setToolTipText("Reverts most recent add/delete operation");
+    bpmRevert.setMenuItems(new JMenuItem[]{miRevertLast, miRevertAll}, false);
+    bpmRevert.setIcon(Icons.getIcon(Icons.ICON_UNDO_16));
+    bpmRevert.addItemListener(listeners);
+    bAdd.addActionListener(listeners);
+    bAdd.setMnemonic('a');
+    bDelete.addActionListener(listeners);
+    bDelete.setMnemonic('d');
+    bSave.addActionListener(listeners);
+    bSave.setMnemonic('s');
+    bSync.addActionListener(listeners);
+    bSync.setMnemonic('y');
+    bSync.setToolTipText("Copies male string entry to female entry of same index");
+    bSync.setEnabled(StringTable.hasFemaleTable());
+
+    slider.setMaximum(StringTable.getNumEntries());
+    int v = (StringTable.getNumEntries() / 25000) + 1;
+    slider.setMajorTickSpacing(v * 2500);
+    slider.setMinorTickSpacing(v * 250);
+    slider.setPaintTicks(true);
+    slider.setPaintLabels(true);
+    slider.setFont(slider.getFont().deriveFont(slider.getFont().getSize2D() * 0.85f));
+    slider.addChangeListener(listeners);
+
+    tabPane.addTab("dialog.tlk", new JPanel());
+    tabPane.addTab("dialogF.tlk", new JPanel());
+    tabPane.setSelectedIndex(0);
+    tabPane.setEnabledAt(1, StringTable.hasFemaleTable());
+    if (!StringTable.hasFemaleTable()) {
+      tabPane.setToolTipTextAt(1, "Not available for the current language.");
+    }
+    tabPane.addChangeListener(listeners);
+
+    // constructing tab content
+    JLabel l = new JLabel("Strref: ");
+    l.setLabelFor(tfStrref);
+    l.setFont(l.getFont().deriveFont((float)l.getFont().getSize() + 2.0f));
+    JPanel pTopLeft = new JPanel(new FlowLayout());
+    pTopLeft.add(l);
+    pTopLeft.add(tfStrref);
+
+    JPanel pTop = new JPanel(new BorderLayout());
+    pTop.add(pTopLeft, BorderLayout.WEST);
+    pTop.add(slider, BorderLayout.CENTER);
+
+    pAttribEdit.setLayout(new BorderLayout());
+    JSplitPane splitAttrib = new JSplitPane(JSplitPane.VERTICAL_SPLIT, spTable, pAttribEdit);
+    splitAttrib.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlShadow")));
+
+    JPanel pCenterLeft = new JPanel(new BorderLayout());
+    pCenterLeft.add(new JLabel("Attributes:"), BorderLayout.NORTH);
+    pCenterLeft.add(splitAttrib, BorderLayout.CENTER);
+
+    JPanel pCenterRight = new JPanel(new BorderLayout());
+    pCenterRight.add(new JLabel("Text:"), BorderLayout.NORTH);
+    pCenterRight.add(new InfinityScrollPane(taText, true), BorderLayout.CENTER);
+
+    JSplitPane splitCenter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+    splitCenter.setLeftComponent(pCenterLeft);
+    splitCenter.setRightComponent(pCenterRight);
+    splitCenter.setResizeWeight(0.0);
+
+    pTabMain.setLayout(new BorderLayout(3, 3));
+    pTabMain.add(pTop, BorderLayout.NORTH);
+    pTabMain.add(splitCenter, BorderLayout.CENTER);
+    tabPane.setComponentAt(tabPane.getSelectedIndex(), pTabMain);
+
+    // constructing bottom bar
+    JPanel pBottomMain = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    pBottomMain.add(bSync);
+    pBottomMain.add(bAdd);
+    pBottomMain.add(bDelete);
+    pBottomMain.add(bpmFind);
+    pBottomMain.add(bpmRevert);
+    pBottomMain.add(bpmExport);
+    pBottomMain.add(bSave);
+
+    // putting all together
+    JPanel pane = (JPanel)getContentPane();
+    pane.setLayout(new BorderLayout(3, 3));
+    pane.add(tabPane, BorderLayout.CENTER);
+    pane.add(pBottomMain, BorderLayout.SOUTH);
+    pane.setBorder(BorderFactory.createEmptyBorder(3, 6, 3, 6));
+
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    if (screenSize.width > 0 && screenSize.height > 0) {
+      setSize(screenSize.width * 2 / 3, screenSize.height * 2 / 3);
+    } else {
+      setSize(750, 500);
+    }
+    Center.center(this, NearInfinity.getInstance().getBounds());
+    setVisible(true);
+
+    splitCenter.setDividerLocation(splitCenter.getWidth() / 2);
+    splitAttrib.setDividerLocation(splitAttrib.getHeight() / 3);
+
+    showEntry(shownIndex);
+  }
+
+  private void updateStringTableUI(int tabIndex)
+  {
+    if (tabIndex < 0 || tabIndex >= tabPane.getTabCount()) {
+      return;
+    }
+
+    for (int i = 0; i < tabPane.getTabCount(); i++) {
+      if (i != tabIndex) {
+        tabPane.setComponentAt(i, new JPanel());
+      }
+    }
+    tabPane.setComponentAt(tabIndex, pTabMain);
+
+    updateUI(getSelectedDialogType());
+    showEntry(getSelectedIndex());
+
+    pTabMain.revalidate();
+    pTabMain.repaint();
+  }
+
+  private void updateUI(StringTable.Type dlgType)
+  {
+    if (dlgType == null) { dlgType = StringTable.Type.MALE; }
+
+    setTitle(getWindowTitle(dlgType));
+    slider.setMaximum(StringTable.getNumEntries(dlgType));
+  }
+
+  private void updateModifiedUI(StringTable.Type dlgType)
+  {
+    if (dlgType == null) {
+      updateModifiedUI(StringTable.Type.MALE);
+      if (StringTable.hasFemaleTable()) {
+        updateModifiedUI(StringTable.Type.FEMALE);
+      }
+    } else {
+      int idx = (dlgType == StringTable.Type.FEMALE) ? 1 : 0;
+      String name = tabPane.getTitleAt(idx);
+      if (StringTable.isModified(dlgType) && !name.endsWith("*")) {
+        name += '*';
+        tabPane.setTitleAt(idx, name);
+      } else if (!StringTable.isModified(dlgType) && name.endsWith("*")) {
+        name = name.substring(0, name.length() - 1);
+        tabPane.setTitleAt(idx, name);
+      }
+    }
+
+    boolean modified = StringTable.isModified(StringTable.Type.MALE);
+    if (StringTable.hasFemaleTable()) {
+      modified |= StringTable.isModified(StringTable.Type.FEMALE);
+    }
+    miRevertAll.setEnabled(modified);
+  }
+
+  private StringTable.Type getSelectedDialogType()
+  {
+    return (tabPane.getSelectedIndex() == 1) ? StringTable.Type.FEMALE : StringTable.Type.MALE;
+  }
+
+  public void selectDialogType(StringTable.Type type)
+  {
+    if (tabPane.getTabCount() > 0) {
+      if (type == null) { type = StringTable.Type.MALE; }
+      if (type == StringTable.Type.FEMALE && !StringTable.hasFemaleTable()) {
+        type = StringTable.Type.MALE;
+      }
+
+      switch (type) {
+        case MALE:   tabPane.setSelectedIndex(0); break;
+        case FEMALE: tabPane.setSelectedIndex(1); break;
+      }
+      updateStringTableUI(tabPane.getSelectedIndex());
+    }
+  }
+
+  public int getSelectedIndex()
+  {
+    return selectedIndex;
+  }
+
+  public StringTable.StringEntry getSelectedEntry()
+  {
+    return selectedEntry;
+  }
+
+  public void showEntry(StringTable.Type dlgType, int index)
+  {
+    selectDialogType(dlgType);
+    showEntry(index);
   }
 
   public void showEntry(int index)
   {
-    if (index < 0) {
-      return;
+    index = Math.max(Math.min(index, StringTable.getNumEntries(getSelectedDialogType()) - 1), 0);
+
+    if (selectedEntry != null) {
+      updateEntry(selectedEntry);
+      selectedEntry.removeTableModelListener(listeners);
     }
-    if (index_shown != -1) {
-      updateEntry(index_shown);
-    }
-    StringEntry entry;
-    if (index < entries.length) {
-      entry = entries[index];
-    } else {
-      entry = added_entries.get(index - entries.length);
-    }
-    entry.fillList();
-    tstrref.setText(String.valueOf(index));
-    index_shown = index;
+
+    StringTable.StringEntry entry = StringTable.getStringEntry(getSelectedDialogType(), index);
+    entry.fillList(index);
+    tfStrref.setText(Integer.toString(index));
     slider.setValue(index);
+    table.clearSelection();
     table.setModel(entry);
-    if (table.getColumnCount() == 3) {
-      table.getColumnModel().getColumn(2).setPreferredWidth(6);
+    if (table.getParent() != null) {
+      table.getParent().setPreferredSize(table.getPreferredSize());
     }
-    tatext.setText(entry.string);
-    tatext.setCaretPosition(0);
-    cards.show(editpanel, "Empty");
+    taText.getDocument().removeDocumentListener(listeners);
+    taText.setText(entry.getText());
+    taText.setCaretPosition(0);
+    taText.discardAllEdits();
+    taText.getDocument().addDocumentListener(listeners);
+    updateAttributePanel(table.getSelectionModel());
     table.repaint();
     editable = null;
-    init_show = 0;
+    selectedIndex = index;
+    selectedEntry = entry;
+    selectedEntry.addTableModelListener(listeners);
   }
 
-  private int addEntry(StringEntry entry)
+  private void updateEntry(StringTable.StringEntry entry)
   {
-    if (entries_count.getValue() < entries.length) {
-      entries[entries_count.getValue()] = entry;
-    } else {
-      added_entries.add(entry);
-    }
-    entries_count.incValue(1);
-    slider.setMaximum(entries_count.getValue() - 1);
-    entries_offset.incValue(entry_size);
-    return entries_count.getValue() - 1;
-  }
-
-  private void deleteLastEntry()
-  {
-    if (added_entries.size() > 0) {
-      added_entries.remove(added_entries.size() - 1);
-    } else {
-      entries[entries_count.getValue() - 1] = null;
-    }
-    entries_count.incValue(-1);
-    index_shown = -1;
-    slider.setMaximum(entries_count.getValue() - 1);
-    entries_offset.incValue(-entry_size);
-    showEntry(entries_count.getValue() - 1);
-  }
-
-  private void updateEntry(int index)
-  {
-    if (index < entries.length) {
-      entries[index].setString(tatext.getText());
-    } else {
-      StringEntry entry = added_entries.get(index - entries.length);
-      entry.setString(tatext.getText());
+    if (entry != null) {
+      entry.setText(taText.getText());
+      updateModifiedUI(entry.getTableType());
     }
   }
 
-// -------------------------- INNER CLASSES --------------------------
-
-  // StrRefReader ///////////////////////////////////////
-  private final class StrRefReader implements Runnable
+  private void syncEntry(int index)
   {
-    private StrRefReader()
-    {
+    if (!StringTable.hasFemaleTable() ||
+        index < 0 ||
+        index >= StringTable.getNumEntries(StringTable.Type.MALE) ||
+        index >= StringTable.getNumEntries(StringTable.Type.FEMALE)) {
+      return;
     }
 
-    @Override
-    public void run()
-    {
-      Charset charset = StringResource.getCharset();
-      ProgressMonitor progress = null;
-      try (InputStream is = StreamUtils.getInputStream(stringPath)) {
-        signature = StreamUtils.readString(is, 4);
-        version = StreamUtils.readString(is, 4);
-        if (version.equals("V1  ")) {
-          unknown = new Unknown(StreamUtils.readBytes(is, 2), 0, 2);
-        }
-        else {
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Unsupported version: " + version,
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-          throw new IOException();
-        }
-        entries_count = new DecNumber(StreamUtils.readBytes(is, 4), 0, 4, "# entries");
-        entries_offset = new DecNumber(StreamUtils.readBytes(is, 4), 0, 4, "Entries offset");
+    updateEntry(getSelectedEntry());
+    StringTable.StringEntry entryFemale = StringTable.getStringEntry(StringTable.Type.FEMALE, index);
+    boolean allow = true;
+    if (!entryFemale.getText().isEmpty()) {
+      allow = (JOptionPane.showConfirmDialog(this, "Female string entry is not empty. Continue?",
+                                             "Synchronize entries", JOptionPane.YES_NO_OPTION,
+                                             JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION);
+    }
 
-        entries = new StringEntry[entries_count.getValue()];
-        progress = new ProgressMonitor(NearInfinity.getInstance(), "Reading strings...", null,
-                                       0, 2 * entries_count.getValue());
-        progress.setMillisToDecideToPopup(100);
-        for (int i = 0; i < entries_count.getValue(); i++) {
-          entries[i] = new StringEntry(StreamUtils.readBytes(is, entry_size), charset);
-          progress.setProgress(i + 1);
-          if (progress.isCanceled()) {
-            entries = null;
-            return;
-          }
-        }
-      } catch (Throwable e) {
-        entries = null;
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(editor,
-                                      "Error reading " + stringPath.getFileName() + '\n' + e.toString(),
-                                      "Error", JOptionPane.ERROR_MESSAGE);
-        return;
-      }
-
-      try (SeekableByteChannel ch = Files.newByteChannel(stringPath)) {
-        ByteBuffer buffer = StreamUtils.getByteBuffer((int)ch.size());
-        if (ch.read(buffer) < ch.size()) {
-          throw new IOException();
-        }
-        buffer.position(0);
-        for (int i = 0; i < entries.length; i++) {
-          entries[i].readString(buffer, entries_offset.getValue());
-          progress.setProgress(i + 1 + entries_count.getValue());
-          if (progress.isCanceled()) {
-            entries = null;
-            return;
-          }
-        }
-        slider.setMaximum(entries_count.getValue() - 1);
-        slider.addChangeListener(editor);
-        showEntry(init_show);
-        setVisible(true);
-      } catch (Throwable t) {
-        progress.close();
-        entries = null;
-        t.printStackTrace();
-        JOptionPane.showMessageDialog(editor,
-                                      "Error reading " + stringPath.getFileName() + '\n' + t.getMessage(),
-                                      "Error", JOptionPane.ERROR_MESSAGE);
+    if (allow) {
+      StringTable.StringEntry entryMale = StringTable.getStringEntry(StringTable.Type.MALE, index);
+      entryFemale.setText(entryMale.getText());
+      entryFemale.setFlags(entryMale.getFlags());
+      entryFemale.setSoundRef(entryMale.getSoundRef());
+      entryFemale.setVolume(entryMale.getVolume());
+      entryFemale.setPitch(entryMale.getPitch());
+      entryFemale.clearList();
+      if (getSelectedDialogType() == StringTable.Type.FEMALE && getSelectedIndex() == index) {
+        selectedIndex = -1;
+        selectedEntry = null;
+        showEntry(index);
       }
     }
   }
 
-  // StrRefExporter ///////////////////////////////////////
-
-  private final class StrRefExporter implements Runnable
+  private void syncTables()
   {
-    private StrRefExporter()
-    {
+    if (!StringTable.hasFemaleTable()) {
+      return;
     }
 
-    @Override
-    public void run()
-    {
-      bexport.setEnabled(false);
-      bsave.setEnabled(false);
-      breread.setEnabled(false);
-      badd.setEnabled(false);
-      JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
-      chooser.setDialogTitle("Export " + stringPath.getFileName());
-      chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "dialog.txt"));
-      int returnval = chooser.showSaveDialog(editor);
-      if (returnval == JFileChooser.APPROVE_OPTION) {
-        Path output = chooser.getSelectedFile().toPath();
-        if (Files.exists(output)) {
-          String options[] = {"Overwrite", "Cancel"};
-          int result = JOptionPane.showOptionDialog(editor, output + " exists. Overwrite?",
-                                                    "Save resource", JOptionPane.YES_NO_OPTION,
-                                                    JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-          if (result == 1 || result == JOptionPane.CLOSED_OPTION) {
-            bexport.setEnabled(true);
-            bsave.setEnabled(true);
-            breread.setEnabled(true);
-            badd.setEnabled(true);
-            return;
-          }
-        }
-        try {
-          ProgressMonitor progress = new ProgressMonitor(editor, "Writing file...", null, 0,
-                                                         entries_count.getValue());
-          progress.setMillisToDecideToPopup(100);
-          try (BufferedWriter writer = Files.newBufferedWriter(output, StringResource.getCharset())) {
-            for (int i = 0; i < entries.length; i++) {
-              if (entries[i] != null) {
-                writer.write(i + ":"); writer.newLine();
-                writer.write(entries[i].string); writer.newLine();
-                writer.newLine();
-              }
-              progress.setProgress(i + 1);
-            }
-            for (int i = 0; i < added_entries.size(); i++) {
-              StringEntry entry = added_entries.get(i);
-              writer.write(i + entries.length + ":"); writer.newLine();
-              writer.write(entry.string); writer.newLine();
-              writer.newLine();
-              progress.setProgress(entries.length + i + 1);
-            }
-          }
-          JOptionPane.showMessageDialog(editor, "File exported to " + output,
-                                        "Export complete", JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException e) {
-          JOptionPane.showMessageDialog(editor, "Error writing " + output.getFileName(),
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-        }
+    updateEntry(getSelectedEntry());
+
+    StringTable.Type male = StringTable.Type.MALE;
+    StringTable.Type female = StringTable.Type.FEMALE;
+
+    if (StringTable.getNumEntries(male) < StringTable.getNumEntries(female)) {
+      while (StringTable.getNumEntries(male) < StringTable.getNumEntries(female)) {
+        StringTable.StringEntry entry = StringTable.getStringEntry(female, StringTable.getNumEntries(male));
+        StringTable.addEntry(male, entry.clone());
       }
-      bexport.setEnabled(true);
-      bsave.setEnabled(true);
-      breread.setEnabled(true);
-      badd.setEnabled(true);
+      updateModifiedUI(male);
+    }
+
+    if (StringTable.getNumEntries(female) < StringTable.getNumEntries(male)) {
+      while (StringTable.getNumEntries(female) < StringTable.getNumEntries(male)) {
+        StringTable.StringEntry entry = StringTable.getStringEntry(male, StringTable.getNumEntries(female));
+        StringTable.addEntry(female, entry.clone());
+      }
+      updateModifiedUI(female);
     }
   }
 
-  // StrRefWriter ///////////////////////////////////////
-
-  private final class StrRefWriter implements Runnable
+  private int addEntry(StringTable.StringEntry entryMale, StringTable.StringEntry entryFemale, boolean undoable)
   {
-    private StrRefWriter()
-    {
+    if (entryMale == null) {
+      entryMale = new StringTable.StringEntry(null);
+    }
+    if (entryFemale == null) {
+      entryFemale = new StringTable.StringEntry(null);
     }
 
-    @Override
-    public void run()
-    {
-      Path outFile = stringPath;
+    syncTables();
 
-      // Saving into DLC is not supported
+    int index = StringTable.addEntry(StringTable.Type.MALE, entryMale);
+    int index2 = index;
+    if (getSelectedDialogType() == StringTable.Type.MALE) {
+      showEntry(index);
+    }
+
+    if (StringTable.hasFemaleTable()) {
+      index2 = StringTable.addEntry(StringTable.Type.FEMALE, entryFemale);
+      if (getSelectedDialogType() == StringTable.Type.FEMALE) {
+        showEntry(index2);
+      }
+    }
+
+    updateUI(getSelectedDialogType());
+    updateModifiedUI(null);
+    if (undoable) {
+      addUndo(new UndoAction());
+    }
+
+    return (tabPane.getSelectedIndex() == 1) ? index2 : index;
+  }
+
+  private void deleteEntry(boolean undoable)
+  {
+    StringTable.StringEntry entry1 = null;
+    StringTable.StringEntry entry2 = null;
+
+    syncTables();
+
+    int index = StringTable.getNumEntries(StringTable.Type.MALE) - 1;
+    if (getSelectedDialogType() == StringTable.Type.MALE && index == getSelectedIndex()) {
+      showEntry(index - 1);
+    }
+    if (index >= 0) {
+      entry1 = StringTable.getStringEntry(StringTable.Type.MALE, index);
+      StringTable.removeEntry(StringTable.Type.MALE, index);
+    }
+
+    if (StringTable.hasFemaleTable()) {
+      index = StringTable.getNumEntries(StringTable.Type.FEMALE) - 1;
+      if (getSelectedDialogType() == StringTable.Type.FEMALE && index == getSelectedIndex()) {
+        showEntry(index - 1);
+      }
+      if (index >= 0) {
+        entry2 = StringTable.getStringEntry(StringTable.Type.FEMALE, index);
+        StringTable.removeEntry(StringTable.Type.FEMALE, index);
+      }
+    }
+
+    updateUI(getSelectedDialogType());
+    updateModifiedUI(null);
+    if (undoable) {
+      addUndo(new UndoAction(entry1, entry2));
+    }
+  }
+
+  private void updateAttributePanel(ListSelectionModel model)
+  {
+    if (model != null) {
+      miFindAttribute.setEnabled(!model.isSelectionEmpty());
+      pAttribEdit.removeAll();
+      if (!model.isSelectionEmpty()) {
+        Object selected = table.getModel().getValueAt(model.getMinSelectionIndex(), 1);
+        if (selected instanceof Editable) {
+          editable = (Editable)selected;
+          pAttribEdit.add(editable.edit(listeners), BorderLayout.CENTER);
+          editable.select();
+        }
+      }
+      pAttribEdit.revalidate();
+      pAttribEdit.repaint();
+    }
+  }
+
+  private void updateTableItem(int row)
+  {
+    // tracking changes made to table entries
+    Object cellName = table.getModel().getValueAt(row, 0).toString();
+    Object cellValue = table.getModel().getValueAt(row, 1);
+    StringTable.StringEntry entry = getSelectedEntry();
+    if (cellName != null && cellValue != null && entry != null) {
+      String name = cellName.toString();
+      if (StringEditor.TLK_FLAGS.equals(name)) {
+        entry.setFlags((short)((Flag)cellValue).getValue());
+      } else if (StringEditor.TLK_SOUND.equals(name)) {
+        ResourceRef ref = (ResourceRef)cellValue;
+        entry.setSoundRef(ref.isEmpty() ? "" : ref.getText());
+      } else if (StringEditor.TLK_VOLUME.equals(name)) {
+        entry.setVolume(((DecNumber)cellValue).getValue());
+      } else if (StringEditor.TLK_PITCH.equals(name)) {
+        entry.setPitch(((DecNumber)cellValue).getValue());
+      }
+      updateModifiedUI(getSelectedDialogType());
+    }
+  }
+
+  private boolean addUndo(UndoAction action)
+  {
+    if (action == null) {
+      return false;
+    }
+
+    undoStack.push(action);
+    updateUndoMenu();
+
+    return true;
+  }
+
+  // Undoes the last add/remove action if available
+  private boolean undo()
+  {
+    if (!undoStack.isEmpty()) {
+      undoStack.pop().undo();
+      updateUndoMenu();
+      return true;
+    }
+    return false;
+  }
+
+  private void clearUndo()
+  {
+    undoStack.clear();
+    updateUndoMenu();
+  }
+
+  private void updateUndoMenu()
+  {
+    if (undoStack.isEmpty()) {
+      miRevertLast.setText("last operation");
+      miRevertLast.setEnabled(false);
+    } else {
+      String op = undoStack.peek().isUndoAdd() ? "Add" : "Delete";
+      miRevertLast.setText("last operation: " + op);
+      miRevertLast.setEnabled(true);
+    }
+  }
+
+  private void revertAll()
+  {
+    StringTable.resetModified(StringTable.Type.MALE);
+    StringTable.ensureFullyLoaded(StringTable.Type.MALE);
+
+    if (StringTable.hasFemaleTable()) {
+      StringTable.resetModified(StringTable.Type.FEMALE);
+      StringTable.ensureFullyLoaded(StringTable.Type.FEMALE);
+    }
+
+    selectedIndex = -1;
+    selectedEntry = null;
+
+    setTitle(getWindowTitle(getSelectedDialogType()));
+    clearUndo();
+    updateUI(getSelectedDialogType());
+    updateModifiedUI(null);
+    showEntry(0);
+
+    String msg = StringTable.getPath(StringTable.Type.MALE).getFileName().toString();
+    if (StringTable.hasFemaleTable()) {
+      msg += " and " + StringTable.getPath(StringTable.Type.FEMALE).getFileName().toString() + "  have ";
+    } else {
+      msg += " has ";
+    }
+    msg += "been reloaded from disk.";
+    JOptionPane.showMessageDialog(this, msg, "Revert string tables", JOptionPane.INFORMATION_MESSAGE);
+  }
+
+  // Save changes to all available string tables
+  private void save(boolean interactive)
+  {
+    boolean isSync = bSync.isEnabled();
+    boolean isAdd = bAdd.isEnabled();
+    boolean isDelete = bDelete.isEnabled();
+    boolean isSave = bSave.isEnabled();
+    boolean isRevert = bpmRevert.isEnabled();
+    try {
+      bSync.setEnabled(false);
+      bAdd.setEnabled(false);
+      bDelete.setEnabled(false);
+      bSave.setEnabled(false);
+      bpmRevert.setEnabled(false);
+
+      Path outFile = StringTable.getPath(StringTable.Type.MALE);
+      Path outPath = outFile.getParent();
+
+      // consider string tables in DLC archives
       if (!FileManager.isDefaultFileSystem(outFile)) {
-        boolean cancel = true;
+        if (!interactive) {
+          return;
+        }
         String msg = "\"" + outFile.toString() + "\" is located within a write-protected archive." +
                      "\nDo you want to export it to another location instead?";
-        int result = JOptionPane.showConfirmDialog(editor, msg, "Save resource",
+        int result = JOptionPane.showConfirmDialog(this, msg, "Save resource",
                                                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (result == JOptionPane.YES_OPTION) {
-          outFile = Profile.getGameRoot().resolve(outFile.getFileName().toString());
-          JFileChooser fc = new JFileChooser(outFile.getParent().toFile());
-          fc.setSelectedFile(outFile.toFile());
-          int ret = fc.showSaveDialog(editor);
+          JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
+          fc.setDialogTitle("Select output folder");
+          fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+          int ret = fc.showSaveDialog(this);
           if (ret == JFileChooser.APPROVE_OPTION) {
-            outFile = fc.getSelectedFile().toPath();
-            cancel = false;
+            outPath = fc.getSelectedFile().toPath();
+            if (!Files.isDirectory(outPath)) {
+              outPath = outPath.getParent();
+            }
+            outFile = outPath.resolve(StringTable.getPath(StringTable.Type.MALE).getFileName());
+          } else {
+            JOptionPane.showMessageDialog(this, "Operation cancelled.", "Information",
+                                          JOptionPane.INFORMATION_MESSAGE);
+            return;
           }
-        }
-        if (cancel) {
-          JOptionPane.showMessageDialog(editor, "Operation cancelled.", "Information",
-                                        JOptionPane.INFORMATION_MESSAGE);
-          return;
         }
       }
 
-      bexport.setEnabled(false);
-      bsave.setEnabled(false);
-      breread.setEnabled(false);
-      badd.setEnabled(false);
-      if (Files.exists(outFile)) {
-        String options[] = {"Overwrite", "Cancel"};
-        int result = JOptionPane.showOptionDialog(editor, outFile + " exists. Overwrite?",
-                                                  "Save resource", JOptionPane.YES_NO_OPTION,
-                                                  JOptionPane.WARNING_MESSAGE, null,
-                                                  options, options[0]);
-        if (result == 1 || result == JOptionPane.CLOSED_OPTION) {
-          bexport.setEnabled(true);
-          bsave.setEnabled(true);
-          breread.setEnabled(true);
-          badd.setEnabled(true);
-          return;
-        }
+      // writing male string table
+      ProgressTracker pt = null;
+      if (interactive) {
+        pt = new ProgressTracker("Saving " + outFile.getFileName().toString(), null,
+                                 "Error writing " + outFile.getFileName().toString());
       }
-
-      StringResource.close();
-      ProgressMonitor progress = null;
-      try (OutputStream os = StreamUtils.getOutputStream(outFile, true)) {
-        StreamUtils.writeString(os, signature, 4);
-        StreamUtils.writeString(os, version, 4);
-        unknown.write(os);
-        entries_count.write(os);
-        entries_offset.write(os);
-
-        int offset = 0;
-        for (final StringEntry entry : entries) {
-          if (entry != null) {
-            offset += entry.update(offset);
-          }
-        }
-        for (int i = 0; i < added_entries.size(); i++) {
-          offset += added_entries.get(i).update(offset);
-        }
-
-        progress = new ProgressMonitor(editor, "Writing file...", null, 0, 2 * entries_count.getValue());
-        progress.setMillisToDecideToPopup(100);
-        for (int i = 0; i < entries.length; i++) {
-          if (entries[i] != null) {
-            entries[i].write(os);
-          }
-          progress.setProgress(i + 1);
-        }
-        for (int i = 0; i < added_entries.size(); i++) {
-          added_entries.get(i).write(os);
-          progress.setProgress(entries.length + i + 1);
-        }
-
-        for (int i = 0; i < entries.length; i++) {
-          if (entries[i] != null) {
-            entries[i].writeString(os);
-          }
-          progress.setProgress(i + 1 + entries_count.getValue());
-        }
-        for (int i = 0; i < added_entries.size(); i++) {
-          added_entries.get(i).writeString(os);
-          progress.setProgress(entries_count.getValue() + entries.length + i + 1);
-        }
-      } catch (IOException e) {
-        JOptionPane.showMessageDialog(editor, "Error writing " + outFile.getFileName(),
-                                      "Error", JOptionPane.ERROR_MESSAGE);
+      if (!StringTable.write(StringTable.Type.MALE, outFile, pt)) {
         return;
-      } finally {
-        if (progress != null) {
-          progress.close();
-          progress = null;
+      }
+
+      if (StringTable.hasFemaleTable()) {
+        outFile = outPath.resolve(StringTable.getPath(StringTable.Type.FEMALE).getFileName());
+        if (interactive) {
+          pt = new ProgressTracker("Saving " + outFile.getFileName().toString(), null,
+                                   "Error writing " + outFile.getFileName().toString());
+        }
+        if (!StringTable.write(StringTable.Type.FEMALE, outFile, pt)) {
+          return;
         }
       }
-      JOptionPane.showMessageDialog(editor, "File written successfully",
-                                    "Save complete", JOptionPane.INFORMATION_MESSAGE);
-      bsave.setEnabled(true);
-      breread.setEnabled(true);
-      bexport.setEnabled(true);
-      badd.setEnabled(true);
+
+      updateModifiedUI(null);
+      if (interactive) {
+        JOptionPane.showMessageDialog(this, "File(s) written successfully.", "Save complete",
+                                      JOptionPane.INFORMATION_MESSAGE);
+      }
+    } finally {
+      bSync.setEnabled(isSync);
+      bAdd.setEnabled(isAdd);
+      bDelete.setEnabled(isDelete);
+      bSave.setEnabled(isSave);
+      bpmRevert.setEnabled(isRevert);
     }
   }
 
-  // StringEntry ///////////////////////////////////////
-
-  private static final class StringEntry extends AbstractStruct
+  private void exportText(StringTable.Type dlgType)
   {
-    private int doffset, dlength;
-    private String string = "";
-    private ByteBuffer buffer;
-    private Charset charset;
+    if (dlgType == null) { dlgType = StringTable.Type.MALE; }
 
-    private StringEntry() throws Exception
-    {
-      super(null, null, StreamUtils.getByteBuffer(entry_size), 0);
-      this.charset = StringResource.getCharset();
+    String dlgFile = StringTable.getPath(dlgType).getFileName().toString();
+
+    JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
+    fc.setDialogTitle("Export as text file");
+    fc.setFileFilter(new FileNameExtensionFilter("Text files", "txt"));
+    fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    fc.setSelectedFile(new File(fc.getCurrentDirectory(), dlgFile.toLowerCase(Locale.ENGLISH).replace(".tlk", ".txt")));
+    if (fc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+      return;
     }
 
-    StringEntry(ByteBuffer buffer, Charset charset) throws Exception
-    {
-      super(null, null, buffer, 0);
-      this.charset = (charset != null) ? charset : StringResource.getCharset();
+    Path outFile = fc.getSelectedFile().toPath();
+    ProgressTracker pt = new ProgressTracker("Exporting " + dlgFile, "File exported successfully",
+                                             "Error while exporting " + dlgFile);
+    StringTable.exportText(dlgType, outFile, pt);
+  }
+
+  private void exportTra()
+  {
+    String dlgFile = StringTable.getPath().getFileName().toString();
+
+    JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
+    fc.setDialogTitle("Export as translation file");
+    fc.setFileFilter(new FileNameExtensionFilter("TRA files", "tra"));
+    fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    fc.setSelectedFile(new File(fc.getCurrentDirectory(), dlgFile.toLowerCase(Locale.ENGLISH).replace(".tlk", ".tra")));
+    if (fc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+      return;
     }
+
+    Path outFile = fc.getSelectedFile().toPath();
+    ProgressTracker pt = new ProgressTracker("Exporting " + dlgFile, "File exported successfully",
+                                             "Error while exporting " + dlgFile);
+    StringTable.exportTra(outFile, pt);
+  }
+
+  //-------------------------- INNER CLASSES --------------------------
+
+  private class Listeners implements ActionListener, ListSelectionListener, ItemListener,
+                                     ChangeListener, TableModelListener, DocumentListener
+  {
+    protected Listeners() {}
 
     @Override
-    public int read(ByteBuffer buffer, int offset) throws Exception
+    public void actionPerformed(ActionEvent e)
     {
-      this.buffer = StreamUtils.getByteBuffer(18);
-      StreamUtils.copyBytes(buffer, offset, this.buffer, 0, this.buffer.limit());
-      doffset = buffer.getInt(offset + 0x12);
-      dlength = buffer.getInt(offset + 0x16);
-      return offset + entry_size;
-    }
-
-    public void fillList()
-    {
-      try {
-        if (getFieldCount() == 0) {
-          buffer.position(0);
-          addField(new Flag(buffer, 0, 2, "Flags", s_flags));
-          addField(new ResourceRef(buffer, 2, "Associated sound", "WAV"));
-          addField(new DecNumber(buffer, 10, 4, "Volume variance"));
-          addField(new DecNumber(buffer, 14, 4, "Pitch variance"));
-          buffer = null;
+      if (e.getActionCommand().equals(StructViewer.UPDATE_VALUE)) {
+        if (editable.updateValue(StringTable.getStringEntry(getSelectedDialogType(), getSelectedIndex()))) {
+          updateTableItem(table.getSelectedRow());
+        } else {
+          JOptionPane.showMessageDialog(StringEditor.this, "Error updating value.", "Error",
+                                        JOptionPane.ERROR_MESSAGE);
         }
-      } catch (Exception e) {
-        buffer = null;
-        e.printStackTrace();
+        table.repaint();
+      } else if (e.getSource() == bAdd) {
+        new SwingWorker<Void, Void>() {
+          @Override
+          protected Void doInBackground() throws Exception
+          {
+            WindowBlocker blocker = new WindowBlocker(StringEditor.this);
+            try {
+              blocker.setBlocked(true);
+              showEntry(addEntry(new StringTable.StringEntry(null), new StringTable.StringEntry(null), true));
+            } finally {
+              blocker.setBlocked(false);
+            }
+            return null;
+          }
+        }.execute();
+      } else if (e.getSource() == bDelete) {
+        if (getSelectedIndex() == StringTable.getNumEntries(getSelectedDialogType()) - 1) {
+          new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception
+            {
+              WindowBlocker blocker = new WindowBlocker(StringEditor.this);
+              try {
+                blocker.setBlocked(true);
+                deleteEntry(true);
+                showEntry(StringTable.getNumEntries(getSelectedDialogType()) - 1);
+              } finally {
+                blocker.setBlocked(false);
+              }
+              return null;
+            }
+          }.execute();
+        } else {
+          JOptionPane.showMessageDialog(StringEditor.this, "You can only delete the last entry.",
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+        }
+      } else if (e.getSource() == bSave) {
+        updateEntry(getSelectedEntry());
+        new SwingWorker<Void, Void>() {
+          @Override
+          protected Void doInBackground() throws Exception
+          {
+            WindowBlocker blocker = new WindowBlocker(StringEditor.this);
+            try {
+              blocker.setBlocked(true);
+              save(true);
+            } finally {
+              blocker.setBlocked(false);
+            }
+            return null;
+          }
+        }.execute();
+      } else if (e.getSource() == bSync) {
+        syncEntry(getSelectedIndex());
+      } else if (e.getSource() == tfStrref) {
+        try {
+          int i = Integer.parseInt(tfStrref.getText().trim());
+          if (i >= 0 && i < StringTable.getNumEntries(getSelectedDialogType())) {
+            showEntry(i);
+          } else {
+            JOptionPane.showMessageDialog(StringEditor.this, "Entry not found.", "Error",
+                                          JOptionPane.ERROR_MESSAGE);
+          }
+        }  catch (NumberFormatException nfe) {
+          JOptionPane.showMessageDialog(StringEditor.this, "Not a number.", "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
       }
-    }
-
-    public void readString(ByteBuffer buffer, int baseoffset) throws IOException
-    {
-      string = StreamUtils.readString(buffer, baseoffset + doffset, dlength, charset);
-    }
-
-    public int update(int newoffset)
-    {
-      doffset = newoffset;
-      dlength = string.getBytes(charset).length;
-      return dlength;
     }
 
     @Override
-    public void write(OutputStream os) throws IOException
+    public void valueChanged(ListSelectionEvent e)
     {
-      // Update must be called first
-      if (getFieldCount() == 0) {
-        buffer.position(0);
-        StreamUtils.writeBytes(os, buffer);
-      } else {
-        super.write(os);
+      if (e.getValueIsAdjusting()) { return; }
+      updateAttributePanel((ListSelectionModel)e.getSource());
+    }
+
+    @Override
+    public void itemStateChanged(ItemEvent e)
+    {
+      if (e.getSource() instanceof ButtonPopupMenu) {
+        JMenuItem item = ((ButtonPopupMenu)e.getSource()).getSelectedItem();
+        if (item == miFindString) {
+          SearchMaster.createAsFrame(StringEditor.this, "StringRef", StringEditor.this);
+        } else if (item == miFindAttribute) {
+          SearchMaster.createAsFrame(new AttributeSearcher(table.getSelectedRow()),
+                                     StringTable.getStringEntry(getSelectedDialogType(), getSelectedIndex()).getValueAt(table.getSelectedRow(), 0).toString(),
+                                     StringEditor.this);
+        } else if (item == miFindRef) {
+          new StringReferenceSearcher(getSelectedIndex(), StringEditor.this);
+        } else if (item == miExportTxt) {
+          updateEntry(getSelectedEntry());
+          new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception
+            {
+              WindowBlocker blocker = new WindowBlocker(StringEditor.this);
+              try {
+                blocker.setBlocked(true);
+                exportText(getSelectedDialogType());
+              } finally {
+                blocker.setBlocked(false);
+              }
+              return null;
+            }
+          }.execute();
+        } else if (item == miExportTra) {
+          updateEntry(getSelectedEntry());
+          new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception
+            {
+              WindowBlocker blocker = new WindowBlocker(StringEditor.this);
+              try {
+                blocker.setBlocked(true);
+                exportTra();
+              } finally {
+                blocker.setBlocked(false);
+              }
+              return null;
+            }
+          }.execute();
+        } else if (item == miRevertLast) {
+          undo();
+        } else if (item == miRevertAll) {
+          new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception
+            {
+              WindowBlocker blocker = new WindowBlocker(StringEditor.this);
+              try {
+                blocker.setBlocked(true);
+                revertAll();
+              } finally {
+                blocker.setBlocked(false);
+              }
+              return null;
+            }
+          }.execute();
+        }
       }
-      StreamUtils.writeInt(os, doffset);
-      StreamUtils.writeInt(os, dlength);
     }
 
-    public void writeString(OutputStream os) throws IOException
+    @Override
+    public void stateChanged(ChangeEvent e)
     {
-      StreamUtils.writeString(os, string, dlength, charset);
+      if (e.getSource() == tabPane) {
+        updateStringTableUI(tabPane.getSelectedIndex());
+      } else if (e.getSource() == slider) {
+        if (!slider.getValueIsAdjusting() && slider.getValue() != getSelectedIndex()) {
+          showEntry(slider.getValue());
+        }
+      }
     }
 
-    private void setString(String newstring)
+    @Override
+    public void tableChanged(TableModelEvent e)
     {
-      string = newstring;
+      if (e.getType() == TableModelEvent.UPDATE) {
+        // tracking changes made to table entries
+        updateTableItem(e.getFirstRow());
+      }
+    }
+
+    @Override
+    public void insertUpdate(DocumentEvent e)
+    {
+      if (e.getDocument() == taText.getDocument()) {
+        updateEntry(getSelectedEntry());
+      }
+    }
+
+    @Override
+    public void removeUpdate(DocumentEvent e)
+    {
+      if (e.getDocument() == taText.getDocument()) {
+        updateEntry(getSelectedEntry());
+      }
+    }
+
+    @Override
+    public void changedUpdate(DocumentEvent e)
+    {
+      // unused
     }
   }
 
-  // AttributeSearcher ///////////////////////////////////////
-
-  private final class AttributeSearcher implements SearchClient
+  private class AttributeSearcher implements SearchClient
   {
-    private final int selectedrow;
+    private final int selectedRow;
 
-    private AttributeSearcher(int selectedrow)
+    public AttributeSearcher(int row)
     {
-      this.selectedrow = selectedrow;
+      this.selectedRow = row;
     }
 
     @Override
     public String getText(int index)
     {
-      if (index < 0 || index >= entries_count.getValue())
+      if (index < 0 || index > StringTable.getNumEntries(getSelectedDialogType())) {
         return null;
-      StringEntry entry;
-      if (index < entries.length)
-        entry = entries[index];
-      else
-        entry = added_entries.get(index - entries.length);
-      entry.fillList();
-      return entry.getField(selectedrow).toString();
+      }
+
+      StringTable.StringEntry entry = StringTable.getStringEntry(getSelectedDialogType(), index);
+      entry.fillList(index);
+      return entry.getField(selectedRow).toString();
     }
 
     @Override
@@ -792,5 +1046,96 @@ public final class StringEditor extends ChildFrame implements ActionListener, Li
       showEntry(index);
     }
   }
-}
 
+  // A simple structure for holding data needed to undo an add/remove operation
+  private class UndoAction
+  {
+    private final StringTable.StringEntry entryMale;
+    private final StringTable.StringEntry entryFemale;
+
+    public UndoAction()
+    {
+      this(null, null);
+    }
+
+    public UndoAction(StringTable.StringEntry entryMale, StringTable.StringEntry entryFemale)
+    {
+      this.entryMale = entryMale;
+      this.entryFemale = entryFemale;
+    }
+
+    /** Returns whether this action undoes an 'Add' operation. */
+    public boolean isUndoAdd()
+    {
+      return (entryMale == null);
+    }
+
+    /** Undo this action. */
+    public void undo()
+    {
+      if (entryMale == null) {
+        deleteEntry(false);
+      } else {
+        addEntry(entryMale, entryFemale, false);
+      }
+    }
+  }
+
+  // A general-purpose progress monitor
+  private class ProgressTracker extends StringTable.ProgressCallback
+  {
+    private final String title;
+    private final String msgSuccess;
+    private final String msgFailed;
+
+    private ProgressMonitor pm;
+    private int count, step;
+
+    public ProgressTracker(String title, String successMessage, String failedMessage)
+    {
+      this.title = (title != null) ? title : "";
+      this.msgSuccess = successMessage;
+      this.msgFailed = failedMessage;
+    }
+
+    @Override
+    public void init(int numEntries)
+    {
+      count = numEntries;
+      if (count < 50000) {
+        step = 500;
+      } else if (count < 100000) {
+        step = 1000;
+      } else if (count < 200000) {
+        step = 2000;
+      } else {
+        step = 5000;
+      }
+      pm = new ProgressMonitor(StringEditor.this, title, "Initializing...", 0, count);
+      pm.setMillisToDecideToPopup(0);
+      pm.setMillisToPopup(0);
+    }
+
+    @Override
+    public void done(boolean success)
+    {
+      pm.close();
+      if (success && msgSuccess != null) {
+        JOptionPane.showMessageDialog(StringEditor.this, msgSuccess, "Information", JOptionPane.INFORMATION_MESSAGE);
+      } else if (!success && msgFailed != null) {
+        JOptionPane.showMessageDialog(StringEditor.this, msgFailed, "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    }
+
+    @Override
+    public boolean progress(int index)
+    {
+      if ((index % step) == 0) {
+        pm.setNote(index + " of " + count);
+        pm.setProgress(index);
+      }
+      return true;
+    }
+
+  }
+}

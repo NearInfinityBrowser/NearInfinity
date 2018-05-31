@@ -20,15 +20,13 @@ public final class Purchases extends Bitmap implements AddRemovable
   Purchases()
   {
     super(StreamUtils.getByteBuffer(4), 0, 4, STO_PURCHASES,
-          ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V11)) ? ItmResource.s_categories11
-                                                                       : ItmResource.s_categories);
+          (Profile.getEngine() == Profile.Engine.PST) ? ItmResource.s_categories11 : ItmResource.s_categories);
   }
 
   Purchases(ByteBuffer buffer, int offset, int number)
   {
     super(buffer, offset, 4, STO_PURCHASES + " " + number,
-          ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V11)) ? ItmResource.s_categories11
-                                                                       : ItmResource.s_categories);
+          (Profile.getEngine() == Profile.Engine.PST) ? ItmResource.s_categories11 : ItmResource.s_categories);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

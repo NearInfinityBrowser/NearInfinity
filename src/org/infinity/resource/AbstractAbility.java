@@ -18,6 +18,7 @@ public abstract class AbstractAbility extends AbstractStruct
 {
   // Ability-specific field labels
   public static final String ABILITY_TYPE               = "Type";
+  public static final String ABILITY_TYPE_FLAGS         = "Type flags";
   public static final String ABILITY_LOCATION           = "Ability location";
   public static final String ABILITY_ICON               = "Icon";
   public static final String ABILITY_TARGET             = "Target";
@@ -31,15 +32,21 @@ public abstract class AbstractAbility extends AbstractStruct
   public static final String ABILITY_NUM_EFFECTS        = "# effects";
   public static final String ABILITY_FIRST_EFFECT_INDEX = "First effect index";
   public static final String ABILITY_NUM_CHARGES        = "# charges";
+  public static final String ABILITY_WHEN_DRAINED       = "When drained";
   public static final String ABILITY_PROJECTILE         = "Projectile";
 
-  public static final String[] s_type = {"", "Melee", "Ranged", "Magical", "Launcher"};
+  public static final String[] s_type = {"None", "Melee", "Ranged", "Magical", "Launcher"};
+  public static final String[] s_type_flags = {"None", "Usable after ID;Only relevant for item abilities",
+                                               "Usable before ID;;Only relevant for item abilities",
+                                               "Exclusive effects"};
   public static final String[] s_targettype = {"", "Living actor", "Inventory", "Dead actor",
                                                "Any point within range", "Caster", "",
                                                "Caster (keep spell, no animation)"};
   public static final String[] s_dmgtype = {"None", "Piercing", "Crushing", "Slashing", "Missile",
                                             "Fist", "Piercing or crushing", "Piercing or slashing",
                                             "Crushing or slashing", "Blunt missile"};
+  public static final String[] s_drain = {"Item remains", "Item vanishes", "Replace with used up",
+                                          "Item recharges"};
 
   // ToDo: these are pretty nasty in here?
   public static final String[] s_proj_iwd = {"", "None", "Arrow",

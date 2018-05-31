@@ -16,6 +16,7 @@ import javax.swing.event.ChangeListener;
 
 import org.infinity.NearInfinity;
 import org.infinity.icon.Icons;
+import org.infinity.util.Misc;
 import org.infinity.util.StructClipboard;
 
 final class ClipboardViewer extends ChildFrame implements ActionListener, ChangeListener
@@ -40,7 +41,7 @@ final class ClipboardViewer extends ChildFrame implements ActionListener, Change
     pane.setLayout(new BorderLayout());
     pane.add(new InfinityScrollPane(taClipBoard, false), BorderLayout.CENTER);
     pane.add(lowerpanel, BorderLayout.SOUTH);
-    setSize(300, 400);
+    setSize(Misc.getScaledValue(300), Misc.getScaledValue(400));
 
     Center.center(this, NearInfinity.getInstance().getBounds());
     taClipBoard.setText(StructClipboard.getInstance().toString());

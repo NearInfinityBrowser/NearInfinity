@@ -55,6 +55,7 @@ import org.infinity.resource.are.AutomapNote;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.Decompiler;
+import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
@@ -63,7 +64,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 
 public class StrrefIndexChecker extends ChildFrame implements ActionListener, ListSelectionListener,
                                                               Runnable
@@ -219,11 +220,10 @@ public class StrrefIndexChecker extends ChildFrame implements ActionListener, Li
   public void run()
   {
     try {
-      StringResource.getStringRef(0);
-      strrefCount = StringResource.getMaxIndex();
+      strrefCount = StringTable.getNumEntries();
       String type = "WWWW";
       progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking...",
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking..." + Misc.MSG_EXPAND_SMALL,
                                      String.format(FMT_PROGRESS, type),
                                      0, files.size());
       progress.setMillisToDecideToPopup(100);
@@ -295,7 +295,8 @@ public class StrrefIndexChecker extends ChildFrame implements ActionListener, Li
         pane.add(panel, BorderLayout.SOUTH);
         bopen.setEnabled(false);
         bopennew.setEnabled(false);
-        table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+        table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
         table.getSelectionModel().addListSelectionListener(this);
         table.addMouseListener(new MouseAdapter()
         {
@@ -350,14 +351,16 @@ public class StrrefIndexChecker extends ChildFrame implements ActionListener, Li
           AbstractCode code = (AbstractCode)entry;
           try {
             Compiler compiler = new Compiler(code.toString(),
-                                             (code instanceof Action) ? Compiler.ScriptType.ACTION
-                                                                      : Compiler.ScriptType.TRIGGER);
+                                               (code instanceof Action) ? ScriptType.ACTION
+                                                                        : ScriptType.TRIGGER);
             String compiled = compiler.getCode();
             Decompiler decompiler = new Decompiler(compiled, true);
+            decompiler.setGenerateComments(false);
+            decompiler.setGenerateResourcesUsed(true);
             if (code instanceof Action) {
-              decompiler.setScriptType(Decompiler.ScriptType.ACTION);
+              decompiler.setScriptType(ScriptType.ACTION);
             } else {
-              decompiler.setScriptType(Decompiler.ScriptType.TRIGGER);
+              decompiler.setScriptType(ScriptType.TRIGGER);
             }
             decompiler.decompile();
             Set<Integer> used = decompiler.getStringRefsUsed();
@@ -381,30 +384,36 @@ public class StrrefIndexChecker extends ChildFrame implements ActionListener, Li
   {
     if (script != null) {
       Decompiler decompiler = new Decompiler(script.getCode(), true);
-      decompiler.decompile();
-      Set<Integer> used = decompiler.getStringRefsUsed();
-      for (final Integer stringRef : used) {
-        int strref = stringRef.intValue();
-        if (strref < -1 || strref >= strrefCount) {
-          // XXX: search routine may produce false positives
-          String strrefString = stringRef.toString();
-          String source = decompiler.getSource();
-          String[] lines = source.split("\r?\n");
-          int line = -1, pos = -1, len = -1;
-          Pattern pattern = Pattern.compile("\\b" + strrefString + "\\b", Pattern.DOTALL);
-          for (int i = 0; i < lines.length; i++) {
-            Matcher matcher = pattern.matcher(lines[i]);
-            if (matcher.find()) {
-              line = i;
-              pos = matcher.start();
-              len = matcher.end() - pos;
-              break;
+      decompiler.setGenerateComments(false);
+      decompiler.setGenerateResourcesUsed(true);
+      try {
+        decompiler.decompile();
+        Set<Integer> used = decompiler.getStringRefsUsed();
+        for (final Integer stringRef : used) {
+          int strref = stringRef.intValue();
+          if (strref < -1 || strref >= strrefCount) {
+            // XXX: search routine may produce false positives
+            String strrefString = stringRef.toString();
+            String source = decompiler.getSource();
+            String[] lines = source.split("\r?\n");
+            int line = -1, pos = -1, len = -1;
+            Pattern pattern = Pattern.compile("\\b" + strrefString + "\\b", Pattern.DOTALL);
+            for (int i = 0; i < lines.length; i++) {
+              Matcher matcher = pattern.matcher(lines[i]);
+              if (matcher.find()) {
+                line = i;
+                pos = matcher.start();
+                len = matcher.end() - pos;
+                break;
+              }
+            }
+            synchronized (table) {
+              table.addTableItem(new StrrefEntry(script.getResourceEntry(), line + 1, pos + 1, len, strref));
             }
           }
-          synchronized (table) {
-            table.addTableItem(new StrrefEntry(script.getResourceEntry(), line + 1, pos + 1, len, strref));
-          }
         }
+      } catch (Exception e) {
+        e.printStackTrace();
       }
     }
   }

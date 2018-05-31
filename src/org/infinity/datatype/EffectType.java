@@ -20,8 +20,6 @@ public final class EffectType extends Bitmap implements UpdateListener
   public static final String EFFECT_TYPE_TARGET = "Target";
   public static final String EFFECT_TYPE_POWER  = "Power";
 
-  public static final String s_dispel[] = {"No dispel/bypass resistance", "Dispel/Not bypass resistance",
-                                           "Not dispel/bypass resistance", "Dispel/Bypass resistance"};
   private static final String s_target[] = {"None", "Self", "Preset target",
                                             "Party", "Everyone", "Everyone except party",
                                             "Caster group", "Target group", "Everyone except self", "Original caster"};

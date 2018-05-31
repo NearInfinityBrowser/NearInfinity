@@ -374,7 +374,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     ByteBuffer bb = entry.getResourceBuffer();
     if (bb.limit() > 0) {
       if (bb.limit() > 1 && bb.getShort(0) == -1) {
-        bb = Decryptor.decrypt(bb, 2);
+        bb = StaticSimpleXorDecryptor.decrypt(bb, 2);
       }
       // Keep trying. File may be in use by another thread.
       try (OutputStream os = tryOpenOutputStream(output, 10, 100)) {
@@ -392,7 +392,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
     ByteBuffer bb = entry.getResourceBuffer();
     if (bb.limit() > 0) {
       if (bb.limit() > 1 && bb.getShort(0) == -1) {
-        bb = Decryptor.decrypt(bb, 2);
+        bb = StaticSimpleXorDecryptor.decrypt(bb, 2);
       }
       Decompiler decompiler = new Decompiler(StreamUtils.readString(bb, bb.limit()), false);
       String script = decompiler.getSource();
@@ -450,7 +450,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           image = null;
         }
       } else {
-        throw new Exception(String.format("Error loading resource: %1$s", entry.getResourceName()));
+        throw new Exception(String.format("Error loading resource: %s", entry.getResourceName()));
       }
     }
   }
@@ -472,7 +472,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           image = null;
         }
       } else {
-        throw new Exception(String.format("Error loading resource: %1$s", entry.getResourceName()));
+        throw new Exception(String.format("Error loading resource: %s", entry.getResourceName()));
       }
     }
   }
@@ -515,7 +515,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
           image = null;
         }
       } else {
-        throw new Exception(String.format("Error loading resource: %1$s", entry.getResourceName()));
+        throw new Exception(String.format("Error loading resource: %s", entry.getResourceName()));
       }
     }
   }

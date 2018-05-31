@@ -7,6 +7,7 @@ package org.infinity.datatype;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
+import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.IdsMap;
@@ -73,21 +74,25 @@ public class PriTypeBitmap extends HashBitmap
             String label = table.get(row, 0).toUpperCase(Locale.ENGLISH);
             typeMap.put(Long.valueOf(id), label);
           }
+          if (typeMap.size() == 10) {
+            // XXX: Doesn't appear to be listed in unmodded games
+            typeMap.put(Long.valueOf(10L), "WILDMAGE");
+          }
         }
       } else if (ResourceFactory.resourceExists(TableName) && TableName.endsWith(".IDS")) {
         // using SCHOOL.IDS
         typeMap.put(Long.valueOf(0L), "NONE");
         IdsMap map = IdsMapCache.get(TableName);
-        LongIntegerHashMap<IdsMapEntry> entries = map.getMap();
-        long[] keys = entries.keys();
-        for (int i = 0; i < keys.length; i++) {
-          Long id = Long.valueOf(keys[i]);
-          typeMap.put(id, entries.get(id).getString().toUpperCase(Locale.ENGLISH));
+        for (final IdsMapEntry e: map.getAllValues()) {
+          typeMap.put(Long.valueOf(e.getID()), e.getSymbol().toUpperCase(Locale.ENGLISH));
         }
       } else {
         // using predefined values
         for (int i = 0; i < s_school.length; i++) {
           typeMap.put(Long.valueOf(i), s_school[i].toUpperCase(Locale.ENGLISH));
+        }
+        if (typeMap.size() == 10 && Profile.getGame() == Profile.Game.PSTEE) {
+          typeMap.put(Long.valueOf(10L), "WILDMAGE");
         }
       }
     }
@@ -100,7 +105,7 @@ public class PriTypeBitmap extends HashBitmap
     if (TableName.endsWith(".2DA")) {
       Table2daCache.cacheInvalid(ResourceFactory.getResourceEntry(TableName));
     } else if (TableName.endsWith(".IDS")) {
-      IdsMapCache.cacheInvalid(ResourceFactory.getResourceEntry(TableName));
+      IdsMapCache.remove(ResourceFactory.getResourceEntry(TableName));
     }
   }
 }

@@ -115,7 +115,7 @@ public class UpdaterSettings extends JDialog
     JPanel pServer = new JPanel(new GridBagLayout());
     pServer.setBorder(BorderFactory.createTitledBorder("Update servers"));
     for (int i = 0; i < server.getServerCount(); i++) {
-      JLabel label = new JLabel(String.format("Server %1$d", i+1));
+      JLabel label = new JLabel(String.format("Server %d", i+1));
 
       gbc = ViewerUtil.setGBC(gbc, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                               GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
@@ -300,7 +300,7 @@ public class UpdaterSettings extends JDialog
     for (int i = 0; i < Updater.getMaxServerCount(); i++) {
       if (!server.isValidated(i)) {
         if (!Utils.isSecureUrl(server.getServerUrl(i))) {
-          String msg = String.format("Server %1$d does not specify a secure connection (https).\n", i+1) +
+          String msg = String.format("Server %d does not specify a secure connection (https).\n", i+1) +
                        "Do you still want to use it?";
           if (JOptionPane.YES_OPTION != JOptionPane.showConfirmDialog(this, msg, "Warning",
                                                                       JOptionPane.YES_NO_OPTION,
@@ -400,7 +400,7 @@ public class UpdaterSettings extends JDialog
           msg = "Unknown error";
         }
         if (msg != null) {
-          JOptionPane.showMessageDialog(this, String.format("Server %1$d: %2$s.", index+1, msg),
+          JOptionPane.showMessageDialog(this, String.format("Server %d: %s.", index+1, msg),
                                         "Error", JOptionPane.ERROR_MESSAGE);
         }
         return false;

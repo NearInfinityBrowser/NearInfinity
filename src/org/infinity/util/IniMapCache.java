@@ -17,7 +17,7 @@ public class IniMapCache
   public static void cacheInvalid(ResourceEntry entry)
   {
     if (entry != null) {
-      map.remove(entry.toString().toUpperCase(Locale.ENGLISH));
+      map.remove(entry);
     }
   }
 

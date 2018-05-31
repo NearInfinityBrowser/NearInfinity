@@ -15,7 +15,7 @@ import org.infinity.resource.are.AreResource;
  */
 public class LayerTransition extends BasicLayer<LayerObjectTransition>
 {
-  private static final String AvailableFmt = "Map transitions: %1$d";
+  private static final String AvailableFmt = "Map transitions: %d";
 
   public LayerTransition(AreResource are, AreaViewer viewer)
   {
@@ -31,8 +31,8 @@ public class LayerTransition extends BasicLayer<LayerObjectTransition>
       List<LayerObjectTransition> list = getLayerObjects();
       if (hasAre()) {
         AreResource are = getAre();
-        for (int i = 0; i < LayerObjectTransition.FieldName.length; i++) {
-          ResourceRef ref = (ResourceRef)are.getAttribute(LayerObjectTransition.FieldName[i]);
+        for (int i = 0; i < LayerObjectTransition.FIELD_NAME.length; i++) {
+          ResourceRef ref = (ResourceRef)are.getAttribute(LayerObjectTransition.FIELD_NAME[i]);
           if (ref != null && !ref.getResourceName().isEmpty() && !"None".equalsIgnoreCase(ref.getResourceName())) {
             AreResource destAre = null;
             try {

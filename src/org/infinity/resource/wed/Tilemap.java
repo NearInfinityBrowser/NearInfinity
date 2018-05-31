@@ -15,9 +15,9 @@ public final class Tilemap extends AbstractStruct // implements AddRemovable
 {
   // WED/Tilemap-specific field labels
   public static final String WED_TILEMAP                  = "Tilemap";
-  public static final String WED_TILEMAP_TILE_INDEX_PRI   = "Primary tile index";
-  public static final String WED_TILEMAP_TILE_COUNT_PRI   = "Primary tile count";
-  public static final String WED_TILEMAP_TILE_INDEX_SEC   = "Secondary tile index";
+  public static final String WED_TILEMAP_TILE_INDEX_PRI   = "Tilemap index (primary)";
+  public static final String WED_TILEMAP_TILE_COUNT_PRI   = "Tilemap count (primary)";
+  public static final String WED_TILEMAP_TILE_INDEX_SEC   = "Tile index (secondary)";
   public static final String WED_TILEMAP_DRAW_OVERLAYS    = "Draw Overlays";
   public static final String WED_TILEMAP_ANIMATION_SPEED  = "Animation speed";
 

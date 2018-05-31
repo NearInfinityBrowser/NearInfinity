@@ -42,7 +42,7 @@ public class ButtonPopupMenu extends JButton
     }
   };
 
-  private final JPopupMenu menu = new JPopupMenu();
+  private final ScrollPopupMenu menu = new ScrollPopupMenu();
   private final PopupListener listener = new PopupListener();
   private final PopupItemListener itemListener = new PopupItemListener();
   private List<JComponent> items = new ArrayList<JComponent>();
@@ -65,11 +65,36 @@ public class ButtonPopupMenu extends JButton
    * with {@link #addItem(JMenuItem)} or {@link #addSeparator()}, if you want to have full control over the
    * popup menu creation.
    * @param text Text label for the button.
+   * @param numVisibleItems The max. number of visible menu items at once.
+   */
+  public ButtonPopupMenu(String text, int numVisibleItems)
+  {
+    this(text, (List<JMenuItem>)null, true, Align.TOP, numVisibleItems);
+  }
+
+  /**
+   * Constructs a new ButtonPopupMenu control without menu items. Use this constructor in conjunction
+   * with {@link #addItem(JMenuItem)} or {@link #addSeparator()}, if you want to have full control over the
+   * popup menu creation.
+   * @param text Text label for the button.
    * @param align Indicates where to pop up the menu.
    */
   public ButtonPopupMenu(String text, Align align)
   {
     this(text, (List<JMenuItem>)null, true, align);
+  }
+
+  /**
+   * Constructs a new ButtonPopupMenu control without menu items. Use this constructor in conjunction
+   * with {@link #addItem(JMenuItem)} or {@link #addSeparator()}, if you want to have full control over the
+   * popup menu creation.
+   * @param text Text label for the button.
+   * @param align Indicates where to pop up the menu.
+   * @param numVisibleItems The max. number of visible menu items at once.
+   */
+  public ButtonPopupMenu(String text, Align align, int numVisibleItems)
+  {
+    this(text, (List<JMenuItem>)null, true, align, numVisibleItems);
   }
 
   /**
@@ -85,16 +110,41 @@ public class ButtonPopupMenu extends JButton
   /**
    * Constructs a new ButtonPopupMenu control with the given menu items.
    * @param text Text label for the button.
+   * @param menuItems List of menu items. Items will be sorted alphabetically before adding to the button.
+   * @param numVisibleItems The max. number of visible menu items at once.
+   */
+  public ButtonPopupMenu(String text, JMenuItem[] menuItems, int numVisibleItems)
+  {
+    this(text, menuItems, true, Align.TOP, numVisibleItems);
+  }
+
+  /**
+   * Constructs a new ButtonPopupMenu control with the given menu items.
+   * @param text Text label for the button.
    * @param menuItems List of menu items.
    * @param sorted Indicates whether to sort items alphabetically before adding to the button.
    * @param align Indicates where to pop up the menu.
    */
   public ButtonPopupMenu(String text, JMenuItem[] menuItems, boolean sorted, Align align)
   {
+    this(text, menuItems, sorted, align, 0);
+  }
+
+  /**
+   * Constructs a new ButtonPopupMenu control with the given menu items.
+   * @param text Text label for the button.
+   * @param menuItems List of menu items.
+   * @param sorted Indicates whether to sort items alphabetically before adding to the button.
+   * @param align Indicates where to pop up the menu.
+   * @param numVisibleItems The max. number of visible menu items at once.
+   */
+  public ButtonPopupMenu(String text, JMenuItem[] menuItems, boolean sorted, Align align, int numVisibleItems)
+  {
     super(text);
     this.menuAlign = align;
     setMenuItems(menuItems, sorted);
     addMouseListener(listener);
+    setMaximumVisibleRows(numVisibleItems);
   }
 
   /**
@@ -110,16 +160,41 @@ public class ButtonPopupMenu extends JButton
   /**
    * Constructs a new ButtonPopupMenu control with the given menu items.
    * @param text Text label for the button.
+   * @param menuItems List of menu items. Items will be sorted alphabetically before adding to the button.
+   * @param numVisibleItems The max. number of visible menu items at once.
+   */
+  public ButtonPopupMenu(String text, List<JMenuItem> menuItems, int numVisibleItems)
+  {
+    this(text, menuItems, true, Align.TOP, numVisibleItems);
+  }
+
+  /**
+   * Constructs a new ButtonPopupMenu control with the given menu items.
+   * @param text Text label for the button.
    * @param menuItems List of menu items.
    * @param sorted Indicates whether to sort items alphabetically before adding to the button.
    * @param align Indicates where to pop up the menu.
    */
   public ButtonPopupMenu(String text, List<JMenuItem> menuItems, boolean sorted, Align align)
   {
+    this(text, menuItems, sorted, align, 0);
+  }
+
+  /**
+   * Constructs a new ButtonPopupMenu control with the given menu items.
+   * @param text Text label for the button.
+   * @param menuItems List of menu items.
+   * @param sorted Indicates whether to sort items alphabetically before adding to the button.
+   * @param align Indicates where to pop up the menu.
+   * @param numVisibleItems The max. number of visible menu items at once.
+   */
+  public ButtonPopupMenu(String text, List<JMenuItem> menuItems, boolean sorted, Align align, int numVisibleItems)
+  {
     super(text);
     this.menuAlign = align;
     setMenuItems(menuItems, sorted);
     addMouseListener(listener);
+    setMaximumVisibleRows(numVisibleItems);
   }
 
   public JMenuItem getSelectedItem()
@@ -145,9 +220,7 @@ public class ButtonPopupMenu extends JButton
   {
     List<JMenuItem> list = new ArrayList<JMenuItem>();
     if (menuItems != null) {
-      for (int i = 0; i < menuItems.length; i++) {
-        list.add(menuItems[i]);
-      }
+      Collections.addAll(list, menuItems);
     }
     setMenuItems(list, sorted);
   }
@@ -299,6 +372,18 @@ public class ButtonPopupMenu extends JButton
       return items.indexOf(item);
     }
     return -1;
+  }
+
+  /** Returns the max. number of visible rows before scrollbars are enabled. */
+  public int getMaximumVisibleRows()
+  {
+    return menu.getMaximumVisibleRows();
+  }
+
+  /** Sets the max. number of visible rows before scrollbars are enabled. */
+  public void setMaximumVisibleRows(int maximumVisibleRows)
+  {
+    menu.setMaximumVisibleRows(maximumVisibleRows);
   }
 
   private void menuItemSelected(JMenuItem item)

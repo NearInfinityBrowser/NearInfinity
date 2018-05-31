@@ -30,7 +30,7 @@ import org.infinity.resource.wed.WedResource;
  */
 public class LayerObjectDoorPoly extends LayerObject
 {
-  private static final Color[] Color = {new Color(0xFF603080, true), new Color(0xFF603080, true),
+  private static final Color[] COLOR = {new Color(0xFF603080, true), new Color(0xFF603080, true),
                                         new Color(0x80A050C0, true), new Color(0xC0C060D0, true)};
 
   private final Door door;
@@ -163,6 +163,7 @@ public class LayerObjectDoorPoly extends LayerObject
     if (door != null) {
       location = null;
       shapeCoords = null;
+      String[] info = null;
       String[] msg = null;
       Polygon[] poly = null;
       Rectangle[] bounds = null;
@@ -176,6 +177,7 @@ public class LayerObjectDoorPoly extends LayerObject
         openCount = numOpen;
         location = new Point[count];
         shapeCoords = new Point[count][];
+        info = new String[count];
         msg = new String[count];
         poly = new Polygon[count];
         bounds = new Rectangle[count];
@@ -187,10 +189,11 @@ public class LayerObjectDoorPoly extends LayerObject
           if (p != null) {
             String s = ((TextString)door.getAttribute(Door.WED_DOOR_NAME)).toString();
             Flag flags = (Flag)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_FLAGS);
+            info[i] = s;
             if (numOpen > 1) {
-              msg[i] = String.format("%1$s %2$d/%3$d %4$s", s, i+1, numOpen, createFlags(flags, desc));
+              msg[i] = String.format("%s %d/%d %s", s, i+1, numOpen, createFlags(flags, desc));
             } else {
-              msg[i] = String.format("%1$s %2$s", s, createFlags(flags, desc));
+              msg[i] = String.format("%s %s", s, createFlags(flags, desc));
             }
             int vNum = ((SectionCount)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_NUM_VERTICES)).getValue();
             int vOfs = ((HexNumber)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
@@ -206,10 +209,11 @@ public class LayerObjectDoorPoly extends LayerObject
           if (p != null) {
             String s = ((TextString)door.getAttribute(Door.WED_DOOR_NAME)).toString();
             Flag flags = (Flag)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_FLAGS);
+            info[numOpen+i] = s;
             if (numClosed > 1) {
-              msg[numOpen+i] = String.format("%1$s %2$d/%3$d %4$s", s, i+1, numClosed, createFlags(flags, desc));
+              msg[numOpen+i] = String.format("%s %d/%d %s", s, i+1, numClosed, createFlags(flags, desc));
             } else {
-              msg[numOpen+i] = String.format("%1$s %2$s", s, createFlags(flags, desc));
+              msg[numOpen+i] = String.format("%s %s", s, createFlags(flags, desc));
             }
             int vNum = ((SectionCount)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_NUM_VERTICES)).getValue();
             int vOfs = ((HexNumber)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
@@ -222,6 +226,9 @@ public class LayerObjectDoorPoly extends LayerObject
         e.printStackTrace();
         if (shapeCoords == null) {
           shapeCoords = new Point[count][];
+        }
+        if (info == null) {
+          info = new String[count];
         }
         if (msg == null) {
           msg = new String[count];
@@ -239,6 +246,9 @@ public class LayerObjectDoorPoly extends LayerObject
         if (shapeCoords[i] == null) {
           shapeCoords[i] = new Point[0];
         }
+        if (info[i] == null) {
+          info[i] = "";
+        }
         if (msg[i] == null) {
           msg[i] = "";
         }
@@ -254,13 +264,13 @@ public class LayerObjectDoorPoly extends LayerObject
       items = new ShapedLayerItem[count];
       for (int i = 0; i < count; i++) {
         location[i] = new Point(bounds[i].x, bounds[i].y);
-        items[i] = new ShapedLayerItem(location[i], door, msg[i], poly[i]);
+        items[i] = new ShapedLayerItem(location[i], door, msg[i], info[i], poly[i]);
         items[i].setName(getCategory());
-        items[i].setToolTipText(msg[i]);
-        items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, Color[0]);
-        items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color[1]);
-        items[i].setFillColor(AbstractLayerItem.ItemState.NORMAL, Color[2]);
-        items[i].setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color[3]);
+        items[i].setToolTipText(info[i]);
+        items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
+        items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
+        items[i].setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
+        items[i].setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
         items[i].setStroked(true);
         items[i].setFilled(true);
         items[i].setVisible(isVisible());

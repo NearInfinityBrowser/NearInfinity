@@ -5,6 +5,7 @@
 package org.infinity.resource.are.viewer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -34,15 +35,26 @@ public class Settings
       ViewerConstants.LayerStackingType.AMBIENT_RANGE,
       ViewerConstants.LayerStackingType.TRANSITION
   };
-  public static final String[] LabelZoomFactor = {"Auto-fit", "25%", "33%", "50%", "100%", "200%", "300%", "400%"};
-  public static final double[] ItemZoomFactor = {0.0, 0.25, 1.0/3.0, 0.5, 1.0, 2.0, 3.0, 4.0};
-  public static final int ZoomFactorIndexAuto = 0;       // points to the auto-fit zoom factor
-  public static final int ZoomFactorIndexDefault = 4;    // points to the default zoom factor (1x)
+  public static final String[] LabelZoomFactor = {"Auto-fit", "25%", "33%", "50%", "67%", "75%",
+                                                  "100%", "150%", "200%", "300%", "400%", "Custom"};
+  public static final double[] ItemZoomFactor = {0.0, 0.25, 1.0/3.0, 0.5, 2.0/3.0, 0.75,
+                                                 1.0, 1.5, 2.0, 3.0, 4.0, -1.0};
+  public static final double[] WheelZoomFactor = {0.1, 0.2, 0.25, 1.0/3.0, 0.5, 2.0/3.0, 0.75,
+                                                  1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0};
+  public static final double ZoomFactorAuto = 0.0;      // the auto-fit zoom factor
+  public static final double ZoomFactorDefault = 1.0;   // the default zoom factor
+  public static final double ZoomFactorMax = 10.0;      // maximum allowed zoom factor
 
   // Defines stacking order of layer items on the map
   public static final List<ViewerConstants.LayerStackingType> ListLayerOrder = getDefaultLayerOrder();
   // Indicates whether to store settings on disk
   public static boolean StoreVisualSettings = getDefaultStoreVisualSettings();
+  // Indicates whether to use different color shades to distinguish between region types
+  public static boolean UseColorShades = getDefaultUseColorShades();
+  // Indicates whether layer controls will be included when exporting the map as graphics
+  public static boolean ExportLayers = getDefaultExportLayers();
+  // Indicates whether to use the mouse wheel to change map zoom level
+  public static boolean MouseWheelZoom = getDefaultMouseWheelZoom();
   // Current open/closed state of door tiles and structures
   public static boolean DrawClosed = getDefaultDrawClosed();
   // Current visibility state of overlays
@@ -69,8 +81,8 @@ public class Settings
   public static int ShowRealAnimations = getDefaultShowRealAnimations();
   // The current time of day (in hours)
   public static int TimeOfDay = getDefaultTimeOfDay();
-  // The current zoom level of the map (as combobox item index)
-  public static int ZoomLevel = getDefaultZoomLevel();
+  // The current zoom factor used by the map
+  public static double ZoomFactor = getDefaultZoomFactor();
   // The frame rate for animated overlays
   public static double FrameRateOverlays = getDefaultFrameRateOverlays();
   // The frame rate for animated background animations
@@ -79,9 +91,23 @@ public class Settings
   public static double MiniMapAlpha = getDefaultMiniMapAlpha();
   // One of the MAP_XXX constants for minimaps
   public static int MiniMap = getDefaultMiniMap();
+  // Show label for various layer item types
+  public static boolean ShowLabelActorsAre = getDefaultLabelActorsAre();
+  public static boolean ShowLabelActorsIni = getDefaultLabelActorsIni();
+//  public static boolean ShowLabelRegions = getDefaultLabelRegions();
+  public static boolean ShowLabelEntrances = getDefaultLabelEntrances();
+//  public static boolean ShowLabelContainers = getDefaultLabelContainers();
+  public static boolean ShowLabelSounds = getDefaultLabelSounds();
+//  public static boolean ShowLabelDoors = getDefaultLabelDoors();
+  public static boolean ShowLabelAnimations = getDefaultLabelAnimations();
+  public static boolean ShowLabelMapNotes = getDefaultLabelMapNotes();
+  public static boolean ShowLabelSpawnPoints = getDefaultLabelSpawnPoints();
 
   // Preferences keys for specific settings
   private static final String PREFS_STORESETTINGS           = "StoreSettings";
+  private static final String PREFS_USECOLORSHADES          = "UseColorShades";
+  private static final String PREFS_EXPORTLAYERS            = "ExportLayers";
+  private static final String PREFS_MOUSEWHEELZOOM          = "MouseWheelZoom";
   private static final String PREFS_DRAWCLOSED              = "DrawClosed";
   private static final String PREFS_DRAWOVERLAYS            = "DrawOverlays";
   private static final String PREFS_DRAWGRID                = "DrawGrid";
@@ -93,14 +119,24 @@ public class Settings
   private static final String PREFS_LAYERFLAGS              = "LayerFlags";
   private static final String PREFS_SHOWREALANIMS           = "ShowRealAnimations";
   private static final String PREFS_TIMEOFDAY               = "TimeOfDay";
-  private static final String PREFS_ZOOMLEVEL               = "ZoomLevel";
-  private static final String PREFS_LAYERZORDER_FMT         = "LayerZOrder%1$d";
+  private static final String PREFS_ZOOMFACTOR              = "ZoomFactor";
+  private static final String PREFS_LAYERZORDER_FMT         = "LayerZOrder%d";
   private static final String PREFS_INTERPOLATION_MAP       = "InterpolationMap";
   private static final String PREFS_INTERPOLATION_ANIMS     = "InterpolationAnims";
   private static final String PREFS_FRAMERATE_OVERLAYS      = "FrameRateOverlays";
   private static final String PREFS_FRAMERATE_ANIMS         = "FrameRateAnims";
   private static final String PREFS_MINIMAP_ALPHA           = "MiniMapAlpha";
   private static final String PREFS_MINIMAP                 = "MiniMap";
+  private static final String PREFS_LABEL_ACTOR_ARE         = "LabelActorAre";
+  private static final String PREFS_LABEL_ACTOR_INI         = "LabelActorIni";
+//  private static final String PREFS_LABEL_REGIONS           = "LabelRegions";
+  private static final String PREFS_LABEL_ENTRANCES         = "LabelEntrances";
+//  private static final String PREFS_LABEL_CONTAINERS        = "LabelContainers";
+  private static final String PREFS_LABEL_SOUNDS            = "LabelSounds";
+//  private static final String PREFS_LABEL_DOORS             = "LabelDoors";
+  private static final String PREFS_LABEL_ANIMATIONS        = "LabelAnimations";
+  private static final String PREFS_LABEL_MAPNOTES          = "LabelMapNotes";
+  private static final String PREFS_LABEL_SPAWNPOINTS       = "LabelSpawnPoints";
 
   private static boolean SettingsLoaded = false;
 
@@ -115,6 +151,9 @@ public class Settings
 
       // loading required settings
       StoreVisualSettings = prefs.getBoolean(PREFS_STORESETTINGS, getDefaultStoreVisualSettings());
+      UseColorShades = prefs.getBoolean(PREFS_USECOLORSHADES, getDefaultUseColorShades());
+      ExportLayers = prefs.getBoolean(PREFS_EXPORTLAYERS,getDefaultExportLayers());
+      MouseWheelZoom = prefs.getBoolean(PREFS_MOUSEWHEELZOOM,getDefaultMouseWheelZoom());
       OverrideAnimVisibility = prefs.getBoolean(PREFS_OVERRIDEANIMVISIBILITY, getDefaultOverrideAnimVisibility());
       ShowFrame = prefs.getInt(PREFS_SHOWFRAME, getDefaultShowFrame());
       InterpolationMap = prefs.getInt(PREFS_INTERPOLATION_MAP, getDefaultInterpolationMap());
@@ -122,6 +161,16 @@ public class Settings
       FrameRateOverlays = prefs.getDouble(PREFS_FRAMERATE_OVERLAYS, getDefaultFrameRateOverlays());
       FrameRateAnimations = prefs.getDouble(PREFS_FRAMERATE_ANIMS, getDefaultFrameRateAnimations());
       MiniMapAlpha = prefs.getDouble(PREFS_MINIMAP_ALPHA, getDefaultMiniMapAlpha());
+      ShowLabelActorsAre = prefs.getBoolean(PREFS_LABEL_ACTOR_ARE, getDefaultLabelActorsAre());
+      ShowLabelActorsIni = prefs.getBoolean(PREFS_LABEL_ACTOR_INI, getDefaultLabelActorsIni());
+//      ShowLabelRegions = prefs.getBoolean(PREFS_LABEL_REGIONS, getDefaultLabelRegions());
+      ShowLabelEntrances = prefs.getBoolean(PREFS_LABEL_ENTRANCES, getDefaultLabelEntrances());
+//      ShowLabelContainers = prefs.getBoolean(PREFS_LABEL_CONTAINERS, getDefaultLabelContainers());
+      ShowLabelSounds = prefs.getBoolean(PREFS_LABEL_SOUNDS, getDefaultLabelSounds());
+//      ShowLabelDoors = prefs.getBoolean(PREFS_LABEL_DOORS, getDefaultLabelDoors());
+      ShowLabelAnimations = prefs.getBoolean(PREFS_LABEL_ANIMATIONS, getDefaultLabelAnimations());
+      ShowLabelMapNotes = prefs.getBoolean(PREFS_LABEL_MAPNOTES, getDefaultLabelMapNotes());
+      ShowLabelSpawnPoints = prefs.getBoolean(PREFS_LABEL_SPAWNPOINTS, getDefaultLabelSpawnPoints());
 
       // loading layer z-order
       ListLayerOrder.clear();
@@ -145,7 +194,7 @@ public class Settings
         LayerFlags = prefs.getInt(PREFS_LAYERFLAGS, getDefaultLayerFlags());
         ShowRealAnimations = prefs.getInt(PREFS_SHOWREALANIMS, getDefaultShowRealAnimations());
         TimeOfDay = prefs.getInt(PREFS_TIMEOFDAY, getDefaultTimeOfDay());
-        ZoomLevel = prefs.getInt(PREFS_ZOOMLEVEL, getDefaultZoomLevel());
+        ZoomFactor = prefs.getDouble(PREFS_ZOOMFACTOR, getDefaultZoomFactor());
         MiniMap = prefs.getInt(PREFS_MINIMAP, getDefaultMiniMap());
       }
       validateSettings();
@@ -164,6 +213,9 @@ public class Settings
 
     // storing basic settings
     prefs.putBoolean(PREFS_STORESETTINGS, StoreVisualSettings);
+    prefs.putBoolean(PREFS_USECOLORSHADES, UseColorShades);
+    prefs.putBoolean(PREFS_EXPORTLAYERS, ExportLayers);
+    prefs.putBoolean(PREFS_MOUSEWHEELZOOM, MouseWheelZoom);
     prefs.putBoolean(PREFS_OVERRIDEANIMVISIBILITY, OverrideAnimVisibility);
     prefs.putInt(PREFS_SHOWFRAME, ShowFrame);
     prefs.putInt(PREFS_INTERPOLATION_MAP, InterpolationMap);
@@ -171,6 +223,16 @@ public class Settings
     prefs.putDouble(PREFS_FRAMERATE_OVERLAYS, FrameRateOverlays);
     prefs.putDouble(PREFS_FRAMERATE_ANIMS, FrameRateAnimations);
     prefs.putDouble(PREFS_MINIMAP_ALPHA, MiniMapAlpha);
+    prefs.putBoolean(PREFS_LABEL_ACTOR_ARE, ShowLabelActorsAre);
+    prefs.putBoolean(PREFS_LABEL_ACTOR_INI, ShowLabelActorsIni);
+//    prefs.putBoolean(PREFS_LABEL_REGIONS, ShowLabelRegions);
+    prefs.putBoolean(PREFS_LABEL_ENTRANCES, ShowLabelEntrances);
+//    prefs.putBoolean(PREFS_LABEL_CONTAINERS, ShowLabelContainers);
+    prefs.putBoolean(PREFS_LABEL_SOUNDS, ShowLabelSounds);
+//    prefs.putBoolean(PREFS_LABEL_DOORS, ShowLabelDoors);
+    prefs.putBoolean(PREFS_LABEL_ANIMATIONS, ShowLabelAnimations);
+    prefs.putBoolean(PREFS_LABEL_MAPNOTES, ShowLabelMapNotes);
+    prefs.putBoolean(PREFS_LABEL_SPAWNPOINTS, ShowLabelSpawnPoints);
 
     // storing layer z-order
     for (int i = 0; i < ListLayerOrder.size(); i++) {
@@ -188,7 +250,7 @@ public class Settings
       prefs.putInt(PREFS_LAYERFLAGS, LayerFlags);
       prefs.putInt(PREFS_SHOWREALANIMS, ShowRealAnimations);
       prefs.putInt(PREFS_TIMEOFDAY, TimeOfDay);
-      prefs.putInt(PREFS_ZOOMLEVEL, ZoomLevel);
+      prefs.putDouble(PREFS_ZOOMFACTOR, ZoomFactor);
       prefs.putInt(PREFS_MINIMAP, MiniMap);
     }
     try {
@@ -210,7 +272,7 @@ public class Settings
     ShowRealAnimations = Math.min(Math.max(ShowRealAnimations, ViewerConstants.ANIM_SHOW_NONE),
                                   ViewerConstants.ANIM_SHOW_ANIMATED);
     TimeOfDay = Math.min(Math.max(TimeOfDay, ViewerConstants.TIME_0), ViewerConstants.TIME_23);
-    ZoomLevel = Math.min(Math.max(ZoomLevel, 0), ItemZoomFactor.length - 1);
+    ZoomFactor = Math.min(Math.max(ZoomFactor, 0.0), ZoomFactorMax);
     InterpolationMap = Math.min(Math.max(InterpolationMap, ViewerConstants.FILTERING_AUTO),
                                 ViewerConstants.FILTERING_BILINEAR);
     InterpolationAnim = Math.min(Math.max(InterpolationAnim, ViewerConstants.FILTERING_AUTO),
@@ -246,13 +308,26 @@ public class Settings
   public static List<ViewerConstants.LayerStackingType> getDefaultLayerOrder()
   {
     List<ViewerConstants.LayerStackingType> list = new ArrayList<ViewerConstants.LayerStackingType>();
-    for (int i = 0; i < DefaultLayerOrder.length; i++) {
-      list.add(DefaultLayerOrder[i]);
-    }
+    Collections.addAll(list, DefaultLayerOrder);
     return list;
   }
 
   public static boolean getDefaultStoreVisualSettings()
+  {
+    return false;
+  }
+
+  public static boolean getDefaultUseColorShades()
+  {
+    return true;
+  }
+
+  public static boolean getDefaultExportLayers()
+  {
+    return true;
+  }
+
+  public static boolean getDefaultMouseWheelZoom()
   {
     return false;
   }
@@ -322,9 +397,43 @@ public class Settings
     return ViewerConstants.getHourOf(ViewerConstants.LIGHTING_DAY);
   }
 
-  public static int getDefaultZoomLevel()
+  public static double getDefaultZoomFactor()
   {
-    return ZoomFactorIndexDefault;
+    return ZoomFactorDefault;
+  }
+
+  public static int getZoomLevelIndex(double value)
+  {
+    if (value == 0.0) {
+      return 0;
+    } else {
+      for (int idx = 0; idx < ItemZoomFactor.length; ++idx) {
+        if (value == ItemZoomFactor[idx]) {
+          return idx;
+        }
+      }
+      return ItemZoomFactor.length - 1;
+    }
+  }
+
+  public static double getNextZoomFactor(double curValue, boolean increment)
+  {
+    double retVal = curValue;
+    double distMin = Double.MAX_VALUE;
+    for (int i = 0; i < WheelZoomFactor.length; i++) {
+      double dist = Double.MAX_VALUE;
+      if (increment && WheelZoomFactor[i] > curValue) {
+        dist = WheelZoomFactor[i] - curValue;
+      } else if (!increment && curValue > WheelZoomFactor[i]) {
+        dist = curValue - WheelZoomFactor[i];
+      }
+      if (dist < distMin) {
+        distMin = dist;
+        retVal = WheelZoomFactor[i];
+      }
+    }
+
+    return retVal;
   }
 
   public static double getDefaultFrameRateOverlays()
@@ -347,6 +456,55 @@ public class Settings
     return ViewerConstants.MAP_NONE;
   }
 
+  public static boolean getDefaultLabelActorsAre()
+  {
+    return true;
+  }
+
+  public static boolean getDefaultLabelActorsIni()
+  {
+    return true;
+  }
+
+//  public static boolean getDefaultLabelRegions()
+//  {
+//    return false;
+//  }
+
+  public static boolean getDefaultLabelEntrances()
+  {
+    return false;
+  }
+
+//  public static boolean getDefaultLabelContainers()
+//  {
+//    return false;
+//  }
+
+  public static boolean getDefaultLabelSounds()
+  {
+    return false;
+  }
+
+//  public static boolean getDefaultLabelDoors()
+//  {
+//    return false;
+//  }
+
+  public static boolean getDefaultLabelAnimations()
+  {
+    return false;
+  }
+
+  public static boolean getDefaultLabelMapNotes()
+  {
+    return false;
+  }
+
+  public static boolean getDefaultLabelSpawnPoints()
+  {
+    return false;
+  }
 
   // Converts values from LayerStackingType to LayerType
   public static LayerType stackingToLayer(LayerStackingType type)

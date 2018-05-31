@@ -25,7 +25,7 @@ import org.infinity.resource.wed.WedResource;
  */
 public class LayerObjectWallPoly extends LayerObject
 {
-  private static final Color[] Color = {new Color(0xFF005046, true), new Color(0xFF005046, true),
+  private static final Color[] COLOR = {new Color(0xFF005046, true), new Color(0xFF005046, true),
                                         new Color(0x8020A060, true), new Color(0xA030B070, true)};
 
   private final WallPolygon wall;
@@ -106,7 +106,7 @@ public class LayerObjectWallPoly extends LayerObject
   {
     if (wall != null) {
       shapeCoords = null;
-      String msg = "";
+      String msg = "", info = "";
       Polygon poly = null;
       Rectangle bounds = null;
       int count = 0;
@@ -115,7 +115,8 @@ public class LayerObjectWallPoly extends LayerObject
         int ofs = wall.getOffset();
         count = (ofs - baseOfs) / wall.getSize();
         Flag flags = (Flag)wall.getAttribute(WallPolygon.WED_POLY_FLAGS);
-        msg = String.format("Wall polygon #%1$d %2$s", count,
+        info = "Wall polygon #" + count;
+        msg = String.format("Wall polygon #%d %s", count,
                             createFlags(flags, org.infinity.resource.wed.Polygon.s_flags));
         int vNum = ((DecNumber)wall.getAttribute(WallPolygon.WED_POLY_NUM_VERTICES)).getValue();
         int vOfs = ((HexNumber)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
@@ -137,13 +138,13 @@ public class LayerObjectWallPoly extends LayerObject
       }
 
       location.x = bounds.x; location.y = bounds.y;
-      item = new ShapedLayerItem(location, wall, msg, poly);
+      item = new ShapedLayerItem(location, wall, msg, info, poly);
       item.setName(getCategory());
-      item.setToolTipText(msg);
-      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, Color[0]);
-      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color[1]);
-      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, Color[2]);
-      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color[3]);
+      item.setToolTipText(info);
+      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
+      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
+      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
+      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
       item.setStroked(true);
       item.setFilled(true);
       item.setVisible(isVisible());

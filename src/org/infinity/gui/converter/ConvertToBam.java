@@ -63,6 +63,7 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -89,6 +90,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.infinity.NearInfinity;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.ChildFrame;
+import org.infinity.gui.DataMenuItem;
 import org.infinity.gui.FixedFocusTraversalPolicy;
 import org.infinity.gui.OpenResourceDialog;
 import org.infinity.gui.RenderCanvas;
@@ -183,6 +185,7 @@ public class ConvertToBam extends ChildFrame
   private JMenuItem miFramesAddFiles, miFramesAddResources, miFramesAddFolder, miFramesImportFile,
                     miFramesImportResource, miFramesRemove, miFramesRemoveAll, miFramesDropUnused,
                     miSessionExport, miSessionImport;
+  private JMenu miSessionHistory;
   private ButtonPopupMenu bpmFramesAdd, bpmFramesRemove, bpmSession;
   private JButton bOptions, bConvert, bCancel, bPalette, bVersionHelp, bCompressionHelp;
   private JButton bFramesUp, bFramesDown;
@@ -434,6 +437,12 @@ public class ConvertToBam extends ChildFrame
     return bamOutputFile;
   }
 
+  /** Predefines BAM output file or path. */
+  public void setBamOutput(Path path)
+  {
+    bamOutputFile = path;
+  }
+
   /** Returns whether BAM v1 output is compressed. */
   public boolean isBamV1Compressed()
   {
@@ -468,6 +477,7 @@ public class ConvertToBam extends ChildFrame
   @Override
   protected boolean windowClosing(boolean forced) throws Exception
   {
+    BamOptionsDialog.saveRecentSessions();
     if (forced || confirmCloseDialog()) {
       clear();
       return true;
@@ -552,7 +562,7 @@ public class ConvertToBam extends ChildFrame
         if (count == 1) {
           msg = "1 unused frame can be dropped. Do you want to continue?";
         } else {
-          msg = String.format("%1$d unused frames can be dropped. Do you want to continue?", count);
+          msg = String.format("%d unused frames can be dropped. Do you want to continue?", count);
         }
         int retVal = JOptionPane.showConfirmDialog(this, msg, "Question", JOptionPane.YES_NO_OPTION,
                                                    JOptionPane.QUESTION_MESSAGE);
@@ -675,6 +685,27 @@ public class ConvertToBam extends ChildFrame
       filterMoveDown();
     } else if (event.getSource() == cbFiltersShowMarker) {
       filterSetPreviewFrame(filterGetPreviewFrameIndex(), false);
+    } else if (event.getSource() instanceof DataMenuItem) {
+      DataMenuItem dmi = (DataMenuItem)event.getSource();
+      if (dmi.getData() instanceof Path) {
+        Path path = (Path)dmi.getData();
+        Exporter importer = new Exporter(this);
+        try {
+          if (importer.importData(path, false)) {
+            if (importer.isFramesSelected() || importer.isCenterSelected()) {
+              updateFramesList();
+            }
+            if (importer.isCyclesSelected()) {
+              updateCyclesList();
+            }
+            if (importer.isFiltersSelected()) {
+              updateFilterList();
+            }
+          }
+        } finally {
+          importer.close();
+        }
+      }
     }
   }
 
@@ -929,11 +960,16 @@ public class ConvertToBam extends ChildFrame
 
     // setting up bottom button bar
     GridBagConstraints c = new GridBagConstraints();
+    initSessionEntries();
     miSessionExport = new JMenuItem("Export session...");
     miSessionExport.addActionListener(this);
     miSessionImport = new JMenuItem("Import session...");
     miSessionImport.addActionListener(this);
-    bpmSession = new ButtonPopupMenu("BAM session", new JMenuItem[]{miSessionExport, miSessionImport});
+    bpmSession = new ButtonPopupMenu("BAM session");
+    bpmSession.addItem(miSessionHistory);
+    bpmSession.getPopupMenu().addSeparator();
+    bpmSession.addItem(miSessionExport);
+    bpmSession.addItem(miSessionImport);
     bpmSession.setToolTipText("Export or import BAM frame, cycle or filter definitions.");
     bpmSession.setIcon(Icons.getIcon(Icons.ICON_ARROW_UP_15));
     bpmSession.setIconTextGap(8);
@@ -1764,7 +1800,7 @@ public class ConvertToBam extends ChildFrame
   {
     boolean isEmpty = (modelFrames.isEmpty() && modelCycles.isEmpty());
     if (!isEmpty) {
-      String msg = String.format("%1$d frame(s) and %2$d cycle(s) will be discarded.\n" +
+      String msg = String.format("%d frame(s) and %d cycle(s) will be discarded.\n" +
                                  "Do you really want to close the dialog?",
                                  modelFrames.getSize(), modelCycles.getSize());
       if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Close dialog",
@@ -1891,7 +1927,7 @@ public class ConvertToBam extends ChildFrame
         listCurCycle.setEnabled(true);
 
         // updating group box title
-        pCurrentCycle.setBorder(BorderFactory.createTitledBorder(String.format("Cycle %1$d ", cycleIdx)));
+        pCurrentCycle.setBorder(BorderFactory.createTitledBorder(String.format("Cycle %d ", cycleIdx)));
 
         listFramesAvail.setSelectedIndices(new int[]{});
 
@@ -1960,9 +1996,9 @@ public class ConvertToBam extends ChildFrame
       // setting frame info
       String title = null;
       if (indices.length > 1) {
-        title = String.format("%1$d frames selected ", indices.length);
+        title = String.format("%d frames selected ", indices.length);
       } else {
-        title = String.format("Frame %1$d ", indices[0]);
+        title = String.format("Frame %d ", indices[0]);
       }
       pFramesCurFrame.setBorder(BorderFactory.createTitledBorder(title));
       tfFrameWidth.setText(changedWidth ? "" : Integer.toString(initialWidth));
@@ -2070,9 +2106,9 @@ public class ConvertToBam extends ChildFrame
     bPreviewCycleNext.setEnabled(bamControlPreview.cycleGet() < bamControlPreview.cycleCount() - 1);
     bPreviewFramePrev.setEnabled(bamControlPreview.cycleGetFrameIndex() > 0);
     bPreviewFrameNext.setEnabled(bamControlPreview.cycleGetFrameIndex() < bamControlPreview.cycleFrameCount() - 1);
-    lPreviewCycle.setText(String.format("Cycle: %1$d/%2$d",
+    lPreviewCycle.setText(String.format("Cycle: %d/%d",
                                         bamControlPreview.cycleGet(), bamControlPreview.cycleCount() - 1));
-    lPreviewFrame.setText(String.format("Frame: %1$d/%2$d",
+    lPreviewFrame.setText(String.format("Frame: %d/%d",
                                         bamControlPreview.cycleGetFrameIndex(),
                                         bamControlPreview.cycleFrameCount() - 1));
   }
@@ -2096,7 +2132,7 @@ public class ConvertToBam extends ChildFrame
   // Updates the filter info box
   private void updateFilterInfo()
   {
-    final String fmt = "Name: %1$s\n\nDescription:\n%2$s";
+    final String fmt = "Name: %s\n\nDescription:\n%s";
     int idx = listFilters.getSelectedIndex();
     if (idx >= 0) {
       BamFilterBase filter = modelFilters.get(idx);
@@ -2320,7 +2356,7 @@ public class ConvertToBam extends ChildFrame
               }
               break;
             }
-            advanceProgressMonitor(String.format("Adding file %1$d/%2$d", i+1, entries.length));
+            advanceProgressMonitor(String.format("Adding file %d/%d", i+1, entries.length));
           }
           // adding files to global frames list
           if (entries[i] != null) {
@@ -2362,13 +2398,13 @@ public class ConvertToBam extends ChildFrame
       if (!skippedFiles.isEmpty()) {
         StringBuilder sb = new StringBuilder();
         if (skippedFiles.size() == 1) {
-          sb.append(String.format("%1$d file has been skipped:\n", skippedFiles.size()));
+          sb.append(String.format("%d file has been skipped:\n", skippedFiles.size()));
         } else {
-          sb.append(String.format("%1$d files have been skipped:\n", skippedFiles.size()));
+          sb.append(String.format("%d files have been skipped:\n", skippedFiles.size()));
         }
         int count = Math.min(5, skippedFiles.size());
         for (int i = 0; i < count; i++) {
-          sb.append(String.format("  - %1$s\n", skippedFiles.get(i)));
+          sb.append(String.format("  - %s\n", skippedFiles.get(i)));
         }
         if (skippedFiles.size() > 5) {
           sb.append("  - ...\n");
@@ -2625,6 +2661,7 @@ public class ConvertToBam extends ChildFrame
       if (!cancelled) {
         if (replace) {
           clear();
+          setBamOutput(FileManager.query(Profile.getGameRoot(), entry.getResourceName()));
         }
         int frameBase = modelFrames.getSize();
         BamDecoder decoder = framesAddBam(frameBase, entry);
@@ -3796,7 +3833,9 @@ public class ConvertToBam extends ChildFrame
       if (outList != null && !outList.isEmpty()) {
         for (int idx = 0; idx < outList.size(); idx++) {
           // processing output filter
-          outList.get(idx).process(bamDecoderFinal);
+          if (!outList.get(idx).process(bamDecoderFinal)) {
+            throw new Exception("Conversion failed.");
+          }
         }
       } else {
         throw new Exception("No output filter specified.");
@@ -3805,7 +3844,7 @@ public class ConvertToBam extends ChildFrame
     } catch (Exception e) {
       e.printStackTrace();
       result.add(null);
-      result.add(String.format("Error while exporting BAM files.\n(%1$s)", e.getMessage()));
+      result.add(String.format("Error while exporting BAM files.\n(%s)", e.getMessage()));
     }
     return result;
   }
@@ -3913,9 +3952,9 @@ public class ConvertToBam extends ChildFrame
             // skipping output filter
           } else {
             if (filters.get(idx) != null) {
-              System.err.println(String.format("Unrecognized filter at index %1$d: %2$s", idx, filters.get(idx)));
+              System.err.println(String.format("Unrecognized filter at index %d: %s", idx, filters.get(idx)));
             } else {
-              System.err.println(String.format("null filter at index %1$d", idx));
+              System.err.println(String.format("null filter at index %d", idx));
             }
           }
         }
@@ -4157,6 +4196,39 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
+  // Updates current BAM session path list
+  private void updateRecentSession(Path session)
+  {
+    if (session != null) {
+      BamOptionsDialog.updateRecentSession(session);
+      initSessionEntries();
+    }
+  }
+
+  // (Re-)creates a list of recently accessed BAM session paths
+  private void initSessionEntries()
+  {
+    if (miSessionHistory == null) {
+      miSessionHistory = new JMenu("Load recent sessions");
+    } else {
+      Component[] comp = miSessionHistory.getComponents();
+      for (final Component c: comp) {
+        if (c instanceof DataMenuItem) {
+          ((DataMenuItem)c).removeActionListener(this);
+        }
+      }
+      miSessionHistory.removeAll();
+    }
+
+    List<Path> recentSessions = BamOptionsDialog.getRecentSessions();
+    for (final Path item: recentSessions) {
+      DataMenuItem dmi = new DataMenuItem(item.getFileName().toString(), -1, item);
+      dmi.setToolTipText(item.toString());
+      dmi.addActionListener(this);
+      miSessionHistory.add(dmi);
+    }
+    miSessionHistory.setEnabled(!recentSessions.isEmpty());
+  }
 
   // Initializes a new ProgressMonitor instance
   void initProgressMonitor(Component parent, String msg, String note, int maxProgress,
@@ -4803,9 +4875,9 @@ public class ConvertToBam extends ChildFrame
     public Component getListCellRendererComponent(JList<?> list, Object value, int index,
         boolean isSelected, boolean cellHasFocus)
     {
-      String template = "%1$0" +
-                        String.format("%1$d", Integer.toString(list.getModel().getSize()).length()) +
-                        "d - %2$s";
+      String template = "%0" +
+                        String.format("%d", Integer.toString(list.getModel().getSize()).length()) +
+                        "d - %s";
       return super.getListCellRendererComponent(list, String.format(template, index, value),
                                                 index, isSelected, cellHasFocus);
     }
@@ -4923,6 +4995,8 @@ public class ConvertToBam extends ChildFrame
       Path outFile = getSaveFileName(bam, "Export BAM session", root,
                                      new FileNameExtensionFilter[]{getIniFilter()}, 0);
       if (outFile != null) {
+        outFile = StreamUtils.replaceFileExtension(outFile, "ini");
+        bam.updateRecentSession(outFile);
         if (getSelection(true)) {
           try {
             WindowBlocker.blockWindow(bam, true);
@@ -4946,7 +5020,34 @@ public class ConvertToBam extends ChildFrame
       Path[] files = getOpenFileName(bam, "Import BAM session", null, false,
                                      new FileNameExtensionFilter[]{getIniFilter()}, 0);
       if (files != null && files.length > 0) {
+        if (!Files.isRegularFile(files[0])) {
+          files[0] = StreamUtils.replaceFileExtension(files[0], "ini");
+        }
         if (loadData(files[0], silent)) {
+          bam.updateRecentSession(files[0]);
+          if (getSelection(false)) {
+            try {
+              WindowBlocker.blockWindow(bam, true);
+              return applyData(silent);
+            } finally {
+              WindowBlocker.blockWindow(bam, false);
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Imports selected data from the specified session file.
+     * Returns whether import was successful.
+     */
+    public boolean importData(Path session, boolean silent)
+    {
+      if (session != null) {
+        resetData();
+        if (loadData(session, silent)) {
+          bam.updateRecentSession(session);
           if (getSelection(false)) {
             try {
               WindowBlocker.blockWindow(bam, true);

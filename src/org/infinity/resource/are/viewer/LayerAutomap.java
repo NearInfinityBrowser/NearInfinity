@@ -19,7 +19,7 @@ import org.infinity.resource.are.AutomapNotePST;
  */
 public class LayerAutomap extends BasicLayer<LayerObject>
 {
-  private static final String AvailableFmt = "Automap notes: %1$d";
+  private static final String AvailableFmt = "Automap notes: %d";
 
   public LayerAutomap(AreResource are, AreaViewer viewer)
   {

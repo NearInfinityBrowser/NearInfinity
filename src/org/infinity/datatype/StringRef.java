@@ -22,6 +22,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
@@ -34,7 +35,8 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.StringReferenceSearcher;
-import org.infinity.util.StringResource;
+import org.infinity.util.Misc;
+import org.infinity.util.StringTable;
 
 public final class StringRef extends Datatype implements Editable, IsNumeric, IsTextual, ActionListener
 {
@@ -71,32 +73,31 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == tfRefNr || event.getSource() == bUpdate) {
-      taRefText.setText(StringResource.getStringRef(Integer.parseInt(tfRefNr.getText())));
-      String resname = StringResource.getWavResource(Integer.parseInt(tfRefNr.getText()));
-      bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
+      taRefText.setText(StringTable.getStringRef(Integer.parseInt(tfRefNr.getText())));
+      String resname = StringTable.getSoundResource(Integer.parseInt(tfRefNr.getText()));
+      bPlay.setEnabled(!resname.isEmpty() && ResourceFactory.resourceExists(resname + ".WAV"));
     }
     else if (event.getSource() == bEdit) {
       StringEditor editor = null;
       List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
-      for (int i = 0; i < frames.size(); i++) {
-        StringEditor e = (StringEditor)frames.get(i);
-        if (e.getPath().equals(StringResource.getPath()))
-          editor = e;
+      if (!frames.isEmpty()) {
+        editor = (StringEditor)frames.get(0);
       }
-      if (editor == null)
-        new StringEditor(StringResource.getPath(), Integer.parseInt(tfRefNr.getText()));
-      else {
+      if (editor == null) {
+        new StringEditor(Integer.parseInt(tfRefNr.getText()));
+      } else {
         editor.setVisible(true);
-        editor.showEntry(Integer.parseInt(tfRefNr.getText()));
+        editor.showEntry(StringTable.Type.MALE, Integer.parseInt(tfRefNr.getText()));
       }
     }
     else if (event.getSource() == bPlay) {
       int newvalue = Integer.parseInt(tfRefNr.getText());
-      ResourceEntry entry = ResourceFactory.getResourceEntry(StringResource.getWavResource(newvalue) + ".WAV");
+      ResourceEntry entry = ResourceFactory.getResourceEntry(StringTable.getSoundResource(newvalue) + ".WAV");
       new ViewFrame(bPlay.getTopLevelAncestor(), ResourceFactory.getResource(entry));
     }
-    else if (event.getSource() == bSearch)
+    else if (event.getSource() == bSearch) {
       new StringReferenceSearcher(Integer.parseInt(tfRefNr.getText()), bSearch.getTopLevelAncestor());
+    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
@@ -111,6 +112,10 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
       tfRefNr = new JTextField(8);
       tfRefNr.addActionListener(this);
       taRefText = new InfinityTextArea(1, 200, true);
+      if (BrowserMenuBar.getInstance().getTlkSyntaxHighlightingEnabled()) {
+        taRefText.applyExtendedSettings(InfinityTextArea.Language.TLK, null);
+      }
+      taRefText.setFont(Misc.getScaledFont(taRefText.getFont()));
       taRefText.setHighlightCurrentLine(false);
       taRefText.setEditable(false);
       taRefText.setLineWrap(true);
@@ -127,9 +132,9 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
       bSearch.addActionListener(this);
       bSearch.setMnemonic('f');
     }
-    String resname = StringResource.getWavResource(value);
-    bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
-    taRefText.setText(StringResource.getStringRef(value));
+    String resname = StringTable.getSoundResource(value);
+    bPlay.setEnabled(!resname.isEmpty() && ResourceFactory.resourceExists(resname + ".WAV"));
+    taRefText.setText(StringTable.getStringRef(value));
     taRefText.setCaretPosition(0);
     InfinityScrollPane scroll = new InfinityScrollPane(taRefText, true);
     scroll.setLineNumbersEnabled(false);
@@ -182,8 +187,8 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
     gbl.setConstraints(scroll, gbc);
     panel.add(scroll);
 
-    panel.setMinimumSize(DIM_BROAD);
-    panel.setPreferredSize(DIM_BROAD);
+    panel.setMinimumSize(Misc.getScaledDimension(DIM_BROAD));
+    panel.setPreferredSize(Misc.getScaledDimension(DIM_BROAD));
     return panel;
   }
 
@@ -196,7 +201,7 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   public boolean updateValue(AbstractStruct struct)
   {
     int newvalue = Integer.parseInt(tfRefNr.getText());
-    String newstring = StringResource.getStringRef(newvalue);
+    String newstring = StringTable.getStringRef(newvalue);
     if (newstring.equalsIgnoreCase("Error"))
       return false;
     value = newvalue;
@@ -236,17 +241,15 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   @Override
   public String toString()
   {
-    return toString(false);
+    return toString(StringTable.Format.NONE);
   }
 
-  public String toString(boolean extended)
+  public String toString(StringTable.Format fmt)
   {
-    return toString(extended, false);
-  }
-
-  public String toString(boolean extended, boolean asPrefix)
-  {
-    return StringResource.getStringRef(value, extended, asPrefix);
+    if (fmt == null) {
+      fmt = StringTable.Format.NONE;
+    }
+    return StringTable.getStringRef(value, fmt);
   }
 
 //--------------------- Begin Interface IsNumeric ---------------------
@@ -270,7 +273,7 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   @Override
   public String getText()
   {
-    return StringResource.getStringRef(value);
+    return StringTable.getStringRef(value);
   }
 
 //--------------------- End Interface IsTextual ---------------------
@@ -278,10 +281,10 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   public void setValue(int newvalue)
   {
     value = newvalue;
-    taRefText.setText(StringResource.getStringRef(value));
+    taRefText.setText(StringTable.getStringRef(value));
     tfRefNr.setText(String.valueOf(value));
-    String resname = StringResource.getWavResource(value);
-    bPlay.setEnabled(resname != null && ResourceFactory.resourceExists(resname + ".WAV"));
+    String resname = StringTable.getSoundResource(value);
+    bPlay.setEnabled(!resname.isEmpty() && ResourceFactory.resourceExists(resname + ".WAV"));
   }
 }
 

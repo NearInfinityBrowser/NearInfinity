@@ -46,6 +46,7 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Decompiler;
+import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
@@ -148,7 +149,7 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
       bcsFiles = ResourceFactory.getResources("BCS");
       bcsFiles.addAll(ResourceFactory.getResources("BS"));
       progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking...",
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking..." + Misc.MSG_EXPAND_LARGE,
                                      String.format(FMT_PROGRESS, bcsFiles.size(), bcsFiles.size()),
                                      0, bcsFiles.size());
       progress.setNote(String.format(FMT_PROGRESS, 0, bcsFiles.size()));
@@ -220,7 +221,8 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
         pane.add(panel, BorderLayout.SOUTH);
         bopen.setEnabled(false);
         bopennew.setEnabled(false);
-        table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+        table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
         table.getSelectionModel().addListSelectionListener(this);
         table.addMouseListener(new MouseAdapter()
         {
@@ -260,20 +262,26 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
 
   private void checkScript(BcsResource script)
   {
-    Decompiler decompiler = new Decompiler(script.getCode(), Decompiler.ScriptType.BCS, true);
-    decompiler.decompile();
-    SortedMap<Integer, String> idsErrors = decompiler.getIdsErrors();
-    for (final Integer lineNr: idsErrors.keySet()) {
-      String error = idsErrors.get(lineNr);
-      if (error.indexOf("GTIMES.IDS") == -1 &&
-          error.indexOf("SCROLL.IDS") == -1 &&
-          error.indexOf("SHOUTIDS.IDS") == -1 &&
-          error.indexOf("SPECIFIC.IDS") == -1 &&
-          error.indexOf("TIME.IDS") == -1) {
-        synchronized (table) {
-          table.addTableItem(new BCSIDSErrorTableLine(script.getResourceEntry(), error, lineNr));
+    Decompiler decompiler = new Decompiler(script.getCode(), ScriptType.BCS, true);
+    decompiler.setGenerateComments(false);
+    decompiler.setGenerateResourcesUsed(true);
+    try {
+      decompiler.decompile();
+      SortedMap<Integer, String> idsErrors = decompiler.getIdsErrors();
+      for (final Integer lineNr: idsErrors.keySet()) {
+        String error = idsErrors.get(lineNr);
+        if (error.indexOf("GTIMES.IDS") == -1 &&
+            error.indexOf("SCROLL.IDS") == -1 &&
+            error.indexOf("SHOUTIDS.IDS") == -1 &&
+            error.indexOf("SPECIFIC.IDS") == -1 &&
+            error.indexOf("TIME.IDS") == -1) {
+          synchronized (table) {
+            table.addTableItem(new BCSIDSErrorTableLine(script.getResourceEntry(), error, lineNr));
+          }
         }
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
@@ -322,7 +330,7 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
     @Override
     public String toString()
     {
-      return String.format("File: %1$s  Error: %2$s  Line: %3$d",
+      return String.format("File: %s  Error: %s  Line: %d",
                            resourceEntry.toString(), error, lineNr);
     }
   }

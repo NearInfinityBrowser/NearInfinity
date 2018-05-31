@@ -17,7 +17,7 @@ import org.infinity.resource.are.SpawnPoint;
  */
 public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
 {
-  private static final String AvailableFmt = "Spawn points: %1$d";
+  private static final String AvailableFmt = "Spawn points: %d";
 
   public LayerSpawnPoint(AreResource are, AreaViewer viewer)
   {

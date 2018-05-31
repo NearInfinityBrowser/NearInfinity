@@ -367,7 +367,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
     if (index >= 0 && index < getColorCount()) {
       return listColors.get(index);
     } else {
-      throw new IndexOutOfBoundsException(String.format("%1$d out of bounds [0, $3$d]", index, getColorCount()));
+      throw new IndexOutOfBoundsException(String.format("%d out of bounds [0, %d]", index, getColorCount()));
     }
   }
 

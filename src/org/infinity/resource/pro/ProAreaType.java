@@ -51,9 +51,9 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
   public static final LongIntegerHashMap<String> m_proj = new LongIntegerHashMap<String>();
   public static final String[] s_areaflags = {"Trap not visible", "Trap visible", "Triggered by inanimates",
                                               "Triggered by condition", "Delayed trigger", "Secondary projectile",
-                                              "Fragments", "Not affecting allies", "Not affecting enemies",
+                                              "Fragments", "Affect only enemies", "Affect only allies*;Only in combination with \"Affect only enemies (6)\"",
                                               "Mage-level duration", "Cleric-level duration", "Draw animation",
-                                              "Cone-shaped", "Ignore visibility", "Delayed explosion",
+                                              "Cone-shaped", "Ignore LOS", "Delayed explosion",
                                               "Skip first condition", "Single target"};
   public static final String[] s_areaflagsEx = {
     "No flags set", "Paletted ring", "Random speed", "Start scattered", "Paletted center",
@@ -110,8 +110,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
-    final String[] s_types = Profile.isEnhancedEdition() ? new String[]{"VVC", "BAM"}
-                                                         : new String[]{"VEF", "VVC", "BAM"};
+    final String[] s_types = new String[]{"VEF", "VVC", "BAM"};
 
     addField(new Flag(buffer, offset, 2, PRO_AREA_FLAGS, s_areaflags));
     addField(new DecNumber(buffer, offset + 2, 2, PRO_AREA_RAY_COUNT));
@@ -130,8 +129,8 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 36, 2, PRO_AREA_CONE_WIDTH));
     if (Profile.isEnhancedEdition()) {
       addField(new Unknown(buffer, offset + 38, 2));
-      addField(new ResourceRef(buffer, offset + 40, PRO_AREA_SPREAD_ANIMATION, s_types));
-      addField(new ResourceRef(buffer, offset + 48, PRO_AREA_RING_ANIMATION, s_types));
+      addField(new ResourceRef(buffer, offset + 40, PRO_AREA_SPREAD_ANIMATION, "BAM"));
+      addField(new ResourceRef(buffer, offset + 48, PRO_AREA_RING_ANIMATION, "BAM"));
       addField(new ResourceRef(buffer, offset + 56, PRO_AREA_SOUND, "WAV"));
       addField(new Flag(buffer, offset + 64, 4, PRO_AREA_EX_FLAGS, s_areaflagsEx));
       addField(new UnsignDecNumber(buffer, offset + 68, 2, PRO_AREA_DICE_COUNT));

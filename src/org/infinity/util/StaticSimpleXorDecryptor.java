@@ -8,7 +8,10 @@ import java.nio.ByteBuffer;
 
 import org.infinity.util.io.StreamUtils;
 
-public final class Decryptor
+/**
+ * Decrypts a simple XOR cipher using a static key.
+ */
+public final class StaticSimpleXorDecryptor
 {
   private static final char[] key = {
     0x88, 0xa8, 0x8f, 0xba, 0x8a, 0xd3, 0xb9, 0xf5, 0xed, 0xb1, 0xcf, 0xea, 0xaa,
@@ -18,8 +21,20 @@ public final class Decryptor
     0xa5, 0x95, 0xba, 0x99, 0x87, 0xd2, 0x9d, 0xe3, 0x91, 0xba, 0x90, 0xca
   };
 
+/**
+ * Decrypts a simple XOR cipher using a static key.
+ * @param buffer Data to decrypt.
+ * @param offset Offset of data to decrypt, in bytes.
+ * @return The decrypted data.
+ */
   public static ByteBuffer decrypt(ByteBuffer buffer, int offset)
   {
+    if (buffer == null || buffer.limit() == 0) {
+      throw new IllegalArgumentException("Buffer is null or contains nothing.");
+    } else if (0 > buffer.limit() || offset >= buffer.limit()) {
+      throw new IndexOutOfBoundsException("Offset is negative, equal to, or greater than the buffer limit.");
+    }
+
     int decOff = 0;
     int size = buffer.limit() - buffer.position();
     ByteBuffer outBuffer = StreamUtils.getByteBuffer(size);
@@ -31,6 +46,6 @@ public final class Decryptor
     return outBuffer;
   }
 
-  private Decryptor(){}
+  private StaticSimpleXorDecryptor(){}
 }
 

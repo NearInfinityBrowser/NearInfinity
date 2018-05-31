@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -218,6 +219,16 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   }
 
   @Override
+  public void setName(String newName)
+  {
+    if (newName != null) {
+      name = newName;
+    } else {
+      throw new NullPointerException();
+    }
+  }
+
+  @Override
   public int getOffset()
   {
     return startoffset;
@@ -394,18 +405,27 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   @Override
   public String toString()
   {
-    StringBuffer sb = new StringBuffer(80);
-    for (int i = 0, count = getFieldCount(); i < count && sb.length() < 80; i++) { // < 80 to speed things up
+    // limit text length to speed things up
+    StringBuffer sb = new StringBuffer(160);
+    for (int i = 0, count = getFieldCount(); i < count; i++) {
       StructEntry datatype = getField(i);
-      sb.append(datatype.getName()).append(": ").append(datatype.toString()).append(',');
+      String text = datatype.getName() + ": " + datatype.toString() + ',';
+      if (sb.length() + text.length() < sb.capacity()) {
+        sb.append(text);
+      } else {
+        if (sb.length() + text.length() / 2 < sb.capacity()) {
+          sb.append(text);
+        }
+        i = count;
+      }
     }
     return sb.toString();
   }
 
-  public int addDatatype(AddRemovable addedEntry)
+  // Returns the table row index where the specified AddRemovable structure can be inserted
+  public int getDatatypeIndex(AddRemovable addedEntry)
   {
     int index = 0;
-    // Find place to add
     if (viewer != null && viewer.getSelectedEntry() != null &&
         viewer.getSelectedEntry().getClass() == addedEntry.getClass()) {
       index = viewer.getSelectedRow();
@@ -432,8 +452,19 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     else {
       index = getAddedPosition();
     }
+    return index;
+  }
 
-    return addDatatype(addedEntry, index);
+  // Returns whether structure of currently selected table row is compatible with "addedEntry"
+  public boolean isCompatibleDatatypeSelection(AddRemovable addedEntry)
+  {
+    return viewer != null && viewer.getSelectedEntry() != null &&
+           viewer.getSelectedEntry().getClass() == addedEntry.getClass();
+  }
+
+  public int addDatatype(AddRemovable addedEntry)
+  {
+    return addDatatype(addedEntry, getDatatypeIndex(addedEntry));
   }
 
   public int addDatatype(AddRemovable addedEntry, int index)
@@ -544,9 +575,11 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
    */
   public void clearFields()
   {
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry e = list.remove(i);
+    Iterator<StructEntry> iter = list.iterator();
+    while (iter.hasNext()) {
+      StructEntry e = iter.next();
       e.setParent(null);
+      iter.remove();
     }
   }
 
@@ -877,6 +910,23 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
     bb.position(0);
     return bb;
+  }
+
+  /** Replaces an old StructEntry instance by the specified instance if offset and size are equal. */
+  public boolean replaceEntry(StructEntry newEntry)
+  {
+    if (newEntry != null) {
+      List<StructEntry> list = getList();
+      for (int i = 0, size = list.size(); i < size; i++) {
+        StructEntry oldEntry = list.get(i);
+        if (oldEntry.getOffset() == newEntry.getOffset() &&
+            oldEntry.getSize() == newEntry.getSize()) {
+          list.set(i, newEntry);
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public void setListEntry(int index, StructEntry structEntry)

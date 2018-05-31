@@ -63,6 +63,7 @@ import org.infinity.datatype.InlineEditable;
 import org.infinity.datatype.Readable;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
+import org.infinity.datatype.TextBitmap;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnknownBinary;
@@ -85,6 +86,7 @@ import org.infinity.search.AttributeSearcher;
 import org.infinity.search.DialogItemRefSearcher;
 import org.infinity.search.DialogStateReferenceSearcher;
 import org.infinity.search.ReferenceSearcher;
+import org.infinity.util.Misc;
 import org.infinity.util.Pair;
 import org.infinity.util.StructClipboard;
 import org.infinity.util.io.ByteBufferOutputStream;
@@ -110,6 +112,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public static final String CMD_TOBIN          = "ToBin";
   public static final String CMD_TODEC          = "ToDec";
   public static final String CMD_TOINT          = "ToInt";
+  public static final String CMD_TOHEXINT       = "ToHexInt";
   public static final String CMD_RESET          = "ResetType";
   public static final String CMD_SHOWVIEWER     = "ShowView";
   public static final String CMD_SHOWNEWVIEWER  = "ShowNewView";
@@ -135,6 +138,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem miToBin = createMenuItem(CMD_TOBIN, "Edit as binary", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miToDec = createMenuItem(CMD_TODEC, "Edit as decimal", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miToInt = createMenuItem(CMD_TOINT, "Edit as number", Icons.getIcon(Icons.ICON_REFRESH_16), this);
+  private final JMenuItem miToHexInt = createMenuItem(CMD_TOHEXINT, "Edit as hex number", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miReset = createMenuItem(CMD_RESET, "Reset field type", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miShowViewer = createMenuItem(CMD_SHOWVIEWER, "Show in viewer", null, this);
   private final JMenuItem miShowNewViewer = createMenuItem(CMD_COPYVALUE, "Show in new viewer", null, this);
@@ -177,7 +181,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     table.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
     table.getSelectionModel().addListSelectionListener(this);
-    table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+    table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.addMouseListener(new MouseAdapter()
     {
       @Override
@@ -216,6 +221,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     popupmenu.add(miToBin);
     popupmenu.add(miToDec);
     popupmenu.add(miToInt);
+    popupmenu.add(miToHexInt);
     popupmenu.add(miToString);
     popupmenu.add(miReset);
     if (struct instanceof DlgResource) {
@@ -233,6 +239,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     miToBin.setEnabled(false);
     miToDec.setEnabled(false);
     miToInt.setEnabled(false);
+    miToHexInt.setEnabled(false);
     miToString.setEnabled(false);
     miReset.setEnabled(false);
     miShowViewer.setEnabled(false);
@@ -242,7 +249,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     tatext.setEOLMarkersVisible(false);
     tatext.setEditable(false);
     tatext.setMargin(new Insets(3, 3, 3, 3));
-    tatext.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    tatext.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     InfinityScrollPane scroll = new InfinityScrollPane(tatext, true);
     scroll.setLineNumbersEnabled(false);
     table.setModel(struct);
@@ -491,8 +498,11 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       StructClipboard.getInstance().copy(struct, table.getSelectionModel().getMinSelectionIndex(),
                                          table.getSelectionModel().getMaxSelectionIndex());
     } else if (event.getActionCommand().equals(CMD_PASTE)) {
-      table.clearSelection();
-      table.scrollRectToVisible(table.getCellRect(StructClipboard.getInstance().paste(struct), 1, true));
+      int row = StructClipboard.getInstance().paste(struct);
+      if (row >= 0) {
+        table.getSelectionModel().setSelectionInterval(row, row);
+        table.scrollRectToVisible(table.getCellRect(row, 1, true));
+      }
     } else if (event.getActionCommand().equals(CMD_TOHEX)) {
       convertAttribute(table.getSelectedRow(), miToHex);
     } else if (event.getActionCommand().equals(CMD_TOBIN)) {
@@ -501,6 +511,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       convertAttribute(table.getSelectedRow(), miToDec);
     } else if (event.getActionCommand().equals(CMD_TOINT)) {
       convertAttribute(table.getSelectedRow(), miToInt);
+    } else if (event.getActionCommand().equals(CMD_TOHEXINT)) {
+      convertAttribute(table.getSelectedRow(), miToHexInt);
     } else if (event.getActionCommand().equals(CMD_TOSTRING)) {
       convertAttribute(table.getSelectedRow(), miToString);
     } else if (event.getActionCommand().equals(CMD_RESET)) {
@@ -617,6 +629,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miToBin.setEnabled(false);
       miToDec.setEnabled(false);
       miToInt.setEnabled(false);
+      miToHexInt.setEnabled(false);
       miToString.setEnabled(false);
       miReset.setEnabled(false);
       miShowViewer.setEnabled(false);
@@ -674,8 +687,15 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                          !(selected instanceof DecNumber ||
                            selected instanceof SectionCount ||
                            selected instanceof AbstractCode));
+      miToHexInt.setEnabled(isDataType && isReadable &&
+                            (selected instanceof Datatype && ((Datatype)selected).getSize() <= 4) &&
+                            !(selected instanceof DecNumber ||
+                              selected instanceof SectionCount ||
+                              selected instanceof AbstractCode));
       miToString.setEnabled(isDataType && isReadable &&
-                            (selected instanceof Unknown || selected instanceof ResourceRef) &&
+                            (selected instanceof Unknown ||
+                             selected instanceof ResourceRef ||
+                             selected instanceof TextBitmap) &&
                             !(selected instanceof AbstractCode));
       miReset.setEnabled(isDataType && isReadable &&
                          isCachedStructEntry(((Datatype)selected).getOffset()) &&
@@ -1141,6 +1161,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         newentry = new UnknownDecimal(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToInt) {
         newentry = new DecNumber(bb, 0, entry.getSize(), entry.getName());
+      } else if (menuitem == miToHexInt) {
+        newentry = new HexNumber(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToString) {
         newentry = new TextString(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miReset) {

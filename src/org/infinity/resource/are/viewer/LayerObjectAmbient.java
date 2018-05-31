@@ -29,13 +29,13 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
  */
 public class LayerObjectAmbient extends LayerObject
 {
-  private static final Image[] IconGlobal = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_G_1),
-                                             Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_G_2)};
-  private static final Image[] IconLocal = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_L_1),
-                                            Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_L_2)};
-  private static final Point Center = new Point(16, 16);
-  final Color[] ColorRange = {new Color(0xA0000080, true), new Color(0xA0000080, true),
-                              new Color(0x00204080, true), new Color(0x004060C0, true)};
+  private static final Image[] ICON_GLOBAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_G_1),
+                                              Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_G_2)};
+  private static final Image[] ICON_LOCAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_L_1),
+                                             Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_L_2)};
+  private static final Point CENTER = new Point(16, 16);
+  private static final Color[] COLOR_RANGE = {new Color(0xA0000080, true), new Color(0xA0000080, true),
+                                              new Color(0x00204080, true), new Color(0x004060C0, true)};
 
   private final Ambient ambient;
   private final Point location = new Point();
@@ -179,40 +179,40 @@ public class LayerObjectAmbient extends LayerObject
   {
     if (ambient != null) {
       String msg = "";
-      Image[] icon = IconGlobal;
+      Image[] icon = ICON_GLOBAL;
       Shape circle = null;
-      Color[] color = new Color[ColorRange.length];
+      Color[] color = new Color[COLOR_RANGE.length];
       try {
         location.x = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_X)).getValue();
         location.y = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_Y)).getValue();
         radiusLocal = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_RADIUS)).getValue();
         volume = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_VOLUME)).getValue();
         if (((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_FLAGS)).isFlagSet(2)) {
-          icon = IconGlobal;
+          icon = ICON_GLOBAL;
           radiusLocal = 0;
         } else {
-          icon = IconLocal;
+          icon = ICON_LOCAL;
         }
 
         scheduleFlags = ((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_ACTIVE_AT));
 
         msg = ((TextString)ambient.getAttribute(Ambient.ARE_AMBIENT_NAME)).toString();
-        if (icon == IconLocal) {
+        if (icon == ICON_LOCAL) {
           circle = createShape(1.0);
           double minAlpha = 0.0, maxAlpha = 64.0;
           double alphaF = minAlpha + Math.sqrt((double)volume) / 10.0 * (maxAlpha - minAlpha);
           int alpha = (int)alphaF & 0xff;
-          color[0] = ColorRange[0];
-          color[1] = ColorRange[1];
-          color[2] = new Color(ColorRange[2].getRGB() | (alpha << 24), true);
-          color[3] = new Color(ColorRange[3].getRGB() | (alpha << 24), true);
+          color[0] = COLOR_RANGE[0];
+          color[1] = COLOR_RANGE[1];
+          color[2] = new Color(COLOR_RANGE[2].getRGB() | (alpha << 24), true);
+          color[3] = new Color(COLOR_RANGE[3].getRGB() | (alpha << 24), true);
         }
       } catch (Exception e) {
         e.printStackTrace();
       }
 
       // Using cached icons
-      String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(icon[0]),
+      String keyIcon = String.format("%s%s", SharedResourceCache.createKey(icon[0]),
                                                  SharedResourceCache.createKey(icon[1]));
       if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
         icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
@@ -222,15 +222,16 @@ public class LayerObjectAmbient extends LayerObject
       }
 
       // creating sound item
-      itemIcon = new IconLayerItem(location, ambient, msg, icon[0], Center);
+      itemIcon = new IconLayerItem(location, ambient, msg, msg, icon[0], CENTER);
+      itemIcon.setLabelEnabled(Settings.ShowLabelSounds);
       itemIcon.setName(getCategory());
       itemIcon.setToolTipText(msg);
       itemIcon.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       itemIcon.setVisible(isVisible());
 
       // creating sound range item
-      if (icon == IconLocal) {
-        itemShape = new ShapedLayerItem(location, ambient, msg, circle, new Point(radiusLocal, radiusLocal));
+      if (icon == ICON_LOCAL) {
+        itemShape = new ShapedLayerItem(location, ambient, msg, msg, circle, new Point(radiusLocal, radiusLocal));
         itemShape.setName(getCategory());
         itemShape.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
         itemShape.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);

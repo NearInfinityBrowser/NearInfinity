@@ -19,6 +19,7 @@ import javax.swing.JOptionPane;
 
 import org.infinity.NearInfinity;
 import org.infinity.gui.BrowserMenuBar;
+import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.cre.CreResource;
@@ -95,10 +96,32 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
   @Override
   public boolean equals(Object o)
   {
+    return equals(o, false);
+  }
+
+  /**
+   * Indicates whether the specified object argument is equal to this one.
+   * @param o  the reference object with which to compare.
+   * @param exact whether to compare path in addition to resource name.
+   * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
+   */
+  public boolean equals(Object o, boolean exact)
+  {
     if (o == this) {
       return true;
     } else if (o instanceof ResourceEntry) {
-      return getResourceName().equalsIgnoreCase(((ResourceEntry)o).getResourceName());
+      ResourceEntry entry = (ResourceEntry)o;
+      boolean bRet = getResourceName().equalsIgnoreCase(entry.getResourceName());
+      if (bRet && exact) {
+        if (getActualPath() != entry.getActualPath()) {
+          if (getActualPath() != null) {
+            bRet = getActualPath().equals(entry.getActualPath());
+          } else {
+            bRet = entry.getActualPath().equals(getActualPath());
+          }
+        }
+      }
+      return bRet;
     }
     return false;
   }
@@ -158,13 +181,23 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
       try {
         String extension = getExtension();
         if (extension.equalsIgnoreCase("CRE")) {
-          searchString = CreResource.getSearchString(getResourceBuffer());
+          try (InputStream is = getResourceDataAsStream()) {
+            searchString = CreResource.getSearchString(is);
+          }
         } else if (extension.equalsIgnoreCase("ITM")) {
-          searchString = ItmResource.getSearchString(getResourceBuffer());
+          try (InputStream is = getResourceDataAsStream()) {
+            searchString = ItmResource.getSearchString(is);
+          }
         } else if (extension.equalsIgnoreCase("SPL")) {
-          searchString = SplResource.getSearchString(getResourceBuffer());
+          try (InputStream is = getResourceDataAsStream()) {
+            searchString = SplResource.getSearchString(is);
+          }
         } else if (extension.equalsIgnoreCase("STO")) {
-          searchString = StoResource.getSearchString(getResourceBuffer());
+          try (InputStream is = getResourceDataAsStream()) {
+            searchString = StoResource.getSearchString(is);
+          }
+        } else if (extension.equalsIgnoreCase("ARE") && Profile.isEnhancedEdition()) {
+          searchString = AreResource.getSearchString(this);
         }
       } catch (Exception e) {
         if ((NearInfinity.getInstance() != null) &&
@@ -214,7 +247,16 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
    */
   public boolean isVisible()
   {
-    return !skippedExtensions.contains(getExtension().toUpperCase(Locale.ENGLISH));
+    // Visibility conditions:
+    // 1. Options->Show Unknown Resource Types == true OR resource type is supported
+    // 2. NOT Resource type part of skippedExtensions
+    // 3. Filename length is valid
+    int resLen = getResourceName().lastIndexOf('.');
+    boolean bRet = (BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().showUnknownResourceTypes()) ||
+                   Profile.isResourceTypeSupported(getExtension()) &&
+                   !skippedExtensions.contains(getExtension().toUpperCase(Locale.ENGLISH)) &&
+                   (resLen >= 0 && resLen <= 8);
+    return bRet;
   }
 
   protected abstract Path getActualPath(boolean ignoreOverride);
@@ -231,7 +273,9 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
 
   public abstract String getResourceName();
 
-  public abstract String getTreeFolder();
+  public abstract String getTreeFolderName();
+
+  public abstract ResourceTreeFolder getTreeFolder();
 
   public abstract boolean hasOverride();
 }

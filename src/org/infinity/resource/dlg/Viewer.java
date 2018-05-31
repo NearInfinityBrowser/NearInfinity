@@ -45,9 +45,11 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.Decompiler;
+import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.DialogSearcher;
-import org.infinity.util.StringResource;
+import org.infinity.util.Misc;
+import org.infinity.util.StringTable;
 
 final class Viewer extends JPanel implements ActionListener, ItemListener, TableModelListener
 {
@@ -555,7 +557,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         textArea.setWrapStyleWord(true);
       }
       textArea.setMargin(new Insets(3, 3, 3, 3));
-      textArea.setFont(BrowserMenuBar.getInstance().getScriptFont());
+      textArea.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
       if (!useHighlighting) {
         scroll.setLineNumbersEnabled(false);
@@ -600,7 +602,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       structEntry = state;
       StringRef response = state.getResponse();
       textArea.setText(response.toString() + "\n(StrRef: " + response.getValue() + ')');
-      bPlay.setEnabled(StringResource.getWavResource(response.getValue()) != null);
+      bPlay.setEnabled(!StringTable.getSoundResource(response.getValue()).isEmpty());
       textArea.setCaretPosition(0);
     }
 
@@ -614,11 +616,21 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       StringRef assText = trans.getAssociatedText();
       StringRef jouText = trans.getJournalEntry();
       String text = "";
-      if (trans.getFlag().isFlagSet(0))
+      if (trans.getFlag().isFlagSet(0)) {
         text = assText.toString() + "\n(StrRef: " + assText.getValue() + ")\n";
-      if (trans.getFlag().isFlagSet(4))
-        text += "\nJournal entry:\n" + jouText.toString() + "\n(StrRef: " + jouText.getValue() + ')';
-      bPlay.setEnabled(StringResource.getWavResource(assText.getValue()) != null);
+      }
+      if (trans.getFlag().isFlagSet(4)) {
+        if (trans.getFlag().isFlagSet(6)) {
+          text += "\nUnsolved journal entry:\n" + jouText.toString() + "\n(StrRef: " + jouText.getValue() + ')';
+        } else if (trans.getFlag().isFlagSet(7)) {
+          text += "\nInfo journal entry:\n" + jouText.toString() + "\n(StrRef: " + jouText.getValue() + ')';
+        } else if (trans.getFlag().isFlagSet(8)) {
+          text += "\nSolved journal entry:\n" + jouText.toString() + "\n(StrRef: " + jouText.getValue() + ')';
+        } else {
+          text += "\nJournal entry:\n" + jouText.toString() + "\n(StrRef: " + jouText.getValue() + ')';
+        }
+      }
+      bPlay.setEnabled(!StringTable.getSoundResource(assText.getValue()).isEmpty());
       textArea.setText(text);
       textArea.setCaretPosition(0);
     }
@@ -631,16 +643,16 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       bGoto.setEnabled(true);
       structEntry = trigger;
       Compiler compiler = new Compiler(trigger.toString(),
-                                       (trigger instanceof Action) ? Compiler.ScriptType.ACTION :
-                                                                     Compiler.ScriptType.TRIGGER);
+                                         (trigger instanceof Action) ? ScriptType.ACTION :
+                                                                       ScriptType.TRIGGER);
       String code = compiler.getCode();
       try {
         if (compiler.getErrors().size() == 0) {
           Decompiler decompiler = new Decompiler(code, true);
           if (trigger instanceof Action) {
-            decompiler.setScriptType(Decompiler.ScriptType.ACTION);
+            decompiler.setScriptType(ScriptType.ACTION);
           } else {
-            decompiler.setScriptType(Decompiler.ScriptType.TRIGGER);
+            decompiler.setScriptType(ScriptType.TRIGGER);
           }
           textArea.setText(decompiler.getSource());
         } else {
@@ -677,8 +689,8 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
           text = ((Transition)struct).getAssociatedText();
         }
         if (text != null) {
-          String resourceName = StringResource.getWavResource(text.getValue());
-          if (resourceName != null) {
+          String resourceName = StringTable.getSoundResource(text.getValue());
+          if (!resourceName.isEmpty()) {
             ResourceEntry entry = ResourceFactory.getResourceEntry(resourceName + ".WAV");
             new ViewFrame(getTopLevelAncestor(), ResourceFactory.getResource(entry));
           }

@@ -24,7 +24,7 @@ import org.infinity.util.IniMapSection;
  */
 public class LayerActor extends BasicLayer<LayerObjectActor>
 {
-  private static final String AvailableFmt = "Actors: %1$d";
+  private static final String AvailableFmt = "Actors: %d";
 
   public LayerActor(AreResource are, AreaViewer viewer)
   {

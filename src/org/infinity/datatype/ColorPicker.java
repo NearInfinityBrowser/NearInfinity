@@ -36,6 +36,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.graphics.ColorConvert;
+import org.infinity.util.Misc;
 
 
 /** Implements a RGB color picker control. */
@@ -96,7 +97,8 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
   public JComponent edit(ActionListener container)
   {
     rcMainPreview = new RenderCanvas();    // use H as x and B as y
-    rcMainPreview.setSize(256, 128);
+    rcMainPreview.setSize(Misc.getScaledValue(256), Misc.getScaledValue(128));
+    rcMainPreview.setScalingEnabled(true);
     rcMainPreview.setPreferredSize(rcMainPreview.getSize());
     rcMainPreview.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     rcMainPreview.addMouseListener(this);
@@ -104,7 +106,8 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
                                                               rcMainPreview.getHeight(), false));
 
     rcSecondPreview = new RenderCanvas();  // use S
-    rcSecondPreview.setSize(32, 128);
+    rcSecondPreview.setSize(Misc.getScaledValue(32), Misc.getScaledValue(128));
+    rcSecondPreview.setScalingEnabled(true);
     rcSecondPreview.setPreferredSize(rcSecondPreview.getSize());
     rcSecondPreview.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     rcSecondPreview.addMouseListener(this);
@@ -113,7 +116,8 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
 
     JLabel lPreview = new JLabel("Preview");
     rcColorPreview = new RenderCanvas();   // shows currently defined color
-    rcColorPreview.setSize(64, 32);
+    rcColorPreview.setSize(Misc.getScaledValue(64), Misc.getScaledValue(32));
+    rcColorPreview.setScalingEnabled(true);
     rcColorPreview.setPreferredSize(rcColorPreview.getSize());
     rcColorPreview.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     rcColorPreview.setBackground(Color.BLACK);
@@ -420,7 +424,7 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
   @Override
   public String toString()
   {
-    return String.format("Red: %1$d, Green: %2$d, Blue: %3$d",
+    return String.format("Red: %d, Green: %d, Blue: %d",
                          getRed(value), getGreen(value), getBlue(value));
   }
 

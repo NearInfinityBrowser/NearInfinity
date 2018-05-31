@@ -4,6 +4,7 @@
 
 package org.infinity.gui.converter;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -127,7 +128,7 @@ public class ConvertToMos extends ChildFrame
 
     ProgressMonitor progress = null;
     try {
-      String note = "Converting tile %1$d / %2$d";
+      String note = "Converting tile %d / %d";
       int progressIndex = 0, progressMax = tileCount;
       if (showProgress) {
         progress = new ProgressMonitor(parent, "Converting MOS...",
@@ -205,7 +206,7 @@ public class ConvertToMos extends ChildFrame
           // error handling
           dst = null;
           result.add(null);
-          result.add(String.format("Error processing tile #%1$d. Conversion cancelled.", tileIdx));
+          result.add(String.format("Error processing tile #%d. Conversion cancelled.", tileIdx));
           return false;
         }
 
@@ -347,7 +348,7 @@ public class ConvertToMos extends ChildFrame
       if (pvrzIndex + pageList.size() > 100000) {
         result.add(null);
         result.add(String.format("One or more PVRZ indices exceed the max. possible value of 99999.\n" +
-                                 "Please choose a start index smaller than or equal to %1$d.",
+                                 "Please choose a start index smaller than or equal to %d.",
                                  100000 - pageList.size()));
         return false;
       }
@@ -435,7 +436,7 @@ public class ConvertToMos extends ChildFrame
       pageMax = Math.max(pageMax, e.page);
     }
 
-    String note = "Generating PVRZ file %1$s / %2$s";
+    String note = "Generating PVRZ file %s / %s";
     int curProgress = 1;
     if (progress != null) {
       progress.setMinimum(0);
@@ -464,8 +465,8 @@ public class ConvertToMos extends ChildFrame
       int th = packer.getBinHeight();
       BufferedImage texture = ColorConvert.createCompatibleImage(tw, th, true);
       Graphics2D g = texture.createGraphics();
-      g.setBackground(new Color(0, true));
-      g.setColor(Color.BLACK);
+      g.setComposite(AlphaComposite.Src);
+      g.setColor(new Color(0, true));
       g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
       for (final MosEntry entry: entryList) {
         if (entry.page == i) {
@@ -931,7 +932,7 @@ public class ConvertToMos extends ChildFrame
   private String pvrzInfoString(Object o)
   {
     int index = getPvrzIndex(o);
-    return String.format("Resulting in MOS%1$04d.PVRZ, MOS%2$04d.PVRZ, ...", index, index+1);
+    return String.format("Resulting in MOS%04d.PVRZ, MOS%04d.PVRZ, ...", index, index+1);
   }
 
   private String getImageFileName(Path path)
@@ -978,7 +979,7 @@ public class ConvertToMos extends ChildFrame
     Path inFile = FileManager.resolve(tfInputV1.getText());
     if (!Files.isRegularFile(inFile)) {
       result.add(null);
-      result.add(String.format("Input file \"%1$s\" does not exist.", tfInputV1.getText()));
+      result.add(String.format("Input file \"%s\" does not exist.", tfInputV1.getText()));
       return result;
     }
 
@@ -996,13 +997,17 @@ public class ConvertToMos extends ChildFrame
 
     // handling "auto" compression
     DxtEncoder.DxtType dxtType = DxtEncoder.DxtType.DXT1;
-    if (tabPane.getSelectedIndex() == 1 && cbCompression.getSelectedIndex() == 0) {
-      int[] pixels = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
-      for (int i = 0; i < pixels.length; i++) {
-        int alpha = pixels[i] >>> 24;
-        if (alpha > 0x20 && alpha < 0xe0) {
-          dxtType = DxtEncoder.DxtType.DXT5;
-          break;
+    if (tabPane.getSelectedIndex() == 1) {
+      if (cbCompression.getSelectedIndex() == 2) {
+        dxtType = DxtEncoder.DxtType.DXT5;
+      } else {
+        int[] pixels = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
+        for (int i = 0; i < pixels.length; i++) {
+          int alpha = pixels[i] >>> 24;
+          if (alpha > 0x20 && alpha < 0xe0) {
+            dxtType = DxtEncoder.DxtType.DXT5;
+            break;
+          }
         }
       }
     }

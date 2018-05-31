@@ -36,7 +36,7 @@ import org.infinity.util.io.FileManager;
  */
 public class LayerObjectAnimation extends LayerObject
 {
-  private static final Image[][] Icon = new Image[][]{
+  private static final Image[][] ICON = new Image[][]{
     // active versions
     {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_1), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_2)},
     {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_WBM_1), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_WBM_2)},
@@ -48,7 +48,7 @@ public class LayerObjectAnimation extends LayerObject
     {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_PVRZ_1_BW), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_PVRZ_2_BW)},
     {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_BAM_1_BW), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_BAM_2_BW)}
   };
-  private static Point Center = new Point(16, 17);
+  private static final Point CENTER = new Point(16, 17);
 
   private final Animation anim;
   private final Point location = new Point();
@@ -236,10 +236,10 @@ public class LayerObjectAnimation extends LayerObject
         if (isWBM) {
           // using icon as placeholder
           // generating key from icon hashcode
-          keyAnim = String.format(String.format("%1$08x", Icon[iconIdx][0].hashCode()));
+          keyAnim = String.format("%08x", ICON[iconIdx][0].hashCode());
           BamDecoder bam = null;
           if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
-            bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(Icon[iconIdx][0], true, false), Center);
+            bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(ICON[iconIdx][0], true, false), CENTER);
             SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim, new ResourceAnimation(keyAnim, bam));
           } else {
             SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim);
@@ -252,10 +252,10 @@ public class LayerObjectAnimation extends LayerObject
         } else if (isPVRZ) {
           // using icon as placeholder
           // generating key from icon hashcode
-          keyAnim = String.format(String.format("%1$08x", Icon[iconIdx][0].hashCode()));
+          keyAnim = String.format("%08x", ICON[iconIdx][0].hashCode());
           BamDecoder bam = null;
           if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
-            bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(Icon[iconIdx][0], true, false), Center);
+            bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(ICON[iconIdx][0], true, false), CENTER);
             SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim, new ResourceAnimation(keyAnim, bam));
           } else {
             SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim);
@@ -297,7 +297,7 @@ public class LayerObjectAnimation extends LayerObject
           }
 
           // generating unique key from BAM filename and optional palette hashcode
-          keyAnim = String.format("%1$s", animFile);
+          keyAnim = String.format("%s", animFile);
           BamDecoder bam = null;
           if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
             ResourceEntry bamEntry = ResourceFactory.getResourceEntry(animFile);
@@ -330,25 +330,26 @@ public class LayerObjectAnimation extends LayerObject
 
       // Using cached icons
       Image[] icon;
-      String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(Icon[iconIdx][0]),
-                                                 SharedResourceCache.createKey(Icon[iconIdx][1]));
+      String keyIcon = String.format("%s%s", SharedResourceCache.createKey(ICON[iconIdx][0]),
+                                                 SharedResourceCache.createKey(ICON[iconIdx][1]));
       if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
         icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon);
       } else {
-        icon = Icon[iconIdx];
+        icon = ICON[iconIdx];
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
-      IconLayerItem item1 = new IconLayerItem(location, anim, msg, icon[0], Center);
+      IconLayerItem item1 = new IconLayerItem(location, anim, msg, msg, icon[0], CENTER);
       item1.setData(keyIcon);
+      item1.setLabelEnabled(Settings.ShowLabelAnimations);
       item1.setName(getCategory());
       item1.setToolTipText(msg);
       item1.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item1.setVisible(isVisible());
       items[0] = item1;
 
-      AnimatedLayerItem item2 = new AnimatedLayerItem(location, anim, msg, animation);
+      AnimatedLayerItem item2 = new AnimatedLayerItem(location, anim, msg, msg, animation);
       item2.setData(keyAnim);
       item2.setName(getCategory());
       item2.setToolTipText(msg);

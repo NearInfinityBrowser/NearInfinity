@@ -33,7 +33,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   private String actionCommand;
   private Viewable viewable;
   private Object objData;
-  private String message;
+  private String message, tooltip;
   private ItemState itemState;
   private Point location;
   private Point center;
@@ -66,12 +66,25 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   }
 
   /**
+   * Initialize object with a specified map location, associated viewable object and message for
+   * both info box and quick info.
+   * @param location Map location
+   * @param viewable Associated Viewable object
+   * @param message Text message for info box and quick info
+   */
+  public AbstractLayerItem(Point location, Viewable viewable, String message)
+  {
+    this(location, viewable, message, message);
+  }
+
+  /**
    * Initialize object with a specific map location, associated Viewable and an additional text message.
    * @param location Map location
    * @param viewable Associated Viewable object
-   * @param msg An arbitrary text message
+   * @param message An arbitrary text message for the info box
+   * @param tooltip A short text message shown as tooltip or menu item text
    */
-  public AbstractLayerItem(Point location, Viewable viewable, String msg)
+  public AbstractLayerItem(Point location, Viewable viewable, String message, String tooltip)
   {
     this.actionListener = new Vector<ActionListener>();
     this.itemStateListener = new Vector<LayerItemListener>();
@@ -79,7 +92,8 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     this.itemState = ItemState.NORMAL;
     this.center = new Point();
     setMapLocation(location);
-    setMessage(msg);
+    setMessage(message);
+    setQuickInfo(tooltip);
     setActionCommand(null);
     addMouseListener(this);
     addMouseMotionListener(this);
@@ -95,7 +109,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     if (cmd != null) {
       actionCommand = cmd;
     } else {
-      actionCommand = new String();
+      actionCommand = "";
     }
   }
 
@@ -186,30 +200,52 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     if (location != null) {
       this.location = location;
     } else {
-      location = new Point(0, 0);
+      this.location = new Point(0, 0);
     }
   }
 
   /**
-   * Set a simple text message which can be queried at a given time
+   * Set a text message which can be queried at a given time.
    * @param msg The text message
    */
   public void setMessage(String msg)
   {
     if (msg != null) {
-      message = new String(msg);
+      message = msg;
     } else {
-      message = new String();
+      message = "";
     }
   }
 
   /**
-   * Returns a simple text message associated with the component.
+   * Returns a text message associated with the component.
    * @return A text message.
    */
   public String getMessage()
   {
     return message;
+  }
+
+  /**
+   * Sets a short text message used by tooltips or menu items.
+   * @param info A short text message.
+   */
+  public void setQuickInfo(String info)
+  {
+    if (info != null) {
+      tooltip = info;
+    } else {
+      tooltip = "";
+    }
+  }
+
+  /**
+   * Returns a short text message used by tooltips and menu items.
+   * @return A short text message.
+   */
+  public String getQuickInfo()
+  {
+    return tooltip;
   }
 
   /**
@@ -341,7 +377,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   {
     // Tooltip is only displayed over visible areas of this component
     if (isMouseOver(event.getPoint())) {
-      return message;
+      return getQuickInfo();
     } else {
       return null;
     }

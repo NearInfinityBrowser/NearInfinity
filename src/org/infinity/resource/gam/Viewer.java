@@ -17,6 +17,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 
 import org.infinity.gui.ViewerUtil;
+import org.infinity.gui.ViewerUtil.ListValueRenderer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
@@ -73,6 +74,7 @@ final class Viewer extends JPanel
 // -------------------------- INNER CLASSES --------------------------
 
   private static final class VariableListRenderer extends DefaultListCellRenderer
+      implements ListValueRenderer
   {
     private VariableListRenderer()
     {
@@ -83,11 +85,22 @@ final class Viewer extends JPanel
                                                   boolean cellHasFocus)
     {
       JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-      AbstractStruct effect = (AbstractStruct)value;
-      StructEntry entry1 = effect.getAttribute(effect.getOffset(), false);
-      StructEntry entry2 = effect.getAttribute(effect.getOffset() + 40, false);
-      label.setText(entry1 + " = " + entry2);
+      label.setText(getListValue(value));
       return label;
+    }
+
+    @Override
+    public String getListValue(Object value)
+    {
+      if (value instanceof AbstractStruct) {
+        AbstractStruct effect = (AbstractStruct)value;
+        StructEntry entry1 = effect.getAttribute(effect.getOffset(), false);
+        StructEntry entry2 = effect.getAttribute(effect.getOffset() + 40, false);
+        return entry1 + " = " + entry2;
+      } else if (value != null) {
+        return value.toString();
+      }
+      return "";
     }
   }
 }

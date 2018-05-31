@@ -8,6 +8,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Insets;
@@ -26,9 +27,12 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -50,6 +54,7 @@ import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.plaf.FontUIResource;
 
 import org.infinity.datatype.ProRef;
 import org.infinity.gui.BrowserMenuBar;
@@ -72,7 +77,7 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.ViewableContainer;
-import org.infinity.resource.bcs.Compiler;
+import org.infinity.resource.bcs.Signatures;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;
@@ -82,19 +87,25 @@ import org.infinity.updater.UpdateCheck;
 import org.infinity.updater.UpdateInfo;
 import org.infinity.updater.Updater;
 import org.infinity.updater.Utils;
+import org.infinity.util.CharsetDetector;
+import org.infinity.util.CreMapCache;
 import org.infinity.util.FileDeletionHook;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IniMapCache;
-import org.infinity.util.StringResource;
+import org.infinity.util.Misc;
+import org.infinity.util.StringTable;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.DlcManager;
 import org.infinity.util.io.FileManager;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
 {
-  private static final int[] JAVA_VERSION = {1, 8};   // the minimum java version supported
+  static {
+    // System property that is supposed to enable OpenGL-based hardware acceleration
+    System.setProperty("sun.java2d.opengl","true");
+  }
 
-  private static final boolean DEBUG = false;    // indicates whether to enable debugging features
+  private static final int[] JAVA_VERSION = {1, 8};   // the minimum java version supported
 
   private static final InfinityTextArea consoletext = new InfinityTextArea(true);
   private static final String KEYFILENAME         = "chitin.key";
@@ -108,8 +119,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private static final String TABLE_WIDTH_ATTR    = "TableColWidthAttr";
   private static final String TABLE_WIDTH_OFS     = "TableColWidthOfs";
   private static final String TABLE_PANEL_HEIGHT  = "TablePanelHeight";
+  private static final String OPTION_GLOBAL_FONT_SIZE = "GlobalFontSize";
 
-  private static final String STATUSBAR_TEXT_FMT = "Welcome to Near Infinity! - %1$s @ %2$s - %3$d files available";
+  private static final String STATUSBAR_TEXT_FMT = "Welcome to Near Infinity! - %s @ %s - %d files available";
 
   private static NearInfinity browser;
 
@@ -125,12 +137,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private ButtonPopupWindow bpwQuickSearch;
   private int tablePanelHeight;
   private ProgressMonitor pmProgress;
-  private int progressIndex;
-
-  public static boolean isDebug()
-  {
-    return DEBUG;
-  }
+  private int progressIndex, globalFontSize;
 
   private static Path findKeyfile()
   {
@@ -184,14 +191,21 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         !jarFile.toLowerCase(Locale.ENGLISH).endsWith(".jar")) {
       jarFile = "NearInfinity.jar";
     }
-    System.out.format("Usage: java -jar %1$s [game_path | options]", jarFile).println();
+    System.out.format("Usage: java -jar %s [options] [game_path]", jarFile).println();
     System.out.println("\nOptions:");
     System.out.println("  -v, -version    Display version information.");
     System.out.println("  -h, -help       Display this help.");
+    System.out.println("  -t type         Force the current or specified game to be of");
+    System.out.println("                  specific type. (Use with care!)");
+    System.out.println("                  Supported game types:");
+    for (final Profile.Game game: Profile.Game.values()) {
+      System.out.println("                    " + game.toString());
+    }
     System.out.println("\nExamples:");
-    System.out.format("Specify game path: java -jar %1$s \"C:\\Games\\Baldurs Gate II\"", jarFile).println();
-    System.out.format("Display version:   java -jar %1$s -v", jarFile).println();
-    System.out.format("Display help:      java -jar %1$s -help", jarFile).println();
+    System.out.format("Specify game path: java -jar %s \"C:\\Games\\Baldurs Gate II\"", jarFile).println();
+    System.out.format("Force game type:   java -jar %s -t bg2tob", jarFile).println();
+    System.out.format("Display version:   java -jar %s -v", jarFile).println();
+    System.out.format("Display help:      java -jar %s -help", jarFile).println();
   }
 
   /** Advances the progress monitor by one step with optional note. */
@@ -205,22 +219,40 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   public static void main(String args[])
   {
-    // evaluating command line arguments
-    for (final String arg: args) {
-      if (arg.equalsIgnoreCase("-v") ||
-          arg.equalsIgnoreCase("-version")) {
+    Profile.Game forcedGame = null;
+    Path gameOverride = null;
+
+    for (int idx = 0; idx < args.length; idx++) {
+      if (args[idx].equalsIgnoreCase("-v") || args[idx].equalsIgnoreCase("-version")) {
         System.out.println("Near Infinity " + getVersion());
         System.exit(0);
-      }
-
-      if (arg.equalsIgnoreCase("-h") ||
-          arg.equalsIgnoreCase("-help")) {
+      } else if (args[idx].equalsIgnoreCase("-h") || args[idx].equalsIgnoreCase("-help")) {
         String jarFile = Utils.getJarFileName(NearInfinity.class);
         if (!jarFile.isEmpty()) {
           jarFile = FileManager.resolve(jarFile).getFileName().toString();
         }
         printHelp(jarFile);
         System.exit(0);
+      } else if (args[idx].equalsIgnoreCase("-t") && idx+1 < args.length) {
+        idx++;
+        String type = args[idx];
+        Profile.Game[] games = Profile.Game.values();
+        for (final Profile.Game game: games) {
+          if (game.toString().equalsIgnoreCase(type)) {
+            forcedGame = game;
+            break;
+          }
+        }
+      } else {
+        // Override game folder via application parameter
+        Path f = FileManager.resolve(args[idx]);
+        if (Files.isRegularFile(f)) {
+          f = f.getParent();
+        }
+        if (Files.isDirectory(f)) {
+          gameOverride = f;
+          break;
+        }
       }
     }
 
@@ -229,7 +261,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       for (int i = 0; i < Math.min(JAVA_VERSION.length, javaVersion.length); i++) {
         if (Integer.parseInt(javaVersion[i]) < JAVA_VERSION[i]) {
           JOptionPane.showMessageDialog(null,
-                                        String.format("Version %1$d.%2$d or newer of Java is required!",
+                                        String.format("Version %d.%d or newer of Java is required!",
                                                       JAVA_VERSION[0], JAVA_VERSION[1]),
                                         "Error", JOptionPane.ERROR_MESSAGE);
           System.exit(10);
@@ -241,22 +273,10 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     System.setOut(new ConsoleStream(System.out, consoletext));
     System.setErr(new ConsoleStream(System.err, consoletext));
 
-    // Override game folder via application parameter
-    Path gameOverride = null;
-    if (args.length > 0) {
-      Path f = FileManager.resolve(args[0]);
-      if (Files.isRegularFile(f)) {
-        f = f.getParent();
-      }
-      if (Files.isDirectory(f)) {
-        gameOverride = f;
-      }
-    }
-
-    new NearInfinity(gameOverride);
+    new NearInfinity(gameOverride, forcedGame);
   }
 
-  private NearInfinity(Path gameOverride)
+  private NearInfinity(Path gameOverride, Profile.Game forcedGame)
   {
     super("Near Infinity");
     browser = this;
@@ -269,6 +289,10 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     // Migrate preferences from "infinity" to "org.infinity" if needed
     Preferences prefs = Preferences.userNodeForPackage(getClass());
     migratePreferences("infinity", prefs, true);
+
+    // updating relative default font size globally
+    globalFontSize = Math.max(50, Math.min(400, prefs.getInt(OPTION_GLOBAL_FONT_SIZE, 100)));
+    resizeUIFont(globalFontSize);
 
     new BrowserMenuBar();
     setJMenuBar(BrowserMenuBar.getInstance());
@@ -293,16 +317,19 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       System.exit(10);
     }
 
-    showProgress("Starting Near Infinity", 6);
+    showProgress("Starting Near Infinity" + Misc.MSG_EXPAND_LARGE, 6);
     SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
       @Override
       protected Void doInBackground() throws Exception
       {
-        Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+        Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile), forcedGame);
 
         advanceProgress("Initializing GUI...");
         BrowserMenuBar.getInstance().gameLoaded(Profile.Game.Unknown, null);
-        Compiler.restartCompiler();
+        CreMapCache.reset();
+//        if (BrowserMenuBar.getInstance().getMonitorFileChanges()) {
+//          FileWatcher.getInstance().start();
+//        }
 
         return null;
       }
@@ -338,7 +365,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       }
 
       statusBar = new StatusBar();
-      ResourceTreeModel treemodel = ResourceFactory.getResources();
+      ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
       updateWindowTitle();
       final String msg = String.format(STATUSBAR_TEXT_FMT,
                                        Profile.getProperty(Profile.Key.GET_GAME_TITLE),
@@ -439,6 +466,11 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setVisible(true);
     setExtendedState(prefs.getInt(WINDOW_STATE, NORMAL));
 
+    // XXX: Workaround to trigger standard window closing callback on OSX when using command-Q
+    if (System.getProperty("os.name").startsWith("Mac OS X")) {
+      enableOSXQuitStrategy();
+    }
+
     tableColumnWidth[0] = Math.max(15, prefs.getInt(TABLE_WIDTH_ATTR, 300));
     tableColumnWidth[1] = 0;
     tableColumnWidth[2] = Math.max(15, prefs.getInt(TABLE_WIDTH_OFS, 100));
@@ -492,7 +524,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
           return;
         }
         ChildFrame.closeWindows();
-        ResourceTreeModel treemodel = ResourceFactory.getResources();
+        ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
         updateWindowTitle();
         final String msg = String.format(STATUSBAR_TEXT_FMT,
                                          Profile.getProperty(Profile.Key.GET_GAME_TITLE),
@@ -621,13 +653,13 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     try {
       Profile.Game oldGame = Profile.getGame();
       String oldFile = Profile.getChitinKey().toString();
-      clearCache();
+      ChildFrame.closeWindows();
+      clearCache(false);
       EffectFactory.init();
       Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
-      Compiler.restartCompiler();
+      CreMapCache.reset();
       removeViewable();
-      ChildFrame.closeWindows();
-      ResourceTreeModel treemodel = ResourceFactory.getResources();
+      ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
       updateWindowTitle();
       final String msg = String.format(STATUSBAR_TEXT_FMT,
                                        Profile.getProperty(Profile.Key.GET_GAME_TITLE),
@@ -669,9 +701,10 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   public void quit()
   {
     if (removeViewable()) {
+//      FileWatcher.getInstance().stop();
       ChildFrame.closeWindows();
       storePreferences();
-      clearCache();
+      clearCache(false);
       System.exit(0);
     }
   }
@@ -684,7 +717,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       reloadFactory(true);
       if (removeViewable()) {
         ChildFrame.closeWindows();
-        ResourceTreeModel treemodel = ResourceFactory.getResources();
+        ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
         final String msg = String.format(STATUSBAR_TEXT_FMT,
                                          Profile.getProperty(Profile.Key.GET_GAME_TITLE),
                                          Profile.getGameRoot(), treemodel.size());
@@ -706,9 +739,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     String title = Profile.getProperty(Profile.Key.GET_GAME_TITLE);
     String desc = Profile.getProperty(Profile.Key.GET_GAME_DESC);
     if (desc != null && !desc.isEmpty()) {
-      setTitle(String.format("Near Infinity - %1$s (%2$s)", title, desc));
+      setTitle(String.format("Near Infinity - %s (%s)", title, desc));
     } else {
-      setTitle(String.format("Near Infinity - %1$s", title));
+      setTitle(String.format("Near Infinity - %s", title));
     }
   }
 
@@ -784,35 +817,48 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return retVal;
   }
 
-  private static boolean reloadFactory(boolean refreshonly)
+  /**
+   * Returns the currently selected global font size relative to UI defaults.
+   */
+  public int getGlobalFontSize()
+  {
+    return globalFontSize;
+  }
+
+  private static boolean reloadFactory(boolean refreshOnly)
   {
     boolean retVal = false;
-    clearCache();
-    Path keyFile = refreshonly ? Profile.getChitinKey() : findKeyfile();
+    clearCache(refreshOnly);
+    Path keyFile = refreshOnly ? Profile.getChitinKey() : findKeyfile();
     if (keyFile != null) {
       EffectFactory.init();
       retVal = Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
       if (retVal) {
-        Compiler.restartCompiler();
+        CreMapCache.reset();
       }
     }
     return retVal;
   }
 
   // Central method for clearing cached data
-  private static void clearCache()
+  private static void clearCache(boolean refreshOnly)
   {
     if (ResourceFactory.getKeyfile() != null) {
       ResourceFactory.getKeyfile().closeBIFFFiles();
+    }
+    if (refreshOnly == false) {
+      CharsetDetector.clearCache();
     }
     DlcManager.close();
     FileManager.reset();
     IdsMapCache.clearCache();
     IniMapCache.clearCache();
     Table2daCache.clearCache();
+    CreMapCache.clearCache();
     SearchFrame.clearCache();
-    StringResource.close();
+    StringTable.resetAll();
     ProRef.clearCache();
+    Signatures.clearCache();
   }
 
   private static void showProgress(String msg, int max)
@@ -834,6 +880,20 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
   }
 
+  private static void resizeUIFont(int percent)
+  {
+    Enumeration<Object> keys = UIManager.getDefaults().keys();
+    while (keys.hasMoreElements()) {
+      Object key = keys.nextElement();
+      Object value = UIManager.get(key);
+      if (value instanceof FontUIResource) {
+        FontUIResource fr = (FontUIResource)value;
+        Font f = Misc.getScaledFont(fr, percent);
+        UIManager.put(key, new FontUIResource(f));
+      }
+    }
+  }
+
   private void storePreferences()
   {
     Preferences prefs = Preferences.userNodeForPackage(getClass());
@@ -852,6 +912,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     prefs.putInt(TABLE_WIDTH_ATTR, getTableColumnWidth(0));
     prefs.putInt(TABLE_WIDTH_OFS, getTableColumnWidth(2));
     prefs.putInt(TABLE_PANEL_HEIGHT, getTablePanelHeight());
+    prefs.putInt(OPTION_GLOBAL_FONT_SIZE, BrowserMenuBar.getInstance().getGlobalFontSize());
     BrowserMenuBar.getInstance().storePreferences();
     Updater.getInstance().saveUpdateSettings();
   }
@@ -860,7 +921,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   {
     List<Image> list = new ArrayList<Image>();
     for (int i = 4; i < 8; i++) {
-      list.add(Icons.getImage(String.format("App%1$d.png", 1 << i)));
+      list.add(Icons.getImage(String.format("App%d.png", 1 << i)));
     }
     setIconImages(list);
   }
@@ -927,6 +988,27 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
   }
 
+  // Enables command-Q on OSX to trigger the window closing callback
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private void enableOSXQuitStrategy()
+  {
+    try {
+      Class application = Class.forName("com.apple.eawt.Application");
+      Method getApplication = application.getMethod("getApplication");
+      Object instance = getApplication.invoke(application);
+      Class strategy = Class.forName("com.apple.eawt.QuitStrategy");
+      Enum closeAllWindows = Enum.valueOf(strategy, "CLOSE_ALL_WINDOWS");
+      Method method = application.getMethod("setQuitStrategy", strategy);
+      method.invoke(instance, closeAllWindows);
+    } catch (ClassNotFoundException |
+             NoSuchMethodException |
+             SecurityException |
+             IllegalAccessException |
+             IllegalArgumentException |
+             InvocationTargetException e) {
+      e.printStackTrace();
+    }
+  }
 
 // -------------------------- INNER CLASSES --------------------------
 

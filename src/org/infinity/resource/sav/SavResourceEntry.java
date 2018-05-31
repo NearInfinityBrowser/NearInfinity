@@ -16,6 +16,7 @@ import java.util.zip.Inflater;
 
 import org.infinity.resource.Writeable;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.util.io.ByteBufferInputStream;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
@@ -49,27 +50,15 @@ public class SavResourceEntry extends ResourceEntry implements Writeable
     uncomprLength = 0;
     fileName = entry.toString();
     byte[] udata = StreamUtils.toArray(entry.getResourceBuffer(true));
-    if (udata.length == 0) {
-      uncomprLength = 0;
-      comprLength = 8;;
-      udata = new byte[]{0x78, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01};
-    } else {
-      cdata = StreamUtils.getByteBuffer(udata.length * 2);
-      try (DeflaterOutputStream dos = new DeflaterOutputStream(new ByteBufferOutputStream(cdata),
-                                                               new Deflater(Deflater.BEST_COMPRESSION))) {
-        dos.write(udata);
-        dos.finish();
-      }
-      cdata.flip();
-      uncomprLength = udata.length;
-      comprLength = cdata.limit();
-//      Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
-//      deflater.setInput(udata);
-//      deflater.finish();
-//      int clength = deflater.deflate(cdata.array());
-//      cdata.limit(clength);
-//      comprLength = clength;
+    cdata = StreamUtils.getByteBuffer(udata.length * 2 + 8);
+    try (DeflaterOutputStream dos = new DeflaterOutputStream(new ByteBufferOutputStream(cdata),
+                                                             new Deflater(Deflater.BEST_COMPRESSION))) {
+      dos.write(udata);
+      dos.finish();
     }
+    cdata.flip();
+    uncomprLength = udata.length;
+    comprLength = cdata.limit();
   }
 
   public int getEndOffset()
@@ -96,7 +85,13 @@ public class SavResourceEntry extends ResourceEntry implements Writeable
   }
 
   @Override
-  public String getTreeFolder()
+  public String getTreeFolderName()
+  {
+    return null;
+  }
+
+  @Override
+  public ResourceTreeFolder getTreeFolder()
   {
     return null;
   }

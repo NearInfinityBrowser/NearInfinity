@@ -63,8 +63,8 @@ class BamPaletteDialog extends JDialog
   public static final int TYPE_EXTERNAL   = 1;
 
   private static final String[] PaletteTypeInfo = {"Generated palette", "External palette"};
-  private static final String FmtInfoRGB    = "%1$d  %2$d  %3$d";
-  private static final String FmtInfoHexRGB = "#%1$02X%2$02X%3$02X";
+  private static final String FmtInfoRGB    = "%d  %d  %d";
+  private static final String FmtInfoHexRGB = "#%02X%02X%02X";
 
   // Stores all available color values of the current BAM and their number of occurence for faster palette creation
   private final LinkedHashMap<Integer, Integer> colorMap = new LinkedHashMap<Integer, Integer>();
@@ -273,9 +273,7 @@ class BamPaletteDialog extends JDialog
 
       // applying palette
       if (palette != null && palette.length > 0) {
-        for (int i = 0; i < palette.length; i++) {
-          palettes[type][i] = palette[i];
-        }
+        System.arraycopy(palette, 0, palettes[type], 0, palette.length);
         for (int i = palette.length; i < palettes[type].length; i++) {
           palettes[type][i] = 0;
         }
@@ -299,7 +297,7 @@ class BamPaletteDialog extends JDialog
     }
   }
 
-  /** Returns whether the palette has been modified after the last call to {@link #paletteUpdate()}. */
+  /** Returns whether the palette has been modified after the last call to {@link #updatePalette()}. */
   public boolean isPaletteModified()
   {
     return paletteModified;
@@ -348,9 +346,7 @@ class BamPaletteDialog extends JDialog
 
         if (sharedPalette) {
           // using shared palette as is
-          for (int i = 0; i < palette.length; i++) {
-            palettes[TYPE_GENERATED][i] = palette[i];
-          }
+          System.arraycopy(palette, 0, palettes[TYPE_GENERATED], 0, palette.length);
         } else {
           // creating palette directly from color map without reduction
           Iterator<Integer> iter = colorMap.keySet().iterator();

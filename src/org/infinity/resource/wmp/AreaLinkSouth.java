@@ -11,7 +11,7 @@ import org.infinity.resource.AbstractStruct;
 class AreaLinkSouth extends AreaLink
 {
   // WMP/AreaLinkSouth-specific field labels
-  public static final String WMP_LINK_SOUTH = "North link";
+  public static final String WMP_LINK_SOUTH = "South link";
 
   AreaLinkSouth() throws Exception
   {

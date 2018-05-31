@@ -12,7 +12,7 @@ import org.infinity.util.io.StreamUtils;
 public final class ClosedVertexImpeded extends Vertex
 {
   // ClosedVertexImpeded-specific field labels
-  public static final String VERTEX_CLOSED_IMPEDED  = "Closed vertex, impeded";
+  public static final String VERTEX_CLOSED_IMPEDED  = "Impeded cell (closed)";
 
   public ClosedVertexImpeded() throws Exception
   {

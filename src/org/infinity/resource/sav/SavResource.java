@@ -375,14 +375,19 @@ public final class SavResource implements Resource, Closeable, Writeable,
             idx = -1;
             break;
           } else if (newEntry.compareTo(entries.get(idx)) < 0) {
-            entries.add(idx, newEntry);
-            listModel.add(idx, newEntry);
-            filelist.setSelectedIndex(idx);
-            filelist.revalidate();
-            filelist.repaint();
             break;
           }
         }
+
+        if (idx >= 0) {
+          entries.add(idx, newEntry);
+          listModel.add(idx, newEntry);
+          filelist.setSelectedIndex(idx);
+          filelist.revalidate();
+          filelist.repaint();
+          filelist.ensureIndexIsVisible(idx);
+        }
+
         buttonPanel.getControlByType(CtrlDelete).setEnabled(filelist.getSelectedIndex() >= 0);
         buttonPanel.getControlByType(CtrlEdit).setEnabled(filelist.getSelectedIndex() >= 0);
       } catch (Exception e) {

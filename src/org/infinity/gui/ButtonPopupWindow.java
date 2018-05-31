@@ -45,13 +45,13 @@ import javax.swing.border.BevelBorder;
 public class ButtonPopupWindow extends JButton
 {
   public enum Align {
-    /** Use in {@link #setWindowAlignment(int)}. Places the popup window below the button control. */
+    /** Use in {@link #setWindowAlignment(Align)}. Places the popup window below the button control. */
     BOTTOM,
-    /** Use in {@link #setWindowAlignment(int)}. Places the popup window on top of the button control. */
+    /** Use in {@link #setWindowAlignment(Align)}. Places the popup window on top of the button control. */
     TOP,
-    /** Use in {@link #setWindowAlignment(int)}. Places the popup window to the right of the button control. */
+    /** Use in {@link #setWindowAlignment(Align)}. Places the popup window to the right of the button control. */
     RIGHT,
-    /** Use in {@link #setWindowAlignment(int)}. Places the popup window to the left of the button control. */
+    /** Use in {@link #setWindowAlignment(Align)}. Places the popup window to the left of the button control. */
     LEFT,
   }
 

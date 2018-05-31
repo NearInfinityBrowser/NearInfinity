@@ -7,13 +7,16 @@ package org.infinity.datatype;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 
+import org.infinity.gui.BrowserMenuBar;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
 public final class TextString extends Datatype implements InlineEditable, IsTextual
 {
+  private final Charset charset;
   private final ByteBuffer buffer;
   private String text;
 
@@ -26,6 +29,7 @@ public final class TextString extends Datatype implements InlineEditable, IsText
   {
     super(parent, offset, length, name);
     this.buffer = StreamUtils.getByteBuffer(length);
+    this.charset = Charset.forName(BrowserMenuBar.getInstance().getSelectedCharset());
     read(buffer, offset);
   }
 
@@ -83,7 +87,7 @@ public final class TextString extends Datatype implements InlineEditable, IsText
   {
     if (text == null) {
       buffer.position(0);
-      text = StreamUtils.readString(buffer, buffer.limit());
+      text = StreamUtils.readString(buffer, buffer.limit(), charset);
     }
     return text;
   }

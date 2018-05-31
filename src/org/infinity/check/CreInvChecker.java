@@ -148,7 +148,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
       creFiles = ResourceFactory.getResources("CRE");
       creFiles.addAll(ResourceFactory.getResources("CHR"));
       progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking inventories...",
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking inventories..." + Misc.MSG_EXPAND_LARGE,
                                      String.format(FMT_PROGRESS, creFiles.size(), creFiles.size()),
                                      0, creFiles.size());
       progress.setNote(String.format(FMT_PROGRESS, 0, creFiles.size()));
@@ -219,7 +219,8 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
         pane.add(panel, BorderLayout.SOUTH);
         bopen.setEnabled(false);
         bopennew.setEnabled(false);
-        table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+        table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
         table.getSelectionModel().addListSelectionListener(this);
         table.addMouseListener(new MouseAdapter()
         {
@@ -332,7 +333,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
     @Override
     public String toString()
     {
-      return String.format("File: %1$s  Name: %2$s  %3$s",
+      return String.format("File: %s  Name: %s  %s",
                            resourceEntry.toString(), resourceEntry.getSearchString(), itemRef.toString());
     }
   }

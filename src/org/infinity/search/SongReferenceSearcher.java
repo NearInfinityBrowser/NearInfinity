@@ -58,9 +58,16 @@ public class SongReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchBcs(ResourceEntry entry, BcsResource bcs)
   {
+//    Decompiler decompiler = new Decompiler(bcs.getCode(), true);
     Decompiler decompiler = new Decompiler(bcs.getCode(), true);
-    String text = decompiler.decompile();
-    searchText(entry, null, text);
+    decompiler.setGenerateComments(false);
+    decompiler.setGenerateResourcesUsed(false);
+    try {
+      String text = decompiler.decompile();
+      searchText(entry, null, text);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   private void searchDlg(ResourceEntry entry, DlgResource dlg)
@@ -129,8 +136,8 @@ public class SongReferenceSearcher extends AbstractReferenceSearcher
         } else if (Profile.getGame() == Profile.Game.IWD2) {
           map = IdsMapCache.get("MUSIC.IDS");
         }
-        if (map != null && map.getMap().containsKey(Long.valueOf(songId))) {
-          String musicId = map.getMap().get(Long.valueOf(songId)).getString();
+        if (map != null && map.get(songId) != null) {
+          String musicId = map.get(songId).getSymbol();
           scriptActions.add(Pattern.compile("SetMusic\\(.+?," + Long.toString(songId) + "\\)"));
           if (musicId != null && !musicId.isEmpty()) {
             scriptActions.add(Pattern.compile("SetMusic\\(.+?," + musicId + "\\)"));

@@ -8,7 +8,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 
 import javax.swing.JComponent;
@@ -26,7 +26,8 @@ public class RenderCanvas extends JComponent implements SwingConstants
 
   private Image currentImage;
   private Object interpolationType;
-  private boolean isScaling;
+  private boolean isScaling, isAutoScale;
+  private int scaledWidth, scaledHeight;
   private int verticalAlignment, horizontalAlignment;
 
   public RenderCanvas()
@@ -53,10 +54,12 @@ public class RenderCanvas extends JComponent implements SwingConstants
                       int horizontalAlign, int verticalAlign)
   {
     setOpaque(false);
-    currentImage = null;
-    interpolationType = TYPE_NEAREST_NEIGHBOR;
-    isScaling = false;
-    verticalAlignment = horizontalAlignment = CENTER;
+    this.currentImage = null;
+    this.interpolationType = TYPE_NEAREST_NEIGHBOR;
+    this.isScaling = false;
+    this.isAutoScale = true;   // defaults to "true" to preserve backwards compatibility
+    this.scaledWidth = this.scaledHeight = -1;
+    this.verticalAlignment = this.horizontalAlignment = CENTER;
     setInterpolationType(interpolationType);
     setScalingEnabled(scaled);
     setHorizontalAlignment(horizontalAlign);
@@ -84,7 +87,13 @@ public class RenderCanvas extends JComponent implements SwingConstants
         currentImage.flush();
       }
       currentImage = image;
-      updateSize();
+
+      if (currentImage != null) {
+        setPreferredSize(new Dimension(currentImage.getWidth(null), currentImage.getHeight(null)));
+      } else {
+        setPreferredSize(new Dimension(16, 16));
+      }
+      update();
     }
   }
 
@@ -174,6 +183,90 @@ public class RenderCanvas extends JComponent implements SwingConstants
   }
 
   /**
+   * Returns whether the image should be scaled to full size of the component.
+   * Values set by {@link #setScaledWidth(int)}, {@link #setScaledHeight(int) or {@link #setScaleFactor(float)}
+   * are ignored while this setting is enabled.
+   * @return {@code true} if image will be auto-scaled.
+   */
+  public boolean isAutoScaleEnabled()
+  {
+    return isAutoScale;
+  }
+
+  /**
+   * Sets whether the image will be scaled to full size of the component.
+   * Values set by {@link #setScaledWidth(int)}, {@link #setScaledHeight(int) or {@link #setScaleFactor(float)}
+   * are ignored while this setting is enabled.
+   * @param enable {@code true} to enable auto-scale.
+   */
+  public void setAutoScaleEnabled(boolean enable)
+  {
+    if (enable != isAutoScale) {
+      isAutoScale = enable;
+      repaint();
+    }
+  }
+
+  /**
+   * A convenience method that applies a uniform scale to the current image in both vertical and
+   * horizontal direction.
+   * @param factor The scaling factor. Must be > 0.0.
+   */
+  public void setScaleFactor(float factor)
+  {
+    if (factor <= 0.0f) return;
+
+    if (currentImage != null) {
+      setScaledWidth((int)(currentImage.getWidth(null) * factor));
+      setScaledHeight((int)(currentImage.getHeight(null) * factor));
+    }
+  }
+
+  /**
+   * Returns the scaled width of the current image.
+   * @return scaled width of the current image.
+   */
+  public int getScaledWidth()
+  {
+    return scaledWidth;
+  }
+
+  /**
+   * Sets the new width of the image when scaled. This value is ignored while
+   * {@link #setAutoScaleEnabled(boolean)} is active.
+   * @param newWidth New width of the image. Must be > 0.
+   */
+  public void setScaledWidth(int newWidth)
+  {
+    if (newWidth > 0 && newWidth != scaledWidth) {
+      scaledWidth = newWidth;
+      update();
+    }
+  }
+
+  /**
+   * Returns the scaled height of the current image.
+   * @return scaled height of the current image.
+   */
+  public int getScaledHeight()
+  {
+    return scaledHeight;
+  }
+
+  /**
+   * Sets the new height of the image when scaled. This value is ignored while
+   * {@link #setAutoScaleEnabled(boolean)} is active.
+   * @param newHeight New height of the image. Must be > 0.
+   */
+  public void setScaledHeight(int newHeight)
+  {
+    if (newHeight > 0 && newHeight != scaledHeight) {
+      scaledHeight = newHeight;
+      update();
+    }
+  }
+
+  /**
    * Returns the interpolation type used when scaling has been enabled.
    * @return The interpolation type.
    */
@@ -202,18 +295,46 @@ public class RenderCanvas extends JComponent implements SwingConstants
   }
 
 
-  protected void updateSize()
+  protected void update()
   {
+    invalidate();
+    if (getParent() != null) {
+      getParent().repaint();
+    }
+  }
+
+  protected Rectangle getCanvasSize()
+  {
+    Rectangle rect = new Rectangle();
     if (currentImage != null) {
-      setPreferredSize(new Dimension(currentImage.getWidth(null), currentImage.getHeight(null)));
-      if (!isScaling) {
-        setSize(getPreferredSize());
+      rect.width = currentImage.getWidth(null);
+      rect.height = currentImage.getHeight(null);
+      if (isScaling) {
+        rect.width = isAutoScale ? getWidth() : scaledWidth;
+        rect.height = isAutoScale ? getHeight() : scaledHeight;
+      }
+      switch (horizontalAlignment) {
+        case LEFT:
+          break;
+        case RIGHT:
+          rect.x = getWidth() - rect.width;
+          break;
+        default:
+          rect.x = (getWidth() - rect.width) / 2;
+      }
+      switch (verticalAlignment) {
+        case TOP:
+          break;
+        case BOTTOM:
+          rect.y = getHeight() - rect.height;
+          break;
+        default:
+          rect.y = (getHeight() - rect.height) / 2;
       }
     } else {
-      setPreferredSize(new Dimension(16, 16));
-      setSize(getPreferredSize());
+      rect.width = rect.height = 16;
     }
-    repaint();
+    return rect;
   }
 
   /**
@@ -224,32 +345,12 @@ public class RenderCanvas extends JComponent implements SwingConstants
   {
     if (currentImage != null && currentImage.getWidth(null) > 0 && currentImage.getHeight(null) > 0) {
       Graphics2D g2 = (Graphics2D)g;
+      Rectangle rect = getCanvasSize();
       if (isScaling) {
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, interpolationType);
-        g2.drawImage(currentImage, 0, 0, getWidth(), getHeight(), null);
+        g2.drawImage(currentImage, rect.x, rect.y, rect.width, rect.height, null);
       } else {
-        Point srcPos = new Point(0, 0);
-        switch (horizontalAlignment) {
-          case LEFT:
-            srcPos.x = 0;
-            break;
-          case RIGHT:
-            srcPos.x = getWidth() - currentImage.getWidth(null);
-            break;
-          default:
-            srcPos.x = (getWidth() - currentImage.getWidth(null)) / 2;
-        }
-        switch (verticalAlignment) {
-          case TOP:
-            srcPos.y = 0;
-            break;
-          case BOTTOM:
-            srcPos.y = getHeight() - currentImage.getHeight(null);
-            break;
-          default:
-            srcPos.y = (getHeight() - currentImage.getHeight(null)) / 2;
-        }
-        g2.drawImage(currentImage, srcPos.x, srcPos.y, null);
+        g2.drawImage(currentImage, rect.x, rect.y, null);
       }
     }
   }

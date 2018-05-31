@@ -25,6 +25,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.beans.PropertyChangeEvent;
@@ -132,7 +134,7 @@ public class AreaViewer extends ChildFrame
   private final Map map;
   private final Point mapCoordinates = new Point();
   private final String windowTitle;
-  private final JCheckBox[] cbLayers = new JCheckBox[LayerManager.getLayerTypeCount()];;
+  private final JCheckBox[] cbLayers = new JCheckBox[LayerManager.getLayerTypeCount()];
   private final JCheckBox[] cbLayerRealAnimation = new JCheckBox[2];
   private final JCheckBox[] cbMiniMaps = new JCheckBox[3];
   private final JToggleButton[] tbAddLayerItem = new JToggleButton[LayerManager.getLayerTypeCount()];
@@ -141,7 +143,7 @@ public class AreaViewer extends ChildFrame
   private TilesetRenderer rcCanvas;
   private JPanel pCanvas;
   private JScrollPane spCanvas;
-  private Rectangle vpCenterExtent;   // combines map center and viewport extent in one structure
+  private Point vpMapCenter;    // contains map coordinate at the viewport center
   private JToolBar toolBar;
   private JToggleButton tbView, tbEdit;
   private JButton tbAre, tbWed, tbSongs, tbRest, tbSettings, tbRefresh, tbExportPNG;
@@ -161,6 +163,7 @@ public class AreaViewer extends ChildFrame
   private ProgressMonitor progress;
   private int pmCur, pmMax;
   private WindowBlocker blocker;
+  private boolean initialized;
 
 
   /**
@@ -211,7 +214,7 @@ public class AreaViewer extends ChildFrame
   public AreaViewer(Component parent, AreResource are)
   {
     super("");
-    windowTitle = String.format("Area Viewer: %1$s", (are != null) ? are.getName() : "[Unknown]");
+    windowTitle = String.format("Area Viewer: %s", (are != null) ? are.getName() : "[Unknown]");
     initProgressMonitor(parent, "Initializing " + are.getName(), "Loading ARE resource...", 3, 0, 0);
     listeners = new Listeners();
     map = new Map(this, are);
@@ -282,6 +285,7 @@ public class AreaViewer extends ChildFrame
   // initialize GUI and structures
   private void init()
   {
+    initialized = false;
     advanceProgressMonitor("Initializing GUI...");
 
     GridBagConstraints c = new GridBagConstraints();
@@ -300,6 +304,9 @@ public class AreaViewer extends ChildFrame
     rcCanvas.addComponentListener(getListeners());
     rcCanvas.addMouseListener(getListeners());
     rcCanvas.addMouseMotionListener(getListeners());
+    if (Settings.MouseWheelZoom) {
+      rcCanvas.addMouseWheelListener(getListeners());
+    }
     rcCanvas.addChangeListener(getListeners());
     rcCanvas.setHorizontalAlignment(RenderCanvas.CENTER);
     rcCanvas.setVerticalAlignment(RenderCanvas.CENTER);
@@ -324,7 +331,7 @@ public class AreaViewer extends ChildFrame
 
     // Adding Visual State elements
     // Note: the string is required for setting the correct size of the button
-    bpwDayTime = new ButtonPopupWindow(String.format("  %1$s  ", DayTimePanel.getButtonText(21)),
+    bpwDayTime = new ButtonPopupWindow(String.format("  %s  ", DayTimePanel.getButtonText(21)),
                                        Icons.getIcon(Icons.ICON_ARROW_DOWN_15));
     Dimension d = bpwDayTime.getPreferredSize();
     bpwDayTime.setIconTextGap(8);
@@ -353,7 +360,7 @@ public class AreaViewer extends ChildFrame
 
     JLabel lZoomLevel = new JLabel("Zoom map:");
     cbZoomLevel = new JComboBox<>(Settings.LabelZoomFactor);
-    cbZoomLevel.setSelectedIndex(Settings.ZoomLevel);
+    cbZoomLevel.setSelectedIndex(Settings.getZoomLevelIndex(Settings.ZoomFactor));
     cbZoomLevel.addActionListener(getListeners());
     JPanel pZoom = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
@@ -587,7 +594,7 @@ public class AreaViewer extends ChildFrame
 //    toolBar.addSeparator(dimSeparator);
 
     tbAre = new JButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_MAP_ARE));
-    tbAre.setToolTipText(String.format("Edit ARE structure (%1$s)", map.getAre().getName()));
+    tbAre.setToolTipText(String.format("Edit ARE structure (%s)", map.getAre().getName()));
     tbAre.addActionListener(getListeners());
     toolBar.add(tbAre);
     tbWed = new JButton(Icons.getIcon(ViewerIcons.class, ViewerIcons.ICON_BTN_MAP_WED));
@@ -675,6 +682,13 @@ public class AreaViewer extends ChildFrame
 
     updateWindowTitle();
     setVisible(true);
+    initialized = true;
+  }
+
+  // Returns whether area viewer is still being initialized
+  private boolean isInitialized()
+  {
+    return initialized;
   }
 
 
@@ -728,7 +742,7 @@ public class AreaViewer extends ChildFrame
     }
 
     // initializing zoom level
-    cbZoomLevel.setSelectedIndex(Settings.ZoomLevel);
+    cbZoomLevel.setSelectedIndex(Settings.getZoomLevelIndex(Settings.ZoomFactor));
 
     // initializing layers
     layerManager = new LayerManager(getCurrentAre(), getCurrentWed(), this);
@@ -777,7 +791,7 @@ public class AreaViewer extends ChildFrame
   // Updates the window title
   private void updateWindowTitle()
   {
-    int zoom = (int)(getZoomFactor()*100.0);
+    int zoom = (int)Math.round(getZoomFactor()*100.0);
 
     String dayNight;
     switch (getVisualState()) {
@@ -806,7 +820,7 @@ public class AreaViewer extends ChildFrame
 
     String gridState = isTileGridEnabled() ? "enabled" : "disabled";
 
-    setTitle(String.format("%1$s  (Time: %2$02d:00 (%3$s), Schedules: %4$s, Doors: %5$s, Overlays: %6$s, Grid: %7$s, Zoom: %8$d%%)",
+    setTitle(String.format("%s  (Time: %02d:00 (%s), Schedules: %s, Doors: %s, Overlays: %s, Grid: %s, Zoom: %d%%)",
                            windowTitle, getHour(), dayNight, scheduleState, doorState, overlayState, gridState, zoom));
   }
 
@@ -1079,23 +1093,28 @@ public class AreaViewer extends ChildFrame
   }
 
 
+  // Returns whether layer items should be included when exporting map as graphics
+  private boolean isExportLayersEnabled()
+  {
+    return Settings.ExportLayers;
+  }
+
+
   // Returns the currently used zoom factor of the canvas map
   private double getZoomFactor()
   {
     if (rcCanvas != null) {
       return rcCanvas.getZoomFactor();
     } else {
-      return Settings.ItemZoomFactor[Settings.ZoomLevel];
+      return Settings.ZoomFactor;
     }
   }
 
   // Sets a new zoom level to the map and associated structures
-  private void setZoomLevel(int zoomIndex)
+  private void setZoomFactor(double zoomFactor, double fallbackZoomFactor)
   {
-    zoomIndex = Math.min(Math.max(zoomIndex, 0), Settings.ItemZoomFactor.length - 1);
     updateViewpointCenter();
-    double zoom = 1.0;
-    if (zoomIndex == Settings.ZoomFactorIndexAuto) {
+    if (zoomFactor == Settings.ZoomFactorAuto) {
       // removing scrollbars (not needed in this mode)
       boolean needValidate = false;
       if (spCanvas.getHorizontalScrollBarPolicy() != ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER) {
@@ -1114,11 +1133,21 @@ public class AreaViewer extends ChildFrame
       Dimension mapDim = new Dimension(rcCanvas.getMapWidth(false), rcCanvas.getMapHeight(false));
       double zoomX = (double)viewDim.width / (double)mapDim.width;
       double zoomY = (double)viewDim.height / (double)mapDim.height;
-      zoom = zoomX;
+      zoomFactor = zoomX;
       if ((int)(zoomX*mapDim.height) > viewDim.height) {
-        zoom = zoomY;
+        zoomFactor = zoomY;
       }
+      if (rcCanvas != null) {
+        rcCanvas.setZoomFactor(zoomFactor);
+      }
+      zoomFactor = 0.0;
     } else {
+      if (zoomFactor < 0.0) {
+        zoomFactor = isInitialized() ? getCustomZoomFactor(fallbackZoomFactor) : fallbackZoomFactor;
+        if (zoomFactor < 0.0) {
+          return;
+        }
+      }
       // (re-)activating scrollbars
       if (spCanvas.getHorizontalScrollBarPolicy() != ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED) {
         spCanvas.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -1126,74 +1155,89 @@ public class AreaViewer extends ChildFrame
       if (spCanvas.getVerticalScrollBarPolicy() != ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED) {
         spCanvas.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
       }
-      zoom = Settings.ItemZoomFactor[zoomIndex];
+      if (rcCanvas != null) {
+        rcCanvas.setZoomFactor(zoomFactor);
+      }
     }
-    if (rcCanvas != null) {
-      rcCanvas.setZoomFactor(zoom);
-    }
-    Settings.ZoomLevel = zoomIndex;
+    setViewpointCenter();
+    Settings.ZoomFactor = zoomFactor;
     updateWindowTitle();
+  }
+
+  // Handles manual input of zoom factor (in percent)
+  private double getCustomZoomFactor(double defaultZoom)
+  {
+    String defInput = Integer.toString((int)Math.round(defaultZoom * 100.0));
+    Object ret = JOptionPane.showInputDialog(this, "Enter zoom factor (in percent):", "Area Map Zoom Factor",
+                                             JOptionPane.QUESTION_MESSAGE, null, null, defInput);
+    if (ret != null) {
+      try {
+        int idx = ret.toString().indexOf('%');
+        if (idx >= 0) {
+          ret = ret.toString().substring(0, idx);
+        }
+        ret = ret.toString().trim();
+        int value = (int)Math.round(Double.parseDouble(ret.toString()));
+        double f = (double)value / 100.0;
+        if (f > 0.0 && f <= Settings.ZoomFactorMax) {
+          defaultZoom = f;
+        } else {
+          int max = (int)(Settings.ZoomFactorMax * 100.0);
+          JOptionPane.showMessageDialog(this, "Number is outside of valid range (1-" + max + ").", "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
+      } catch (NumberFormatException nfe) {
+        JOptionPane.showMessageDialog(this, "Invalid number.", "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    }
+    return defaultZoom;
   }
 
   // Returns whether auto-fit has been selected
   private boolean isAutoZoom()
   {
-    return (Settings.ZoomLevel == Settings.ZoomFactorIndexAuto);
+    return (Settings.ZoomFactor == Settings.ZoomFactorAuto);
   }
 
 
   // Updates the map coordinate at the center of the current viewport
   private void updateViewpointCenter()
   {
-    if (vpCenterExtent == null) {
-      vpCenterExtent = new Rectangle();
+    if (vpMapCenter == null) {
+      vpMapCenter = new Point();
     }
-    Dimension mapDim = new Dimension(rcCanvas.getMapWidth(true), rcCanvas.getMapHeight(true));
-    JViewport vp = spCanvas.getViewport();
-    Rectangle view = vp.getViewRect();
-    vpCenterExtent.x = view.x + (view.width / 2);
-    vpCenterExtent.y = view.y + (view.height / 2);
-    if (view.width > mapDim.width) {
-      vpCenterExtent.x = mapDim.width / 2;
-    }
-    if (view.height > mapDim.height) {
-      vpCenterExtent.y = mapDim.height / 2;
-    }
-    // canvas coordinate -> map coordinate
-    vpCenterExtent.x = (int)((double)vpCenterExtent.x / getZoomFactor());
-    vpCenterExtent.y = (int)((double)vpCenterExtent.y / getZoomFactor());
-
-    vpCenterExtent.width = vp.getViewSize().width;
-    vpCenterExtent.height = vp.getViewSize().height;
+    int mapWidth = rcCanvas.getMapWidth(true);
+    int mapHeight = rcCanvas.getMapHeight(true);
+    Rectangle view = spCanvas.getViewport().getViewRect();
+    vpMapCenter.x = (view.width > mapWidth) ? mapWidth / 2 : view.x + (view.width / 2);
+    vpMapCenter.y = (view.height > mapHeight) ? mapHeight / 2 : view.y + (view.height / 2);
+    vpMapCenter.x = (int)((double)vpMapCenter.x / getZoomFactor());
+    vpMapCenter.y = (int)((double)vpMapCenter.y / getZoomFactor());
   }
 
   // Attempts to re-center the last known center coordinate in the current viewport
   private void setViewpointCenter()
   {
-    if (vpCenterExtent != null) {
-      if (!vpCenterExtent.getSize().equals(spCanvas.getViewport().getViewSize())) {
-        Dimension mapDim = new Dimension(rcCanvas.getMapWidth(true), rcCanvas.getMapHeight(true));
-
-        // map coordinate -> canvas coordinate
-        vpCenterExtent.x = (int)((double)vpCenterExtent.x * getZoomFactor());
-        vpCenterExtent.y = (int)((double)vpCenterExtent.y * getZoomFactor());
-
-        JViewport vp = spCanvas.getViewport();
-        Rectangle view = vp.getViewRect();
-        Point newViewPos = new Point(vpCenterExtent.x - (view.width / 2), vpCenterExtent.y - (view.height / 2));
-        if (newViewPos.x < 0) {
-          newViewPos.x = 0;
-        } else if (newViewPos.x + view.width > mapDim.width) {
-          newViewPos.x = mapDim.width - view.width;
-        }
-        if (newViewPos.y < 0) {
-          newViewPos.y = 0;
-        } else if (newViewPos.y + view.height > mapDim.height) {
-          newViewPos.y = mapDim.height - view.height;
-        }
-
-        vpCenterExtent = null;
-        vp.setViewPosition(newViewPos);
+    if (vpMapCenter != null) {
+      int mapWidth = rcCanvas.getMapWidth(true);
+      int mapHeight = rcCanvas.getMapHeight(true);
+      int centerX = (int)((double)vpMapCenter.x * getZoomFactor());
+      int centerY = (int)((double)vpMapCenter.y * getZoomFactor());
+      JViewport vp = spCanvas.getViewport();
+      Rectangle view = vp.getViewRect();
+      Point newView = new Point(view.getLocation());
+      if (view.width < mapWidth) {
+        newView.x = centerX - (view.width / 2);
+        newView.x = Math.max(newView.x, 0);
+        newView.x = Math.min(newView.x, mapWidth - view.width);
+      }
+      if (view.height < mapHeight) {
+        newView.y = centerY - (view.height / 2);
+        newView.y = Math.max(newView.y, 0);
+        newView.y = Math.min(newView.y, mapHeight - view.height);
+      }
+      if (!view.getLocation().equals(newView)) {
+        vp.setViewPosition(newView);
       }
     }
   }
@@ -1290,16 +1334,16 @@ public class AreaViewer extends ChildFrame
                   }
                   sb.append(": ");
                   int lenPrefix = sb.length();
-                  int lenMsg = items[k].getMessage().length();
+                  int lenMsg = items[k].getQuickInfo().length();
                   if (lenPrefix + lenMsg > MaxLen) {
-                    sb.append(items[k].getMessage().substring(0, MaxLen - lenPrefix));
+                    sb.append(items[k].getQuickInfo().substring(0, MaxLen - lenPrefix));
                     sb.append("...");
                   } else {
-                    sb.append(items[k].getMessage());
+                    sb.append(items[k].getQuickInfo());
                   }
                   DataMenuItem dmi = new DataMenuItem(sb.toString(), null, items[k]);
                   if (lenPrefix + lenMsg > MaxLen) {
-                    dmi.setToolTipText(items[k].getMessage());
+                    dmi.setToolTipText(items[k].getQuickInfo());
                   }
                   dmi.addActionListener(getListeners());
                   menuItems.add(dmi);
@@ -1774,7 +1818,7 @@ public class AreaViewer extends ChildFrame
   // Update toolbar-related stuff
   private void updateToolBarButtons()
   {
-    tbWed.setToolTipText(String.format("Edit WED structure (%1$s)", getCurrentWed().getName()));
+    tbWed.setToolTipText(String.format("Edit WED structure (%s)", getCurrentWed().getName()));
   }
 
   // Initializes a new progress monitor instance
@@ -1787,7 +1831,7 @@ public class AreaViewer extends ChildFrame
     releaseProgressMonitor();
     pmMax = maxProgress;
     pmCur = 0;
-    progress = new ProgressMonitor(parent, msg, note, 0, pmMax);
+    progress = new ProgressMonitor(parent, msg + "        \t", note, 0, pmMax);
     progress.setMillisToDecideToPopup(msDecide);
     progress.setMillisToPopup(msWait);
     progress.setProgress(pmCur);
@@ -1886,6 +1930,13 @@ public class AreaViewer extends ChildFrame
     // applying minimap alpha
     rcCanvas.setMiniMapTransparency((int)(Settings.MiniMapAlpha*255.0));
 
+    // applying mouse wheel zoom
+    if (Settings.MouseWheelZoom) {
+      rcCanvas.addMouseWheelListener(getListeners());
+    } else {
+      rcCanvas.removeMouseWheelListener(getListeners());
+    }
+
     if (layerManager != null) {
       // applying animation frame settings
       ((LayerAnimation)layerManager.getLayer(LayerType.ANIMATION)).setRealAnimationFrameState(Settings.ShowFrame);
@@ -1929,21 +1980,31 @@ public class AreaViewer extends ChildFrame
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         boolean bRet = false;
         try {
-          try {
+          BufferedImage dstImage = null;
+          if (isExportLayersEnabled()) {
+            double zoom = getZoomFactor();
+            setZoomFactor(1.0, 1.0);
+            try {
+              dstImage = new BufferedImage(rcCanvas.getWidth(), rcCanvas.getHeight(), BufferedImage.TYPE_INT_RGB);
+              Graphics2D g = dstImage.createGraphics();
+              rcCanvas.paint(g);
+              g.dispose();
+            } finally {
+              setZoomFactor(zoom, Settings.ZoomFactor);
+            }
+          } else {
             VolatileImage srcImage = (VolatileImage)rcCanvas.getImage();
-            BufferedImage dstImage = ColorConvert.createCompatibleImage(srcImage.getWidth(),
-                                                                        srcImage.getHeight(),
-                                                                        srcImage.getTransparency());
+            dstImage = ColorConvert.createCompatibleImage(srcImage.getWidth(), srcImage.getHeight(),
+                                                          srcImage.getTransparency());
             Graphics2D g = dstImage.createGraphics();
             g.drawImage(srcImage, 0, 0, null);
             g.dispose();
-            srcImage = null;
-            bRet = ImageIO.write(dstImage, "png", os);
-            dstImage.flush();
-            dstImage = null;
-          } catch (Exception e) {
-            e.printStackTrace();
           }
+          bRet = ImageIO.write(dstImage, "png", os);
+          dstImage.flush();
+          dstImage = null;
+        } catch (Exception e) {
+          e.printStackTrace();
         } finally {
           releaseProgressMonitor();
           WindowBlocker.blockWindow(AreaViewer.this, false);
@@ -1966,9 +2027,9 @@ public class AreaViewer extends ChildFrame
 //----------------------------- INNER CLASSES -----------------------------
 
   // Handles all events of the viewer
-  private class Listeners implements ActionListener, MouseListener, MouseMotionListener, ChangeListener,
-                                     TilesetChangeListener, PropertyChangeListener, LayerItemListener,
-                                     ComponentListener, TreeExpansionListener
+  private class Listeners implements ActionListener, MouseListener, MouseMotionListener, MouseWheelListener,
+                                     ChangeListener, TilesetChangeListener, PropertyChangeListener,
+                                     LayerItemListener, ComponentListener, TreeExpansionListener
   {
     public Listeners()
     {
@@ -2083,9 +2144,9 @@ public class AreaViewer extends ChildFrame
       } else if (event.getSource() == cbZoomLevel) {
         WindowBlocker.blockWindow(AreaViewer.this, true);
         try {
-          int previousZoomLevel = Settings.ZoomLevel;
+          double previousZoomFactor = Settings.ZoomFactor;
           try {
-            setZoomLevel(cbZoomLevel.getSelectedIndex());
+            setZoomFactor(Settings.ItemZoomFactor[cbZoomLevel.getSelectedIndex()], previousZoomFactor);
           } catch (OutOfMemoryError e) {
             e.printStackTrace();
             cbZoomLevel.hidePopup();
@@ -2093,8 +2154,8 @@ public class AreaViewer extends ChildFrame
             String msg = "Not enough memory to set selected zoom level.\n"
                 + "(Note: It is highly recommended to close and reopen the area viewer.)";
             JOptionPane.showMessageDialog(AreaViewer.this, msg, "Error", JOptionPane.ERROR_MESSAGE);
-            cbZoomLevel.setSelectedIndex(previousZoomLevel);
-            setZoomLevel(previousZoomLevel);
+            cbZoomLevel.setSelectedIndex(Settings.getZoomLevelIndex(previousZoomFactor));
+            setZoomFactor(previousZoomFactor, Settings.ZoomFactorDefault);
           }
         } finally {
           WindowBlocker.blockWindow(AreaViewer.this, false);
@@ -2228,6 +2289,57 @@ public class AreaViewer extends ChildFrame
 
     //--------------------- End Interface MouseListener ---------------------
 
+    //--------------------- Begin Interface MouseWheelListener ---------------------
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent event)
+    {
+      if (event.getSource() == rcCanvas) {
+        int notches = event.getWheelRotation();
+        double zoom = getZoomFactor();
+        if (notches > 0) {
+          zoom = Settings.getNextZoomFactor(getZoomFactor(), false);
+        } else if (notches < 0) {
+          zoom = Settings.getNextZoomFactor(getZoomFactor(), true);
+        }
+        if (zoom != getZoomFactor()) {
+          WindowBlocker.blockWindow(AreaViewer.this, true);
+          try {
+            double previousZoomFactor = Settings.ZoomFactor;
+            try {
+              setZoomFactor(zoom, previousZoomFactor);
+            } catch (OutOfMemoryError e) {
+              e.printStackTrace();
+              cbZoomLevel.hidePopup();
+              WindowBlocker.blockWindow(AreaViewer.this, false);
+              String msg = "Not enough memory to set selected zoom level.\n"
+                  + "(Note: It is highly recommended to close and reopen the area viewer.)";
+              JOptionPane.showMessageDialog(AreaViewer.this, msg, "Error", JOptionPane.ERROR_MESSAGE);
+              cbZoomLevel.setSelectedIndex(Settings.getZoomLevelIndex(previousZoomFactor));
+              setZoomFactor(previousZoomFactor, Settings.ZoomFactorDefault);
+            }
+          } finally {
+            ActionListener[] list = cbZoomLevel.getActionListeners();
+            try {
+              for (final ActionListener l: list) {
+                cbZoomLevel.removeActionListener(l);
+              }
+              cbZoomLevel.setSelectedIndex(Settings.getZoomLevelIndex(getZoomFactor()));
+              treeControls.repaint();
+              treeControls.revalidate();
+            } finally {
+              for (final ActionListener l: list) {
+                cbZoomLevel.addActionListener(l);
+              }
+            }
+            WindowBlocker.blockWindow(AreaViewer.this, false);
+          }
+        }
+      }
+    }
+
+    //--------------------- End Interface MouseWheelListener ---------------------
+
     //--------------------- Begin Interface ChangeListener ---------------------
 
     @Override
@@ -2251,8 +2363,6 @@ public class AreaViewer extends ChildFrame
             workerLoadMap.execute();
           }
         }
-      } else if (event.getSource() == spCanvas.getViewport()) {
-        setViewpointCenter();
       }
     }
 
@@ -2333,7 +2443,7 @@ public class AreaViewer extends ChildFrame
       }
       if (event.getSource() == spCanvas) {
         if (isAutoZoom()) {
-          setZoomLevel(Settings.ZoomFactorIndexAuto);
+          setZoomFactor(Settings.ZoomFactorAuto, Settings.ZoomFactorDefault);
         }
         // centering the tileset if it fits into the viewport
         Dimension pDim = rcCanvas.getPreferredSize();
@@ -2620,8 +2730,8 @@ public class AreaViewer extends ChildFrame
      */
     public void reloadMiniMaps()
     {
-      if (are != null) {
-        String mapName = are.getName().toUpperCase(Locale.ENGLISH);
+      if (wed[ViewerConstants.AREA_DAY] != null) {
+        String mapName = wed[ViewerConstants.AREA_DAY].getName().toUpperCase(Locale.ENGLISH);
         if (mapName.lastIndexOf('.') >= 0) {
           mapName = mapName.substring(0, mapName.lastIndexOf('.'));
         }
@@ -2757,7 +2867,7 @@ public class AreaViewer extends ChildFrame
     {
       final String[] dayTime = new String[]{"Day", "Twilight", "Night"};
       String desc = dayTime[ViewerConstants.getDayTime(hour)];
-      return String.format("Time (%1$02d:00 - %2$s)", hour, desc);
+      return String.format("Time (%02d:00 - %s)", hour, desc);
     }
 
 
@@ -2887,22 +2997,22 @@ public class AreaViewer extends ChildFrame
       int dayTime = ViewerConstants.getDayTime(hour);
 
       ButtonGroup bg = new ButtonGroup();
-      String s = String.format("Day (%1$02d:00)", ViewerConstants.getHourOf(ViewerConstants.LIGHTING_DAY));
+      String s = String.format("Day (%02d:00)", ViewerConstants.getHourOf(ViewerConstants.LIGHTING_DAY));
       rbDayTime[ViewerConstants.LIGHTING_DAY] = new JRadioButton(s, (dayTime == ViewerConstants.LIGHTING_DAY));
       rbDayTime[ViewerConstants.LIGHTING_DAY].addActionListener(this);
       bg.add(rbDayTime[ViewerConstants.LIGHTING_DAY]);
-      s = String.format("Twilight (%1$02d:00)", ViewerConstants.getHourOf(ViewerConstants.LIGHTING_TWILIGHT));
+      s = String.format("Twilight (%02d:00)", ViewerConstants.getHourOf(ViewerConstants.LIGHTING_TWILIGHT));
       rbDayTime[ViewerConstants.LIGHTING_TWILIGHT] = new JRadioButton(s, (dayTime == ViewerConstants.LIGHTING_TWILIGHT));
       rbDayTime[ViewerConstants.LIGHTING_TWILIGHT].addActionListener(this);
       bg.add(rbDayTime[ViewerConstants.LIGHTING_TWILIGHT]);
-      s = String.format("Night (%1$02d:00)", ViewerConstants.getHourOf(ViewerConstants.LIGHTING_NIGHT));
+      s = String.format("Night (%02d:00)", ViewerConstants.getHourOf(ViewerConstants.LIGHTING_NIGHT));
       rbDayTime[ViewerConstants.LIGHTING_NIGHT] = new JRadioButton(s, (dayTime == ViewerConstants.LIGHTING_NIGHT));
       rbDayTime[ViewerConstants.LIGHTING_NIGHT].addActionListener(this);
       bg.add(rbDayTime[ViewerConstants.LIGHTING_NIGHT]);
 
       Hashtable<Integer, JLabel> table = new Hashtable<Integer, JLabel>();
       for (int i = 0; i < 24; i += 4) {
-        table.put(Integer.valueOf(i), new JLabel(String.format("%1$02d:00", i)));
+        table.put(Integer.valueOf(i), new JLabel(String.format("%02d:00", i)));
       }
       sHours = new JSlider(0, 23, hour);
       sHours.addChangeListener(this);

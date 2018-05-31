@@ -19,7 +19,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.swing.BorderFactory;
@@ -50,6 +50,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.Decompiler;
+import org.infinity.resource.bcs.ScriptMessage;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
@@ -176,7 +177,7 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
       scriptFiles = ResourceFactory.getResources("BCS");
       scriptFiles.addAll(ResourceFactory.getResources("BS"));
       progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking scripts...",
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking scripts..." + Misc.MSG_EXPAND_LARGE,
                                      String.format(FMT_PROGRESS, scriptFiles.size(), scriptFiles.size()),
                                      0, scriptFiles.size());
       progress.setNote(String.format(FMT_PROGRESS, 0, scriptFiles.size()));
@@ -254,9 +255,11 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
         pane.add(panel, BorderLayout.SOUTH);
         bopen.setEnabled(false);
         bopennew.setEnabled(false);
-        errorTable.setFont(BrowserMenuBar.getInstance().getScriptFont());
+        errorTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+        errorTable.setRowHeight(errorTable.getFontMetrics(errorTable.getFont()).getHeight() + 1);
         errorTable.getSelectionModel().addListSelectionListener(this);
-        warningTable.setFont(BrowserMenuBar.getInstance().getScriptFont());
+        warningTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+        warningTable.setRowHeight(warningTable.getFontMetrics(warningTable.getFont()).getHeight() + 1);
         warningTable.getSelectionModel().addListSelectionListener(this);
         MouseListener listener = new MouseAdapter()
         {
@@ -319,15 +322,22 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
 
   private static final class ScriptErrorsTableLine implements TableItem
   {
+    public enum Type {
+      ERROR,
+      WARNING,
+    }
+
     private final ResourceEntry resourceEntry;
     private final Integer lineNr;
     private final String error;
+    private final Type type;
 
-    private ScriptErrorsTableLine(ResourceEntry resourceEntry, Integer lineNr, String error)
+    private ScriptErrorsTableLine(ResourceEntry resourceEntry, Integer lineNr, String error, Type type)
     {
       this.resourceEntry = resourceEntry;
       this.lineNr = lineNr;
       this.error = error;
+      this.type = type;
     }
 
     @Override
@@ -343,8 +353,9 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
     @Override
     public String toString()
     {
-      return String.format("File: %1$s  Error: %2$s  Line: %3$d",
-                           resourceEntry.toString(), error, lineNr);
+      String type = (this.type == Type.ERROR) ? "Error" : "Warning";
+      return String.format("File: %s  %s: %s  Line: %d",
+                           resourceEntry.toString(), type, error, lineNr);
     }
   }
 
@@ -364,21 +375,23 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
         try {
           BcsResource script = new BcsResource(entry);
           Decompiler decompiler = new Decompiler(script.getCode(), true);
+          decompiler.setGenerateComments(false);
+          decompiler.setGenerateResourcesUsed(false);
           String decompiled = decompiler.getSource();
           Compiler compiler = new Compiler(decompiled);
           compiler.compile();
-          SortedMap<Integer, String> errorMap = compiler.getErrors();
-          for (final Integer lineNr : errorMap.keySet()) {
-            String error = errorMap.get(lineNr);
+          SortedSet<ScriptMessage> errorMap = compiler.getErrors();
+          for (final ScriptMessage sm: errorMap) {
             synchronized (errorTable) {
-              errorTable.addTableItem(new ScriptErrorsTableLine(entry, lineNr, error));
+              errorTable.addTableItem(new ScriptErrorsTableLine(entry, sm.getLine(), sm.getMessage(),
+                                                                ScriptErrorsTableLine.Type.ERROR));
             }
           }
-          SortedMap<Integer, String> warningMap = compiler.getWarnings();
-          for (final Integer lineNr : warningMap.keySet()) {
-            String warning = warningMap.get(lineNr);
+          SortedSet<ScriptMessage> warningMap = compiler.getWarnings();
+          for (final ScriptMessage sm: warningMap) {
             synchronized (warningTable) {
-              warningTable.addTableItem(new ScriptErrorsTableLine(entry, lineNr, warning));
+              warningTable.addTableItem(new ScriptErrorsTableLine(entry, sm.getLine(), sm.getMessage(),
+                                                                  ScriptErrorsTableLine.Type.WARNING));
             }
           }
         } catch (Exception e) {

@@ -15,7 +15,7 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 
 public final class WavReferenceSearcher extends AbstractReferenceSearcher
 {
@@ -43,9 +43,8 @@ public final class WavReferenceSearcher extends AbstractReferenceSearcher
         addHit(entry, entry.getSearchString(), o);
       }
       else if (o instanceof StringRef &&
-               StringResource.hasWavResource(((StringRef)o).getValue()) &&
-               targetEntry.toString().equalsIgnoreCase(
-                       StringResource.getWavResource(((StringRef)o).getValue()) + ".WAV")) {
+               !StringTable.getSoundResource(((StringRef)o).getValue()).isEmpty() &&
+               targetEntry.toString().equalsIgnoreCase(StringTable.getSoundResource(((StringRef)o).getValue()) + ".WAV")) {
         addHit(entry, null, o);
       }
       else if (o instanceof AbstractStruct) {

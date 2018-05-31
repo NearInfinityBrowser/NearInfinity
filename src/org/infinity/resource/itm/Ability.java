@@ -32,7 +32,6 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
 {
   // ITM/Ability-specific field labels (more fields defined in AbstractAbility)
   public static final String ITM_ABIL                     = "Item ability";
-  public static final String ITM_ABIL_IDENTIFY_TO_USE     = "Identify to use?";
   public static final String ITM_ABIL_DICE_SIZE_ALT       = "Alternate dice size";
   public static final String ITM_ABIL_LAUNCHER_REQUIRED   = "Launcher required";
   public static final String ITM_ABIL_DICE_COUNT_ALT      = "Alternate # dice thrown";
@@ -40,7 +39,6 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
   public static final String ITM_ABIL_DAMAGE_BONUS_ALT    = "Alternate damage bonus";
   public static final String ITM_ABIL_PRIMARY_TYPE        = "Primary type (school)";
   public static final String ITM_ABIL_SECONDARY_TYPE      = "Secondary type";
-  public static final String ITM_ABIL_WHEN_DRAINED        = "When drained";
   public static final String ITM_ABIL_FLAGS               = "Flags";
   public static final String ITM_ABIL_ANIM_OVERHAND       = "Animation: Overhand swing %";
   public static final String ITM_ABIL_ANIM_BACKHAND       = "Animation: Backhand swing %";
@@ -50,9 +48,8 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
   public static final String ITM_ABIL_IS_BULLET           = "Is bullet?";
 
   public static final String[] s_noyes = {"No", "Yes"};
-  public static final String[] s_drain = {"Item remains", "Item vanishes", "Replace with used up", "Item recharges"};
   public static final String[] s_launcher = {"None", "Bow", "Crossbow", "Sling"};
-  public static final String[] s_abilityuse = {"", "Weapon slots", "", "Item slots", "Gem?"};
+  public static final String[] s_abilityuse = {"", "Weapon", "Spell", "Item", "Ability", "reserved"};
   public static final String[] s_recharge = {
     "No flags set", "Add strength bonus", "Breakable", "EE: Damage strength bonus",
     "EE: THAC0 strength bonus", "", "", "", "", "", "",
@@ -136,7 +133,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
   {
     if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
       addField(new Bitmap(buffer, offset, 1, ABILITY_TYPE, s_type));
-      addField(new Bitmap(buffer, offset + 1, 1, ITM_ABIL_IDENTIFY_TO_USE, s_noyes));
+      addField(new Flag(buffer, offset + 1, 1, ABILITY_TYPE_FLAGS, s_type_flags));
       addField(new Bitmap(buffer, offset + 2, 1, ABILITY_LOCATION, s_abilityuse));
       addField(new DecNumber(buffer, offset + 3, 1, ITM_ABIL_DICE_SIZE_ALT));
       addField(new ResourceRef(buffer, offset + 4, ABILITY_ICON, "BAM"));
@@ -155,7 +152,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
     }
     else {
       addField(new Bitmap(buffer, offset, 1, ABILITY_TYPE, s_type));
-      addField(new Bitmap(buffer, offset + 1, 1, ITM_ABIL_IDENTIFY_TO_USE, s_noyes));
+      addField(new Flag(buffer, offset + 1, 1, ABILITY_TYPE_FLAGS, s_type_flags));
       addField(new Bitmap(buffer, offset + 2, 2, ABILITY_LOCATION, s_abilityuse));
       addField(new ResourceRef(buffer, offset + 4, ABILITY_ICON, "BAM"));
       addField(new Bitmap(buffer, offset + 12, 2, ABILITY_TARGET, s_targettype));
@@ -171,7 +168,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
     addField(new SectionCount(buffer, offset + 30, 2, ABILITY_NUM_EFFECTS, Effect.class));
     addField(new DecNumber(buffer, offset + 32, 2, ABILITY_FIRST_EFFECT_INDEX));
     addField(new DecNumber(buffer, offset + 34, 2, ABILITY_NUM_CHARGES));
-    addField(new Bitmap(buffer, offset + 36, 2, ITM_ABIL_WHEN_DRAINED, s_drain));
+    addField(new Bitmap(buffer, offset + 36, 2, ABILITY_WHEN_DRAINED, s_drain));
     addField(new Flag(buffer, offset + 38, 4, ITM_ABIL_FLAGS, s_recharge));
     if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
       addField(new ProRef(buffer, offset + 42, ABILITY_PROJECTILE));

@@ -432,7 +432,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
         // writing regular frame data
         do {
           if (!silent && frameIdx % 10 == 0) {
-            pm.setNote(String.format("Processing frame %1$d", frameIdx));
+            pm.setNote(String.format("Processing frame %d", frameIdx));
           }
 
           if (decoder.frameHasVideo()) {

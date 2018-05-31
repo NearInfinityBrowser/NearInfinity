@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -29,6 +31,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
 
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ButtonPanel;
@@ -43,8 +46,9 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.search.ReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
-import org.infinity.util.Decryptor;
+import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.Misc;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
@@ -72,7 +76,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     this.entry = entry;
     ByteBuffer buffer = entry.getResourceBuffer();
     if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
-      buffer = Decryptor.decrypt(buffer, 2);
+      buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
     Charset cs = null;
     if (BrowserMenuBar.getInstance() != null) {
@@ -92,6 +96,8 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
       if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor()))
         resourceChanged = false;
+    } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
+      new ReferenceSearcher(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.TRIM_SPACES) == event.getSource()) {
@@ -200,32 +206,34 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   }
 
   @Override
-  public void highlightText(int linenr, String text)
+  public void highlightText(int linenr, String highlightText)
   {
-    String s = editor.getText();
-    int startpos = 0;
-    int i = (s.charAt(0) == '\n') ? 2 : 1;
-    for (; i < linenr; i++) {
-      startpos = s.indexOf("\n", startpos + 1);
-    }
-    if (startpos == -1) return;
-    if (text != null) {
-      // try to select specified text string
-      int wordpos = s.toUpperCase(Locale.ENGLISH).indexOf(text.toUpperCase(Locale.ENGLISH), startpos);
-      if (wordpos != -1) {
-        editor.select(wordpos, wordpos + text.length());
-      } else {
-        editor.select(startpos, s.indexOf("\n", startpos + 1));
+    try {
+      int startOfs = editor.getLineStartOffset(linenr - 1);
+      int endOfs = editor.getLineEndOffset(linenr - 1);
+      if (highlightText != null) {
+        String text = editor.getText(startOfs, endOfs - startOfs);
+        Pattern p = Pattern.compile(highlightText, Pattern.CASE_INSENSITIVE);
+        Matcher m = p.matcher(text);
+        if (m.find()) {
+          startOfs += m.start();
+          endOfs = startOfs + m.end() + 1;
+        }
       }
-    } else {
-      // select whole line
-      int endpos = s.indexOf("\n", startpos + 1);
-      if (endpos < 0) {
-        endpos = s.length();
-      }
-      editor.select(startpos, endpos);
+      highlightText(startOfs, endOfs);
+    } catch (BadLocationException ble) {
     }
-    editor.getCaret().setSelectionVisible(true);
+  }
+
+  @Override
+  public void highlightText(int startOfs, int endOfs)
+  {
+    try {
+      editor.setCaretPosition(startOfs);
+      editor.moveCaretPosition(endOfs - 1);
+      editor.getCaret().setSelectionVisible(true);
+    } catch (IllegalArgumentException e) {
+    }
   }
 
 // --------------------- End Interface TextResource ---------------------
@@ -240,7 +248,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     InfinityScrollPane pane = new InfinityScrollPane(editor, true);
     setSyntaxHighlightingEnabled(editor, pane);
     editor.addCaretListener(container.getStatusBar());
-    editor.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    editor.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     editor.setMargin(new Insets(3, 3, 3, 3));
     editor.setCaretPosition(0);
     editor.setLineWrap(false);
@@ -258,6 +266,9 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
     bpmFind.addItemListener(this);
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.TRIM_SPACES)).addActionListener(this);
+    if (entry.toString().toUpperCase(Locale.ENGLISH).endsWith(".2DA")) {
+      ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
+    }
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
 
@@ -352,6 +363,12 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
         if (BrowserMenuBar.getInstance() == null ||
             BrowserMenuBar.getInstance().getBcsSyntaxHighlightingEnabled()) {
           language = InfinityTextArea.Language.BCS;
+        }
+      } else if ("WeiDU.log".equalsIgnoreCase(entry.getResourceName()) ||
+                 "WeiDU-BGEE.log".equalsIgnoreCase(entry.getResourceName())) {
+        if (BrowserMenuBar.getInstance() == null ||
+            BrowserMenuBar.getInstance().getWeiDUSyntaxHighlightingEnabled()) {
+          language = InfinityTextArea.Language.WEIDU;
         }
       }
     }

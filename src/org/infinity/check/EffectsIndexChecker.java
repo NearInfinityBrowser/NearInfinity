@@ -130,7 +130,7 @@ public class EffectsIndexChecker extends ChildFrame implements ActionListener, R
     try {
       String type = "WWWW";
       progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking...",
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking..." + Misc.MSG_EXPAND_SMALL,
                                      String.format(FMT_PROGRESS, type),
                                      0, files.size());
       progress.setMillisToDecideToPopup(100);

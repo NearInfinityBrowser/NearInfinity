@@ -652,7 +652,7 @@ public class PseudoBamDecoder extends BamDecoder
       for (int i = 0; i < listCycles.size(); i++) {
         if (listCycles.get(i).size() > 65535) {
           throw new Exception(String.format("No more than 65535 frames per cycle supported. " +
-                                            "Cycle %1$d contains %2$d entries.",
+                                            "Cycle %d contains %d entries.",
                                             i, listCycles.get(i).size()));
         }
       }
@@ -676,7 +676,7 @@ public class PseudoBamDecoder extends BamDecoder
 
         // rudimentary palette check
         if (palette == null) {
-          final int Green = 0x0000ff00;;
+          final int Green = 0x0000ff00;
           IndexColorModel cm = (IndexColorModel)entry.getFrame().getColorModel();
           palette = new int[1 << cm.getPixelSize()];
           cm.getRGBs(palette);
@@ -937,7 +937,7 @@ public class PseudoBamDecoder extends BamDecoder
             listFrameDataBlocks.add(frame);
           } catch (IndexOutOfBoundsException e) {
             throw new IndexOutOfBoundsException(
-                String.format("Invalid frame index %1$d found in cycle %2$d", idx, i));
+                String.format("Invalid frame index %d found in cycle %d", idx, i));
           }
         }
         frameStartIndex += cycleFrames.size();
@@ -1244,7 +1244,7 @@ public class PseudoBamDecoder extends BamDecoder
 
       if (pvrzPageIndex + gridList.size() > 100000) {
         throw new Exception(String.format("The number of required PVRZ files exceeds the max. index of 99999.\n" +
-                                          "Please choose a PVRZ start index smaller than or equal to %1$d.",
+                                          "Please choose a PVRZ start index smaller than or equal to %d.",
                                           100000 - gridList.size()));
       }
       return true;
@@ -1270,7 +1270,7 @@ public class PseudoBamDecoder extends BamDecoder
       pageMax = Math.max(pageMax, entry.page);
     }
 
-    String note = "Generating PVRZ file %1$s / %2$s";
+    String note = "Generating PVRZ file %s / %s";
     if (progress != null) {
       if (curProgress < 0) curProgress = 0;
       progress.setMaximum(curProgress + pageMax - pageMin + 1);
@@ -1288,7 +1288,7 @@ public class PseudoBamDecoder extends BamDecoder
         curProgress++;
       }
 
-      Path pvrzName = path.resolve(String.format("MOS%1$04d.PVRZ", i));
+      Path pvrzName = path.resolve(String.format("MOS%04d.PVRZ", i));
       BinPack2D packer = gridList.get(i - pageMin);
       packer.shrinkBin(true);
 
@@ -1298,10 +1298,9 @@ public class PseudoBamDecoder extends BamDecoder
       BufferedImage texture = ColorConvert.createCompatibleImage(tw, th, true);
       Graphics2D g = texture.createGraphics();
       try {
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+        g.setComposite(AlphaComposite.Src);
         g.setColor(TransparentColor);
+        g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
         for (int frameIdx = 0; frameIdx < listFrames.size(); frameIdx++) {
           BufferedImage image = listFrames.get(frameIdx).frame;
           FrameDataV2 frame = framesList.get(frameIdx);
@@ -1335,14 +1334,14 @@ public class PseudoBamDecoder extends BamDecoder
         try (OutputStream os = StreamUtils.getOutputStream(pvrzName, true)) {
           os.write(pvrz);
         } catch (Exception e) {
-          errorMsg = String.format("Error writing PVRZ file \"%1$s\" to disk.", pvrzName);
+          errorMsg = String.format("Error writing PVRZ file \"%s\" to disk.", pvrzName);
           e.printStackTrace();
         }
         textureData = null;
         pvrz = null;
       } catch (Exception e) {
         e.printStackTrace();
-        errorMsg = String.format("Error generating PVRZ files:\n%1$s.", e.getMessage());
+        errorMsg = String.format("Error generating PVRZ files:\n%s.", e.getMessage());
       }
 
       if (errorMsg != null) {
@@ -1426,7 +1425,7 @@ public class PseudoBamDecoder extends BamDecoder
       if (s != null) {
         return s;
       } else {
-        return String.format("Frame@%1$dx%2$d", width, height);
+        return String.format("Frame@%dx%d", width, height);
       }
     }
 

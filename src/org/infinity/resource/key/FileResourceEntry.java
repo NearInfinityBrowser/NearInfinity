@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.Locale;
 
 import org.infinity.gui.BrowserMenuBar;
@@ -102,18 +103,61 @@ public final class FileResourceEntry extends ResourceEntry
   }
 
   @Override
-  public String getTreeFolder()
+  public String getTreeFolderName()
   {
-    if ((BrowserMenuBar.getInstance() != null) &&
-        (BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_THREE) &&
-        hasOverride() &&
-        (ResourceFactory.getKeyfile().getExtensionType(getExtension()) != -1)) {
-      return getExtension();
-    } else if (hasOverride()) {
-        return Profile.getOverrideFolderName();
+    if (BrowserMenuBar.getInstance() != null) {
+      int mode = BrowserMenuBar.getInstance().getOverrideMode();
+      if (ResourceFactory.getKeyfile().getExtensionType(getExtension()) != -1) {
+        if (mode == BrowserMenuBar.OVERRIDE_IN_THREE) {
+          return getExtension();
+        } else if (mode == BrowserMenuBar.OVERRIDE_SPLIT &&
+                   ResourceFactory.getKeyfile().getResourceEntry(getResourceName()) != null) {
+          return getExtension();
+        }
+      }
+    }
+    if (hasOverride()) {
+      return Profile.getOverrideFolderName();
     } else {
       return file.getParent().getFileName().toString();
     }
+  }
+
+  @Override
+  public ResourceTreeFolder getTreeFolder()
+  {
+    ResourceTreeFolder retVal = null;
+
+    // check extra folders first
+    List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
+    for (final Path path: extraPaths) {
+      if (file.startsWith(path)) {
+        // finding correct subfolder
+        int startIndex = path.getNameCount() - 1; // include main folder
+        int endIndex = file.getNameCount() - 1; // exlude filename
+        Path subPath = file.subpath(startIndex, endIndex);
+
+        retVal = (ResourceTreeFolder)ResourceFactory.getResourceTreeModel().getRoot();
+        for (int idx = 0, cnt = subPath.getNameCount(); idx < cnt && retVal != null; idx++) {
+          String name = subPath.getName(idx).toString();
+          List<ResourceTreeFolder> folders = retVal.getFolders();
+          retVal = null;
+          for (final ResourceTreeFolder subFolder: folders) {
+            if (name.equalsIgnoreCase(subFolder.folderName())) {
+              retVal = subFolder;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // check override folders
+    if (retVal == null) {
+      retVal = ResourceFactory.getResourceTreeModel().getFolder(getTreeFolderName());
+    }
+
+    return retVal;
   }
 
   @Override

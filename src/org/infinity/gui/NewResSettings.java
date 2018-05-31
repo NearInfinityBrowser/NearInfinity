@@ -25,7 +25,7 @@ import javax.swing.JPanel;
 
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 
 public final class NewResSettings extends NewAbstractSettings implements KeyListener
 {
@@ -205,12 +205,13 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
       case BG1EE:
       case BG1SoD:
       case BG2EE:
+      case PSTEE:
       case EET:
         gameType = GameType.BG2;
         break;
       case IWD:
       case IWDHoW:
-      case IWDHowToTLM:
+      case IWDHowTotLM:
         gameType = GameType.IWD;
         break;
       case IWD2:
@@ -318,10 +319,8 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
 
     public String getString()
     {
-      if (StringResource.getMaxIndex() <= 0)    // required?
-        StringResource.getStringRef(0);
-      if (stringId >= 0 && stringId < StringResource.getMaxIndex())
-        return StringResource.getStringRef(stringId);
+      if (stringId >= 0 && stringId < StringTable.getNumEntries())
+        return StringTable.getStringRef(stringId);
       else
         return defaultString;
     }

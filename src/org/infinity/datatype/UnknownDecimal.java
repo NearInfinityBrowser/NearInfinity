@@ -44,7 +44,7 @@ public final class UnknownDecimal extends Unknown
       }
       if (counter == newdata.length) {
         buffer.position(0);
-        buffer.get(newdata);
+        buffer.put(newdata);
         return true;
       }
     } catch (NumberFormatException e) {
@@ -72,7 +72,7 @@ public final class UnknownDecimal extends Unknown
       sb.append('d');
       return sb.toString();
     } else
-      return new String();
+      return "";
   }
 }
 

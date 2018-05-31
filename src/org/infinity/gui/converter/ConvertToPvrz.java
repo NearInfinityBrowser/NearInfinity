@@ -17,9 +17,14 @@ import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
@@ -74,11 +79,12 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
   private static FileNameExtensionFilter[] getInputFilters()
   {
     FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
-        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg)",
-                                    "bam", "bmp", "png", "jpg", "jpeg"),
+        new FileNameExtensionFilter("Graphics files (*.bmp, *.png, *,jpg, *.jpeg, *.pvr)",
+                                    "bam", "bmp", "png", "jpg", "jpeg", "pvr"),
         new FileNameExtensionFilter("BMP files (*.bmp)", "bmp"),
         new FileNameExtensionFilter("PNG files (*.png)", "png"),
-        new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg")
+        new FileNameExtensionFilter("JPEG files (*.jpg, *.jpeg)", "jpg", "jpeg"),
+        new FileNameExtensionFilter("PVR files (*.pvr)", "pvr")
     };
     return filters;
   }
@@ -472,12 +478,40 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
   }
 
   // checks graphics input file properties
-  private static boolean isValidInput(Path inFile)
+  private static boolean isValidGraphicsInput(Path inFile)
   {
     boolean result = (inFile != null && Files.isRegularFile(inFile));
     if (result) {
       Dimension d = ColorConvert.getImageDimension(inFile);
       if (d == null || d.width <= 0 || d.width > 1024 || d.height <= 0 || d.height > 1024) {
+        result = false;
+      }
+    }
+    return result;
+  }
+
+  // checks PVR input file properties
+  private static boolean isValidPVRInput(Path inFile)
+  {
+    boolean result = (inFile != null && Files.isRegularFile(inFile));
+    if (result) {
+      try (InputStream is = StreamUtils.getInputStream(inFile)) {
+        String sig = StreamUtils.readString(is, 4);
+        if ("PVR\u0003".equals(sig)) {
+          StreamUtils.readInt(is);  // flags
+          StreamUtils.readInt(is);  // pixel format #1
+          StreamUtils.readInt(is);  // pixel format #2
+          StreamUtils.readInt(is);  // color space
+          StreamUtils.readInt(is);  // channel type
+          int h = StreamUtils.readInt(is);  // height
+          int w = StreamUtils.readInt(is);  // width
+          if (h <= 0 || w <= 0 || h > 1024 || w > 1024) {
+            result = false;
+          }
+        } else {
+          result = false;
+        }
+      } catch (IOException e) {
         result = false;
       }
     }
@@ -526,7 +560,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     boolean isSingle = inputFiles.length == 1;
 
     // preparing progress meter
-    final String note = "Converting file %1$d / %2$d";
+    final String note = "Converting file %d / %d";
     int progressIndex = 0, progressInc = 1;
     int progressMax = isSingle ? 100 : inputFiles.length;
     progress = new ProgressMonitor(this, "Converting PVRZ...",
@@ -544,7 +578,9 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         progressIndex += progressInc;
       }
       Path inFile = inputFiles[fileIdx];
-      if (isValidInput(inFile)) {
+      boolean isGraphics = isValidGraphicsInput(inFile);
+      boolean isPVR = isValidPVRInput(inFile);
+      if (isGraphics || isPVR) {
         String inFileName = inFile.getFileName().toString();
 
         // generating output filename
@@ -563,7 +599,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
             skippedFiles++;
             continue;
           } else if (ask) {
-            String msg = String.format("File \"%1$s\" aready exists. Overwrite?", outFileName);
+            String msg = String.format("File \"%s\" aready exists. Overwrite?", outFileName);
             int ret = JOptionPane.showConfirmDialog(this, msg, "Overwrite?", JOptionPane.YES_NO_OPTION);
             if  (ret == JOptionPane.NO_OPTION) {
               skippedFiles++;
@@ -573,135 +609,160 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         }
 
         // loading source image data
-        BufferedImage srcImg = null;
-        try {
-          srcImg = ColorConvert.toBufferedImage(ImageIO.read(inFile.toFile()), true);
-        } catch (Exception e) {
-        }
-        if (srcImg == null) {
-          skippedFiles++;
-          continue;
-        }
-
-        // handling "auto" compression format
-        int[] pixels = ((DataBufferInt)srcImg.getRaster().getDataBuffer()).getData();
-        if (auto) {
-          for (n = 0; n < pixels.length; n++) {
-            int alpha = pixels[n] >>> 24;
-            if (alpha > 0x20 && alpha < 0xe0) {
-              dxt = 5;
-              break;
-            }
+        if (isPVR) {
+          // handling PVR files
+          ByteBuffer bb = null;
+          try (SeekableByteChannel ch = Files.newByteChannel(inFile, StandardOpenOption.READ)) {
+            bb = StreamUtils.getByteBuffer((int)ch.size());
+            ch.read(bb);
+            bb.position(0);
+          } catch (IOException e) {
+            bb = null;
+            errors++;
+            e.printStackTrace();
           }
-        }
-
-        // ensure dimensions are always power of two
-        int w = nextPowerOfTwo(srcImg.getWidth());
-        int h = nextPowerOfTwo(srcImg.getHeight());
-        if (w != srcImg.getWidth() || h != srcImg.getHeight()) {
-          BufferedImage image = ColorConvert.createCompatibleImage(w, h, true);
-          Graphics2D g = image.createGraphics();
-          g.drawImage(srcImg, 0, 0, null);
-          g.dispose();
-          srcImg = image;
-          pixels = ((DataBufferInt)srcImg.getRaster().getDataBuffer()).getData();
-        }
-
-        // preparing output
-        DxtEncoder.DxtType dxtType = null;
-        byte[] header = null;
-        switch (dxt) {
-          case 3:
-            dxtType = DxtEncoder.DxtType.DXT3;
-            header = createPVRHeader(w, h, 9);
-            break;
-          case 5:
-            dxtType = DxtEncoder.DxtType.DXT5;
-            header = createPVRHeader(w, h, 11);
-            break;
-          default:
-            dxtType = DxtEncoder.DxtType.DXT1;
-            header = createPVRHeader(w, h, 7);
-        }
-
-        // encoding block by block
-        int outSize = DxtEncoder.calcImageSize(w, h, dxtType);
-        byte[] output = new byte[outSize];
-        int outOfs = 0;
-        int bw = w / 4;
-        int bh = h / 4;
-        int[] inBlock = new int[16];
-        byte[] outBlock = new byte[DxtEncoder.calcBlockSize(dxtType)];
-        // more initialization for progress meter
-        int counter = 0;
-        if (isSingle) {
-          progressInc = (bw*bh / 100);
-          if (progressInc == 0) {
-            progress.setMaximum(bw*bh + 1);
-            progressInc = 1;
-          }
-        }
-        for (int y = 0; y < bh; y++) {
-          if (!isSingle) {
-            // force the progress meter to pop up
-            progress.setProgress(progressIndex);
-          }
-          for (int x = 0; x < bw; x++) {
-            // handling progress meter
-            if (isSingle) {
-              if (counter >= progressInc) {
-                counter = 0;
-                progressIndex++;
-                progress.setProgress(progressIndex);
-              }
-              counter++;
-            }
-            if (progress.isCanceled()) {
-              progress.close();
-              progress = null;
-              List<String> l = new Vector<String>(2);
-              l.add(null);
-              l.add("Conversion cancelled.");
-              return l;
-            }
-
-            // starting encoding process
-            int ofs = y*w*4 + x*4;
-            for (int i = 0; i < 4; i++, ofs+=w) {
-              System.arraycopy(pixels, ofs, inBlock, i*4, 4);
-            }
-            try {
-              DxtEncoder.encodeBlock(inBlock, outBlock, dxtType);
+          if (bb != null) {
+            byte[] buffer = bb.array();
+            byte[] output = Compressor.compress(buffer, 0, buffer.length, true);
+            try (OutputStream os = StreamUtils.getOutputStream(outFile, true)) {
+              os.write(output);
             } catch (Exception e) {
-              warnings++;
-              Arrays.fill(outBlock, (byte)0);
+              errors++;
+              e.printStackTrace();
             }
-            System.arraycopy(outBlock, 0, output, outOfs, outBlock.length);
-            outOfs += outBlock.length;
           }
-        }
+        } else if (isGraphics) {
+          // handling graphics files
+          BufferedImage srcImg = null;
+          try {
+            srcImg = ColorConvert.toBufferedImage(ImageIO.read(inFile.toFile()), true);
+          } catch (Exception e) {
+          }
+          if (srcImg == null) {
+            skippedFiles++;
+            continue;
+          }
 
-        // finalizing output data
-        byte[] pvrz = new byte[header.length + output.length];
-        System.arraycopy(header, 0, pvrz, 0, header.length);
-        System.arraycopy(output, 0, pvrz, header.length, output.length);
-        pvrz = Compressor.compress(pvrz, 0, pvrz.length, true);
-        try (OutputStream os = StreamUtils.getOutputStream(outFile, true)) {
-          os.write(pvrz);
-        } catch (Exception e) {
-          errors++;
-          e.printStackTrace();
-        }
+          // handling "auto" compression format
+          int[] pixels = ((DataBufferInt)srcImg.getRaster().getDataBuffer()).getData();
+          if (auto) {
+            for (n = 0; n < pixels.length; n++) {
+              int alpha = pixels[n] >>> 24;
+              if (alpha > 0x20 && alpha < 0xe0) {
+                dxt = 5;
+                break;
+              }
+            }
+          }
 
-        // cleaning up
-        pixels = null;
-        srcImg.flush();
-        srcImg = null;
-        output = null;
-        pvrz = null;
-        inBlock = null;
-        outBlock = null;
-        header = null;
+          // ensure dimensions are always power of two
+          int w = nextPowerOfTwo(srcImg.getWidth());
+          int h = nextPowerOfTwo(srcImg.getHeight());
+          if (w != srcImg.getWidth() || h != srcImg.getHeight()) {
+            BufferedImage image = ColorConvert.createCompatibleImage(w, h, true);
+            Graphics2D g = image.createGraphics();
+            g.drawImage(srcImg, 0, 0, null);
+            g.dispose();
+            srcImg = image;
+            pixels = ((DataBufferInt)srcImg.getRaster().getDataBuffer()).getData();
+          }
+
+          // preparing output
+          DxtEncoder.DxtType dxtType = null;
+          byte[] header = null;
+          switch (dxt) {
+            case 3:
+              dxtType = DxtEncoder.DxtType.DXT3;
+              header = createPVRHeader(w, h, 9);
+              break;
+            case 5:
+              dxtType = DxtEncoder.DxtType.DXT5;
+              header = createPVRHeader(w, h, 11);
+              break;
+            default:
+              dxtType = DxtEncoder.DxtType.DXT1;
+              header = createPVRHeader(w, h, 7);
+          }
+
+          // encoding block by block
+          int outSize = DxtEncoder.calcImageSize(w, h, dxtType);
+          byte[] output = new byte[outSize];
+          int outOfs = 0;
+          int bw = w / 4;
+          int bh = h / 4;
+          int[] inBlock = new int[16];
+          byte[] outBlock = new byte[DxtEncoder.calcBlockSize(dxtType)];
+          // more initialization for progress meter
+          int counter = 0;
+          if (isSingle) {
+            progressInc = (bw*bh / 100);
+            if (progressInc == 0) {
+              progress.setMaximum(bw*bh + 1);
+              progressInc = 1;
+            }
+          }
+          for (int y = 0; y < bh; y++) {
+            if (!isSingle) {
+              // force the progress meter to pop up
+              progress.setProgress(progressIndex);
+            }
+            for (int x = 0; x < bw; x++) {
+              // handling progress meter
+              if (isSingle) {
+                if (counter >= progressInc) {
+                  counter = 0;
+                  progressIndex++;
+                  progress.setProgress(progressIndex);
+                }
+                counter++;
+              }
+              if (progress.isCanceled()) {
+                progress.close();
+                progress = null;
+                List<String> l = new Vector<String>(2);
+                l.add(null);
+                l.add("Conversion cancelled.");
+                return l;
+              }
+
+              // starting encoding process
+              int ofs = y*w*4 + x*4;
+              for (int i = 0; i < 4; i++, ofs+=w) {
+                System.arraycopy(pixels, ofs, inBlock, i*4, 4);
+              }
+              try {
+                DxtEncoder.encodeBlock(inBlock, outBlock, dxtType);
+              } catch (Exception e) {
+                warnings++;
+                Arrays.fill(outBlock, (byte)0);
+              }
+              System.arraycopy(outBlock, 0, output, outOfs, outBlock.length);
+              outOfs += outBlock.length;
+            }
+          }
+
+          // finalizing output data
+          byte[] pvrz = new byte[header.length + output.length];
+          System.arraycopy(header, 0, pvrz, 0, header.length);
+          System.arraycopy(output, 0, pvrz, header.length, output.length);
+          pvrz = Compressor.compress(pvrz, 0, pvrz.length, true);
+          try (OutputStream os = StreamUtils.getOutputStream(outFile, true)) {
+            os.write(pvrz);
+          } catch (Exception e) {
+            errors++;
+            e.printStackTrace();
+          }
+
+          // cleaning up
+          pixels = null;
+          srcImg.flush();
+          srcImg = null;
+          output = null;
+          pvrz = null;
+          inBlock = null;
+          outBlock = null;
+          header = null;
+        }
       } else {
         warnings++;
         skippedFiles++;
@@ -718,17 +779,17 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     } else {
       l.add(null);
       if (warnings > 0 && errors == 0) {
-        sb.append(String.format("Conversion finished with %1$d warning(s).", warnings));
+        sb.append(String.format("Conversion finished with %d warning(s).", warnings));
       } else {
-        sb.append(String.format("Conversion finished with %1$d warning(s) and %2$d error(s).",
+        sb.append(String.format("Conversion finished with %d warning(s) and %d error(s).",
                                 warnings, errors));
       }
     }
     if (skippedFiles > 0) {
       if (skippedFiles == 1) {
-        sb.append(String.format("\n%1$d file has been skipped.", skippedFiles));
+        sb.append(String.format("\n%d file has been skipped.", skippedFiles));
       } else {
-        sb.append(String.format("\n%1$d files have been skipped.", skippedFiles));
+        sb.append(String.format("\n%d files have been skipped.", skippedFiles));
       }
     }
     l.add(sb.toString());

@@ -23,6 +23,7 @@ import javax.swing.JPanel;
 import org.infinity.NearInfinity;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
+import org.infinity.util.Misc;
 
 final class DebugConsole extends ChildFrame implements ActionListener
 {
@@ -40,9 +41,10 @@ final class DebugConsole extends ChildFrame implements ActionListener
     bsaveconsole.addActionListener(this);
 
     InfinityTextArea taconsole = NearInfinity.getConsoleText();
+    taconsole.setFont(Misc.getScaledFont(taconsole.getFont()));
     taconsole.setHighlightCurrentLine(false);
     taconsole.setEditable(false);
-    taconsole.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    taconsole.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
 
     JPanel lowerpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
     lowerpanel.add(bclearconsole);
@@ -53,7 +55,7 @@ final class DebugConsole extends ChildFrame implements ActionListener
     pane.add(new InfinityScrollPane(taconsole, false), BorderLayout.CENTER);
     pane.add(lowerpanel, BorderLayout.SOUTH);
 
-    setSize(450, 450);
+    setSize(Misc.getScaledValue(450), Misc.getScaledValue(450));
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 

@@ -46,7 +46,7 @@ public final class StatusBar extends JPanel implements CaretListener
       int position = event.getDot();
       try {
         int linenr = source.getLineOfOffset(position);
-        cursorLabel.setText(String.format(" %1$d:%2$d", linenr + 1,
+        cursorLabel.setText(String.format(" %d:%d", linenr + 1,
                                           1 + position - source.getLineStartOffset(linenr)));
       } catch (BadLocationException e) {
         cursorLabel.setText("");

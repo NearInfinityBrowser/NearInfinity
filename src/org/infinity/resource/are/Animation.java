@@ -40,12 +40,7 @@ public final class Animation extends AbstractStruct implements AddRemovable
     {"Not shown", "Is shown", "No shadow", "Not light source", "Partial animation",
      "Synchronized draw", "Random start","Not covered by wall", "Static animation",
      "Draw as background", "Play all frames", "Recolored by palette", "Mirror Y axis",
-     "Don't remove in combat"};
-  public static final String[] s_flag_ee =
-    {"Not shown", "Is shown", "No shadow", "Not light source", "Partial animation",
-     "Synchronized draw", "Random start", "Not covered by wall", "Static animation",
-     "Draw as background", "Play all frames", "Recolored by palette", "Mirror Y axis",
-     "Don't remove in combat", "Use WBM", "Under ground", "Use PVRZ"};
+     "Don't remove in combat", "EE: Use WBM", "EE: Under ground", "EE: Use PVRZ"};
 
   Animation() throws Exception
   {
@@ -81,17 +76,15 @@ public final class Animation extends AbstractStruct implements AddRemovable
     }
     addField(new DecNumber(buffer, offset + 48, 2, ARE_ANIMATION_ANIMATION_INDEX));
     addField(new DecNumber(buffer, offset + 50, 2, ARE_ANIMATION_FRAME_INDEX));
-    if (Profile.isEnhancedEdition()) {
-      addField(new Flag(buffer, offset + 52, 4, ARE_ANIMATION_APPEARANCE, s_flag_ee));
-    } else {
-      addField(new Flag(buffer, offset + 52, 4, ARE_ANIMATION_APPEARANCE, s_flag));
-    }
+    addField(new Flag(buffer, offset + 52, 4, ARE_ANIMATION_APPEARANCE, s_flag));
     addField(new DecNumber(buffer, offset + 56, 2, ARE_ANIMATION_LOCATION_Z));
     addField(new DecNumber(buffer, offset + 58, 2, ARE_ANIMATION_TRANSLUCENCY));
     addField(new DecNumber(buffer, offset + 60, 2, ARE_ANIMATION_START_RANGE));
     addField(new DecNumber(buffer, offset + 62, 1, ARE_ANIMATION_LOOP_PROBABILITY));
     addField(new DecNumber(buffer, offset + 63, 1, ARE_ANIMATION_START_DELAY));
-    if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
+    if (Profile.getEngine() == Profile.Engine.BG2 ||
+        Profile.getEngine() == Profile.Engine.IWD2 ||
+        Profile.isEnhancedEdition()) {
       addField(new ResourceRef(buffer, offset + 64, ARE_ANIMATION_PALETTE, "BMP"));
     } else {
       addField(new Unknown(buffer, offset + 64, 8));

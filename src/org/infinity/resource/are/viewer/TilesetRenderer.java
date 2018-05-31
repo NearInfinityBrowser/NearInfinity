@@ -52,6 +52,12 @@ public class TilesetRenderer extends RenderCanvas
   private static final double MinZoomFactor = 1.0/64.0;   // lower zoom factor limit
   private static final double MaxZoomFactor = 16.0;       // upper zoom factor limit
 
+  // Placeholder for missing tile data
+  private static final int[] DEFAULT_TILE_DATA = new int[64*64];
+  static {
+    initDefaultTile(DEFAULT_TILE_DATA);
+  }
+
   // Lighting adjustment for day/twilight/night times (multiplied by 10.24 for faster calculations)
   // Formula:
   // red   = (red   * LightingAdjustment[lighting][0]) >>> LightingAdjustmentShift;
@@ -534,7 +540,7 @@ public class TilesetRenderer extends RenderCanvas
       setPreferredSize(newDim);
       setMinimumSize(newDim);
     } else {
-      super.updateSize();
+      super.update();
     }
   }
 
@@ -555,6 +561,21 @@ public class TilesetRenderer extends RenderCanvas
           g.drawLine((int)Math.ceil(curX + tileWidth), (int)Math.ceil(curY),
                      (int)Math.ceil(curX + tileWidth), (int)Math.ceil(curY + tileHeight));
         }
+      }
+    }
+  }
+
+  private static void initDefaultTile(int[] buffer)
+  {
+    if (buffer != null) {
+      BufferedImage image = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+      Graphics2D g = image.createGraphics();
+      g.setColor(Color.GRAY);
+      g.fillRect(0, 0, image.getWidth(), image.getHeight());
+      g.dispose();
+      int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+      for (int i = 0, cnt = Math.min(buffer.length, pixels.length); i < cnt; i++) {
+        buffer[i] = pixels[i];
       }
     }
   }
@@ -895,8 +916,11 @@ public class TilesetRenderer extends RenderCanvas
         int[] srcTile = null;
         int tileIdx = (!isDoorClosed || !isDoorTile) ? tile.getPrimaryIndex() : tile.getSecondaryIndex();
         if (tileIdx < 0) { tileIdx = tile.getPrimaryIndex(); }    // XXX: hackish work-around for faulty tile definitions
-        if (tileIdx >= 0) {
+        if (tileIdx >= 0 && tileIdx < listTilesets.get(0).listTileData.size()) {
           srcTile = listTilesets.get(0).listTileData.get(tileIdx);
+        } else {
+          // loading default tile
+          srcTile = DEFAULT_TILE_DATA;
         }
 
         // drawing tile graphics

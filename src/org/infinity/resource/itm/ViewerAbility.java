@@ -30,12 +30,10 @@ final class ViewerAbility extends JPanel
     JPanel fieldPanel = makeFieldPanel(ability);
     JPanel effectsPanel = ViewerUtil.makeListPanel("Effects", ability, Effect.class, EffectType.EFFECT_TYPE);
     JComponent iconPanel = ViewerUtil.makeBamPanel((ResourceRef)ability.getAttribute(AbstractAbility.ABILITY_ICON), 0);
-    JComponent boxPanel1 = ViewerUtil.makeCheckLabel(ability.getAttribute(Ability.ITM_ABIL_IDENTIFY_TO_USE), "Yes (1)");
+    JComponent boxPanel1 = ViewerUtil.makeCheckPanel((Flag)ability.getAttribute(AbstractAbility.ABILITY_TYPE_FLAGS), 1);
     JPanel flagPanel = ViewerUtil.makeCheckPanel((Flag)ability.getAttribute(Ability.ITM_ABIL_FLAGS), 1);
 
     JPanel boxPanel2 = new JPanel(new GridLayout(0, 1, 0, 3));
-//    boxPanel.add(ViewerUtil.makeCheckLabel(ability.getAttribute("Identify to use?"), "Yes (1)"));
-//    boxPanel.add(ViewerUtil.makeCheckLabel(ability.getAttribute("Allow strength bonus?"), "Yes (1)"));
     boxPanel2.add(ViewerUtil.makeCheckLabel(ability.getAttribute(Ability.ITM_ABIL_IS_ARROW), "Yes (1)"));
     boxPanel2.add(ViewerUtil.makeCheckLabel(ability.getAttribute(Ability.ITM_ABIL_IS_BOLT), "Yes (1)"));
     boxPanel2.add(ViewerUtil.makeCheckLabel(ability.getAttribute(Ability.ITM_ABIL_IS_BULLET), "Yes (1)"));

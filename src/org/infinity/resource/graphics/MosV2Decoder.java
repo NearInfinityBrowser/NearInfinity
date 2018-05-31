@@ -10,6 +10,9 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
@@ -17,6 +20,7 @@ import org.infinity.util.io.StreamUtils;
 
 public class MosV2Decoder extends MosDecoder
 {
+  private final TreeSet<Integer> pvrIndices = new TreeSet<>();
   private static final int HeaderSize = 16;   // size of the MOS header
   private static final int BlockSize = 28;    // size of a single data block
 
@@ -50,6 +54,7 @@ public class MosV2Decoder extends MosDecoder
   public void close()
   {
     PvrDecoder.flushCache();
+    pvrIndices.clear();
     mosBuffer = null;
     width = height = blockCount = 0;
     ofsData = 0;
@@ -221,6 +226,12 @@ public class MosV2Decoder extends MosDecoder
     return false;
   }
 
+  /** Returns the set of referenced PVRZ pages by this MOS. */
+  public Set<Integer> getReferencedPVRZPages()
+  {
+    return Collections.unmodifiableSet(pvrIndices);
+  }
+
 
   private void init()
   {
@@ -254,6 +265,14 @@ public class MosV2Decoder extends MosDecoder
         if (width < HeaderSize) {
           throw new Exception("Invalid data offset: " + ofsData);
         }
+        // collecting referened pvrz pages
+        for (int idx = 0; idx < blockCount; idx++) {
+          int ofs = ofsData + (idx * 28);
+          int page = mosBuffer.getInt(ofs);
+          if (page >= 0) {
+            pvrIndices.add(Integer.valueOf(page));
+          }
+        }
       } catch (Exception e) {
         e.printStackTrace();
         close();
@@ -265,7 +284,7 @@ public class MosV2Decoder extends MosDecoder
   private PvrDecoder getPVR(int page)
   {
     try {
-      String name = String.format("MOS%1$04d.PVRZ", page);
+      String name = String.format("MOS%04d.PVRZ", page);
       ResourceEntry entry = ResourceFactory.getResourceEntry(name);
       if (entry != null) {
         return PvrDecoder.loadPvr(entry);

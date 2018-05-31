@@ -10,6 +10,7 @@ import java.awt.Point;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IdsBitmap;
+import org.infinity.datatype.IsTextual;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
@@ -29,13 +30,13 @@ import org.infinity.resource.cre.CreResource;
  */
 public class LayerObjectAreActor extends LayerObjectActor
 {
-  private static final Image[] IconGood = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_G_1),
-                                           Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_G_2)};
-  private static final Image[] IconNeutral = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_B_1),
-                                              Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_B_2)};
-  private static final Image[] IconEvil = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_R_1),
-                                           Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_R_2)};
-  private static final Point Center = new Point(12, 40);
+  private static final Image[] ICON_GOOD = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_G_1),
+                                            Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_G_2)};
+  private static final Image[] ICON_NEUTRAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_B_1),
+                                               Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_B_2)};
+  private static final Image[] ICON_EVIL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_R_1),
+                                            Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_R_2)};
+  private static final Point CENTER = new Point(12, 40);
 
   private final Actor actor;
   private Flag scheduleFlags;
@@ -78,10 +79,12 @@ public class LayerObjectAreActor extends LayerObjectActor
   private void init()
   {
     if (actor != null) {
-      String msg = "";
-      Image[] icon = IconNeutral;
+      String actorName = "";
+      String actorCreName = "";
+      Image[] icon = ICON_NEUTRAL;
       int ea = 128;   // default: neutral
       try {
+        actorName = ((IsTextual)actor.getAttribute(Actor.ARE_ACTOR_NAME)).getText();
         location.x = ((DecNumber)actor.getAttribute(Actor.ARE_ACTOR_POS_X)).getValue();
         location.y = ((DecNumber)actor.getAttribute(Actor.ARE_ACTOR_POS_Y)).getValue();
 
@@ -99,22 +102,22 @@ public class LayerObjectAreActor extends LayerObjectActor
           }
         }
         if (cre != null) {
-          msg = ((StringRef)cre.getAttribute(Actor.ARE_ACTOR_NAME)).toString();
+          actorCreName = ((StringRef)cre.getAttribute(Actor.ARE_ACTOR_NAME)).toString();
           ea = (int)((IdsBitmap)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
         }
         if (ea >= 2 && ea <= 30) {
-          icon = IconGood;
+          icon = ICON_GOOD;
         } else if (ea >= 200) {
-          icon = IconEvil;
+          icon = ICON_EVIL;
         } else {
-          icon = IconNeutral;
+          icon = ICON_NEUTRAL;
         }
       } catch (Exception e) {
         e.printStackTrace();
       }
 
       // Using cached icons
-      String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(icon[0]),
+      String keyIcon = String.format("%s%s", SharedResourceCache.createKey(icon[0]),
                                                  SharedResourceCache.createKey(icon[1]));
       if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
         icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
@@ -123,9 +126,15 @@ public class LayerObjectAreActor extends LayerObjectActor
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
-      item = new IconLayerItem(location, actor, msg, icon[0], Center);
+      String info = actorName.isEmpty() ? actorCreName : actorName;
+      String msg = actorName;
+      if (!actorCreName.equals(actorName)) {
+        msg += " (" + actorCreName + ")";
+      }
+      item = new IconLayerItem(location, actor, msg, info, icon[0], CENTER);
+      item.setLabelEnabled(Settings.ShowLabelActorsAre);
       item.setName(getCategory());
-      item.setToolTipText(msg);
+      item.setToolTipText(info);
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.setVisible(isVisible());
     }
