@@ -2334,6 +2334,9 @@ public final class EffectFactory
       case 68: // Unsummon creature
         s.add(new Bitmap(buffer, offset, 4, "Display text?", s_noyes));
         s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+        if (Profile.isEnhancedEdition()) {
+          restype = "VEF:VVC:BAM";
+        }
         break;
 
       case 71: // Change gender
@@ -2809,7 +2812,7 @@ public final class EffectFactory
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.isEnhancedEdition()) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Mode", new String[]{"Default overlay", "Custom overlay"}));
-          restype = "VVC";
+          restype = "VVC:BAM";
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
@@ -2823,7 +2826,7 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           if (Profile.isEnhancedEdition()) {
             s.add(new Bitmap(buffer, offset + 4, 4, "Mode", new String[]{"Default overlay", "Custom overlay"}));
-            restype = "VVC";
+            restype = "VVC:BAM";
           } else {
             s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
           }
