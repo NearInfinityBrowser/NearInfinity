@@ -210,8 +210,8 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
   {
     private static final String TitleClean = "Replacement palette";
     private static final String TitleModified = "Replacement palette [enabled]";
-    private static final String FmtInfoRGB    = "%1$d  %2$d  %3$d";
-    private static final String FmtInfoHexRGB = "#%1$02X%2$02X%3$02X";
+    private static final String FmtInfoRGB    = "%d  %d  %d";
+    private static final String FmtInfoHexRGB = "#%02X%02X%02X";
 
     private final ConvertToBam parent;
 
@@ -302,7 +302,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
             if ("V1  ".equals(ver)) {
               palette = ColorConvert.loadPaletteBAM(paletteFile);
             } else {
-              throw new Exception(String.format("BAM file \"%1$s\" does not contain palette data.",
+              throw new Exception(String.format("BAM file \"%s\" does not contain palette data.",
                                                 paletteFile.getFileName()));
             }
           } else {

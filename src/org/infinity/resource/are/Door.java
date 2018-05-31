@@ -46,10 +46,10 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
   public static final String ARE_DOOR_CLOSED_BOUNDING_BOX_TOP           = "Bounding box (closed): Top";
   public static final String ARE_DOOR_CLOSED_BOUNDING_BOX_RIGHT         = "Bounding box (closed): Right";
   public static final String ARE_DOOR_CLOSED_BOUNDING_BOX_BOTTOM        = "Bounding box (closed): Bottom";
-  public static final String ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN   = "First vertex index (impeded, open)";
-  public static final String ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN         = "# vertices (impeded, open)";
-  public static final String ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED       = "# vertices (impeded, closed)";
-  public static final String ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED = "First vertex index (impeded, closed)";
+  public static final String ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN   = "First impeded cell index (open)";
+  public static final String ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN         = "# impeded cells (open)";
+  public static final String ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED       = "# impeded cells (closed)";
+  public static final String ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED = "First impeded cell index (closed)";
   public static final String ARE_DOOR_CURRENT_HP                        = "Current HP";
   public static final String ARE_DOOR_EFFECTIVE_AC                      = "Effective AC";
   public static final String ARE_DOOR_SOUND_OPENING                     = "Opening sound";
@@ -261,7 +261,9 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     addField(new DecNumber(buffer, offset + 150, 2, ARE_DOOR_LOCATION_CLOSE_Y));
     addField(new StringRef(buffer, offset + 152, ARE_DOOR_UNLOCK_MESSAGE));
     addField(new TextString(buffer, offset + 156, 24, ARE_DOOR_TRAVEL_TRIGGER_NAME));
-//    addField(new Unknown(buffer, offset + 172, 8));
+//    addField(new TextString(buffer, offset + 156, 32, ARE_DOOR_TRAVEL_TRIGGER_NAME));
+//    addField(new Unknown(buffer, offset + 192, 12));
+    // TODO: check whether following fields are valid
     addField(new StringRef(buffer, offset + 180, ARE_DOOR_SPEAKER_NAME));
     addField(new ResourceRef(buffer, offset + 184, ARE_DOOR_DIALOG, "DLG"));
     addField(new Unknown(buffer, offset + 192, 8));

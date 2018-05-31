@@ -17,6 +17,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.Decompiler;
+import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
@@ -61,15 +62,17 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
         AbstractCode sourceCode = (AbstractCode)o;
         try {
           Compiler compiler = new Compiler(sourceCode.toString(),
-                                           (sourceCode instanceof Action) ? Compiler.ScriptType.ACTION :
-                                                                            Compiler.ScriptType.TRIGGER);
+                                             (sourceCode instanceof Action) ? ScriptType.ACTION :
+                                                                              ScriptType.TRIGGER);
           String code = compiler.getCode();
           if (compiler.getErrors().size() == 0) {
             Decompiler decompiler = new Decompiler(code, true);
+            decompiler.setGenerateComments(false);
+            decompiler.setGenerateResourcesUsed(true);
             if (o instanceof Action) {
-              decompiler.setScriptType(Decompiler.ScriptType.ACTION);
+              decompiler.setScriptType(ScriptType.ACTION);
             } else {
-              decompiler.setScriptType(Decompiler.ScriptType.TRIGGER);
+              decompiler.setScriptType(ScriptType.TRIGGER);
             }
             decompiler.decompile();
             for (final Integer stringRef : decompiler.getStringRefsUsed()) {
@@ -112,10 +115,16 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
   private void searchScript(ResourceEntry entry, BcsResource bcsfile)
   {
     Decompiler decompiler = new Decompiler(bcsfile.getCode(), true);
-    decompiler.decompile();
-    for (final Integer stringRef : decompiler.getStringRefsUsed()) {
-      if (stringRef.intValue() == searchvalue)
-        addHit(entry, null, null);
+    decompiler.setGenerateComments(false);
+    decompiler.setGenerateResourcesUsed(true);
+    try {
+      decompiler.decompile();
+      for (final Integer stringRef : decompiler.getStringRefsUsed()) {
+        if (stringRef.intValue() == searchvalue)
+          addHit(entry, null, null);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 

@@ -35,7 +35,7 @@ public class InfinityScrollPane extends RTextScrollPane
    * Creates a scroll pane. A default value will be used for line number color (gray),
    * and the current line's line number will be highlighted.
    * @param comp The component this scroll pane should display. This should be an instance of
-   *             {@link RTextArea}, {@code javax.swing.JLayer} (or the older
+   *             {@link InfinityTextArea}, {@code javax.swing.JLayer} (or the older
    *             {@code org.jdesktop.jxlayer.JXLayer}), or {@code null}.
    *             If this argument is null, you must call {@link #setViewportView(Component)},
    *             passing in an instance of one of the types above.
@@ -44,6 +44,9 @@ public class InfinityScrollPane extends RTextScrollPane
   public InfinityScrollPane(Component comp, boolean applySettings)
   {
     super(comp);
+    if (comp instanceof InfinityTextArea) {
+      ((InfinityTextArea)comp).setScrollPane(this);
+    }
     if (applySettings) {
       applySettings();
     }
@@ -53,7 +56,7 @@ public class InfinityScrollPane extends RTextScrollPane
    * Creates a scroll pane. A default value will be used for line number color (gray),
    * and the current line's line number will be highlighted.
    * @param comp The component this scroll pane should display. This should be an instance of
-   *             {@link RTextArea}, {@code javax.swing.JLayer} (or the older
+   *             {@link InfinityTextArea}, {@code javax.swing.JLayer} (or the older
    *             {@code org.jdesktop.jxlayer.JXLayer}), or {@code null}.
    *             If this argument is null, you must call {@link #setViewportView(Component)},
    *             passing in an instance of one of the types above.
@@ -72,7 +75,7 @@ public class InfinityScrollPane extends RTextScrollPane
   /**
    * Creates a scroll pane.
    * @param comp The component this scroll pane should display. This should be an instance of
-   *             {@link RTextArea}, {@code javax.swing.JLayer} (or the older
+   *             {@link InfinityTextArea}, {@code javax.swing.JLayer} (or the older
    *             {@code org.jdesktop.jxlayer.JXLayer}), or {@code null}.
    *             If this argument is null, you must call {@link #setViewportView(Component)},
    *             passing in an instance of one of the types above.

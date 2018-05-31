@@ -291,28 +291,29 @@ public class BasicColorMap implements IColormap
   // Minimizes size of block list by combining adjacent blocks into a single block
   private void combineColoredBlocks()
   {
-    if (listBlocks != null && !listBlocks.isEmpty()) {
-      Collections.sort(listBlocks);
-      int idx = 0;
-      while (idx < listBlocks.size()) {
-        ColoredBlock cb = listBlocks.get(idx);
-        while (idx+1 < listBlocks.size()) {
-          ColoredBlock cb2 = listBlocks.get(idx+1);
-          if (cb.getColoring() == cb2.getColoring() &&
-              cb.getColorIndex() == cb2.getColorIndex() &&
-              cb2.getOffset() <= cb.getOffset()+cb.getSize()) {
-            int minOfs = Math.min(cb.getOffset(), cb2.getOffset());
-            int maxOfs = Math.max(cb.getOffset()+cb.getSize(), cb2.getOffset()+cb2.getSize());
-            cb.setOffset(minOfs);
-            cb.setSize(maxOfs-minOfs);
-            listBlocks.remove(idx+1);
-          } else {
-            break;
-          }
-        }
-        idx++;
-      }
-    }
+    // XXX: current implementation too time-consuming
+//    if (listBlocks != null && !listBlocks.isEmpty()) {
+//      Collections.sort(listBlocks);
+//      int idx = 0;
+//      while (idx < listBlocks.size()) {
+//        ColoredBlock cb = listBlocks.get(idx);
+//        while (idx+1 < listBlocks.size()) {
+//          ColoredBlock cb2 = listBlocks.get(idx+1);
+//          if (cb.getColoring() == cb2.getColoring() &&
+//              cb.getColorIndex() == cb2.getColorIndex() &&
+//              cb2.getOffset() <= cb.getOffset()+cb.getSize()) {
+//            int minOfs = Math.min(cb.getOffset(), cb2.getOffset());
+//            int maxOfs = Math.max(cb.getOffset()+cb.getSize(), cb2.getOffset()+cb2.getSize());
+//            cb.setOffset(minOfs);
+//            cb.setSize(maxOfs-minOfs);
+//            listBlocks.remove(idx+1);
+//          } else {
+//            break;
+//          }
+//        }
+//        idx++;
+//      }
+//    }
   }
 
   // Attempts to find and return the ColoredBlock object containing the specified offset
@@ -475,10 +476,10 @@ public class BasicColorMap implements IColormap
     }
 
     public int getOffset() { return offset; }
-    public void setOffset(int offset) { this.offset = offset; }
+//    public void setOffset(int offset) { this.offset = offset; }
 
     public int getSize() { return size; }
-    public void setSize(int size) { this.size = size; }
+//    public void setSize(int size) { this.size = size; }
 
     public Coloring getColoring() { return color; }
 //    public void setColoring(Coloring color) { this.color = color; }

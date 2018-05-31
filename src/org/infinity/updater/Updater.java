@@ -12,11 +12,7 @@ import java.net.Proxy;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.jar.JarFile;
 import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
@@ -48,7 +44,7 @@ public class Updater
   private static final int PREFS_SERVER_COUNT           = 4;
 
   // The preferences key format string for server URLs
-  private static final String PREFS_SERVER_FMT          = "UpdateServer%1$d";
+  private static final String PREFS_SERVER_FMT          = "UpdateServer%d";
 
   // preferences key for determining whether to check for stable NI releases only
   private static final String PREFS_STABLEONLY          = "UpdateStableReleasesOnly";
@@ -535,9 +531,7 @@ public class Updater
 
     // Fallback: add static servers to list
     if (serverList.isEmpty()) {
-      for (int i = 0; i < DEFAULT_SERVERS.length; i++) {
-        serverList.add(DEFAULT_SERVERS[i]);
-      }
+      Collections.addAll(serverList, DEFAULT_SERVERS);
     }
   }
 

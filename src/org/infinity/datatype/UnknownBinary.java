@@ -46,7 +46,7 @@ public final class UnknownBinary extends Unknown
       }
     }
     buffer.position(0);
-    buffer.get(newdata);
+    buffer.put(newdata);
     return true;
   }
 
@@ -69,7 +69,7 @@ public final class UnknownBinary extends Unknown
       sb.append('b');
       return sb.toString();
     } else
-      return new String();
+      return "";
   }
 }
 

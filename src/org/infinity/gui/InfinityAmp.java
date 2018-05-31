@@ -37,6 +37,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.mus.Entry;
 import org.infinity.resource.sound.AudioBuffer;
 import org.infinity.resource.sound.AudioPlayer;
+import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.StreamUtils;
 
@@ -141,7 +142,7 @@ public final class InfinityAmp extends ChildFrame
     pane.add(lowerPanel, BorderLayout.SOUTH);
     pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
-    setSize(450, 350);
+    setSize(Misc.getScaledValue(450), Misc.getScaledValue(350));
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 

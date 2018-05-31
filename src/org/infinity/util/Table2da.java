@@ -141,7 +141,7 @@ public class Table2da
         for (int idx = 3; idx < lines.length; idx++) {
           String curLine = lines[idx].trim();
           String[] elements = curLine.split("\\s+");
-          if (elements.length > 0) {
+          if (elements.length > 0 && !elements[0].isEmpty()) {
             List<String> listLine = new ArrayList<String>();
             for (final String s: elements) {
               if (!s.isEmpty()) {

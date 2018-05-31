@@ -62,7 +62,7 @@ import org.infinity.resource.graphics.MosV1Decoder;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.BamDecoder.FrameEntry;
 import org.infinity.resource.graphics.BamV1Decoder.BamV1Control;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 
 
 final class Viewer extends JPanel implements ActionListener, TableModelListener, ListSelectionListener,
@@ -574,8 +574,8 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
   private static class PropertiesPanel extends JPanel implements ActionListener
   {
     // Format strings used to display common properties of a control
-    private static final String FMT_POSITION = "X: %1$d, Y: %2$d";
-    private static final String FMT_SIZE = "W: %1$d, H: %2$d";
+    private static final String FMT_POSITION = "X: %d, Y: %d";
+    private static final String FMT_SIZE = "W: %d, H: %d";
 
     private final List<ChangeListener> listeners = new ArrayList<ChangeListener>();
     private final JRadioButton[] rbButtonState = new JRadioButton[4];
@@ -1471,7 +1471,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     private static boolean isResourceIgnored(String resName, int cycleIdx, int frameIdx)
     {
       if (resName != null && !resName.isEmpty()) {
-        return ignoreResourceSet.contains(String.format("%1$s:%2$d:%3$d",
+        return ignoreResourceSet.contains(String.format("%s:%d:%d",
                                                         resName.toUpperCase(Locale.ENGLISH), cycleIdx, frameIdx));
       } else {
         return true;
@@ -1812,7 +1812,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2. drawing control
             if (isVisible()) {
-              String text = StringResource.getStringRef(((StringRef)getResource().getAttribute(Control.CHU_CONTROL_LBL_TEXT)).getValue());
+              String text = StringTable.getStringRef(((StringRef)getResource().getAttribute(Control.CHU_CONTROL_LBL_TEXT)).getValue());
               if (text != null) {
                 String resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_LBL_FONT)).getResourceName();
                 resName = resName.toUpperCase(Locale.ENGLISH).replace(".FNT", ".BAM");

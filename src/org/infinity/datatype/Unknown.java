@@ -22,6 +22,7 @@ import org.infinity.gui.StructViewer;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
 public class Unknown extends Datatype implements Editable, IsBinary
@@ -60,6 +61,7 @@ public class Unknown extends Datatype implements Editable, IsBinary
       JButton bUpdate;
       if (textArea == null) {
         textArea = new InfinityTextArea(15, 5, true);
+        textArea.setFont(Misc.getScaledFont(textArea.getFont()));
         textArea.setWrapStyleWord(true);
         textArea.setLineWrap(true);
         textArea.setEOLMarkersVisible(false);
@@ -92,8 +94,8 @@ public class Unknown extends Datatype implements Editable, IsBinary
       gbl.setConstraints(bUpdate, gbc);
       panel.add(bUpdate);
 
-      panel.setMinimumSize(DIM_BROAD);
-      panel.setPreferredSize(DIM_BROAD);
+      panel.setMinimumSize(Misc.getScaledDimension(DIM_BROAD));
+      panel.setPreferredSize(Misc.getScaledDimension(DIM_BROAD));
       return panel;
     } else {
       JPanel panel = new JPanel();
@@ -128,7 +130,7 @@ public class Unknown extends Datatype implements Editable, IsBinary
       }
     }
     buffer.position(0);
-    buffer.get(newdata);
+    buffer.put(newdata);
 
     // notifying listeners
     fireValueUpdated(new UpdateEvent(this, struct));
@@ -192,7 +194,7 @@ public class Unknown extends Datatype implements Editable, IsBinary
       sb.append('h');
       return sb.toString();
     } else
-      return new String();
+      return "";
   }
 }
 

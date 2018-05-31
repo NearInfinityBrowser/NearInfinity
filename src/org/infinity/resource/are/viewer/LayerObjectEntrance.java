@@ -24,9 +24,9 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
  */
 public class LayerObjectEntrance extends LayerObject
 {
-  private static final Image[] Icon = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ENTRANCE_1),
+  private static final Image[] ICON = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ENTRANCE_1),
                                        Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ENTRANCE_2)};
-  private static Point Center = new Point(11, 18);
+  private static final Point CENTER = new Point(11, 18);
 
   private final Entrance entrance;
   private final Point location = new Point();
@@ -100,13 +100,15 @@ public class LayerObjectEntrance extends LayerObject
   private void init()
   {
     if (entrance != null) {
+      String info = "";
       String msg = "";
       try {
         location.x = ((DecNumber)entrance.getAttribute(Entrance.ARE_ENTRANCE_LOCATION_X)).getValue();
         location.y = ((DecNumber)entrance.getAttribute(Entrance.ARE_ENTRANCE_LOCATION_Y)).getValue();
         int o = ((Bitmap)entrance.getAttribute(Entrance.ARE_ENTRANCE_ORIENTATION)).getValue();
         if (o < 0) o = 0; else if (o >= Actor.s_orientation.length) o = Actor.s_orientation.length - 1;
-        msg = String.format("%1$s (%2$s)", ((TextString)entrance.getAttribute(Entrance.ARE_ENTRANCE_NAME)).toString(),
+        info = ((TextString)entrance.getAttribute(Entrance.ARE_ENTRANCE_NAME)).toString();
+        msg = String.format("%s (%s)", ((TextString)entrance.getAttribute(Entrance.ARE_ENTRANCE_NAME)).toString(),
                             Actor.s_orientation[o]);
       } catch (Exception e) {
         e.printStackTrace();
@@ -114,19 +116,20 @@ public class LayerObjectEntrance extends LayerObject
 
       // Using cached icons
       Image[] icon;
-      String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(Icon[0]),
-                                                 SharedResourceCache.createKey(Icon[1]));
+      String keyIcon = String.format("%s%s", SharedResourceCache.createKey(ICON[0]),
+                                                 SharedResourceCache.createKey(ICON[1]));
       if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
         icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon);
       } else {
-        icon = Icon;
+        icon = ICON;
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
-      item = new IconLayerItem(location, entrance, msg, icon[0], Center);
+      item = new IconLayerItem(location, entrance, msg, info, icon[0], CENTER);
+      item.setLabelEnabled(Settings.ShowLabelEntrances);
       item.setName(getCategory());
-      item.setToolTipText(msg);
+      item.setToolTipText(info);
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.setVisible(isVisible());
     }

@@ -16,12 +16,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Set;
-import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -34,10 +37,12 @@ import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
 
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
+import org.infinity.gui.DataMenuItem;
 import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
 import org.infinity.gui.ScriptTextArea;
@@ -52,8 +57,8 @@ import org.infinity.resource.Writeable;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.TextResourceSearcher;
-import org.infinity.util.Decryptor;
 import org.infinity.util.Misc;
+import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -80,7 +85,8 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   private JTabbedPane tabbedPane;
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
-  private InfinityTextArea codeText, sourceText;
+  private InfinityTextArea codeText;
+  private ScriptTextArea sourceText;
   private String text;
   private boolean sourceChanged = false;
 
@@ -89,9 +95,10 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     this.entry = entry;
     ByteBuffer buffer = entry.getResourceBuffer();
     if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
-      buffer = Decryptor.decrypt(buffer, 2);
+      buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
-    text = StreamUtils.readString(buffer, buffer.limit());
+    text = StreamUtils.readString(buffer, buffer.limit(),
+                                  Charset.forName(BrowserMenuBar.getInstance().getSelectedCharset()));
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -100,131 +107,13 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   public void actionPerformed(ActionEvent event)
   {
     if (bpSource.getControlByType(CtrlCompile) == event.getSource()) {
-      JButton bCompile = (JButton)event.getSource();
-      JButton bDecompile = (JButton)bpCode.getControlByType(CtrlDecompile);
-      JButton bSaveScript = (JButton)buttonPanel.getControlByType(CtrlSaveScript);
-      ButtonPopupMenu bpmErrors = (ButtonPopupMenu)bpSource.getControlByType(CtrlErrors);
-      ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)bpSource.getControlByType(CtrlWarnings);
-      ButtonPopupMenu bpmUses = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlUses);
-      Compiler compiler = new Compiler(sourceText.getText());
-      codeText.setText(compiler.getCode());
-      codeText.setCaretPosition(0);
-      bCompile.setEnabled(false);
-      bDecompile.setEnabled(false);
-      bSaveScript.setEnabled(compiler.getErrors().size() == 0);
-      SortedMap<Integer, String> errorMap = compiler.getErrors();
-      SortedMap<Integer, String> warningMap = compiler.getWarnings();
-      bpmErrors.setText("Errors (" + errorMap.size() + ")...");
-      bpmWarnings.setText("Warnings (" + warningMap.size() + ")...");
-      if (errorMap.size() == 0) {
-        bpmErrors.setEnabled(false);
-      } else {
-        JMenuItem errorItems[] = new JMenuItem[errorMap.size()];
-        int counter = 0;
-        for (final Integer lineNr : errorMap.keySet()) {
-          String error = errorMap.get(lineNr);
-          errorItems[counter++] = new JMenuItem(lineNr.toString() + ": " + error);
-        }
-        bpmErrors.setMenuItems(errorItems);
-        bpmErrors.setEnabled(true);
-      }
-      if (warningMap.size() == 0) {
-        bpmWarnings.setEnabled(false);
-      } else {
-        JMenuItem warningItems[] = new JMenuItem[warningMap.size()];
-        int counter = 0;
-        for (final Integer lineNr : warningMap.keySet()) {
-          String warning = warningMap.get(lineNr);
-          warningItems[counter++] = new JMenuItem(lineNr.toString() + ": " + warning);
-        }
-        bpmWarnings.setMenuItems(warningItems);
-        bpmWarnings.setEnabled(true);
-      }
-      Decompiler decompiler = new Decompiler(codeText.getText(), true);
-      decompiler.decompile();
-      Set<ResourceEntry> uses = decompiler.getResourcesUsed();
-      JMenuItem usesItems[] = new JMenuItem[uses.size()];
-      int usesIndex = 0;
-      for (final ResourceEntry usesEntry : uses) {
-        if (usesEntry.getSearchString() != null) {
-          usesItems[usesIndex++] =
-          new JMenuItem(usesEntry.toString() + " (" + usesEntry.getSearchString() + ')');
-        } else {
-          usesItems[usesIndex++] = new JMenuItem(usesEntry.toString());
-        }
-      }
-      bpmUses.setMenuItems(usesItems);
-      bpmUses.setEnabled(usesItems.length > 0);
+      compile();
     } else if (bpCode.getControlByType(CtrlDecompile) == event.getSource()) {
-      JButton bDecompile = (JButton)event.getSource();
-      JButton bCompile = (JButton)bpSource.getControlByType(CtrlCompile);
-      ButtonPopupMenu bpmUses = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlUses);
-      Decompiler decompiler = new Decompiler(codeText.getText(), true);
-      sourceText.setText(decompiler.getSource());
-      sourceText.setCaretPosition(0);
-      Set<ResourceEntry> uses = decompiler.getResourcesUsed();
-      JMenuItem usesItems[] = new JMenuItem[uses.size()];
-      int usesIndex = 0;
-      for (final ResourceEntry usesEntry : uses) {
-        if (usesEntry.getSearchString() != null)
-          usesItems[usesIndex++] =
-          new JMenuItem(usesEntry.toString() + " (" + usesEntry.getSearchString() + ')');
-        else
-          usesItems[usesIndex++] = new JMenuItem(usesEntry.toString());
-      }
-      bpmUses.setMenuItems(usesItems);
-      bpmUses.setEnabled(usesItems.length > 0);
-      bCompile.setEnabled(false);
-      bDecompile.setEnabled(false);
-      tabbedPane.setSelectedIndex(0);
+      decompile();
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
-      JButton bSave = (JButton)event.getSource();
-      ButtonPopupMenu bpmErrors = (ButtonPopupMenu)bpSource.getControlByType(CtrlErrors);
-      if (bpmErrors.isEnabled()) {
-        String options[] = {"Save", "Cancel"};
-        int result = JOptionPane.showOptionDialog(panel, "Script contains errors. Save anyway?", "Errors found",
-                                                  JOptionPane.YES_NO_OPTION,
-                                                  JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-        if (result != 0)
-          return;
-      }
-      if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor())) {
-        bSave.setEnabled(false);
-        sourceChanged = false;
-      }
+      save();
     } else if (buttonPanel.getControlByType(CtrlSaveScript) == event.getSource()) {
-      if (chooser == null) {
-        chooser = new JFileChooser(Profile.getGameRoot().toFile());
-        chooser.setDialogTitle("Save source code");
-        chooser.setFileFilter(new javax.swing.filechooser.FileFilter()
-        {
-          @Override
-          public boolean accept(File pathname)
-          {
-            return pathname.isDirectory() || pathname.getName().toLowerCase(Locale.ENGLISH).endsWith(".bcs");
-          }
-
-          @Override
-          public String getDescription()
-          {
-            return "Infinity script (.BCS)";
-          }
-        });
-      }
-      chooser.setSelectedFile(new File(StreamUtils.replaceFileExtension(entry.toString(), "BCS")));
-      int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
-      if (returnval == JFileChooser.APPROVE_OPTION) {
-        try (BufferedWriter bw = Files.newBufferedWriter(chooser.getSelectedFile().toPath())) {
-          bw.write(codeText.getText().replaceAll("\r?\n", Misc.LINE_SEPARATOR));
-          bw.newLine();
-          JOptionPane.showMessageDialog(panel, "File saved to \"" + chooser.getSelectedFile().toString() +
-                                               '\"', "Save completed", JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException e) {
-          JOptionPane.showMessageDialog(panel, "Error saving " + chooser.getSelectedFile().toString(),
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-          e.printStackTrace();
-        }
-      }
+      saveScript();
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     }
@@ -366,33 +255,32 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   @Override
   public void highlightText(int linenr, String highlightText)
   {
-    String s = sourceText.getText();
-    int startpos = 0;
-    int i = (s.charAt(0) == '\n') ? 2 : 1;
-    for (; i < linenr; i++) {
-      startpos = s.indexOf("\n", startpos + 1);
-    }
-    if (startpos == -1) return;
-    if (highlightText != null) {
-      // try to select specified text string
-      int wordpos = -1;
+    try {
+      int startOfs = sourceText.getLineStartOffset(linenr - 1);
+      int endOfs = sourceText.getLineEndOffset(linenr - 1) + 1;
       if (highlightText != null) {
-        wordpos = s.toUpperCase(Locale.ENGLISH).indexOf(highlightText.toUpperCase(Locale.ENGLISH), startpos);
+        String text = sourceText.getText(startOfs, endOfs - startOfs);
+        Pattern p = Pattern.compile(highlightText, Pattern.CASE_INSENSITIVE);
+        Matcher m = p.matcher(text);
+        if (m.find()) {
+          startOfs += m.start();
+          endOfs = startOfs + m.end();
+        }
       }
-      if (wordpos != -1) {
-        sourceText.select(wordpos, wordpos + highlightText.length());
-      } else {
-        sourceText.select(startpos, s.indexOf("\n", startpos + 1));
-      }
-    } else {
-      // select whole line
-      int endpos = s.indexOf("\n", startpos + 1);
-      if (endpos < 0) {
-        endpos = s.length();
-      }
-      sourceText.select(startpos, endpos);
+      highlightText(startOfs, endOfs);
+    } catch (BadLocationException ble) {
     }
-    sourceText.getCaret().setSelectionVisible(true);
+  }
+
+  @Override
+  public void highlightText(int startOfs, int endOfs)
+  {
+    try {
+      sourceText.setCaretPosition(startOfs);
+      sourceText.moveCaretPosition(endOfs);
+      sourceText.getCaret().setSelectionVisible(true);
+    } catch (IllegalArgumentException e) {
+    }
   }
 
 // --------------------- End Interface TextResource ---------------------
@@ -408,7 +296,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     sourceText.setCaretPosition(0);
     sourceText.setAutoIndentEnabled(BrowserMenuBar.getInstance().getBcsAutoIndentEnabled());
     sourceText.addCaretListener(container.getStatusBar());
-    sourceText.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    sourceText.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     sourceText.setMargin(new Insets(3, 3, 3, 3));
     sourceText.setLineWrap(false);
     sourceText.getDocument().addDocumentListener(this);
@@ -433,7 +321,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     sourcePanel.add(bpSource, BorderLayout.SOUTH);
 
     codeText = new InfinityTextArea(true);
-    codeText.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    codeText.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     codeText.setMargin(new Insets(3, 3, 3, 3));
     codeText.setCaretPosition(0);
     codeText.setLineWrap(false);
@@ -502,5 +390,153 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   }
 
 // --------------------- End Interface Writeable ---------------------
+
+  private void compile()
+  {
+    JButton bCompile = (JButton)bpSource.getControlByType(CtrlCompile);
+    JButton bDecompile = (JButton)bpCode.getControlByType(CtrlDecompile);
+    JButton bSaveScript = (JButton)buttonPanel.getControlByType(CtrlSaveScript);
+    ButtonPopupMenu bpmErrors = (ButtonPopupMenu)bpSource.getControlByType(CtrlErrors);
+    ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)bpSource.getControlByType(CtrlWarnings);
+    ButtonPopupMenu bpmUses = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlUses);
+    Compiler compiler2 = new Compiler(sourceText.getText());
+    codeText.setText(compiler2.getCode());
+    codeText.setCaretPosition(0);
+    bCompile.setEnabled(false);
+    bDecompile.setEnabled(false);
+    bSaveScript.setEnabled(compiler2.getErrors().isEmpty());
+    SortedSet<ScriptMessage> errorMap = compiler2.getErrors();
+    SortedSet<ScriptMessage> warningMap = compiler2.getWarnings();
+    sourceText.clearGutterIcons();
+    bpmErrors.setText("Errors (" + errorMap.size() + ")...");
+    bpmWarnings.setText("Warnings (" + warningMap.size() + ")...");
+    if (errorMap.size() == 0) {
+      bpmErrors.setEnabled(false);
+    } else {
+      JMenuItem errorItems[] = new JMenuItem[errorMap.size()];
+      int counter = 0;
+      for (final ScriptMessage sm: errorMap) {
+        sourceText.setLineError(sm.getLine(), sm.getMessage(), false);
+        errorItems[counter++] = new DataMenuItem(sm.getLine() + ": " + sm.getMessage(), null, sm);
+      }
+      bpmErrors.setMenuItems(errorItems, false);
+      bpmErrors.setEnabled(true);
+    }
+    if (warningMap.size() == 0) {
+      bpmWarnings.setEnabled(false);
+    } else {
+      JMenuItem warningItems[] = new JMenuItem[warningMap.size()];
+      int counter = 0;
+      for (final ScriptMessage sm: warningMap) {
+        sourceText.setLineWarning(sm.getLine(), sm.getMessage(), false);
+        warningItems[counter++] = new DataMenuItem(sm.getLine() + ": " + sm.getMessage(), null, sm);
+      }
+      bpmWarnings.setMenuItems(warningItems, false);
+      bpmWarnings.setEnabled(true);
+    }
+    Decompiler decompiler = new Decompiler(codeText.getText(), true);
+    try {
+      decompiler.decompile();
+      Set<ResourceEntry> uses = decompiler.getResourcesUsed();
+      JMenuItem usesItems[] = new JMenuItem[uses.size()];
+      int usesIndex = 0;
+      for (final ResourceEntry usesEntry : uses) {
+        if (usesEntry.getSearchString() != null) {
+          usesItems[usesIndex++] =
+          new JMenuItem(usesEntry.toString() + " (" + usesEntry.getSearchString() + ')');
+        } else {
+          usesItems[usesIndex++] = new JMenuItem(usesEntry.toString());
+        }
+      }
+      bpmUses.setMenuItems(usesItems);
+      bpmUses.setEnabled(usesItems.length > 0);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void decompile()
+  {
+    JButton bDecompile = (JButton)bpCode.getControlByType(CtrlDecompile);
+    JButton bCompile = (JButton)bpSource.getControlByType(CtrlCompile);
+    ButtonPopupMenu bpmUses = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlUses);
+    Decompiler decompiler = new Decompiler(codeText.getText(), true);
+    try {
+      sourceText.setText(decompiler.getSource());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    sourceText.setCaretPosition(0);
+    Set<ResourceEntry> uses = decompiler.getResourcesUsed();
+    JMenuItem usesItems[] = new JMenuItem[uses.size()];
+    int usesIndex = 0;
+    for (final ResourceEntry usesEntry : uses) {
+      if (usesEntry.getSearchString() != null)
+        usesItems[usesIndex++] =
+        new JMenuItem(usesEntry.toString() + " (" + usesEntry.getSearchString() + ')');
+      else
+        usesItems[usesIndex++] = new JMenuItem(usesEntry.toString());
+    }
+    bpmUses.setMenuItems(usesItems);
+    bpmUses.setEnabled(usesItems.length > 0);
+    bCompile.setEnabled(false);
+    bDecompile.setEnabled(false);
+    tabbedPane.setSelectedIndex(0);
+  }
+
+  private void save()
+  {
+    JButton bSave = (JButton)buttonPanel.getControlByType(ButtonPanel.Control.SAVE);
+    ButtonPopupMenu bpmErrors = (ButtonPopupMenu)bpSource.getControlByType(CtrlErrors);
+    if (bpmErrors.isEnabled()) {
+      String options[] = {"Save", "Cancel"};
+      int result = JOptionPane.showOptionDialog(panel, "Script contains errors. Save anyway?", "Errors found",
+                                                JOptionPane.YES_NO_OPTION,
+                                                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+      if (result != 0)
+        return;
+    }
+    if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor())) {
+      bSave.setEnabled(false);
+      sourceChanged = false;
+    }
+  }
+
+  private void saveScript()
+  {
+    if (chooser == null) {
+      chooser = new JFileChooser(Profile.getGameRoot().toFile());
+      chooser.setDialogTitle("Save source code");
+      chooser.setFileFilter(new javax.swing.filechooser.FileFilter()
+      {
+        @Override
+        public boolean accept(File pathname)
+        {
+          return pathname.isDirectory() || pathname.getName().toLowerCase(Locale.ENGLISH).endsWith(".bcs");
+        }
+
+        @Override
+        public String getDescription()
+        {
+          return "Infinity script (.BCS)";
+        }
+      });
+    }
+    chooser.setSelectedFile(new File(StreamUtils.replaceFileExtension(entry.toString(), "BCS")));
+    int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
+    if (returnval == JFileChooser.APPROVE_OPTION) {
+      try (BufferedWriter bw =
+          Files.newBufferedWriter(chooser.getSelectedFile().toPath(),
+                                  Charset.forName(BrowserMenuBar.getInstance().getSelectedCharset()))) {
+        bw.write(codeText.getText());
+        JOptionPane.showMessageDialog(panel, "File saved to \"" + chooser.getSelectedFile().toString() +
+                                             '\"', "Save completed", JOptionPane.INFORMATION_MESSAGE);
+      } catch (IOException e) {
+        JOptionPane.showMessageDialog(panel, "Error saving " + chooser.getSelectedFile().toString(),
+                                      "Error", JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
+      }
+    }
+  }
 }
 

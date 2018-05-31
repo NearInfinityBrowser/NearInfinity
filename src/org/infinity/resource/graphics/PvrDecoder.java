@@ -22,6 +22,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.zip.InflaterInputStream;
 
+import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.io.FileManager;
@@ -86,7 +87,12 @@ public class PvrDecoder
       throw new NullPointerException();
     }
     try {
-      String key = entry.getResourceName().toUpperCase(Locale.ENGLISH);
+      String key = null;
+      if (entry instanceof FileResourceEntry) {
+        key = ((FileResourceEntry)entry).getActualPath().toString();
+      } else {
+        key = entry.getResourceName();
+      }
       PvrDecoder decoder = getCachedPvrDecoder(key);
       if (decoder != null) {
         return decoder;
@@ -110,7 +116,7 @@ public class PvrDecoder
       throw new NullPointerException();
     }
     try {
-      String key = fileName.toUpperCase(Locale.ENGLISH);
+      String key = fileName;
       PvrDecoder decoder = getCachedPvrDecoder(key);
       if (decoder != null) {
         return decoder;
@@ -131,7 +137,7 @@ public class PvrDecoder
   public static PvrDecoder loadPvr(Path file)
   {
     try {
-      String key = file.getFileName().toString().toUpperCase(Locale.ENGLISH);
+      String key = file.getFileName().toString();
       PvrDecoder decoder = getCachedPvrDecoder(key);
       if (decoder != null) {
         return decoder;
@@ -208,6 +214,7 @@ public class PvrDecoder
   {
     PvrDecoder retVal = null;
     if (key != null && !key.isEmpty()) {
+      key = key.toUpperCase(Locale.ENGLISH);
       if (pvrCache.containsKey(key)) {
         retVal = pvrCache.get(key);
         // re-inserting entry to prevent premature removal from cache
@@ -395,10 +402,10 @@ public class PvrDecoder
       throw new Exception("Invalid dimensions specified");
     }
     if (!isSupported()) {
-      throw new Exception(String.format("Pixel format '%1$s' not supported", getPixelFormat().toString()));
+      throw new Exception(String.format("Pixel format '%s' not supported", getPixelFormat().toString()));
     }
     if (getChannelType() != ChannelType.UBYTE_NORM) {
-      throw new Exception(String.format("Channel type '%1$s' not supported", getChannelType().toString()));
+      throw new Exception(String.format("Channel type '%s' not supported", getChannelType().toString()));
     }
     Rectangle region = new Rectangle(x, y, width, height);
     switch (getPixelFormat()) {
@@ -522,7 +529,7 @@ public class PvrDecoder
       switch (v) {
         case 0: flags = Flags.NONE; break;
         case 1: flags = Flags.PRE_MULTIPLIED; break;
-        default: throw new Exception(String.format("Unsupported PVR flags: %1$d", v));
+        default: throw new Exception(String.format("Unsupported PVR flags: %d", v));
       }
 
       long l = DynamicArray.getLong(buffer, 8);
@@ -563,7 +570,7 @@ public class PvrDecoder
           case 26: pixelFormat = PixelFormat.EAC_R11_RGB_S; break;
           case 27: pixelFormat = PixelFormat.EAC_RG11_RGB_U; break;
           case 28: pixelFormat = PixelFormat.EAC_RG11_RGB_S; break;
-          default: throw new Exception(String.format("Unsupported pixel format: %1$d", Integer.toString((int)l)));
+          default: throw new Exception(String.format("Unsupported pixel format: %s", Integer.toString((int)l)));
         }
         pixelFormatEx = new byte[0];
       }
@@ -572,7 +579,7 @@ public class PvrDecoder
       switch (v) {
         case 0: colorSpace = ColorSpace.RGB; break;
         case 1: colorSpace = ColorSpace.SRGB; break;
-        default: throw new Exception(String.format("Unsupported color space: %1$d", v));
+        default: throw new Exception(String.format("Unsupported color space: %d", v));
       }
 
       v = DynamicArray.getInt(buffer, 20);
@@ -590,7 +597,7 @@ public class PvrDecoder
         case 10: channelType = ChannelType.UINT; break;
         case 11: channelType = ChannelType.SINT; break;
         case 12: channelType = ChannelType.FLOAT; break;
-        default: throw new Exception(String.format("Unsupported channel type: %1$d", v));
+        default: throw new Exception(String.format("Unsupported channel type: %d", v));
       }
 
       switch (pixelFormat) {
@@ -1069,7 +1076,7 @@ public class PvrDecoder
   }
 
 
-  // Decodes DXTn pixel data.
+  // Decodes PVRTC pixel data.
   private static class DecodePVRT
   {
     // The local cache list for decoded PVR textures. The "key" has to be a unique PvrInfo structure.

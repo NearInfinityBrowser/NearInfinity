@@ -61,12 +61,25 @@ public class SettingsDialog extends JDialog
                                              "Doors", "Background Animations", "Automap Notes",
                                              "Spawn Points", "Map Transitions", "Projectile Traps",
                                              "Door Polygons", "Wall Polygons" };
+  private static final int INDEX_LABEL_ACTORS_ARE   = 0;
+  private static final int INDEX_LABEL_ACTORS_INI   = 1;
+//  private static final int INDEX_LABEL_REGIONS      = 2;
+  private static final int INDEX_LABEL_ENTRANCES    = 2;
+//  private static final int INDEX_LABEL_CONTAINERS   = 4;
+  private static final int INDEX_LABEL_SOUNDS       = 3;
+//  private static final int INDEX_LABEL_DOORS        = 6;
+  private static final int INDEX_LABEL_ANIMATIONS   = 4;
+  private static final int INDEX_LABEL_MAPNOTES     = 5;
+  private static final int INDEX_LABEL_SPAWNPOINTS  = 6;
+  private static final int INDEX_LABEL_COUNT        = 7;
 
+  private JCheckBox[] cbLabels;
   private SimpleListModel<LayerEntry> modelLayers;
   private JList<LayerEntry> listLayers;
   private JButton bUp, bDown, bDefaultOrder;
   private JComboBox<String> cbFrames, cbQualityMap, cbQualityAnim;
-  private JCheckBox cbOverrideAnimVisibility, cbStoreSettings;
+  private JCheckBox cbOverrideAnimVisibility, cbMouseWheelZoom, cbExportLayers, cbUseColorShades,
+                    cbStoreSettings;
   private JButton bDefaultSettings, bCancel, bOK;
   private JSpinner sOverlaysFps, sAnimationsFps;
   private JSlider sMiniMapAlpha;
@@ -126,6 +139,17 @@ public class SettingsDialog extends JDialog
       Settings.ListLayerOrder.set(i, lt.layer);
     }
 
+    Settings.ShowLabelActorsAre = cbLabels[INDEX_LABEL_ACTORS_ARE].isSelected();
+    Settings.ShowLabelActorsIni = cbLabels[INDEX_LABEL_ACTORS_INI].isSelected();
+//    Settings.ShowLabelRegions = cbLabels[INDEX_LABEL_REGIONS].isSelected();
+    Settings.ShowLabelEntrances = cbLabels[INDEX_LABEL_ENTRANCES].isSelected();
+//    Settings.ShowLabelContainers = cbLabels[INDEX_LABEL_CONTAINERS].isSelected();
+    Settings.ShowLabelSounds = cbLabels[INDEX_LABEL_SOUNDS].isSelected();
+//    Settings.ShowLabelDoors = cbLabels[INDEX_LABEL_DOORS].isSelected();
+    Settings.ShowLabelAnimations = cbLabels[INDEX_LABEL_ANIMATIONS].isSelected();
+    Settings.ShowLabelMapNotes = cbLabels[INDEX_LABEL_MAPNOTES].isSelected();
+    Settings.ShowLabelSpawnPoints = cbLabels[INDEX_LABEL_SPAWNPOINTS].isSelected();
+
     Settings.ShowFrame = cbFrames.getSelectedIndex();
     Settings.OverrideAnimVisibility = cbOverrideAnimVisibility.isSelected();
 
@@ -137,6 +161,9 @@ public class SettingsDialog extends JDialog
 
     Settings.MiniMapAlpha = (double)sMiniMapAlpha.getValue() / 100.0;
 
+    Settings.MouseWheelZoom = cbMouseWheelZoom.isSelected();
+    Settings.ExportLayers = cbExportLayers.isSelected();
+    Settings.UseColorShades = cbUseColorShades.isSelected();
     Settings.StoreVisualSettings = cbStoreSettings.isSelected();
 
     settingsChanged = true;
@@ -165,6 +192,17 @@ public class SettingsDialog extends JDialog
   {
     resetLayerOrder();
 
+    cbLabels[INDEX_LABEL_ACTORS_ARE].setSelected(Settings.getDefaultLabelActorsAre());
+    cbLabels[INDEX_LABEL_ACTORS_INI].setSelected(Settings.getDefaultLabelActorsIni());
+//    cbLabels[INDEX_LABEL_REGIONS].setSelected(Settings.getDefaultLabelRegions());
+    cbLabels[INDEX_LABEL_ENTRANCES].setSelected(Settings.getDefaultLabelEntrances());
+//    cbLabels[INDEX_LABEL_CONTAINERS].setSelected(Settings.getDefaultLabelContainers());
+    cbLabels[INDEX_LABEL_SOUNDS].setSelected(Settings.getDefaultLabelSounds());
+//    cbLabels[INDEX_LABEL_DOORS].setSelected(Settings.getDefaultLabelDoors());
+    cbLabels[INDEX_LABEL_ANIMATIONS].setSelected(Settings.getDefaultLabelAnimations());
+    cbLabels[INDEX_LABEL_MAPNOTES].setSelected(Settings.getDefaultLabelMapNotes());
+    cbLabels[INDEX_LABEL_SPAWNPOINTS].setSelected(Settings.getDefaultLabelSpawnPoints());
+
     cbFrames.setSelectedIndex(Settings.getDefaultShowFrame());
     cbOverrideAnimVisibility.setSelected(Settings.getDefaultOverrideAnimVisibility());
 
@@ -176,6 +214,7 @@ public class SettingsDialog extends JDialog
 
     sMiniMapAlpha.setValue((int)(Settings.getDefaultMiniMapAlpha()*100.0));
 
+    cbUseColorShades.setSelected(Settings.getDefaultUseColorShades());
     cbStoreSettings.setSelected(Settings.getDefaultStoreVisualSettings());
   }
 
@@ -287,6 +326,47 @@ public class SettingsDialog extends JDialog
     pLayers.add(new JPanel(), c);
 
     // Initializing options
+    // Icon labels
+    JPanel pShowLabels = new JPanel(new GridBagLayout());
+    pShowLabels.setBorder(BorderFactory.createTitledBorder("Show icon labels for: "));
+    cbLabels = new JCheckBox[INDEX_LABEL_COUNT];
+    cbLabels[INDEX_LABEL_ACTORS_ARE] = new JCheckBox("Actors (ARE)");
+    cbLabels[INDEX_LABEL_ACTORS_ARE].setSelected(Settings.ShowLabelActorsAre);
+    cbLabels[INDEX_LABEL_ACTORS_INI] = new JCheckBox("Actors (INI)");
+    cbLabels[INDEX_LABEL_ACTORS_INI].setSelected(Settings.ShowLabelActorsIni);
+//    cbLabels[INDEX_LABEL_REGIONS] = new JCheckBox("Regions");
+//    cbLabels[INDEX_LABEL_REGIONS].setEnabled(false);
+//    cbLabels[INDEX_LABEL_REGIONS].setToolTipText("Not yet supported");
+//    cbLabels[INDEX_LABEL_REGIONS].setSelected(Settings.ShowLabelRegions);
+    cbLabels[INDEX_LABEL_ENTRANCES] = new JCheckBox("Entrances");
+    cbLabels[INDEX_LABEL_ENTRANCES].setSelected(Settings.ShowLabelEntrances);
+//    cbLabels[INDEX_LABEL_CONTAINERS] = new JCheckBox("Containers");
+//    cbLabels[INDEX_LABEL_CONTAINERS].setEnabled(false);
+//    cbLabels[INDEX_LABEL_CONTAINERS].setToolTipText("Not yet supported");
+//    cbLabels[INDEX_LABEL_CONTAINERS].setSelected(Settings.ShowLabelContainers);
+    cbLabels[INDEX_LABEL_SOUNDS] = new JCheckBox("Ambient Sounds");
+    cbLabels[INDEX_LABEL_SOUNDS].setSelected(Settings.ShowLabelSounds);
+//    cbLabels[INDEX_LABEL_DOORS] = new JCheckBox("Doors");
+//    cbLabels[INDEX_LABEL_DOORS].setEnabled(false);
+//    cbLabels[INDEX_LABEL_DOORS].setToolTipText("Not yet supported");
+//    cbLabels[INDEX_LABEL_DOORS].setSelected(Settings.ShowLabelDoors);
+    cbLabels[INDEX_LABEL_ANIMATIONS] = new JCheckBox("Background Animations");
+    cbLabels[INDEX_LABEL_ANIMATIONS].setSelected(Settings.ShowLabelAnimations);
+    cbLabels[INDEX_LABEL_MAPNOTES] = new JCheckBox("Automap Notes");
+    cbLabels[INDEX_LABEL_MAPNOTES].setSelected(Settings.ShowLabelMapNotes);
+    cbLabels[INDEX_LABEL_SPAWNPOINTS] = new JCheckBox("Spawn Points");
+    cbLabels[INDEX_LABEL_SPAWNPOINTS].setSelected(Settings.ShowLabelSpawnPoints);
+    for (int idx = 0; idx < cbLabels.length; idx++) {
+      // spread entries over two columns
+      int x = idx & 1;
+      int y = idx / 2;
+      int bottom = (idx == cbLabels.length - 1 || (idx == cbLabels.length - 2 && x == 0)) ? 4 : 0;
+      c = ViewerUtil.setGBC(c, x, y, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(0, 4, bottom, 4), 0, 0);
+      pShowLabels.add(cbLabels[idx], c);
+    }
+
+
     // Background animation frame
     JPanel pShowFrame = new JPanel(new GridBagLayout());
     pShowFrame.setBorder(BorderFactory.createTitledBorder("Background animations: "));
@@ -374,7 +454,7 @@ public class SettingsDialog extends JDialog
 
     Hashtable<Integer, JLabel> table = new Hashtable<Integer, JLabel>();
     for (int i = 0; i <= 100; i+=25) {
-      table.put(Integer.valueOf(i), new JLabel(String.format("%1$d%%", i)));
+      table.put(Integer.valueOf(i), new JLabel(String.format("%d%%", i)));
     }
     sMiniMapAlpha = new JSlider(0, 100, (int)(Settings.MiniMapAlpha*100.0));
     sMiniMapAlpha.setSnapToTicks(false);
@@ -391,9 +471,24 @@ public class SettingsDialog extends JDialog
     // Misc. settings
     JPanel pMisc = new JPanel(new GridBagLayout());
     pMisc.setBorder(BorderFactory.createTitledBorder("Misc. settings: "));
+    cbExportLayers = new JCheckBox("Include layer items when exporting map as graphics");
+    cbExportLayers.setSelected(Settings.ExportLayers);
+    cbUseColorShades = new JCheckBox("Use individual color shades for region types");
+    cbUseColorShades.setSelected(Settings.UseColorShades);
+    cbMouseWheelZoom = new JCheckBox("Use mouse wheel to zoom map");
+    cbMouseWheelZoom.setSelected(Settings.MouseWheelZoom);
     cbStoreSettings = new JCheckBox("Remember all visual settings");
     cbStoreSettings.setSelected(Settings.StoreVisualSettings);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 4), 0, 0);
+    pMisc.add(cbExportLayers, c);
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 4), 0, 0);
+    pMisc.add(cbUseColorShades, c);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 4), 0, 0);
+    pMisc.add(cbMouseWheelZoom, c);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(4, 4, 4, 4), 0, 0);
     pMisc.add(cbStoreSettings, c);
 
@@ -416,38 +511,50 @@ public class SettingsDialog extends JDialog
                           GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pButtons.add(bCancel, c);
 
-    // putting options together
-    JPanel pOptions = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-    pOptions.add(pShowFrame, c);
+    JPanel pCol1 = new JPanel(new GridBagLayout());
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    pCol1.add(pLayers, c);
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pOptions.add(pQuality, c);
+    pCol1.add(pShowLabels, c);
+
+
+    // putting options together
+    JPanel pCol2 = new JPanel(new GridBagLayout());
+//    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+//                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+//    pOptions.add(pShowLabels, c);
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    pCol2.add(pShowFrame, c);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    pCol2.add(pQuality, c);
     c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pOptions.add(pFrameRates, c);
+    pCol2.add(pFrameRates, c);
     c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pOptions.add(pMiniMap, c);
+    pCol2.add(pMiniMap, c);
     c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pOptions.add(pMisc, c);
+    pCol2.add(pMisc, c);
     c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
-    pOptions.add(new JPanel(), c);
+    pCol2.add(new JPanel(), c);
     c = ViewerUtil.setGBC(c, 0, 6, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-    pOptions.add(pButtons, c);
+    pCol2.add(pButtons, c);
 
     // putting all together
     JPanel pMain = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.BOTH, new Insets(8, 8, 8, 0), 0, 0);
-    pMain.add(pLayers, c);
+    pMain.add(pCol1, c);
     c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
-    pMain.add(pOptions, c);
+    pMain.add(pCol2, c);
 
     getContentPane().add(pMain, BorderLayout.CENTER);
     pack();
@@ -485,9 +592,9 @@ public class SettingsDialog extends JDialog
     public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                   boolean isSelected, boolean cellHasFocus)
     {
-      String template = "%1$0" +
-                        String.format("%1$d", Integer.toString(list.getModel().getSize()).length()) +
-                        "d - %2$s";
+      String template = "%0" +
+                        String.format("%d", Integer.toString(list.getModel().getSize()).length()) +
+                        "d - %s";
       return super.getListCellRendererComponent(list, String.format(template, index + startIndex, value),
                                                 index, isSelected, cellHasFocus);
     }

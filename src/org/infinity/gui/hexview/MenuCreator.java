@@ -76,11 +76,11 @@ public class MenuCreator implements IMenuCreator, ActionListener
     // generating popup menu
     popup.removeAll();
 
-    miUndo.setText(String.format("Undo %1$s", getHexView().getUndoPresentationName()));
+    miUndo.setText(String.format("Undo %s", getHexView().getUndoPresentationName()));
     miUndo.setEnabled(isUndoAvailable());
     popup.add(miUndo);
     miRedo.setEnabled(isRedoAvailable());
-    miRedo.setText(String.format("Redo %1$s", getHexView().getRedoPresentationName()));
+    miRedo.setText(String.format("Redo %s", getHexView().getRedoPresentationName()));
     popup.add(miRedo);
 
     popup.addSeparator();

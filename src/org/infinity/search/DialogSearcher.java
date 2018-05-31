@@ -39,6 +39,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.Decompiler;
+import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.key.ResourceEntry;
@@ -183,7 +184,6 @@ public final class DialogSearcher implements Runnable, ActionListener
         executor.execute(new Worker(files.get(i)));
         if (progress.isCanceled()) {
           isCancelled = true;
-  //        JOptionPane.showMessageDialog(parent, "Search canceled", "Info", JOptionPane.INFORMATION_MESSAGE);
           break;
         }
       }
@@ -289,15 +289,17 @@ public final class DialogSearcher implements Runnable, ActionListener
             } else if (searchEntry instanceof AbstractCode) {
               try {
                 Compiler compiler = new Compiler(searchEntry.toString(),
-                                                 (searchEntry instanceof Action) ? Compiler.ScriptType.ACTION :
-                                                                                   Compiler.ScriptType.TRIGGER);
+                                                   (searchEntry instanceof Action) ? ScriptType.ACTION :
+                                                                                     ScriptType.TRIGGER);
                 String code = compiler.getCode();
                 if (compiler.getErrors().size() == 0) {
                   Decompiler decompiler = new Decompiler(code, false);
+                  decompiler.setGenerateComments(false);
+                  decompiler.setGenerateResourcesUsed(false);
                   if (searchEntry instanceof Action) {
-                    decompiler.setScriptType(Decompiler.ScriptType.ACTION);
+                    decompiler.setScriptType(ScriptType.ACTION);
                   } else {
-                    decompiler.setScriptType(Decompiler.ScriptType.TRIGGER);
+                    decompiler.setScriptType(ScriptType.TRIGGER);
                   }
                   s = decompiler.getSource();
                 } else {

@@ -129,7 +129,7 @@ public class ResourceMenuCreator extends MenuCreator implements IMenuCreator, Ac
         }
         for (int i = 0; i < listEntries.size(); i++) {
           StructEntry e = listEntries.get(i);
-          JMenuItem mi = new DataMenuItem(String.format("Go to \"%1$s\"", e.getName()), null, e);
+          JMenuItem mi = new DataMenuItem(String.format("Go to \"%s\"", e.getName()), null, e);
           list.add(mi);
         }
       }

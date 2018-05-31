@@ -4,6 +4,7 @@
 
 package org.infinity.gui.converter;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -106,7 +107,7 @@ public class ConvertToTis extends ChildFrame
         img.getHeight() <= 0 || ((img.getHeight() % 64) != 0)) {
       result.add(null);
       result.add("The dimensions of the source image have to be a multiple of 64 pixels.\n" +
-                 String.format("Current dimensions are %1$dx%2$d", img.getWidth(), img.getHeight()));
+                 String.format("Current dimensions are %dx%d", img.getWidth(), img.getHeight()));
       return false;
     }
     if (tisFileName == null || tisFileName.isEmpty()) {
@@ -141,7 +142,7 @@ public class ConvertToTis extends ChildFrame
     int tw = img.getWidth() / 64;         // tiles per row
 
     try {
-      String note = "Converting tile %1$d / %2$d";
+      String note = "Converting tile %d / %d";
       int progressIndex = 0, progressMax = tileCount;
       if (showProgress) {
         progress = new ProgressMonitor(parent, "Converting TIS...", String.format(note, 0, tileCount),
@@ -209,7 +210,7 @@ public class ConvertToTis extends ChildFrame
         } else {
           // error handling
           result.add(null);
-          result.add(String.format("Error processing tile #%1$d. Conversion cancelled.", tileIdx));
+          result.add(String.format("Error processing tile #%d. Conversion cancelled.", tileIdx));
           return false;
         }
 
@@ -273,7 +274,7 @@ public class ConvertToTis extends ChildFrame
         img.getHeight() <= 0 || ((img.getHeight() % 64) != 0)) {
       result.add(null);
       result.add("The dimensions of the source image have to be a multiple of 64 pixels.\n" +
-                 String.format("Current dimensions are %1$dx%2$d", img.getWidth(), img.getHeight()));
+                 String.format("Current dimensions are %dx%d", img.getWidth(), img.getHeight()));
       return false;
     }
     if (tisFileName == null || tisFileName.isEmpty()) {
@@ -468,7 +469,7 @@ public class ConvertToTis extends ChildFrame
       tisNameBase = tisNameBase.substring(0, tisNameBase.lastIndexOf('.'));
     }
     if (Pattern.matches(".{2,7}", tisNameBase)) {
-      String pvrzName = String.format("%1$s%2$s%3$02d.PVRZ", tisNameBase.substring(0, 1),
+      String pvrzName = String.format("%s%s%02d.PVRZ", tisNameBase.substring(0, 1),
                                       tisNameBase.substring(2, tisNameBase.length()), page);
       if (tisPath != null) {
         return tisPath.resolve(pvrzName).toString();
@@ -487,7 +488,7 @@ public class ConvertToTis extends ChildFrame
   {
     int dxtCode = (dxtType == DxtEncoder.DxtType.DXT5) ? 11 : 7;
     byte[] output = new byte[DxtEncoder.calcImageSize(1024, 1024, dxtType)];
-    String note = "Generating PVRZ file %1$s / %2$s";
+    String note = "Generating PVRZ file %s / %s";
     if (progress != null) {
       progress.setMinimum(0);
       progress.setMaximum(pages.size() + 1);
@@ -513,7 +514,8 @@ public class ConvertToTis extends ChildFrame
       BufferedImage texture = ColorConvert.createCompatibleImage(w, h, true);
       Graphics2D g = texture.createGraphics();
       g.setBackground(new Color(0, true));
-      g.setColor(Color.BLACK);
+      g.setComposite(AlphaComposite.Src);
+      g.setColor(new Color(0, true));
       g.fillRect(0, 0, texture.getWidth(), texture.getHeight());
       int tw = srcImg.getWidth() / 64;
       for (final TileEntry entry: entryList) {
@@ -545,14 +547,14 @@ public class ConvertToTis extends ChildFrame
           // critical error
           e.printStackTrace();
           result.add(null);
-          result.add(String.format("Error writing PVRZ file \"%1$s\" to disk.", pvrzName));
+          result.add(String.format("Error writing PVRZ file \"%s\" to disk.", pvrzName));
           return false;
         }
         pvrz = null;
       } catch (Exception e) {
         e.printStackTrace();
         result.add(null);
-        result.add(String.format("Error while generating PVRZ files:\n%1$s", e.getMessage()));
+        result.add(String.format("Error while generating PVRZ files:\n%s", e.getMessage()));
         return false;
       }
     }
@@ -1074,7 +1076,7 @@ public class ConvertToTis extends ChildFrame
     Path inFile = FileManager.resolve(inFileName);
     if (!Files.isRegularFile(inFile)) {
       ret.add(null);
-      ret.add(String.format("Input file \"%1$s\" does not exist.", inFileName));
+      ret.add(String.format("Input file \"%s\" does not exist.", inFileName));
       return ret;
     }
 

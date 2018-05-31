@@ -18,7 +18,7 @@ import org.infinity.resource.wed.WedResource;
  */
 public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly>
 {
-  private static final String AvailableFmt = "Door polygons: %1$d";
+  private static final String AvailableFmt = "Door polygons: %d";
 
   private boolean doorClosed;
 

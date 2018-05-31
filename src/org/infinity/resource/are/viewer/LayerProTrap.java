@@ -17,7 +17,7 @@ import org.infinity.resource.are.ProTrap;
  */
 public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
 {
-  private static final String AvailableFmt = "Projectile traps: %1$d";
+  private static final String AvailableFmt = "Projectile traps: %d";
 
   public LayerProTrap(AreResource are, AreaViewer viewer)
   {

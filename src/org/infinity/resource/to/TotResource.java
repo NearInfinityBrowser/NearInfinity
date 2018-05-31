@@ -6,62 +6,21 @@ package org.infinity.resource.to;
 
 import java.nio.ByteBuffer;
 
-import javax.swing.JComponent;
-
 import org.infinity.datatype.Unknown;
-import org.infinity.gui.StructViewer;
-import org.infinity.gui.hexview.BasicColorMap;
-import org.infinity.gui.hexview.StructHexViewer;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 
-public final class TotResource extends AbstractStruct implements Resource, HasViewerTabs
+public final class TotResource extends AbstractStruct implements Resource
 {
   // TOT-specific field labels
   public static final String TOT_EMPTY = "(empty)";
-
-  private StructHexViewer hexViewer;
 
   public TotResource(ResourceEntry entry) throws Exception
   {
     super(entry);
   }
-
-//--------------------- Begin Interface HasViewerTabs ---------------------
-
-  @Override
-  public int getViewerTabCount()
-  {
-    return 1;
-  }
-
-  @Override
-  public String getViewerTabName(int index)
-  {
-    return StructViewer.TAB_RAW;
-  }
-
-  @Override
-  public JComponent getViewerTab(int index)
-  {
-    if (hexViewer == null) {
-      BasicColorMap colorMap = new BasicColorMap(this, false);
-      colorMap.setColoredEntry(BasicColorMap.Coloring.BLUE, StringEntry.class);
-      hexViewer = new StructHexViewer(this, colorMap);
-    }
-    return hexViewer;
-  }
-
-  @Override
-  public boolean viewerTabAddedBefore(int index)
-  {
-    return false;
-  }
-
-//--------------------- End Interface HasViewerTabs ---------------------
 
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
@@ -85,11 +44,5 @@ public final class TotResource extends AbstractStruct implements Resource, HasVi
     }
 
     return endoffset;
-  }
-
-  @Override
-  protected void viewerInitialized(StructViewer viewer)
-  {
-    viewer.addTabChangeListener(hexViewer);
   }
 }

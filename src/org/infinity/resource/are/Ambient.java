@@ -23,6 +23,7 @@ public final class Ambient extends AbstractStruct implements AddRemovable
   public static final String ARE_AMBIENT_ORIGIN_X           = "Origin: X";
   public static final String ARE_AMBIENT_ORIGIN_Y           = "Origin: Y";
   public static final String ARE_AMBIENT_RADIUS             = "Radius";
+  public static final String ARE_AMBIENT_HEIGHT             = "Height";
   public static final String ARE_AMBIENT_PITCH_VARIATION    = "Pitch variation";
   public static final String ARE_AMBIENT_VOLUME_VARIATION   = "Volume variation";
   public static final String ARE_AMBIENT_VOLUME             = "Volume";
@@ -63,8 +64,7 @@ public final class Ambient extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 32, 2, ARE_AMBIENT_ORIGIN_X));
     addField(new DecNumber(buffer, offset + 34, 2, ARE_AMBIENT_ORIGIN_Y));
     addField(new DecNumber(buffer, offset + 36, 2, ARE_AMBIENT_RADIUS));
-//    addField(new DecNumber(buffer, offset + 38, 2, "Height (3D)?"));
-    addField(new Unknown(buffer, offset + 38, 2));
+    addField(new DecNumber(buffer, offset + 38, 2, ARE_AMBIENT_HEIGHT));
     addField(new DecNumber(buffer, offset + 40, 4, ARE_AMBIENT_PITCH_VARIATION));
     addField(new DecNumber(buffer, offset + 44, 2, ARE_AMBIENT_VOLUME_VARIATION));
     addField(new DecNumber(buffer, offset + 46, 2, ARE_AMBIENT_VOLUME));
@@ -76,7 +76,6 @@ public final class Ambient extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 132, 4, ARE_AMBIENT_INTERVAL_BASE));
     addField(new DecNumber(buffer, offset + 136, 4, ARE_AMBIENT_INTERVAL_VARIATION));
     addField(new Flag(buffer, offset + 140, 4, ARE_AMBIENT_ACTIVE_AT, Actor.s_schedule));
-//    addField(new HexNumber(buffer, offset + 140, 4, "Day/night presence?"));
     addField(new Flag(buffer, offset + 144, 4, ARE_AMBIENT_FLAGS, s_flag));
     addField(new Unknown(buffer, offset + 148, 64));
     return offset + 212;

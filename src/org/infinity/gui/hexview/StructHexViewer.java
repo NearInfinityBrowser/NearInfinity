@@ -75,6 +75,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Misc;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -248,9 +249,9 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
         if (s == null) {
           c.setToolTipText(null);
         } else if (s.length() <= 30) {
-          c.setToolTipText(String.format("Find \"%1$s\"", s));
+          c.setToolTipText(String.format("Find \"%s\"", s));
         } else {
-          c.setToolTipText(String.format("Find \"%1$s...\"", s.substring(0, 30)));
+          c.setToolTipText(String.format("Find \"%s...\"", s.substring(0, 30)));
         }
       }
       getHexView().requestFocusInWindow();
@@ -443,7 +444,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
     hexView.setMouseOverHighlighted(false);
     hexView.setShowModified(true);
     hexView.setCaretColor(Color.BLACK);
-    hexView.setFontSize(13);
+    hexView.setFontSize(Misc.getScaledValue(13));
     hexView.setHeaderFontStyle(Font.BOLD);
     hexView.setFontColorHeader(new Color(0x0000c0));
     hexView.setBackgroundColorOffsetView(hexView.getBackground());
@@ -547,7 +548,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
     sb.append('[');
     if (buffer != null) {
       for (int i = 0; i < buffer.length; i++) {
-        sb.append(String.format("%1$02X", buffer[i] & 0xff));
+        sb.append(String.format("%02X", buffer[i] & 0xff));
         if (i+1 < buffer.length) {
           sb.append(", ");
         }
@@ -702,7 +703,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       JPanel retVal = new JPanel(new GridBagLayout());
 
       // creating title
-      JLabel l = new JLabel(String.format("%1$d%2$s level structure:",
+      JLabel l = new JLabel(String.format("%d%s level structure:",
                                           level, suffix[Math.max(0, Math.min(level, 4))]));
       l.setFont(l.getFont().deriveFont(Font.BOLD));
       GridBagConstraints gbc = new GridBagConstraints();
@@ -713,7 +714,8 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       // creating table
       JTable table = new JTable(model);
       table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-      table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+      table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.setBorder(BorderFactory.createLineBorder(Color.GRAY));
       table.getTableHeader().setBorder(BorderFactory.createLineBorder(Color.GRAY));
       table.getTableHeader().setReorderingAllowed(false);
@@ -721,8 +723,8 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       table.setFocusable(false);
       table.setEnabled(false);
 
-      final String maxString = String.format("%1$080d", 0);
-      Font f = BrowserMenuBar.getInstance().getScriptFont();
+      final String maxString = String.format("%080d", 0);
+      Font f = Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont());
       FontMetrics fm = table.getFontMetrics(f);
       Rectangle2D rect = f.getStringBounds(maxString, fm.getFontRenderContext());
       Dimension d = table.getPreferredSize();
@@ -804,7 +806,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
             case 1: // Start offset
               return String.format("%1$Xh (%1$d)", getStruct().getOffset());
             case 2: // Length
-              return String.format("%1$d byte%2$s",
+              return String.format("%d byte%s",
                                    getStruct().getSize(), (getStruct().getSize() != 1) ? "s" : "");
             case 3: // Structure type
               return getTypeDesc(getStruct());

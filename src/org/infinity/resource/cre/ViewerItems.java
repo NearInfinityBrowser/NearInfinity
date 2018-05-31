@@ -23,9 +23,11 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.HexNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.ToolTipTableCellRenderer;
 import org.infinity.gui.ViewFrame;
@@ -56,21 +58,33 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
                && !entry.getName().equals(CreResource.CRE_SELECTED_WEAPON_ABILITY))
         slots.add(entry);
     }
-    for (int i = 0; i < slots.size(); i++) {
-      DecNumber slot = (DecNumber)slots.get(i);
+    String selectedSlotName = getSelectedWeaponSlot(cre);
+    slots.forEach((e) -> {
+      IsNumeric slot = (IsNumeric)e;
+      String slotName = e.getName().equals(selectedSlotName) ? "*" + e.getName() : e.getName();
       if (slot.getValue() >= 0 && slot.getValue() < items.size()) {
         Item item = items.get(slot.getValue());
         ResourceRef itemRef = (ResourceRef)item.getAttribute(Item.CRE_ITEM_RESREF);
-        tableModel.addEntry(slot.getName(), itemRef);
+        tableModel.addEntry(slotName, itemRef);
+      } else {
+        tableModel.addEntry(slotName, null);
       }
-      else
-        tableModel.addEntry(slot.getName(), null);
-    }
+    });
     table = new JTable(tableModel);
     table.setDefaultRenderer(Object.class, new ToolTipTableCellRenderer());
+    ((DefaultTableCellRenderer)table.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.LEFT);
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(this);
-    table.getColumnModel().getColumn(0).setMaxWidth(175);
+    // calculating optimal width of slot name column
+    int maxWidth = 0;
+    for (int i = 0, cnt = table.getModel().getRowCount(); i < cnt; i++) {
+      String text = table.getModel().getValueAt(i, 0).toString();
+      int width = table.getFontMetrics(table.getFont()).stringWidth(text);
+      maxWidth = Math.max(width, maxWidth);
+    }
+    maxWidth = Math.max(maxWidth, table.getColumnModel().getColumn(0).getPreferredWidth());
+    table.getColumnModel().getColumn(0).setPreferredWidth(maxWidth + 8);
+    table.getColumnModel().getColumn(0).setMaxWidth(maxWidth + 100);
     table.addMouseListener(new MouseAdapter()
     {
       @Override
@@ -146,16 +160,18 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
         }
         table.clearSelection();
         tableModel.clear();
-        for (int i = 0; i < slots.size(); i++) {
-          DecNumber slot = (DecNumber)slots.get(i);
+        String selectedSlotName = getSelectedWeaponSlot(cre);
+        slots.forEach((e) -> {
+          IsNumeric slot = (IsNumeric)e;
+          String slotName = e.getName().equals(selectedSlotName) ? "*" + e.getName() : e.getName();
           if (slot.getValue() >= 0 && slot.getValue() < items.size()) {
             Item item = items.get(slot.getValue());
             ResourceRef itemRef = (ResourceRef)item.getAttribute(Item.CRE_ITEM_RESREF);
-            tableModel.addEntry(slot.getName(), itemRef);
+            tableModel.addEntry(slotName, itemRef);
+          } else {
+            tableModel.addEntry(slotName, null);
           }
-          else
-            tableModel.addEntry(slot.getName(), null);
-        }
+        });
         tableModel.fireTableDataChanged();
         table.getSelectionModel().setSelectionInterval(0, 0);
       }
@@ -163,6 +179,19 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
   }
 
 // --------------------- End Interface TableModelListener ---------------------
+
+  private String getSelectedWeaponSlot(CreResource cre)
+  {
+    String retVal = "";
+    int slotSelected = ((IsNumeric)cre.getAttribute(CreResource.CRE_SELECTED_WEAPON_SLOT)).getValue();
+    if (slotSelected >= 0 && slotSelected < 1000) {
+      StructEntry e = cre.getAttribute(String.format(CreResource.CRE_ITEM_SLOT_WEAPON_FMT, slotSelected + 1));
+      if (e != null) {
+        retVal = e.getName();
+      }
+    }
+    return retVal;
+  }
 
 
 // -------------------------- INNER CLASSES --------------------------

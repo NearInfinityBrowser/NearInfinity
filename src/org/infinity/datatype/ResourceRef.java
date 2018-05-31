@@ -35,6 +35,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
 public class ResourceRef extends Datatype
@@ -213,8 +214,8 @@ public class ResourceRef extends Datatype
     gbl.setConstraints(bView, gbc);
     panel.add(bView);
 
-    panel.setMinimumSize(DIM_MEDIUM);
-    panel.setPreferredSize(DIM_MEDIUM);
+    panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
+    panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
     return panel;
   }
 

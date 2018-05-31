@@ -183,7 +183,7 @@ public abstract class LayerObject
   public abstract AbstractLayerItem[] getLayerItems();
 
   /**
-   * Reloads structure data and associated layer item(s). Note: {@link #update(Point, double)} has
+   * Reloads structure data and associated layer item(s). Note: {@link #update(double)} has
    * to be called afterwards to account for canvas-specific settings.
    */
   public abstract void reload();
@@ -211,7 +211,7 @@ public abstract class LayerObject
 
   /**
    * Returns whether the layer object is active at a specific scheduled time.
-   * @param time The desired scheduled time index.
+   * @param schedule The desired scheduled time index.
    * @return {@code true} if the animation is active at the specified scheduled time,
    *         {@code false} otherwise.
    */
@@ -226,7 +226,7 @@ public abstract class LayerObject
    * @param superStruct The super structure containing the Vertex entries.
    * @param index Index of the first vertex.
    * @param count Number of vertices to load.
-   * @parem type The specific vertex type to look for.
+   * @param type The specific vertex type to look for.
    * @return Array of Point objects containing vertex data.
    */
   protected Point[] loadVertices(AbstractStruct superStruct, int baseOfs, int index, int count,

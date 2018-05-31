@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.SortedMap;
+import java.util.SortedSet;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -42,6 +42,9 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.bcs.Compiler;
+import org.infinity.resource.bcs.ScriptMessage;
+import org.infinity.resource.bcs.ScriptType;
+import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
 public abstract class AbstractCode extends Datatype
@@ -62,20 +65,20 @@ public abstract class AbstractCode extends Datatype
   private DecNumber len;
   private DecNumber off;
   private ScriptTextArea textArea;
-  private SortedMap<Integer, String> errors, warnings;
+  private SortedSet<ScriptMessage> errors, warnings;
   private String text;
 
   AbstractCode(String name)
   {
     this(StreamUtils.getByteBuffer(8), 0, name);
-    text = "";
+    this.text = "";
   }
 
-  AbstractCode(ByteBuffer buffer, int offset, String nane)
+  AbstractCode(ByteBuffer buffer, int offset, String name)
   {
-    super(offset, 8, nane);
+    super(offset, 8, name);
     read(buffer, offset);
-    text = (len.getValue() > 0) ? StreamUtils.readString(buffer, off.getValue(), len.getValue()) : "";
+    this.text = (len.getValue() > 0) ? StreamUtils.readString(buffer, off.getValue(), len.getValue()) : "";
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -88,27 +91,29 @@ public abstract class AbstractCode extends Datatype
       ButtonPopupMenu bpmErrors = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlErrors);
       ButtonPopupMenu bpmWarnings = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlWarnings);
       Compiler compiler = new Compiler(textArea.getText(),
-                                       (this instanceof Action) ? Compiler.ScriptType.ACTION :
-                                                                  Compiler.ScriptType.TRIGGER);
+                                         (this instanceof Action) ? ScriptType.ACTION :
+                                                                    ScriptType.TRIGGER);
+      compiler.compile();
       errors = compiler.getErrors();
       warnings = compiler.getWarnings();
+      textArea.clearGutterIcons();
       if (errors.size() > 0) {
         JMenuItem errorItems[] = new JMenuItem[errors.size()];
         int count = 0;
-        for (Integer lineNr : errors.keySet()) {
-          String error = errors.get(lineNr);
-          errorItems[count++] = new JMenuItem(lineNr.toString() + ": " + error);
+        for (final ScriptMessage sm: errors) {
+          textArea.setLineError(sm.getLine(), sm.getMessage(), false);
+          errorItems[count++] = new JMenuItem(sm.getLine() + ": " + sm.getMessage());
         }
-        bpmErrors.setMenuItems(errorItems);
+        bpmErrors.setMenuItems(errorItems, false);
       }
       if (warnings.size() > 0) {
         JMenuItem warningItems[] = new JMenuItem[warnings.size()];
         int count = 0;
-        for (Integer lineNr : warnings.keySet()) {
-          String warning = warnings.get(lineNr);
-          warningItems[count++] = new JMenuItem(lineNr.toString() + ": " + warning);
+        for (final ScriptMessage sm: warnings) {
+          textArea.setLineWarning(sm.getLine(), sm.getMessage(), false);
+          warningItems[count++] = new JMenuItem(sm.getLine() + ": " + sm.getMessage());
         }
-        bpmWarnings.setMenuItems(warningItems);
+        bpmWarnings.setMenuItems(warningItems, false);
       }
       bpmErrors.setEnabled(errors.size() > 0);
       bpmWarnings.setEnabled(warnings.size() > 0);
@@ -164,6 +169,8 @@ public abstract class AbstractCode extends Datatype
     textArea.setCaretPosition(0);
     textArea.getDocument().addDocumentListener(this);
 
+    buttonPanel.removeAllControls();
+
     JButton bUpdate = new JButton("Update", Icons.getIcon(Icons.ICON_REFRESH_16));
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
@@ -208,8 +215,8 @@ public abstract class AbstractCode extends Datatype
     gbl.setConstraints(buttonPanel, gbc);
     panel.add(buttonPanel);
 
-    panel.setMinimumSize(DIM_BROAD);
-    panel.setPreferredSize(DIM_BROAD);
+    panel.setMinimumSize(Misc.getScaledDimension(DIM_BROAD));
+    panel.setPreferredSize(Misc.getScaledDimension(DIM_BROAD));
     return panel;
   }
 

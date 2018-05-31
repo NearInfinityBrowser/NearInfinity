@@ -39,7 +39,7 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
    */
   public ShapedLayerItem()
   {
-    this(null, null, null, null, null);
+    this(null);
   }
 
   /**
@@ -48,7 +48,7 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
    */
   public ShapedLayerItem(Point location)
   {
-    this(location, null, null, null, null);
+    this(location, null);
   }
 
   /**
@@ -58,18 +58,18 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
    */
   public ShapedLayerItem(Point location, Viewable viewable)
   {
-    this(location, viewable, null, null, null);
+    this(location, viewable, null);
   }
 
   /**
    * Initialize object with a specific map location, associated Viewable and an additional text message.
    * @param location Map location
    * @param viewable Associated Viewable object
-   * @param msg An arbitrary text message
+   * @param message An arbitrary text message
    */
-  public ShapedLayerItem(Point location, Viewable viewable, String msg)
+  public ShapedLayerItem(Point location, Viewable viewable, String message)
   {
-    this(location, viewable, msg, null, null);
+    this(location, viewable, message, message);
   }
 
   /**
@@ -77,12 +77,26 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
    * and a shape for the visual representation.
    * @param location Map location
    * @param viewable Associated Viewable object
-   * @param msg An arbitrary text message
+   * @param message An arbitrary text message
+   * @param tooltip A short text message shown as tooltip or menu item text
+   */
+  public ShapedLayerItem(Point location, Viewable viewable, String message, String tooltip)
+  {
+    this(location, viewable, message, tooltip, null);
+  }
+
+  /**
+   * Initialize object with a specific map location, associated Viewable, an additional text message
+   * and a shape for the visual representation.
+   * @param location Map location
+   * @param viewable Associated Viewable object
+   * @param message An arbitrary text message
+   * @param tooltip A short text message shown as tooltip or menu item text
    * @param shape The shape to display
    */
-  public ShapedLayerItem(Point location, Viewable viewable, String msg, Shape shape)
+  public ShapedLayerItem(Point location, Viewable viewable, String message, String tooltip, Shape shape)
   {
-    this(location, viewable, msg, shape, null);
+    this(location, viewable, message, tooltip, shape, null);
   }
 
   /**
@@ -90,13 +104,15 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
    * a shape for the visual representation and a locical center position within the shape.
    * @param location Map location
    * @param viewable Associated Viewable object
-   * @param msg An arbitrary text message
+   * @param message An arbitrary text message
+   * @param tooltip A short text message shown as tooltip or menu item text
    * @param shape The shape to display
    * @param center Logical center position within the shape
    */
-  public ShapedLayerItem(Point location, Viewable viewable, String msg, Shape shape, Point center)
+  public ShapedLayerItem(Point location, Viewable viewable, String message, String tooltip,
+                         Shape shape, Point center)
   {
-    super(location, viewable, msg);
+    super(location, viewable, message, tooltip);
     strokeColors = new EnumMap<ItemState, Color>(ItemState.class);
     strokePen = new EnumMap<ItemState, BasicStroke>(ItemState.class);
     fillColors = new EnumMap<ItemState, Color>(ItemState.class);

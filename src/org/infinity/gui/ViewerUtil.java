@@ -15,6 +15,8 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -33,8 +35,11 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -49,11 +54,13 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.graphics.BamDecoder;
+import org.infinity.resource.graphics.BamResource;
 import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.SimpleListModel;
+import org.infinity.util.StringTable;
 
 public final class ViewerUtil
 {
@@ -68,7 +75,9 @@ public final class ViewerUtil
       text = new LinkButton((ResourceRef)entry);
     } else {
       if (entry instanceof StringRef) {
-        text = new JLabel(((StringRef)entry).toString(BrowserMenuBar.getInstance().showStrrefs()));
+        StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+                                                                            : StringTable.Format.NONE;
+        text = new JLabel(((StringRef)entry).toString(fmt));
       } else {
         text = new JLabel(entry.toString());
       }
@@ -190,7 +199,12 @@ public final class ViewerUtil
 
   public static JLabel makeImagePanel(ResourceRef imageRef)
   {
-    ResourceEntry imageEntry = ResourceFactory.getResourceEntry(imageRef.getResourceName());
+    return makeImagePanel(imageRef, false);
+  }
+
+  public static JLabel makeImagePanel(ResourceRef imageRef, boolean searchExtraDirs)
+  {
+    ResourceEntry imageEntry = ResourceFactory.getResourceEntry(imageRef.getResourceName(), searchExtraDirs);
     if (imageEntry != null) {
       Resource resource = ResourceFactory.getResource(imageEntry);
       if (resource != null) {
@@ -201,6 +215,11 @@ public final class ViewerUtil
           label.setIcon(new ImageIcon(((GraphicsResource)resource).getImage()));
         } else if (resource instanceof MosResource) {
           label.setIcon(new ImageIcon(((MosResource)resource).getImage()));
+        } else if (resource instanceof BamResource) {
+          BamResource br = (BamResource)resource;
+          if (br.getFrameCount() > 0) {
+            label.setIcon(new ImageIcon(br.getFrame(0)));
+          }
         }
         return label;
       }
@@ -232,7 +251,9 @@ public final class ViewerUtil
   {
     String text;
     if (entry instanceof StringRef) {
-      text = ((StringRef)entry).toString(BrowserMenuBar.getInstance().showStrrefs());
+      StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+                                                                          : StringTable.Format.NONE;
+      text = ((StringRef)entry).toString(fmt);
     } else {
       text = entry.toString();
     }
@@ -317,34 +338,44 @@ public final class ViewerUtil
       this.listClass = listClass;
       struct.addTableModelListener(this);
       list = new JList<>(listModel);
-      if (listener != null)
+      if (listener != null) {
         list.addListSelectionListener(listener);
+      }
       list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-      if (renderer != null)
+      if (renderer != null) {
         list.setCellRenderer(renderer);
+      }
       if (attrName == null) {
         for (int i = 0; i < struct.getFieldCount(); i++) {
           StructEntry o = struct.getField(i);
-          if (o.getClass() == listClass)
+          if (o.getClass() == listClass) {
             listModel.addElement(o);
+          }
         }
       }
       else {
-        if (renderer == null)
+        if (renderer == null) {
           list.setCellRenderer(new StructListRenderer(attrName));
+        }
         List<AbstractStruct> templist = new ArrayList<AbstractStruct>();
         for (int i = 0; i < struct.getFieldCount(); i++) {
           StructEntry o = struct.getField(i);
-          if (o.getClass() == listClass)
+          if (o.getClass() == listClass) {
             templist.add((AbstractStruct)o);
+          }
         }
         comp = new StructListComparator(attrName);
         Collections.sort(templist, comp);
-        for (int i = 0; i < templist.size(); i++)
+        for (int i = 0; i < templist.size(); i++) {
           listModel.addElement(templist.get(i));
+        }
       }
 
       final JPanel parent = this;
+      StructListKeyListener keyListener = new StructListKeyListener();
+      list.addKeyListener(keyListener);
+      list.addListSelectionListener(keyListener);
+      list.addListSelectionListener(listener);
       list.addMouseListener(new MouseAdapter()
       {
         @Override
@@ -355,8 +386,9 @@ public final class ViewerUtil
           }
         }
       });
-      if (listModel.size() > 0)
+      if (listModel.size() > 0) {
         list.setSelectedIndex(0);
+      }
       bOpen.addActionListener(this);
       bOpen.setEnabled(listModel.size() > 0 && listModel.get(0) instanceof Viewable);
 
@@ -436,7 +468,18 @@ public final class ViewerUtil
     }
   }
 
+  /**
+   * Can be used to extend ListCellRenderer interfaces by a method
+   * that returns the textual representation of the specified cell value.
+   */
+  public static interface ListValueRenderer
+  {
+    /** Returns the textual representation of the specified value. */
+    String getListValue(Object value);
+  }
+
   private static final class StructListRenderer extends DefaultListCellRenderer
+      implements ListValueRenderer
   {
     private final String attrName;
 
@@ -450,17 +493,28 @@ public final class ViewerUtil
                                                   boolean cellHasFocus)
     {
       JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-      AbstractStruct effect = (AbstractStruct)value;
-      StructEntry entry = effect.getAttribute(attrName);
-      if (entry instanceof ResourceRef) {
-        ResourceRef resref = (ResourceRef)entry;
-        label.setText(resref.getSearchName() + " (" + resref.getResourceName() + ')');
-      }
-      else if (entry == null || entry.toString().trim().equals(""))
-        label.setText(effect.toString());
-      else
-        label.setText(entry.toString());
+      label.setText(getListValue(value));
       return label;
+    }
+
+    @Override
+    public String getListValue(Object value)
+    {
+      if (value instanceof AbstractStruct) {
+        AbstractStruct effect = (AbstractStruct)value;
+        StructEntry entry = effect.getAttribute(attrName);
+        if (entry instanceof ResourceRef) {
+          ResourceRef resRef = (ResourceRef)entry;
+          return resRef.getSearchName() + " (" + resRef.getResourceName() + ')';
+        } else if (entry == null || entry.toString().trim().isEmpty()) {
+          return effect.toString();
+        } else if (entry != null) {
+          return entry.toString();
+        }
+      } else if (value != null) {
+        return value.toString();
+      }
+      return "";
     }
   }
 
@@ -477,6 +531,112 @@ public final class ViewerUtil
     public int compare(AbstractStruct as1, AbstractStruct as2)
     {
       return as1.getAttribute(attrName).toString().compareTo(as2.getAttribute(attrName).toString());
+    }
+  }
+
+  private static final class StructListKeyListener extends KeyAdapter
+      implements ActionListener, ListSelectionListener
+  {
+    private static final int TIMER_DELAY = 1000;
+
+    private final Timer timer;
+    private final StringBuilder curKey;
+
+    private boolean ignoreReset;
+
+    public StructListKeyListener()
+    {
+      curKey = new StringBuilder();
+      timer = new Timer(TIMER_DELAY, this);
+      timer.setRepeats(false);
+      ignoreReset = false;
+    }
+
+    @Override
+    public void keyPressed(KeyEvent event)
+    {
+      if (curKey.length() > 0 && event.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+        curKey.delete(curKey.length() - 1, curKey.length());
+        if (timer.isRunning()) {
+          timer.restart();
+        } else {
+          timer.start();
+        }
+        updateSelection(event.getSource());
+      }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent event)
+    {
+      if (Character.isISOControl(event.getKeyChar())) {
+        return;
+      }
+      curKey.append(Character.toUpperCase(event.getKeyChar()));
+      if (timer.isRunning()) {
+        timer.restart();
+      } else {
+        timer.start();
+      }
+      updateSelection(event.getSource());
+    }
+
+    private void updateSelection(Object source)
+    {
+      if (source instanceof JList<?>) {
+        JList<?> list = (JList<?>)source;
+        ListModel<?> model = list.getModel();
+        if (!(list.getCellRenderer() instanceof ListValueRenderer)) {
+          return;
+        }
+        ListValueRenderer renderer = (ListValueRenderer)list.getCellRenderer();
+        int startIdx = list.getSelectedIndex();
+        if (startIdx < 0) startIdx = 0;
+        // start searching from currently selected item
+        for (int idx = startIdx, max = model.getSize(); idx < max; idx++) {
+          String s = renderer.getListValue(model.getElementAt(idx)).toUpperCase(Locale.ENGLISH);
+          if (s.startsWith(curKey.toString())) {
+            try {
+              ignoreReset = true;
+              list.setSelectedIndex(idx);
+              list.ensureIndexIsVisible(idx);
+            } finally {
+              ignoreReset = false;
+            }
+            return;
+          }
+        }
+        // wrap around if necessary
+        for (int idx = 0; idx < startIdx; idx++) {
+          String s = renderer.getListValue(model.getElementAt(idx)).toUpperCase(Locale.ENGLISH);
+          if (s.startsWith(curKey.toString())) {
+            try {
+              ignoreReset = true;
+              list.setSelectedIndex(idx);
+              list.ensureIndexIsVisible(idx);
+            } finally {
+              ignoreReset = false;
+            }
+            return;
+          }
+        }
+      }
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent event)
+    {
+      if (!ignoreReset && curKey.length() > 0) {
+        curKey.delete(0, curKey.length());
+      }
+    }
+
+    @Override
+    public void valueChanged(ListSelectionEvent e)
+    {
+      if (!ignoreReset && curKey.length() > 0) {
+        curKey.delete(0, curKey.length());
+      }
     }
   }
 }

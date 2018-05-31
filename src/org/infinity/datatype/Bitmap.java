@@ -25,6 +25,7 @@ import org.infinity.gui.TextListPanel;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Misc;
 
 public class Bitmap extends Datatype implements Editable, IsNumeric
 {
@@ -50,23 +51,21 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
   @Override
   public JComponent edit(final ActionListener container)
   {
-    if (list == null) {
-      List<String> values = new ArrayList<String>(Math.max(table.length, value + 1));
-      for (int i = 0; i < Math.max(table.length, value + 1); i++) {
-        values.add(toString(i));
-      }
-      list = new TextListPanel(values, false);
-      list.addMouseListener(new MouseAdapter()
-      {
-        @Override
-        public void mouseClicked(MouseEvent event)
-        {
-          if (event.getClickCount() == 2) {
-            container.actionPerformed(new ActionEvent(this, 0, StructViewer.UPDATE_VALUE));
-          }
-        }
-      });
+    List<String> values = new ArrayList<String>(Math.max(table.length, value + 1));
+    for (int i = 0; i < Math.max(table.length, value + 1); i++) {
+      values.add(toString(i));
     }
+    list = new TextListPanel(values, false);
+    list.addMouseListener(new MouseAdapter()
+    {
+      @Override
+      public void mouseClicked(MouseEvent event)
+      {
+        if (event.getClickCount() == 2) {
+          container.actionPerformed(new ActionEvent(this, 0, StructViewer.UPDATE_VALUE));
+        }
+      }
+    });
     if (value >= 0 && value < list.getModel().getSize()) {
       int index = 0;
       while (!list.getModel().getElementAt(index).equals(toString(value))) {
@@ -95,8 +94,8 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
     gbl.setConstraints(bUpdate, gbc);
     panel.add(bUpdate);
 
-    panel.setMinimumSize(DIM_MEDIUM);
-    panel.setPreferredSize(DIM_MEDIUM);
+    panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
+    panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
     return panel;
   }
 

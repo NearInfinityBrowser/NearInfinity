@@ -23,7 +23,7 @@ import org.infinity.resource.are.AreResource;
  */
 public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
 {
-  private static final String AvailableFmt = "Background animations: %1$d";
+  private static final String AvailableFmt = "Background animations: %d";
 
   private boolean realEnabled, realPlaying, forcedInterpolation, isAnimActiveIgnored;
   private int frameState;

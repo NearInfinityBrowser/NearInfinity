@@ -26,9 +26,11 @@ import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.ViewerUtil;
+import org.infinity.gui.ViewerUtil.ListValueRenderer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Effect;
 import org.infinity.resource.Effect2;
+import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 
@@ -47,7 +49,8 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_RACE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CLASS), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GENDER), gbl, gbc, true);
-    if (ResourceFactory.resourceExists("KIT.IDS")) {
+    if (Profile.getGame() != Profile.Game.PSTEE &&
+        ResourceFactory.resourceExists("KIT.IDS")) {
       ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_KIT), gbl, gbc, true);
     } else {
       ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_MAGE_TYPE), gbl, gbc, true);
@@ -180,13 +183,10 @@ public final class Viewer extends JPanel
     }
     ResourceRef imageRef = (ResourceRef)cre.getAttribute(CreResource.CRE_PORTRAIT_LARGE);
     JComponent imagePanel;
-//    if (imageRef.getResourceName().endsWith(".BAM"))
-//      imagePanel = ViewerUtil.makeBamPanel(imageRef, 0);
-    if (imageRef.getResourceName().endsWith(".BMP") &&
-        ResourceFactory.resourceExists(imageRef.getResourceName())) {
-      imagePanel = ViewerUtil.makeImagePanel(imageRef);
+    if (ResourceFactory.resourceExists(imageRef.getResourceName(), true)) {
+      imagePanel = ViewerUtil.makeImagePanel(imageRef, true);
     } else {
-      imagePanel = ViewerUtil.makeImagePanel((ResourceRef)cre.getAttribute(CreResource.CRE_PORTRAIT_SMALL));
+      imagePanel = ViewerUtil.makeImagePanel((ResourceRef)cre.getAttribute(CreResource.CRE_PORTRAIT_SMALL), true);
     }
 
     GridBagLayout gbl = new GridBagLayout();
@@ -389,6 +389,7 @@ public final class Viewer extends JPanel
 // -------------------------- INNER CLASSES --------------------------
 
   private static final class SpellListRendererIWD2 extends DefaultListCellRenderer
+      implements ListValueRenderer
   {
     private SpellListRendererIWD2()
     {
@@ -399,9 +400,20 @@ public final class Viewer extends JPanel
                                                   boolean cellHasFocus)
     {
       JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-      AbstractStruct struct = (AbstractStruct)value;
-      label.setText(struct.getName() + " (" + (struct.getFieldCount() - 2) + ')');
+      label.setText(getListValue(value));
       return label;
+    }
+
+    @Override
+    public String getListValue(Object value)
+    {
+      if (value instanceof AbstractStruct) {
+        AbstractStruct struct = (AbstractStruct)value;
+        return struct.getName() + " (" + (struct.getFieldCount() - 2) + ')';
+      } else if (value != null) {
+        return value.toString();
+      }
+      return "";
     }
   }
 }

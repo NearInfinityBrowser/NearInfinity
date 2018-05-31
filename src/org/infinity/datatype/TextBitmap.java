@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -32,6 +33,25 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
   private final String[] names;
   private JTable table;
   private String text;
+
+  public TextBitmap(ByteBuffer buffer, int offset, int length, String name, Map<String, String> items)
+  {
+    super(null, offset, length, name);
+    read(buffer, offset);
+    if (items != null) {
+      this.ids = new String[items.size()];
+      this.names = new String[this.ids.length];
+      int idx = 0;
+      for (final String key: items.keySet()) {
+        this.ids[idx] = key;
+        this.names[idx] = items.get(key);
+        idx++;
+      }
+    } else {
+      this.ids = new String[0];
+      this.names = this.ids;
+    }
+  }
 
   public TextBitmap(ByteBuffer buffer, int offset, int length, String name, String[] ids, String[] names)
   {
@@ -85,8 +105,8 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
     gbl.setConstraints(bUpdate, gbc);
     panel.add(bUpdate);
 
-    panel.setMinimumSize(DIM_MEDIUM);
-    panel.setPreferredSize(DIM_MEDIUM);
+    panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
+    panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
     return panel;
   }
 

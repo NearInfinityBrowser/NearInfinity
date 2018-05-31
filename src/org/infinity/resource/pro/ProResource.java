@@ -5,7 +5,6 @@
 package org.infinity.resource.pro;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 
 import javax.swing.JComponent;
 
@@ -56,13 +55,23 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   public static final String PRO_CREATURE_TYPE = "Creature type";
   public static final String PRO_SPELL_DEFAULT = "Default spell";
   public static final String PRO_SPELL_SUCCESS = "Success spell";
+  public static final String PRO_SPELL_ANGLE_MIN = "Angle increase minimum";
+  public static final String PRO_SPELL_ANGLE_MAX = "Angle increase maximum";
+  public static final String PRO_SPELL_CURVE_MIN = "Curve minimum";
+  public static final String PRO_SPELL_CURVE_MAX = "Curve maximum";
+  public static final String PRO_SPELL_THAC0_BONUS = "THAC0 bonus";
+  public static final String PRO_SPELL_THAC0_BONUS_2 = "THAC0 bonus (non-actor)";
+  public static final String PRO_SPELL_RADIUS_MIN = "Radius minimum";
+  public static final String PRO_SPELL_RADIUS_MAX = "Radius maximum";
 
   public static final String[] s_color = {"", "Black", "Blue", "Chromatic", "Gold",
                                            "Green", "Purple", "Red", "White", "Ice",
                                            "Stone", "Magenta", "Orange"};
   public static final String[] s_behave = {"No flags set", "Show sparks", "Use height",
                                             "Loop fire sound", "Loop impact sound", "Ignore center",
-                                            "Draw as background"};
+                                            "Draw as background",
+                                            "EE: Allow saving;Allows you to save the game while the projectile is still active.",
+                                            "EE: Loop spread animation"};
   public static final String[] s_flagsEx = {
     "No flags set", "Bounce from walls", "Pass target", "Draw center VVC once", "Hit immediately",
     "Face target", "Curved path", "Start random frame", "Pillar", "Semi-trans. trail puff VEF",
@@ -215,8 +224,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
-    final String[] s_types = Profile.isEnhancedEdition() ? new String[]{"VVC", "BAM"}
-                                                         : new String[]{"VEF", "VVC", "BAM"};
+    final String[] s_types = new String[]{"VEF", "VVC", "BAM"};
 
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
@@ -237,34 +245,37 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       addField(new ColorPicker(buffer, offset + 52, PRO_COLOR, ColorPicker.Format.BGRX));
       addField(new DecNumber(buffer, offset + 56, 2, PRO_COLOR_SPEED));
       addField(new DecNumber(buffer, offset + 58, 2, PRO_SCREEN_SHAKE_AMOUNT));
-      if (Profile.isEnhancedEdition()) {
-        flag.addUpdateListener(this);
-        if (flag.isFlagSet(30)) {
-          SpellProtType type = new SpellProtType(buffer, offset + 62, 2, PRO_CREATURE_TYPE, 1);
-          addField(type.createCreatureValueFromType(buffer, offset + 60));
-          addField(type);
-          type = new SpellProtType(buffer, offset + 66, 2, PRO_CREATURE_TYPE, 2);
-          addField(type.createCreatureValueFromType(buffer, offset + 64));
-          addField(type);
-        } else {
-          IdsTargetType type = new IdsTargetType(buffer, offset + 62, 2, null, 1, null, false);
-          addField(type.createIdsValueFromType(buffer));
-          addField(type);
-          type = new IdsTargetType(buffer, offset + 66, 2, null, 2, null, false);
-          addField(type.createIdsValueFromType(buffer));
-          addField(type);
-        }
+      flag.addUpdateListener(this);
+      if (flag.isFlagSet(30)) {
+        SpellProtType type = new SpellProtType(buffer, offset + 62, 2, PRO_CREATURE_TYPE, 1);
+        addField(type.createCreatureValueFromType(buffer, offset + 60));
+        addField(type);
+        type = new SpellProtType(buffer, offset + 66, 2, PRO_CREATURE_TYPE, 2);
+        addField(type.createCreatureValueFromType(buffer, offset + 64));
+        addField(type);
       } else {
         IdsTargetType type = new IdsTargetType(buffer, offset + 62, 2, null, 1, null, false);
         addField(type.createIdsValueFromType(buffer));
         addField(type);
-        type = new IdsTargetType(buffer, offset + 62, 2, null, 2, null, false);
+        type = new IdsTargetType(buffer, offset + 66, 2, null, 2, null, false);
         addField(type.createIdsValueFromType(buffer));
         addField(type);
       }
       addField(new ResourceRef(buffer, 68, PRO_SPELL_DEFAULT, "SPL"));
       addField(new ResourceRef(buffer, 76, PRO_SPELL_SUCCESS, "SPL"));
-      addField(new Unknown(buffer, offset + 84, 172));
+      if (Profile.getGame() == Profile.Game.PSTEE) {
+        addField(new DecNumber(buffer, 84, 2, PRO_SPELL_ANGLE_MIN));
+        addField(new DecNumber(buffer, 86, 2, PRO_SPELL_ANGLE_MAX));
+        addField(new DecNumber(buffer, 88, 2, PRO_SPELL_CURVE_MIN));
+        addField(new DecNumber(buffer, 90, 2, PRO_SPELL_CURVE_MAX));
+        addField(new DecNumber(buffer, 92, 2, PRO_SPELL_THAC0_BONUS));
+        addField(new DecNumber(buffer, 94, 2, PRO_SPELL_THAC0_BONUS_2));
+        addField(new DecNumber(buffer, 96, 2, PRO_SPELL_RADIUS_MIN));
+        addField(new DecNumber(buffer, 98, 2, PRO_SPELL_RADIUS_MAX));
+        addField(new Unknown(buffer, offset + 100, 156));
+      } else {
+        addField(new Unknown(buffer, offset + 84, 172));
+      }
     } else {
       addField(new Unknown(buffer, offset + 42, 214));
     }
@@ -338,8 +349,8 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
         StructEntry newValue = newType.createCreatureValueFromType(valueBuffer, 0);
         newValue.setOffset(offset);
 
-        replaceEntry(struct, newValue);
-        replaceEntry(struct, newType);
+        replaceEntry(newValue);
+        replaceEntry(newType);
         return true;
       }
     }
@@ -360,26 +371,9 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
         StructEntry newValue = newType.createIdsValueFromType(valueBuffer, 0);
         newValue.setOffset(offset);
 
-        replaceEntry(struct, newValue);
-        replaceEntry(struct, newType);
+        replaceEntry(newValue);
+        replaceEntry(newType);
         return true;
-      }
-    }
-    return false;
-  }
-
-  // Replaces an old StructEntry instance by the specified instance if offset and size are equal
-  private boolean replaceEntry(AbstractStruct struct, StructEntry newEntry)
-  {
-    if (struct != null && newEntry != null) {
-      List<StructEntry> list = getList();
-      for (int i = 0, size = list.size(); i < size; i++) {
-        StructEntry oldEntry = list.get(i);
-        if (oldEntry.getOffset() == newEntry.getOffset() &&
-            oldEntry.getSize() == newEntry.getSize()) {
-          list.set(i, newEntry);
-          return true;
-        }
       }
     }
     return false;

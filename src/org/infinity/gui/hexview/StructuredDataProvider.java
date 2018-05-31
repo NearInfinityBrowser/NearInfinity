@@ -332,6 +332,9 @@ public class StructuredDataProvider implements IDataProvider
     public String getName() { return ""; }
 
     @Override
+    public void setName(String newName) {}
+
+    @Override
     public int getOffset() { return offset; }
 
     @Override

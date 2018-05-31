@@ -28,6 +28,7 @@ import javax.swing.UIManager;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.sound.AudioPlayer;
+import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 
 public class Viewer extends JPanel implements Runnable, ActionListener
@@ -197,7 +198,7 @@ public class Viewer extends JPanel implements Runnable, ActionListener
 
     list.setEnabled(false);
     list.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlShadow")));
-    list.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    list.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     playList = new JLabel("Playlist:");
 
     JScrollPane scroll = new JScrollPane(list);

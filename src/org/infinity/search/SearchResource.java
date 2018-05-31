@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -163,7 +164,7 @@ public class SearchResource extends ChildFrame
       if (!isOptionsEmpty()) {
         (new Thread(this)).start();
       } else {
-        JOptionPane.showMessageDialog(this, String.format("No search parameters specified for \"%1$s\".",
+        JOptionPane.showMessageDialog(this, String.format("No search parameters specified for \"%s\".",
                                                           getCurrentResourceType()));
       }
     } else if (event.getSource() == bInsertRef) {
@@ -274,9 +275,9 @@ public class SearchResource extends ChildFrame
             bOpenNew.setEnabled(true);
           }
           if (found.size() == 1) {
-            lResults.setText(String.format("(%1$d match found)", found.size()));
+            lResults.setText(String.format("(%d match found)", found.size()));
           } else {
-            lResults.setText(String.format("(%1$d matches found)", found.size()));
+            lResults.setText(String.format("(%d matches found)", found.size()));
           }
         }
       } finally {
@@ -826,17 +827,20 @@ public class SearchResource extends ChildFrame
       bpwCustomFilter = new ButtonPopupWindow(setOptionsText, pCustomFilter);
 
       String[] areType;
-      if (Profile.getEngine() == Profile.Engine.EE) {
-        areType = AreResource.s_atype_ee;
-      } else if (Profile.getEngine() == Profile.Engine.PST) {
+      if (Profile.getEngine() == Profile.Engine.PST) {
         areType = AreResource.s_atype_torment;
       } else if (Profile.getEngine() == Profile.Engine.IWD2) {
         areType = AreResource.s_atype_iwd2;
+      } else if (Profile.getGame() == Profile.Game.PSTEE) {
+        areType = AreResource.s_atype_pstee;
+      } else if (Profile.getEngine() == Profile.Engine.EE) {
+        areType = AreResource.s_atype_ee;
       } else {
         areType = AreResource.s_atype;
       }
-      String[] areFlags = (Profile.getEngine() == Profile.Engine.PST) ?
-                          AreResource.s_flag_torment : AreResource.s_flag;
+      String[] areFlags =
+          (Profile.getEngine() == Profile.Engine.PST || Profile.getGame() == Profile.Game.PSTEE) ?
+          AreResource.s_flag_torment : AreResource.s_flag;
       pType = new FlagsPanel(4, areType);
       bpwType = new ButtonPopupWindow(setOptionsText, pType);
       bpwType.addActionListener(this);
@@ -2042,7 +2046,11 @@ public class SearchResource extends ChildFrame
         sFlags = ItmResource.s_flags;
         sCat = ItmResource.s_categories;
       } else {
-        sFlags = ItmResource.s_flags;
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          sFlags = ItmResource.s_flags_pstee;
+        } else {
+          sFlags = ItmResource.s_flags;
+        }
         sCat = ItmResource.s_categories;
       }
 
@@ -2052,15 +2060,16 @@ public class SearchResource extends ChildFrame
       pUsability = new ItmUsabilityPanel();
       bpwUsability = new ButtonPopupWindow(setOptionsText, pUsability);
 
-      ObjectString[] osAppearance = null;
-      if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V11)) {
-        osAppearance = ObjectString.createString(ItmResource.s_anim11, ItmResource.s_tag11);
-      } else if (Profile.isEnhancedEdition()) {
-        osAppearance = ObjectString.createString(ItmResource.s_anim_1pp, ItmResource.s_tag_1pp);
-      } else {
-        osAppearance = ObjectString.createString(ItmResource.s_anim, ItmResource.s_tag);
+      Map<String, String> map = Profile.getEquippedAppearanceMap();
+      String[] keys = new String[(map != null) ? map.size() : 0];
+      String[] values = new String[keys.length];
+      int idx = 0;
+      for (final String key: map.keySet()) {
+        keys[idx] = key;
+        values[idx] = map.get(key);
+        idx++;
       }
-      cbAppearance = new AutoComboBox<>(osAppearance);
+      cbAppearance = new AutoComboBox<>(ObjectString.createString(values, keys));
 
       cbCategory = new AutoComboBox<>(IndexedString.createArray(sCat, 0, 0));
 
@@ -2775,10 +2784,14 @@ public class SearchResource extends ChildFrame
 
       cbSpellType = new AutoComboBox<>(IndexedString.createArray(SplResource.s_spelltype, 0, 0));
 
-      pExclusion = new FlagsPanel(4, SplResource.s_exclude);
+      pExclusion = new FlagsPanel(4, SplResource.s_exclude_combined);
       bpwExclusion = new ButtonPopupWindow(setOptionsText, pExclusion);
 
-      cbCastingAnim = new AutoComboBox<>(IndexedString.createArray(SplResource.s_anim, 0, 0));
+      if (Profile.getGame() == Profile.Game.PST || Profile.getGame() == Profile.Game.PSTEE) {
+        cbCastingAnim = new AutoComboBox<>(IndexedString.createArray(SplResource.s_anim_pst, 0, 0));
+      } else {
+        cbCastingAnim = new AutoComboBox<>(IndexedString.createArray(SplResource.s_anim, 0, 0));
+      }
 
       String[] priType = PriTypeBitmap.getTypeArray();
       ObjectString[] prim = new ObjectString[priType.length];
@@ -3593,10 +3606,10 @@ public class SearchResource extends ChildFrame
       for (int row = 0, col = 0, i = 0; i < bits; i++, row++) {
         String label = null, desc = null;
         if (i+1 >= table.length || table[i+1] == null || table[i+1].trim().isEmpty()) {
-          label = String.format("%1$s (%2$d)", "Unknown", i);
+          label = String.format("%s (%d)", "Unknown", i);
         } else {
           String[] s = table[i+1].split(";");
-          label = String.format("%1$s (%2$d)", s[0], i);
+          label = String.format("%s (%d)", s[0], i);
           if (s.length > 1) {
             desc = s[1];
           }
@@ -3734,7 +3747,7 @@ public class SearchResource extends ChildFrame
     {
       // initializing components
       for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("%1$s %2$d:", label, i+1));
+        cbLabel[i] = new JCheckBox(String.format("%s %d:", label, i+1));
         cbLabel[i].addActionListener(this);
 
         sEffects[i][0] = Utils.createNumberSpinner(Short.MIN_VALUE, Short.MAX_VALUE, 0, 999, 0, 1);
@@ -4012,7 +4025,7 @@ public class SearchResource extends ChildFrame
 
       // initializing components
       for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("%1$s %2$d:", label, i+1));
+        cbLabel[i] = new JCheckBox(String.format("%s %d:", label, i+1));
         cbLabel[i].addActionListener(this);
 
         cbFilterType[i] = new JComboBox<>(FilterText);
@@ -4540,14 +4553,14 @@ public class SearchResource extends ChildFrame
             new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Allegiance", "KIT.IDS"));
         kitList = new StorageString[ids.length];
         for (int i = 0; i < kitList.length; i++) {
-          kitList[i] = new ObjectString(ids[i].getString(), new Integer((int)ids[i].getID()));
+          kitList[i] = new ObjectString(ids[i].getSymbol(), new Integer((int)ids[i].getID()));
         }
       } else if (hasKit) {
         KitIdsBitmap kit = new KitIdsBitmap(StreamUtils.getByteBuffer(4), 0, "");
         kitList = new StorageString[kit.getIdsMapEntryCount()];
         for (int i = 0; i < kitList.length; i++) {
           IdsMapEntry e = kit.getIdsMapEntryByIndex(i);
-          kitList[i] = new ObjectString(e.getString(), new Integer((int)e.getID()));
+          kitList[i] = new ObjectString(e.getSymbol(), new Integer((int)e.getID()));
         }
       } else {
         kitList = new StorageString[]{};
@@ -4778,7 +4791,7 @@ public class SearchResource extends ChildFrame
     {
       // initializing components
       for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("Item resource %1$d:", i+1));
+        cbLabel[i] = new JCheckBox(String.format("Item resource %d:", i+1));
         cbLabel[i].addActionListener(this);
 
         cbItems[i] = Utils.createNamedResourceComboBox(new String[]{"ITM"}, true);
@@ -4886,7 +4899,7 @@ public class SearchResource extends ChildFrame
     {
       // initializing components
       for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("Spell resource %1$d:", i+1));
+        cbLabel[i] = new JCheckBox(String.format("Spell resource %d:", i+1));
         cbLabel[i].addActionListener(this);
 
         cbSpells[i] = Utils.createNamedResourceComboBox(new String[]{"SPL"}, true);
@@ -4995,7 +5008,7 @@ public class SearchResource extends ChildFrame
     {
       // initializing components
       for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("Script %1$d:", i+1));
+        cbLabel[i] = new JCheckBox(String.format("Script %d:", i+1));
         cbLabel[i].addActionListener(this);
 
         cbScripts[i] = Utils.createNamedResourceComboBox(new String[]{"BCS"}, false);
@@ -5114,7 +5127,8 @@ public class SearchResource extends ChildFrame
       }
 
       String[] sUnusable;
-      if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V11)) {
+      if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V11) ||
+          Profile.getGame() == Profile.Game.PSTEE) {
         sUnusable = ItmResource.s_usability11;
       } else if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_ITM_V20)) {
         sUnusable = ItmResource.s_usability20;
@@ -5849,7 +5863,7 @@ public class SearchResource extends ChildFrame
       }
 
       cbType = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(AbstractAbility.s_type, 0, 0)));
-      cbLocation = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(org.infinity.resource.spl.Ability.s_abilityuse, 0, 0)));
+      cbLocation = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(org.infinity.resource.itm.Ability.s_abilityuse, 0, 0)));
       cbTarget = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(AbstractAbility.s_targettype, 0, 0)));
 
       StorageString[] pro;
@@ -6031,7 +6045,7 @@ public class SearchResource extends ChildFrame
     private void init()
     {
       for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("Category %1$d:", i+1));
+        cbLabel[i] = new JCheckBox(String.format("Category %d:", i+1));
         cbLabel[i].addActionListener(this);
 
         String[] cat = ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_STO_V11)) ?
@@ -6141,7 +6155,7 @@ public class SearchResource extends ChildFrame
     private void init()
     {
       for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("Item for sale %1$d:", i+1));
+        cbLabel[i] = new JCheckBox(String.format("Item for sale %d:", i+1));
         cbLabel[i].addActionListener(this);
         cbItems[i] = Utils.createNamedResourceComboBox(new String[]{"ITM"}, true);
       }
@@ -6244,7 +6258,7 @@ public class SearchResource extends ChildFrame
     @Override
     public String toString()
     {
-      return String.format("%1$s (%2$d)", s, index);
+      return String.format("%s (%d)", s, index);
     }
   }
 
@@ -6289,7 +6303,7 @@ public class SearchResource extends ChildFrame
     @Override
     public String toString()
     {
-      return String.format("%1$s (%2$s)", s, (o != null) ? o.toString() : "(null)");
+      return String.format("%s (%s)", s, (o != null) ? o.toString() : "(null)");
     }
   }
 
@@ -6326,9 +6340,9 @@ public class SearchResource extends ChildFrame
         } else {
           if (resName != null) {
             if (!resName.isEmpty()) {
-              return String.format("%1$s (%2$s)", entry.getResourceName(), resName);
+              return String.format("%s (%s)", entry.getResourceName(), resName);
             } else {
-              return String.format("%1$s (No such index)", entry.getResourceName());
+              return String.format("%s (No such index)", entry.getResourceName());
             }
           } else {
             return entry.getResourceName();

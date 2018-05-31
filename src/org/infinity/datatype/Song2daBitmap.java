@@ -13,6 +13,7 @@ import java.util.Locale;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.LongIntegerHashMap;
@@ -110,14 +111,14 @@ public class Song2daBitmap extends ResourceBitmap
   private static List<RefEntry> createSongList_MUSIC(List<Path> searchDirs)
   {
     if (SongList.isEmpty()) {
-      LongIntegerHashMap<IdsMapEntry> map = IdsMapCache.get(TableName).getMap();
+      IdsMap map = IdsMapCache.get(TableName);
       SongList.ensureCapacity(2 + map.size());
       SongList.add(new RefEntry(0xfffffffeL, "Continue area music"));
       SongList.add(new RefEntry(0xffffffffL, "Continue outside music"));
 
-      long[] keys = map.keys();
-      for (final long key: keys) {
-        String name = map.get(key).getString();
+      for (final IdsMapEntry e: map.getAllValues()) {
+        String name = e.getSymbol();
+        long key = e.getID();
         name = Character.toUpperCase(name.charAt(0)) + name.substring(1);
         String ref = name.replaceAll("_", "").toUpperCase(Locale.ENGLISH) + ".MUS";
         if (key == 0L) {

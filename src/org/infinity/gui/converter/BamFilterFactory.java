@@ -45,12 +45,24 @@ public class BamFilterFactory
     FilterInfoList.add(new FilterInfo(BamFilterTransformTrim.getFilterName(),
                                       BamFilterTransformTrim.getFilterDesc(),
                                       BamFilterTransformTrim.class));
+    FilterInfoList.add(new FilterInfo(BamFilterTransformCenter.getFilterName(),
+                                      BamFilterTransformCenter.getFilterDesc(),
+                                      BamFilterTransformCenter.class));
     FilterInfoList.add(new FilterInfo(BamFilterOutputDefault.getFilterName(),
                                       BamFilterOutputDefault.getFilterDesc(),
                                       BamFilterOutputDefault.class));
+    FilterInfoList.add(new FilterInfo(BamFilterOutputCombine.getFilterName(),
+                                      BamFilterOutputCombine.getFilterDesc(),
+                                      BamFilterOutputCombine.class));
     FilterInfoList.add(new FilterInfo(BamFilterOutputSplitted.getFilterName(),
                                       BamFilterOutputSplitted.getFilterDesc(),
                                       BamFilterOutputSplitted.class));
+    FilterInfoList.add(new FilterInfo(BamFilterOutputImage.getFilterName(),
+                                      BamFilterOutputImage.getFilterDesc(),
+                                      BamFilterOutputImage.class));
+    FilterInfoList.add(new FilterInfo(BamFilterOutputGif.getFilterName(),
+                                      BamFilterOutputGif.getFilterDesc(),
+                                      BamFilterOutputGif.class));
   }
 
 
@@ -171,7 +183,17 @@ public class BamFilterFactory
     @Override
     public String toString()
     {
-      return name;
+      String prefix;
+      if (BamFilterBaseColor.class.isAssignableFrom(filterClass)) {
+        prefix = "Color";
+      } else if (BamFilterBaseTransform.class.isAssignableFrom(filterClass)) {
+        prefix = "Transform";
+      } else if (BamFilterBaseOutput.class.isAssignableFrom(filterClass)) {
+        prefix = "Output";
+      } else {
+        prefix = "Filter";
+      }
+      return prefix + ": " + name;
     }
 
     @Override

@@ -379,7 +379,7 @@ public class SpellProtType extends Bitmap
               break;
             case 0x10b: // GENERAL
               if (isBitwiseRelation(rel) && value != -1) {
-                label = String.format("GENERAL %s %s [0x%3$x]",
+                label = String.format("GENERAL %s %s [0x%x]",
                                       getRelation(rel),
                                       getIdsValue("GENERAL.IDS", value, isBitwiseRelation(rel)),
                                       value);
@@ -549,11 +549,14 @@ public class SpellProtType extends Bitmap
     } else {
       IdsMap map = IdsMapCache.get(idsFile);
       if (map != null) {
-        IdsMapEntry entry = map.getValue((long)value);
+        IdsMapEntry entry = map.get((long)value);
         if (entry != null) {
-          if (entry.getString() != null && !entry.getString().isEmpty()) {
-            return entry.getString();
+          if (entry.getSymbol() != null && !entry.getSymbol().isEmpty()) {
+            return entry.getSymbol();
           }
+        } else if (value == 0 && "STATS.IDS".equalsIgnoreCase(idsFile)) {
+          // XXX: Workaround for EE since patch 2.5. Remove if symbol has been added to STATS.IDS.
+          return "CURHITPOINTS";
         }
       }
       return asHex ? "0x" + Integer.toHexString(value) : Integer.toString(value);

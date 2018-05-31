@@ -63,7 +63,7 @@ public class DlcFileAttributeView implements BasicFileAttributeView
     compressedSize,
     crc,
     method
-  };
+  }
 
   private final DlcPath path;
   private final boolean isZipView;

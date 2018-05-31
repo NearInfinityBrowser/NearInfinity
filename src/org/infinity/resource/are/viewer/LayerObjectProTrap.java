@@ -23,9 +23,9 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
  */
 public class LayerObjectProTrap extends LayerObject
 {
-  private static final Image[] Icon = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_PRO_TRAP_1),
+  private static final Image[] ICON = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_PRO_TRAP_1),
                                        Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_PRO_TRAP_2)};
-  private static Point Center = new Point(14, 14);
+  private static final Point CENTER = new Point(14, 14);
 
   private final ProTrap trap;
   private final Point location = new Point();
@@ -117,20 +117,20 @@ public class LayerObjectProTrap extends LayerObject
 
       // Using cached icons
       Image[] icon;
-      String keyIcon = String.format("%1$s%2$s", SharedResourceCache.createKey(Icon[0]),
-                                                 SharedResourceCache.createKey(Icon[1]));
+      String keyIcon = String.format("%s%s", SharedResourceCache.createKey(ICON[0]),
+                                                 SharedResourceCache.createKey(ICON[1]));
       if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
         icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon);
       } else {
-        icon = Icon;
+        icon = ICON;
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
-      item = new IconLayerItem(location, trap, msg, icon[0], Center);
+      item = new IconLayerItem(location, trap, msg, msg, icon[0], CENTER);
       item.setName(getCategory());
       item.setToolTipText(msg);
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
+      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, ICON[1]);
       item.setVisible(isVisible());
     }
   }

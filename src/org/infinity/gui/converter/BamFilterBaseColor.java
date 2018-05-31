@@ -96,8 +96,8 @@ public abstract class BamFilterBaseColor extends BamFilterBase
   public static class ExcludeColorsPanel extends JPanel
       implements MouseOverListener, ActionListener
   {
-    private static final String FmtInfoRGB    = "%1$d  %2$d  %3$d";
-    private static final String FmtInfoHexRGB = "#%1$02X%2$02X%3$02X";
+    private static final String FmtInfoRGB    = "%d  %d  %d";
+    private static final String FmtInfoHexRGB = "#%02X%02X%02X";
     private static final int[] AllColorIndices = new int[256];
     static {
       for (int i = 0; i < AllColorIndices.length; i++) {

@@ -10,7 +10,6 @@ import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
-import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
@@ -20,6 +19,7 @@ public final class ItemSale extends AbstractStruct implements AddRemovable
   // STO/ItemSale-specific field labels
   public static final String STO_SALE                 = "Item for sale";
   public static final String STO_SALE_ITEM            = "Item";
+  public static final String STO_SALE_EXPIRATION      = "Expiration time";
   public static final String STO_SALE_QUANTITY_FMT    = "Quantity/Charges %d";
   public static final String STO_SALE_FLAGS           = "Flags";
   public static final String STO_SALE_NUM_IN_STOCK    = "# in stock";
@@ -53,7 +53,7 @@ public final class ItemSale extends AbstractStruct implements AddRemovable
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, STO_SALE_ITEM, "ITM"));
-    addField(new Unknown(buffer, offset + 8, 2));
+    addField(new DecNumber(buffer, offset + 8, 2, STO_SALE_EXPIRATION));
     for (int i = 0; i < 3; i++) {
       addField(new DecNumber(buffer, offset + 10 + (i * 2), 2, String.format(STO_SALE_QUANTITY_FMT, i+1)));
     }

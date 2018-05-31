@@ -240,6 +240,9 @@ public class IdsTargetType extends Bitmap
     String[] retVal = Arrays.copyOf(DEFAULT_IDS_LIST, len);
     retVal[2] = (secondIds != null) ? secondIds : DEFAULT_SECOND_IDS;
     retVal[8] = Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT);
+    if (Profile.getGame() == Profile.Game.IWD2) {
+      retVal[5] = "CLASSMSK.IDS";
+    }
     if (Profile.isEnhancedEdition()) {
       retVal[9] = "KIT.IDS";
       if (targetActor) {

@@ -5,6 +5,7 @@
 package org.infinity.datatype;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -28,6 +29,7 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Misc;
 
 /**
  * A Number object consisting of multiple values of a given number of bits.
@@ -90,7 +92,8 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
   {
     tValues = new JTable(mValues);
     tValues.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    tValues.setFont(BrowserMenuBar.getInstance().getScriptFont());
+    tValues.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+    tValues.setRowHeight(tValues.getFontMetrics(tValues.getFont()).getHeight() + 1);
     tValues.setBorder(BorderFactory.createLineBorder(Color.GRAY));
     tValues.getTableHeader().setBorder(BorderFactory.createLineBorder(Color.GRAY));
     tValues.getTableHeader().setReorderingAllowed(false);
@@ -114,10 +117,11 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
                             GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
     panel.add(bUpdate, gbc);
 
-    panel.setPreferredSize(DIM_MEDIUM);
+    Dimension dim = Misc.getScaledDimension(DIM_MEDIUM);
+    panel.setPreferredSize(dim);
 
     // making "Attribute" column wider
-    int tableWidth = DIM_MEDIUM.width - bUpdate.getPreferredSize().width - 8;
+    int tableWidth = dim.width - bUpdate.getPreferredSize().width - 8;
     tValues.getColumnModel().getColumn(0).setPreferredWidth(tableWidth * 3 / 4);
     tValues.getColumnModel().getColumn(1).setPreferredWidth(tableWidth * 1 / 4);
 
@@ -187,7 +191,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
   {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < getValueCount(); i++) {
-      sb.append(String.format("%1$s: %2$d", getValueName(i), getValue(i)));
+      sb.append(String.format("%s: %d", getValueName(i), getValue(i)));
       if (i+1 < getValueCount())
         sb.append(", ");
     }
@@ -364,7 +368,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     {
       StringBuilder sb = new StringBuilder();
       for (int i = 0; i < numValues; i++) {
-        sb.append(String.format("%1$s: %2$d", (String)data[ATTRIBUTE][i], ((Integer)data[VALUE][i]).intValue()));
+        sb.append(String.format("%s: %d", (String)data[ATTRIBUTE][i], ((Integer)data[VALUE][i]).intValue()));
         if (i+1 < numValues)
           sb.append(", ");
       }

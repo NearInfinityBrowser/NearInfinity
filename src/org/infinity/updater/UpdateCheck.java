@@ -150,7 +150,7 @@ public class UpdateCheck extends JDialog
       WindowBlocker.blockWindow(NearInfinity.getInstance(), false);
     }
     if (fileSize > 0) {
-      tfNewSize.setText(String.format("%1$.2f MB", (float)fileSize / 1048576.0f));
+      tfNewSize.setText(String.format("%.2f MB", (float)fileSize / 1048576.0f));
     } else {
       tfNewSize.setText("n/a");
     }

@@ -46,6 +46,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Misc;
 
 public final class SearchFrame extends ChildFrame implements ActionListener, ListSelectionListener, Runnable
 {
@@ -209,7 +210,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
     gbl.setConstraints(bpanel, gbc);
     pane.add(bpanel);
 
-    setSize(500, 450);
+    setSize(Misc.getScaledValue(500), Misc.getScaledValue(450));
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 

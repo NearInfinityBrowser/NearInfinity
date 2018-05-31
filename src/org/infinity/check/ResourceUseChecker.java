@@ -58,6 +58,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.Decompiler;
+import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
@@ -67,7 +68,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
-import org.infinity.util.StringResource;
+import org.infinity.util.StringTable;
 
 public final class ResourceUseChecker implements Runnable, ListSelectionListener, ActionListener
 {
@@ -76,8 +77,8 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
   private static final String[] FILETYPES = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE",
                                              "DLG", "EFF", "INI", "ITM", "PRO", "SPL", "STO",
                                              "VEF", "VVC", "WED", "WMP"};
-  private static final String[] CHECKTYPES = {"ARE", "BCS", "CRE", "DLG", "EFF", "ITM", "PRO", "SPL", "STO",
-                                              "TIS", "VEF", "VVC", "WAV", "WED"};
+  private static final String[] CHECKTYPES = {"ARE", "BAM", "BCS", "CRE", "DLG", "EFF", "ITM", "PRO",
+                                              "SPL", "STO", "TIS", "VEF", "VVC", "WAV", "WED"};
   private final ChildFrame selectframe = new ChildFrame("Find unused files", true);
   private final JButton bstart = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
   private final JButton bcancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
@@ -217,7 +218,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       }
       ThreadPoolExecutor executor = Misc.createThreadPool();
       progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Searching...",
+      progress = new ProgressMonitor(NearInfinity.getInstance(), "Searching..." + Misc.MSG_EXPAND_LARGE,
                                      String.format(FMT_PROGRESS, files.size(), files.size()),
                                      0, files.size());
       progress.setNote(String.format(FMT_PROGRESS, 0, files.size()));
@@ -292,7 +293,8 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
         pane.add(panel, BorderLayout.SOUTH);
         bopen.setEnabled(false);
         bopennew.setEnabled(false);
-        table.setFont(BrowserMenuBar.getInstance().getScriptFont());
+        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+        table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
         table.addMouseListener(new MouseAdapter()
         {
           @Override
@@ -304,7 +306,9 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
                 ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
                 Resource resource = ResourceFactory.getResource(resourceEntry);
                 new ViewFrame(resultFrame, resource);
-                ((AbstractStruct)resource).getViewer().selectEntry((String)table.getValueAt(row, 1));
+                if (resource instanceof AbstractStruct) {
+                  ((AbstractStruct)resource).getViewer().selectEntry((String)table.getValueAt(row, 1));
+                }
               }
             }
           }
@@ -352,14 +356,16 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
         AbstractCode code = (AbstractCode)flatList.get(i);
         try {
           Compiler compiler = new Compiler(code.toString(),
-                                           (code instanceof Action) ? Compiler.ScriptType.ACTION :
-                                                                      Compiler.ScriptType.TRIGGER);
+                                             (code instanceof Action) ? ScriptType.ACTION :
+                                                                        ScriptType.TRIGGER);
           String compiled = compiler.getCode();
-          Decompiler decompiler = new Decompiler(compiled, Decompiler.ScriptType.BCS, true);
+          Decompiler decompiler = new Decompiler(compiled, ScriptType.BCS, true);
+          decompiler.setGenerateComments(false);
+          decompiler.setGenerateResourcesUsed(true);
           if (code instanceof Action) {
-            decompiler.setScriptType(Decompiler.ScriptType.ACTION);
+            decompiler.setScriptType(ScriptType.ACTION);
           } else {
-            decompiler.setScriptType(Decompiler.ScriptType.TRIGGER);
+            decompiler.setScriptType(ScriptType.TRIGGER);
           }
           decompiler.decompile();
           Set<ResourceEntry> resourcesUsed = decompiler.getResourcesUsed();
@@ -379,8 +385,8 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
           if (subList.get(j) instanceof StringRef) {
             StringRef ref = (StringRef)subList.get(j);
             if (ref.getValue() >= 0) {
-              String wav = StringResource.getWavResource(ref.getValue());
-              if (wav != null) {
+              String wav = StringTable.getSoundResource(ref.getValue());
+              if (!wav.isEmpty()) {
                 wav += ".WAV";
                 synchronized (checkList) {
                   for (Iterator<ResourceEntry> k = checkList.iterator(); k.hasNext();) {
@@ -401,12 +407,18 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
   private void checkScript(BcsResource script)
   {
     Decompiler decompiler = new Decompiler(script.getCode(), true);
-    decompiler.decompile();
-    Set<ResourceEntry> resourcesUsed = decompiler.getResourcesUsed();
-    for (final ResourceEntry resourceEntry : resourcesUsed) {
-      synchronized (checkList) {
-        checkList.remove(resourceEntry);
+    decompiler.setGenerateComments(false);
+    decompiler.setGenerateResourcesUsed(true);
+    try {
+      decompiler.decompile();
+      Set<ResourceEntry> resourcesUsed = decompiler.getResourcesUsed();
+      for (final ResourceEntry resourceEntry : resourcesUsed) {
+        synchronized (checkList) {
+          checkList.remove(resourceEntry);
+        }
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
@@ -430,8 +442,8 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       else if (checkType.equalsIgnoreCase("WAV") && flatList.get(i) instanceof StringRef) {
         StringRef ref = (StringRef)flatList.get(i);
         if (ref.getValue() >= 0) {
-          String wav = StringResource.getWavResource(ref.getValue());
-          if (wav != null) {
+          String wav = StringTable.getSoundResource(ref.getValue());
+          if (!wav.isEmpty()) {
             wav += ".WAV";
             synchronized (checkList) {
               for (Iterator<ResourceEntry> j = checkList.iterator(); j.hasNext();) {
@@ -502,7 +514,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
     @Override
     public String toString()
     {
-      return String.format("File: %1$s  Name: %2$s", file.toString(), file.getSearchString());
+      return String.format("File: %s  Name: %s", file.toString(), file.getSearchString());
     }
   }
 

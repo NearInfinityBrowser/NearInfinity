@@ -351,7 +351,7 @@ public class DynamicArray
       System.arraycopy(buffer, offset, temp, 0, length);
       return new String(temp, charset);
     }
-    return new String();
+    return "";
   }
 
   /**

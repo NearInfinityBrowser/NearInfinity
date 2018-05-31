@@ -510,23 +510,23 @@ public class UpdateInfo
     {
       // checking mandatory fields
       if (fileName == null) {
-        throw new Exception(String.format("Update.xml: Missing \"%1$s\" node in %2$s section",
+        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section",
                                           NODE_NAME, NODE_RELEASE));
       }
       if (link == null) {
-        throw new Exception(String.format("Update.xml: Missing \"%1$s\" node in %2$s section",
+        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section",
                                           NODE_LINK, NODE_RELEASE));
       }
       if (version == null) {
-        throw new Exception(String.format("Update.xml: Missing \"%1$s\" node in %2$s section",
+        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section",
                                           NODE_VERSION, NODE_RELEASE));
       }
       if (timeStamp == null) {
-        throw new Exception(String.format("Update.xml: Missing \"%1$s\" node in %2$s section",
+        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section",
                                           NODE_TIMESTAMP, NODE_RELEASE));
       }
       if (hash == null) {
-        throw new Exception(String.format("Update.xml: Missing \"%1$s\" node in %2$s section",
+        throw new Exception(String.format("Update.xml: Missing \"%s\" node in %s section",
                                           NODE_HASH, NODE_RELEASE));
       }
 

@@ -17,7 +17,7 @@ import org.infinity.resource.are.ITEPoint;
  */
 public class LayerRegion extends BasicLayer<LayerObjectRegion>
 {
-  private static final String AvailableFmt = "Regions: %1$d";
+  private static final String AvailableFmt = "Regions: %d";
 
   public LayerRegion(AreResource are, AreaViewer viewer)
   {

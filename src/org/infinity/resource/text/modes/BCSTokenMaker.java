@@ -17,6 +17,8 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxUtilities;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMap;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.resource.bcs.ScriptInfo;
+import org.infinity.resource.bcs.Signatures;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
@@ -38,6 +40,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
   public static final int TOKEN_OBJECT        = Token.VARIABLE;
   public static final int TOKEN_NUMBER        = Token.LITERAL_NUMBER_DECIMAL_INT;
   public static final int TOKEN_HEXNUMBER     = Token.LITERAL_NUMBER_HEXADECIMAL;
+  public static final int TOKEN_BINNUMBER     = Token.LITERAL_NUMBER_FLOAT;
   public static final int TOKEN_STRING        = Token.LITERAL_STRING_DOUBLE_QUOTE;
   public static final int TOKEN_COMMENT_LINE  = Token.COMMENT_EOL;
   public static final int TOKEN_COMMENT_BLOCK = Token.COMMENT_MULTILINE;
@@ -49,9 +52,12 @@ public class BCSTokenMaker extends AbstractTokenMaker
   private static final String CharWhiteSpace    = " \t";
   private static final String CharOperator      = "!|,.()[]";
   private static final String CharHexPrefix     = "xX";
+  private static final String CharBinPrefix     = "bB";
+  private static final String CharStringDelim   = "\"~%";
 
   private int currentTokenStart;
   private int currentTokenType;
+  private char stringDelimiter;
 
   public BCSTokenMaker()
   {
@@ -66,16 +72,18 @@ public class BCSTokenMaker extends AbstractTokenMaker
 
     // symbolic names
     List<String> idsFile = createIdsList();
-    for (Iterator<String> iterIDS = idsFile.iterator(); iterIDS.hasNext();) {
-      String ids = iterIDS.next();
+    for (String ids: idsFile) {
       int type = ("SPELL.IDS".equalsIgnoreCase(ids)) ? TOKEN_SYMBOL_SPELL : TOKEN_SYMBOL;
       if (ResourceFactory.resourceExists(ids)) {
         map = IdsMapCache.get(ids);
         if (map != null) {
-          for (Iterator<IdsMapEntry> iterEntry = map.getAllValues().iterator(); iterEntry.hasNext();) {
-            String name = iterEntry.next().getString();
-            if (name != null && !name.isEmpty()) {
-              tokenMap.put(name, type);
+          for (final IdsMapEntry e: map.getAllValues()) {
+            Iterator<String> iter = e.getSymbols();
+            while (iter.hasNext()) {
+              String name = iter.next();
+              if (name != null && !name.isEmpty()) {
+                tokenMap.put(name, type);
+              }
             }
           }
         }
@@ -85,28 +93,37 @@ public class BCSTokenMaker extends AbstractTokenMaker
 
     // objects
     map = IdsMapCache.get("OBJECT.IDS");
-    for (Iterator<IdsMapEntry> iter = map.getAllValues().iterator(); iter.hasNext();) {
-      String name = extractFunctionName(iter.next().getString());
-      if (name != null && !name.isEmpty()) {
-        tokenMap.put(name, TOKEN_OBJECT);
+    for (final IdsMapEntry e: map.getAllValues()) {
+      Iterator<String> iter = e.getSymbols();
+      while (iter.hasNext()) {
+        String name = extractFunctionName(iter.next());
+        if (name != null && !name.isEmpty()) {
+          tokenMap.put(name, TOKEN_OBJECT);
+        }
       }
     }
 
     // actions
     map = IdsMapCache.get("ACTION.IDS");
-    for (Iterator<IdsMapEntry> iter = map.getAllValues().iterator(); iter.hasNext();) {
-      String name = extractFunctionName(iter.next().getString());
-      if (name != null && !name.isEmpty()) {
-        tokenMap.put(name, TOKEN_ACTION);
+    for (final IdsMapEntry e: map.getAllValues()) {
+      Iterator<String> iter = e.getSymbols();
+      while (iter.hasNext()) {
+        String name = extractFunctionName(iter.next());
+        if (name != null && !name.isEmpty()) {
+          tokenMap.put(name, TOKEN_ACTION);
+        }
       }
     }
 
     // triggers
     map = IdsMapCache.get("TRIGGER.IDS");
-    for (Iterator<IdsMapEntry> iter = map.getAllValues().iterator(); iter.hasNext();) {
-      String name = extractFunctionName(iter.next().getString());
-      if (name != null && !name.isEmpty()) {
-        tokenMap.put(name, TOKEN_TRIGGER);
+    for (final IdsMapEntry e: map.getAllValues()) {
+      Iterator<String> iter = e.getSymbols();
+      while (iter.hasNext()) {
+        String name = extractFunctionName(iter.next());
+        if (name != null && !name.isEmpty()) {
+          tokenMap.put(name, TOKEN_TRIGGER);
+        }
       }
     }
 
@@ -180,6 +197,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
     int newStartOfs = startOffset - ofs;
     currentTokenStart = ofs;
     currentTokenType = initialTokenType;
+    stringDelimiter = 0;
 
     boolean tokenCheckComment = false;  // indicates whether character is part of the comment prefix/suffix
 
@@ -210,8 +228,9 @@ public class BCSTokenMaker extends AbstractTokenMaker
                 currentTokenType = TOKEN_COMMENT_BLOCK;
               }
             }
-          } else if (c == '"') {
+          } else if (CharStringDelim.indexOf(c) > -1) {
             // string
+            stringDelimiter = c;
             currentTokenType = TOKEN_STRING;
           } else if (CharWhiteSpace.indexOf(c) > -1) {
             // whitespace
@@ -227,6 +246,9 @@ public class BCSTokenMaker extends AbstractTokenMaker
                 if (array[i+1] == '0' && i+2 < end && CharHexPrefix.indexOf(array[i+2]) > -1) {
                   // hex number
                   currentTokenType = TOKEN_HEXNUMBER;
+                } else if (array[i+1] == '0' && i+2 < end && CharBinPrefix.indexOf(array[i+2]) > -1) {
+                  // bin number
+                  currentTokenType = TOKEN_BINNUMBER;
                 }
               }
             } else if (RSyntaxUtilities.isDigit(c)) {
@@ -234,6 +256,9 @@ public class BCSTokenMaker extends AbstractTokenMaker
               if (c == '0' && i+1 < end && CharHexPrefix.indexOf(array[i+1]) > -1) {
                 // hex number
                 currentTokenType = TOKEN_HEXNUMBER;
+              } else if (c == '0' && i+1 < end && CharBinPrefix.indexOf(array[i+1]) > -1) {
+                // bin number
+                currentTokenType = TOKEN_BINNUMBER;
               }
             } else {
               // a potential identifier
@@ -261,9 +286,10 @@ public class BCSTokenMaker extends AbstractTokenMaker
                 currentTokenType = TOKEN_COMMENT_BLOCK;
               }
             }
-          } else if (c == '"') {
+          } else if (CharStringDelim.indexOf(c) > -1) {
             // string
             addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
+            stringDelimiter = c;
             currentTokenStart = i;
             currentTokenType = TOKEN_STRING;
           } else if (CharWhiteSpace.indexOf(c) > -1) {
@@ -286,6 +312,9 @@ public class BCSTokenMaker extends AbstractTokenMaker
                 if (array[i+1] == '0' && i+2 < end && CharHexPrefix.indexOf(array[i+2]) > -1) {
                   // hex number
                   currentTokenType = TOKEN_HEXNUMBER;
+                } else if (array[i+1] == '0' && i+2 < end && CharBinPrefix.indexOf(array[i+2]) > -1) {
+                  // bin number
+                  currentTokenType = TOKEN_BINNUMBER;
                 }
               }
             } else {
@@ -321,9 +350,10 @@ public class BCSTokenMaker extends AbstractTokenMaker
                 currentTokenType = TOKEN_COMMENT_BLOCK;
               }
             }
-          } else if (c == '"') {
+          } else if (CharStringDelim.indexOf(c) > -1) {
             // string
             addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
+            stringDelimiter = c;
             currentTokenStart = i;
             currentTokenType = TOKEN_STRING;
           } else if (CharWhiteSpace.indexOf(c) > -1) {
@@ -343,6 +373,9 @@ public class BCSTokenMaker extends AbstractTokenMaker
                 if (array[i+1] == '0' && i+2 < end && CharHexPrefix.indexOf(array[i+2]) > -1) {
                   // hex number
                   currentTokenType = TOKEN_HEXNUMBER;
+                } else if (array[i+1] == '0' && i+2 < end && CharBinPrefix.indexOf(array[i+2]) > -1) {
+                  // bin number
+                  currentTokenType = TOKEN_BINNUMBER;
                 }
               }
             } else if (RSyntaxUtilities.isDigit(c)) {
@@ -350,6 +383,9 @@ public class BCSTokenMaker extends AbstractTokenMaker
               if (c == '0' && i+1 < end && CharHexPrefix.indexOf(array[i+1]) > -1) {
                 // hex number
                 currentTokenType = TOKEN_HEXNUMBER;
+              } else if (c == '0' && i+1 < end && CharBinPrefix.indexOf(array[i+1]) > -1) {
+                // hex number
+                currentTokenType = TOKEN_BINNUMBER;
               }
             } else {
               // a potential identifier
@@ -384,9 +420,10 @@ public class BCSTokenMaker extends AbstractTokenMaker
                 currentTokenType = TOKEN_COMMENT_BLOCK;
               }
             }
-          } else if (c == '"') {
+          } else if (CharStringDelim.indexOf(c) > -1) {
             // string
             addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
+            stringDelimiter = c;
             currentTokenStart = i;
             currentTokenType = TOKEN_STRING;
           } else if (CharWhiteSpace.indexOf(c) > -1) {
@@ -406,6 +443,9 @@ public class BCSTokenMaker extends AbstractTokenMaker
                 if (array[i+1] == '0' && i+2 < end && CharHexPrefix.indexOf(array[i+2]) > -1) {
                   // hex number
                   currentTokenType = TOKEN_HEXNUMBER;
+                } else if (array[i+1] == '0' && i+2 < end && CharBinPrefix.indexOf(array[i+2]) > -1) {
+                  // bin number
+                  currentTokenType = TOKEN_BINNUMBER;
                 }
               }
             } else if (RSyntaxUtilities.isDigit(c)) {
@@ -413,6 +453,9 @@ public class BCSTokenMaker extends AbstractTokenMaker
               if (c == '0' && i+1 < end && CharHexPrefix.indexOf(array[i+1]) > -1) {
                 // hex number
                 currentTokenType = TOKEN_HEXNUMBER;
+              } else if (c == '0' && i+1 < end && CharBinPrefix.indexOf(array[i+1]) > -1) {
+                // bin number
+                currentTokenType = TOKEN_BINNUMBER;
               }
             } else {
               // a potential identifier
@@ -444,13 +487,15 @@ public class BCSTokenMaker extends AbstractTokenMaker
 
         case TOKEN_STRING:
         {
-          if (c == '"') {
+          if (c == stringDelimiter) {
             addToken(text, currentTokenStart, i, currentTokenType, newStartOfs+currentTokenStart);
+            stringDelimiter = 0;
             currentTokenType = Token.NULL;
           }
         }   // end of case TOKEN_STRING:
         break;
 
+        case TOKEN_BINNUMBER:
         case TOKEN_HEXNUMBER:
         case TOKEN_NUMBER:
         {
@@ -477,9 +522,10 @@ public class BCSTokenMaker extends AbstractTokenMaker
                 currentTokenType = TOKEN_COMMENT_BLOCK;
               }
             }
-          } else if (c == '"') {
+          } else if (CharStringDelim.indexOf(c) > -1) {
             // string
             addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
+            stringDelimiter = c;
             currentTokenStart = i;
             currentTokenType = TOKEN_STRING;
           } else if (CharWhiteSpace.indexOf(c) > -1) {
@@ -495,6 +541,11 @@ public class BCSTokenMaker extends AbstractTokenMaker
           } else if (currentTokenType == TOKEN_HEXNUMBER && (RSyntaxUtilities.isHexCharacter(c) || CharHexPrefix.indexOf(c) > -1)) {
             // still a hex number?
             if (CharHexPrefix.indexOf(c) > -1 && (i == currentTokenStart || array[i-1] != '0')) {
+              currentTokenType = TOKEN_IDENTIFIER;
+            }
+          } else if (currentTokenType == TOKEN_BINNUMBER && (("01".indexOf(c) > -1) || CharBinPrefix.indexOf(c) > -1)) {
+            // still a bin number?
+            if (CharBinPrefix.indexOf(c) > -1 && (i == currentTokenStart || array[i-1] != '0')) {
               currentTokenType = TOKEN_IDENTIFIER;
             }
           } else if (currentTokenType == TOKEN_NUMBER && RSyntaxUtilities.isDigit(c)) {
@@ -524,9 +575,10 @@ public class BCSTokenMaker extends AbstractTokenMaker
                 currentTokenType = TOKEN_COMMENT_BLOCK;
               }
             }
-          } else if (c == '"') {
+          } else if (CharStringDelim.indexOf(c) > -1) {
             // string
             addToken(text, currentTokenStart, i-1, currentTokenType, newStartOfs+currentTokenStart);
+            stringDelimiter = c;
             currentTokenStart = i;
             currentTokenType = TOKEN_STRING;
           } else if (CharWhiteSpace.indexOf(c) > -1) {
@@ -548,7 +600,7 @@ public class BCSTokenMaker extends AbstractTokenMaker
         default:    // should never happen
         {
           try {
-            throw new Exception(String.format("Invalid token %1$d found at position %2$d",
+            throw new Exception(String.format("Invalid token %d found at position %d",
                                               currentTokenType, newStartOfs+i));
           } catch (Exception e) {
             e.printStackTrace();
@@ -594,29 +646,36 @@ public class BCSTokenMaker extends AbstractTokenMaker
   // Scans action and trigger definitions for referenced IDS files and returns them as a sorted list
   private List<String> createIdsList()
   {
-    final String[] files = { "ACTION.IDS", "TRIGGER.IDS" };
-
+    // adding IDS files referenced in function signatures
+    Signatures actions = Signatures.getActions();
+    Signatures triggers = Signatures.getTriggers();
+    Signatures[] signatures = new Signatures[]{actions, triggers};
     TreeSet<String> idsSet = new TreeSet<>();
-    for (final String idsFile: files) {
-      IdsMap map = IdsMapCache.get(idsFile);
-      if (map != null) {
-        for (final IdsMapEntry entry: map.getMap().values()) {
-          String[] params = entry.getParameters().split(",");
-          if (params != null) {
-            for (final String param: params) {
-              int p = param.lastIndexOf('*');
-              if (p >= 0 && p+1 < param.length()) {
-                String ids = param.substring(p+1).trim().toUpperCase(Locale.ENGLISH);
-                if (ids.length() > 0) {
-                  ids += ".IDS";
-                  if (ResourceFactory.resourceExists(ids)) {
-                    idsSet.add(ids);
-                  }
+    for (final Signatures sig: signatures) {
+      if (sig != null) {
+        for (final Integer code: sig.getFunctionIds()) {
+          Signatures.Function[] functions = sig.getFunction(code.intValue());
+          for (final Signatures.Function f: functions) {
+            for (int idx = 0, cnt = f.getNumParameters(); idx < cnt; idx++) {
+              String ids = f.getParameter(idx).getIdsRef();
+              if (!ids.isEmpty()) {
+                ids = ids.toUpperCase(Locale.ENGLISH) + ".IDS";
+                if (ResourceFactory.resourceExists(ids)) {
+                  idsSet.add(ids);
                 }
               }
             }
           }
         }
+      }
+    }
+
+    // adding IDS targets
+    String[] idsTargets = ScriptInfo.getInfo().getObjectIdsList();
+    for (String ids: idsTargets) {
+      ids = ids.toUpperCase(Locale.ENGLISH) + ".IDS";
+      if (ResourceFactory.resourceExists(ids)) {
+        idsSet.add(ids);
       }
     }
 

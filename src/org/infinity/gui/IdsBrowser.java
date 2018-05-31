@@ -27,6 +27,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Misc;
 
 public final class IdsBrowser extends ChildFrame implements ActionListener
 {
@@ -51,15 +52,15 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
     binsert.setToolTipText("Inserts selected text into script displayed in main window");
     getRootPane().setDefaultButton(binsert);
 
-    IdsMap idsmap = IdsMapCache.get(idsfiles.getSelectedItem().toString());
-    list = new TextListPanel(idsmap.getAllValues());
+    IdsMap idsMap = IdsMapCache.get(idsfiles.getSelectedItem().toString());
+    list = new TextListPanel(idsMap.getAllStringValues());
     list.addMouseListener(new MouseAdapter()
     {
       @Override
       public void mouseClicked(MouseEvent e)
       {
         if (e.getClickCount() == 2)
-          insertString(((IdsMapEntry)list.getSelectedValue()).getString());
+          insertString(((IdsMapEntry)list.getSelectedValue()).getSymbol());
       }
     });
 
@@ -86,7 +87,7 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
     gbl.setConstraints(binsert, gbc);
     pane.add(binsert);
 
-    setSize(350, 500);
+    setSize(Misc.getScaledValue(350), Misc.getScaledValue(500));
     Center.center(this, NearInfinity.getInstance().getBounds());
   }
 
@@ -98,15 +99,15 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
     if (event.getSource() == idsfiles)
       refreshList();
     else if (event.getSource() == binsert)
-      insertString(((IdsMapEntry)list.getSelectedValue()).getString());
+      insertString(((IdsMapEntry)list.getSelectedValue()).getSymbol());
   }
 
 // --------------------- End Interface ActionListener ---------------------
 
   public void refreshList()
   {
-    IdsMap idsmap = IdsMapCache.get(idsfiles.getSelectedItem().toString());
-    list.setValues(idsmap.getAllValues());
+    IdsMap idsMap = IdsMapCache.get(idsfiles.getSelectedItem().toString());
+    list.setValues(idsMap.getAllStringValues());
   }
 
   private void insertString(String s)

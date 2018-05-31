@@ -17,7 +17,7 @@ import org.infinity.resource.are.Door;
  */
 public class LayerDoor extends BasicLayer<LayerObjectDoor>
 {
-  private static final String AvailableFmt = "Doors: %1$d";
+  private static final String AvailableFmt = "Doors: %d";
 
   private boolean doorClosed;
 

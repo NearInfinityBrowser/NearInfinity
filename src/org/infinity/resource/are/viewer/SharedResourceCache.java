@@ -34,7 +34,7 @@ public class SharedResourceCache
    */
   public static String createKey(Object o)
   {
-    return String.format("%1$08x", (o != null) ? o.hashCode() : 0);
+    return String.format("%08x", (o != null) ? o.hashCode() : 0);
   }
 
 

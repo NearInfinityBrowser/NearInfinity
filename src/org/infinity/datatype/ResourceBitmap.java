@@ -33,6 +33,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Misc;
 
 /**
  * Datatype for selecting resource entries, constructed from a predefined list of key/value pairs.
@@ -197,8 +198,8 @@ public class ResourceBitmap extends Datatype
     gbl.setConstraints(bView, gbc);
     panel.add(bView);
 
-    panel.setMinimumSize(DIM_MEDIUM);
-    panel.setPreferredSize(DIM_MEDIUM);
+    panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
+    panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
     return panel;
   }
 

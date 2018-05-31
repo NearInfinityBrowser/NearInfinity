@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
@@ -42,6 +43,9 @@ import org.infinity.search.SearchOptions;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
+import org.infinity.util.StringTable;
+import org.infinity.util.Table2da;
+import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
 
 public final class AreResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
@@ -67,6 +71,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   public static final String ARE_OVERLAY_TRANSPARENCY     = "Overlay transparency";
   public static final String ARE_AREA_DIFFICULTY_2        = "Area difficulty 2";
   public static final String ARE_AREA_DIFFICULTY_3        = "Area difficulty 3";
+  public static final String ARE_AREA_CUR_DIFFICULTY      = "Current area difficulty";  // confirm!
   public static final String ARE_OFFSET_ACTORS            = "Actors offset";
   public static final String ARE_OFFSET_TRIGGERS          = "Triggers offset";
   public static final String ARE_OFFSET_SPAWN_POINTS      = "Spawn points offset";
@@ -106,25 +111,53 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   public static final String ARE_REST_MOVIE_NIGHT         = "Rest movie (night)";
   public static final String ARE_EXPLORED_BITMAP          = "Explored bitmap";
 
-  public static final String[] s_flag = {"No flags set", "Outdoor", "Day/Night",
+  public static final String[] s_flag = {"Indoors", "Outdoors", "Day/Night",
                                          "Weather", "City", "Forest", "Dungeon",
-                                         "Extended night", "Can rest"};
+                                         "Extended night", "Can rest indoors"};
   public static final String[] s_flag_torment = {"Indoors", "Hive", "Hive Night", "Clerk's ward",
                                                  "Lower ward", "Ravel's maze", "Baator", "Rubikon",
                                                  "Negative material plane", "Curst", "Carceri",
                                                  "Allow day/night"};
-  public static final String[] s_atype = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
+  public static final String[] s_atype = {"Normal", "Save not allowed", "Tutorial area", "Dead magic zone",
                                           "Dream area"};
-  public static final String[] s_atype_ee = {"Normal", "Can't save game", "Tutorial area", "Dead magic zone",
-                                             "Dream area", "Player1 can die;Allows death of party leader without ending the game"};
-  public static final String[] s_atype_torment = {"Can rest", "Cannot save",
-                                                  "Cannot rest", "Cannot save", "Too dangerous to rest",
-                                                  "Cannot save", "Can rest with permission"};
+  public static final String[] s_atype_ee = {"Normal", "Save not allowed", "Tutorial area", "Dead magic zone",
+                                             "Dream area", "Player1 can die;Allows death of party leader without ending the game",
+                                             "Rest not allowed", "Travel not allowed"};
+  public static final String[] s_atype_torment = {"Normal", "Save not allowed",
+                                                  "\"You cannot rest here.\";Combined with bit 2: \"You must obtain permission to rest here.\"",
+                                                  "\"Too dangerous to rest.\";Combined with bit 1: \"You must obtain permission to rest here.\""};
+  public static final String[] s_atype_pstee = {"Normal", "Save not allowed", "", "Dead magic zone",
+                                                "Dream area", "Player1 can die;The Nameless One can die without ending the game",
+                                                "Rest not allowed", "Travel not allowed",
+                                                "\"You cannot rest here.\";Combined with bit 8: \"You must obtain permission to rest here.\"",
+                                                "\"Too dangerous to rest.\";Combined with bit 7: \"You must obtain permission to rest here.\""};
   public static final String[] s_atype_iwd2 = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
   public static final String[] s_edge = {"No flags set", "Party required", "Party enabled"};
 
   private StructHexViewer hexViewer;
   private AreaViewer areaViewer;
+
+  public static String getSearchString(ResourceEntry entry)
+  {
+    String retVal = null;
+    if (entry != null && ResourceFactory.resourceExists("MAPNAME.2DA")) {
+      Table2da table = Table2daCache.get("MAPNAME.2DA");
+      if (table != null) {
+        String are = entry.getResourceName();
+        are = are.substring(0, are.lastIndexOf('.'));
+        for (int row = 0, cnt = table.getRowCount(); row < cnt; row++) {
+          if (are.equalsIgnoreCase(table.get(row, 0))) {
+            try {
+              int strref = Integer.parseInt(table.get(row, 1));
+              retVal = StringTable.getStringRef(strref);
+            } catch (NumberFormatException e) {
+            }
+          }
+        }
+      }
+    }
+    return retVal;
+  }
 
   public static void addScriptNames(Set<String> scriptNames, ByteBuffer buffer)
   {
@@ -134,52 +167,47 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
     // Actors
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 84),
-                   buffer.getShort(offset + 88), 272, true);
+                   buffer.getShort(offset + 88), 272,
+                   Profile.isEnhancedEdition() || Profile.getEngine() == Profile.Engine.BG2); // needed?
 
     // ITEPoints
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 92),
-                   buffer.getShort(offset + 90), 196);
+                   buffer.getShort(offset + 90), 196, false);
 
     // Spawnpoints
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 96),
-                   buffer.getInt(offset + 100), 200);
+                   buffer.getInt(offset + 100), 200, false);
 
     // Entrances
 //    addScriptNames(scriptNames, buffer, buffer.getInt(offset + 104),
-//                   buffer.getInt(offset + 108), 104);
+//                   buffer.getInt(offset + 108), 104, false);
 
     // Containers
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 112),
-                   buffer.getShort(offset + 116), 192);
+                   buffer.getShort(offset + 116), 192, false);
 
     // Ambients
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 132),
-                   buffer.getShort(offset + 130), 212);
+                   buffer.getShort(offset + 130), 212, false);
 
     // Variables
 //    addScriptNames(scriptNames, buffer, buffer.getInt(offset + 136),
-//                   buffer.getInt(offset + 140), 84);
+//                   buffer.getInt(offset + 140), 84, false);
 
     // Doors
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 168),
-                   buffer.getInt(offset + 164), 200);
+                   buffer.getInt(offset + 164), 200, false);
 
     // Animations
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 176),
-                   buffer.getInt(offset + 172), 76);
+                   buffer.getInt(offset + 172), 76, false);
 
     // Tiled objects
     addScriptNames(scriptNames, buffer, buffer.getInt(offset + 184),
-                   buffer.getInt(offset + 180), 108);
+                   buffer.getInt(offset + 180), 108, false);
 
     // Rest spawn
-//    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 192), 1, 228);
-  }
-
-  private static void addScriptNames(Set<String> scriptNames, ByteBuffer buffer, int offset,
-                                     int count, int size)
-  {
-    addScriptNames(scriptNames, buffer, offset, count, size, false);
+//    addScriptNames(scriptNames, buffer, DynamicArray.getInt(buffer, offset + 192), 1, 228, false);
   }
 
   private static void addScriptNames(Set<String> scriptNames, ByteBuffer buffer, int offset,
@@ -435,6 +463,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_iwd2, "AREAFLAG.IDS", 4, false)));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_torment, null, 4, false)));
+    } else if (Profile.getGame() == Profile.Game.PSTEE) {
+      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_pstee, null, 4, false)));
     } else if (Profile.isEnhancedEdition()) {
       addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_ee, "AREAFLAG.IDS", 4, false)));
     } else {
@@ -448,7 +478,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new Flag(buffer, offset + 56, 4, ARE_EDGE_FLAGS_SOUTH, s_edge));
     addField(new ResourceRef(buffer, offset + 60, ARE_AREA_WEST, "ARE"));
     addField(new Flag(buffer, offset + 68, 4, ARE_EDGE_FLAGS_WEST, s_edge));
-    if (Profile.getGame() == Profile.Game.PST) {
+    if (Profile.getEngine() == Profile.Engine.PST || Profile.getGame() == Profile.Game.PSTEE) {
       addField(new Flag(buffer, offset + 72, 2, ARE_LOCATION, getUpdatedIdsFlags(s_flag_torment, null, 2, false)));
     } else {
       addField(new Flag(buffer, offset + 72, 2, ARE_LOCATION, getUpdatedIdsFlags(s_flag, "AREATYPE.IDS", 2, false)));
@@ -466,7 +496,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     if (version.toString().equalsIgnoreCase("V9.1")) {
       addField(new DecNumber(buffer, offset + 84, 1, ARE_AREA_DIFFICULTY_2));
       addField(new DecNumber(buffer, offset + 85, 1, ARE_AREA_DIFFICULTY_3));
-      addField(new Unknown(buffer, offset + 86, 14));
+      addField(new DecNumber(buffer, offset + 86, 2, ARE_AREA_CUR_DIFFICULTY));
+      addField(new Unknown(buffer, offset + 88, 12));
       offset += 16;
     }
     SectionOffset offset_actors = new SectionOffset(buffer, offset + 84, ARE_OFFSET_ACTORS,
@@ -520,7 +551,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     SectionCount count_variables = new SectionCount(buffer, offset + 140, 2, ARE_NUM_VARIABLES,
                                                     Variable.class);
     addField(count_variables);
-    addField(new HexNumber(buffer, offset + 142, 2, ARE_NUM_OBJECT_FLAGS));
+    addField(new DecNumber(buffer, offset + 142, 2, ARE_NUM_OBJECT_FLAGS));
     addField(new HexNumber(buffer, offset + 144, 4, ARE_OFFSET_OBJECT_FLAGS));
     addField(new ResourceRef(buffer, offset + 148, ARE_AREA_SCRIPT, "BCS"));
     SectionCount size_exploredbitmap = new SectionCount(buffer, offset + 156, 4, ARE_SIZE_EXPLORED_BITMAP,
@@ -713,10 +744,10 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
         ((HasVertices)o).readVertices(buffer, offset);
     }
 
-    if (offset_songs.getValue() > 0) {
+    if (offset_songs.getValue() > 0 && offset_songs.getValue() < buffer.limit()) {
       addField(new Song(this, buffer, offset_songs.getValue()));
     }
-    if (offset_rest.getValue() > 0) {
+    if (offset_rest.getValue() > 0 && offset_rest.getValue() < buffer.limit()) {
       addField(new RestSpawn(this, buffer, offset_rest.getValue()));
     }
 
@@ -801,9 +832,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
     // adding static labels
     if (flags != null && flags.length > 1) {
-      for (final String f: flags) {
-        list.add(f);
-      }
+      Collections.addAll(list, flags);
     } else {
       list.add(null); // empty flags label
     }
@@ -814,8 +843,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       if (map != null) {
         int numBits = size * 8;
         for (int i = 0; i < numBits; i++) {
-          IdsMapEntry entry = map.getValue((long)(1 << i));
-          String s = (entry != null) ? entry.getString() : null;
+          IdsMapEntry entry = map.get((long)(1 << i));
+          String s = (entry != null) ? entry.getSymbol() : null;
           if (i < list.size() - 1) {
             if (overwrite || list.get(i+1) == null) {
               list.set(i+1, s);

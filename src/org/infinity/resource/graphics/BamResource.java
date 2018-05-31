@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -46,6 +47,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JToggleButton;
 import javax.swing.RootPaneContainer;
@@ -93,7 +95,8 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
   private static final ButtonPanel.Control CtrlPlay       = ButtonPanel.Control.CUSTOM_5;
   private static final ButtonPanel.Control CtrlCycleLabel = ButtonPanel.Control.CUSTOM_6;
   private static final ButtonPanel.Control CtrlFrameLabel = ButtonPanel.Control.CUSTOM_7;
-  private static final ButtonPanel.Control BamEdit        = ButtonPanel.Control.CUSTOM_8;
+  private static final ButtonPanel.Control Properties     = ButtonPanel.Control.CUSTOM_8;
+  private static final ButtonPanel.Control BamEdit        = ButtonPanel.Control.CUSTOM_9;
 
   private static boolean transparencyEnabled = true;
 
@@ -305,6 +308,8 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
         }
         exportFrames(filePath, fileName, fileExt, format);
       }
+    } else if (buttonPanel.getControlByType(Properties) == event.getSource()) {
+      showProperties();
     } else if (buttonPanel.getControlByType(BamEdit) == event.getSource()) {
       ConvertToBam dlg = (ConvertToBam)ChildFrame.getFirstFrame(ConvertToBam.class);
       if (dlg == null) {
@@ -446,6 +451,10 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     rcDisplay = new RenderCanvas(new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB));
     rcDisplay.setHorizontalAlignment(SwingConstants.CENTER);
     rcDisplay.setVerticalAlignment(SwingConstants.CENTER);
+    JScrollPane scroll = new JScrollPane(rcDisplay);
+    scroll.setBorder(BorderFactory.createEmptyBorder());
+    scroll.getVerticalScrollBar().setUnitIncrement(16);
+    scroll.getHorizontalScrollBar().setUnitIncrement(16);
 
     JButton bFind = (JButton)ButtonPanel.createControl(ButtonPanel.Control.FIND_REFERENCES);
     bFind.addActionListener(this);
@@ -491,7 +500,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     buttonControlPanel.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
 
     JPanel pView = new JPanel(new BorderLayout());
-    pView.add(rcDisplay, BorderLayout.CENTER);
+    pView.add(scroll, BorderLayout.CENTER);
     pView.add(buttonControlPanel, BorderLayout.SOUTH);
 
 
@@ -506,7 +515,8 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
       if (decoder.getType() == BamDecoder.Type.BAMC) {
         miExportBAM = new JMenuItem("decompressed");
         miExportBAM.addActionListener(this);
-      } else if (decoder.getType() == BamDecoder.Type.BAMV1 && Profile.getEngine() == Profile.Engine.PST) {
+      } else if (decoder.getType() == BamDecoder.Type.BAMV1 &&
+                 (Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BAMC_V1)) {
         miExportBAMC = new JMenuItem("compressed");
         miExportBAMC.addActionListener(this);
       } else if (decoder.getType() == BamDecoder.Type.BAMV2) {
@@ -541,6 +551,9 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     ButtonPopupMenu bpmExport = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(mi);
 
+    JButton bProperties = new JButton("Properties...", Icons.getIcon(Icons.ICON_EDIT_16));
+    bProperties.addActionListener(this);
+
     JButton bEdit = new JButton("Edit BAM", Icons.getIcon(Icons.ICON_APPLICATION_16));
     bEdit.setToolTipText("Opens resource in BAM Converter.");
     bEdit.addActionListener(this);
@@ -549,6 +562,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     buttonPanel.addControl(bpmExport, ButtonPanel.Control.EXPORT_MENU);
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
     buttonPanel.getControlByType(ButtonPanel.Control.SAVE).setEnabled(false);
+    buttonPanel.addControl(bProperties, Properties);
     buttonPanel.addControl(bEdit, BamEdit);
     buttonPanel.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
 
@@ -693,6 +707,58 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     }
   }
 
+  // Shows message box about basic resource properties
+  private void showProperties()
+  {
+    BamDecoder.BamControl control = decoder.createControl();
+    String resName = entry.getResourceName().toUpperCase(Locale.ENGLISH);
+    int frameCount = decoder.frameCount();
+    int cycleCount = control.cycleCount();
+    String br = "<br />";
+    StringBuilder pageList = new StringBuilder();
+    String type;
+    switch (decoder.getType()) {
+      case BAMV1:
+        type = "BAM V1 (uncompressed)";
+        break;
+      case BAMC:
+        type = "BAM V1 (compressed)";
+        break;
+      case BAMV2:
+      {
+        type = "BAM V2";
+        Set<Integer> pvrzPages = ((BamV2Decoder)decoder).getReferencedPVRZPages();
+        int counter = 8;
+        for (Integer page: pvrzPages) {
+          if (pageList.length() > 0) {
+            pageList.append(", ");
+            if (counter == 0) {
+              pageList.append(br);
+              counter = 8;
+            }
+          }
+          pageList.append(page.toString());
+          counter--;
+        }
+        break;
+      }
+      default:
+        type = "Undetermined";
+    }
+
+    StringBuilder sb = new StringBuilder("<html><div style='font-family:monospace'>");
+    sb.append("Type:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").append(type).append(br);
+    sb.append("# frames:&nbsp;").append(frameCount).append(br);
+    sb.append("# cycles:&nbsp;").append(cycleCount).append(br);
+    if (decoder.getType() == BamDecoder.Type.BAMV2) {
+      sb.append(br).append("Referenced PVRZ pages:").append(br);
+      sb.append(pageList.toString()).append(br);
+    }
+    sb.append("</div></html>");
+    JOptionPane.showMessageDialog(panelMain, sb.toString(), "Properties of " + resName,
+                                  JOptionPane.INFORMATION_MESSAGE);
+  }
+
   private void showFrame()
   {
     if (viewerInitialized()) {
@@ -775,7 +841,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
         }
         max = decoder.frameCount();
         for (int i = 0; i < decoder.frameCount(); i++) {
-          String fileIndex = String.format("%1$05d", i);
+          String fileIndex = String.format("%05d", i);
           BufferedImage image = null;
           try {
             image = prepareFrameImage(decoder, i);
@@ -805,7 +871,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     // displaying results
     String msg = null;
     if (failCounter == 0 && counter == max) {
-      msg = String.format("All %1$d frames exported successfully.", max);
+      msg = String.format("All %d frames exported successfully.", max);
     } else {
       msg = String.format("%2$d/%1$d frame(s) exported.\n%3$d/%1$d frame(s) skipped.",
                           max, counter, failCounter);

@@ -7,14 +7,13 @@ package org.infinity.resource.are;
 import java.nio.ByteBuffer;
 
 import org.infinity.datatype.AreResourceRef;
-import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.IdsBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.Song2daBitmap;
+import org.infinity.datatype.TableBitmap;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 
 public final class Song extends AbstractStruct // implements AddRemovable
@@ -38,9 +37,6 @@ public final class Song extends AbstractStruct // implements AddRemovable
   public static final String ARE_SONGS_AMBIENT_NIGHT_2      = "Main ambient (night) 2";
   public static final String ARE_SONGS_AMBIENT_VOLUME_NIGHT = "Main ambient volume (night)";
   public static final String ARE_SONGS_REVERB               = "Reverb";
-
-  public static final String[] s_reverb = {"None", "Small room", "Medium room",
-                                           "Large room", "Outside", "Dungeon"};
 
   Song(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception
   {
@@ -82,12 +78,13 @@ public final class Song extends AbstractStruct // implements AddRemovable
     }
     if (ResourceFactory.resourceExists("REVERB.IDS")) {
       addField(new IdsBitmap(buffer, offset + 80, 4, ARE_SONGS_REVERB, "REVERB.IDS"));
-    } else if (Profile.getEngine() == Profile.Engine.PST) {
-      addField(new Bitmap(buffer, offset + 80, 4, ARE_SONGS_REVERB, s_reverb));
+      addField(new Unknown(buffer, offset + 84, 60));
+    } else if (ResourceFactory.resourceExists("REVERB.2DA")) {
+      addField(new TableBitmap(buffer, offset + 80, 4, ARE_SONGS_REVERB, "REVERB.2DA"));
+      addField(new Unknown(buffer, offset + 84, 60));
     } else {
-      addField(new Unknown(buffer, offset + 80, 4));
+      addField(new Unknown(buffer, offset + 80, 64));
     }
-    addField(new Unknown(buffer, offset + 84, 60));
     return offset + 144;
   }
 }

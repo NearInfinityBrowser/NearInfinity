@@ -1,16 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="NearInfinity" default="binary" basedir=".">
+<project name="NearInfinity" default="compile" basedir=".">
   <property name="jar.file" value="NearInfinity.jar"/>
-  <property name="build.path" location="build"/>
+  <property name="build.path" location="build/src"/>
+  <property name="build.test.path" location="build/test"/>
   <property name="src.path" location="src"/>
+  <property name="test.path" location="test"/>
   <property name="lib.path.rel" value="lib"/>
   <property name="lib.path.abs" location="${lib.path.rel}"/>
   <property name="jorbis.file" value="${lib.path.rel}/jorbis/jorbis.jar"/>
   <property name="rsyntaxtextarea.file" value="${lib.path.rel}/rsyntaxtextarea/rsyntaxtextarea.jar"/>
   <property name="jhexview.file" value="${lib.path.rel}/jhexview/jhexview.jar"/>
   <property name="montemedia.file" value="${lib.path.rel}/montemedia/montemedia.jar"/>
+  <property name="junit.file" value="${lib.path.rel}/junit/junit-4.12.jar"/>
+  <property name="hamcrest.file" value="${lib.path.rel}/junit/hamcrest-core-1.3.jar"/>
+  <property name="antjunit.file" value="${lib.path.rel}/junit/ant-junit-1.9.7.jar"/>
+  <property name="antjunit4.file" value="${lib.path.rel}/junit/ant-junit4-1.9.7.jar"/>
+  <property name="javacc.home" value="lib/javacc"/>
+  <property name="parser.path" value="org/infinity/resource/bcs/parser"/>
+  <property name="src.parser.path" value="${src.path}/org/infinity/resource/bcs/parser"/>
+  <property name="parser.file" value="BafParser"/>
 
-  <target name="binary">
+  <path id="junit.class.path">
+    <pathelement location="${junit.file}"/>
+    <pathelement location="${hamcrest.file}"/>
+    <pathelement location="${build.path}"/>
+  </path>
+
+  <target name="compile" depends="clean">
     <mkdir dir="${build.path}"/>
 
     <javac srcdir="${src.path}"
@@ -33,11 +49,51 @@
     <jar destfile="${jar.file}"
          basedir="${build.path}"
          includes="**/*">
-      <zipgroupfileset dir="${lib.path.abs}" includes="**/*.jar"/>
+      <zipgroupfileset dir="." includes="${jorbis.file}"/>
+      <zipgroupfileset dir="." includes="${rsyntaxtextarea.file}"/>
+      <zipgroupfileset dir="." includes="${jhexview.file}"/>
+      <zipgroupfileset dir="." includes="${montemedia.file}"/>
       <manifest>
         <attribute name="Main-Class" value="org.infinity.NearInfinity"/>
       </manifest>
     </jar>
+  </target>
+
+  <target name="parser-generate" depends="parser-clean">
+    <jjtree target="${src.parser.path}/${parser.file}.jjt" outputdirectory="${src.parser.path}" javacchome="${javacc.home}"/>
+    <javacc target="${src.parser.path}/${parser.file}.jj" outputdirectory="${src.parser.path}" javacchome="${javacc.home}"/>
+  </target>
+
+  <target name="test-compile" depends="test-clean">
+    <mkdir dir="${build.test.path}"/>
+
+    <javac srcdir="${test.path}"
+           destdir="${build.test.path}"
+           includeantruntime="false">
+      <classpath refid="junit.class.path" />
+    </javac>
+  </target>
+
+  <taskdef name="junit" classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask">
+    <classpath>
+      <pathelement location="${antjunit.file}"/>
+      <pathelement location="${antjunit4.file}"/>
+    </classpath>
+  </taskdef>
+
+  <target name="test" depends="test-compile">
+    <junit>
+      <classpath>
+        <path refid="junit.class.path"/>
+        <pathelement location="${build.test.path}"/>
+      </classpath>
+      <batchtest>
+        <fileset dir="${build.test.path}">
+          <include name="**/*Test.class"/>
+        </fileset>
+      </batchtest>
+      <formatter type="brief" usefile="false"/>
+    </junit>
   </target>
 
   <target name="clean">
@@ -46,5 +102,19 @@
     <delete>
       <fileset dir="${src.path}" includes="**/*.class"/>
     </delete>
+  </target>
+
+  <target name="parser-clean">
+    <delete failonerror="false" quiet="false">
+      <fileset dir="${src.parser.path}">
+        <include name="*.java"/>
+        <exclude name="BafNode*.java"/>
+      </fileset>
+      <fileset file="${src.parser.path}/${parser.file}.jj"/>
+    </delete>
+  </target>
+
+  <target name="test-clean">
+    <delete dir="${build.test.path}"/>
   </target>
 </project>

@@ -17,7 +17,7 @@ import org.infinity.resource.wed.WedResource;
  */
 public class LayerWallPoly extends BasicLayer<LayerObjectWallPoly>
 {
-  private static final String AvailableFmt = "Wall polygons: %1$d";
+  private static final String AvailableFmt = "Wall polygons: %d";
 
   public LayerWallPoly(WedResource wed, AreaViewer viewer)
   {

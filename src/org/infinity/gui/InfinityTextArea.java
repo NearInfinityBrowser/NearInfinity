@@ -5,11 +5,22 @@
 package org.infinity.gui;
 
 import java.awt.Color;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import javax.swing.Icon;
+import javax.swing.JViewport;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.text.BadLocationException;
 
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
@@ -19,17 +30,19 @@ import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.folding.CurlyFoldParser;
 import org.fife.ui.rsyntaxtextarea.folding.FoldParserManager;
-import org.infinity.NearInfinity;
+import org.fife.ui.rtextarea.Gutter;
+import org.fife.ui.rtextarea.GutterIconInfo;
+import org.fife.ui.rtextarea.RTextScrollPane;
 import org.infinity.resource.text.modes.BCSFoldParser;
 import org.infinity.resource.text.modes.BCSTokenMaker;
 import org.infinity.resource.text.modes.GLSLTokenMaker;
-import org.infinity.util.io.FileManager;
-import org.infinity.util.io.StreamUtils;
+import org.infinity.resource.text.modes.TLKTokenMaker;
+import org.infinity.resource.text.modes.WeiDULogTokenMaker;
 
 /**
  * Extends {@link RSyntaxTextArea} by NearInfinity-specific features.
  */
-public class InfinityTextArea extends RSyntaxTextArea
+public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
 {
   /** Available languages for syntax highlighting. */
   public enum Language {
@@ -37,12 +50,16 @@ public class InfinityTextArea extends RSyntaxTextArea
     NONE,
     /** Select BCS highlighting. */
     BCS,
+    /** Select TLK highlighting. */
+    TLK,
     /** Select GLSL highlighting. */
     GLSL,
     /** Select LUA highlighting. */
     LUA,
     /** Select SQL highlighting. */
     SQL,
+    /** Select WeiDU.log highlighting. */
+    WEIDU,
   }
 
   /** Available color schemes for use when enabling syntax highlighting. */
@@ -57,6 +74,8 @@ public class InfinityTextArea extends RSyntaxTextArea
     ECLIPSE,
     /** Color scheme based on IntelliJ IDEA's defaults. */
     IDEA,
+    /** A dark color scheme inspired by "Monokai". */
+    MONOKAI,
     /** Color scheme based on Microsoft Visual Studio's defaults. */
     VS,
     /** Color scheme loosely based on the WeiDU Syntax Highlighter for Notepad++. */
@@ -76,6 +95,8 @@ public class InfinityTextArea extends RSyntaxTextArea
   public static final String SchemeEclipse = "org/infinity/resource/text/modes/ThemeEclipse.xml";
   /** IntelliJ IDEA color scheme */
   public static final String SchemeIdea = "org/infinity/resource/text/modes/ThemeIdea.xml";
+  /** "Monokai" color scheme */
+  public static final String SchemeMonokai = "org/infinity/resource/text/modes/ThemeMonokai.xml";
   /** Visual Studio color scheme */
   public static final String SchemeVs = "org/infinity/resource/text/modes/ThemeVs.xml";
   /** BCS color scheme based on WeiDU Highlighter for Notepad++ */
@@ -92,6 +113,10 @@ public class InfinityTextArea extends RSyntaxTextArea
     ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance())
       .putMapping(BCSTokenMaker.SYNTAX_STYLE_BCS, "org.infinity.resource.text.modes.BCSTokenMaker");
     ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance())
+      .putMapping(TLKTokenMaker.SYNTAX_STYLE_TLK, "org.infinity.resource.text.modes.TLKTokenMaker");
+    ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance())
+      .putMapping(WeiDULogTokenMaker.SYNTAX_STYLE_WEIDU, "org.infinity.resource.text.modes.WeiDULogTokenMaker");
+    ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance())
       .putMapping(GLSLTokenMaker.SYNTAX_STYLE_GLSL, "org.infinity.resource.text.modes.GLSLTokenMaker");
 
     // initializing color schemes
@@ -100,10 +125,15 @@ public class InfinityTextArea extends RSyntaxTextArea
     SchemeMap.put(Scheme.DARK, SchemeDark);
     SchemeMap.put(Scheme.ECLIPSE, SchemeEclipse);
     SchemeMap.put(Scheme.IDEA, SchemeIdea);
+    SchemeMap.put(Scheme.MONOKAI, SchemeMonokai);
     SchemeMap.put(Scheme.VS, SchemeVs);
     SchemeMap.put(Scheme.BCS, SchemeBCS);
   }
 
+  private final SortedMap<Integer, GutterIcon> gutterIcons = new TreeMap<>();
+  private final Map<Integer, GutterIconInfo> gutterIconsActive = new HashMap<>();
+
+  private RTextScrollPane scrollPane;
 
   /**
    * Constructor.
@@ -260,6 +290,9 @@ public class InfinityTextArea extends RSyntaxTextArea
         case BCS:
           style = BCSTokenMaker.SYNTAX_STYLE_BCS;
           break;
+        case TLK:
+          style = TLKTokenMaker.SYNTAX_STYLE_TLK;
+          break;
         case GLSL:
           style = GLSLTokenMaker.SYNTAX_STYLE_GLSL;
           break;
@@ -268,6 +301,9 @@ public class InfinityTextArea extends RSyntaxTextArea
           break;
         case SQL:
           style = SyntaxConstants.SYNTAX_STYLE_SQL;
+          break;
+        case WEIDU:
+          style = WeiDULogTokenMaker.SYNTAX_STYLE_WEIDU;
           break;
         default:
           style = SyntaxConstants.SYNTAX_STYLE_NONE;
@@ -292,6 +328,11 @@ public class InfinityTextArea extends RSyntaxTextArea
               schemePath = BrowserMenuBar.getInstance().getBcsColorScheme();
             }
             break;
+          case TLK:
+            if (BrowserMenuBar.getInstance() != null) {
+              schemePath = BrowserMenuBar.getInstance().getTlkColorScheme();
+            }
+            break;
           case GLSL:
             if (BrowserMenuBar.getInstance() != null) {
               schemePath = BrowserMenuBar.getInstance().getGlslColorScheme();
@@ -307,24 +348,18 @@ public class InfinityTextArea extends RSyntaxTextArea
               schemePath = BrowserMenuBar.getInstance().getSqlColorScheme();
             }
             break;
+          case WEIDU:
+            if (BrowserMenuBar.getInstance() != null) {
+              schemePath = BrowserMenuBar.getInstance().getWeiDUColorScheme();
+            }
+            break;
           default:
         }
       }
 
-      Path schemeFile = FileManager.resolve(schemePath);
-      boolean isExternal = (NearInfinity.isDebug() && (Files.isRegularFile(schemeFile)));
       InputStream is = null;
       try {
-        if (isExternal) {
-          try {
-            is = StreamUtils.getInputStream(schemeFile);
-          } catch (IOException e) {
-            is = ClassLoader.getSystemResourceAsStream(SchemeNone);
-            e.printStackTrace();
-          }
-        } else {
-          is = ClassLoader.getSystemResourceAsStream(schemePath);
-        }
+        is = ClassLoader.getSystemResourceAsStream(schemePath);
         if (is != null) {
           try {
             Theme theme = Theme.load(is);
@@ -406,6 +441,195 @@ public class InfinityTextArea extends RSyntaxTextArea
       super.setText(sb.toString());
     } else {
       super.setText(null);
+    }
+  }
+
+//--------------------- Begin Interface ChangeListener ---------------------
+
+  @Override
+  public void stateChanged(ChangeEvent e)
+  {
+    if (e.getSource() instanceof JViewport) {
+      refreshGutterIcons();
+    }
+  }
+
+//--------------------- End Interface ChangeListener ---------------------
+
+  /**
+   * Returns the underlying ScrollPane if available. Returns {@code null} otherwise.
+   */
+  public RTextScrollPane getScrollPane()
+  {
+    return scrollPane;
+  }
+
+  /**
+   * Can be used to set the underlying ScrollPane instance.
+   */
+  public void setScrollPane(RTextScrollPane scrollPane)
+  {
+    if (scrollPane != this.scrollPane) {
+      if (this.scrollPane != null) {
+        this.scrollPane.getViewport().removeChangeListener(this);
+      }
+
+      this.scrollPane = scrollPane;
+      if (this.scrollPane != null) {
+        this.scrollPane.getViewport().addChangeListener(this);
+        this.scrollPane.setIconRowHeaderEnabled(true);
+        refreshGutterIcons();
+      }
+    }
+  }
+
+  /** Adds a new icon to the left vertical margin, optionally with a tooltip. */
+  public void addGutterIcon(int line, Icon icon, String msg)
+  {
+    GutterIcon item = gutterIcons.get(line);
+    if (item == null) {
+      item = new GutterIcon(line, icon, msg);
+      gutterIcons.put(Integer.valueOf(line), item);
+    } else {
+      item.icon = icon;
+      item.message = msg;
+    }
+    refreshGutterIcon(line);
+  }
+
+  /** Get information about the gutter icon at the specified line. */
+  public GutterIcon getGutterIconInfo(int line)
+  {
+    return gutterIcons.get(Integer.valueOf(line));
+  }
+
+  /** Returns whether the gutter icon at the specified line is currently applied. */
+  public boolean isGutterIconActive(int line)
+  {
+    return gutterIconsActive.containsKey(Integer.valueOf(line));
+  }
+
+  /** Removes the gutter icon from the specified line. */
+  public void removeGutterIcon(int line)
+  {
+    if (gutterIcons.remove(Integer.valueOf(line)) != null) {
+      refreshGutterIcon(line);
+    }
+  }
+
+  /** Removes all gutter icons at once. */
+  public void clearGutterIcons()
+  {
+    if (getScrollPane() != null) {
+      Gutter gutter = getScrollPane().getGutter();
+      Iterator<Integer> iter = gutterIconsActive.keySet().iterator();
+      while (iter.hasNext()) {
+        Integer key = iter.next();
+        GutterIconInfo info = gutterIconsActive.get(key);
+        if (info != null) {
+          gutter.removeTrackingIcon(info);
+        }
+        iter.remove();
+      }
+    }
+    gutterIcons.clear();
+  }
+
+  /** Returns the currently min/max visible line numbers. */
+  protected Point getVisibleLineRange(Point range)
+  {
+    if (range == null) {
+      range = new Point(-1, -1);
+    } else {
+      range.x = range.y = -1;
+    }
+
+    RTextScrollPane pane = getScrollPane();
+    if (pane != null) {
+      Rectangle view = pane.getViewport().getViewRect();
+      Point pt = view.getLocation();
+      try {
+        int startLine = getLineOfOffset(viewToModel(pt));
+        pt.y += view.height;
+        int endLine = getLineOfOffset(viewToModel(pt));
+        range.x = startLine;
+        range.y = endLine;
+      } catch (BadLocationException e) {
+      }
+    }
+
+    return range;
+  }
+
+  private void refreshGutterIcon(int line)
+  {
+    if (getScrollPane() != null) {
+      Integer key = Integer.valueOf(line);
+      gutterIconsActive.remove(key);
+      GutterIcon item = gutterIcons.get(key);
+      if (item != null) {
+        Point range = getVisibleLineRange(null);
+        if (item.line >= range.x && item.line <= range.y) {
+          try {
+            GutterIconInfo info = getScrollPane().getGutter().addLineTrackingIcon(item.line, item.icon, item.message);
+            gutterIconsActive.put(key, info);
+          } catch (BadLocationException e) {
+          }
+        }
+      }
+    }
+  }
+
+  private void refreshGutterIcons()
+  {
+    if (getScrollPane() != null && !gutterIcons.isEmpty()) {
+      Gutter gutter = getScrollPane().getGutter();
+      Point range = getVisibleLineRange(null);
+      if (range.x >= 0) {
+        // 1. remove items outside of range
+        Iterator<Integer> iter = gutterIconsActive.keySet().iterator();
+        while (iter.hasNext()) {
+          Integer key = iter.next();
+          int line = key.intValue();
+          if (line < range.x || line > range.y) {
+            GutterIconInfo info = gutterIconsActive.get(key);
+            gutter.removeTrackingIcon(info);
+            iter.remove();
+          }
+        }
+
+        // 2. add items that are inside of range
+        SortedMap<Integer, GutterIcon> submap = gutterIcons.subMap(Integer.valueOf(range.x), Integer.valueOf(range.y + 1));
+        if (!submap.isEmpty()) {
+          for (final Integer key: submap.keySet()) {
+            if (!gutterIconsActive.containsKey(key)) {
+              GutterIcon item = submap.get(key);
+              try {
+                GutterIconInfo info = gutter.addLineTrackingIcon(item.line, item.icon, item.message);
+                gutterIconsActive.put(Integer.valueOf(item.line), info);
+              } catch (BadLocationException e) {
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+//-------------------------- INNER CLASSES --------------------------
+
+  static class GutterIcon
+  {
+    int line;
+    Icon icon;
+    String message;
+
+    public GutterIcon(int line, Icon icon, String message)
+    {
+      this.line = line;
+      this.icon = icon;
+      this.message = message;
     }
   }
 }

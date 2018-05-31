@@ -92,6 +92,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
     RES_TYPES.put(Profile.Key.IS_SUPPORTED_ITM_V20, "ITM V2.0");
     RES_TYPES.put(Profile.Key.IS_SUPPORTED_KEY, "KEY V1");
     RES_TYPES.put(Profile.Key.IS_SUPPORTED_LUA, "LUA");
+    RES_TYPES.put(Profile.Key.IS_SUPPORTED_MAZE, "MAZE");
     RES_TYPES.put(Profile.Key.IS_SUPPORTED_MENU, "MENU");
     RES_TYPES.put(Profile.Key.IS_SUPPORTED_MOS_V1, "MOS V1");
     RES_TYPES.put(Profile.Key.IS_SUPPORTED_MOSC_V1, "MOSC V1");
@@ -166,6 +167,9 @@ public final class GameProperties extends ChildFrame implements ActionListener
 
     // Entry: game type
     s = Profile.getProperty(Profile.Key.GET_GAME_TITLE);
+    if ((Boolean)Profile.getProperty(Profile.Key.IS_FORCED_GAME)) {
+      s = s + " (enforced)";
+    }
     l = new JLabel("Game type:");
     tf = createReadOnlyField(s, true);
     listControls.add(new Pair<JComponent>(l, tf));
@@ -208,12 +212,12 @@ public final class GameProperties extends ChildFrame implements ActionListener
       StringBuilder sb = new StringBuilder();
       s = ResourceFactory.autodetectGameLanguage(Profile.getProperty(Profile.Key.GET_GAME_INI_FILE));
       if (s != null) {
-        sb.append(String.format("Autodetect (%1$s)", getLanguageName(s)));
+        sb.append(String.format("Autodetect (%s)", getLanguageName(s)));
       }
       if (languages != null) {
         for (final String lang: languages) {
           if (lang != null && !lang.isEmpty()) {
-            sb.append(String.format(", %1$s", getLanguageName(lang)));
+            sb.append(String.format(", %s", getLanguageName(lang)));
           }
         }
       }

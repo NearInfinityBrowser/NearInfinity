@@ -5,6 +5,7 @@
 package org.infinity.resource.itm;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
@@ -38,6 +39,8 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
+import org.infinity.util.StringTable;
+import org.infinity.util.io.StreamUtils;
 
 public final class ItmResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
@@ -99,7 +102,8 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Telescopes", "Bottles", "Greatswords", "Bags",
            "Furs and pelts", "Leather armor", "Studded leather", "Chain mail",
            "Splint mail", "Plate mail", "Full plate", "Hide armor", "Robes",
-           "Scale mail", "Bastard swords", "Scarves", "Rations", "Hats", "Gloves"};
+           "Scale mail", "Bastard swords", "Scarves", "Rations", "Hats", "Gloves",
+           "Eyeballs", "Earrings", "Teeth", "Bracelets"};
   public static final String[] s_categories11 =
           {"Miscellaneous", "Amulets and necklaces", "Armor", "Belts and girdles",
            "Boots", "Arrows", "Bracers and gauntlets", "Headgear",
@@ -111,14 +115,19 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Copper commons", "Gems", "Wands", "Eyeballs", "Bracelets",
            "Earrings", "Tattoos", "Lenses", "Teeth"};
   public static final String[] s_flags =
-          {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
+          {"None", "Critical item", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Off-handed",
-           "Conversable", "EE: Fake two-handed", "EE: Forbid off-hand weapon", "", "", "", "", "",
-           "", "", "", "", "", "EE/Ex: Undispellable", "EE/Ex: Toggle critical hits"};
+           "Conversable", "EE: Fake two-handed", "EE: Forbid off-hand weapon", "", "EE: Adamantine",
+           "", "", "", "", "", "", "", "", "EE/Ex: Undispellable", "EE/Ex: Toggle critical hits"};
   public static final String[] s_flags11 =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Steel", "Conversable",
            "Pulsating"};
+  public static final String[] s_flags_pstee =
+          {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
+           "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Steel", "Conversable",
+           "EE: Fake two-handed", "EE: Forbid off-hand weapon", "Usable in inventory", "EE: Adamantine",
+           "", "", "", "", "", "", "", "", "EE/Ex: Undispellable", "EE/Ex: Toggle critical hits"};
   public static final String[] s_usability =
           {"None",
            "Chaotic;Includes Chaotic Good, Chaotic Neutral and Chaotic Evil",
@@ -146,7 +155,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Mercykiller", "Indep", "Figher-Thief", "Mage",
            "Mage-Thief", "Dak'kon", "Fall-From-Grace", "Thief",
            "Vhailor", "Ignus", "Morte", "Nordom",
-           "Human", "Annah", "", "Nameless One", ""
+           "Human", "Annah", "EE: Monk", "Nameless One", "EE: Half-Orc"
           };
   public static final String[] s_usability20 =
           {"None", "Barbarian", "Bard", "Cleric", "Druid",
@@ -162,7 +171,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
            "Dwarf", "Half-elf", "Halfling", "Human", "Gnome"
           };
   public static final String[] s_kituse1 =
-          {"None", "Cleric of talos", "Cleric of helm", "Cleric of lathander",
+          {"None", "Cleric of Talos", "Cleric of Helm", "Cleric of Lathander",
            "Totemic druid", "Shapeshifter", "Avenger", "Barbarian", "Wild mage"};
   public static final String[] s_kituse2 =
           {"None", "Stalker", "Beastmaster", "Assassin", "Bounty hunter",
@@ -173,64 +182,16 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   public static final String[] s_kituse4 =
           {"None", "Berserker", "Wizard slayer", "Kensai", "Cavalier", "Inquisitor",
            "Undead hunter", "Abjurer", "Conjurer"};
-  public static final String[] s_tag = {"  ", "2A", "3A", "4A", "2W", "3W", "4W", "AX", "BW",
-                                        "CB", "CL", "D1", "D2", "D3", "D4", "DD", "FL", "FS",
-                                        "H0", "H1", "H2", "H3", "H4", "H5", "H6", "HB", "MC",
-                                        "MS", "QS", "S1", "S2", "S3", "SC", "SL", "SP", "SS", "WH"};
-  public static final String[] s_anim =
-          {"None", "Leather armor", "Chain mail", "Plate mail",
-           "Mage robe 1", "Mage robe 2", "Mage robe 3",
-           "Battle axe", "Bow", "Crossbow", "Club",
-           "Buckler", "Small shield", "Medium shield", "Large shield",
-           "Dagger", "Flail", "Flaming sword",
-           "Helmet 1", "Helmet 2", "Helmet 3", "Helmet 4", "Helmet 5", "Helmet 6", "Helmet 7",
-           "Halberd", "Mace", "Morning star", "Quarterstaff",
-           "Long sword", "Two-handed sword", "Katana", "Scimitar",
-           "Sling", "Spear", "Short sword", "War hammer"
-          };
-  public static final String[] s_tag11 = {"  ", "AX", "CB", "CL", "DD", "S1", "WH"};
-  public static final String[] s_anim11 = {"None", "Axe", "Crossbow", "Club", "Dagger",
-                                           "Sword", "Hammer"};
-  public static final String[] s_tag_1pp = {"  ", "2A", "3A", "4A", "2W", "3W", "4W", "AX",
-                                            "BS", "BW", "C0", "C1", "C2", "C3", "C4", "C5",
-                                            "C6", "C7", "CB", "CL", "D1", "D2", "D3", "D4",
-                                            "DD", "F0", "F1", "F2", "F3",
-                                            "FL", "FS", "GS",
-                                            "H0", "H1", "H2", "H3", "H4", "H5", "H6", "HB",
-                                            "J0", "J1", "J2", "J3", "J4", "J5", "J6", "J7",
-                                            "J8", "J9", "JA", "JB", "JC", "M2", "MC",
-                                            "MS", "Q2", "Q3", "Q4",
-                                            "QS", "S0", "S1", "S2", "S3", "SC", "SL", "SP",
-                                            "SS", "WH", "YW", "ZW"};
-  public static final String[] s_anim_1pp =
-          {"None", "Leather armor", "Chain mail", "Plate mail",
-           "Mage robe 1", "Mage robe 2", "Mage robe 3",
-           "Battle axe", "Bow?", "Bow",
-           "Small shield (alternate 1)", "Medium shield (alternate 1)", "Large shield (alternate 1)",
-           "Medium shield (alternate 2)", "Small shield (alternate 2)", "Large shield (alternate 2)",
-           "Large shield (alternate 3)", "Medium shield (alternate 3)",
-           "Crossbow", "Club",
-           "Buckler", "Small shield", "Medium shield", "Large shield",
-           "Dagger",
-           "Flail (alternate 1)", "Flail (alternate 2)", "Flaming sword (blue)", "Flail (alternate 3",
-           "Flail", "Flaming sword", "Glowing staff",
-           "Helmet 1", "Helmet 2", "Helmet 3", "Helmet 4", "Helmet 5", "Helmet 6", "Helmet 7",
-           "Halberd",
-           "Helmet 8", "Helmet 9", "Helmet 10", "Helmet 11", "Helmet 12", "Helmet 13", "Helmet 14",
-           "Helmet 15", "Helmet 16", "Helmet 17", "Helmet 18", "Circlet", "Helmet 20",
-           "Mace (alternate)", "Mace", "Morning star",
-           "Quarterstaff (alternate 1)", "Quarterstaff (alternate 2)", "Quarterstaff (alternate 3)",
-           "Quarterstaff", "Bastard sword", "Long sword", "Two-handed sword", "Katana", "Scimitar",
-           "Sling", "Spear", "Short sword", "War hammer", "Wings?", "Feathered wings"
-          };
 
   private StructHexViewer hexViewer;
 
-  public static String getSearchString(ByteBuffer buffer)
+  public static String getSearchString(InputStream is) throws IOException
   {
-    String name = new StringRef(buffer, 12, "").toString().trim();
-    if (name.equals("") || name.equalsIgnoreCase("No such index")) {
-      return new StringRef(buffer, 8, "").toString().trim();
+    is.skip(8);
+    String defName = StringTable.getStringRef(StreamUtils.readInt(is)).trim();
+    String name = StringTable.getStringRef(StreamUtils.readInt(is)).trim();
+    if (name.isEmpty() || name.equalsIgnoreCase("No such index")) {
+      return defName;
     } else {
       return name;
     }
@@ -431,12 +392,18 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     addField(version);
     addField(new StringRef(buffer, 8, ITM_NAME_GENERAL));
     addField(new StringRef(buffer, 12, ITM_NAME_IDENTIFIED));
-    if (version.toString().equalsIgnoreCase("V1.1")) {
+    if (version.getText().equalsIgnoreCase("V1.1") ||
+        (version.getText().equalsIgnoreCase("V1  ") && Profile.getGame() == Profile.Game.PSTEE)) {
       addField(new ResourceRef(buffer, 16, ITM_DROP_SOUND, "WAV"));
-      addField(new Flag(buffer, 24, 4, ITM_FLAGS, s_flags11));
-      addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, s_categories11));
+      if (Profile.getGame() == Profile.Game.PSTEE) {
+        addField(new Flag(buffer, 24, 4, ITM_FLAGS, s_flags_pstee));
+        addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, s_categories));
+      } else {
+        addField(new Flag(buffer, 24, 4, ITM_FLAGS, s_flags11));
+        addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, s_categories11));
+      }
       addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, s_usability11));
-      addField(new TextBitmap(buffer, 34, 2, ITM_EQUIPPED_APPEARANCE, s_tag11, s_anim11));
+      addField(new TextBitmap(buffer, 34, 2, ITM_EQUIPPED_APPEARANCE, Profile.getEquippedAppearanceMap()));
     }
     else {
       addField(new ResourceRef(buffer, 16, ITM_USED_UP_ITEM, "ITM"));
@@ -447,12 +414,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
       } else {
         addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, s_usability));
       }
-      if (Profile.isEnhancedEdition()) {
-        addField(new TextBitmap(buffer, 34, 2, ITM_EQUIPPED_APPEARANCE, s_tag_1pp, s_anim_1pp));
-      }
-      else {
-        addField(new TextBitmap(buffer, 34, 2, ITM_EQUIPPED_APPEARANCE, s_tag, s_anim));
-      }
+      addField(new TextBitmap(buffer, 34, 2, ITM_EQUIPPED_APPEARANCE, Profile.getEquippedAppearanceMap()));
     }
     addField(new DecNumber(buffer, 36, 2, ITM_MIN_LEVEL));
     addField(new DecNumber(buffer, 38, 2, ITM_MIN_STRENGTH));
@@ -491,11 +453,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     if (version.toString().equalsIgnoreCase("V1.1")) {
       addField(new ResourceRef(buffer, 88, ITM_PICK_UP_SOUND, "WAV"));
     } else {
-      if (Profile.isEnhancedEdition()) {
-        addField(new ResourceRef(buffer, 88, ITM_DESCRIPTION_IMAGE, new String[]{"BAM", "BMP"}));
-      } else {
-        addField(new ResourceRef(buffer, 88, ITM_DESCRIPTION_IMAGE, "BAM"));
-      }
+      addField(new ResourceRef(buffer, 88, ITM_DESCRIPTION_IMAGE, "BAM"));
     }
     addField(new DecNumber(buffer, 96, 4, ITM_ENCHANTMENT));
     SectionOffset abil_offset = new SectionOffset(buffer, 100, ITM_OFFSET_ABILITIES,
