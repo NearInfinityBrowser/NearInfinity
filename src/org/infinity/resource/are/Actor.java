@@ -8,11 +8,11 @@ import java.nio.ByteBuffer;
 
 import javax.swing.JComponent;
 
+import org.infinity.datatype.AnimateBitmap;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HexNumber;
-import org.infinity.datatype.IdsBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
@@ -206,7 +206,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
     else {
       addField(new Unknown(buffer, offset + 46, 2));
     }
-    addField(new IdsBitmap(buffer, offset + 48, 4, ARE_ACTOR_ANIMATION, "ANIMATE.IDS"));
+    addField(new AnimateBitmap(buffer, offset + 48, 4, ARE_ACTOR_ANIMATION, "ANIMATE.IDS"));
     addField(new Bitmap(buffer, offset + 52, 2, ARE_ACTOR_ORIENTATION, s_orientation));
     addField(new Unknown(buffer, offset + 54, 2));
     addField(new DecNumber(buffer, offset + 56, 4, ARE_ACTOR_EXPIRY_TIME));
