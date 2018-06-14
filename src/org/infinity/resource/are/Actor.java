@@ -37,7 +37,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
   public static final String ARE_ACTOR_DEST_Y               = "Destination: Y";
   public static final String ARE_ACTOR_FLAGS                = "Flags";
   public static final String ARE_ACTOR_IS_SPAWNED           = "Is spawned?";
-  public static final String ARE_ACTOR_RESREF_LETTER        = "First letter of CRE resref"; // confirm!
+  public static final String ARE_ACTOR_RESREF_LETTER        = "First letter of CRE resref";
   public static final String ARE_ACTOR_DIFFICULTY           = "Difficulty";
   public static final String ARE_ACTOR_ANIMATION            = "Animation";
   public static final String ARE_ACTOR_ORIENTATION          = "Orientation";
@@ -199,12 +199,11 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
       addField(new Flag(buffer, offset + 40, 4, ARE_ACTOR_FLAGS, s_flags));
     }
     addField(new Bitmap(buffer, offset + 44, 2, ARE_ACTOR_IS_SPAWNED, s_noyes));
+    addField(new TextString(buffer, offset + 46, 1, ARE_ACTOR_RESREF_LETTER));
     if (Profile.getEngine() == Profile.Engine.IWD2) {
-      addField(new TextString(buffer, offset + 46, 1, ARE_ACTOR_RESREF_LETTER));
       addField(new Flag(buffer, offset + 47, 1, ARE_ACTOR_DIFFICULTY, s_diff));
-    }
-    else {
-      addField(new Unknown(buffer, offset + 46, 2));
+    } else {
+      addField(new Unknown(buffer, offset + 47, 1));
     }
     addField(new AnimateBitmap(buffer, offset + 48, 4, ARE_ACTOR_ANIMATION, "ANIMATE.IDS"));
     addField(new Bitmap(buffer, offset + 52, 2, ARE_ACTOR_ORIENTATION, s_orientation));
