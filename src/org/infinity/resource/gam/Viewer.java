@@ -31,7 +31,7 @@ final class Viewer extends JPanel
     JPanel panel = new JPanel(gbl);
 
     gbc.insets = new Insets(2, 3, 3, 3);
-    ViewerUtil.addLabelFieldPair(panel, gam.getAttribute(GamResource.GAM_CURRENT_AREA), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, gam.getAttribute(GamResource.GAM_MASTER_AREA), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute(GamResource.GAM_GAME_TIME), gbl, gbc, true);
     if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) { // V2.0 - better check?
       ViewerUtil.addLabelFieldPair(panel, gam.getAttribute(GamResource.GAM_REAL_TIME), gbl, gbc, true);
