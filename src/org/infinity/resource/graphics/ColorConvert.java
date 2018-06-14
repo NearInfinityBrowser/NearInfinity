@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -42,6 +43,17 @@ public class ColorConvert
 {
   // max. number of colors for color reduction algorithms
   private static final int MAX_COLORS = 256;
+
+  public enum SortType {
+    None,       // Don't sort. Useful if you simply want to reverse color order.
+    Lightness,  // Sort by perceived lightness aspect of color.
+    Saturation, // Sort by saturation aspect of color.
+    Hue,        // Sort by hue aspect of color.
+    Red,        // Sort by red color component.
+    Green,      // Sort by green color component.
+    Blue,       // Sort by blue color component.
+    Alpha       // Sort by alpha component.
+  }
 
   /**
    * Creates a BufferedImage object in the native color format for best possible performance.
@@ -175,7 +187,15 @@ public class ColorConvert
       ColorModel cm = image.getColorModel();
       boolean isAlphaPreMultiplied = cm.isAlphaPremultiplied();
       WritableRaster raster = image.copyData(null);
-      dstImage = new BufferedImage(cm, raster, isAlphaPreMultiplied, null);
+      Hashtable<String, Object> table = null;
+      String[] propertyNames = image.getPropertyNames();
+      if (propertyNames != null) {
+        table = new Hashtable<>(propertyNames.length);
+        for (String name: propertyNames) {
+          table.put(name, image.getProperty(name));
+        }
+      }
+      dstImage = new BufferedImage(cm, raster, isAlphaPreMultiplied, table);
     }
     return dstImage;
   }
@@ -208,33 +228,45 @@ public class ColorConvert
   }
 
   /**
-   * Calculates the nearest color available in the palette for the specified color value.
-   * Note: For better color matching results the palette is expected in HCL color model.
-   * @param rgbColor The source color value in ARGB format (A is ignored).
-   * @param hclPalette A HCL palette with the available color entries. Use the method
-   *                   {@link #toHclPalette(int[], int[])} to convert a RGB palette into the HCL format.
+   * Calculates the nearest color available in the given RGBA palette for the specified color.
+   * @param rgbColor The source color in ARGB format.
+   * @param rgbPalette A palette containing ARGB color entries.
+   * @param ignoreAlpha Whether to exclude alpha component from the calculation.
    * @return The palette index pointing to the nearest color, or -1 on error.
    */
-  public static int nearestColor(int rgbColor, int[] hclPalette)
+  public static int nearestColorRGB(int rgbColor, int[] rgbPalette, boolean ignoreAlpha)
   {
+    // TODO: Improve match quality for grayscaled colors
     int index = -1;
-    if (hclPalette != null && hclPalette.length > 0) {
-      int distance = Integer.MAX_VALUE;
-      int v = rgbToHcl(rgbColor);
-      int h = (byte)((v >>> 16) & 0xff), s = (byte)((v >>> 8) & 0xff), l = (byte)(v & 0xff);
-      for (int i = 0; i < hclPalette.length; i++) {
-        int h2 = (byte)((hclPalette[i] >>> 16) & 0xff);
-        int s2 = (byte)((hclPalette[i] >>> 8) & 0xff);
-        int l2 = (byte)(hclPalette[i] & 0xff);
-        int dh = (h2 - h);
-        int ds = (s2 - s);
-        int dl = (l2 - l);
-        int curDistance = dh*dh + ds*ds + dl*dl;
-        if (curDistance < distance) {
-          distance = curDistance;
+    if (rgbPalette != null && rgbPalette.length > 0) {
+      int mask = ignoreAlpha ? 0 : 0xff000000;
+      int minDist = Integer.MAX_VALUE;
+      int a = ((rgbColor & mask) >> 24) & 0xff;
+      int r = (rgbColor >> 16) & 0xff;
+      int g = (rgbColor >> 8) & 0xff;
+      int b = rgbColor & 0xff;
+
+      int da, dr, dg, db;
+      for (int i = 0; i < rgbPalette.length; i++) {
+        int col = rgbPalette[i];
+        // Extra check for full transparency
+        if (a == 0) {
+          if ((col & 0xff000000) == 0) { return i; }
+          if (col == 0xff00ff00) { return i; }
+        }
+        // Computing weighted distance to compensate for perceived color differences
+        int a2 = ((rgbPalette[i] & mask) >> 24) & 0xff;
+        int r2 = (rgbPalette[i] >> 16) & 0xff;
+        int g2 = (rgbPalette[i] >> 8) & 0xff;
+        int b2 = rgbPalette[i] & 0xff;
+        da = (a - a2) * 48;
+        dr = (r - r2) * 14;
+        dg = (g - g2) * 28;
+        db = (b - b2) * 6;
+        int dist = da*da + dr*dr + dg*dg + db*db;
+        if (dist < minDist) {
+          minDist = dist;
           index = i;
-          if (distance == 0)
-            break;
         }
       }
     }
@@ -242,82 +274,71 @@ public class ColorConvert
   }
 
   /**
-   * Converts an array of colors from the RGB color model into the HCL color model. This is needed
-   * if you want to use the method {@link #nearestColor(int, int[])}.
-   * @param rgbPalette The source RGB palette.
-   * @param hclPalette An array to store the resulting HCL colors into.
-   * @return {@code true} if the conversion finished successfully, {@code false} otherwise.
+   * Sorts the given palette in-place by the specified sort type.
+   * @param palette Palette with ARGB color entries.
+   * @param startIndex First color entry to consider for sorting.
+   * @param type The sort type.
+   * @param reversed Whether to sort in reversed order.
    */
-  public static boolean toHclPalette(int[] rgbPalette, int[] hclPalette)
+  public static void sortPalette(int[] palette, int startIndex, SortType type, boolean reversed)
   {
-    if (rgbPalette != null && hclPalette != null && hclPalette.length >= rgbPalette.length) {
-      for (int i = 0; i < rgbPalette.length; i++) {
-        hclPalette[i] = rgbToHcl(rgbPalette[i]);
-      }
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Converts an RGB color value into a normalized HCL color (hue, chroma, luminance).
-   * @param color The color value in ARGB format (A is ignored).
-   * @return The normalized HCL representation of the color. Range of each component: [-128..127]
-   */
-  public static int rgbToHcl(int color)
-  {
-    // using HCL (hue, chrome, luminance) approach
-    float r = (float)((color >>> 16) & 0xff) / 255.0f;
-    float g = (float)((color >>> 8) & 0xff) / 255.0f;
-    float b = (float)(color & 0xff) / 255.0f;
-    float cmax = r; if (g > cmax) cmax = g; if (b > cmax) cmax = b;
-    float cmin = r; if (g < cmin) cmin = g; if (b < cmin) cmin = b;
-    float cdelta = cmax - cmin;
-    float h, c, l;
-
-    l = (cmax + cmin) / 2.0f;
-    if (l < 0.0f) l = 0.0f; else if (l > 1.0f) l = 1.0f;
-
-    if (cdelta == 0.0f) {
-      h = 0.0f;
-      c = 0.0f;
-    } else {
-      c = cdelta;
-
-      final float cdelta2 = cdelta / 2.0f;
-      float dr = (((cmax - r) / 6.0f) + cdelta2) / cdelta;
-      float dg = (((cmax - g) / 6.0f) + cdelta2) / cdelta;
-      float db = (((cmax - b) / 6.0f) + cdelta2) / cdelta;
-
-      final float c13 = 1.0f/3.0f;
-      final float c23 = 2.0f/3.0f;
-      if (r == cmax) {
-        h = db - dg;
-      } else if (g == cmax) {
-        h = c13 + dr - db;
-      } else {
-        h = c23 + dg - dr;
+    if (palette != null && palette.length > startIndex+1) {
+      Integer[] tmpColors = new Integer[palette.length];
+      for (int i = 0; i < palette.length; i++) {
+        tmpColors[i] = Integer.valueOf(palette[i]);
       }
 
-      if (h < 0.0f) h += 1.0f;
-      if (h > 1.0f) h -= 1.0f;
+      switch (type) {
+        case Lightness:
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, new CompareByLightness());
+          break;
+        case Saturation:
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, new CompareBySaturation());
+          break;
+        case Hue:
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, new CompareByHue());
+          break;
+        case Red:
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, new CompareByRed());
+          break;
+        case Green:
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, new CompareByGreen());
+          break;
+        case Blue:
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, new CompareByBlue());
+          break;
+        case Alpha:
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, new CompareByAlpha());
+          break;
+        default:
+          break;
+      }
+
+      for (int i = 0; i < tmpColors.length; i++) {
+        palette[i] = tmpColors[i].intValue();
+      }
+
+      if (reversed) {
+        for (int i = startIndex, j = palette.length - 1; i < j; i++, j--) {
+          int tmp = palette[i];
+          palette[i] = palette[j];
+          palette[j] = tmp;
+        }
+      }
     }
-
-    // normalizing: h = [0..2], c = [0..1], l = [-1..1]
-    h *= 2.0f;
-    l = (l - 0.5f) * 2.0f;
-
-    double x= c * Math.cos(h*Math.PI);
-    double y = c * Math.sin(h*Math.PI);
-    double z = l;
-
-    // re-normalizing values for conversion into integer range [-128..127]
-    x = Math.floor(x * 127.5);
-    y = Math.floor(y * 127.5);
-    z = Math.floor(z * 127.5);
-
-    return (((int)x & 0xff) << 16) | (((int)y & 0xff) << 8) | ((int)z & 0xff);
   }
+
+  // Returns each color component as float array {b, g, r, a} in range [0.0, 1.0].
+  private static double[] getNormalizedColor(int color)
+  {
+    return new double[] {
+        (double)(color & 0xff) / 255.0,
+        (double)((color >> 8) & 0xff) / 255.0,
+        (double)((color >> 16) & 0xff) / 255.0,
+        (double)((color >> 24) & 0xff) / 255.0
+    };
+  }
+
 
   /**
    * Reduces the number of colors of the specified pixel data block.
@@ -340,6 +361,7 @@ public class ColorConvert
   }
 
   /**
+   * TODO: Consider alpha values in color reduction.
    * Reduces the number of colors of the specified pixel data block.
    * @param pixels The pixel block of the image in ARGB format (alpha is ignored).
    * @param desiredColors The resulting number of colors after reduction (range 1..256).
@@ -357,22 +379,11 @@ public class ColorConvert
           new PriorityQueue<PixelBlock>(desiredColors, PixelBlock.PixelBlockComparator);
 
       Pixel[] p = null;
-      if (ignoreAlpha) {
-        p = new Pixel[pixels.length];
-        for (int i = 0; i < p.length; i++) {
-          p[i] = new Pixel(pixels[i]);
-        }
-      } else {
-        int len = 0;
-        for (int i = 0; i < pixels.length; i++) {
-          if ((pixels[i] & 0xff000000) != 0)
-            len++;
-        }
-        p = new Pixel[len];
-        for (int i = 0, idx = 0; i < pixels.length && idx < len; i++) {
-          if ((pixels[i] & 0xff000000) != 0)
-            p[idx++] = new Pixel(pixels[i]);
-        }
+      p = new Pixel[pixels.length];
+      int mask = ignoreAlpha ? 0xff000000: 0;
+      p = new Pixel[pixels.length];
+      for (int i = 0; i < p.length; i++) {
+        p[i] = new Pixel(pixels[i] | mask);
       }
 
       PixelBlock initialBlock = new PixelBlock(p);
@@ -397,7 +408,7 @@ public class ColorConvert
       int palIndex = 0;
       while (!blockQueue.isEmpty() && palIndex < desiredColors) {
         PixelBlock block = blockQueue.poll();
-        int[] sum = {0, 0, 0};
+        int[] sum = {0, 0, 0, 0};
         for (int i = 0; i < block.size(); i++) {
           for (int j = 0; j < Pixel.MAX_SIZE; j++) {
             sum[j] += block.getPixel(i).getElement(j);
@@ -459,6 +470,34 @@ public class ColorConvert
       } catch (IOException e) {
         e.printStackTrace();
         throw new Exception("Unable to read BMP file " + file.getFileName());
+      }
+    } else {
+      throw new Exception("File does not exist.");
+    }
+  }
+
+  /**
+   * Attempts to load a palette from the specified PNG file.
+   * @param file The PNG file to extract the palette from.
+   * @return The palette as ARGB integers.
+   * @throws Exception on error.
+   */
+  public static int[] loadPalettePNG(Path file) throws Exception
+  {
+    if (file != null && Files.isRegularFile(file)) {
+      try (InputStream is = StreamUtils.getInputStream(file)) {
+        BufferedImage img = ImageIO.read(is);
+        if (img.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+          IndexColorModel cm = (IndexColorModel)img.getColorModel();
+          int[] retVal = new int[cm.getMapSize()];
+          cm.getRGBs(retVal);
+          return retVal;
+        } else {
+          throw new Exception("Error loading palette from PNG fille " + file.getFileName());
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new Exception("Unable to read PNG file " + file.getFileName());
       }
     } else {
       throw new Exception("File does not exist.");
@@ -683,8 +722,8 @@ public class ColorConvert
       this.pixels = pixels;
       this.ofs = ofs;
       this.len = len;
-      minCorner = new Pixel(Byte.MIN_VALUE, Byte.MIN_VALUE, Byte.MIN_VALUE);
-      maxCorner = new Pixel(Byte.MAX_VALUE, Byte.MAX_VALUE, Byte.MAX_VALUE);
+      minCorner = new Pixel(Byte.MIN_VALUE, Byte.MIN_VALUE, Byte.MIN_VALUE, Byte.MIN_VALUE);
+      maxCorner = new Pixel(Byte.MAX_VALUE, Byte.MAX_VALUE, Byte.MAX_VALUE, Byte.MAX_VALUE);
     }
 
     public Pixel[] getPixels()
@@ -764,29 +803,30 @@ public class ColorConvert
 
   private static class Pixel
   {
-    public static final int MAX_SIZE = 3;
+    public static final int MAX_SIZE = 4;
     public final byte[] color;
 
     public Pixel()
     {
-      this.color = new byte[]{0, 0, 0};
+      this.color = new byte[]{0, 0, 0, 0};
     }
 
     public Pixel(int color)
     {
-      this.color = new byte[]{(byte)((color >>> 16) & 0xff),
+      this.color = new byte[]{(byte)((color >>> 24) & 0xff),
+                              (byte)((color >>> 16) & 0xff),
                               (byte)((color >>> 8) & 0xff),
                               (byte)(color & 0xff)};
     }
 
-    public Pixel(byte r, byte g, byte b)
+    public Pixel(byte r, byte g, byte b, byte a)
     {
-      this.color = new byte[]{r, g, b};
+      this.color = new byte[]{a, r, g, b};
     }
 
     public int toColor()
     {
-      return ((color[0] & 0xff) << 16) | ((color[1] & 0xff) << 8) | (color[2] & 0xff);
+      return ((color[0] & 0xff) << 24) | ((color[1] & 0xff) << 16) | ((color[2] & 0xff) << 8) | (color[3] & 0xff);
     }
 
     public int getElement(int index)
@@ -798,7 +838,7 @@ public class ColorConvert
       }
     }
 
-    public static List<Comparator<Pixel>> PixelComparator = new ArrayList<Comparator<Pixel>>(3);
+    public static List<Comparator<Pixel>> PixelComparator = new ArrayList<Comparator<Pixel>>(MAX_SIZE);
     static {
       PixelComparator.add(new Comparator<Pixel>() {
         @Override
@@ -821,6 +861,143 @@ public class ColorConvert
           return p1.getElement(2) - p2.getElement(2);
         }
       });
+      PixelComparator.add(new Comparator<Pixel>() {
+        @Override
+        public int compare(Pixel p1, Pixel p2)
+        {
+          return p1.getElement(3) - p2.getElement(3);
+        }
+      });
+    }
+  }
+
+
+  // Compare colors by perceived lightness.
+  private static class CompareByLightness implements Comparator<Integer> {
+    @Override
+    public int compare(Integer c1, Integer c2)
+    {
+      Integer[] colors = new Integer[] {c1, c2};
+      double[] dist = new double[colors.length];
+      for (int i = 0; i < colors.length; i++) {
+        double r, g, b, a;
+        double[] rgba = getNormalizedColor(colors[i]);
+        b = rgba[0] * rgba[0] * 0.057;
+        g = rgba[1] * rgba[1] * 0.2935;
+        r = rgba[2] * rgba[2] * 0.1495;
+        a = rgba[3] * rgba[3] * 0.5;
+        dist[i] = Math.sqrt(b + g + r + a);
+      }
+      return (dist[0] < dist[1]) ? -1 : ((dist[0] > dist[1]) ? 1 : 0);
+    }
+  }
+
+  // Compare colors by saturation.
+  private static class CompareBySaturation implements Comparator<Integer> {
+    @Override
+    public int compare(Integer c1, Integer c2)
+    {
+      Integer[] colors = new Integer[] {c1, c2};
+      double[] dist = new double[colors.length];
+      for (int i = 0; i < colors.length; i++) {
+        double[] rgba = getNormalizedColor(colors[i]);
+        double cmin = rgba[0] < rgba[1] ? rgba[0] : rgba[1];
+        if (rgba[2] < cmin) cmin = rgba[2];
+        double cmax = rgba[0] > rgba[1] ? rgba[0] : rgba[1];
+        if (rgba[2] > cmax) cmax = rgba[2];
+        double csum = cmax + cmin;
+        double cdelta = cmax - cmin;
+        double s;
+        if (cdelta != 0.0) {
+          s = (csum / 2.0 < 0.5) ? cdelta / csum : cdelta / (2.0 - csum);
+        } else {
+          s = 0.0;
+        }
+        dist[i] = s;
+      }
+      return (dist[0] < dist[1]) ? -1 : ((dist[0] > dist[1]) ? 1 : 0);
+    }
+  }
+
+  // Compare colors by hue.
+  private static class CompareByHue implements Comparator<Integer> {
+    @Override
+    public int compare(Integer c1, Integer c2)
+    {
+      Integer[] colors = new Integer[] {c1, c2};
+      double[] dist = new double[colors.length];
+      for (int i = 0; i < colors.length; i++) {
+        double[] rgba = getNormalizedColor(colors[i]);
+        double cmin = rgba[0] < rgba[1] ? rgba[0] : rgba[1];
+        if (rgba[2] < cmin) cmin = rgba[2];
+        double cmax = rgba[0] > rgba[1] ? rgba[0] : rgba[1];
+        if (rgba[2] > cmax) cmax = rgba[2];
+        double cdelta = cmax - cmin;
+        double cdelta2 = cdelta / 2.0;
+        double h;
+        if (cdelta != 0.0) {
+          double dr = ((cmax - rgba[2]) / 6.0 + cdelta2) / cdelta;
+          double dg = ((cmax - rgba[1]) / 6.0 + cdelta2) / cdelta;
+          double db = ((cmax - rgba[0]) / 6.0 + cdelta2) / cdelta;
+          if (cmax == rgba[2]) {
+            h = db - dg;
+          } else if (cmax == rgba[1]) {
+            h = 1.0/3.0 + dr - db;
+          } else {
+            h = 2.0/3.0 + dg - dr;
+          }
+          if (h < 0.0) { h += 1.0; }
+          if (h > 1.0) { h -= 1.0; }
+        } else {
+          h = 0.0;
+        }
+        dist[i] = h;
+      }
+      return (dist[0] < dist[1]) ? -1 : ((dist[0] > dist[1]) ? 1 : 0);
+    }
+  }
+
+  // Compare colors by red amount.
+  private static class CompareByRed implements Comparator<Integer> {
+    @Override
+    public int compare(Integer c1, Integer c2)
+    {
+      int dist1 = (c1 >>> 16) & 0xff;
+      int dist2 = (c2 >>> 16) & 0xff;
+      return dist1 - dist2;
+    }
+  }
+
+  // Compare colors by green amount.
+  private static class CompareByGreen implements Comparator<Integer> {
+    @Override
+    public int compare(Integer c1, Integer c2)
+    {
+      int dist1 = (c1 >>> 8) & 0xff;
+      int dist2 = (c2 >>> 8) & 0xff;
+      return dist1 - dist2;
+    }
+  }
+
+  // Compare colors by blue amount.
+  private static class CompareByBlue implements Comparator<Integer> {
+    @Override
+    public int compare(Integer c1, Integer c2)
+    {
+      int dist1 = c1 & 0xff;
+      int dist2 = c2 & 0xff;
+      return dist1 - dist2;
+    }
+  }
+
+  // Compare colors by alpha.
+  private static class CompareByAlpha implements Comparator<Integer> {
+    @Override
+    public int compare(Integer c1, Integer c2)
+    {
+      int dist1 = (c1 >>> 24) & 0xff;
+      int dist2 = (c2 >>> 24) & 0xff;
+      return dist1 - dist2;
     }
   }
 }

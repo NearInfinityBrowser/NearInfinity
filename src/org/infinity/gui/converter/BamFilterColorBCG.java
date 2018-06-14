@@ -285,11 +285,13 @@ public class BamFilterColorBCG extends BamFilterBaseColor
     if (srcImage != null) {
       int[] buffer;
       IndexColorModel cm = null;
+      boolean isPremultiplied = false;
       if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
         // paletted image
         cm = (IndexColorModel)srcImage.getColorModel();
         buffer = new int[1 << cm.getPixelSize()];
         cm.getRGBs(buffer);
+        isPremultiplied = cm.isAlphaPremultiplied();
         // applying proper alpha
         if (!cm.hasAlpha()) {
           final int Green = 0x0000ff00;
@@ -306,6 +308,7 @@ public class BamFilterColorBCG extends BamFilterBaseColor
       } else if (srcImage.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
         // truecolor image
         buffer = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
+        isPremultiplied = srcImage.isAlphaPremultiplied();
       } else {
         buffer = new int[0];
       }
@@ -321,10 +324,10 @@ public class BamFilterColorBCG extends BamFilterBaseColor
         if ((cm == null || (cm != null && !pExcludeColors.isSelectedIndex(i))) &&
             (buffer[i] & 0xff000000) != 0) {
           // extracting color channels
-          float fa = (float)((buffer[i] >>> 24) & 0xff) / 255.0f;
-          float fr = ((float)((buffer[i] >>> 16) & 0xff) / 255.0f) / fa;
-          float fg = ((float)((buffer[i] >>> 8) & 0xff) / 255.0f) / fa;
-          float fb = ((float)(buffer[i] & 0xff) / 255.0f) / fa;
+          float fa = isPremultiplied ? (float)((buffer[i] >>> 24) & 0xff) : 255.0f;
+          float fr = (float)((buffer[i] >>> 16) & 0xff) / fa;
+          float fg = (float)((buffer[i] >>> 8) & 0xff) / fa;
+          float fb = (float)(buffer[i] & 0xff) / fa;
 
           // applying brightness
           if (brightness != 0.0f) {
@@ -357,9 +360,9 @@ public class BamFilterColorBCG extends BamFilterBaseColor
           }
 
           // reverting to int RGB
-          int ir = (int)((fr * fa) * 255.0f); if (ir < 0) ir = 0; else if (ir > 255) ir = 255;
-          int ig = (int)((fg * fa) * 255.0f); if (ig < 0) ig = 0; else if (ig > 255) ig = 255;
-          int ib = (int)((fb * fa) * 255.0f); if (ib < 0) ib = 0; else if (ib > 255) ib = 255;
+          int ir = (int)(fr * fa); if (ir < 0) ir = 0; else if (ir > 255) ir = 255;
+          int ig = (int)(fg * fa); if (ig < 0) ig = 0; else if (ig > 255) ig = 255;
+          int ib = (int)(fb * fa); if (ib < 0) ib = 0; else if (ib > 255) ib = 255;
           buffer[i] = (buffer[i] & 0xff000000) | (ir << 16) | (ig << 8) | ib;
         }
       }

@@ -280,11 +280,13 @@ public class BamFilterColorHSL extends BamFilterBaseColor
     if (srcImage != null) {
       int[] buffer;
       IndexColorModel cm = null;
+      boolean isPremultiplied = false;
       if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
         // paletted image
         cm = (IndexColorModel)srcImage.getColorModel();
         buffer = new int[1 << cm.getPixelSize()];
         cm.getRGBs(buffer);
+        isPremultiplied = cm.isAlphaPremultiplied();
         // applying proper alpha
         if (!cm.hasAlpha()) {
           final int Green = 0x0000ff00;
@@ -301,6 +303,7 @@ public class BamFilterColorHSL extends BamFilterBaseColor
       } else if (srcImage.getRaster().getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
         // truecolor image
         buffer = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
+        isPremultiplied = srcImage.isAlphaPremultiplied();
       } else {
         buffer = new int[0];
       }
@@ -316,10 +319,10 @@ public class BamFilterColorHSL extends BamFilterBaseColor
         if ((cm == null || (cm != null && !pExcludeColors.isSelectedIndex(i))) &&
             (buffer[i] & 0xff000000) != 0) {
           // convert RGB -> HSL
-          float fa = (float)((buffer[i] >>> 24) & 0xff) / 255.0f;
-          float fr = ((float)((buffer[i] >>> 16) & 0xff) / 255.0f) / fa;
-          float fg = ((float)((buffer[i] >>> 8) & 0xff) / 255.0f) / fa;
-          float fb = ((float)(buffer[i] & 0xff) / 255.0f) / fa;
+          float fa = isPremultiplied ? (float)((buffer[i] >>> 24) & 0xff) : 255.0f;
+          float fr = (float)((buffer[i] >>> 16) & 0xff) / fa;
+          float fg = (float)((buffer[i] >>> 8) & 0xff) / fa;
+          float fb = (float)(buffer[i] & 0xff) / fa;
           float cmin = fr; if (fg < cmin) cmin = fg; if (fb < cmin) cmin = fb;
           float cmax = fr; if (fg > cmax) cmax = fg; if (fb > cmax) cmax = fb;
           float cdelta = cmax - cmin;
@@ -383,7 +386,7 @@ public class BamFilterColorHSL extends BamFilterBaseColor
             } else {
               res = f1;
             }
-            int r = (int)(res * 255.0f * fa);
+            int r = (int)(res * fa);
 
             // green
             t = h;
@@ -396,7 +399,7 @@ public class BamFilterColorHSL extends BamFilterBaseColor
             } else {
               res = f1;
             }
-            int g = (int)(res * 255.0f * fa);
+            int g = (int)(res * fa);
 
             // blue
             t = h - (1.0f / 3.0f);
@@ -410,7 +413,7 @@ public class BamFilterColorHSL extends BamFilterBaseColor
             } else {
               res = f1;
             }
-            int b = (int)(res * 255.0f * fa);
+            int b = (int)(res * fa);
 
             if (r < 0) r = 0; else if (r > 255) r = 255;
             if (g < 0) g = 0; else if (g > 255) g = 255;

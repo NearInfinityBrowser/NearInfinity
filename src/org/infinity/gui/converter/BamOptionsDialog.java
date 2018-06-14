@@ -13,6 +13,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.io.IOError;
 import java.nio.file.Files;
@@ -42,18 +44,21 @@ import javax.swing.WindowConstants;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.Profile;
+import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.util.io.FileManager;
 
 /**
  * An options dialog for the BAM converter.
  */
-class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
+class BamOptionsDialog extends JDialog implements ActionListener, FocusListener, ItemListener
 {
   private static final String PREFS_BAMVERSION    = "BCBamVersion";
   private static final String PREFS_PATH          = "BCPath";
   private static final String PREFS_AUTOCLEAR     = "BCAutoClear";
   private static final String PREFS_CLOSEONEXIT   = "BCCloseOnExit";
   private static final String PREFS_TRANSPARENCY  = "BCTransparencyThreshold";
+  private static final String PREFS_USEALPHA      = "BCUseAlpha";
+  private static final String PREFS_SORTPALETTE   = "BCSortPalette";
   private static final String PREFS_COMPRESSBAM   = "BCCompressBam";
   private static final String PREFS_COMPRESSTYPE  = "BCCompressionType";
   private static final String PREFS_PVRZINDEX     = "BCPvrzIndex";
@@ -65,6 +70,8 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   private static final boolean DEFAULT_AUTO_CLEAR         = true;
   private static final boolean DEFAULT_CLOSE_ON_EXIT      = false;
   private static final int DEFAULT_TRANSPARENCY_THRESHOLD = 5;    // in percent
+  private static final int DEFAULT_USE_ALPHA              = ConvertToBam.ALPHA_AUTO;
+  private static final String DEFAULT_SORT_PALETTE        = ColorConvert.SortType.None.toString();
   private static final boolean DEFAULT_COMPRESS_BAM       = false;
   private static final int DEFAULT_COMPRESSION_TYPE       = ConvertToBam.COMPRESSION_AUTO;
   private static final int DEFAULT_PVRZ_INDEX             = 1000;
@@ -77,13 +84,16 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   private static boolean autoClear          = DEFAULT_AUTO_CLEAR;
   private static boolean closeOnExit        = DEFAULT_CLOSE_ON_EXIT;
   private static int transparencyThreshold  = DEFAULT_TRANSPARENCY_THRESHOLD;
+  private static int useAlpha               = DEFAULT_USE_ALPHA;
+  private static String sortPalette         = DEFAULT_SORT_PALETTE;
   private static boolean compressBam        = DEFAULT_COMPRESS_BAM;
   private static int compressionType        = DEFAULT_COMPRESSION_TYPE;
   private static int pvrzIndex              = DEFAULT_PVRZ_INDEX;
   private static List<Path> recentSessions  = new ArrayList<>();
 
   private JButton bOK, bCancel, bDefaults, bTransparencyHelp;
-  private JComboBox<String> cbBamVersion, cbCompressionType;
+  private JComboBox<String> cbBamVersion, cbCompressionType, cbUseAlpha;
+  private JComboBox<ColorConvert.SortType> cbSortPalette;
   private JCheckBox cbCloseOnExit, cbAutoClear, cbCompressBam;
   private JSpinner sTransparency, sPvrzIndex;
   private JTextField tfPath;
@@ -102,6 +112,8 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
       autoClear = prefs.getBoolean(PREFS_AUTOCLEAR, DEFAULT_AUTO_CLEAR);
       closeOnExit = prefs.getBoolean(PREFS_CLOSEONEXIT, DEFAULT_CLOSE_ON_EXIT);
       transparencyThreshold = prefs.getInt(PREFS_TRANSPARENCY, DEFAULT_TRANSPARENCY_THRESHOLD);
+      useAlpha = prefs.getInt(PREFS_USEALPHA, DEFAULT_USE_ALPHA);
+      sortPalette = prefs.get(PREFS_SORTPALETTE, DEFAULT_SORT_PALETTE);
       compressBam = prefs.getBoolean(PREFS_COMPRESSBAM, DEFAULT_COMPRESS_BAM);
       compressionType = prefs.getInt(PREFS_COMPRESSTYPE, DEFAULT_COMPRESSION_TYPE);
       pvrzIndex = prefs.getInt(PREFS_PVRZINDEX, DEFAULT_PVRZ_INDEX);
@@ -137,6 +149,8 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
     prefs.putBoolean(PREFS_AUTOCLEAR, autoClear);
     prefs.putBoolean(PREFS_CLOSEONEXIT, closeOnExit);
     prefs.putInt(PREFS_TRANSPARENCY, transparencyThreshold);
+    prefs.putInt(PREFS_USEALPHA, useAlpha);
+    prefs.put(PREFS_SORTPALETTE, sortPalette);
     prefs.putBoolean(PREFS_COMPRESSBAM, compressBam);
     prefs.putInt(PREFS_COMPRESSTYPE, compressionType);
     prefs.putInt(PREFS_PVRZINDEX, pvrzIndex);
@@ -149,6 +163,20 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
     if (path == null) path = DEFAULT_PATH;
     if (!path.isEmpty() && !(Files.isDirectory(FileManager.resolve(path)))) path = DEFAULT_PATH;
     transparencyThreshold = Math.min(Math.max(transparencyThreshold, 0), 100);
+    useAlpha = Math.min(Math.max(useAlpha, ConvertToBam.ALPHA_AUTO), ConvertToBam.ALPHA_NEVER);
+
+    boolean match = false;
+    for (ColorConvert.SortType t: ColorConvert.SortType.values()) {
+      if (t.toString().equalsIgnoreCase(sortPalette)) {
+        sortPalette = t.toString();
+        match = true;
+        break;
+      }
+    }
+    if (!match) {
+      sortPalette = DEFAULT_SORT_PALETTE;
+    }
+
     compressionType = Math.min(Math.max(compressionType, ConvertToBam.COMPRESSION_AUTO), ConvertToBam.COMPRESSION_DXT5);
     pvrzIndex = Math.min(Math.max(pvrzIndex, 0), 99999);
   }
@@ -163,6 +191,20 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   public static boolean getCloseOnExit() { return closeOnExit; }
   /** Returns the transparency threshold in percent. */
   public static int getTransparencyThreshold() { return transparencyThreshold; }
+  /** Returns whether to support alpha channel in BAM v1 palette. */
+  public static int getUseAlpha() { return useAlpha; }
+
+  /** Returns the type for sorting the BAM V1 palette. */
+  public static ColorConvert.SortType getSortPalette()
+  {
+    for (ColorConvert.SortType t: ColorConvert.SortType.values()) {
+      if (t.toString().equalsIgnoreCase(sortPalette)) {
+        return t;
+      }
+    }
+    return ColorConvert.SortType.valueOf(DEFAULT_SORT_PALETTE);
+  }
+
   /** Returns the default state for "Compress BAM" checkbox (BAM v1). */
   public static boolean getCompressBam() { return compressBam; }
   /** Returns the default compression type (BAM v2). */
@@ -264,7 +306,9 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
                    "Example:\n" +
                    "A value of 5% will treat any pixels with a transparency of 5% or higher as fully transparent.\n" +
                    "Pixels with less than 5% transparency will be treated as fully opaque.\n\n" +
-                   "Note: This setting only affects Legacy BAM (v1) conversions.";
+                   "Notes:\n" +
+                   "This setting affects only BAM V1 conversions.\n" +
+                   "This setting has no effect when palette alpha channel is used.";
       JOptionPane.showMessageDialog(this, msg, "Help", JOptionPane.INFORMATION_MESSAGE);
     } else if (event.getSource() == bDefaults) {
       setDefaults();
@@ -298,6 +342,20 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
   }
 
 //--------------------- End Interface FocusListener ---------------------
+
+//--------------------- Begin Interface ItemListener ---------------------
+
+  @Override
+  public void itemStateChanged(ItemEvent e)
+  {
+    if (e.getSource() == cbUseAlpha) {
+      boolean b = cbUseAlpha.getSelectedIndex() == ConvertToBam.ALPHA_ALWAYS ||
+                  (!Profile.isEnhancedEdition() && cbUseAlpha.getSelectedIndex() == ConvertToBam.ALPHA_AUTO);
+      sTransparency.setEnabled(b);
+    }
+  }
+
+//--------------------- End Interface ItemListener ---------------------
 
   private void init()
   {
@@ -347,6 +405,8 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
 
     // initializing "Legacy BAM" panel
     l1 = new JLabel("Transparency threshold:");
+    l2 = new JLabel("Use alpha channel:");
+    JLabel l3 = new JLabel("Sort palette by:");
     SpinnerNumberModel model = new SpinnerNumberModel(getTransparencyThreshold(), 0, 100, 1);
     sTransparency = new JSpinner(model);
     sTransparency.setEditor(new JSpinner.NumberEditor(sTransparency, "#'%'"));
@@ -354,6 +414,12 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
     bTransparencyHelp.setMargin(new Insets(2, 4, 2, 4));
     bTransparencyHelp.setToolTipText("About transparency threshold");
     bTransparencyHelp.addActionListener(this);
+    cbUseAlpha = new JComboBox<>(ConvertToBam.UseAlphaItems);
+    cbUseAlpha.addItemListener(this);
+    cbUseAlpha.setSelectedIndex(getUseAlpha());
+    itemStateChanged(new ItemEvent(cbUseAlpha, ItemEvent.ITEM_FIRST, cbUseAlpha.getSelectedItem(), ItemEvent.SELECTED));
+    cbSortPalette = new JComboBox<ColorConvert.SortType>(ColorConvert.SortType.values());
+    cbSortPalette.setSelectedItem(getSortPalette());
     cbCompressBam = new JCheckBox("Select \"Compress BAM\" by default", getCompressBam());
     JPanel pBamV1 = new JPanel(new GridBagLayout());
     pBamV1.setBorder(BorderFactory.createTitledBorder("Legacy BAM "));
@@ -366,7 +432,19 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
     c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
     pBamV1.add(bTransparencyHelp, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 3, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    pBamV1.add(l2, c);
+    c = ViewerUtil.setGBC(c, 1, 1, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 4), 0, 0);
+    pBamV1.add(cbUseAlpha, c);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    pBamV1.add(l3, c);
+    c = ViewerUtil.setGBC(c, 1, 2, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 4), 0, 0);
+    pBamV1.add(cbSortPalette, c);
+    c = ViewerUtil.setGBC(c, 0, 3, 3, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(4, 4, 4, 4), 0, 0);
     pBamV1.add(cbCompressBam, c);
 
@@ -380,10 +458,10 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
     JPanel pBamV2 = new JPanel(new GridBagLayout());
     pBamV2.setBorder(BorderFactory.createTitledBorder("PVRZ-based BAM "));
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
     pBamV2.add(l1, c);
     c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 4, 0, 4), 0, 0);
     pBamV2.add(cbCompressionType, c);
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
@@ -391,6 +469,9 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
     c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(4, 4, 4, 4), 0, 0);
     pBamV2.add(sPvrzIndex, c);
+    c = ViewerUtil.setGBC(c, 0, 2, 2, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    pBamV2.add(new JPanel(), c);  // filler component
 
     // initializing bottom button bar
     bDefaults = new JButton("Set defaults");
@@ -452,6 +533,8 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
     cbAutoClear.setSelected(DEFAULT_AUTO_CLEAR);
     cbCloseOnExit.setSelected(DEFAULT_CLOSE_ON_EXIT);
     sTransparency.setValue(Integer.valueOf(DEFAULT_TRANSPARENCY_THRESHOLD));
+    cbUseAlpha.setSelectedIndex(DEFAULT_USE_ALPHA);
+    cbSortPalette.setSelectedItem(DEFAULT_SORT_PALETTE);
     cbCompressBam.setSelected(DEFAULT_COMPRESS_BAM);
     cbCompressionType.setSelectedIndex(DEFAULT_COMPRESSION_TYPE);
     sPvrzIndex.setValue(Integer.valueOf(DEFAULT_PVRZ_INDEX));
@@ -465,6 +548,8 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener
     autoClear = cbAutoClear.isSelected();
     closeOnExit = cbCloseOnExit.isSelected();
     transparencyThreshold = (Integer)sTransparency.getValue();
+    useAlpha = cbUseAlpha.getSelectedIndex();
+    sortPalette = cbSortPalette.getSelectedItem().toString();
     compressBam = cbCompressBam.isSelected();
     compressionType = cbCompressionType.getSelectedIndex();
     pvrzIndex = (Integer)sPvrzIndex.getValue();

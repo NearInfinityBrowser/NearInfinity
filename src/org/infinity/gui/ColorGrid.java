@@ -8,12 +8,17 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.TexturePaint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EventListener;
@@ -54,6 +59,8 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
   private static final boolean DefaultDragDropEnabled = false;
   // Defines the square of the minimum dragging distance before activating drag&drop mode
   private static final int DragDropTriggerDistance2 = 16;
+  // Background pattern is visible for semi-transparent color entries
+  private static final TexturePaint BackgroundPattern = createBackgroundPattern();
 
   private final List<Color> listColors = new ArrayList<Color>();
   private final List<ActionListener> listActionListeners = new ArrayList<ActionListener>();
@@ -379,7 +386,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
   public void setColor(int index, Color color)
   {
     if (index >= 0 && index < getColorCount() && color != null) {
-      listColors.set(index, new Color(color.getRGB()));
+      listColors.set(index, new Color(color.getRGB(), true));
       repaint();
     }
   }
@@ -398,7 +405,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
       }
       for (int i = 0; i < cnt; i++) {
         if (colors[i] != null) {
-          listColors.set(index, new Color(colors[i].getRGB()));
+          listColors.set(index, new Color(colors[i].getRGB(), true));
         }
       }
       repaint();
@@ -637,6 +644,26 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
     updateDisplay(g);
   }
 
+  // Creates a simple checkerboard pattern as texture object.
+  private static TexturePaint createBackgroundPattern()
+  {
+    // A simple checkerboard pattern
+    int[] checker = {
+        0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0,
+        0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0,
+        0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0,
+        0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0,
+        0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+        0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+        0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+        0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0, 0xffc0c0c0, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+      };
+    BufferedImage buf = new BufferedImage(8,  8, BufferedImage.TYPE_INT_ARGB);
+    int[] raster = ((DataBufferInt)buf.getRaster().getDataBuffer()).getData();
+    System.arraycopy(checker, 0, raster, 0, checker.length);
+    TexturePaint tp = new TexturePaint(buf, new Rectangle(0, 0, 8, 8));
+    return tp;
+  }
 
   // First-time initializations
   private void init(int count, Collection<Color> colors)
@@ -663,7 +690,7 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
       if (iter != null && iter.hasNext()) {
         Color c = iter.next();
         if (c != null) {
-          listColors.add(new Color(c.getRGB()));
+          listColors.add(new Color(c.getRGB(), true));
         } else {
           listColors.add(DefaultColor);
         }
@@ -694,13 +721,20 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
   private void updateDisplay(Graphics g)
   {
     if (g != null) {
+      Graphics2D g2d = (Graphics2D)g;
       // painting color boxes
       for (int i = 0; i < getColorCount(); i++) {
         int col = i % colorsPerRow;
         int row = i / colorsPerRow;
         int x = gapX + col*(gapX + colorSize.width);
         int y = gapY + row*(gapY + colorSize.height);
-        g.setColor(listColors.get(i));
+
+        g2d.setPaint(BackgroundPattern);
+        g2d.fillRect(x, y, colorSize.width, colorSize.height);
+        g2d.setPaint(null);
+
+        boolean alpha = (i != 0); // Color at index 0 is implicitly treated as transparent
+        g.setColor(new Color(listColors.get(i).getRGB(), alpha));
         g.fillRect(x, y, colorSize.width, colorSize.height);
       }
 
