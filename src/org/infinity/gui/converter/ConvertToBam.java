@@ -103,6 +103,7 @@ import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.BamV1Decoder;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.DxtEncoder;
+import org.infinity.resource.graphics.GifSequenceReader;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
@@ -2549,12 +2550,29 @@ public class ConvertToBam extends ChildFrame
     if (listIndex >= 0 && entry != null) {
       try {
         InputStream is = entry.getResourceDataAsStream();
-        ImageReader reader = (ImageReader)ImageIO.getImageReadersBySuffix(entry.getExtension()).next();
-        reader.setInput(ImageIO.createImageInputStream(is), false);
-        int numFrames = reader.getNumImages(true);
-        retVal = (numFrames > 0);
-        for (int frameIdx = 0, curFrameIdx = 0; frameIdx < numFrames; frameIdx++) {
-          BufferedImage image = reader.read(frameIdx);
+        BufferedImage[] images;
+        if (entry.getExtension().equalsIgnoreCase("gif")) {
+          // Potential GIF animation
+          GifSequenceReader reader = new GifSequenceReader(ImageIO.createImageInputStream(is));
+          reader.decodeAll();
+          images = new BufferedImage[reader.getFrameCount()];
+          for (int i = 0; i < images.length; i++) {
+            images[i] = reader.getFrame(i).getRenderedImage();
+          }
+        } else {
+          // Everything else
+          ImageReader reader = (ImageReader)ImageIO.getImageReadersBySuffix(entry.getExtension()).next();
+          reader.setInput(ImageIO.createImageInputStream(is), false);
+          int numFrames = reader.getNumImages(true);
+          images = new BufferedImage[numFrames];
+          for (int i = 0; i < images.length; i++) {
+            images[i] = reader.read(i);
+          }
+        }
+        retVal = (images.length > 0);
+
+        for (int frameIdx = 0, curFrameIdx = 0; frameIdx < images.length; frameIdx++) {
+          BufferedImage image = images[frameIdx];
           if (image == null) {
             retVal = false;
             break;
@@ -2617,7 +2635,7 @@ public class ConvertToBam extends ChildFrame
             fe2.setOption(BAM_FRAME_OPTION_PATH, BAM_FRAME_PATH_BIFF + entry.getResourceName());
           }
           fe2.setOption(BAM_FRAME_OPTION_SOURCE_INDEX, Integer.valueOf(frameIdx));
-          if (numFrames > 1) {
+          if (images.length > 1) {
             fe2.setOption(PseudoBamDecoder.OPTION_STRING_LABEL, entry.getResourceName() + ":" + frameIdx);
           } else {
             fe2.setOption(PseudoBamDecoder.OPTION_STRING_LABEL, entry.getResourceName());
