@@ -375,8 +375,6 @@ class BamPaletteDialog extends JDialog
           idx++;
         }
         ColorConvert.medianCut(pixels, 256, palettes[TYPE_GENERATED], false);
-        boolean ignoreAlpha = !(Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BAM_V1_ALPHA);
-        ColorConvert.sortPalette(palettes[TYPE_GENERATED], 0, BamOptionsDialog.getSortPalette(), ignoreAlpha);
       }
 
       // moving special "green" to the first index
@@ -389,6 +387,12 @@ class BamPaletteDialog extends JDialog
             break;
           }
         }
+      }
+
+      if (colorMap.size() > 256) {
+        boolean ignoreAlpha = !(Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BAM_V1_ALPHA);
+        int startIdx = (palettes[TYPE_GENERATED][0] & 0xffffff) == 0x00ff00 ? 1 : 0;
+        ColorConvert.sortPalette(palettes[TYPE_GENERATED], startIdx, BamOptionsDialog.getSortPalette(), ignoreAlpha);
       }
 
       paletteModified = false;
