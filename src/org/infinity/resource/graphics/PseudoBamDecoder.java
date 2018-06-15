@@ -29,6 +29,7 @@ import java.util.List;
 import javax.swing.ProgressMonitor;
 
 import org.infinity.gui.converter.ConvertToPvrz;
+import org.infinity.resource.Profile;
 import org.infinity.util.BinPack2D;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.Pair;
@@ -611,11 +612,12 @@ public class PseudoBamDecoder extends BamDecoder
   /**
    * Determines whether "color" is interpreted as "transparent".
    * @param color The color to check.
-   * @param threshold The amount of alpha allowed for opaque colors.
+   * @param threshold The amount of alpha allowed for opaque colors. Specify negative value to skip check.
    * @return {@code true} if the color is determined as "transparent".
    */
   public static boolean isTransparentColor(int color, int threshold)
   {
+    if (threshold < 0) return false;
     final int Green = 0x0000ff00;
     if (threshold < 0) threshold = 0; else if (threshold > 255) threshold = 255;
     boolean isAlpha = (((color >>> 24) & 0xff) < (255 - threshold));
@@ -821,7 +823,9 @@ public class PseudoBamDecoder extends BamDecoder
         DynamicArray.putByte(bamData, curOfs, (byte)(palette[i] & 0xff));               // red
         DynamicArray.putByte(bamData, curOfs + 1, (byte)((palette[i] >>> 8) & 0xff));   // green
         DynamicArray.putByte(bamData, curOfs + 2, (byte)((palette[i] >>> 16) & 0xff));  // blue
-        DynamicArray.putByte(bamData, curOfs + 3, (byte)0);                             // unused
+        byte a = (byte)((palette[i] >>> 24) & 0xff);
+        if (a == (byte)255) a = 0;
+        DynamicArray.putByte(bamData, curOfs + 3, a);                                   // alpha
         curOfs += 4;
       }
 
@@ -1026,7 +1030,7 @@ public class PseudoBamDecoder extends BamDecoder
    */
   public int[] createGlobalPalette(HashMap<Integer, Integer> colorMap)
   {
-    final int Green = 0x0000ff00;
+    final Integer Green = Integer.valueOf(0xff00ff00);
 
     int[] retVal;
     if (!listFrames.isEmpty() && !listCycles.isEmpty()) {
@@ -1038,13 +1042,17 @@ public class PseudoBamDecoder extends BamDecoder
           registerColors(newMap, listFrames.get(i).frame);
         }
       } else {
-        newMap = new HashMap<Integer, Integer>(colorMap);
+        newMap = new HashMap<>(colorMap.size());
+        colorMap.forEach((k,v) -> {
+          if ((k.intValue() & 0xff000000) == 0) {
+            k = Integer.valueOf(k.intValue() | 0xff000000);
+          }
+          newMap.put(k, v);
+        });
       }
 
       // transparent color does not count
-      if (newMap.containsKey(Integer.valueOf(Green))) {
-        newMap.remove(Integer.valueOf(Green));
-      }
+      newMap.remove(Green);
 
       // creating palette
       int numColors = newMap.size();
@@ -1056,7 +1064,8 @@ public class PseudoBamDecoder extends BamDecoder
         idx++;
       }
       if (colorBuffer.length > 255) {
-        retVal = ColorConvert.medianCut(colorBuffer, 255, true);
+        boolean ignoreAlpha = !(Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BAM_V1_ALPHA);
+        retVal = ColorConvert.medianCut(colorBuffer, 255, ignoreAlpha);
       } else {
         retVal = colorBuffer;
       }
@@ -1085,7 +1094,7 @@ public class PseudoBamDecoder extends BamDecoder
   /** Maps all color values of the specified image. */
   public static void registerColors(HashMap<Integer, Integer> colorMap, BufferedImage image)
   {
-    final int Green = 0x0000ff00;
+    final int Green = 0xff00ff00;
 
     if (image != null) {
       if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED &&
@@ -1097,7 +1106,7 @@ public class PseudoBamDecoder extends BamDecoder
           int color = cm.getRGB(i);
 
           // determining transparency
-          if (hasAlpha && ((color >>> 24) < 255)) {
+          if (hasAlpha && ((color & 0xff000000) == 0)) {
             color = Green;
           }
 
@@ -1119,8 +1128,6 @@ public class PseudoBamDecoder extends BamDecoder
           // determining transparency
           if ((color & 0xff000000) == 0) {
             color = Green;
-          } else {
-            color &= 0x00ffffff;
           }
 
           // registering color in map
@@ -1140,7 +1147,7 @@ public class PseudoBamDecoder extends BamDecoder
   /** Unmaps all color values of the specified image. */
   public static void unregisterColors(HashMap<Integer, Integer> colorMap, BufferedImage image)
   {
-    final int Green = 0x0000ff00;
+    final int Green = 0xff00ff00;
 
     if (image != null) {
       if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED &&
@@ -1150,14 +1157,14 @@ public class PseudoBamDecoder extends BamDecoder
         boolean hasAlpha = cm.hasAlpha();
         for (int i = 0; i < buffer.length; i++) {
           int pixel = buffer[i] & 0xff;
-          int color = (cm.getRed(pixel) << 16) | (cm.getGreen(pixel) << 8) | cm.getBlue(pixel);
+          int color = (cm.getAlpha(pixel) << 24) |
+                      (cm.getRed(pixel) << 16) |
+                      (cm.getGreen(pixel) << 8) |
+                      cm.getBlue(pixel);
 
           // determining transparency
-          if (hasAlpha) {
-            int a = cm.getAlpha(pixel);
-            if (a > 0) {
-              color = Green;
-            }
+          if (hasAlpha && cm.getAlpha(pixel) == 0) {
+            color = Green;
           }
 
           // unregistering color in map
@@ -1180,8 +1187,6 @@ public class PseudoBamDecoder extends BamDecoder
           // determining transparency
           if ((color & 0xff000000) == 0) {
             color = Green;
-          } else {
-            color &= 0x00ffffff;
           }
 
           // unregistering color in map
@@ -1746,8 +1751,7 @@ public class PseudoBamDecoder extends BamDecoder
           if (image.getColorModel() instanceof IndexColorModel) {
             IndexColorModel cm = (IndexColorModel)image.getColorModel();
             int[] palette = new int[256];
-            int size = 1 << cm.getPixelSize();
-            if (size > 256) size = 256;
+            int size = Math.min(1 << cm.getPixelSize(), 256);
             for (int i = 0; i < size; i++) {
               palette[i] = (cm.getAlpha(i) << 24) | (cm.getRed(i) << 16) | (cm.getGreen(i) << 8) | cm.getBlue(i);
             }

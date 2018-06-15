@@ -51,13 +51,13 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   public static final String GAM_NUM_NON_PARTY_MEMBERS            = "# non-party characters";
   public static final String GAM_OFFSET_GLOBAL_VARIABLES          = "Global variables offset";
   public static final String GAM_NUM_GLOBAL_VARIABLES             = "# global variables";
-  public static final String GAM_MASTER_AREA                      = "Master area";
+  public static final String GAM_WORLD_AREA                       = "World area";
   public static final String GAM_CURRENT_LINK                     = "Current link";
   public static final String GAM_NUM_JOURNAL_ENTRIES              = "# journal entries";
   public static final String GAM_OFFSET_JOURNAL_ENTRIES           = "Journal entries offset";
   public static final String GAM_REPUTATION                       = "Reputation";
-  public static final String GAM_CURRENT_AREA                     = "Current area";
-  public static final String GAM_CURRENT_AREA_2                   = "Current area 2";
+  public static final String GAM_MASTER_AREA                      = "Master area";
+  public static final String GAM_MASTER_AREA_2                    = "Master area 2";  // ???
   public static final String GAM_CONFIGURATION                    = "Configuration";
   public static final String GAM_SAVE_VERSION                     = "Save version";
   public static final String GAM_NUM_UNKNOWN                      = "Unknown section count";
@@ -301,7 +301,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     SectionCount count_global = new SectionCount(buffer, offset + 60, 4, GAM_NUM_GLOBAL_VARIABLES,
                                                  Variable.class);
     addField(count_global);
-    addField(new ResourceRef(buffer, offset + 64, GAM_MASTER_AREA, "ARE"));
+    addField(new ResourceRef(buffer, offset + 64, GAM_WORLD_AREA, "ARE"));
     addField(new DecNumber(buffer, offset + 72, 4, GAM_CURRENT_LINK));
     SectionCount count_journal = new SectionCount(buffer, offset + 76, 4, GAM_NUM_JOURNAL_ENTRIES,
                                                   JournalEntry.class);
@@ -316,14 +316,14 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
     if (Profile.getEngine() == Profile.Engine.BG1) { // V1.1
       addField(new DecNumber(buffer, offset + 84, 4, GAM_REPUTATION));
-      addField(new ResourceRef(buffer, offset + 88, GAM_CURRENT_AREA, "ARE"));
+      addField(new ResourceRef(buffer, offset + 88, GAM_MASTER_AREA, "ARE"));
       addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, s_configuration_bg1));
       addField(new Bitmap(buffer, offset + 100, 4, GAM_SAVE_VERSION, s_version_bg1));
       addField(new Unknown(buffer, offset + 104, 76));
     }
     else if (Profile.getEngine() == Profile.Engine.IWD) { // V1.1
       addField(new DecNumber(buffer, offset + 84, 4, GAM_REPUTATION));
-      addField(new ResourceRef(buffer, offset + 88, GAM_CURRENT_AREA, "ARE"));
+      addField(new ResourceRef(buffer, offset + 88, GAM_MASTER_AREA, "ARE"));
       addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, s_configuration_iwd));
       numIWD = new SectionCount(buffer, offset + 100, 4, GAM_NUM_UNKNOWN, UnknownSection3.class);
       addField(numIWD);
@@ -335,19 +335,19 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       offRubikon = new SectionOffset(buffer, offset + 84, GAM_OFFSET_MODRON_MAZE, Unknown.class);
       addField(offRubikon);
       addField(new DecNumber(buffer, offset + 88, 4, GAM_REPUTATION));
-      addField(new ResourceRef(buffer, offset + 92, GAM_CURRENT_AREA, "ARE"));
+      addField(new ResourceRef(buffer, offset + 92, GAM_MASTER_AREA, "ARE"));
       offKillvariable = new SectionOffset(buffer, offset + 100, GAM_OFFSET_KILL_VARIABLES, KillVariable.class);
       addField(offKillvariable);
       numKillVariable = new SectionCount(buffer, offset + 104, 4, GAM_NUM_KILL_VARIABLES, KillVariable.class);
       addField(numKillVariable);
       offBestiary = new SectionOffset(buffer, offset + 108, GAM_OFFSET_BESTIARY, Unknown.class);
       addField(offBestiary);
-      addField(new ResourceRef(buffer, offset + 112, GAM_CURRENT_AREA_2, "ARE"));
+      addField(new ResourceRef(buffer, offset + 112, GAM_MASTER_AREA_2, "ARE"));
       addField(new Unknown(buffer, offset + 120, 64));
     }
     else if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) { // V2.0
       addField(new DecNumber(buffer, offset + 84, 4, GAM_REPUTATION));
-      addField(new ResourceRef(buffer, offset + 88, GAM_CURRENT_AREA, "ARE"));
+      addField(new ResourceRef(buffer, offset + 88, GAM_MASTER_AREA, "ARE"));
       addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, s_configuration));
       addField(new DecNumber(buffer, offset + 100, 4, GAM_SAVE_VERSION));
       offFamiliar = new SectionOffset(buffer, offset + 104, GAM_OFFSET_FAMILIAR_INFO, Familiar.class);
@@ -374,7 +374,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     }
     else if (Profile.getEngine() == Profile.Engine.IWD2) { // V2.2 (V1.1 & V2.0 in BIFF)
       addField(new Unknown(buffer, offset + 84, 4));
-      addField(new ResourceRef(buffer, offset + 88, GAM_CURRENT_AREA, "ARE"));
+      addField(new ResourceRef(buffer, offset + 88, GAM_MASTER_AREA, "ARE"));
       addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, s_configuration_iwd2));
       numIWD2 = new SectionCount(buffer, offset + 100, 4, GAM_NUM_UNKNOWN, UnknownSection3.class);
       addField(numIWD2);

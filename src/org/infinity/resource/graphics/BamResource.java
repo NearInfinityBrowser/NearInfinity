@@ -973,13 +973,13 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
       }
 
       // frame dimensions > 256 pixels
-      if (maxWidth > 256 || maxHeight > 256) {
+      if (!Profile.isEnhancedEdition() && (maxWidth > 256 || maxHeight > 256)) {
         issues.add("- [severe] One or more frames are greater than 256x256 pixels. Those frames may not be visible in certain games.");
         compatibility = Math.max(compatibility, 1);
       }
 
       // semi-transparent pixels
-      if (hasSemiTrans) {
+      if (hasSemiTrans && !(Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BAM_V1_ALPHA)) {
         issues.add("- [medium] One or more frames contain semi-transparent pixels. The transparency information will be lost.");
         compatibility = Math.max(compatibility, 1);
       }
@@ -1016,6 +1016,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
   private byte[] convertToBamV1(boolean compressed) throws Exception
   {
     if (decoder != null) {
+      boolean ignoreAlpha = !(Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BAM_V1_ALPHA);
       BamDecoder.BamControl control = decoder.createControl();
       control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
       // max. supported number of frames and cycles
@@ -1023,7 +1024,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
       int cycleCount = Math.min(control.cycleCount(), 255);
 
       // 1. calculating global palette for all frames
-      final int transThreshold = 0x20;
+      final int transThreshold = ignoreAlpha ? 32 : 1;
       boolean[] frameTransparency = new boolean[frameCount];
       boolean hasTransparency = false;
       int totalWidth = 0, totalHeight = 0;
@@ -1058,13 +1059,11 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
       }
       g.dispose();
       int[] chainedImageData = ((DataBufferInt)composedImage.getRaster().getDataBuffer()).getData();
-      int[] palette = ColorConvert.medianCut(chainedImageData, hasTransparency ? 255 : 256, false);
-      int[] hclPalette = new int[palette.length];
-      ColorConvert.toHclPalette(palette, hclPalette);
+      int[] palette = ColorConvert.medianCut(chainedImageData, hasTransparency ? 255 : 256, ignoreAlpha);
       // initializing color cache
       IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(1536);
       for (int i = 0; i < palette.length; i++) {
-        colorCache.put(palette[i] & 0x00ffffff, (byte)i);
+        colorCache.put(palette[i], (byte)i);
       }
       // adding transparent color index to the palette if available
       if (hasTransparency) {
@@ -1099,13 +1098,15 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
                 dstData[dstIdx++] = (byte)cnt;
               } else {
                 // visible pixel
-                Byte colIdx = colorCache.get(srcData[srcIdx] & 0x00ffffff);
+                Byte colIdx = colorCache.get(srcData[srcIdx]);
                 if (colIdx != null) {
                   dstData[dstIdx++] = (byte)(colIdx + colorShift);
                 } else {
-                  int color = ColorConvert.nearestColor(srcData[srcIdx], hclPalette);
-                  dstData[dstIdx++] = (byte)(color + colorShift);
-                  colorCache.put(srcData[srcIdx] & 0x00ffffff, (byte)color);
+                  int color = ColorConvert.nearestColorRGB(srcData[srcIdx], palette, ignoreAlpha);
+                  dstData[dstIdx++] = (byte)(color);
+                  if (color > 0) {
+                    colorCache.put(srcData[srcIdx], (byte)(color - colorShift));
+                  }
                 }
                 srcIdx++;
               }
@@ -1121,13 +1122,15 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
             byte[] dstData = new byte[img.getWidth()*img.getHeight()];
             int idx = 0, max = dstData.length;
             while (idx < max) {
-              Byte colIdx = colorCache.get(srcData[idx] & 0x00ffffff);
+              Byte colIdx = colorCache.get(srcData[idx]);
               if (colIdx != null) {
                 dstData[idx] = (byte)(colIdx + colorShift);
               } else {
-                int color = ColorConvert.nearestColor(srcData[idx], hclPalette);
-                dstData[idx] = (byte)(color + colorShift);
-                colorCache.put(srcData[idx] & 0x00ffffff, (byte)color);
+                int color = ColorConvert.nearestColorRGB(srcData[idx], palette, ignoreAlpha);
+                dstData[idx] = (byte)(color);
+                if (color > 0) {
+                  colorCache.put(srcData[idx], (byte)(color - colorShift));
+                }
               }
               idx++;
             }
@@ -1212,7 +1215,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
       }
       frameList.clear(); frameList = null;
       colorCache.clear(); colorCache = null;
-      palette = null; hclPalette = null;
+      palette = null;
 
       // optionally compressing to MOSC V1
       if (compressed) {

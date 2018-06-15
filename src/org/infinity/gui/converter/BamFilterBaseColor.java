@@ -96,8 +96,8 @@ public abstract class BamFilterBaseColor extends BamFilterBase
   public static class ExcludeColorsPanel extends JPanel
       implements MouseOverListener, ActionListener
   {
-    private static final String FmtInfoRGB    = "%d  %d  %d";
-    private static final String FmtInfoHexRGB = "#%02X%02X%02X";
+    private static final String FmtInfoRGB    = "%d  %d  %d  %d";
+    private static final String FmtInfoHexRGB = "#%02X%02X%02X%02X";
     private static final int[] AllColorIndices = new int[256];
     static {
       for (int i = 0; i < AllColorIndices.length; i++) {
@@ -158,7 +158,7 @@ public abstract class BamFilterBaseColor extends BamFilterBase
     {
       for (int i = 0; i < cgPalette.getColorCount(); i++) {
         if (palette != null && i < palette.length) {
-          cgPalette.setColor(i, new Color(palette[i]));
+          cgPalette.setColor(i, new Color(palette[i], true));
         } else {
           cgPalette.setColor(i, Color.BLACK);
         }
@@ -255,12 +255,12 @@ public abstract class BamFilterBaseColor extends BamFilterBase
       JPanel pInfo = new JPanel(new GridBagLayout());
       pInfo.setBorder(BorderFactory.createTitledBorder("Information "));
       JLabel lInfoIndexTitle = new JLabel("Index:");
-      JLabel lInfoRGBTitle = new JLabel("RGB:");
+      JLabel lInfoRGBTitle = new JLabel("RGBA:");
       JLabel lInfoHexRGBTitle = new JLabel("Hex:");
       // XXX: making sure that the initial size of the components is big enough to hold all valid data
       lInfoIndex = new JLabel("1999");
-      lInfoRGB = new JLabel(String.format(FmtInfoRGB, 1999, 1999, 1999));
-      lInfoHexRGB = new JLabel(String.format(FmtInfoHexRGB, 0xAAA, 0xAAA, 0xAAA));
+      lInfoRGB = new JLabel(String.format(FmtInfoRGB, 1999, 1999, 1999, 1999));
+      lInfoHexRGB = new JLabel(String.format(FmtInfoHexRGB, 0xAAA, 0xAAA, 0xAAA, 0xAAA));
       c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
       pInfo.add(lInfoIndexTitle, c);
@@ -333,8 +333,10 @@ public abstract class BamFilterBaseColor extends BamFilterBase
       if (index >= 0 && index < cgPalette.getColorCount()) {
         Color c = cgPalette.getColor(index);
         setLabelText(lInfoIndex, Integer.toString(index), null);
-        setLabelText(lInfoRGB, String.format(FmtInfoRGB, c.getRed(), c.getGreen(), c.getBlue()), null);
-        setLabelText(lInfoHexRGB, String.format(FmtInfoHexRGB, c.getRed(), c.getGreen(), c.getBlue()), null);
+        setLabelText(lInfoRGB, String.format(FmtInfoRGB, c.getRed(), c.getGreen(), c.getBlue(),
+                                                         c.getAlpha()), null);
+        setLabelText(lInfoHexRGB, String.format(FmtInfoHexRGB, c.getRed(), c.getGreen(), c.getBlue(),
+                                                               c.getAlpha()), null);
       } else {
         setLabelText(lInfoIndex, "", null);
         setLabelText(lInfoRGB, "", null);

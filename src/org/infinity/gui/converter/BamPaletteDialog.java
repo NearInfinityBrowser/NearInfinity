@@ -7,6 +7,7 @@ package org.infinity.gui.converter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -47,6 +48,7 @@ import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.ColorGrid;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
+import org.infinity.resource.Profile;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
 import org.infinity.util.io.StreamUtils;
@@ -63,8 +65,8 @@ class BamPaletteDialog extends JDialog
   public static final int TYPE_EXTERNAL   = 1;
 
   private static final String[] PaletteTypeInfo = {"Generated palette", "External palette"};
-  private static final String FmtInfoRGB    = "%d  %d  %d";
-  private static final String FmtInfoHexRGB = "#%02X%02X%02X";
+  private static final String FmtInfoRGB    = "%d  %d  %d  %d";
+  private static final String FmtInfoHexRGB = "#%02X%02X%02X%02X";
 
   // Stores all available color values of the current BAM and their number of occurence for faster palette creation
   private final LinkedHashMap<Integer, Integer> colorMap = new LinkedHashMap<Integer, Integer>();
@@ -73,12 +75,12 @@ class BamPaletteDialog extends JDialog
   private ConvertToBam converter;
   private ColorGrid cgPalette;
   private JLabel lInfoType, lInfoIndex, lInfoRGB, lInfoHexRGB, lColorIndex;
-  private JTextField tfColorRed, tfColorGreen, tfColorBlue, tfCompressedColor;
+  private JTextField tfColorRed, tfColorGreen, tfColorBlue, tfColorAlpha, tfCompressedColor;
   private JMenuItem miPaletteSet, miPaletteClear;
   private ButtonPopupMenu bpmPalette;
   private JCheckBox cbLockPalette;
   private JButton bClose;
-  private int currentPaletteType, currentRed, currentGreen, currentBlue, rleIndex;
+  private int currentPaletteType, currentRed, currentGreen, currentBlue, currentAlpha, rleIndex;
   private boolean lockedPalette, hasExternalPalette, paletteModified;
 
   public BamPaletteDialog(ConvertToBam parent)
@@ -115,7 +117,7 @@ class BamPaletteDialog extends JDialog
     Arrays.fill(palettes[TYPE_EXTERNAL], 0);
 
     cgPalette.setSelectedIndex(-1);
-    currentRed = currentGreen = currentBlue = 0;
+    currentRed = currentGreen = currentBlue = currentAlpha = 0;
     rleIndex = 0;
     currentPaletteType = TYPE_GENERATED;
     hasExternalPalette = false;
@@ -217,7 +219,7 @@ class BamPaletteDialog extends JDialog
           if (palette != null) {
             // loading palette data
             for (int i = 0; i < palette.length; i++) {
-              palettes[type][i] = palette[i] & 0x00ffffff;
+              palettes[type][i] = palette[i];
             }
             for (int i = palette.length; i < palettes[type].length; i++) {
               palettes[type][i] = 0;
@@ -259,6 +261,10 @@ class BamPaletteDialog extends JDialog
       int[] palette = null;
       if ("BM".equals(new String(signature, 0, 2))) {
         palette = ColorConvert.loadPaletteBMP(paletteFile);
+      } else if (Arrays.equals(Arrays.copyOfRange(signature, 0, 4),
+                               new byte[]{(byte)0x89, 0x50, 0x4e, 0x47})) {
+        // PNG supports palette with alpha channel
+        palette = ColorConvert.loadPalettePNG(paletteFile);
       } else if ("RIFF".equals(new String(signature, 0, 4))) {
         palette = ColorConvert.loadPalettePAL(paletteFile);
       } else {
@@ -275,7 +281,7 @@ class BamPaletteDialog extends JDialog
       if (palette != null && palette.length > 0) {
         System.arraycopy(palette, 0, palettes[type], 0, palette.length);
         for (int i = palette.length; i < palettes[type].length; i++) {
-          palettes[type][i] = 0;
+          palettes[type][i] = 0xff000000;
         }
       } else {
         throw new Exception("No palette found in file " + paletteFile.getFileName());
@@ -292,7 +298,7 @@ class BamPaletteDialog extends JDialog
   {
     setPaletteType(TYPE_GENERATED);
     if (hasExternalPalette()) {
-      Arrays.fill(palettes[TYPE_EXTERNAL], 0);
+      Arrays.fill(palettes[TYPE_EXTERNAL], 0xff000000);
       hasExternalPalette = false;
     }
   }
@@ -356,7 +362,7 @@ class BamPaletteDialog extends JDialog
             idx++;
           }
           for (; idx < 256; idx++) {
-            palettes[TYPE_GENERATED][idx] = 0;
+            palettes[TYPE_GENERATED][idx] = 0xff000000;
           }
         }
       } else {
@@ -368,17 +374,25 @@ class BamPaletteDialog extends JDialog
           pixels[idx] = iter.next();
           idx++;
         }
-        ColorConvert.medianCut(pixels, 256, palettes[TYPE_GENERATED], true);
+        ColorConvert.medianCut(pixels, 256, palettes[TYPE_GENERATED], false);
       }
 
       // moving special "green" to the first index
-      for (int i = 0; i < palettes[TYPE_GENERATED].length; i++) {
-        if ((palettes[TYPE_GENERATED][i] & 0x00ffffff) == 0x0000ff00) {
-          int v = palettes[TYPE_GENERATED][0];
-          palettes[TYPE_GENERATED][0] = palettes[TYPE_GENERATED][i];
-          palettes[TYPE_GENERATED][i] = v;
-          break;
+      if ((palettes[TYPE_GENERATED][0] & 0x00ffffff) != 0x0000ff00) {
+        for (int i = 1; i < palettes[TYPE_GENERATED].length; i++) {
+          if ((palettes[TYPE_GENERATED][i] & 0x00ffffff) == 0x0000ff00) {
+            int v = palettes[TYPE_GENERATED][0];
+            palettes[TYPE_GENERATED][0] = palettes[TYPE_GENERATED][i];
+            palettes[TYPE_GENERATED][i] = v;
+            break;
+          }
         }
+      }
+
+      if (colorMap.size() > 256) {
+        boolean ignoreAlpha = !(Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_BAM_V1_ALPHA);
+        int startIdx = (palettes[TYPE_GENERATED][0] & 0xffffff) == 0x00ff00 ? 1 : 0;
+        ColorConvert.sortPalette(palettes[TYPE_GENERATED], startIdx, BamOptionsDialog.getSortPalette(), ignoreAlpha);
       }
 
       paletteModified = false;
@@ -462,6 +476,10 @@ class BamPaletteDialog extends JDialog
       currentBlue = ConvertToBam.numberValidator(tfColorBlue.getText(), 0, 255, currentBlue);
       tfColorBlue.setText(Integer.toString(currentBlue));
       updateCurrentColor();
+    } else if (event.getSource() == tfColorAlpha) {
+      currentAlpha = ConvertToBam.numberValidator(tfColorAlpha.getText(), 0, 255, currentAlpha);
+      tfColorAlpha.setText(Integer.toString(currentAlpha));
+      updateCurrentColor();
     } else if (event.getSource() == tfCompressedColor) {
       rleIndex = ConvertToBam.numberValidator(tfCompressedColor.getText(), 0, 255, rleIndex);
       tfCompressedColor.setText(Integer.toString(rleIndex));
@@ -488,7 +506,7 @@ class BamPaletteDialog extends JDialog
     palettes[TYPE_GENERATED] = new int[256];
     palettes[TYPE_EXTERNAL] = new int[256];
     currentPaletteType = TYPE_GENERATED;
-    currentRed = currentGreen = currentBlue = 0;
+    currentRed = currentGreen = currentBlue = currentAlpha = 0;
     rleIndex = 0;
     lockedPalette = false;
     hasExternalPalette = false;
@@ -500,6 +518,7 @@ class BamPaletteDialog extends JDialog
     JPanel pPalette = new JPanel(new GridBagLayout());
     pPalette.setBorder(BorderFactory.createTitledBorder("Palette "));
     cgPalette = new ColorGrid(256);
+    cgPalette.setColorEntrySize(new Dimension(18, 18));
     cgPalette.setSelectionFrame(ColorGrid.Frame.DOUBLE_LINE);
     cgPalette.setDragDropEnabled(true);
     cgPalette.addActionListener(this);
@@ -514,12 +533,12 @@ class BamPaletteDialog extends JDialog
     pInfo.setBorder(BorderFactory.createTitledBorder("Information "));
     lInfoType = new JLabel(PaletteTypeInfo[currentPaletteType]);
     JLabel lInfoIndexTitle = new JLabel("Index:");
-    JLabel lInfoRGBTitle = new JLabel("RGB:");
+    JLabel lInfoRGBTitle = new JLabel("RGBA:");
     JLabel lInfoHexRGBTitle = new JLabel("Hex:");
     lInfoIndex = new JLabel("255");
     lInfoIndex.setMinimumSize(lInfoIndex.getPreferredSize());
-    lInfoRGB = new JLabel(String.format(FmtInfoRGB, 255, 255, 255));
-    lInfoHexRGB = new JLabel(String.format(FmtInfoHexRGB, 255, 255, 255));
+    lInfoRGB = new JLabel(String.format(FmtInfoRGB, 255, 255, 255, 255));
+    lInfoHexRGB = new JLabel(String.format(FmtInfoHexRGB, 255, 255, 255, 255));
     lInfoHexRGB.setMinimumSize(lInfoHexRGB.getPreferredSize());
     c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
@@ -550,6 +569,7 @@ class BamPaletteDialog extends JDialog
     JLabel lColorRedTitle = new JLabel("Red:");
     JLabel lColorGreenTitle = new JLabel("Green:");
     JLabel lColorBlueTitle = new JLabel("Blue:");
+    JLabel lColorAlphaTitle = new JLabel("Alpha:");
     lColorIndex = new JLabel("255");
     tfColorRed = new JTextField(4);
     tfColorRed.addFocusListener(this);
@@ -557,6 +577,8 @@ class BamPaletteDialog extends JDialog
     tfColorGreen.addFocusListener(this);
     tfColorBlue = new JTextField(4);
     tfColorBlue.addFocusListener(this);
+    tfColorAlpha = new JTextField(4);
+    tfColorAlpha.addFocusListener(this);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pColor.add(lColorIndexTitle, c);
@@ -576,11 +598,17 @@ class BamPaletteDialog extends JDialog
                           GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
     pColor.add(tfColorGreen, c);
     c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
     pColor.add(lColorBlueTitle, c);
     c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
+                          GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
     pColor.add(tfColorBlue, c);
+    c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+    pColor.add(lColorAlphaTitle, c);
+    c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
+    pColor.add(tfColorAlpha, c);
     pColor.setMinimumSize(pColor.getPreferredSize());
 
     // creating Options panel
@@ -674,7 +702,7 @@ class BamPaletteDialog extends JDialog
       case TYPE_EXTERNAL:
       {
         for (int i = 0; i < palettes[paletteType].length; i++) {
-          cgPalette.setColor(i, new Color(palettes[paletteType][i]));
+          cgPalette.setColor(i, new Color(palettes[paletteType][i], true));
         }
         updateColorBox(cgPalette.getSelectedIndex(), cgPalette.getSelectedColor());
         break;
@@ -689,8 +717,8 @@ class BamPaletteDialog extends JDialog
       Color c = cgPalette.getColor(index);
       lInfoType.setText(PaletteTypeInfo[currentPaletteType]);
       lInfoIndex.setText(Integer.toString(index));
-      lInfoRGB.setText(String.format(FmtInfoRGB, c.getRed(), c.getGreen(), c.getBlue()));
-      lInfoHexRGB.setText(String.format(FmtInfoHexRGB, c.getRed(), c.getGreen(), c.getBlue()));
+      lInfoRGB.setText(String.format(FmtInfoRGB, c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()));
+      lInfoHexRGB.setText(String.format(FmtInfoHexRGB, c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()));
     } else {
       lInfoType.setText(PaletteTypeInfo[currentPaletteType]);
       lInfoIndex.setText("");
@@ -703,7 +731,7 @@ class BamPaletteDialog extends JDialog
   private void updateCurrentColor()
   {
     if (cgPalette.getSelectedIndex() >= 0) {
-      Color c = new Color(currentRed, currentGreen, currentBlue);
+      Color c = new Color(currentRed, currentGreen, currentBlue, currentAlpha);
       cgPalette.setColor(cgPalette.getSelectedIndex(), c);
       palettes[currentPaletteType][cgPalette.getSelectedIndex()] = c.getRGB();
     }
@@ -730,14 +758,17 @@ class BamPaletteDialog extends JDialog
       currentRed = color.getRed();
       currentGreen = color.getGreen();
       currentBlue = color.getBlue();
+      currentAlpha = color.getAlpha();
     } else {
-      currentRed = currentGreen = currentBlue = 0;
+      currentRed = currentGreen = currentBlue = currentAlpha = 0;
     }
     tfColorRed.setText(Integer.toString(currentRed));
     tfColorGreen.setText(Integer.toString(currentGreen));
     tfColorBlue.setText(Integer.toString(currentBlue));
+    tfColorAlpha.setText(Integer.toString(currentAlpha));
     tfColorRed.setEnabled(isValid);
     tfColorGreen.setEnabled(isValid);
     tfColorBlue.setEnabled(isValid);
+    tfColorAlpha.setEnabled(isValid);
   }
 }

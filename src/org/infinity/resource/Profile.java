@@ -240,6 +240,8 @@ public final class Profile implements FileWatcher.FileWatchListener
     IS_SUPPORTED_BAM_V1,
     /** Property: ({@code Boolean}) Are {@code BAM V1} resources supported? */
     IS_SUPPORTED_BAMC_V1,
+    /** Property: ({@code Boolean}) Are {@code BAM V1} resources with alpha palette supported? */
+    IS_SUPPORTED_BAM_V1_ALPHA,
     /** Property: ({@code Boolean}) Are {@code BAM V2} resources supported? */
     IS_SUPPORTED_BAM_V2,
     /** Property: ({@code Boolean}) Are {@code BCS} resources supported? */
@@ -1741,6 +1743,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     addEntry(Key.IS_SUPPORTED_BAM_V1, Type.BOOLEAN, Boolean.valueOf(true));
     addEntry(Key.IS_SUPPORTED_BAMC_V1, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD ||
                                                       engine == Engine.IWD2 || engine == Engine.EE));
+    addEntry(Key.IS_SUPPORTED_BAM_V1_ALPHA, Type.BOOLEAN, isEnhancedEdition());
     addEntry(Key.IS_SUPPORTED_BAM_V2, Type.BOOLEAN, isEnhancedEdition());
 
     addEntry(Key.IS_SUPPORTED_BCS, Type.BOOLEAN, Boolean.valueOf(true));
