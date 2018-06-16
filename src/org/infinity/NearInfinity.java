@@ -100,11 +100,6 @@ import org.infinity.util.io.FileManager;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
 {
-  static {
-    // System property that is supposed to enable OpenGL-based hardware acceleration
-    System.setProperty("sun.java2d.opengl","true");
-  }
-
   private static final int[] JAVA_VERSION = {1, 8};   // the minimum java version supported
 
   private static final InfinityTextArea consoletext = new InfinityTextArea(true);

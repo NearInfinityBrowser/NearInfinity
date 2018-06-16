@@ -468,7 +468,10 @@ public class BamV1Decoder extends BamDecoder
       if (palette != null) {
         externalPalette = new int[palette.length];
         for (int i = 0; i < palette.length; i++) {
-          externalPalette[i] = 0xff000000 | palette[i];
+          externalPalette[i] = palette[i];
+          if ((externalPalette[i] & 0xff000000) == 0) {
+            externalPalette[i] |= 0xff000000;
+          }
         }
       }
       preparePalette(externalPalette);
@@ -662,7 +665,7 @@ public class BamV1Decoder extends BamDecoder
         currentPalette = new int[256];
       }
 
-      // some optimizations: don't prepare if the palette hasn't change
+      // some optimizations: don't prepare if the palette hasn't changed
       boolean isNormalMode = (getTransparencyMode() == TransparencyMode.NORMAL);
       int idx = 0;
       int transIndex = -1;
@@ -671,7 +674,10 @@ public class BamV1Decoder extends BamDecoder
       if (externalPalette != null) {
         // filling palette entries from external palette, as much as possible
         for (; idx < externalPalette.length && idx < 256; idx++) {
-          currentPalette[idx] = alphaMask | externalPalette[idx];
+          currentPalette[idx] = externalPalette[idx];
+          if ((currentPalette[idx] & 0xff000000) == 0) {
+            currentPalette[idx] |= alphaMask;
+          }
           alphaUsed |= (currentPalette[idx] & 0xff000000) != 0;
           if (isNormalMode && transIndex < 0 && (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
             transIndex = idx;
@@ -681,7 +687,10 @@ public class BamV1Decoder extends BamDecoder
       // filling remaining entries with BAM palette
       if (getDecoder().bamPalette != null) {
         for (; idx < getDecoder().bamPalette.length; idx++) {
-          currentPalette[idx] = alphaMask | getDecoder().bamPalette[idx];
+          currentPalette[idx] = getDecoder().bamPalette[idx];
+          if ((currentPalette[idx] & 0xff000000) == 0) {
+            currentPalette[idx] |= alphaMask;
+          }
           alphaUsed |= (currentPalette[idx] & 0xff000000) != 0;
           if (isNormalMode && transIndex < 0 && (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
             transIndex = idx;

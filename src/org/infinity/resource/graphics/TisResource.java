@@ -615,7 +615,6 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
 
           // writing tile data
           int[] palette = new int[255];
-          int[] hclPalette = new int[255];
           byte[] tilePalette = new byte[1024];
           byte[] tileData = new byte[64*64];
           BufferedImage image =
@@ -646,8 +645,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
             }
 
             int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-            if (ColorConvert.medianCut(pixels, 255, palette, false)) {
-              ColorConvert.toHclPalette(palette, hclPalette);
+            if (ColorConvert.medianCut(pixels, 255, palette, true)) {
               // filling palette
               // first palette entry denotes transparency
               tilePalette[0] = tilePalette[2] = tilePalette[3] = 0; tilePalette[1] = (byte)255;
@@ -667,7 +665,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
                   if (palIndex != null) {
                     tileData[i] = (byte)(palIndex + 1);
                   } else {
-                    byte color = (byte)ColorConvert.nearestColor(pixels[i], hclPalette);
+                    byte color = (byte)ColorConvert.nearestColorRGB(pixels[i], palette, true);
                     tileData[i] = (byte)(color + 1);
                     colorCache.put(pixels[i], color);
                   }
@@ -681,7 +679,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
             bos.write(tileData);
           }
           image.flush(); image = null;
-          tileData = null; tilePalette = null; hclPalette = null; palette = null;
+          tileData = null; tilePalette = null; palette = null;
         } catch (Exception e) {
           retVal = Status.ERROR;
           e.printStackTrace();

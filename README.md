@@ -81,7 +81,7 @@ however.
 
 When in doubt, refer to the official
 [Java conventions](http://www.oracle.com/technetwork/java/javase/documentation/codeconvtoc-136057.html) (outdated)
-or [Google's Java Style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html).
+or [Google's Java Style](https://google.github.io/styleguide/javaguide.html).
 
 ### Workflow
 

@@ -472,7 +472,6 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
 
       // applying color reduction to each tile
       int[] palette = new int[255];
-      int[] hclPalette = new int[255];
       byte[] tilePalette = new byte[1024];
       byte[] tileData = new byte[64*64];
       int curPalOfs = palOfs, curTableOfs = tableOfs, curDataOfs = dataOfs;
@@ -490,8 +489,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
         }
 
         int[] pixels = tileList.get(tileIdx);
-        if (ColorConvert.medianCut(pixels, 255, palette, false)) {
-          ColorConvert.toHclPalette(palette, hclPalette);
+        if (ColorConvert.medianCut(pixels, 255, palette, true)) {
           // filling palette
           // first palette entry denotes transparency
           tilePalette[0] = tilePalette[2] = tilePalette[3] = 0; tilePalette[1] = (byte)255;
@@ -511,7 +509,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
               if (palIndex != null) {
                 tileData[i] = (byte)(palIndex + 1);
               } else {
-                byte color = (byte)ColorConvert.nearestColor(pixels[i], hclPalette);
+                byte color = (byte)ColorConvert.nearestColorRGB(pixels[i], palette, true);
                 tileData[i] = (byte)(color + 1);
                 colorCache.put(pixels[i], color);
               }
@@ -530,7 +528,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
         curDataOfs += pixels.length;
       }
       tileList.clear(); tileList = null;
-      tileData = null; tilePalette = null; hclPalette = null; palette = null;
+      tileData = null; tilePalette = null; palette = null;
 
       // optionally compressing to MOSC V1
       if (compressed) {

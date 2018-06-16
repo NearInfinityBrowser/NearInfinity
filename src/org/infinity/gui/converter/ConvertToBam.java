@@ -103,6 +103,7 @@ import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.BamV1Decoder;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.DxtEncoder;
+import org.infinity.resource.graphics.GifSequenceReader;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
@@ -141,6 +142,12 @@ public class ConvertToBam extends ChildFrame
   static final int VERSION_BAMV2 = 1;
   static final String[] BamVersionItems = {"Legacy (v1)", "PVRZ-based (v2)"};
 
+  // Alpha component support for BAM v1
+  static final int ALPHA_AUTO   = 0;
+  static final int ALPHA_ALWAYS = 1;
+  static final int ALPHA_NEVER  = 2;
+  static final String[] UseAlphaItems = {"In EE only", "Always", "Never"};
+
   // Available playback modes for preview
   static final int MODE_CURRENT_CYCLE_ONCE    = 0;
   static final int MODE_CURRENT_CYCLE_LOOPED  = 1;
@@ -167,7 +174,7 @@ public class ConvertToBam extends ChildFrame
   private final PseudoBamDecoder bamDecoder = new PseudoBamDecoder();
   // BamDecoder instance containing the final result of the current BAM structure
   private final PseudoBamDecoder bamDecoderFinal = new PseudoBamDecoder();
-  // Frame image lists (use FRAMELIST_XXX constants for access)
+  // Frame image lists (use BAM_ORIGINAL/BAM_FINAL constants for access)
   private final List<List<PseudoBamFrameEntry>> listFrameEntries = new ArrayList<List<PseudoBamFrameEntry>>(2);
   // Frame entry used for preview in filter tab
   private final PseudoBamFrameEntry entryFilterPreview = new PseudoBamFrameEntry(null, 0, 0);
@@ -270,9 +277,11 @@ public class ConvertToBam extends ChildFrame
   public static FileNameExtensionFilter[] getPaletteFilters()
   {
     FileNameExtensionFilter[] filters = new FileNameExtensionFilter[] {
-        new FileNameExtensionFilter("Palette from files (*.bam, *.bmp, *.act, *.pal)", "bam", "bmp", "act", "pal"),
+        new FileNameExtensionFilter("Palette from files (*.bam, *.bmp, *.png, *.act, *.pal)",
+                                    "bam", "bmp", "png", "act", "pal"),
         new FileNameExtensionFilter("Palette from BAM files (*.bam)", "bam"),
         new FileNameExtensionFilter("Palette from BMP files (*.bmp)", "bmp"),
+        new FileNameExtensionFilter("Palette from PNG files (*.png)", "png"),
         new FileNameExtensionFilter("Adobe Color Table files (*.act)", "act"),
         new FileNameExtensionFilter("Microsoft Palette files (*.pal)", "pal"),
     };
@@ -450,9 +459,16 @@ public class ConvertToBam extends ChildFrame
   }
 
   /** Returns the threshold used to determine transparent colors. Range: [0, 255]. */
-  public int getTransparencyThreshold()
+  public static int getTransparencyThreshold()
   {
     return (255*BamOptionsDialog.getTransparencyThreshold()) / 100;
+  }
+
+  /** Returns whether alpha channel support is enabled. */
+  public static boolean getUseAlpha()
+  {
+    return (BamOptionsDialog.getUseAlpha() == ALPHA_ALWAYS) ||
+           (Profile.isEnhancedEdition() && BamOptionsDialog.getUseAlpha() == ALPHA_AUTO);
   }
 
   /** Returns the start index for PVRZ files used for BAM v2 output. */
@@ -1965,7 +1981,7 @@ public class ConvertToBam extends ChildFrame
       tfFrameHeight.setEnabled(true);
       tfFrameCenterX.setEnabled(true);
       tfFrameCenterY.setEnabled(true);
-      cbCompressFrame.setEnabled(true);
+      cbCompressFrame.setEnabled(isBamV1Selected());
 
       // evaluating data
       PseudoBamFrameEntry fe = getBamDecoder(BAM_ORIGINAL).getFrameInfo(indices[0]);
@@ -2435,7 +2451,7 @@ public class ConvertToBam extends ChildFrame
       if (decoder instanceof BamV1Decoder) {
         int[] palette = ((BamV1Decoder.BamV1Control)control).getPalette();
         int transColor = ((BamV1Decoder.BamV1Control)control).getTransparencyIndex();
-        cm = new IndexColorModel(8, 256, palette, 0, false, transColor, DataBuffer.TYPE_BYTE);
+        cm = new IndexColorModel(8, 256, palette, 0, getUseAlpha(), transColor, DataBuffer.TYPE_BYTE);
       }
 
       for (int j = 0; j < decoder.frameCount(); j++) {
@@ -2463,7 +2479,7 @@ public class ConvertToBam extends ChildFrame
       if (cm == null && decoder instanceof BamV1Decoder) {
         int[] palette = ((BamV1Decoder.BamV1Control)control).getPalette();
         int transColor = ((BamV1Decoder.BamV1Control)control).getTransparencyIndex();
-        cm = new IndexColorModel(8, 256, palette, 0, false, transColor, DataBuffer.TYPE_BYTE);
+        cm = new IndexColorModel(8, 256, palette, 0, getUseAlpha(), transColor, DataBuffer.TYPE_BYTE);
       }
 
       // adding frame
@@ -2534,12 +2550,29 @@ public class ConvertToBam extends ChildFrame
     if (listIndex >= 0 && entry != null) {
       try {
         InputStream is = entry.getResourceDataAsStream();
-        ImageReader reader = (ImageReader)ImageIO.getImageReadersBySuffix(entry.getExtension()).next();
-        reader.setInput(ImageIO.createImageInputStream(is), false);
-        int numFrames = reader.getNumImages(true);
-        retVal = (numFrames > 0);
-        for (int frameIdx = 0, curFrameIdx = 0; frameIdx < numFrames; frameIdx++) {
-          BufferedImage image = reader.read(frameIdx);
+        BufferedImage[] images;
+        if (entry.getExtension().equalsIgnoreCase("gif")) {
+          // Potential GIF animation
+          GifSequenceReader reader = new GifSequenceReader(ImageIO.createImageInputStream(is));
+          reader.decodeAll();
+          images = new BufferedImage[reader.getFrameCount()];
+          for (int i = 0; i < images.length; i++) {
+            images[i] = reader.getFrame(i).getRenderedImage();
+          }
+        } else {
+          // Everything else
+          ImageReader reader = (ImageReader)ImageIO.getImageReadersBySuffix(entry.getExtension()).next();
+          reader.setInput(ImageIO.createImageInputStream(is), false);
+          int numFrames = reader.getNumImages(true);
+          images = new BufferedImage[numFrames];
+          for (int i = 0; i < images.length; i++) {
+            images[i] = reader.read(i);
+          }
+        }
+        retVal = (images.length > 0);
+
+        for (int frameIdx = 0, curFrameIdx = 0; frameIdx < images.length; frameIdx++) {
+          BufferedImage image = images[frameIdx];
           if (image == null) {
             retVal = false;
             break;
@@ -2551,34 +2584,46 @@ public class ConvertToBam extends ChildFrame
 
           // transparency detection for paletted images
           if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-            if (!((IndexColorModel)image.getColorModel()).hasAlpha()) {
-              int[] cmap = new int[256];
-              int transIndex = -1;
-              IndexColorModel srcCm = (IndexColorModel)image.getColorModel();
-              int numColors = 1 << srcCm.getPixelSize();
-              for (int i = 0; i < numColors; i++) {
-                cmap[i] = (srcCm.getRed(i) << 16) | (srcCm.getGreen(i) << 8) | srcCm.getBlue(i);
-                // marking first occurence of "Green" as transparent
-                if (transIndex < 0 && cmap[i] == 0x0000ff00) {
+            boolean hasAlpha = ((IndexColorModel)image.getColorModel()).hasAlpha();
+            int[] cmap = new int[256];
+            int transIndex = -1;
+            IndexColorModel srcCm = (IndexColorModel)image.getColorModel();
+            int numColors = Math.min(1 << srcCm.getPixelSize(), cmap.length);
+            int i = 0;
+            for (; i < numColors; i++) {
+              int alpha = hasAlpha ? srcCm.getAlpha(i) : 0xff;
+              cmap[i] = (alpha << 24) |
+                        (srcCm.getRed(i) << 16) |
+                        (srcCm.getGreen(i) << 8) |
+                        srcCm.getBlue(i);
+              // marking first occurence of "Green" as transparent
+              if (transIndex < 0) {
+                if ((cmap[i] & 0xff000000) == 0) {
+                  transIndex = i;
+                  cmap[i] = 0xff00ff00;
+                } else if ((cmap[i] & 0x00ffffff) == 0x0000ff00) {
                   transIndex = i;
                 }
               }
-
-              // fallback to index 0 as transparent color
-              if (transIndex < 0) {
-                transIndex = 0;
-              }
-
-              // Adding transparency to image
-              IndexColorModel cm = new IndexColorModel(8, 256, cmap, 0, false, transIndex, DataBuffer.TYPE_BYTE);
-              BufferedImage dstImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, cm);
-              byte[] srcBuffer = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
-              byte[] dstBuffer = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
-              System.arraycopy(srcBuffer, 0, dstBuffer, 0, srcBuffer.length);
-              srcBuffer = null; dstBuffer = null;
-              cmap = null;
-              image = dstImage;
             }
+            for (; i < cmap.length; i++) {
+              cmap[i] = 0xff000000;
+            }
+
+            // fallback to index 0 as transparent color
+            if (transIndex < 0) {
+              transIndex = 0;
+            }
+
+            // Adding transparency to image
+            IndexColorModel cm = new IndexColorModel(8, 256, cmap, 0, getUseAlpha(), transIndex, DataBuffer.TYPE_BYTE);
+            BufferedImage dstImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, cm);
+            byte[] srcBuffer = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+            byte[] dstBuffer = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+            System.arraycopy(srcBuffer, 0, dstBuffer, 0, srcBuffer.length);
+            srcBuffer = null; dstBuffer = null;
+            cmap = null;
+            image = dstImage;
           }
 
           modelFrames.insert(listIndex + curFrameIdx, image, new Point());
@@ -2590,7 +2635,7 @@ public class ConvertToBam extends ChildFrame
             fe2.setOption(BAM_FRAME_OPTION_PATH, BAM_FRAME_PATH_BIFF + entry.getResourceName());
           }
           fe2.setOption(BAM_FRAME_OPTION_SOURCE_INDEX, Integer.valueOf(frameIdx));
-          if (numFrames > 1) {
+          if (images.length > 1) {
             fe2.setOption(PseudoBamDecoder.OPTION_STRING_LABEL, entry.getResourceName() + ":" + frameIdx);
           } else {
             fe2.setOption(PseudoBamDecoder.OPTION_STRING_LABEL, entry.getResourceName());
@@ -4032,7 +4077,7 @@ public class ConvertToBam extends ChildFrame
                                   Boolean.valueOf(isBamV1Compressed()));
         // preparing palette
         int[] palette = paletteDialog.getPalette(paletteDialog.getPaletteType());
-        int threshold = getTransparencyThreshold();
+        int threshold = getUseAlpha() ? -1 : getTransparencyThreshold();
         int transIndex = -1;
         for (int i = 0; i < palette.length; i++) {
           int c = palette[i] & 0x00ffffff;
@@ -4044,8 +4089,6 @@ public class ConvertToBam extends ChildFrame
         if (transIndex < 0) {
           transIndex = 0;
         }
-        int[] hclPalette = new int[palette.length];
-        ColorConvert.toHclPalette(palette, hclPalette);
         HashMap<Integer, Byte> colorCache = new HashMap<Integer, Byte>(4096);
         for (int i = 0; i < palette.length; i++) {
           if (i != transIndex) {
@@ -4054,14 +4097,13 @@ public class ConvertToBam extends ChildFrame
         }
 
         // processing frames
-        IndexColorModel cm = new IndexColorModel(8, 256, palette, 0, false, transIndex, DataBuffer.TYPE_BYTE);
+        IndexColorModel cm = new IndexColorModel(8, 256, palette, 0, getUseAlpha(), transIndex, DataBuffer.TYPE_BYTE);
         for (int i = 0; i < srcListFrames.size(); i++) {
           PseudoBamFrameEntry srcEntry = srcListFrames.get(i);
           BufferedImage srcImage = ColorConvert.toBufferedImage(srcEntry.getFrame(), true, true);
           int[] srcBuf = ((DataBufferInt)srcImage.getRaster().getDataBuffer()).getData();
-          BufferedImage dstImage = new BufferedImage(srcEntry.getWidth(),
-              srcEntry.getHeight(),
-                                                  BufferedImage.TYPE_BYTE_INDEXED, cm);
+          BufferedImage dstImage = new BufferedImage(srcEntry.getWidth(), srcEntry.getHeight(),
+                                                     BufferedImage.TYPE_BYTE_INDEXED, cm);
           byte[] dstBuf = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
 
           for (int ofs = 0; ofs < srcBuf.length; ofs++) {
@@ -4069,15 +4111,13 @@ public class ConvertToBam extends ChildFrame
             if (PseudoBamDecoder.isTransparentColor(c, threshold)) {
               dstBuf[ofs] = (byte)transIndex;
             } else {
-              c &= 0x00ffffff;
               Byte colIdx = colorCache.get(Integer.valueOf(c));
               if (colIdx != null) {
                 int ci = colIdx.intValue() & 0xff;
                 if (ci >= transIndex) ci++;
                 dstBuf[ofs] = colIdx.byteValue();//(byte)ci;
               } else {
-                byte color = (byte)ColorConvert.nearestColor(srcBuf[ofs], hclPalette);
-                //int ci = (color < transIndex) ? color : (color + 1);
+                byte color = (byte)ColorConvert.nearestColorRGB(srcBuf[ofs], palette, !getUseAlpha());
                 dstBuf[ofs] = color;//(byte)ci;
                 colorCache.put(Integer.valueOf(c), Byte.valueOf(color));
               }
@@ -4131,7 +4171,7 @@ public class ConvertToBam extends ChildFrame
         // preparing palette
         final int Green = 0x0000ff00;
         int[] palette = paletteDialog.getPalette(paletteDialog.getPaletteType());
-        int threshold = getTransparencyThreshold();
+        int threshold = getUseAlpha() ? -1 : getTransparencyThreshold();
         int transIndex = -1;
         for (int i = 0; i < palette.length; i++) {
           int c = palette[i] & 0x00ffffff;
@@ -4143,15 +4183,13 @@ public class ConvertToBam extends ChildFrame
         if (transIndex < 0) {
           transIndex = 0;
         }
-        int[] hclPalette = new int[palette.length];
-        ColorConvert.toHclPalette(palette, hclPalette);
         HashMap<Integer, Byte> colorCache = new HashMap<Integer, Byte>(4096);
         for (int i = 0; i < palette.length; i++) {
           if (i != transIndex) {
             colorCache.put(Integer.valueOf(palette[i]), Byte.valueOf((byte)i));
           }
         }
-        IndexColorModel cm = new IndexColorModel(8, 256, palette, 0, false, transIndex, DataBuffer.TYPE_BYTE);
+        IndexColorModel cm = new IndexColorModel(8, 256, palette, 0, getUseAlpha(), transIndex, DataBuffer.TYPE_BYTE);
 
         // converting frame
         srcImage = ColorConvert.toBufferedImage(srcImage, true, true);
@@ -4165,15 +4203,13 @@ public class ConvertToBam extends ChildFrame
           if (PseudoBamDecoder.isTransparentColor(c, threshold)) {
             dstBuf[ofs] = (byte)transIndex;
           } else {
-            c &= 0x00ffffff;
             Byte colIdx = colorCache.get(Integer.valueOf(c));
             if (colIdx != null) {
               int ci = colIdx.intValue() & 0xff;
               if (ci >= transIndex) ci++;
-              dstBuf[ofs] = colIdx.byteValue();//(byte)ci;
+              dstBuf[ofs] = colIdx.byteValue();
             } else {
-              byte color = (byte)ColorConvert.nearestColor(srcBuf[ofs], hclPalette);
-              //int ci = (color < transIndex) ? color : (color + 1);
+              byte color = (byte)ColorConvert.nearestColorRGB(srcBuf[ofs], palette, !getUseAlpha());
               dstBuf[ofs] = color;//(byte)ci;
               colorCache.put(Integer.valueOf(c), Byte.valueOf(color));
             }
@@ -5283,7 +5319,7 @@ public class ConvertToBam extends ChildFrame
           if (this.decoder instanceof BamV1Decoder) {
             int[] palette = ((BamV1Decoder.BamV1Control)control).getPalette();
             int transColor = ((BamV1Decoder.BamV1Control)control).getTransparencyIndex();
-            this.cm = new IndexColorModel(8, 256, palette, 0, false, transColor, DataBuffer.TYPE_BYTE);
+            this.cm = new IndexColorModel(8, 256, palette, 0, getUseAlpha(), transColor, DataBuffer.TYPE_BYTE);
           } else {
             this.cm = null;
           }

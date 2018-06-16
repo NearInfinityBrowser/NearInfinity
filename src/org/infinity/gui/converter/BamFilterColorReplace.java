@@ -166,9 +166,6 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
         int height = srcImage.getHeight();
         IndexColorModel cm = (IndexColorModel)srcImage.getColorModel();
         int[] newPalette = paletteDialog.getPalette();
-        for (int i = 0; i < newPalette.length; i++) {
-          newPalette[i] |= 0xff000000;
-        }
 
         IndexColorModel cm2 = new IndexColorModel(8, 256, newPalette, 0, cm.hasAlpha(),
                                                   cm.getTransparentPixel(), DataBuffer.TYPE_BYTE);
@@ -210,16 +207,16 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
   {
     private static final String TitleClean = "Replacement palette";
     private static final String TitleModified = "Replacement palette [enabled]";
-    private static final String FmtInfoRGB    = "%d  %d  %d";
-    private static final String FmtInfoHexRGB = "#%02X%02X%02X";
+    private static final String FmtInfoRGB    = "%d  %d  %d  %d";
+    private static final String FmtInfoHexRGB = "#%02X%02X%02X%02X";
 
     private final ConvertToBam parent;
 
     private ColorGrid cgPalette;
     private JLabel lInfoIndex, lInfoRGB, lInfoHexRGB, lColorIndex;
-    private JTextField tfColorRed, tfColorGreen, tfColorBlue;
+    private JTextField tfColorRed, tfColorGreen, tfColorBlue, tfColorAlpha;
     private JButton bClose, bLoadPalette, bResetPalette;
-    private int currentRed, currentGreen, currentBlue;
+    private int currentRed, currentGreen, currentBlue, currentAlpha;
     private boolean isModified;
 
     public PaletteDialog(ConvertToBam parent)
@@ -253,6 +250,8 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
           registerColorValue(tfColorGreen);
         } else if (tfColorBlue.isFocusOwner()) {
           registerColorValue(tfColorBlue);
+        } else if (tfColorAlpha.isFocusOwner()) {
+          registerColorValue(tfColorAlpha);
         }
         setVisible(false);
       }
@@ -273,7 +272,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       int[] retVal = new int[256];
       int max = Math.min(retVal.length, cgPalette.getColorCount());
       for (int i = 0; i < max; i++) {
-        retVal[i] = cgPalette.getColor(i).getRGB() & 0xffffff;
+        retVal[i] = cgPalette.getColor(i).getRGB();
       }
       return retVal;
     }
@@ -328,7 +327,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       if (colors != null && colors.length > 0) {
         int max = Math.min(cgPalette.getColorCount(), colors.length);
         for (int i = 0; i < max; i++) {
-          cgPalette.setColor(i, new Color(colors[i], false));
+          cgPalette.setColor(i, new Color(colors[i], true));
         }
         for (int i = max; i < cgPalette.getColorCount(); i++) {
           cgPalette.setColor(i, Color.BLACK);
@@ -345,7 +344,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       if (colors != null) {
         int max = Math.min(cgPalette.getColorCount(), colors.length);
         for (int i = 0; i < max; i++) {
-          cgPalette.setColor(i, new Color(colors[i], false));
+          cgPalette.setColor(i, new Color(colors[i], true));
         }
         for (int i = max; i < cgPalette.getColorCount(); i++) {
           cgPalette.setColor(i, Color.BLACK);
@@ -423,7 +422,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
     private void init()
     {
       // first-time initializations
-      currentRed = currentGreen = currentBlue = 0;
+      currentRed = currentGreen = currentBlue = currentAlpha = 0;
       isModified = false;
 
       GridBagConstraints c = new GridBagConstraints();
@@ -447,8 +446,8 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       JLabel lInfoRGBTitle = new JLabel("RGB:");
       JLabel lInfoHexRGBTitle = new JLabel("Hex:");
       lInfoIndex = new JLabel("255", SwingConstants.LEFT);
-      lInfoRGB = new JLabel(String.format(FmtInfoRGB, 255, 255, 255));
-      lInfoHexRGB = new JLabel(String.format(FmtInfoHexRGB, 255, 255, 255));
+      lInfoRGB = new JLabel(String.format(FmtInfoRGB, 255, 255, 255, 255));
+      lInfoHexRGB = new JLabel(String.format(FmtInfoHexRGB, 0xAA, 0xAA, 0xAA, 0xAA));
       lInfoHexRGB.setMinimumSize(lInfoHexRGB.getPreferredSize());
       c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.NONE, new Insets(0, 4, 0, 4), 0, 0);
@@ -476,6 +475,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       JLabel lColorRedTitle = new JLabel("Red:");
       JLabel lColorGreenTitle = new JLabel("Green:");
       JLabel lColorBlueTitle = new JLabel("Blue:");
+      JLabel lColorAlphaTitle = new JLabel("Alpha:");
       lColorIndex = new JLabel("255");
       tfColorRed = new JTextField(4);
       tfColorRed.addFocusListener(this);
@@ -483,6 +483,8 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       tfColorGreen.addFocusListener(this);
       tfColorBlue = new JTextField(4);
       tfColorBlue.addFocusListener(this);
+      tfColorAlpha = new JTextField(4);
+      tfColorAlpha.addFocusListener(this);
       c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
       pColor.add(lColorIndexTitle, c);
@@ -502,11 +504,17 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
                             GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
       pColor.add(tfColorGreen, c);
       c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+                            GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
       pColor.add(lColorBlueTitle, c);
       c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                            GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
+                            GridBagConstraints.NONE, new Insets(4, 8, 0, 4), 0, 0);
       pColor.add(tfColorBlue, c);
+      c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+      pColor.add(lColorAlphaTitle, c);
+      c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.NONE, new Insets(4, 8, 4, 4), 0, 0);
+      pColor.add(tfColorAlpha, c);
       pColor.setMinimumSize(pColor.getPreferredSize());
 
       // creating "Options" panel
@@ -595,8 +603,8 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       if (index >= 0 && index < cgPalette.getColorCount()) {
         Color c = cgPalette.getColor(index);
         lInfoIndex.setText(Integer.toString(index));
-        lInfoRGB.setText(String.format(FmtInfoRGB, c.getRed(), c.getGreen(), c.getBlue()));
-        lInfoHexRGB.setText(String.format(FmtInfoHexRGB, c.getRed(), c.getGreen(), c.getBlue()));
+        lInfoRGB.setText(String.format(FmtInfoRGB, c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()));
+        lInfoHexRGB.setText(String.format(FmtInfoHexRGB, c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha()));
       } else {
         lInfoIndex.setText("");
         lInfoRGB.setText("");
@@ -617,22 +625,25 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
         currentRed = color.getRed();
         currentGreen = color.getGreen();
         currentBlue = color.getBlue();
+        currentAlpha = color.getAlpha();
       } else {
-        currentRed = currentGreen = currentBlue = 0;
+        currentRed = currentGreen = currentBlue = currentAlpha = 0;
       }
       tfColorRed.setText(Integer.toString(currentRed));
       tfColorGreen.setText(Integer.toString(currentGreen));
       tfColorBlue.setText(Integer.toString(currentBlue));
+      tfColorAlpha.setText(Integer.toString(currentAlpha));
       tfColorRed.setEnabled(isValid);
       tfColorGreen.setEnabled(isValid);
       tfColorBlue.setEnabled(isValid);
+      tfColorAlpha.setEnabled(isValid);
     }
 
     // Applies the color values specified in the color edit controls to the currently selected color
     private void updateCurrentColor()
     {
       if (cgPalette.getSelectedIndex() >= 0) {
-        Color c = new Color(currentRed, currentGreen, currentBlue);
+        Color c = new Color(currentRed, currentGreen, currentBlue, currentAlpha);
         if (!c.equals(cgPalette.getSelectedColor())) {
           cgPalette.setColor(cgPalette.getSelectedIndex(), c);
           setModified();
@@ -654,6 +665,10 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
       } else if (tf == tfColorBlue) {
         currentBlue = ConvertToBam.numberValidator(tfColorBlue.getText(), 0, 255, currentBlue);
         tfColorBlue.setText(Integer.toString(currentBlue));
+        updateCurrentColor();
+      } else if (tf == tfColorAlpha) {
+        currentAlpha = ConvertToBam.numberValidator(tfColorAlpha.getText(), 0, 255, currentAlpha);
+        tfColorAlpha.setText(Integer.toString(currentAlpha));
         updateCurrentColor();
       }
     }
