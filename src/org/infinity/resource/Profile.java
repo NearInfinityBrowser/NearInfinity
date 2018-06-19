@@ -1669,9 +1669,9 @@ public final class Profile implements FileWatcher.FileWatchListener
 
       // putting all root folders into a list ordered by priority (highest first)
       List<Path> gameRoots = new ArrayList<>();
-      gameRoots.add(gameRoot);
-      dlcRoots.forEach((path) -> gameRoots.add(path));
       gameRoots.add(homeRoot);
+      dlcRoots.forEach((path) -> gameRoots.add(path));
+      gameRoots.add(gameRoot);
 
       // registering override paths
       for (final Path root: gameRoots) {
