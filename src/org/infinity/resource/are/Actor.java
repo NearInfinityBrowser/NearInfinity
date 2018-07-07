@@ -63,6 +63,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
   public static final String ARE_ACTOR_OFFSET_CRE_STRUCTURE = "CRE structure offset";
   public static final String ARE_ACTOR_SIZE_CRE_STRUCTURE   = "CRE structure size";
   public static final String ARE_ACTOR_CRE_FILE             = "CRE file";
+  public static final String ARE_ACTOR_NAME_ALT             = "Alternate actor name";
 
   public static final String[] s_orientation = { "South", "SSW", "SW", "WSW", "West", "WNW", "NW", "NNW",
                                                  "North", "NNE", "NE", "ENE", "East", "ESE", "SE", "SSE" };
@@ -244,7 +245,12 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
       addField(new Unknown(buffer, offset + 152, 120));
     }
     else {
-      addField(new Unknown(buffer, offset + 144, 128));
+      if (Profile.isEnhancedEdition()) {
+        addField(new TextString(buffer, offset + 144, 32, ARE_ACTOR_NAME_ALT));
+        addField(new Unknown(buffer, offset + 176, 96));
+      } else {
+        addField(new Unknown(buffer, offset + 144, 128));
+      }
     }
 
     if (creOffset.getValue() > 0 && creSize.getValue() >= 0x2d4) {
