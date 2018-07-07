@@ -20,8 +20,12 @@ import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.AbstractAbility;
+import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Effect;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.StringTable;
+import org.infinity.util.Table2da;
+import org.infinity.util.Table2daCache;
 
 final class ViewerAbility extends JPanel
 {
@@ -71,6 +75,10 @@ final class ViewerAbility extends JPanel
     JPanel fieldPanel = new JPanel(gbl);
 
     gbc.insets = new Insets(3, 3, 3, 3);
+    String abilityName = getAbilityName(ability);
+    if (abilityName != null) {
+      ViewerUtil.addLabelFieldPair(fieldPanel, "Tooltip", abilityName, gbl, gbc, true);
+    }
     ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_TYPE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_TARGET), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_RANGE), gbl, gbc, true);
@@ -96,6 +104,56 @@ final class ViewerAbility extends JPanel
     ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_NUM_CHARGES), gbl, gbc, true);
 
     return fieldPanel;
+  }
+
+  // Returns the ability name (from tooltip.2da), or null if not available.
+  private static String getAbilityName(Ability ability)
+  {
+    String retVal = null;
+    Table2da table = Table2daCache.get("tooltip.2da");
+    if (table != null) {
+      // getting parent item resref
+      String resref = null;
+      if (ability.getParent() instanceof AbstractStruct) {
+        resref = ((AbstractStruct)ability.getParent()).getResourceEntry().getResourceName();
+      }
+      if (resref.lastIndexOf('.') > 0) {
+        resref = resref.substring(0, resref.lastIndexOf('.'));
+      }
+
+      // fetching tooltip label for ability, if available
+      if (resref != null) {
+        int[] strrefs = null;
+        for (int row = 0, numRows = table.getRowCount(); row < numRows; row++) {
+          String entry = table.get(row, 0);
+          if (resref.equalsIgnoreCase(entry)) {
+            int numCols = table.getColCount();
+            strrefs = new int[numCols - 1];
+            for (int col = 1; col < numCols; col++) {
+              String value = table.get(row, col);
+              int number = -1;
+              try { number = Integer.parseInt(value); } catch (NumberFormatException nfe) {}
+              strrefs[col - 1] = number;
+            }
+            break;
+          }
+        }
+
+        if (strrefs != null) {
+          int idx = ability.getName().lastIndexOf(' ');
+          if (idx > 0) {
+            String value = ability.getName().substring(idx).trim();
+            int number = -1;
+            try { number = Integer.parseInt(value); } catch (NumberFormatException nfe) {}
+            if (number >= 0 && number < strrefs.length) {
+              int strref = strrefs[number];
+              retVal = StringTable.getStringRef(strref);
+            }
+          }
+        }
+      }
+    }
+    return retVal;
   }
 }
 
