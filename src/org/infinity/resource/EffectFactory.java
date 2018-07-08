@@ -3519,11 +3519,15 @@ public final class EffectFactory
 
       case 279: // Enable button
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        if (isTobEx) {
-          String[] buttons = new String[15];
+        if (isTobEx || Profile.isEnhancedEdition()) {
+          int size = isTobEx ? 15 : 16;
+          String[] buttons = new String[size];
           System.arraycopy(s_button, 0, buttons, 0, 14);
           buttons[10] = "Bard song";
           buttons[14] = "Find traps";
+          if (Profile.isEnhancedEdition()) {
+            buttons[15] = "Inventory screen";
+          }
           s.add(new Bitmap(buffer, offset + 4, 4, "Button", buttons));
         } else {
           s.add(new Bitmap(buffer, offset + 4, 4, "Button", s_button));
