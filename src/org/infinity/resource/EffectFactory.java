@@ -3560,6 +3560,10 @@ public final class EffectFactory
           list[8] = "Wizard Spell Trap";
           list[9] = "Wizard Improved Alacrity";
         }
+        for (int i = 10; i < list.length; i++) {
+          // only first 10 scripting states are officially supported by this opcode
+          list[i] += " [undocumented]";
+        }
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         s.add(new Bitmap(buffer, offset + 4, 4, "State", list));
         break;
