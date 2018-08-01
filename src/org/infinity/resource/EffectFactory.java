@@ -5187,6 +5187,10 @@ public final class EffectFactory
           }
           break;
 
+        case 290: // Change title
+            s.add(new IdsBitmap(buffer, offset, 4, "Class override", "CLASS.IDS"));
+          break;
+
         case 301: // Critical hit bonus
         case 341: // Critical hit effect
         case 361: // Cast spell on critical miss
