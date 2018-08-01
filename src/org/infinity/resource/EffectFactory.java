@@ -3555,10 +3555,16 @@ public final class EffectFactory
             "Immune to Tracking", "Dead Magic", "Immune to Timestop", "Immune to Sequester", "Stoneskins Golem",
             "Level Drain", "Do Not Draw"};
         if (Profile.isEnhancedEdition()) {
-          list[6] = "Wizard Spell Immunity";
-          list[7] = "Wizard Protection from Energy";
-          list[8] = "Wizard Spell Trap";
-          list[9] = "Wizard Improved Alacrity";
+          list[0] += " / Wing Buffet";
+          list[1] += " / Death Ward";
+          list[2] += " / Level Drain Immunity";
+          list[3] += " / Offensive Modifier";
+          list[4] += " / Defensive Modifier";
+          list[5] += " / Defensive Modifier";
+          list[6] += " / Wizard Spell Immunity";
+          list[7] += " / Wizard Protection from Energy";
+          list[8] += " / Wizard Spell Trap";
+          list[9] += " / Wizard Improved Alacrity";
         }
         for (int i = 10; i < list.length; i++) {
           // only first 10 scripting states are officially supported by this opcode
