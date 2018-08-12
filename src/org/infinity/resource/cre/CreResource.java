@@ -255,7 +255,6 @@ public final class CreResource extends AbstractStruct
   public static final String CRE_FAVORED_ENEMY_FMT            = "Favored enemy %d";
   public static final String CRE_RACIAL_ENEMY                 = "Racial enemy";
   public static final String CRE_SUBRACE                      = "Subrace";
-  public static final String CRE_UNDEAD_LEVEL                 = "Undead level";
   public static final String CRE_TRACKING                     = "Tracking";
   public static final String CRE_TARGET                       = "Target";
   public static final String CRE_LEVEL_FIRST_CLASS            = "Level first class";
@@ -1565,7 +1564,7 @@ public final class CreResource extends AbstractStruct
       clearFields();
       throw new Exception("Unsupported version: " + version);
     }
-    addField(new DecNumber(buffer, offset + 122, 1, CRE_UNDEAD_LEVEL));
+    addField(new DecNumber(buffer, offset + 122, 1, CRE_TURN_UNDEAD_LEVEL));
     addField(new DecNumber(buffer, offset + 123, 1, CRE_TRACKING));
     if (Profile.getGame() == Profile.Game.PSTEE) {
       addField(new DecNumber(buffer, offset + 124, 4, CRE_XP_SECOND_CLASS));
