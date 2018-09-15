@@ -5001,7 +5001,7 @@ public class ConvertToBam extends ChildFrame
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == bAccept) {
-        accept();
+        acceptDialog();
       } else if (event.getSource() == bCancel) {
         cancel();
       } else if (event.getSource() instanceof JCheckBox) {
@@ -5761,7 +5761,7 @@ public class ConvertToBam extends ChildFrame
     }
 
     // Disposes the dialog and marks it as accepted
-    private void accept()
+    private void acceptDialog()
     {
       setVisible(false);
       accepted = true;
@@ -5796,7 +5796,7 @@ public class ConvertToBam extends ChildFrame
         @Override
         public void actionPerformed(ActionEvent e)
         {
-          accept();
+          acceptDialog();
         }
       });
 

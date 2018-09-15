@@ -252,7 +252,7 @@ public class OpenResourceDialog extends JDialog
   }
 
 
-  private void accept()
+  private void acceptDialog()
   {
     setVisible(false);
     List<ResourceEntry> entries = list.getSelectedValuesList();
@@ -441,7 +441,7 @@ public class OpenResourceDialog extends JDialog
       @Override
       public void actionPerformed(ActionEvent e)
       {
-        accept();
+        acceptDialog();
       }
     };
     AbstractAction actCancel = new AbstractAction("Cancel") {
@@ -489,7 +489,7 @@ public class OpenResourceDialog extends JDialog
       public void mouseClicked(MouseEvent event)
       {
         if (event.getClickCount() == 2 && !list.isSelectionEmpty()) {
-          accept();
+          acceptDialog();
         }
       }
     });
