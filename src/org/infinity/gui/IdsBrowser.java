@@ -33,7 +33,7 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
 {
   private final JButton binsert;
   private final JComboBox<ResourceEntry> idsfiles;
-  private final TextListPanel list;
+  private final TextListPanel<IdsMapEntry> list;
 
   public IdsBrowser()
   {
@@ -52,8 +52,8 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
     binsert.setToolTipText("Inserts selected text into script displayed in main window");
     getRootPane().setDefaultButton(binsert);
 
-    IdsMap idsMap = IdsMapCache.get(idsfiles.getSelectedItem().toString());
-    list = new TextListPanel(idsMap.getAllStringValues());
+    final IdsMap idsMap = IdsMapCache.get(idsfiles.getSelectedItem().toString());
+    list = new TextListPanel<>(idsMap.getAllValues());
     list.addMouseListener(new MouseAdapter()
     {
       @Override
@@ -106,8 +106,8 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
 
   public void refreshList()
   {
-    IdsMap idsMap = IdsMapCache.get(idsfiles.getSelectedItem().toString());
-    list.setValues(idsMap.getAllStringValues());
+    final IdsMap idsMap = IdsMapCache.get(idsfiles.getSelectedItem().toString());
+    list.setValues(idsMap.getAllValues());
   }
 
   private void insertString(String s)

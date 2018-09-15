@@ -49,7 +49,7 @@ public class ResourceRef extends Datatype
   private String curtype;
   private String resname;
   private JButton bView;
-  private TextListPanel list;
+  private TextListPanel list;//TODO: Can contains String and ResourceRefEntry, need refactor
 
   public ResourceRef(ByteBuffer h_buffer, int offset, String name, String type)
   {
