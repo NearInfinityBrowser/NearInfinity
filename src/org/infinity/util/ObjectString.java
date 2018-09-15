@@ -4,6 +4,8 @@
 
 package org.infinity.util;
 
+import java.util.Map;
+
 /**
  * Associates a string with an object. Both string and object definitions are immutable.
  */
@@ -64,17 +66,16 @@ public class ObjectString implements CharSequence, Comparable<ObjectString>
   /**
    * Helper routine: Automatically create string/index pairs from HashBitmap source.
    */
-  public static ObjectString[] createIndexedStrings(LongIntegerHashMap<? extends Object>map, String fmt)
+  public static ObjectString[] createIndexedStrings(LongIntegerHashMap<? extends Object> map, String fmt)
   {
-    ObjectString[] retVal = null;
-    if (map != null) {
-      long[] keys = map.keys();
-      retVal = new ObjectString[keys.length];
-      for (int i = 0; i < keys.length; i++) {
-        retVal[i] = new ObjectString(map.get(keys[i]).toString(), Integer.valueOf((int)keys[i]), fmt);
-      }
-    } else {
-      retVal = new ObjectString[0];
+    if (map == null) {
+      return new ObjectString[0];
+    }
+    final ObjectString[] retVal = new ObjectString[map.size()];
+    int i = 0;
+    for (Map.Entry<Long, ? extends Object> e : map.entrySet()) {
+      retVal[i] = new ObjectString(e.getValue().toString(), Integer.valueOf(e.getKey().intValue()), fmt);
+      ++i;
     }
     return retVal;
   }
@@ -152,11 +153,13 @@ public class ObjectString implements CharSequence, Comparable<ObjectString>
     return string.length();
   }
 
+  @Override
   public char charAt(int index)
   {
     return string.charAt(index);
   }
 
+  @Override
   public CharSequence subSequence(int start, int end)
   {
     return string.subSequence(start, end);

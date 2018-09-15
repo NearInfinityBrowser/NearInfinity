@@ -2395,17 +2395,13 @@ public class SearchResource extends ChildFrame
       cbType = new AutoComboBox<>(IndexedString.createArray(new String[]{"No BAM", "Single target",
                                                                          "Area of effect"}, 0, 1));
 
-      long[] keys = ProAreaType.m_proj.keys();
-      Object[] values = ProAreaType.m_proj.values().toArray();
-      String[] strings = new String[values.length];
-      Integer[] objects = new Integer[keys.length];
-      for (int i = 0; i < keys.length; i++) {
-        objects[i] = new Integer((int)keys[i]);
+      final ObjectString[] items = new ObjectString[ProAreaType.m_proj.size()];
+      int i = 0;
+      for (Map.Entry<Long, String> e : ProAreaType.m_proj.entrySet()) {
+        items[i] = new ObjectString(e.getValue(), Integer.valueOf(e.getKey().intValue()));
+        ++i;
       }
-      for (int i = 0; i < values.length; i++) {
-        strings[i] = (String)values[i];
-      }
-      cbExplosionEffect = new AutoComboBox<>(ObjectString.createString(strings, objects));
+      cbExplosionEffect = new AutoComboBox<>(items);
 
       pBehavior = new FlagsPanel(4, ProResource.s_behave);
       bpwBehavior = new ButtonPopupWindow(setOptionsText, pBehavior);
@@ -6202,7 +6198,8 @@ public class SearchResource extends ChildFrame
   }
 
   // associates strings with a unique integer number
-  private static class IndexedString implements StorageString
+  //TODO: Can be removed and replaced by org.infinity.util.ObjectString
+  private static final class IndexedString implements StorageString
   {
     private String s;
     private int index;
@@ -6226,15 +6223,15 @@ public class SearchResource extends ChildFrame
     // automatically create string/index pairs from HashBitmap source
     public static IndexedString[] createArray(LongIntegerHashMap<String> map)
     {
-      IndexedString[] retVal = null;
-      if (map != null) {
-        long[] keys = map.keys();
-        retVal = new IndexedString[keys.length];
-        for (int i = 0; i < keys.length; i++) {
-          retVal[i] = new IndexedString(map.get(keys[i]), (int)keys[i]);
-        }
-      } else {
-        retVal = new IndexedString[0];
+      if (map == null) {
+        return new IndexedString[0];
+      }
+
+      final IndexedString[] retVal = new IndexedString[map.size()];
+      int i = 0;
+      for (Map.Entry<Long, String> e : map.entrySet()) {
+        retVal[i] = new IndexedString(e.getValue(), e.getKey().intValue());
+        ++i;
       }
       return retVal;
     }
@@ -6245,14 +6242,16 @@ public class SearchResource extends ChildFrame
       this.index = index;
     }
 
+    @Override
     public String getString()
     {
       return s;
     }
 
+    @Override
     public Object getObject()
     {
-      return new Integer(index);
+      return Integer.valueOf(index);
     }
 
     @Override
@@ -6263,7 +6262,8 @@ public class SearchResource extends ChildFrame
   }
 
   // associates strings with parameterized objects
-  private static class ObjectString implements StorageString
+  //TODO: Can be replaced by org.infinity.util.ObjectString after some tweaking
+  private static final class ObjectString implements StorageString
   {
     private String s;
     private Object o;
@@ -6286,15 +6286,17 @@ public class SearchResource extends ChildFrame
 
     public ObjectString(String s, Object o)
     {
-      this.s = (s != null) ? (s.isEmpty() ? "Unknown" : s) : "Unknown";
+      this.s = (s == null || s.isEmpty() ? "Unknown" : s);
       this.o = o;
     }
 
+    @Override
     public String getString()
     {
       return s;
     }
 
+    @Override
     public Object getObject()
     {
       return o;
