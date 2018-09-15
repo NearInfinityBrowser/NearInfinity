@@ -337,7 +337,7 @@ public class ResourceRef extends Datatype
       return resname;
     String searchName = getSearchName();
     if (searchName != null)
-      return new StringBuffer(getResourceName()).append(" (").append(searchName).append(')').toString();
+      return getResourceName() + " (" + searchName + ')';
     return getResourceName();
   }
 
@@ -359,7 +359,7 @@ public class ResourceRef extends Datatype
     if (resname.equals(NONE)) {
       return resname;
     } else {
-      return new StringBuffer(resname).append('.').append(curtype).toString();
+      return resname + '.' + curtype;
     }
   }
 

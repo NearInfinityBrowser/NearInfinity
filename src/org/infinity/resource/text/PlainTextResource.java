@@ -101,7 +101,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.TRIM_SPACES) == event.getSource()) {
-      StringBuffer newText = new StringBuffer(editor.getText().length());
+      final StringBuilder newText = new StringBuilder(editor.getText().length());
       StringTokenizer st = new StringTokenizer(editor.getText(), "\n");
       while (st.hasMoreTokens()) {
         newText.append(st.nextToken().trim()).append('\n');

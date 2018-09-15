@@ -56,7 +56,7 @@ public final class UnknownBinary extends Unknown
   public String toString()
   {
     if (buffer.limit() > 0) {
-      StringBuffer sb = new StringBuffer(9 * buffer.limit() + 1);
+      final StringBuilder sb = new StringBuilder(9 * buffer.limit() + 1);
       buffer.position(0);
       while (buffer.remaining() > 0) {
         int v = buffer.get() & 0xff;

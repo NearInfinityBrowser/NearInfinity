@@ -579,11 +579,9 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
     @Override
     public String toString()
     {
-      StringBuffer buf = new StringBuffer("File: ");
-      buf.append(resourceEntry.toString());
-      buf.append("  Offset: ").append(offset);
-      buf.append("  Error message: ").append(errorMsg);
-      return buf.toString();
+      return "File: " + resourceEntry
+           + "  Offset: " + offset
+           + "  Error message: " + errorMsg;
     }
   }
 

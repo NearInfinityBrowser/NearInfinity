@@ -241,7 +241,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
 
   private SortedSet<ScriptMessage> compileFile(Path file)
   {
-    StringBuffer source = new StringBuffer();
+    final StringBuilder source = new StringBuilder();
     try (BufferedReader br = Files.newBufferedReader(file)) {
       String line = br.readLine();
       while (line != null) {
@@ -285,7 +285,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
 
   private boolean decompileFile(Path file)
   {
-    StringBuffer code = new StringBuffer();
+    final StringBuilder code = new StringBuilder();
     try (BufferedReader br = Files.newBufferedReader(file)) {
       String line = br.readLine();
       while (line != null) {

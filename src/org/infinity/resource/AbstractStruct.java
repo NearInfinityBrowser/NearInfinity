@@ -391,7 +391,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public String toString()
   {
     // limit text length to speed things up
-    StringBuffer sb = new StringBuffer(160);
+    final StringBuilder sb = new StringBuilder(160);
     for (int i = 0, count = getFieldCount(); i < count; i++) {
       StructEntry datatype = getField(i);
       String text = datatype.getName() + ": " + datatype.toString() + ',';
@@ -934,7 +934,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   public String toMultiLineString()
   {
-    StringBuffer sb = new StringBuffer(30 * list.size());
+    StringBuilder sb = new StringBuilder(30 * list.size());
     for (int i = 0; i < list.size(); i++) {
       StructEntry datatype = list.get(i);
       sb.append(datatype.getName()).append(": ").append(datatype.toString()).append('\n');

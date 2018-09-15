@@ -36,7 +36,7 @@ public final class LongIntegerHashMap<V> extends TreeMap<Long, V>
   @Override
   public String toString()
   {
-    StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append('{');
     Set<Map.Entry<Long, V>> set = entrySet();
     Iterator<Map.Entry<Long, V>> i = set.iterator();

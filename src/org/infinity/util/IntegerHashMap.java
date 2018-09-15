@@ -46,7 +46,7 @@ public final class IntegerHashMap<V> extends HashMap<Integer, V>
   @Override
   public String toString()
   {
-    StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append('{');
     Set<Map.Entry<Integer, V>> set = entrySet();
     Iterator<Map.Entry<Integer, V>> i = set.iterator();

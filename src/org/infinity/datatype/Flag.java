@@ -232,7 +232,7 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
   @Override
   public String toString()
   {
-    StringBuffer sb = new StringBuffer("( ");
+    final StringBuilder sb = new StringBuilder("( ");
     if (value == 0)
       sb.append(nodesc).append(' ');
     else {
