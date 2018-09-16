@@ -20,7 +20,10 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ChildFrame;
@@ -38,11 +41,34 @@ import org.infinity.search.StringReferenceSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
-public final class StringRef extends Datatype implements Editable, IsNumeric, IsTextual, ActionListener
+/**
+ * A struct field that represents reference to string in a talk table file (dialog.tlk
+ * or dialogF.tlk).
+ */
+public final class StringRef extends Datatype implements Editable, IsNumeric, IsTextual, ActionListener, ChangeListener
 {
-  private JButton bPlay, bEdit, bUpdate, bSearch;
+  /**
+   * Button that opens dialog with sound associated with this reference if that
+   * sound exists. If no sound assotiated with this string entry, button is disabled.
+   */
+  private JButton bPlay;
+  /** Button that opens editor of the talk table(s) of the game (dialog.tlk and dialogF.tlk). */
+  private JButton bEdit;
+  /**
+   * Button that used to update reference in parent struct if editor of this string
+   * reference opened in embedded mode. Hidden if editor opened not in embedded mode
+   */
+  private JButton bUpdate;
+  /**
+   * Button that opens dialog with settings for searching usage of this string
+   * in another game files.
+   */
+  private JButton bSearch;
+  /** Text area that contains content of string from main talk table (dialog.tlk). */
   private InfinityTextArea taRefText;
-  private JTextField tfRefNr;
+  /** Editor for numerical index in talk table for this string reference. */
+  private JSpinner sRefNr;
+  /** Index of this string in the talk table (TLK file). */
   private int value;
 
   public StringRef(String name, int value)
@@ -50,17 +76,42 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
     this(null, name, value);
   }
 
+  /**
+   * Constructs field description of {@code parent} struct, that stores it value.
+   *
+   * @param parent Structure that contains this field
+   * @param name Name of field in parent struct that has {@code StringRef} type
+   * @param value Index of the string in the talk table (TLK file)
+   */
   public StringRef(StructEntry parent, String name, int value)
   {
     super(parent, 0, 4, name);
     this.value = value;
   }
 
+  /**
+   * Constructs field description and reads its value from {@code buffer} starting
+   * with offset {@code offset}. Method reads 4 bytes from {@code buffer}.
+   *
+   * @param buffer Storage from which value of this field is readed
+   * @param offset Offset of this field in the {@code buffer}
+   * @param name Name of field
+   */
   public StringRef(ByteBuffer buffer, int offset, String name)
   {
     this(null, buffer, offset, name);
   }
 
+  /**
+   * Constructs field description of {@code parent} struct and reads its value
+   * from {@code buffer} starting with offset {@code offset}. Method reads 4 bytes
+   * from {@code buffer}.
+   *
+   * @param parent Structure that contains this field
+   * @param buffer Storage from which value of this field is readed
+   * @param offset Offset of this field in the {@code buffer}
+   * @param name Name of field in parent struct that has {@code StringRef} type
+   */
   public StringRef(StructEntry parent, ByteBuffer buffer, int offset, String name)
   {
     super(parent, offset, 4, name);
@@ -72,45 +123,48 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == tfRefNr || event.getSource() == bUpdate) {
-      taRefText.setText(StringTable.getStringRef(Integer.parseInt(tfRefNr.getText())));
-      String resname = StringTable.getSoundResource(Integer.parseInt(tfRefNr.getText()));
-      bPlay.setEnabled(!resname.isEmpty() && ResourceFactory.resourceExists(resname + ".WAV"));
+    final int newvalue = getValueFromEditor();
+    if (event.getSource() == bUpdate) {
+      taRefText.setText(StringTable.getStringRef(newvalue));
+      enablePlay(newvalue);
     }
     else if (event.getSource() == bEdit) {
       StringEditor editor = null;
-      List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
+      final List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
       if (!frames.isEmpty()) {
         editor = (StringEditor)frames.get(0);
       }
       if (editor == null) {
-        new StringEditor(Integer.parseInt(tfRefNr.getText()));
+        new StringEditor(newvalue);
       } else {
         editor.setVisible(true);
-        editor.showEntry(StringTable.Type.MALE, Integer.parseInt(tfRefNr.getText()));
+        editor.showEntry(StringTable.Type.MALE, newvalue);
       }
     }
     else if (event.getSource() == bPlay) {
-      int newvalue = Integer.parseInt(tfRefNr.getText());
-      ResourceEntry entry = ResourceFactory.getResourceEntry(StringTable.getSoundResource(newvalue) + ".WAV");
+      final ResourceEntry entry = ResourceFactory.getResourceEntry(StringTable.getSoundResource(newvalue) + ".WAV");
       new ViewFrame(bPlay.getTopLevelAncestor(), ResourceFactory.getResource(entry));
     }
     else if (event.getSource() == bSearch) {
-      new StringReferenceSearcher(Integer.parseInt(tfRefNr.getText()), bSearch.getTopLevelAncestor());
+      new StringReferenceSearcher(newvalue, bSearch.getTopLevelAncestor());
     }
   }
 
 // --------------------- End Interface ActionListener ---------------------
-
-
+  @Override
+  public void stateChanged(ChangeEvent e) {
+    final int newvalue = getValueFromEditor();
+    taRefText.setText(StringTable.getStringRef(newvalue));
+    enablePlay(newvalue);
+  }
 // --------------------- Begin Interface Editable ---------------------
 
   @Override
   public JComponent edit(ActionListener container)
   {
-    if (tfRefNr == null) {
-      tfRefNr = new JTextField(8);
-      tfRefNr.addActionListener(this);
+    if (sRefNr == null) {
+      sRefNr = new JSpinner(new SpinnerNumberModel((long)value, -1L, 0xFFFFFFFFL, 1L));
+      sRefNr.addChangeListener(this);
       taRefText = new InfinityTextArea(1, 200, true);
       if (BrowserMenuBar.getInstance().getTlkSyntaxHighlightingEnabled()) {
         taRefText.applyExtendedSettings(InfinityTextArea.Language.TLK, null);
@@ -132,21 +186,19 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
       bSearch.addActionListener(this);
       bSearch.setMnemonic('f');
     }
-    String resname = StringTable.getSoundResource(value);
-    bPlay.setEnabled(!resname.isEmpty() && ResourceFactory.resourceExists(resname + ".WAV"));
+    enablePlay(value);
     taRefText.setText(StringTable.getStringRef(value));
     taRefText.setCaretPosition(0);
     InfinityScrollPane scroll = new InfinityScrollPane(taRefText, true);
     scroll.setLineNumbersEnabled(false);
-    tfRefNr.setText(String.valueOf(value));
-    tfRefNr.setMinimumSize(tfRefNr.getPreferredSize());
+    sRefNr.setValue(value);
     JLabel label = new JLabel("StringRef: ");
-    label.setLabelFor(tfRefNr);
+    label.setLabelFor(sRefNr);
     label.setDisplayedMnemonic('s');
     bPlay.setMargin(new Insets(1, 3, 1, 3));
     bEdit.setMargin(bPlay.getMargin());
     bSearch.setMargin(bPlay.getMargin());
-    tfRefNr.setMinimumSize(new Dimension(tfRefNr.getPreferredSize().width, bPlay.getPreferredSize().height));
+    sRefNr.setMinimumSize(new Dimension(sRefNr.getPreferredSize().width, bPlay.getPreferredSize().height));
 
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 0));
     if (container != null) {
@@ -173,8 +225,8 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
     panel.add(label);
 
     gbc.anchor = GridBagConstraints.WEST;
-    gbl.setConstraints(tfRefNr, gbc);
-    panel.add(tfRefNr);
+    gbl.setConstraints(sRefNr, gbc);
+    panel.add(sRefNr);
 
     gbc.insets.right = 0;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -200,7 +252,7 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
-    int newvalue = Integer.parseInt(tfRefNr.getText());
+    final int newvalue = getValueFromEditor();
     String newstring = StringTable.getStringRef(newvalue);
     if (newstring.equalsIgnoreCase("Error"))
       return false;
@@ -282,9 +334,21 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   {
     value = newvalue;
     taRefText.setText(StringTable.getStringRef(value));
-    tfRefNr.setText(String.valueOf(value));
-    String resname = StringTable.getSoundResource(value);
+    sRefNr.setValue(value);
+    enablePlay(value);
+  }
+  /**
+   * Enables or disables button for view associated sound for specified StringRef value.
+   *
+   * @param value Value of string reference
+   */
+  private void enablePlay(int value) {
+    final String resname = StringTable.getSoundResource(value);
     bPlay.setEnabled(!resname.isEmpty() && ResourceFactory.resourceExists(resname + ".WAV"));
+  }
+  /** Extracts current value of string reference from editor. */
+  private int getValueFromEditor() {
+    return ((Number)sRefNr.getValue()).intValue();
   }
 }
 
