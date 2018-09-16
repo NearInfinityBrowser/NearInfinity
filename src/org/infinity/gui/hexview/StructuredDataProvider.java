@@ -306,7 +306,7 @@ public class StructuredDataProvider implements IDataProvider
 
 //-------------------------- INNER CLASSES --------------------------
 
-  // A dummy StructEntry implementation that can be used as key in a search operations.
+  /** A dummy {@link StructEntry} implementation that can be used as key in a search operations. */
   private class EmptyStructure implements StructEntry
   {
     private int offset;
@@ -314,7 +314,7 @@ public class StructuredDataProvider implements IDataProvider
     public EmptyStructure(int offset) { this.offset = offset; }
 
     @Override
-    public Object clone() { return null; }
+    public EmptyStructure clone() { return null; }
 
     @Override
     public int compareTo(StructEntry o) { return 0; }

@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -101,7 +100,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   protected AbstractStruct(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
-    list = new ArrayList<StructEntry>();
+    list = new ArrayList<>();
     name = entry.toString();
     ByteBuffer bb = entry.getResourceBuffer();
     endoffset = read(bb, 0);
@@ -117,7 +116,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     this.superStruct = superStruct;
     this.name = name;
     this.startoffset = startoffset;
-    list = new ArrayList<StructEntry>(listSize);
+    list = new ArrayList<>(listSize);
   }
 
   protected AbstractStruct(AbstractStruct superStruct, String name, ByteBuffer buffer, int startoffset)
@@ -173,14 +172,14 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 // --------------------- Begin Interface StructEntry ---------------------
 
   @Override
-  public Object clone() throws CloneNotSupportedException
+  public AbstractStruct clone() throws CloneNotSupportedException
   {
-    AbstractStruct newstruct = (AbstractStruct)super.clone();
+    final AbstractStruct newstruct = (AbstractStruct)super.clone();
     newstruct.superStruct = null;
-    newstruct.list = new ArrayList<StructEntry>(list.size());
+    newstruct.list = new ArrayList<>(list.size());
     newstruct.viewer = null;
-    for (int i = 0; i < list.size(); i++)
-      newstruct.list.add((StructEntry)list.get(i).clone());
+    for (StructEntry e : list)
+      newstruct.list.add(e.clone());
 //    for (Iterator i = newstruct.list.iterator(); i.hasNext();) {
 //      StructEntry sentry = (StructEntry)i.next();
 //      if (sentry.getOffset() <= 0)
@@ -248,7 +247,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   @Override
   public List<StructEntry> getStructChain()
   {
-    List<StructEntry> list = new Vector<StructEntry>();
+    final List<StructEntry> list = new ArrayList<>();
     StructEntry e = this;
     while (e != null) {
       list.add(0, e);
