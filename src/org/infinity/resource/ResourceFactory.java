@@ -5,6 +5,8 @@
 package org.infinity.resource;
 
 import java.awt.Component;
+import java.awt.GraphicsEnvironment;
+import java.awt.HeadlessException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
+import javax.swing.JComponent;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -591,6 +594,53 @@ public final class ResourceFactory implements FileWatchListener
     }
   }
 
+  /**
+   * If {@code output} is not {@code null}, shows confirmation dialog for saving resource.
+   * If user accepts saving then resource will be saved if it implements {@link Writable}
+   *
+   * @param resource Resource that must be saved
+   * @param entry Entry that represents resource. Must not be {@code null}
+   * @param parent Component that will be parent for dialog window. Must not be {@code null}
+   *
+   * @throws HeadlessException if {@link GraphicsEnvironment#isHeadless} returns {@code true}
+   * @throws NullPointerException If any argument is {@code null}
+   * @throws Exception If save will be cancelled
+   */
+  public static void closeResource(Resource resource, ResourceEntry entry, JComponent parent) throws Exception {
+    final Path output;
+    if (entry instanceof BIFFResourceEntry) {
+      output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
+    } else {
+      output = entry.getActualPath();
+    }
+    closeResource(resource, output, parent);
+  }
+  /**
+   * If {@code output} is not {@code null}, shows confirmation dialog for saving resource.
+   * If user accepts saving then resource will be saved if it implements {@link Writable}
+   *
+   * @param resource Resource that must be saved
+   * @param output Path of the saved resource. If {@code null} method do nothing
+   * @param parent Component that will be parent for dialog window. Must not be {@code null}
+   *
+   * @throws HeadlessException if {@link GraphicsEnvironment#isHeadless} returns {@code true}
+   * @throws NullPointerException If {@code resource} or {@code parent} is {@code null}
+   * @throws Exception If save will be cancelled
+   */
+  public static void closeResource(Resource resource, Path output, JComponent parent) throws Exception {
+    if (output != null) {
+      final String options[] = {"Save changes", "Discard changes", "Cancel"};
+      final int result = JOptionPane.showOptionDialog(parent, "Save changes to " + output + '?',
+                                                      "Resource changed", JOptionPane.YES_NO_CANCEL_OPTION,
+                                                      JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+      if (result == JOptionPane.YES_OPTION) {
+        saveResource(resource, parent.getTopLevelAncestor());
+      } else
+      if (result != JOptionPane.NO_OPTION) {
+        throw new Exception("Save aborted");
+      }
+    }
+  }
   /**
    * Returns a list of available game language directories for the current game in Enhanced Edition games.
    * Returns an empty list otherwise.

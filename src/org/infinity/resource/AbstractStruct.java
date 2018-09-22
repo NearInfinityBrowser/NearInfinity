@@ -148,21 +148,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public void close() throws Exception
   {
     if (structChanged && viewer != null && this instanceof Resource && superStruct == null) {
-      Path outPath;
-      if (entry instanceof BIFFResourceEntry) {
-        outPath = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
-      } else {
-        outPath = entry.getActualPath();
-      }
-      String options[] = {"Save changes", "Discard changes", "Cancel"};
-      int result = JOptionPane.showOptionDialog(viewer, "Save changes to " + outPath + '?', "Resource changed",
-                                                JOptionPane.YES_NO_CANCEL_OPTION,
-                                                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0) {
-        ResourceFactory.saveResource((Resource)this, viewer.getTopLevelAncestor());
-      } else if (result != 1) {
-        throw new Exception("Save aborted");
-      }
+      ResourceFactory.closeResource((Resource)this, entry, viewer);
     }
     if (viewer != null) {
       viewer.close();
