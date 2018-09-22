@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity;
@@ -73,6 +73,7 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.EffectFactory;
+import org.infinity.resource.IconCache;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
@@ -716,7 +717,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
   }
 
-  // Re-initializes currently selected game
+  /** Re-initializes currently selected game. */
   public void refreshGame()
   {
     try {
@@ -740,7 +741,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
   }
 
-  // Set/Reset main window title
+  /** Set/Reset main window title. */
   public void updateWindowTitle()
   {
     String title = Profile.getProperty(Profile.Key.GET_GAME_TITLE);
@@ -752,7 +753,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
   }
 
-  // Opens game's ini file in text editor
+  /** Opens game's ini file in text editor. */
   public boolean editGameIni(Component parent)
   {
     boolean retVal = false;
@@ -847,7 +848,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return retVal;
   }
 
-  // Central method for clearing cached data
+  /** Central method for clearing cached data. */
   private static void clearCache(boolean refreshOnly)
   {
     if (ResourceFactory.getKeyfile() != null) {
@@ -866,6 +867,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     StringTable.resetAll();
     ProRef.clearCache();
     Signatures.clearCache();
+    IconCache.clearCache();
   }
 
   private static void showProgress(String msg, int max)
@@ -933,8 +935,11 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setIconImages(list);
   }
 
-  // Migrate preferences from sourceNode to the currently used prefs node if needed.
-  // Returns true if content of sourceNode has been cloned into the current node.
+  /**
+   * Migrate preferences from {@code sourceNode} to the currently used prefs node if needed.
+   *
+   * @return {@code true} if content of sourceNode has been cloned into the current node.
+   */
   private boolean migratePreferences(String sourceNode, Preferences curPrefs, boolean showError)
   {
     boolean retVal = false;
@@ -970,7 +975,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     return retVal;
   }
 
-  // Duplicates content from prefsOld to prefsNew recursively
+  /** Duplicates content from prefsOld to prefsNew recursively. */
   private void clonePrefsNode(Preferences prefsOld, Preferences prefsNew) throws Exception
   {
     if (prefsOld != null && prefsNew != null && !prefsOld.equals(prefsNew)) {
@@ -995,7 +1000,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
   }
 
-  // Enables command-Q on OSX to trigger the window closing callback
+  /** Enables command-Q on OSX to trigger the window closing callback. */
   @SuppressWarnings({ "unchecked", "rawtypes" })
   private void enableOSXQuitStrategy()
   {
@@ -1042,7 +1047,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   }
 
 
-  private class FileDropTargetListener implements DropTargetListener, Runnable
+  private static final class FileDropTargetListener implements DropTargetListener, Runnable
   {
     private List<File> files;
 

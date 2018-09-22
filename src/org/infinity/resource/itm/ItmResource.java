@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.itm;
@@ -32,6 +32,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Effect;
 import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasIcon;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -61,7 +62,7 @@ import org.infinity.util.io.StreamUtils;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/itm_v1.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/itm_v1.htm</a>
  */
-public final class ItmResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
+public final class ItmResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs, HasIcon
 {
   // ITM-specific field labels
   public static final String ITM_NAME_GENERAL           = "General name";
@@ -87,6 +88,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   public static final String ITM_WEAPON_PROFICIENCY     = "Weapon proficiency";
   public static final String ITM_PRICE                  = "Price";
   public static final String ITM_MAX_IN_STACK           = "Maximum in stack";
+  /** Name of field with resource reference to item icon, that used in inventory. */
   public static final String ITM_ICON                   = "Icon";
   public static final String ITM_LORE                   = "Lore to identify";
   public static final String ITM_ICON_GROUND            = "Ground icon";
@@ -768,5 +770,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     }
     return false;
   }
-}
 
+  @Override
+  public ResourceRef getIcon() { return getResourceIcon(ITM_ICON); }
+}

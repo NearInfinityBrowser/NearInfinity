@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.spl;
@@ -35,6 +35,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Effect;
 import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasIcon;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -61,11 +62,11 @@ import org.infinity.util.io.StreamUtils;
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/spl_v1.htm</a>
  */
 public final class SplResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs,
-                                                                 UpdateListener
+                                                                 UpdateListener, HasIcon
 {
   // SPL-specific field labels
   public static final String SPL_NAME                             = "Spell name";
-  public static final String SPL_NAME_IDENTIFIED                  = org.infinity.resource.itm.ItmResource.ITM_NAME_IDENTIFIED;
+  public static final String SPL_NAME_IDENTIFIED                  = ItmResource.ITM_NAME_IDENTIFIED;
   public static final String SPL_CASTING_SOUND                    = "Casting sound";
   public static final String SPL_FLAGS                            = "Flags";
   public static final String SPL_TYPE                             = "Spell type";
@@ -75,16 +76,17 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
   public static final String SPL_PRIMARY_TYPE                     = "Primary type (school)";
   public static final String SPL_SECONDARY_TYPE                   = "Secondary type";
   public static final String SPL_LEVEL                            = "Spell level";
+  /** Name of field with resource reference to spell icon, that used in spellbook. */
   public static final String SPL_ICON                             = "Spell icon";
-  public static final String SPL_ICON_GROUND                      = "Ground icon";
+  public static final String SPL_ICON_GROUND                      = ItmResource.ITM_ICON_GROUND;
   public static final String SPL_DESCRIPTION                      = "Spell description";
-  public static final String SPL_DESCRIPTION_IDENTIFIED           = org.infinity.resource.itm.ItmResource.ITM_DESCRIPTION_IDENTIFIED;
-  public static final String SPL_DESCRIPTION_IMAGE                = org.infinity.resource.itm.ItmResource.ITM_DESCRIPTION_IMAGE;
-  public static final String SPL_OFFSET_ABILITIES                 = org.infinity.resource.itm.ItmResource.ITM_OFFSET_ABILITIES;
-  public static final String SPL_NUM_ABILITIES                    = org.infinity.resource.itm.ItmResource.ITM_NUM_ABILITIES;
-  public static final String SPL_OFFSET_EFFECTS                   = org.infinity.resource.itm.ItmResource.ITM_OFFSET_EFFECTS;
-  public static final String SPL_FIRST_EFFECT_INDEX               = org.infinity.resource.itm.ItmResource.ITM_FIRST_EFFECT_INDEX;
-  public static final String SPL_NUM_GLOBAL_EFFECTS               = org.infinity.resource.itm.ItmResource.ITM_NUM_GLOBAL_EFFECTS;
+  public static final String SPL_DESCRIPTION_IDENTIFIED           = ItmResource.ITM_DESCRIPTION_IDENTIFIED;
+  public static final String SPL_DESCRIPTION_IMAGE                = ItmResource.ITM_DESCRIPTION_IMAGE;
+  public static final String SPL_OFFSET_ABILITIES                 = ItmResource.ITM_OFFSET_ABILITIES;
+  public static final String SPL_NUM_ABILITIES                    = ItmResource.ITM_NUM_ABILITIES;
+  public static final String SPL_OFFSET_EFFECTS                   = ItmResource.ITM_OFFSET_EFFECTS;
+  public static final String SPL_FIRST_EFFECT_INDEX               = ItmResource.ITM_FIRST_EFFECT_INDEX;
+  public static final String SPL_NUM_GLOBAL_EFFECTS               = ItmResource.ITM_NUM_GLOBAL_EFFECTS;
   public static final String SPL_SPELL_DURATION_ROUNDS_PER_LEVEL  = "Spell duration rounds/level";
   public static final String SPL_SPELL_DURATION_BASE              = "Spell duration rounds base";
 
@@ -434,6 +436,9 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
     return Math.max(offset, offset2);
   }
 
+
+  @Override
+  public ResourceRef getIcon() { return getResourceIcon(SPL_ICON); }
 
   /**
    * Checks whether the specified resource entry matches all available search options.

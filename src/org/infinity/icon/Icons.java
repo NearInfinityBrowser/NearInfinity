@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.icon;
@@ -54,6 +54,8 @@ public class Icons
   public static final String ICON_MAGNIFY_16          = "Magnify16.png";
   public static final String ICON_MOVIE_16            = "Movie16.gif";
   public static final String ICON_NEW_16              = "New16.gif";
+  public static final String ICON_NO_ICON_16          = "NoIcon16.png";
+  public static final String ICON_NO_ICON_32          = "NoIcon32.png";
   public static final String ICON_OPEN_16             = "Open16.gif";
   public static final String ICON_PASTE_16            = "Paste16.gif";
   public static final String ICON_PAUSE_16            = "Pause16.gif";
