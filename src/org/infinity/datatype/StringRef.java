@@ -252,11 +252,7 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
-    final int newvalue = getValueFromEditor();
-    String newstring = StringTable.getStringRef(newvalue);
-    if (newstring.equalsIgnoreCase("Error"))
-      return false;
-    value = newvalue;
+    value = getValueFromEditor();
 
     // notifying listeners
     fireValueUpdated(new UpdateEvent(this, struct));
