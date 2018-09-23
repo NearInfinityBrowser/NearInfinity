@@ -94,7 +94,7 @@ final class ViewerSpells extends JPanel implements ActionListener
 
   private static final class MemSpellTableModel extends AbstractTableModel implements TableModelListener
   {
-    private final List<MemSpellTableEntry> list = new ArrayList<MemSpellTableEntry>();
+    private final List<MemSpellTableEntry> list = new ArrayList<>();
     private final CreResource cre;
 
     private MemSpellTableModel(CreResource cre)
@@ -156,8 +156,8 @@ final class ViewerSpells extends JPanel implements ActionListener
       MemSpellTableEntry entry = list.get(rowIndex);
       switch (columnIndex) {
         case 0:  return entry.getTypeName();
-        case 1:  return new Integer(entry.lvl + 1);
-        case 2:  return new Integer(entry.count + 1);
+        case 1:  return entry.lvl + 1;
+        case 2:  return entry.count + 1;
         default: return entry.spell;
       }
     }

@@ -220,7 +220,7 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
     {
       this.entry = entry;
       line = name;
-      this.linenr = new Integer(linenr);
+      this.linenr = linenr;
     }
 
     @Override

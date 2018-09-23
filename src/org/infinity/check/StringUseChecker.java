@@ -167,7 +167,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
 
       for (int i = 0; i < strUsed.length; i++) {
         if (!strUsed[i]) {
-          table.addTableItem(new UnusedStringTableItem(new Integer(i)));
+          table.addTableItem(new UnusedStringTableItem(i));
         }
       }
       if (table.getRowCount() == 0) {

@@ -449,7 +449,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     private CompileError(Path file, int linenr, String error)
     {
       resourceEntry = new FileResourceEntry(file);
-      this.linenr = new Integer(linenr);
+      this.linenr = linenr;
       this.error = error;
     }
 
