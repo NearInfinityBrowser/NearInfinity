@@ -832,7 +832,7 @@ public final class BrowserMenuBar extends JMenuBar
       } else if (event.getSource() == gameProperties) {
         new GameProperties(NearInfinity.getInstance());
       } else if (event.getSource() == gameBookmarkAdd) {
-        Object name = null;
+        Object name = Profile.getProperty(Profile.Key.GET_GAME_TITLE);
         Bookmark bookmark = getBookmarkOf(Profile.getChitinKey());
         if (bookmark != null) {
           int retVal = JOptionPane.showConfirmDialog(NearInfinity.getInstance(),
