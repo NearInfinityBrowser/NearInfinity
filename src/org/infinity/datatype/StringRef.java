@@ -151,19 +151,27 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   }
 
 // --------------------- End Interface ActionListener ---------------------
+
+// --------------------- Begin Interface ChangeListener ---------------------
+
   @Override
-  public void stateChanged(ChangeEvent e) {
+  public void stateChanged(ChangeEvent e)
+  {
     final int newvalue = getValueFromEditor();
     taRefText.setText(StringTable.getStringRef(newvalue));
     enablePlay(newvalue);
   }
+
+// --------------------- End Interface ChangeListener ---------------------
+
 // --------------------- Begin Interface Editable ---------------------
 
   @Override
   public JComponent edit(ActionListener container)
   {
     if (sRefNr == null) {
-      sRefNr = new JSpinner(new SpinnerNumberModel((long)value, -1L, 0xFFFFFFFFL, 1L));
+      sRefNr = new JSpinner(new SpinnerNumberModel((long)value, -0x80000000L, 0xFFFFFFFFL, 1L));
+      sRefNr.setEditor(new JSpinner.NumberEditor(sRefNr, "#")); // no special formatting
       sRefNr.addChangeListener(this);
       taRefText = new InfinityTextArea(1, 200, true);
       if (BrowserMenuBar.getInstance().getTlkSyntaxHighlightingEnabled()) {
@@ -333,18 +341,21 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
     sRefNr.setValue(value);
     enablePlay(value);
   }
+
   /**
    * Enables or disables button for view associated sound for specified StringRef value.
    *
    * @param value Value of string reference
    */
-  private void enablePlay(int value) {
+  private void enablePlay(int value)
+  {
     final String resname = StringTable.getSoundResource(value);
     bPlay.setEnabled(!resname.isEmpty() && ResourceFactory.resourceExists(resname + ".WAV"));
   }
+
   /** Extracts current value of string reference from editor. */
-  private int getValueFromEditor() {
+  private int getValueFromEditor()
+  {
     return ((Number)sRefNr.getValue()).intValue();
   }
 }
-
