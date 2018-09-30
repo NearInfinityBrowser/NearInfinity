@@ -69,7 +69,6 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.gui.converter.ConvertToPvrz;
 import org.infinity.gui.converter.ConvertToTis;
 import org.infinity.resource.Closeable;
-import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
@@ -493,7 +492,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
   private Path getTisFileName(Component parent, boolean enforceValidName)
   {
     Path retVal = null;
-    JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
+    JFileChooser fc = new JFileChooser(ResourceFactory.getExportFilePath().toFile());
     fc.setDialogTitle("Export resource");
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
     FileNameExtensionFilter filter = new FileNameExtensionFilter("TIS files (*.tis)", "tis");
@@ -532,7 +531,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
   private Path getPngFileName(Component parent)
   {
     Path retVal = null;
-    JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
+    JFileChooser fc = new JFileChooser(ResourceFactory.getExportFilePath().toFile());
     fc.setDialogTitle("Export resource");
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
     FileNameExtensionFilter filter = new FileNameExtensionFilter("PNG files (*.png)", "png");

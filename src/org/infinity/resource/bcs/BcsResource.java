@@ -17,7 +17,6 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -55,13 +54,11 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
-import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ScriptReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.Misc;
-import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
 public final class BcsResource implements TextResource, Writeable, Closeable, ActionListener, ItemListener,
@@ -128,30 +125,16 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       int result = JOptionPane.showOptionDialog(panel, "Script contains uncompiled changes", "Uncompiled changes",
                                                 JOptionPane.YES_NO_CANCEL_OPTION,
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0) {
+      if (result == JOptionPane.YES_OPTION) {
         ((JButton)bpDecompile.getControlByType(CtrlCompile)).doClick();
         if (bpDecompile.getControlByType(CtrlErrors).isEnabled()) {
           throw new Exception("Save aborted");
         }
         ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
-      } else if (result == 2 || result == JOptionPane.CLOSED_OPTION)
+      } else if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION)
         throw new Exception("Save aborted");
     } else if (codeChanged) {
-      Path output;
-      if (entry instanceof BIFFResourceEntry) {
-        output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
-      } else {
-        output = entry.getActualPath();
-      }
-      String options[] = {"Save changes", "Discard changes", "Cancel"};
-      int result = JOptionPane.showOptionDialog(panel, "Save changes to " + output + '?', "Resource changed",
-                                                JOptionPane.YES_NO_CANCEL_OPTION,
-                                                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0) {
-        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
-      } else if (result != 1) {
-        throw new Exception("Save aborted");
-      }
+      ResourceFactory.closeResource(this, entry, panel);
     }
   }
 

@@ -11,20 +11,16 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.DecNumber;
@@ -47,7 +43,6 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
-import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.updater.Utils;
 import org.infinity.util.StringTable;
@@ -82,43 +77,6 @@ public final class DlgResource extends AbstractStruct
   {
     super(entry);
   }
-
-//--------------------- Begin Interface Viewable ---------------------
-
-  @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
-    JComponent retVal = super.makeViewer(container);
-
-    if (retVal instanceof StructViewer) {
-      // replacing original Export button with button menu
-      StructViewer view = (StructViewer)retVal;
-      ButtonPanel panel = view.getButtonPanel();
-
-      JButton b = (JButton)panel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON);
-      if (b != null) {
-        for (final ActionListener l: b.getActionListeners()) {
-          b.removeActionListener(l);
-        }
-        int position = panel.getControlPosition(b);
-        panel.removeControl(position);
-
-        ButtonPopupMenu bpmExport = new ButtonPopupMenu(b.getText());
-        bpmExport.setIcon(b.getIcon());
-
-        miExport = new JMenuItem("as DLG file");
-        miExport.addActionListener(this);
-        miExportWeiDUDialog = new JMenuItem("as WeiDU dialog file");
-        miExportWeiDUDialog.addActionListener(this);
-        bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportWeiDUDialog}, false);
-        panel.addControl(position, bpmExport);
-      }
-    }
-
-    return retVal;
-  }
-
-//--------------------- End Interface Viewable ---------------------
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
@@ -225,33 +183,11 @@ public final class DlgResource extends AbstractStruct
     if (e.getSource() == miExport) {
       ResourceFactory.exportResource(getResourceEntry(), getViewer().getTopLevelAncestor());
     } else if (e.getSource() == miExportWeiDUDialog) {
-      JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
-      fc.setDialogTitle("Export WeiDU dialog");
-      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      fc.setSelectedFile(new File(fc.getCurrentDirectory(), getResourceEntry().toString().replace(".DLG", ".D")));
-
-      FileFilter[] filters = fc.getChoosableFileFilters();
-      FileFilter filterAll = null;
-      for (final FileFilter f: filters) {
-        if (filterAll == null) { filterAll = f; }
-        fc.removeChoosableFileFilter(f);
-      }
-      fc.addChoosableFileFilter(new FileNameExtensionFilter("WeiDU D files (*.d)", "D"));
-      if (filterAll != null) {
-        fc.addChoosableFileFilter(filterAll);
-      }
-      fc.setFileFilter(fc.getChoosableFileFilters()[0]);
-
-      if (fc.showSaveDialog(getViewer().getTopLevelAncestor()) == JFileChooser.APPROVE_OPTION) {
-        File file = fc.getSelectedFile();
-        if (Files.exists(file.toPath())) {
-          final String options[] = {"Overwrite", "Cancel"};
-          if (JOptionPane.showOptionDialog(getViewer().getTopLevelAncestor(), file + " exists. Overwrite?",
-                                           "Export resource", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-                                           null, options, options[0]) != 0) {
-            return;
-          }
-        }
+      Path path = ResourceFactory.getExportFileDialog(getViewer().getTopLevelAncestor(),
+                                                      getResourceEntry().toString().replace(".DLG", ".D"),
+                                                      false);
+      if (path != null) {
+        File file = path.toFile();
         try (PrintWriter writer = new PrintWriter(file, BrowserMenuBar.getInstance().getSelectedCharset())) {
           if (!exportDlgAsText(writer)) {
             throw new Exception();
@@ -288,7 +224,28 @@ public final class DlgResource extends AbstractStruct
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
-    if (viewer.isTabSelected(getViewer().getTabIndex(TAB_TREE))) {
+    // replacing original Export button with button menu
+    final ButtonPanel panel = viewer.getButtonPanel();
+
+    final JButton b = (JButton)panel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON);
+    if (b != null) {
+      for (final ActionListener l: b.getActionListeners()) {
+        b.removeActionListener(l);
+      }
+      int position = panel.getControlPosition(b);
+      panel.removeControl(position);
+
+      ButtonPopupMenu bpmExport = new ButtonPopupMenu(b.getText());
+      bpmExport.setIcon(b.getIcon());
+
+      miExport = new JMenuItem("as DLG file");
+      miExport.addActionListener(this);
+      miExportWeiDUDialog = new JMenuItem("as WeiDU dialog file");
+      miExportWeiDUDialog.addActionListener(this);
+      bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportWeiDUDialog}, false);
+      panel.addControl(position, bpmExport);
+    }
+    if (viewer.isTabSelected(viewer.getTabIndex(TAB_TREE))) {
       initTreeView();
     }
     viewer.addTabChangeListener(this);

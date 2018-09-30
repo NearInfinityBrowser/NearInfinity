@@ -5,6 +5,8 @@
 package org.infinity.resource;
 
 import java.awt.Component;
+import java.awt.GraphicsEnvironment;
+import java.awt.HeadlessException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
+import javax.swing.JComponent;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -109,6 +112,27 @@ public final class ResourceFactory implements FileWatchListener
     } else {
       return null;
     }
+  }
+
+  /**
+   * Opens a save dialog and returns the file path selected by the user.
+   * @param parent Parent component of the file chooser dialog.
+   * @param fileName Filename shown when the dialog opens.
+   * @param forceOverwrite Whether to skip asking for confirmation if file already exists.
+   * @return The path to the selected file. Returns {@code null} if user cancelled operation.
+   */
+  public static Path getExportFileDialog(Component parent, String fileName, boolean forceOverwrite)
+  {
+    return getInstance().getExportFileDialogInternal(parent, fileName, forceOverwrite);
+  }
+
+  /**
+   * Returns the file path of the last export operation. Returns the root folder of the game otherwise.
+   * @return Directory as {@link Path} object.
+   */
+  public static Path getExportFilePath()
+  {
+    return getInstance().getExportFilePathInternal();
   }
 
   public static Resource getResource(ResourceEntry entry)
@@ -592,6 +616,55 @@ public final class ResourceFactory implements FileWatchListener
   }
 
   /**
+   * If {@code output} is not {@code null}, shows confirmation dialog for saving resource.
+   * If user accepts saving then resource will be saved if it implements {@link Writable}
+   *
+   * @param resource Resource that must be saved
+   * @param entry Entry that represents resource. Must not be {@code null}
+   * @param parent Component that will be parent for dialog window. Must not be {@code null}
+   *
+   * @throws HeadlessException if {@link GraphicsEnvironment#isHeadless} returns {@code true}
+   * @throws NullPointerException If any argument is {@code null}
+   * @throws Exception If save will be cancelled
+   */
+  public static void closeResource(Resource resource, ResourceEntry entry, JComponent parent) throws Exception {
+    final Path output;
+    if (entry instanceof BIFFResourceEntry) {
+      output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
+    } else {
+      output = entry.getActualPath();
+    }
+    closeResource(resource, output, parent);
+  }
+
+  /**
+   * If {@code output} is not {@code null}, shows confirmation dialog for saving resource.
+   * If user accepts saving then resource will be saved if it implements {@link Writable}
+   *
+   * @param resource Resource that must be saved
+   * @param output Path of the saved resource. If {@code null} method do nothing
+   * @param parent Component that will be parent for dialog window. Must not be {@code null}
+   *
+   * @throws HeadlessException if {@link GraphicsEnvironment#isHeadless} returns {@code true}
+   * @throws NullPointerException If {@code resource} or {@code parent} is {@code null}
+   * @throws Exception If save will be cancelled
+   */
+  public static void closeResource(Resource resource, Path output, JComponent parent) throws Exception {
+    if (output != null) {
+      final String options[] = {"Save changes", "Discard changes", "Cancel"};
+      final int result = JOptionPane.showOptionDialog(parent, "Save changes to " + output + '?',
+                                                      "Resource changed", JOptionPane.YES_NO_CANCEL_OPTION,
+                                                      JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+      if (result == JOptionPane.YES_OPTION) {
+        saveResource(resource, parent.getTopLevelAncestor());
+      } else
+      if (result != JOptionPane.NO_OPTION) {
+        throw new Exception("Save aborted");
+      }
+    }
+  }
+
+  /**
    * Returns a list of available game language directories for the current game in Enhanced Edition games.
    * Returns an empty list otherwise.
    */
@@ -888,29 +961,51 @@ public final class ResourceFactory implements FileWatchListener
     }
   }
 
+  private Path getExportFilePathInternal()
+  {
+    Path path = null;
+    if (fc != null) {
+      File file = fc.getCurrentDirectory();
+      if (file != null) {
+        path = file.toPath();
+      }
+    }
+    if (path == null) {
+      path = Profile.getGameRoot();
+    }
+    return path;
+  }
+
+  private Path getExportFileDialogInternal(Component parent, String fileName, boolean forceOverwrite)
+  {
+    Path path = null;
+    if (fc == null) {
+      fc = new JFileChooser(Profile.getGameRoot().toFile());
+      fc.setDialogTitle("Export resource");
+      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    }
+    fc.setSelectedFile(new File(fc.getCurrentDirectory(), fileName));
+    if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
+      path = fc.getSelectedFile().toPath();
+      if (!forceOverwrite && Files.exists(path)) {
+        final String options[] = {"Overwrite", "Cancel"};
+        if (JOptionPane.showOptionDialog(parent, path + " exists. Overwrite?", "Export resource",
+                                         JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+                                         null, options, options[0]) != 0) {
+          path = null;
+        }
+      }
+    }
+    return path;
+  }
+
   private void exportResourceInternal(ResourceEntry entry, ByteBuffer buffer, String fileName,
                                       Component parent, Path output) throws Exception
   {
     // ask for output file path if needed
     boolean interactive = (output == null);
     if (interactive) {
-      if (fc == null) {
-        fc = new JFileChooser(Profile.getGameRoot().toFile());
-        fc.setDialogTitle("Export resource");
-        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      }
-      fc.setSelectedFile(new File(fc.getCurrentDirectory(), fileName));
-      if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
-        output = fc.getSelectedFile().toPath();
-        if (Files.exists(output)) {
-          final String options[] = {"Overwrite", "Cancel"};
-          if (JOptionPane.showOptionDialog(parent, output + " exists. Overwrite?", "Export resource",
-                                           JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-                                           null, options, options[0]) != 0) {
-            return;
-          }
-        }
-      }
+      output = getExportFileDialogInternal(parent, fileName, false);
     }
 
     // exporting resource

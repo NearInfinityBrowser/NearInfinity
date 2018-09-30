@@ -832,7 +832,7 @@ public final class BrowserMenuBar extends JMenuBar
       } else if (event.getSource() == gameProperties) {
         new GameProperties(NearInfinity.getInstance());
       } else if (event.getSource() == gameBookmarkAdd) {
-        Object name = null;
+        Object name = Profile.getProperty(Profile.Key.GET_GAME_TITLE);
         Bookmark bookmark = getBookmarkOf(Profile.getChitinKey());
         if (bookmark != null) {
           int retVal = JOptionPane.showConfirmDialog(NearInfinity.getInstance(),
@@ -2878,7 +2878,7 @@ public final class BrowserMenuBar extends JMenuBar
       } else if (event.getSource() == helpWiki) {
         UrlBrowser.openUrl(wikiUrl);
       } else if (event.getSource() == helpLicense) {
-        displayLicense("org/infinity/License.txt", "LGPL License");
+        displayLicense("org/infinity/LICENSE.txt", "LGPL License");
       } else if (event.getSource() == helpJOrbisLicense) {
           displayLicense("org/infinity/JOrbis.License.txt", "LGPL License");
       } else if (event.getSource() == helpFifeLicense) {

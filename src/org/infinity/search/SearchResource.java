@@ -96,7 +96,6 @@ import org.infinity.resource.spl.SplResource;
 import org.infinity.resource.sto.StoResource;
 import org.infinity.util.Debugging;
 import org.infinity.util.IdsMapEntry;
-import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.Misc;
 import org.infinity.util.Pair;
 import org.infinity.util.SimpleListModel;
@@ -1093,40 +1092,40 @@ public class SearchResource extends ChildFrame
             case ID_Type:
               if (pType.isActive(CreTypePanel.TYPE_GENERAL)) {
                 retVal.setOption(SearchOptions.CRE_General,
-                                 new Integer(pType.getOptionType(CreTypePanel.TYPE_GENERAL)));
+                                 pType.getOptionType(CreTypePanel.TYPE_GENERAL));
               }
               if (pType.isActive(CreTypePanel.TYPE_CLASS)) {
                 retVal.setOption(SearchOptions.CRE_Class,
-                                 new Integer(pType.getOptionType(CreTypePanel.TYPE_CLASS)));
+                                 pType.getOptionType(CreTypePanel.TYPE_CLASS));
               }
               if (pType.isActive(CreTypePanel.TYPE_SPECIFICS)) {
                 retVal.setOption(SearchOptions.CRE_Specifics,
-                                 new Integer(pType.getOptionType(CreTypePanel.TYPE_SPECIFICS)));
+                                 pType.getOptionType(CreTypePanel.TYPE_SPECIFICS));
               }
               if (pType.isActive(CreTypePanel.TYPE_ALIGNMENT)) {
                 retVal.setOption(SearchOptions.CRE_Alignment,
-                                 new Integer(pType.getOptionType(CreTypePanel.TYPE_ALIGNMENT)));
+                                 pType.getOptionType(CreTypePanel.TYPE_ALIGNMENT));
               }
               if (pType.isActive(CreTypePanel.TYPE_GENDER)) {
                 if ((Boolean)Profile.getProperty(Profile.Key.IS_SUPPORTED_CRE_V22)) {
                   retVal.setOption(SearchOptions.CRE_Sex,
-                                   new Integer(pType.getOptionType(CreTypePanel.TYPE_GENDER)));
+                                   pType.getOptionType(CreTypePanel.TYPE_GENDER));
                 } else {
                   retVal.setOption(SearchOptions.CRE_Gender,
-                                   new Integer(pType.getOptionType(CreTypePanel.TYPE_GENDER)));
+                                   pType.getOptionType(CreTypePanel.TYPE_GENDER));
                 }
               }
               if (pType.isActive(CreTypePanel.TYPE_RACE)) {
                 retVal.setOption(SearchOptions.CRE_Race,
-                                 new Integer(pType.getOptionType(CreTypePanel.TYPE_RACE)));
+                                 pType.getOptionType(CreTypePanel.TYPE_RACE));
               }
               if (pType.isActive(CreTypePanel.TYPE_ALLEGIANCE)) {
                 retVal.setOption(SearchOptions.CRE_Allegiance,
-                                 new Integer(pType.getOptionType(CreTypePanel.TYPE_ALLEGIANCE)));
+                                 pType.getOptionType(CreTypePanel.TYPE_ALLEGIANCE));
               }
               if (pType.isActive(CreTypePanel.TYPE_KIT)) {
                 retVal.setOption(SearchOptions.CRE_Kit,
-                                 new Integer(pType.getOptionType(CreTypePanel.TYPE_KIT)));
+                                 pType.getOptionType(CreTypePanel.TYPE_KIT));
               }
               break;
             case ID_Scripts:
@@ -1141,7 +1140,7 @@ public class SearchResource extends ChildFrame
               }
               break;
             case ID_Animation:
-              retVal.setOption(SearchOptions.CRE_Animation, new Integer(getOptionAnimation()));
+              retVal.setOption(SearchOptions.CRE_Animation, getOptionAnimation());
               break;
             case ID_GameSpecific:
               if (pGameSpecific.isActive(CreGameSpecificPanel.TYPE_FEATS1)) {
@@ -1823,7 +1822,7 @@ public class SearchResource extends ChildFrame
               retVal.setOption(SearchOptions.ITM_Flags, pFlags.getOptionFlags());
               break;
             case ID_Category:
-              retVal.setOption(SearchOptions.ITM_Category, new Integer(getOptionCategory()));
+              retVal.setOption(SearchOptions.ITM_Category, getOptionCategory());
               break;
             case ID_Usability:
               if (pUsability.isActive(ItmUsabilityPanel.ITEM_UNUSABLE)) {
@@ -1888,19 +1887,19 @@ public class SearchResource extends ChildFrame
             {
               SearchOptions ability = new SearchOptions(SearchOptions.getResourceName(SearchOptions.ITM_Ability));
               if (pAbility.isActive(ItmAbilityPanel.ITEM_TYPE)) {
-                ability.setOption(SearchOptions.ITM_Ability_Type, new Integer(pAbility.getOptionType()));
+                ability.setOption(SearchOptions.ITM_Ability_Type, pAbility.getOptionType());
               }
               if (pAbility.isActive(ItmAbilityPanel.ITEM_TARGET)) {
-                ability.setOption(SearchOptions.ITM_Ability_Target, new Integer(pAbility.getOptionTarget()));
+                ability.setOption(SearchOptions.ITM_Ability_Target, pAbility.getOptionTarget());
               }
               if (pAbility.isActive(ItmAbilityPanel.ITEM_LAUNCHER)) {
-                ability.setOption(SearchOptions.ITM_Ability_Launcher, new Integer(pAbility.getOptionLauncher()));
+                ability.setOption(SearchOptions.ITM_Ability_Launcher, pAbility.getOptionLauncher());
               }
               if (pAbility.isActive(ItmAbilityPanel.ITEM_DAMAGETYPE)) {
-                ability.setOption(SearchOptions.ITM_Ability_DamageType, new Integer(pAbility.getOptionDamageType()));
+                ability.setOption(SearchOptions.ITM_Ability_DamageType, pAbility.getOptionDamageType());
               }
               if (pAbility.isActive(ItmAbilityPanel.ITEM_PROJECTILE)) {
-                ability.setOption(SearchOptions.ITM_Ability_Projectile, new Integer(pAbility.getOptionProjectile()));
+                ability.setOption(SearchOptions.ITM_Ability_Projectile, pAbility.getOptionProjectile());
               }
               if (pAbility.isActive(ItmAbilityPanel.ITEM_RANGE)) {
                 ability.setOption(SearchOptions.ITM_Ability_Range, pAbility.getOptionRange());
@@ -1932,7 +1931,7 @@ public class SearchResource extends ChildFrame
                 ability.setOption(SearchOptions.ITM_Ability_Flags, pAbility.getOptionFlags());
               }
               if (!ability.isEmpty()) {
-                ability.setOption(SearchOptions.ITM_Ability_MatchSingle, new Boolean(pAbility.isOptionOneAbilityExclusive()));
+                ability.setOption(SearchOptions.ITM_Ability_MatchSingle, pAbility.isOptionOneAbilityExclusive());
                 retVal.setOption(SearchOptions.ITM_Ability, ability);
               }
               break;
@@ -2060,16 +2059,7 @@ public class SearchResource extends ChildFrame
       pUsability = new ItmUsabilityPanel();
       bpwUsability = new ButtonPopupWindow(setOptionsText, pUsability);
 
-      Map<String, String> map = Profile.getEquippedAppearanceMap();
-      String[] keys = new String[(map != null) ? map.size() : 0];
-      String[] values = new String[keys.length];
-      int idx = 0;
-      for (final String key: map.keySet()) {
-        keys[idx] = key;
-        values[idx] = map.get(key);
-        idx++;
-      }
-      cbAppearance = new AutoComboBox<>(ObjectString.createString(values, keys));
+      cbAppearance = new AutoComboBox<>(ObjectString.from(Profile.getEquippedAppearanceMap()));
 
       cbCategory = new AutoComboBox<>(IndexedString.createArray(sCat, 0, 0));
 
@@ -2277,7 +2267,7 @@ public class SearchResource extends ChildFrame
               retVal.setOption(SearchOptions.PRO_Animation, getOptionAnimation());
               break;
             case ID_Type:
-              retVal.setOption(SearchOptions.PRO_Type, new Integer(getOptionType()));
+              retVal.setOption(SearchOptions.PRO_Type, getOptionType());
               break;
             case ID_Speed:
               retVal.setOption(SearchOptions.PRO_Speed, getOptionSpeed());
@@ -2298,7 +2288,7 @@ public class SearchResource extends ChildFrame
               retVal.setOption(SearchOptions.PRO_ExplosionSize, getOptionExplosionSize());
               break;
             case ID_ExplosionEffect:
-              retVal.setOption(SearchOptions.PRO_ExplosionEffect, new Integer(getOptionExplosionEffect()));
+              retVal.setOption(SearchOptions.PRO_ExplosionEffect, getOptionExplosionEffect());
               break;
             case ID_Custom:
               if (pCustomFilter.isActive(0)) {
@@ -2395,17 +2385,13 @@ public class SearchResource extends ChildFrame
       cbType = new AutoComboBox<>(IndexedString.createArray(new String[]{"No BAM", "Single target",
                                                                          "Area of effect"}, 0, 1));
 
-      long[] keys = ProAreaType.m_proj.keys();
-      Object[] values = ProAreaType.m_proj.values().toArray();
-      String[] strings = new String[values.length];
-      Integer[] objects = new Integer[keys.length];
-      for (int i = 0; i < keys.length; i++) {
-        objects[i] = new Integer((int)keys[i]);
+      final ObjectString[] items = new ObjectString[ProAreaType.m_proj.size()];
+      int i = 0;
+      for (Map.Entry<Long, String> e : ProAreaType.m_proj.entrySet()) {
+        items[i] = new ObjectString(e.getValue(), Integer.valueOf(e.getKey().intValue()));
+        ++i;
       }
-      for (int i = 0; i < values.length; i++) {
-        strings[i] = (String)values[i];
-      }
-      cbExplosionEffect = new AutoComboBox<>(ObjectString.createString(strings, objects));
+      cbExplosionEffect = new AutoComboBox<>(items);
 
       pBehavior = new FlagsPanel(4, ProResource.s_behave);
       bpwBehavior = new ButtonPopupWindow(setOptionsText, pBehavior);
@@ -2615,19 +2601,19 @@ public class SearchResource extends ChildFrame
               retVal.setOption(SearchOptions.SPL_Flags, pFlags.getOptionFlags());
               break;
             case ID_SpellType:
-              retVal.setOption(SearchOptions.SPL_SpellType, new Integer(getOptionSpellType()));
+              retVal.setOption(SearchOptions.SPL_SpellType, getOptionSpellType());
               break;
             case ID_Exclusion:
               retVal.setOption(SearchOptions.SPL_Exclusion, pExclusion.getOptionFlags());
               break;
             case ID_CastingAnimation:
-              retVal.setOption(SearchOptions.SPL_CastingAnimation, new Integer(getOptionCastingAnimation()));
+              retVal.setOption(SearchOptions.SPL_CastingAnimation, getOptionCastingAnimation());
               break;
             case ID_PrimaryType:
-              retVal.setOption(SearchOptions.SPL_PrimaryType, new Integer(getOptionPrimaryType()));
+              retVal.setOption(SearchOptions.SPL_PrimaryType, getOptionPrimaryType());
               break;
             case ID_SecondaryType:
-              retVal.setOption(SearchOptions.SPL_SecondaryType, new Integer(getOptionSecondaryType()));
+              retVal.setOption(SearchOptions.SPL_SecondaryType, getOptionSecondaryType());
               break;
             case ID_Level:
               retVal.setOption(SearchOptions.SPL_Level, getOptionLevel());
@@ -2636,13 +2622,13 @@ public class SearchResource extends ChildFrame
             {
               SearchOptions ability = new SearchOptions(SearchOptions.getResourceName(SearchOptions.SPL_Ability));
               if (pAbility.isActive(SplAbilityPanel.SPELL_TYPE)) {
-                ability.setOption(SearchOptions.SPL_Ability_Type, new Integer(pAbility.getOptionType()));
+                ability.setOption(SearchOptions.SPL_Ability_Type, pAbility.getOptionType());
               }
               if (pAbility.isActive(SplAbilityPanel.SPELL_LOCATION)) {
-                ability.setOption(SearchOptions.SPL_Ability_Location, new Integer(pAbility.getOptionLocation()));
+                ability.setOption(SearchOptions.SPL_Ability_Location, pAbility.getOptionLocation());
               }
               if (pAbility.isActive(SplAbilityPanel.SPELL_TARGET)) {
-                ability.setOption(SearchOptions.SPL_Ability_Target, new Integer(pAbility.getOptionTarget()));
+                ability.setOption(SearchOptions.SPL_Ability_Target, pAbility.getOptionTarget());
               }
               if (pAbility.isActive(SplAbilityPanel.SPELL_RANGE)) {
                 ability.setOption(SearchOptions.SPL_Ability_Range, pAbility.getOptionRange());
@@ -2654,7 +2640,7 @@ public class SearchResource extends ChildFrame
                 ability.setOption(SearchOptions.SPL_Ability_Speed, pAbility.getOptionSpeed());
               }
               if (pAbility.isActive(SplAbilityPanel.SPELL_PROJECTILE)) {
-                ability.setOption(SearchOptions.SPL_Ability_Projectile, new Integer(pAbility.getOptionProjectile()));
+                ability.setOption(SearchOptions.SPL_Ability_Projectile, pAbility.getOptionProjectile());
               }
               if (pAbility.isActive(SplAbilityPanel.SPELL_EFFECTS)) {
                 if (pAbility.pEffects.isActive(0)) {
@@ -2668,7 +2654,7 @@ public class SearchResource extends ChildFrame
                 }
               }
               if (!ability.isEmpty()) {
-                ability.setOption(SearchOptions.SPL_Ability_MatchSingle, new Boolean(pAbility.isOptionOneAbilityExclusive()));
+                ability.setOption(SearchOptions.SPL_Ability_MatchSingle, pAbility.isOptionOneAbilityExclusive());
                 retVal.setOption(SearchOptions.SPL_Ability, ability);
               }
               break;
@@ -3015,26 +3001,26 @@ public class SearchResource extends ChildFrame
               retVal.setOption(SearchOptions.STO_Name, getOptionName());
               break;
             case ID_Type:
-              retVal.setOption(SearchOptions.STO_Type, new Integer(getOptionType()));
+              retVal.setOption(SearchOptions.STO_Type, getOptionType());
               break;
             case ID_Flags:
               retVal.setOption(SearchOptions.STO_Flags, pFlags.getOptionFlags());
               break;
             case ID_Purchased:
               if (pPurchased.isActive(0)) {
-                retVal.setOption(SearchOptions.STO_Purchased1, new Integer(pPurchased.getOptionPurchased(0)));
+                retVal.setOption(SearchOptions.STO_Purchased1, pPurchased.getOptionPurchased(0));
               }
               if (pPurchased.isActive(1)) {
-                retVal.setOption(SearchOptions.STO_Purchased2, new Integer(pPurchased.getOptionPurchased(1)));
+                retVal.setOption(SearchOptions.STO_Purchased2, pPurchased.getOptionPurchased(1));
               }
               if (pPurchased.isActive(2)) {
-                retVal.setOption(SearchOptions.STO_Purchased3, new Integer(pPurchased.getOptionPurchased(2)));
+                retVal.setOption(SearchOptions.STO_Purchased3, pPurchased.getOptionPurchased(2));
               }
               if (pPurchased.isActive(3)) {
-                retVal.setOption(SearchOptions.STO_Purchased4, new Integer(pPurchased.getOptionPurchased(3)));
+                retVal.setOption(SearchOptions.STO_Purchased4, pPurchased.getOptionPurchased(3));
               }
               if (pPurchased.isActive(4)) {
-                retVal.setOption(SearchOptions.STO_Purchased5, new Integer(pPurchased.getOptionPurchased(4)));
+                retVal.setOption(SearchOptions.STO_Purchased5, pPurchased.getOptionPurchased(4));
               }
               break;
             case ID_RoomsAvailable:
@@ -3572,7 +3558,7 @@ public class SearchResource extends ChildFrame
 
     public Pair<Object> getOptionFlags()
     {
-      return new Pair<Object>(getFlagData(), new Boolean(isExact()));
+      return new Pair<>(getFlagData(), isExact());
     }
 
     private boolean isExact()
@@ -4547,20 +4533,20 @@ public class SearchResource extends ChildFrame
           new AutoComboBox<>(Utils.getIdsMapEntryList(
               new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Allegiance", "EA.IDS"))), defaultSize);
 
-      StorageString[] kitList;
+      final StorageString[] kitList;
       if (Profile.getEngine() == Profile.Engine.IWD2) {
         IdsMapEntry[] ids = Utils.getIdsMapEntryList(
             new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Allegiance", "KIT.IDS"));
         kitList = new StorageString[ids.length];
         for (int i = 0; i < kitList.length; i++) {
-          kitList[i] = new ObjectString(ids[i].getSymbol(), new Integer((int)ids[i].getID()));
+          kitList[i] = new ObjectString(ids[i].getSymbol(), (int)ids[i].getID());
         }
       } else if (hasKit) {
         KitIdsBitmap kit = new KitIdsBitmap(StreamUtils.getByteBuffer(4), 0, "");
         kitList = new StorageString[kit.getIdsMapEntryCount()];
         for (int i = 0; i < kitList.length; i++) {
           IdsMapEntry e = kit.getIdsMapEntryByIndex(i);
-          kitList[i] = new ObjectString(e.getSymbol(), new Integer((int)e.getID()));
+          kitList[i] = new ObjectString(e.getSymbol(), (int)e.getID());
         }
       } else {
         kitList = new StorageString[]{};
@@ -6201,58 +6187,59 @@ public class SearchResource extends ChildFrame
     public Object getObject();
   }
 
-  // associates strings with a unique integer number
-  private static class IndexedString implements StorageString
+  /** Associates strings with a unique integer number. */
+  //TODO: Can be removed and replaced by org.infinity.util.ObjectString
+  private static final class IndexedString implements StorageString
   {
-    private String s;
-    private int index;
+    private final String s;
+    private final int index;
 
-    // automatically create string/index pairs from string array
+    /** Automatically create string/index pairs from string array. */
     public static IndexedString[] createArray(String[] strings, int startIndex, int ofsIndex)
     {
-      IndexedString[] retVal = null;
-      if (strings != null && startIndex < strings.length) {
-        retVal = new IndexedString[strings.length - startIndex];
-        for (int i = startIndex; i < strings.length; i++) {
-          retVal[i - startIndex] = new IndexedString(strings[i], i - startIndex + ofsIndex);
-        }
-      } else {
-        retVal = new IndexedString[0];
+      if (strings == null || startIndex >= strings.length) {
+        return new IndexedString[0];
       }
 
+      final IndexedString[] retVal = new IndexedString[strings.length - startIndex];
+      for (int i = 0; i < retVal.length; ++i) {
+        retVal[i] = new IndexedString(strings[startIndex + i], i + ofsIndex);
+      }
       return retVal;
     }
 
-    // automatically create string/index pairs from HashBitmap source
-    public static IndexedString[] createArray(LongIntegerHashMap<String> map)
+    /** Automatically create string/index pairs from HashBitmap source. */
+    public static IndexedString[] createArray(Map<? extends Number, String> map)
     {
-      IndexedString[] retVal = null;
-      if (map != null) {
-        long[] keys = map.keys();
-        retVal = new IndexedString[keys.length];
-        for (int i = 0; i < keys.length; i++) {
-          retVal[i] = new IndexedString(map.get(keys[i]), (int)keys[i]);
-        }
-      } else {
-        retVal = new IndexedString[0];
+      if (map == null) {
+        return new IndexedString[0];
+      }
+
+      final IndexedString[] retVal = new IndexedString[map.size()];
+      int i = 0;
+      for (Map.Entry<? extends Number, String> e : map.entrySet()) {
+        retVal[i] = new IndexedString(e.getValue(), e.getKey().intValue());
+        ++i;
       }
       return retVal;
     }
 
     public IndexedString(String s, int index)
     {
-      this.s = (s != null) ? (s.isEmpty() ? "Unknown" : s) : "Unknown";
+      this.s = (s == null || s.isEmpty()) ? "Unknown" : s;
       this.index = index;
     }
 
+    @Override
     public String getString()
     {
       return s;
     }
 
+    @Override
     public Object getObject()
     {
-      return new Integer(index);
+      return Integer.valueOf(index);
     }
 
     @Override
@@ -6262,39 +6249,37 @@ public class SearchResource extends ChildFrame
     }
   }
 
-  // associates strings with parameterized objects
-  private static class ObjectString implements StorageString
+  /** Associates strings with parameterized objects. */
+  //TODO: Can be replaced by org.infinity.util.ObjectString after some tweaking
+  private static final class ObjectString implements StorageString
   {
-    private String s;
-    private Object o;
+    private final String s;
+    private final Object o;
 
-    public static ObjectString[] createString(String[] strings, Object[] objects)
+    public static ObjectString[] from(Map<?, String> map)
     {
-      ObjectString[] retVal = null;
-      if (strings != null) {
-        retVal = new ObjectString[strings.length];
-        for (int i = 0; i < strings.length; i++) {
-          Object o = (objects != null) ? ((objects.length > i) ? objects[i] : null) : null;
-          retVal[i] = new ObjectString(strings[i], o);
-        }
-      } else {
-        retVal = new ObjectString[0];
+      final ObjectString[] items = new ObjectString[map.size()];
+      int i = 0;
+      for (Map.Entry<?, String> e : map.entrySet()) {
+        items[i] = new ObjectString(e.getValue(), e.getKey());
+        ++i;
       }
-
-      return retVal;
+      return items;
     }
 
     public ObjectString(String s, Object o)
     {
-      this.s = (s != null) ? (s.isEmpty() ? "Unknown" : s) : "Unknown";
+      this.s = (s == null || s.isEmpty() ? "Unknown" : s);
       this.o = o;
     }
 
+    @Override
     public String getString()
     {
       return s;
     }
 
+    @Override
     public Object getObject()
     {
       return o;
@@ -6624,7 +6609,7 @@ public class SearchResource extends ChildFrame
     }
   }
 
-  // Adds "auto-select item" feature to JComboBox
+  /** Adds "auto-select item" feature to JComboBox. */
   public static class AutoComboBox<E> extends JComboBox<E>
   {
     public AutoComboBox()
@@ -6658,7 +6643,7 @@ public class SearchResource extends ChildFrame
     }
   }
 
-  // Implements the auto-selection of items for AutoComboBox
+  /** Implements the auto-selection of items for {@link #AutoComboBox}. */
   private static class AutoDocument<E> extends PlainDocument
   {
     private final FocusListener editorFocusListener;

@@ -10,7 +10,6 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import org.infinity.resource.StructEntry;
 import org.infinity.util.io.ByteBufferOutputStream;
@@ -22,7 +21,7 @@ public abstract class Datatype implements StructEntry
   protected static final Dimension DIM_BROAD = new Dimension(650, 100);
   protected static final Dimension DIM_MEDIUM = new Dimension(450, 100);
 
-  private final List<UpdateListener> listeners = new ArrayList<UpdateListener>();
+  private final List<UpdateListener> listeners = new ArrayList<>();
   private final int length;
 
   private String name;
@@ -56,9 +55,9 @@ public abstract class Datatype implements StructEntry
 // --------------------- Begin Interface StructEntry ---------------------
 
   @Override
-  public Object clone() throws CloneNotSupportedException
+  public Datatype clone() throws CloneNotSupportedException
   {
-    return super.clone();
+    return (Datatype)super.clone();
   }
 
   @Override
@@ -86,7 +85,7 @@ public abstract class Datatype implements StructEntry
     if (newName != null) {
       name = newName;
     } else {
-      throw new NullPointerException();
+      throw new NullPointerException("Name of struct field must not be null");
     }
   }
 
@@ -105,7 +104,7 @@ public abstract class Datatype implements StructEntry
   @Override
   public List<StructEntry> getStructChain()
   {
-    List<StructEntry> list = new Vector<StructEntry>();
+    final List<StructEntry> list = new ArrayList<>();
     StructEntry e = this;
     while (e != null) {
       list.add(0, e);
@@ -208,32 +207,28 @@ public abstract class Datatype implements StructEntry
 
   void writeInt(OutputStream os, int value) throws IOException
   {
-    if (getSize() == 4) {
-      StreamUtils.writeInt(os, value);
-    } else if (getSize() == 3) {
-      StreamUtils.writeInt24(os, value);
-    } else if (getSize() == 2) {
-      StreamUtils.writeShort(os, (short)value);
-    } else if (getSize() == 1) {
-      StreamUtils.writeByte(os, (byte)value);
-    } else {
-      throw new IllegalArgumentException();
+    final int size = getSize();
+    switch (size) {
+      case 4:
+        StreamUtils.writeInt(os, value);
+        break;
+      case 3:
+        StreamUtils.writeInt24(os, value);
+        break;
+      case 2:
+        StreamUtils.writeShort(os, (short)value);
+        break;
+      case 1:
+        StreamUtils.writeByte(os, (byte)value);
+        break;
+      default:
+        throw new IllegalArgumentException("Field '"+name+"' of class "+getClass()+" has unsupported size; expected one of 1-4, but it has "+size);
     }
   }
 
   void writeLong(OutputStream os, long value) throws IOException
   {
-    if (getSize() == 4) {
-      StreamUtils.writeInt(os, (int)value);
-    } else if (getSize() == 3) {
-      StreamUtils.writeInt24(os, (int)value);
-    } else if (getSize() == 2) {
-      StreamUtils.writeShort(os, (short)value);
-    } else if (getSize() == 1) {
-      StreamUtils.writeByte(os, (byte)value);
-    } else {
-      throw new IllegalArgumentException();
-    }
+    writeInt(os, (int)value);
   }
 }
 

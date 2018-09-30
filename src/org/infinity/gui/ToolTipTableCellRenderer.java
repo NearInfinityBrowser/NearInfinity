@@ -21,7 +21,7 @@ public final class ToolTipTableCellRenderer extends DefaultTableCellRenderer
 
     if (table.getColumnModel().getColumn(column).getWidth() <
         getFontMetrics(getFont()).stringWidth(getText())) {
-      StringBuffer sb = new StringBuffer("<html>");
+      final StringBuilder sb = new StringBuilder("<html>");
       String string = getText();
       int index = 0;
       while (index < string.length()) {

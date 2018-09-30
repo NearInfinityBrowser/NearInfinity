@@ -8,7 +8,6 @@ import java.awt.Component;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,7 +15,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -32,10 +30,8 @@ import org.infinity.gui.StructViewer;
 import org.infinity.resource.are.Actor;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.dlg.AbstractCode;
-import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.ByteBufferOutputStream;
-import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
 public abstract class AbstractStruct extends AbstractTableModel implements StructEntry, Viewable, Closeable
@@ -101,7 +97,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   protected AbstractStruct(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
-    list = new ArrayList<StructEntry>();
+    list = new ArrayList<>();
     name = entry.toString();
     ByteBuffer bb = entry.getResourceBuffer();
     endoffset = read(bb, 0);
@@ -117,7 +113,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     this.superStruct = superStruct;
     this.name = name;
     this.startoffset = startoffset;
-    list = new ArrayList<StructEntry>(listSize);
+    list = new ArrayList<>(listSize);
   }
 
   protected AbstractStruct(AbstractStruct superStruct, String name, ByteBuffer buffer, int startoffset)
@@ -148,21 +144,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public void close() throws Exception
   {
     if (structChanged && viewer != null && this instanceof Resource && superStruct == null) {
-      Path outPath;
-      if (entry instanceof BIFFResourceEntry) {
-        outPath = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
-      } else {
-        outPath = entry.getActualPath();
-      }
-      String options[] = {"Save changes", "Discard changes", "Cancel"};
-      int result = JOptionPane.showOptionDialog(viewer, "Save changes to " + outPath + '?', "Resource changed",
-                                                JOptionPane.YES_NO_CANCEL_OPTION,
-                                                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0) {
-        ResourceFactory.saveResource((Resource)this, viewer.getTopLevelAncestor());
-      } else if (result != 1) {
-        throw new Exception("Save aborted");
-      }
+      ResourceFactory.closeResource((Resource)this, entry, viewer);
     }
     if (viewer != null) {
       viewer.close();
@@ -187,14 +169,14 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 // --------------------- Begin Interface StructEntry ---------------------
 
   @Override
-  public Object clone() throws CloneNotSupportedException
+  public AbstractStruct clone() throws CloneNotSupportedException
   {
-    AbstractStruct newstruct = (AbstractStruct)super.clone();
+    final AbstractStruct newstruct = (AbstractStruct)super.clone();
     newstruct.superStruct = null;
-    newstruct.list = new ArrayList<StructEntry>(list.size());
+    newstruct.list = new ArrayList<>(list.size());
     newstruct.viewer = null;
-    for (int i = 0; i < list.size(); i++)
-      newstruct.list.add((StructEntry)list.get(i).clone());
+    for (StructEntry e : list)
+      newstruct.list.add(e.clone());
 //    for (Iterator i = newstruct.list.iterator(); i.hasNext();) {
 //      StructEntry sentry = (StructEntry)i.next();
 //      if (sentry.getOffset() <= 0)
@@ -262,7 +244,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   @Override
   public List<StructEntry> getStructChain()
   {
-    List<StructEntry> list = new Vector<StructEntry>();
+    final List<StructEntry> list = new ArrayList<>();
     StructEntry e = this;
     while (e != null) {
       list.add(0, e);
@@ -406,7 +388,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public String toString()
   {
     // limit text length to speed things up
-    StringBuffer sb = new StringBuffer(160);
+    final StringBuilder sb = new StringBuilder(160);
     for (int i = 0, count = getFieldCount(); i < count; i++) {
       StructEntry datatype = getField(i);
       String text = datatype.getName() + ": " + datatype.toString() + ',';
@@ -949,7 +931,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   public String toMultiLineString()
   {
-    StringBuffer sb = new StringBuffer(30 * list.size());
+    StringBuilder sb = new StringBuilder(30 * list.size());
     for (int i = 0; i < list.size(); i++) {
       StructEntry datatype = list.get(i);
       sb.append(datatype.getName()).append(": ").append(datatype.toString()).append('\n');

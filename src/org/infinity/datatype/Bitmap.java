@@ -31,7 +31,7 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
 {
   private final String[] table;
 
-  private TextListPanel list;
+  private TextListPanel<String> list;
   private int value;
 
   public Bitmap(ByteBuffer buffer, int offset, int length, String name, String[] table)
@@ -51,11 +51,11 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
   @Override
   public JComponent edit(final ActionListener container)
   {
-    List<String> values = new ArrayList<String>(Math.max(table.length, value + 1));
+    final List<String> values = new ArrayList<>(Math.max(table.length, value + 1));
     for (int i = 0; i < Math.max(table.length, value + 1); i++) {
       values.add(toString(i));
     }
-    list = new TextListPanel(values, false);
+    list = new TextListPanel<>(values, false);
     list.addMouseListener(new MouseAdapter()
     {
       @Override
@@ -109,8 +109,9 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
   public boolean updateValue(AbstractStruct struct)
   {
     // updating value
-    String svalue = (String)list.getSelectedValue();
+    final String svalue = list.getSelectedValue();
     value = 0;
+    //FIXME: Ineffective code
     while (!svalue.equals(toString(value))) {
       value++;
     }
@@ -200,7 +201,7 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
     } else if (table[nr] == null || table[nr].equals("")) {
       return "Unknown (" + nr + ')';
     } else {
-      return new StringBuffer(table[nr]).append(" (").append(nr).append(')').toString();
+      return table[nr] + " (" + nr + ')';
     }
   }
 }

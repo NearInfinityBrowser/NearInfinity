@@ -1376,6 +1376,15 @@ public final class Profile implements FileWatcher.FileWatchListener
       if (ini != null && Files.isRegularFile(ini)) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
+    } else if (game == Game.Tutu ||
+        Files.isRegularFile(FileManager.query(gameRoots, "bg1tutu.exe")) ||
+        Files.isRegularFile(FileManager.query(gameRoots, "bg1mov/MovieCD1.bif"))) {
+      if (game == null) game = Game.Tutu;
+      addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
+      Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
+      if (ini != null && Files.isRegularFile(ini)) {
+        addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
+      }
     } else if (game == Game.BG2SoA || game == Game.BG2ToB || game == Game.BGT ||
                (Files.isRegularFile(FileManager.query(gameRoots, "baldur.exe"))) &&
                (Files.isRegularFile(FileManager.query(gameRoots, "BGConfig.exe")))) {
@@ -1390,14 +1399,6 @@ public final class Profile implements FileWatcher.FileWatchListener
                ((Files.isRegularFile(FileManager.query(gameRoots, "baldur.exe"))) &&
                 (Files.isRegularFile(FileManager.query(gameRoots, "Config.exe"))))) {
       if (game == null) game = Game.BG1;
-      addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
-      Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
-      if (ini != null && Files.isRegularFile(ini)) {
-        addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
-      }
-    } else if (game == Game.Tutu ||
-               Files.isRegularFile(FileManager.query(gameRoots, "bg1tutu.exe"))) {
-      if (game == null) game = Game.Tutu;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
       if (ini != null && Files.isRegularFile(ini)) {
@@ -1669,9 +1670,9 @@ public final class Profile implements FileWatcher.FileWatchListener
 
       // putting all root folders into a list ordered by priority (highest first)
       List<Path> gameRoots = new ArrayList<>();
-      gameRoots.add(gameRoot);
-      dlcRoots.forEach((path) -> gameRoots.add(path));
       gameRoots.add(homeRoot);
+      dlcRoots.forEach((path) -> gameRoots.add(path));
+      gameRoots.add(gameRoot);
 
       // registering override paths
       for (final Path root: gameRoots) {

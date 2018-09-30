@@ -41,7 +41,7 @@ public class MvePlayer
     for (int i = 0; i < renderer.bufferCount() && decoder.hasNextFrame(); i++) {
       if (decoder.processNextFrame()) {
         // attached frame data contains current frame delay as Integer object
-        renderer.attachData(new Integer(decoder.getFrameDelay()));
+        renderer.attachData(decoder.getFrameDelay());
         if (decoder.audioInitialized())
           initAudio(decoder);
       } else {
@@ -64,7 +64,7 @@ public class MvePlayer
       }
 
       if (decoder.processNextFrame()) {
-        renderer.attachData(new Integer(decoder.getFrameDelay()));
+        renderer.attachData(decoder.getFrameDelay());
         // has audio been re-initialized?
         if (decoder.audioInitialized()) {
           setTimerDelay(0L);

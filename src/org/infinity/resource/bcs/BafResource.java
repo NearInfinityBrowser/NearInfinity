@@ -18,7 +18,6 @@ import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Set;
@@ -54,12 +53,10 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
-import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StaticSimpleXorDecryptor;
-import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
 public class BafResource implements TextResource, Writeable, Closeable, ItemListener, ActionListener,
@@ -128,20 +125,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
   public void close() throws Exception
   {
     if (sourceChanged) {
-      Path output;
-      if (entry instanceof BIFFResourceEntry) {
-        output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
-      } else {
-        output = entry.getActualPath();
-      }
-      String options[] = {"Save changes", "Discard changes", "Cancel"};
-      int result = JOptionPane.showOptionDialog(panel, "Save changes to " + output + '?', "Resource changed",
-                                                JOptionPane.YES_NO_CANCEL_OPTION,
-                                                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0)
-        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
-      else if (result != 1)
-        throw new Exception("Save aborted");
+      ResourceFactory.closeResource(this, entry, panel);
     }
   }
 

@@ -15,7 +15,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -26,7 +25,6 @@ import java.util.regex.Pattern;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
@@ -44,13 +42,11 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
-import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.Misc;
-import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
 public final class PlainTextResource implements TextResource, Writeable, ActionListener, ItemListener,
@@ -101,7 +97,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.TRIM_SPACES) == event.getSource()) {
-      StringBuffer newText = new StringBuffer(editor.getText().length());
+      final StringBuilder newText = new StringBuilder(editor.getText().length());
       StringTokenizer st = new StringTokenizer(editor.getText(), "\n");
       while (st.hasMoreTokens()) {
         newText.append(st.nextToken().trim()).append('\n');
@@ -120,21 +116,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   public void close() throws Exception
   {
     if (resourceChanged) {
-      Path output;
-      if (entry instanceof BIFFResourceEntry) {
-        output = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName(), entry.toString());
-      } else {
-        output = entry.getActualPath();
-      }
-      String options[] = {"Save changes", "Discard changes", "Cancel"};
-      int result = JOptionPane.showOptionDialog(panel, "Save changes to " + output + '?', "Resource changed",
-                                                JOptionPane.YES_NO_CANCEL_OPTION,
-                                                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0) {
-        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
-      } else if (result != 1) {
-        throw new Exception("Save aborted");
-      }
+      ResourceFactory.closeResource(this, entry, panel);
     }
   }
 

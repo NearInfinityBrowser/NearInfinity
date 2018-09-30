@@ -9,10 +9,11 @@ import java.util.EventObject;
 import org.infinity.resource.AbstractStruct;
 
 /**
- * Used in conjunction with {@code org.infinity.datatype.Editable}'s updateValue() method.
+ * Used in conjunction with {@link Editable}'s updateValue() method.
  */
 public class UpdateEvent extends EventObject
 {
+  /** Struct which field is updated. */
   private final AbstractStruct struct;
 
   public UpdateEvent(Object source, AbstractStruct struct)

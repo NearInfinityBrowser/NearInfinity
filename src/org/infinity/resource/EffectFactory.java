@@ -3519,11 +3519,15 @@ public final class EffectFactory
 
       case 279: // Enable button
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        if (isTobEx) {
-          String[] buttons = new String[15];
+        if (isTobEx || Profile.isEnhancedEdition()) {
+          int size = isTobEx ? 15 : 16;
+          String[] buttons = new String[size];
           System.arraycopy(s_button, 0, buttons, 0, 14);
           buttons[10] = "Bard song";
           buttons[14] = "Find traps";
+          if (Profile.isEnhancedEdition()) {
+            buttons[15] = "Inventory screen";
+          }
           s.add(new Bitmap(buffer, offset + 4, 4, "Button", buttons));
         } else {
           s.add(new Bitmap(buffer, offset + 4, 4, "Button", s_button));
@@ -3551,10 +3555,20 @@ public final class EffectFactory
             "Immune to Tracking", "Dead Magic", "Immune to Timestop", "Immune to Sequester", "Stoneskins Golem",
             "Level Drain", "Do Not Draw"};
         if (Profile.isEnhancedEdition()) {
-          list[6] = "Wizard Spell Immunity";
-          list[7] = "Wizard Protection from Energy";
-          list[8] = "Wizard Spell Trap";
-          list[9] = "Wizard Improved Alacrity";
+          list[0] += " / Wing Buffet";
+          list[1] += " / Death Ward";
+          list[2] += " / Level Drain Immunity";
+          list[3] += " / Offensive Modifier";
+          list[4] += " / Defensive Modifier";
+          list[5] += " / Defensive Modifier";
+          list[6] += " / Wizard Spell Immunity";
+          list[7] += " / Wizard Protection from Energy";
+          list[8] += " / Wizard Spell Trap";
+          list[9] += " / Wizard Improved Alacrity";
+        }
+        for (int i = 10; i < list.length; i++) {
+          // only first 10 scripting states are officially supported by this opcode
+          list[i] += " [undocumented]";
         }
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         s.add(new Bitmap(buffer, offset + 4, 4, "State", list));
@@ -5181,6 +5195,10 @@ public final class EffectFactory
             default:
               s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           }
+          break;
+
+        case 290: // Change title
+            s.add(new IdsBitmap(buffer, offset, 4, "Class override", "CLASS.IDS"));
           break;
 
         case 301: // Critical hit bonus

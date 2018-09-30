@@ -278,12 +278,12 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     @Override
     public String toString()
     {
-      StringBuffer buf = new StringBuffer("File: ");
+      final StringBuilder buf = new StringBuilder("File: ");
       buf.append(entry.toString());
       if (name != null)
         buf.append("  Name: ").append(name);
       if (ref != null)
-        buf.append("  Attribute: ").append(ref.getName() + '=' + ref);
+        buf.append("  Attribute: ").append(ref.getName()).append('=').append(ref);
       return buf.toString();
     }
   }

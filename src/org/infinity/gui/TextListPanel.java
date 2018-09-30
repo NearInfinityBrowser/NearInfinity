@@ -25,19 +25,19 @@ import javax.swing.event.ListSelectionListener;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 
-public final class TextListPanel extends JPanel implements DocumentListener, ListSelectionListener
+public final class TextListPanel<E> extends JPanel implements DocumentListener, ListSelectionListener
 {
   private boolean sortValues = true;
-  private final SimpleListModel<Object> listmodel = new SimpleListModel<Object>();
-  private final JList<Object> list;
+  private final SimpleListModel<E> listmodel = new SimpleListModel<>();
+  private final JList<E> list;
   private final JTextField tfield = new JTextField(10);
 
-  public TextListPanel(List<? extends Object> values)
+  public TextListPanel(List<? extends E> values)
   {
     this(values, true);
   }
 
-  public TextListPanel(List<? extends Object> values, boolean sortValues)
+  public TextListPanel(List<? extends E> values, boolean sortValues)
   {
     this.sortValues = sortValues;
     setValues(values);
@@ -118,7 +118,7 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
     list.ensureIndexIsVisible(i);
   }
 
-  public ListModel<Object> getModel()
+  public ListModel<E> getModel()
   {
     return listmodel;
   }
@@ -128,7 +128,7 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
     return list.getSelectedIndex();
   }
 
-  public Object getSelectedValue()
+  public E getSelectedValue()
   {
     return list.getSelectedValue();
   }
@@ -140,13 +140,13 @@ public final class TextListPanel extends JPanel implements DocumentListener, Lis
     tfield.setText(list.getSelectedValue().toString());
   }
 
-  public void setSelectedValue(Object value, boolean shouldScroll)
+  public void setSelectedValue(E value, boolean shouldScroll)
   {
     list.setSelectedValue(value, shouldScroll);
     tfield.setText(value.toString());
   }
 
-  public void setValues(List<? extends Object> values)
+  public void setValues(List<? extends E> values)
   {
     if (this.sortValues) {
       Collections.sort(values, Misc.getIgnoreCaseComparator());

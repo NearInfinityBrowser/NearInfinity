@@ -68,7 +68,7 @@ public class ResourceBitmap extends Datatype
   private final String defaultLabel;
   private final String formatString;
   private JButton bView;
-  private TextListPanel list;
+  private TextListPanel<RefEntry> list;
   private long value;
 
   public ResourceBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
@@ -108,15 +108,10 @@ public class ResourceBitmap extends Datatype
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bView) {
-      Object selected = list.getSelectedValue();
-      if (selected instanceof RefEntry) {
-        RefEntry re = (RefEntry)selected;
-        ResourceEntry entry = re.getResourceEntry();
-        if (entry != null) {
-          new ViewFrame(list.getTopLevelAncestor(), ResourceFactory.getResource(entry));
-        } else {
-          new ViewFrame(list.getTopLevelAncestor(), null);
-        }
+      final RefEntry selected = list.getSelectedValue();
+      if (selected != null) {
+        final ResourceEntry entry = selected.getResourceEntry();
+        new ViewFrame(list.getTopLevelAncestor(), entry == null ? null : ResourceFactory.getResource(entry));
       }
     }
   }
@@ -128,11 +123,8 @@ public class ResourceBitmap extends Datatype
   @Override
   public void valueChanged(ListSelectionEvent e)
   {
-    Object selected = list.getSelectedValue();
-    if (selected instanceof RefEntry) {
-      RefEntry re = (RefEntry)selected;
-      bView.setEnabled(re.isResource());
-    }
+    final RefEntry selected = list.getSelectedValue();
+    bView.setEnabled(selected != null && selected.isResource());
   }
 
 //--------------------- End Interface ListSelectionListener ---------------------
@@ -142,7 +134,7 @@ public class ResourceBitmap extends Datatype
   @Override
   public JComponent edit(final ActionListener container)
   {
-    list = new TextListPanel(resources, false);
+    list = new TextListPanel<>(resources, false);
     list.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent event)
@@ -168,8 +160,7 @@ public class ResourceBitmap extends Datatype
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
     bView = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
     bView.addActionListener(this);
-    bView.setEnabled(list.getSelectedValue() instanceof RefEntry &&
-                     ((RefEntry)list.getSelectedValue()).isResource());
+    bView.setEnabled(curEntry != null && curEntry.isResource());
     list.addListSelectionListener(this);
 
     GridBagLayout gbl = new GridBagLayout();
@@ -212,14 +203,12 @@ public class ResourceBitmap extends Datatype
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
-    Object selected = list.getSelectedValue();
-    if (selected instanceof RefEntry) {
-      RefEntry re = (RefEntry)selected;
-      value = re.getValue();
-    } else {
+    final RefEntry selected = list.getSelectedValue();
+    if (selected == null) {
       return false;
     }
 
+    value = selected.getValue();
     // notifying listeners
     fireValueUpdated(new UpdateEvent(this, struct));
 

@@ -131,7 +131,6 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
 
    int selection = Math.min(colorList.getModel().getSize(), Math.max(0, getValue()));
    colorList.setSelectedIndex(selection);
-   select();
 
    JButton bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
    bUpdate.addActionListener(container);

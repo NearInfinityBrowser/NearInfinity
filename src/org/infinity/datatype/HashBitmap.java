@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -76,14 +77,10 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
   @Override
   public JComponent edit(final ActionListener container)
   {
-    long[] keys = idsmap.keys();
-    List<Object> items = new ArrayList<Object>(keys.length);
-    for (final long id : keys) {
-      if (idsmap.containsKey(id)) {
-        Object o = idsmap.get(id);
-        if (o != null) {
-          items.add(o);
-        }
+    final List<Object> items = new ArrayList<>(idsmap.size());
+    for (Object o : idsmap.values()) {
+      if (o != null) {//TODO: It seems that map never contains nulls and this check can be removed
+        items.add(o);
       }
     }
     list = new TextListPanel(items, sortByName);
@@ -294,12 +291,6 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
     return idsmap.size();
   }
 
-  /** Returns an array of numeric IDS values */
-  public long[] getKeys()
-  {
-    return idsmap.keys();
-  }
-
   /** Returns the textual representation of the specified IDS value. */
   public Object getValueOf(long key)
   {
@@ -314,7 +305,7 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
       if (o instanceof ObjectString) {
         return ((ObjectString)o).getString();
       } else {
-        int i = o.toString().lastIndexOf(" - ");
+        int i = o.toString().lastIndexOf(" - ");//FIXME: Smell code
         if (i >= 0) {
           return o.toString().substring(0, i);
         }
@@ -331,7 +322,7 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
       if (item instanceof ObjectString && ((ObjectString)item).getObject() instanceof Number) {
         retVal = ((Number)((ObjectString)item).getObject()).longValue();
       } else {
-        int i = item.toString().lastIndexOf(" - ");
+        int i = item.toString().lastIndexOf(" - ");//FIXME: Smell code
         try {
           retVal = Long.parseLong(item.toString().substring(i + 3));
         } catch (NumberFormatException e) {
@@ -349,12 +340,12 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
 
   private static LongIntegerHashMap<? extends Object> normalizeHashMap(LongIntegerHashMap<? extends Object> map)
   {
-    if (map != null && !map.isEmpty() && map.get(map.keys()[0]) instanceof String) {
-      LongIntegerHashMap<ObjectString> retVal = new LongIntegerHashMap<ObjectString>();
-      long[] keys = map.keys();
-      for (final long key: keys) {
-        retVal.put(Long.valueOf(key), new ObjectString(map.get(key).toString(), Long.valueOf(key),
-                                                       ObjectString.FMT_OBJECT_HYPHEN));
+    //TODO: The smelling code. It seems that there is a check on the fact that the map contains String's
+    if (map != null && !map.isEmpty() && map.firstEntry().getValue() instanceof String) {
+      final LongIntegerHashMap<ObjectString> retVal = new LongIntegerHashMap<>();
+      for (Map.Entry<Long, ? extends Object> e : map.entrySet()) {
+        retVal.put(e.getKey(), new ObjectString(e.getValue().toString(), e.getKey(),
+                                                ObjectString.FMT_OBJECT_HYPHEN));
       }
       return retVal;
     } else if (map == null) {

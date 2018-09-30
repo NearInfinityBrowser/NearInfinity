@@ -120,6 +120,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
   // Identifiers for card layout elements
   private static final String CARD_EMPTY        = "Empty";
+  /** Identifier of the container for {@link Editable} field of the {@code struct}. */
   private static final String CARD_EDIT         = "Edit";
   private static final String CARD_TEXT         = "Text";
 
@@ -408,10 +409,16 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   @Override
   public void actionPerformed(ActionEvent event)
   {
+    final String cmd = event.getActionCommand();
+    final ListSelectionModel lsm = table.getSelectionModel();
+
+    final int min = lsm.getMinSelectionIndex();
+    final int max = lsm.getMaxSelectionIndex();
+
     if (event.getSource() instanceof JComponent &&
         buttonPanel.getControlPosition((JComponent)event.getSource()) >= 0) {
       if (buttonPanel.getControlByType(ButtonPanel.Control.VIEW_EDIT) == event.getSource()) {
-        Viewable selected = (Viewable)table.getModel().getValueAt(table.getSelectedRow(), 1);
+        Viewable selected = (Viewable)table.getModel().getValueAt(min, 1);
         createViewFrame(getTopLevelAncestor(), selected);
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.REMOVE) == event.getSource()) {
         if (!(struct instanceof HasAddRemovable)) {
@@ -456,10 +463,11 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           }
         }
       }
-    } else if (event.getActionCommand().equals(UPDATE_VALUE)) {
-      if (editable.updateValue(struct)) {
+    } else if (UPDATE_VALUE.equals(cmd)) {
+      if (editable != null && editable.updateValue(struct)) {
         struct.setStructChanged(true);
-        struct.fireTableRowsUpdated(struct.getIndexOf(editable), struct.getIndexOf(editable));
+        final int index = struct.getIndexOf(editable);
+        struct.fireTableRowsUpdated(index, index);
         if (editable instanceof EffectType) {
           // don't lose current selection
           if (struct.getViewer() != null) {
@@ -474,61 +482,54 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       }
       else
         JOptionPane.showMessageDialog(this, "Error updating value", "Error", JOptionPane.ERROR_MESSAGE);
-    } else if (event.getActionCommand().equals(CMD_COPYVALUE)) {
-      StructClipboard.getInstance().copyValue(struct, table.getSelectionModel().getMinSelectionIndex(),
-                                              table.getSelectionModel().getMaxSelectionIndex());
-    } else if (event.getActionCommand().equals(CMD_PASTEVALUE)) {
-      int changed = StructClipboard.getInstance().pasteValue(struct,
-                                                             table.getSelectionModel().getMinSelectionIndex());
+    } else if (CMD_COPYVALUE.equals(cmd)) {
+      StructClipboard.getInstance().copyValue(struct, min, max);
+    } else if (CMD_PASTEVALUE.equals(cmd)) {
+      final int changed = StructClipboard.getInstance().pasteValue(struct, min);
       if (changed == 0)
         JOptionPane.showMessageDialog(this, "Attributes doesn't match!", "Error", JOptionPane.ERROR_MESSAGE);
       else {
-        struct.fireTableRowsUpdated(table.getSelectionModel().getMinSelectionIndex(),
-                                    table.getSelectionModel().getMinSelectionIndex() + changed);
+        struct.fireTableRowsUpdated(min, min + changed);
         struct.setStructChanged(true);
       }
-    } else if (event.getActionCommand().equals(CMD_CUT)) {
-      ListSelectionModel lsm = table.getSelectionModel();
-      int min = lsm.getMinSelectionIndex();
-      int max = lsm.getMaxSelectionIndex();
+    } else if (CMD_CUT.equals(cmd)) {
       lsm.removeIndexInterval(min, max);
       table.clearSelection();
       StructClipboard.getInstance().cut(struct, min, max);
-    } else if (event.getActionCommand().equals(CMD_COPY)) {
-      StructClipboard.getInstance().copy(struct, table.getSelectionModel().getMinSelectionIndex(),
-                                         table.getSelectionModel().getMaxSelectionIndex());
-    } else if (event.getActionCommand().equals(CMD_PASTE)) {
+    } else if (CMD_COPY.equals(cmd)) {
+      StructClipboard.getInstance().copy(struct, min, max);
+    } else if (CMD_PASTE.equals(cmd)) {
       int row = StructClipboard.getInstance().paste(struct);
       if (row >= 0) {
-        table.getSelectionModel().setSelectionInterval(row, row);
+        lsm.setSelectionInterval(row, row);
         table.scrollRectToVisible(table.getCellRect(row, 1, true));
       }
-    } else if (event.getActionCommand().equals(CMD_TOHEX)) {
-      convertAttribute(table.getSelectedRow(), miToHex);
-    } else if (event.getActionCommand().equals(CMD_TOBIN)) {
-      convertAttribute(table.getSelectedRow(), miToBin);
-    } else if (event.getActionCommand().equals(CMD_TODEC)) {
-      convertAttribute(table.getSelectedRow(), miToDec);
-    } else if (event.getActionCommand().equals(CMD_TOINT)) {
-      convertAttribute(table.getSelectedRow(), miToInt);
-    } else if (event.getActionCommand().equals(CMD_TOHEXINT)) {
-      convertAttribute(table.getSelectedRow(), miToHexInt);
-    } else if (event.getActionCommand().equals(CMD_TOSTRING)) {
-      convertAttribute(table.getSelectedRow(), miToString);
-    } else if (event.getActionCommand().equals(CMD_RESET)) {
-      convertAttribute(table.getSelectedRow(), miReset);
-    } else if (event.getActionCommand().equals(CMD_SHOWVIEWER)) {
+    } else if (CMD_TOHEX.equals(cmd)) {
+      convertAttribute(min, miToHex);
+    } else if (CMD_TOBIN.equals(cmd)) {
+      convertAttribute(min, miToBin);
+    } else if (CMD_TODEC.equals(cmd)) {
+      convertAttribute(min, miToDec);
+    } else if (CMD_TOINT.equals(cmd)) {
+      convertAttribute(min, miToInt);
+    } else if (CMD_TOHEXINT.equals(cmd)) {
+      convertAttribute(min, miToHexInt);
+    } else if (CMD_TOSTRING.equals(cmd)) {
+      convertAttribute(min, miToString);
+    } else if (CMD_RESET.equals(cmd)) {
+      convertAttribute(min, miReset);
+    } else if (CMD_SHOWVIEWER.equals(cmd)) {
       // this should only be available for DlgResources
       DlgResource dlgRes = (DlgResource) struct;
-      dlgRes.showStateWithStructEntry((StructEntry)table.getValueAt(table.getSelectedRow(), 1));
+      dlgRes.showStateWithStructEntry((StructEntry)table.getValueAt(min, 1));
       JComponent detailViewer = dlgRes.getViewerTab(0);
       JTabbedPane parent = (JTabbedPane) detailViewer.getParent();
       parent.getModel().setSelectedIndex(parent.indexOfComponent(detailViewer));
-    } else if (event.getActionCommand().equals(CMD_SHOWNEWVIEWER)) {
+    } else if (CMD_SHOWNEWVIEWER.equals(cmd)) {
       // get a copy of the resource first
       DlgResource dlgRes = (DlgResource) ResourceFactory.getResource(struct.getResourceEntry());
       createViewFrame(getTopLevelAncestor(), dlgRes);
-      dlgRes.showStateWithStructEntry((StructEntry)table.getValueAt(table.getSelectedRow(), 1));
+      dlgRes.showStateWithStructEntry((StructEntry)table.getValueAt(min, 1));
     }
   }
 
@@ -712,26 +713,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miShowNewViewer.setEnabled(isSpecialDlgStruct);
 
       if (selected instanceof Editable) {
-        editable = (Editable)selected;
-        editpanel.removeAll();
-
-        JComponent editor = editable.edit(this);
-
-        GridBagLayout gbl = new GridBagLayout();
-        GridBagConstraints gbc = new GridBagConstraints();
-        editpanel.setLayout(gbl);
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.insets = new Insets(3, 3, 3, 3);
-        gbl.setConstraints(editor, gbc);
-        editpanel.add(editor);
-
-        editpanel.revalidate();
-        editpanel.repaint();
-        cards.show(lowerpanel, CARD_EDIT);
-        editable.select();
+        edit((Editable)selected);
       }
       else if (selected instanceof InlineEditable) {
         tatext.setText("");
@@ -761,26 +743,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       StructEntry structEntry = struct.getField(event.getFirstRow());
       if (structEntry instanceof Editable && (editable == null || (structEntry.getOffset() == editable.getOffset() &&
                                                                    structEntry != editable))) {
-        editable = (Editable)structEntry;
-        editpanel.removeAll();
-
-        JComponent editor = editable.edit(this);
-
-        GridBagLayout gbl = new GridBagLayout();
-        GridBagConstraints gbc = new GridBagConstraints();
-        editpanel.setLayout(gbl);
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.insets = new Insets(3, 3, 3, 3);
-        gbl.setConstraints(editor, gbc);
-        editpanel.add(editor);
-
-        editpanel.revalidate();
-        editpanel.repaint();
-        cards.show(lowerpanel, CARD_EDIT);
-        editable.select();
+        edit((Editable)structEntry);
       }
     }
   }
@@ -1272,6 +1235,37 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       }
     }
     return frame;
+  }
+
+  /**
+   * Opens editor for specified {@code editable} and appends it to lower pane of
+   * this viewer.
+   *
+   * @param editable Field of the edited {@link #struct}, that will be selected
+   * @throws NullPointerException if {@code editable} is {@code null}
+   */
+  private void edit(Editable editable) {
+    // Save for handle UPDATE_VALUE events later
+    this.editable = editable;
+    editpanel.removeAll();
+
+    final JComponent editor = editable.edit(this);
+
+    final GridBagLayout gbl = new GridBagLayout();
+    final GridBagConstraints gbc = new GridBagConstraints();
+    editpanel.setLayout(gbl);
+    gbc.weightx = 1.0;
+    gbc.weighty = 1.0;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.insets = new Insets(3, 3, 3, 3);
+    gbl.setConstraints(editor, gbc);
+    editpanel.add(editor);
+
+    editpanel.revalidate();
+    editpanel.repaint();
+    cards.show(lowerpanel, CARD_EDIT);
+    editable.select();
   }
 
 // -------------------------- INNER CLASSES --------------------------

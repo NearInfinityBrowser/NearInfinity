@@ -12,6 +12,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.infinity.resource.Profile;
@@ -222,9 +223,17 @@ public class BamV1Decoder extends BamDecoder
           ofs += 0x04;
         }
 
-        // initializing palette
+        // initializing palette (number of palette entries can be less than 256)
+        int[] offsets = {ofsFrames, ofsPalette, ofsLookup, bamBuffer.limit()};
+        Arrays.sort(offsets);
+        int idx = Arrays.binarySearch(offsets, ofsPalette);
+        int numEntries = 256;
+        if (idx >= 0 && idx + 1 < offsets.length) {
+          numEntries = Math.min(256, (offsets[idx+1] - offsets[idx]) / 4);
+        }
         bamPalette = new int[256];
-        for (int i = 0; i < 256; i++) {
+        Arrays.fill(bamPalette, 0xff000000);
+        for (int i = 0; i < numEntries; i++) {
           int col = bamBuffer.getInt(ofsPalette + 4*i);
           // handling alpha backwards compatibility with non-enhanced games
           if ((col & 0xff000000) == 0) {

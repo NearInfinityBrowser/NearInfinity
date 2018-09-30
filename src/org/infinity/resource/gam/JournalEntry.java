@@ -33,8 +33,8 @@ public final class JournalEntry extends AbstractStruct implements AddRemovable
                                                         "Journal"};
 
   static {
-    m_source.put(new Long(0x1f), "From talk override");
-    m_source.put(new Long(0xff), "From dialog.tlk");
+    m_source.put(0x1fL, "From talk override");
+    m_source.put(0xffL, "From dialog.tlk");
   }
 
 

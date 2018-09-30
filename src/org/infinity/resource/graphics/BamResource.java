@@ -73,8 +73,6 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
-import org.infinity.resource.key.BIFFResourceEntry;
-import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.DynamicArray;
@@ -140,29 +138,12 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
 
 //--------------------- Begin Interface Closeable ---------------------
 
- @Override
- public void close() throws Exception
- {
-   if (isRawModified()) {
-     Path output = null;
-     if (entry instanceof BIFFResourceEntry) {
-       output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
-     } else if (entry instanceof FileResourceEntry) {
-       output = entry.getActualPath();
-     }
-
-     if (output != null) {
-       final String options[] = {"Save changes", "Discard changes", "Cancel"};
-       int result = JOptionPane.showOptionDialog(panelMain, "Save changes to " + output.toString(),
-                                                 "Resource changed", JOptionPane.YES_NO_CANCEL_OPTION,
-                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-       if (result == 0) {
-         ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor());
-       } else if (result != 1) {
-         throw new Exception("Save aborted");
-       }
-     }
-   }
+  @Override
+  public void close() throws Exception
+  {
+    if (isRawModified()) {
+      ResourceFactory.closeResource(this, entry, panelMain);
+    }
  }
 
 //--------------------- End Interface Closeable ---------------------
@@ -278,7 +259,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
         }
       }
     } else if (event.getSource() == miExportFramesPNG) {
-      JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
+      JFileChooser fc = new JFileChooser(ResourceFactory.getExportFilePath().toFile());
       fc.setDialogTitle("Export BAM frames");
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
       fc.setSelectedFile(new File(fc.getCurrentDirectory(), entry.toString().replace(".BAM", "")));
