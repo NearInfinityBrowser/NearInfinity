@@ -73,8 +73,6 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
-import org.infinity.resource.key.BIFFResourceEntry;
-import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.DynamicArray;
@@ -144,14 +142,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
   public void close() throws Exception
   {
     if (isRawModified()) {
-      Path output = null;
-      if (entry instanceof BIFFResourceEntry) {
-        output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
-      } else if (entry instanceof FileResourceEntry) {
-        output = entry.getActualPath();
-      }
-
-      ResourceFactory.closeResource(this, output, panelMain);
+      ResourceFactory.closeResource(this, entry, panelMain);
     }
  }
 

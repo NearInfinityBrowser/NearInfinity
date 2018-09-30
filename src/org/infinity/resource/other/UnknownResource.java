@@ -13,11 +13,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-// import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -42,16 +40,13 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.gui.hexview.GenericHexViewer;
 import org.infinity.resource.Closeable;
-import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
-import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
-import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
 public final class UnknownResource implements Resource, Closeable, Writeable, ActionListener,
@@ -95,14 +90,7 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
   public void close() throws Exception
   {
     if (isTextModified() || isRawModified()) {
-      Path output = null;
-      if (entry instanceof BIFFResourceEntry) {
-        output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
-      } else if (entry instanceof FileResourceEntry) {
-        output = entry.getActualPath();
-      }
-
-      ResourceFactory.closeResource(this, output, panelMain);
+      ResourceFactory.closeResource(this, entry, panelMain);
     }
   }
 

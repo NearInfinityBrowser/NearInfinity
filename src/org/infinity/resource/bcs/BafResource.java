@@ -18,7 +18,6 @@ import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Set;
@@ -54,12 +53,10 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
-import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StaticSimpleXorDecryptor;
-import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
 public class BafResource implements TextResource, Writeable, Closeable, ItemListener, ActionListener,

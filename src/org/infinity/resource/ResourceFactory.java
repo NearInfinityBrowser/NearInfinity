@@ -615,6 +615,7 @@ public final class ResourceFactory implements FileWatchListener
     }
     closeResource(resource, output, parent);
   }
+
   /**
    * If {@code output} is not {@code null}, shows confirmation dialog for saving resource.
    * If user accepts saving then resource will be saved if it implements {@link Writable}
@@ -641,6 +642,7 @@ public final class ResourceFactory implements FileWatchListener
       }
     }
   }
+
   /**
    * Returns a list of available game language directories for the current game in Enhanced Edition games.
    * Returns an empty list otherwise.
