@@ -33,19 +33,22 @@ public class ResourceStructure implements Cloneable
     cursize = 0;
   }
 
-  // Specialized method: for fixed-sized entries only, value=0
+  /** Specialized method: for fixed-sized entries only, value=0. */
   public int add(int type)
   {
     return insert(cursize, type);
   }
 
-  // Specialized method: value argument interpreted as size for ID_STRING and ID_ARRAY
+  /**
+   * Specialized method: value argument interpreted as size for {@link #ID_STRING}
+   * and {@link #ID_ARRAY}.
+   */
   public int add(int type, int value)
   {
     return insert(cursize, type, value);
   }
 
-  // Specialized method: for strings only, string length determines size for ID_STRING
+  /** Specialized method: for strings only, string length determines size for {@link #ID_STRING}. */
   public int add(int type, String value)
   {
     return insert(cursize, type, value);
@@ -57,45 +60,48 @@ public class ResourceStructure implements Cloneable
   }
 
 
-  // Specialized method: for fixed-sized entries only, value=0
+  /** Specialized method: for fixed-sized entries only, value=0. */
   public int insert(int offset, int type)
   {
     switch (type) {
-      case ID_BYTE:   return insert(offset, type, type & 0xf, new Byte((byte)0));
-      case ID_WORD:   return insert(offset, type, type & 0xf, new Short((short)0));
-      case ID_DWORD:  return insert(offset, type, type & 0xf, new Integer(0));
+      case ID_BYTE:   return insert(offset, type, type & 0xf, (byte)0);
+      case ID_WORD:   return insert(offset, type, type & 0xf, (short)0);
+      case ID_DWORD:  return insert(offset, type, type & 0xf, 0);
       case ID_RESREF: return insert(offset, type, type & 0xf, "");
-      default:        throw new IllegalArgumentException();
+      default:        throw new IllegalArgumentException("Invalid type " + type);
     }
   }
 
-  // Specialized method: value argument interpreted as size for ID_STRING and ID_ARRAY
+  /**
+   * Specialized method: value argument interpreted as size for {@link #ID_STRING}
+   * and {@link #ID_ARRAY}.
+   */
   public int insert(int offset, int type, int value)
   {
     switch (type) {
-      case ID_BYTE:   return insert(offset, type, type & 0xf, new Byte((byte)value));
-      case ID_WORD:   return insert(offset, type, type & 0xf, new Short((short)value));
-      case ID_DWORD:  return insert(offset, type, type & 0xf, new Integer(value));
+      case ID_BYTE:   return insert(offset, type, type & 0xf, (byte)value);
+      case ID_WORD:   return insert(offset, type, type & 0xf, (short)value);
+      case ID_DWORD:  return insert(offset, type, type & 0xf, value);
       case ID_STRING: return insert(offset, type, value, null);
       case ID_BUFFER: return insert(offset, type, value, null);
-      default:        throw new IllegalArgumentException();
+      default:        throw new IllegalArgumentException("Invalid type " + type);
     }
   }
 
-  // Specialized method: for strings only, string length determines size for ID_STRING
+  /** Specialized method: for strings only, string length determines size for {@link #ID_STRING}. */
   public int insert(int offset, int type, String value)
   {
     if (type == ID_RESREF) {
       return insert(offset, type, type & 0xf, value);
-    } else if (type == ID_STRING && value != null) {
+    }
+    if (type == ID_STRING && value != null) {
       ByteBuffer buffer = StreamUtils.getByteBuffer(value.getBytes());
       return insert(offset, ID_BUFFER, buffer.limit(), buffer);
-    } else {
-      throw new IllegalArgumentException();
     }
+    throw new IllegalArgumentException("Invalid type " + type);
   }
 
-  // Catch-all method: returns size of the whole structure after insertion
+  /** Catch-all method: returns size of the whole structure after insertion */
   public int insert(int offset, int type, int size, Object value)
   {
     if (type == ID_BYTE || type == ID_WORD || type == ID_DWORD) {
@@ -105,7 +111,7 @@ public class ResourceStructure implements Cloneable
   }
 
 
-  // Remove item at offset, returns new size of the structure
+  /** Remove item at offset, returns new size of the structure. */
   public int remove(int offset)
   {
     return removeItem(offset);
@@ -132,10 +138,10 @@ public class ResourceStructure implements Cloneable
     return getItem(offset);
   }
 
-  // returns whole structure as sequence of bytes
+  /** Returns whole structure as sequence of bytes. */
   public ByteBuffer getBuffer()
   {
-    if (list.size() == 0) {
+    if (list.isEmpty()) {
       return StreamUtils.getByteBuffer(0);
     }
     ByteBuffer buf = StreamUtils.getByteBuffer(cursize);
@@ -146,7 +152,7 @@ public class ResourceStructure implements Cloneable
     return buf;
   }
 
-  // returns item at specified offset as sequence of bytes
+  /** Returns item at specified offset as sequence of bytes. */
   public ByteBuffer getBuffer(int offset)
   {
     return getItem(offset).toBuffer();
@@ -179,11 +185,11 @@ public class ResourceStructure implements Cloneable
     }
   }
 
-  // returns the index of the item located at offset
+  /** Returns the index of the item located at {@code offset}. */
   private int indexOf(int offset)
   {
     if (offset < 0 || offset >= cursize) {
-      throw new IndexOutOfBoundsException();
+      throw new IndexOutOfBoundsException("Index out of range [0, " + cursize + "]: " + offset);
     }
 
     int curofs = 0;
@@ -195,36 +201,35 @@ public class ResourceStructure implements Cloneable
       curofs += size;
     }
 
-    throw new IndexOutOfBoundsException();
+    throw new IndexOutOfBoundsException("Index out of range: " + offset);
   }
 
   private int insertItem(int offset, int type, int size, Object value)
   {
-    if (offset >= 0 && offset <= cursize) {
-      if (!isValidItem(type, size, value)) {
-        throw new IllegalArgumentException();
-      }
-      if (offset == cursize) {
-        list.add(new Item(type, size, value));
-      } else {
-        list.insertElementAt(new Item(type, size, value), indexOf(offset));
-      }
-      cursize += size;
-      return cursize;
-    } else
-      throw new IndexOutOfBoundsException();
+    if (offset < 0 || offset > cursize) {
+      throw new IndexOutOfBoundsException("Index out of range [0, " + cursize+1 + "]: " + offset);
+    }
+    if (!isValidItem(type, size, value)) {
+      throw new IllegalArgumentException("Try to insert invalid item");
+    }
+    if (offset == cursize) {
+      list.add(new Item(type, size, value));
+    } else {
+      list.insertElementAt(new Item(type, size, value), indexOf(offset));
+    }
+    cursize += size;
+    return cursize;
   }
 
   private int removeItem(int offset)
   {
-    if (offset >= 0 && offset < cursize) {
-      int index = indexOf(offset);
-      int size = list.get(index).getSize();
-      list.remove(index);
-      cursize -= size;
-    } else
-      throw new IndexOutOfBoundsException();
-
+    if (offset < 0 || offset >= cursize) {
+      throw new IndexOutOfBoundsException("Index out of range [0, " + cursize + "]: " + offset);
+    }
+    int index = indexOf(offset);
+    int size = list.get(index).getSize();
+    list.remove(index);
+    cursize -= size;
     return cursize;
   }
 
@@ -237,10 +242,10 @@ public class ResourceStructure implements Cloneable
 // --------------------- Begin Interface Cloneable ---------------------
 
   @Override
-  public Object clone()
+  public ResourceStructure clone()
   {
     ResourceStructure o = new ResourceStructure();
-    o.list = new Vector<Item>(list);
+    o.list = new Vector<>(list);
     o.cursize = cursize;
     return o;
   }
@@ -291,7 +296,7 @@ public class ResourceStructure implements Cloneable
 // --------------------- Begin Interface Cloneable ---------------------
 
     @Override
-    public Object clone()
+    public Item clone()
     {
       return new Item(type, size, value);
     }
@@ -334,7 +339,7 @@ public class ResourceStructure implements Cloneable
     }
 
 
-    // returns the current item as a ByteBuffer object
+    /** Returns the current item as a ByteBuffer object. */
     private ByteBuffer toBuffer()
     {
       if (size <= 0)

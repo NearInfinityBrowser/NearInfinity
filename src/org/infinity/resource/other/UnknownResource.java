@@ -91,30 +91,20 @@ public final class UnknownResource implements Resource, Closeable, Writeable, Ac
 
 //--------------------- Begin Interface Closeable ---------------------
 
- @Override
- public void close() throws Exception
- {
-   if (isTextModified() || isRawModified()) {
-     Path output = null;
-     if (entry instanceof BIFFResourceEntry) {
-       output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
-     } else if (entry instanceof FileResourceEntry) {
-       output = entry.getActualPath();
-     }
+  @Override
+  public void close() throws Exception
+  {
+    if (isTextModified() || isRawModified()) {
+      Path output = null;
+      if (entry instanceof BIFFResourceEntry) {
+        output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
+      } else if (entry instanceof FileResourceEntry) {
+        output = entry.getActualPath();
+      }
 
-     if (output != null) {
-       final String options[] = {"Save changes", "Discard changes", "Cancel"};
-       int result = JOptionPane.showOptionDialog(panelMain, "Save changes to " + output.toString(),
-                                                 "Resource changed", JOptionPane.YES_NO_CANCEL_OPTION,
-                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-       if (result == 0) {
-         ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor());
-       } else if (result != 1) {
-         throw new Exception("Save aborted");
-       }
-     }
-   }
- }
+      ResourceFactory.closeResource(this, output, panelMain);
+    }
+  }
 
 //--------------------- End Interface Closeable ---------------------
 

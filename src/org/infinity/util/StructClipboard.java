@@ -62,7 +62,7 @@ public final class StructClipboard
   @Override
   public String toString()
   {
-    StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     for (int i = 0; i < contents.size(); i++) {
       StructEntry datatype = contents.get(i);
       sb.append(datatype.getName()).append(": ").append(datatype.toString()).append('\n');

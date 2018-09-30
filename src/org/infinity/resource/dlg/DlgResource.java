@@ -83,43 +83,6 @@ public final class DlgResource extends AbstractStruct
     super(entry);
   }
 
-//--------------------- Begin Interface Viewable ---------------------
-
-  @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
-    JComponent retVal = super.makeViewer(container);
-
-    if (retVal instanceof StructViewer) {
-      // replacing original Export button with button menu
-      StructViewer view = (StructViewer)retVal;
-      ButtonPanel panel = view.getButtonPanel();
-
-      JButton b = (JButton)panel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON);
-      if (b != null) {
-        for (final ActionListener l: b.getActionListeners()) {
-          b.removeActionListener(l);
-        }
-        int position = panel.getControlPosition(b);
-        panel.removeControl(position);
-
-        ButtonPopupMenu bpmExport = new ButtonPopupMenu(b.getText());
-        bpmExport.setIcon(b.getIcon());
-
-        miExport = new JMenuItem("as DLG file");
-        miExport.addActionListener(this);
-        miExportWeiDUDialog = new JMenuItem("as WeiDU dialog file");
-        miExportWeiDUDialog.addActionListener(this);
-        bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportWeiDUDialog}, false);
-        panel.addControl(position, bpmExport);
-      }
-    }
-
-    return retVal;
-  }
-
-//--------------------- End Interface Viewable ---------------------
-
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
   @Override
@@ -288,7 +251,28 @@ public final class DlgResource extends AbstractStruct
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
-    if (viewer.isTabSelected(getViewer().getTabIndex(TAB_TREE))) {
+    // replacing original Export button with button menu
+    final ButtonPanel panel = viewer.getButtonPanel();
+
+    final JButton b = (JButton)panel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON);
+    if (b != null) {
+      for (final ActionListener l: b.getActionListeners()) {
+        b.removeActionListener(l);
+      }
+      int position = panel.getControlPosition(b);
+      panel.removeControl(position);
+
+      ButtonPopupMenu bpmExport = new ButtonPopupMenu(b.getText());
+      bpmExport.setIcon(b.getIcon());
+
+      miExport = new JMenuItem("as DLG file");
+      miExport.addActionListener(this);
+      miExportWeiDUDialog = new JMenuItem("as WeiDU dialog file");
+      miExportWeiDUDialog.addActionListener(this);
+      bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportWeiDUDialog}, false);
+      panel.addControl(position, bpmExport);
+    }
+    if (viewer.isTabSelected(viewer.getTabIndex(TAB_TREE))) {
       initTreeView();
     }
     viewer.addTabChangeListener(this);

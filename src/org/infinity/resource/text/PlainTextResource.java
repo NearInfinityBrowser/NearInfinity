@@ -101,7 +101,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.TRIM_SPACES) == event.getSource()) {
-      StringBuffer newText = new StringBuffer(editor.getText().length());
+      final StringBuilder newText = new StringBuilder(editor.getText().length());
       StringTokenizer st = new StringTokenizer(editor.getText(), "\n");
       while (st.hasMoreTokens()) {
         newText.append(st.nextToken().trim()).append('\n');
@@ -120,21 +120,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   public void close() throws Exception
   {
     if (resourceChanged) {
-      Path output;
-      if (entry instanceof BIFFResourceEntry) {
-        output = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName(), entry.toString());
-      } else {
-        output = entry.getActualPath();
-      }
-      String options[] = {"Save changes", "Discard changes", "Cancel"};
-      int result = JOptionPane.showOptionDialog(panel, "Save changes to " + output + '?', "Resource changed",
-                                                JOptionPane.YES_NO_CANCEL_OPTION,
-                                                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0) {
-        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
-      } else if (result != 1) {
-        throw new Exception("Save aborted");
-      }
+      ResourceFactory.closeResource(this, entry, panel);
     }
   }
 

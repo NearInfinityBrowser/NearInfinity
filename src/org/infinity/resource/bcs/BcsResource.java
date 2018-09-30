@@ -128,30 +128,16 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       int result = JOptionPane.showOptionDialog(panel, "Script contains uncompiled changes", "Uncompiled changes",
                                                 JOptionPane.YES_NO_CANCEL_OPTION,
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0) {
+      if (result == JOptionPane.YES_OPTION) {
         ((JButton)bpDecompile.getControlByType(CtrlCompile)).doClick();
         if (bpDecompile.getControlByType(CtrlErrors).isEnabled()) {
           throw new Exception("Save aborted");
         }
         ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
-      } else if (result == 2 || result == JOptionPane.CLOSED_OPTION)
+      } else if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION)
         throw new Exception("Save aborted");
     } else if (codeChanged) {
-      Path output;
-      if (entry instanceof BIFFResourceEntry) {
-        output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
-      } else {
-        output = entry.getActualPath();
-      }
-      String options[] = {"Save changes", "Discard changes", "Cancel"};
-      int result = JOptionPane.showOptionDialog(panel, "Save changes to " + output + '?', "Resource changed",
-                                                JOptionPane.YES_NO_CANCEL_OPTION,
-                                                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0) {
-        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
-      } else if (result != 1) {
-        throw new Exception("Save aborted");
-      }
+      ResourceFactory.closeResource(this, entry, panel);
     }
   }
 

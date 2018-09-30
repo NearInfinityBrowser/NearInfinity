@@ -362,7 +362,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener
     {
       int result = 0;
       if (sortbycolumn == 0)
-        result = new Integer(line1.type).compareTo(new Integer(line2.type));
+        result = Integer.compare(line1.type, line2.type);
       else if (sortbycolumn == 1)
         result = line1.entry.getExtension().compareTo(line2.entry.getExtension());
       else if (sortbycolumn == 2)

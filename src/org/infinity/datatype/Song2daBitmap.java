@@ -16,8 +16,6 @@ import org.infinity.resource.StructEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
-import org.infinity.util.LongIntegerHashMap;
-import org.infinity.util.Pair;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.FileManager;
@@ -133,59 +131,63 @@ public class Song2daBitmap extends ResourceBitmap
   // Create song references for PST
   private static List<RefEntry> createSongList_PST(List<Path> searchDirs)
   {
-    // PST used static associations of SONGS.IDS with MUS resources (source: songlist.txt in game's music folder)
-    final LongIntegerHashMap<Pair<String>> map = new LongIntegerHashMap<Pair<String>>();
-    map.put(0L, new Pair<String>(null, "No music"));
-    map.put(1L, new Pair<String>("MAIN.MUS", "Planescape Main Theme"));
-    map.put(2L, new Pair<String>("CHAR_01.MUS", "Char: Nameless One"));
-    map.put(3L, new Pair<String>("CHAR_02.MUS", "Char: Transcendent One"));
-    map.put(4L, new Pair<String>("CHAR_03.MUS", "Char: The Shadows"));
-    map.put(5L, new Pair<String>("CHAR_04.MUS", "Char: Deionarra"));
-    map.put(6L, new Pair<String>("CHAR_05.MUS", "Char: Ravel"));
-    map.put(7L, new Pair<String>("CHAR_06.MUS", "Char: Fhjull Forked-Tongue"));
-    map.put(8L, new Pair<String>("CHAR_07.MUS", "Char: Trias"));
-    map.put(9L, new Pair<String>("CHAR_09.MUS", "Char: Annah"));
-    map.put(10L, new Pair<String>("CHAR_10.MUS", "Char: Dak'kon"));
-    map.put(11L, new Pair<String>("CHAR_11.MUS", "Char: Morte"));
-    map.put(12L, new Pair<String>("CHAR_12.MUS", "Char: Nordom"));
-    map.put(13L, new Pair<String>("CHAR_13.MUS", "Char: Fall-from-Grace"));
-    map.put(14L, new Pair<String>("CHAR_14.MUS", "Char: Vhailor"));
-    map.put(15L, new Pair<String>("CHAR_15.MUS", "Char: Ignus"));
-    map.put(16L, new Pair<String>("MORT.MUS", "Area: Mortuary"));
-    map.put(17L, new Pair<String>("SIG.MUS", "Area: Sigil"));
-    map.put(18L, new Pair<String>("SMOL.MUS", "Area: Smoldering Corpse Bar"));
-    map.put(19L, new Pair<String>("BONE.MUS", "Area: Bones of the Night"));
-    map.put(20L, new Pair<String>("CIVIC.MUS", "Area: Civic Festhall"));
-    map.put(21L, new Pair<String>("RAVE.MUS", "Area: Ravel's Maze"));
-    map.put(22L, new Pair<String>("MODR.MUS", "Area: Modron Maze"));
-    map.put(23L, new Pair<String>("CUR.MUS", "Area: Curst"));
-    map.put(24L, new Pair<String>("BAAT.MUS", "Area: Baator"));
-    map.put(25L, new Pair<String>("FORT.MUS", "Area: Fortress of Regrets"));
-    map.put(26L, new Pair<String>("CHAR13b.MUS", "Area: Fall-from-Grace"));
-    map.put(27L, new Pair<String>("BT1.MUS", "Battle: Sigil"));
-    map.put(28L, new Pair<String>("BT2.MUS", "Battle: Catacombs"));
-    map.put(29L, new Pair<String>("BT3.MUS", "Battle: Curst"));
-    map.put(30L, new Pair<String>("BT4.MUS", "Battle: Modron Cube"));
-    map.put(31L, new Pair<String>("BT5.MUS", "Battle: Fortress of Regrets"));
-    map.put(32L, new Pair<String>("BT5.MUS", "Battle: Fortress of Regrets - Final)"));
-    map.put(33L, new Pair<String>("END_01G.MUS", "Ending: Good"));
-    map.put(34L, new Pair<String>("END_01B.MUS", "Ending: Bad"));
-    map.put(35L, new Pair<String>("END_02.MUS", "Ending: Indifferent"));
-    map.put(36L, new Pair<String>("SMO2.MUS", "Smoldering Corpse Alternate"));
-
     if (SongList.isEmpty()) {
-      SongList.ensureCapacity(2 + map.size());
+      // PST used static associations of SONGS.IDS with MUS resources (source: songlist.txt in game's music folder)
+      final String[] map = {
+        // 0-9
+        null, "No music",
+        "MAIN.MUS", "Planescape Main Theme",
+        "CHAR_01.MUS", "Char: Nameless One",
+        "CHAR_02.MUS", "Char: Transcendent One",
+        "CHAR_03.MUS", "Char: The Shadows",
+        "CHAR_04.MUS", "Char: Deionarra",
+        "CHAR_05.MUS", "Char: Ravel",
+        "CHAR_06.MUS", "Char: Fhjull Forked-Tongue",
+        "CHAR_07.MUS", "Char: Trias",
+        "CHAR_09.MUS", "Char: Annah",
+        // 10-19
+        "CHAR_10.MUS", "Char: Dak'kon",
+        "CHAR_11.MUS", "Char: Morte",
+        "CHAR_12.MUS", "Char: Nordom",
+        "CHAR_13.MUS", "Char: Fall-from-Grace",
+        "CHAR_14.MUS", "Char: Vhailor",
+        "CHAR_15.MUS", "Char: Ignus",
+        "MORT.MUS", "Area: Mortuary",
+        "SIG.MUS", "Area: Sigil",
+        "SMOL.MUS", "Area: Smoldering Corpse Bar",
+        "BONE.MUS", "Area: Bones of the Night",
+        // 20-29
+        "CIVIC.MUS", "Area: Civic Festhall",
+        "RAVE.MUS", "Area: Ravel's Maze",
+        "MODR.MUS", "Area: Modron Maze",
+        "CUR.MUS", "Area: Curst",
+        "BAAT.MUS", "Area: Baator",
+        "FORT.MUS", "Area: Fortress of Regrets",
+        "CHAR13b.MUS", "Area: Fall-from-Grace",
+        "BT1.MUS", "Battle: Sigil",
+        "BT2.MUS", "Battle: Catacombs",
+        "BT3.MUS", "Battle: Curst",
+        // 30-36
+        "BT4.MUS", "Battle: Modron Cube",
+        "BT5.MUS", "Battle: Fortress of Regrets",
+        "BT5.MUS", "Battle: Fortress of Regrets - Final)",
+        "END_01G.MUS", "Ending: Good",
+        "END_01B.MUS", "Ending: Bad",
+        "END_02.MUS", "Ending: Indifferent",
+        "SMO2.MUS", "Smoldering Corpse Alternate",
+      };
+
+      SongList.ensureCapacity(2 + map.length);
       SongList.add(new RefEntry(0xfffffffeL, "Special", "Continue area music"));
       SongList.add(new RefEntry(0xffffffffL, "Special", "Continue outside music"));
 
-      long[] keys = map.keys();
-      for (final long key: keys) {
-        String name = map.get(key).getSecond();
-        String ref = map.get(key).getFirst();
+      for (int i = 0; i < map.length; i+=2) {
+        final String ref  = map[i];
+        final String name = map[i+1];
         if (ref != null) {
-          SongList.add(new RefEntry(key, ref, name, searchDirs));
+          SongList.add(new RefEntry(i, ref, name, searchDirs));
         } else {
-          SongList.add(new RefEntry(key, "None", name));
+          SongList.add(new RefEntry(i, "None", name));
         }
       }
     }
@@ -195,55 +197,55 @@ public class Song2daBitmap extends ResourceBitmap
   // Create song references for BG1
   private static List<RefEntry> createSongList_BG1(List<Path> searchDirs)
   {
-    // BG1 used static list of songs (source: GemRB's unhardcoded music.2da)
-    final LongIntegerHashMap<String> map = new LongIntegerHashMap<String>();
-    map.put(0L, "None");
-    map.put(1L, "CDAY1.MUS");
-    map.put(2L, "CDAY2.MUS");
-    map.put(3L, "CNITE.MUS");
-    map.put(4L, "CHANTS.MUS");
-    map.put(5L, "DREAM.MUS");
-    map.put(6L, "FESTI.MUS");
-    map.put(7L, "FDAY.MUS");
-    map.put(8L, "FNITE.MUS");
-    map.put(9L, "PDAY.MUS");
-    map.put(10L, "PNITE.MUS");
-    map.put(11L, "TEMPLE.MUS");
-    map.put(12L, "THEME.MUS");
-    map.put(13L, "TDAY1.MUS");
-    map.put(14L, "TDAY2.MUS");
-    map.put(15L, "TNITE.MUS");
-    map.put(16L, "DUNG1.MUS");
-    map.put(17L, "DUNG2.MUS");
-    map.put(18L, "DUNG3.MUS");
-    map.put(19L, "BC1.MUS");
-    map.put(20L, "BC2.MUS");
-    map.put(21L, "BD1.MUS");
-    map.put(22L, "BD2.MUS");
-    map.put(23L, "BL1.MUS");
-    map.put(24L, "BL2.MUS");
-    map.put(25L, "BF1.MUS");
-    map.put(26L, "BF2.MUS");
-    map.put(27L, "BP1.MUS");
-    map.put(28L, "BP2.MUS");
-    map.put(29L, "BW1.MUS");
-    map.put(30L, "BRIDGE.MUS");
-    map.put(31L, "FORT.MUS");
-    map.put(32L, "CHAPTER.MUS");
-    map.put(33L, "MPO900.MUS");
-    map.put(34L, "TAV1.MUS");
-    map.put(35L, "TAV2.MUS");
-    map.put(36L, "TAV3.MUS");
-    map.put(37L, "TAV4.MUS");
-    map.put(38L, "DEATH.MUS");
-
     if (SongList.isEmpty()) {
+    // BG1 used static list of songs (source: GemRB's unhardcoded music.2da)
+      final String[] map = {
+        /*0L, */"None",
+        /*1L, */"CDAY1.MUS",
+        /*2L, */"CDAY2.MUS",
+        /*3L, */"CNITE.MUS",
+        /*4L, */"CHANTS.MUS",
+        /*5L, */"DREAM.MUS",
+        /*6L, */"FESTI.MUS",
+        /*7L, */"FDAY.MUS",
+        /*8L, */"FNITE.MUS",
+        /*9L, */"PDAY.MUS",
+        /*10L,*/ "PNITE.MUS",
+        /*11L,*/ "TEMPLE.MUS",
+        /*12L,*/ "THEME.MUS",
+        /*13L,*/ "TDAY1.MUS",
+        /*14L,*/ "TDAY2.MUS",
+        /*15L,*/ "TNITE.MUS",
+        /*16L,*/ "DUNG1.MUS",
+        /*17L,*/ "DUNG2.MUS",
+        /*18L,*/ "DUNG3.MUS",
+        /*19L,*/ "BC1.MUS",
+        /*20L,*/ "BC2.MUS",
+        /*21L,*/ "BD1.MUS",
+        /*22L,*/ "BD2.MUS",
+        /*23L,*/ "BL1.MUS",
+        /*24L,*/ "BL2.MUS",
+        /*25L,*/ "BF1.MUS",
+        /*26L,*/ "BF2.MUS",
+        /*27L,*/ "BP1.MUS",
+        /*28L,*/ "BP2.MUS",
+        /*29L,*/ "BW1.MUS",
+        /*30L,*/ "BRIDGE.MUS",
+        /*31L,*/ "FORT.MUS",
+        /*32L,*/ "CHAPTER.MUS",
+        /*33L,*/ "MPO900.MUS",
+        /*34L,*/ "TAV1.MUS",
+        /*35L,*/ "TAV2.MUS",
+        /*36L,*/ "TAV3.MUS",
+        /*37L,*/ "TAV4.MUS",
+        /*38L,*/ "DEATH.MUS",
+      };
+
       SongList.add(new RefEntry(0xfffffffeL, "Continue area music"));
       SongList.add(new RefEntry(0xffffffffL, "Continue outside music"));
-      long[] keys = map.keys();
-      for (final long key: keys) {
-        String ref = map.get(key);
-        SongList.add(new RefEntry(key, ref, null, searchDirs));
+
+      for (int i = 0; i < map.length; ++i) {
+        SongList.add(new RefEntry(i, map[i], null, searchDirs));
       }
     }
     return SongList;
