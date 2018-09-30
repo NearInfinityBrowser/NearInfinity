@@ -11,7 +11,7 @@ import org.infinity.datatype.Readable;
 
 public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeable, Readable
 {
-  Object clone() throws CloneNotSupportedException;
+  StructEntry clone() throws CloneNotSupportedException;
 
   void copyNameAndOffset(StructEntry fromEntry);
 
@@ -23,6 +23,11 @@ public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeab
 
   StructEntry getParent();
 
+  /**
+   * Returns byte count of serialized value of this object.
+   *
+   * @return Count of bytes that needed to store this object in it's {@link Writable natural format}
+   */
   int getSize();
 
   /** Attempts to retrieve the data of this datatype and returns it as ByteBuffer object. */

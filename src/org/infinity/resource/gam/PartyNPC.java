@@ -97,11 +97,11 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
     partyOrder.put(4L, "Slot 5");
     partyOrder.put(5L, "Slot 6");
 //    partyOrder.put(0x8000L, "In party, dead");
-    partyOrder.put(new Long(0xffff), "Not in party");
+    partyOrder.put(0xffffL, "Not in party");
 
     m_selected.put(0L, "Not selected");
     m_selected.put(1L, "Selected");
-    m_selected.put(32768L, "Dead");
+    m_selected.put(0x8000L, "Dead");
   }
 
   PartyNPC() throws Exception

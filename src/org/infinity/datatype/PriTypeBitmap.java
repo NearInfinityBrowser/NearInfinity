@@ -53,13 +53,8 @@ public class PriTypeBitmap extends HashBitmap
 
   public static String[] getTypeArray()
   {
-    LongIntegerHashMap<String> map = getTypeTable();
-    long[] keys = map.keys();
-    String[] retVal = new String[keys.length];
-    for (int i = 0; i < keys.length; i++) {
-      retVal[i] = map.get(Long.valueOf(keys[i]));
-    }
-    return retVal;
+    final LongIntegerHashMap<String> map = getTypeTable();
+    return map.values().toArray(new String[map.size()]);
   }
 
   private static synchronized LongIntegerHashMap<String> getTypeTable()

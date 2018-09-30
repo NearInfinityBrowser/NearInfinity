@@ -458,7 +458,7 @@ public class DynamicArray
     int hash = 0;
     if (buffer != null)
       hash += buffer.hashCode();
-    hash += new Integer(baseOfs).hashCode();
+    hash += Integer.hashCode(baseOfs);
 
     return hash;
   }
