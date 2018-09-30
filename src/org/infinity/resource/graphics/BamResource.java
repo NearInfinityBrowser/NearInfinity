@@ -259,7 +259,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
         }
       }
     } else if (event.getSource() == miExportFramesPNG) {
-      JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
+      JFileChooser fc = new JFileChooser(ResourceFactory.getExportFilePath().toFile());
       fc.setDialogTitle("Export BAM frames");
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
       fc.setSelectedFile(new File(fc.getCurrentDirectory(), entry.toString().replace(".BAM", "")));

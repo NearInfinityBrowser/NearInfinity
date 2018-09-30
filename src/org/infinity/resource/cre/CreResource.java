@@ -6,12 +6,10 @@ package org.infinity.resource.cre;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,7 +20,6 @@ import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
@@ -574,30 +571,20 @@ public final class CreResource extends AbstractStruct
     if (!resourceEntry.getExtension().equalsIgnoreCase("CHR")) {
       return;
     }
-    String resourcename = resourceEntry.toString();
-    resourcename = resourcename.substring(0, resourcename.lastIndexOf(".")) + ".CRE";
-    JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
-    chooser.setDialogTitle("Convert CHR to CRE");
-    chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), resourcename));
-    if (chooser.showSaveDialog(NearInfinity.getInstance()) == JFileChooser.APPROVE_OPTION) {
-      Path output = chooser.getSelectedFile().toPath();
-      if (Files.exists(output)) {
-        String options[] = {"Overwrite", "Cancel"};
-        int result = JOptionPane.showOptionDialog(NearInfinity.getInstance(), output + " exists. Overwrite?",
-                                                  "Save resource", JOptionPane.YES_NO_OPTION,
-                                                  JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-        if (result != 0) return;
-      }
+    Path path = ResourceFactory.getExportFileDialog(NearInfinity.getInstance(),
+                                                    resourceEntry.toString().replace(".CHR", ".CRE"),
+                                                    false);
+    if (path != null) {
       try {
         CreResource crefile = (CreResource)ResourceFactory.getResource(resourceEntry);
         while (!crefile.getField(0).toString().equals("CRE ")) {
           crefile.removeField(0);
         }
         convertToSemiStandard(crefile);
-        try (OutputStream os = StreamUtils.getOutputStream(output, true)) {
+        try (OutputStream os = StreamUtils.getOutputStream(path, true)) {
           crefile.write(os);
         }
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File saved to " + output,
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File saved to " + path,
                                       "Conversion complete", JOptionPane.INFORMATION_MESSAGE);
       } catch (Exception e) {
         e.printStackTrace();
