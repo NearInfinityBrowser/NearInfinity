@@ -8,8 +8,6 @@ import java.awt.Component;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
@@ -40,9 +38,7 @@ import org.infinity.resource.are.viewer.AreaViewer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.search.SearchOptions;
-import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
-import org.infinity.util.IdsMapEntry;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
@@ -460,15 +456,20 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new ResourceRef(buffer, offset + 8, ARE_WED_RESOURCE, "WED"));
     addField(new DecNumber(buffer, offset + 16, 4, ARE_LAST_SAVED));
     if (version.toString().equalsIgnoreCase("V9.1")) {
-      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_iwd2, "AREAFLAG.IDS", 4, false)));
+      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE,
+                        IdsMapCache.getUpdatedIdsFlags(s_atype_iwd2, "AREAFLAG.IDS", 4, false, false)));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
-      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_torment, null, 4, false)));
+      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE,
+                        IdsMapCache.getUpdatedIdsFlags(s_atype_torment, null, 4, false, false)));
     } else if (Profile.getGame() == Profile.Game.PSTEE) {
-      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_pstee, null, 4, false)));
+      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE,
+                        IdsMapCache.getUpdatedIdsFlags(s_atype_pstee, null, 4, false, false)));
     } else if (Profile.isEnhancedEdition()) {
-      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype_ee, "AREAFLAG.IDS", 4, false)));
+      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE,
+                        IdsMapCache.getUpdatedIdsFlags(s_atype_ee, "AREAFLAG.IDS", 4, false, false)));
     } else {
-      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE, getUpdatedIdsFlags(s_atype, "AREAFLAG.IDS", 4, false)));
+      addField(new Flag(buffer, offset + 20, 4, ARE_AREA_TYPE,
+                        IdsMapCache.getUpdatedIdsFlags(s_atype, "AREAFLAG.IDS", 4, false, false)));
     }
     addField(new ResourceRef(buffer, offset + 24, ARE_AREA_NORTH, "ARE"));
     addField(new Flag(buffer, offset + 32, 4, ARE_EDGE_FLAGS_NORTH, s_edge));
@@ -479,9 +480,11 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new ResourceRef(buffer, offset + 60, ARE_AREA_WEST, "ARE"));
     addField(new Flag(buffer, offset + 68, 4, ARE_EDGE_FLAGS_WEST, s_edge));
     if (Profile.getEngine() == Profile.Engine.PST || Profile.getGame() == Profile.Game.PSTEE) {
-      addField(new Flag(buffer, offset + 72, 2, ARE_LOCATION, getUpdatedIdsFlags(s_flag_torment, null, 2, false)));
+      addField(new Flag(buffer, offset + 72, 2, ARE_LOCATION,
+                        IdsMapCache.getUpdatedIdsFlags(s_flag_torment, null, 2, false, false)));
     } else {
-      addField(new Flag(buffer, offset + 72, 2, ARE_LOCATION, getUpdatedIdsFlags(s_flag, "AREATYPE.IDS", 2, false)));
+      addField(new Flag(buffer, offset + 72, 2, ARE_LOCATION,
+                        IdsMapCache.getUpdatedIdsFlags(s_flag, "AREATYPE.IDS", 2, false, false)));
     }
     addField(new DecNumber(buffer, offset + 74, 2, ARE_PROBABILITY_RAIN));
     addField(new DecNumber(buffer, offset + 76, 2, ARE_PROBABILITY_SNOW));
@@ -811,63 +814,6 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       }
     }
     ((DecNumber)getAttribute(ARE_NUM_VERTICES)).setValue(count);
-  }
-
-  /**
-   * Returns a String array for Flag datatypes, that has been updated or overwritten with entries
-   * from the specified IDS resource.
-   * @param flags A static String array used as basis for Flag labels.
-   * @param idsFile IDS resource to take entries from.
-   * @param size Size of flags field in bytes. (Range: 1..4)
-   * @param overwrite If {@code true}, then static flag label will be overwritten with entries
-   *                  from the IDS resource.
-   *                  If {@code false}, then entries from IDS resource will be used only for
-   *                  missing or empty entries in the {@code flags} array.
-   * @return
-   */
-  public static String[] getUpdatedIdsFlags(String[] flags, String idsFile, int size, boolean overwrite)
-  {
-    ArrayList<String> list = new ArrayList<String>(32);
-    size = Math.max(1, Math.min(4, size));
-
-    // adding static labels
-    if (flags != null && flags.length > 1) {
-      Collections.addAll(list, flags);
-    } else {
-      list.add(null); // empty flags label
-    }
-
-    // updating list with labels from IDS entries
-    if (ResourceFactory.resourceExists(idsFile)) {
-      IdsMap map = IdsMapCache.get(idsFile);
-      if (map != null) {
-        int numBits = size * 8;
-        for (int i = 0; i < numBits; i++) {
-          IdsMapEntry entry = map.get((long)(1 << i));
-          String s = (entry != null) ? entry.getSymbol() : null;
-          if (i < list.size() - 1) {
-            if (overwrite || list.get(i+1) == null) {
-              list.set(i+1, s);
-            }
-          } else {
-            list.add(s);
-          }
-        }
-      }
-    }
-
-    // cleaning up trailing null labels
-    while (list.size() > 1 && list.get(list.size() - 1) == null) {
-      list.remove(list.size() - 1);
-    }
-
-    // converting list into array
-    String[] retVal = new String[list.size()];
-    for (int i = 0; i < retVal.length; i++) {
-      retVal[i] = list.get(i);
-    }
-
-    return retVal;
   }
 
   /** Displays the area viewer for this ARE resource. */

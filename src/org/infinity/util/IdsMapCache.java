@@ -4,6 +4,8 @@
 
 package org.infinity.util;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -177,5 +179,84 @@ public class IdsMapCache
     } else {
       return true;
     }
+  }
+
+  /**
+   * Returns a String array for Flag datatypes, that has been updated or overwritten with entries
+   * from the specified IDS resource.
+   * @param flags A static String array used as basis for Flag labels.
+   * @param idsFile IDS resource to take entries from.
+   * @param size Size of flags field in bytes. (Range: 1..4)
+   * @param overwrite If {@code true}, then static flag label will be overwritten with entries
+   *                  from the IDS resource.
+   *                  If {@code false}, then entries from IDS resource will be used only for
+   *                  missing or empty entries in the {@code flags} array.
+   * @param prettify Indicates whether to improve readability of flag names. The operation includes:
+   *                  - a capitalized first letter
+   *                  - lowercased remaining letters
+   *                  - underscores are replaced by space
+   * @return The updated list of flag names.
+   */
+  public static String[] getUpdatedIdsFlags(String[] flags, String idsFile, int size, boolean overwrite, boolean prettify)
+  {
+    ArrayList<String> list = new ArrayList<String>(32);
+    size = Math.max(1, Math.min(4, size));
+
+    // adding static labels
+    if (flags != null && flags.length > 1) {
+      Collections.addAll(list, flags);
+    } else {
+      list.add(null); // empty flags label
+    }
+
+    // updating list with labels from IDS entries
+    if (ResourceFactory.resourceExists(idsFile)) {
+      IdsMap map = IdsMapCache.get(idsFile);
+      if (map != null) {
+        int numBits = size * 8;
+        for (int i = 0; i < numBits; i++) {
+          IdsMapEntry entry = map.get((long)(1 << i));
+          String s = (entry != null) ? entry.getSymbol() : null;
+          if (s != null && !s.isEmpty()) {
+            if (prettify) {
+              s = prettifyName(s);
+            }
+            s += ";Taken from " + idsFile;
+          }
+          if (i < list.size() - 1) {
+            if (overwrite || list.get(i+1) == null || list.get(i+1).isEmpty()) {
+              list.set(i+1, s);
+            }
+          } else {
+            list.add(s);
+          }
+        }
+      }
+    }
+
+    // cleaning up trailing null labels
+    while (list.size() > 1 && list.get(list.size() - 1) == null) {
+      list.remove(list.size() - 1);
+    }
+
+    // converting list into array
+    String[] retVal = new String[list.size()];
+    for (int i = 0; i < retVal.length; i++) {
+      retVal[i] = list.get(i);
+    }
+
+    return retVal;
+  }
+
+  // Improves readability of given string by capitalizing first letter, lowercasing remaining characters
+  // and replacing underscores by space.
+  private static String prettifyName(String name)
+  {
+    if (name == null || name.trim().isEmpty()) {
+      return name;
+    }
+    String retVal = name.replaceAll("_", " ").toLowerCase(Locale.ENGLISH);
+    retVal = Character.toUpperCase(retVal.charAt(0)) + retVal.substring(1);
+    return retVal;
   }
 }

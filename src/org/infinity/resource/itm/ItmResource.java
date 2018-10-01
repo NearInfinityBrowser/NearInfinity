@@ -39,6 +39,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
+import org.infinity.util.IdsMapCache;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
@@ -407,7 +408,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     }
     else {
       addField(new ResourceRef(buffer, 16, ITM_USED_UP_ITEM, "ITM"));
-      addField(new Flag(buffer, 24, 4, ITM_FLAGS, s_flags));
+      addField(new Flag(buffer, 24, 4, ITM_FLAGS, IdsMapCache.getUpdatedIdsFlags(s_flags, "ITEMFLAG.IDS", 4, false, false)));
       addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, s_categories));
       if (version.toString().equalsIgnoreCase("V2.0")) {
         addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, s_usability20));

@@ -21,7 +21,6 @@ public final class LongIntegerHashMap<V> extends TreeMap<Long, V>
     super(m);
   }
 
-  @Deprecated
   public long[] keys()
   {
     Set<Long> set = keySet();
