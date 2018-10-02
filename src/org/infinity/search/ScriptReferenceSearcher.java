@@ -24,30 +24,19 @@ import org.infinity.resource.text.PlainTextResource;
 
 public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
 {
-  private String targetResRef;
-  private Pattern cutscene;
-
-
   public ScriptReferenceSearcher(ResourceEntry targetEntry, Component parent)
   {
     super(targetEntry, new String[]{"ARE", "BCS", "CHR", "CRE", "DLG", "INI"}, parent);
-    this.targetResRef = targetEntry.getResourceName().substring(0,
-                          targetEntry.getResourceName().indexOf('.'));
-    this.cutscene = Pattern.compile("StartCutScene(\""
-                       + targetResRef + "\")", Pattern.CASE_INSENSITIVE | Pattern.LITERAL);
   }
 
   @Override
   protected void search(ResourceEntry entry, Resource resource)
   {
     if (resource instanceof BcsResource) {
-      // TODO: avoid decompilation
-      String text = ((BcsResource) resource).getText();
-      if (cutscene.matcher(text).find()) {
-        addHit(entry, null, null);
-      }
+      // passing raw bytecode to improve performance
+      searchScript(entry, ((BcsResource)resource).getCode(), null);
     } else if (resource instanceof PlainTextResource) {
-      searchText(entry, (PlainTextResource)resource);
+      searchText(entry, ((PlainTextResource)resource).getText());
     } else {
       searchStruct(entry, (AbstractStruct)resource);
     }
@@ -75,26 +64,36 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
         searchStruct(entry, (AbstractStruct)o);
       }
       else if (o instanceof AbstractCode) {
-        String text = o.toString();
-        if (cutscene.matcher(text).find()) {
-          addHit(entry, o.getName(), o);
-        }
+        searchScript(entry, o.toString(), o);
       }
     }
   }
 
-  private void searchText(ResourceEntry entry, PlainTextResource text)
+  private void searchText(ResourceEntry entry, String text)
   {
     String name = getTargetEntry().getResourceName();
     int idx = name.lastIndexOf('.');
     if (idx > 0) {
       name = name.substring(0, idx);
     }
-    Pattern p = Pattern.compile("\\b" + name + "\\b", Pattern.CASE_INSENSITIVE);
-    Matcher m = p.matcher(text.getText());
+    final Pattern p = Pattern.compile("\\b" + name + "\\b", Pattern.CASE_INSENSITIVE);
+    final Matcher m = p.matcher(text);
     if (m.find()) {
       addHit(entry, entry.getSearchString(), null);
     }
   }
-}
 
+  private void searchScript(ResourceEntry entry, String script, StructEntry ref)
+  {
+    String name = getTargetEntry().getResourceName();
+    int idx = name.lastIndexOf('.');
+    if (idx > 0) {
+      name = name.substring(0, idx);
+    }
+    final Pattern p = Pattern.compile("\"" + name + "\"", Pattern.CASE_INSENSITIVE);
+    final Matcher m = p.matcher(script);
+    if (m.find()) {
+      addHit(entry, entry.getSearchString(), ref);
+    }
+  }
+}
