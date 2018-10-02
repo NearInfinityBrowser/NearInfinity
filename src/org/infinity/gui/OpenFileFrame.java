@@ -59,7 +59,7 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
   private final JRadioButton rbExternal = new JRadioButton("Open external file");
   private final JRadioButton rbInternal = new JRadioButton("Open internal file");
   private final JTextField tfExternalName = new JTextField(20);
-  private final TextListPanel lpInternal;
+  private final TextListPanel<ResourceEntry> lpInternal;
 
   OpenFileFrame()
   {
@@ -99,8 +99,7 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
         bOpenNew.setEnabled(rbInternal.isSelected() || tfExternalName.getText().length() > 0);
       }
     });
-    lpInternal =
-    new TextListPanel(new ArrayList<ResourceEntry>(ResourceFactory.getResourceTreeModel().getResourceEntries()));
+    lpInternal = new TextListPanel<>(new ArrayList<>(ResourceFactory.getResourceTreeModel().getResourceEntries()));
     bOpen.addActionListener(this);
     bOpenNew.addActionListener(this);
     bOpenNew.setEnabled(false);
@@ -218,7 +217,7 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
     else if (event.getSource() == bOpen || event.getSource() == lpInternal) {
       if (!cbStayOpen.isSelected())
         setVisible(false);
-      ResourceEntry entry = (ResourceEntry)lpInternal.getSelectedValue();
+      final ResourceEntry entry = lpInternal.getSelectedValue();
       NearInfinity.getInstance().showResourceEntry(entry);
     }
     else if (event.getSource() == bOpenNew) {
@@ -226,8 +225,10 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
         setVisible(false);
       }
       if (rbInternal.isSelected()) {
-        new ViewFrame(this,
-                      ResourceFactory.getResource((ResourceEntry)lpInternal.getSelectedValue()));
+        final ResourceEntry entry = lpInternal.getSelectedValue();
+        if (entry != null) {
+          new ViewFrame(this, ResourceFactory.getResource(entry));
+        }
       } else {
         openExternalFile(this, FileManager.resolve(tfExternalName.getText()));
       }

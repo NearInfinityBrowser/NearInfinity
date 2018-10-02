@@ -57,7 +57,7 @@ public class ResourceChooser extends JComponent implements ActionListener
   private final EventListenerList listeners = new EventListenerList();
 
   private JComboBox<String> cbType;
-  private TextListPanel lpResources;
+  private TextListPanel<ResourceEntry> lpResources;
   private int dialogResult;
 
   /**
@@ -141,8 +141,11 @@ public class ResourceChooser extends JComponent implements ActionListener
   public String getSelectedItem()
   {
     if (lpResources != null) {
-      if (lpResources.getSelectedValue() != null) {
-        return lpResources.getSelectedValue().toString();
+      final ResourceEntry entry = lpResources.getSelectedValue();
+      if (entry != null) {
+        //TODO: toString not designed for such purpoces,
+        // but in all implementations it is equals to getResourceName
+        return entry.toString();
       }
     }
     return null;
@@ -234,7 +237,7 @@ public class ResourceChooser extends JComponent implements ActionListener
       });
     } else {
       // initializing new list panel (no need to block controls)
-      lpResources = new TextListPanel(resources, true);
+      lpResources = new TextListPanel<>(resources, true);
       lpResources.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent event)
