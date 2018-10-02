@@ -51,7 +51,7 @@ public class ResourceRef extends Datatype
   private static final ResourceRefEntry NONE = new ResourceRefEntry("None");
   /** Possible file extensions that can have this resource. */
   private final String[] type;
-  /** Raw bytes of the resource reference, readed from stream. */
+  /** Raw bytes of the resource reference, read from stream. */
   private final ByteBuffer buffer;
   private String curtype;
   /** Name of the resource, called {@code ResRef}, 8 bytes usually. */
@@ -59,7 +59,7 @@ public class ResourceRef extends Datatype
   /** Button that used to open editor of current selected element in the list. */
   private JButton bView;
   /**
-   * GUI component that lists all avalible resources that can be setted to this
+   * GUI component that lists all available resources that can be set to this
    * resource reference and have edit field for ability to enter resource reference
    * manually.
    */
@@ -154,7 +154,7 @@ public class ResourceRef extends Datatype
       addExtraEntries(values);//FIXME: It seems that this must be outside of cycle
     }
     Collections.sort(values, IGNORE_CASE_EXT_COMPARATOR);
-    list = new TextListPanel(values, false);
+    list = new TextListPanel<>(values, false);
     list.addMouseListener(new MouseAdapter()
     {
       @Override

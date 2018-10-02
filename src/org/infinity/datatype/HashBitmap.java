@@ -38,7 +38,7 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
   private final List<JButton> buttonList;
   private final JButton bUpdate;
   private final boolean sortByName;
-  private TextListPanel list;
+  private TextListPanel<Object> list;
   private long value;
 
   public HashBitmap(ByteBuffer buffer, int offset, int length, String name,
@@ -83,7 +83,7 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
         items.add(o);
       }
     }
-    list = new TextListPanel(items, sortByName);
+    list = new TextListPanel<>(items, sortByName);
     list.addMouseListener(new MouseAdapter()
     {
       @Override
@@ -280,7 +280,7 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
   }
 
   /** Returns the TextListPanel control used by this datatype. */
-  public TextListPanel getListPanel()
+  public TextListPanel<Object> getListPanel()
   {
     return list;
   }
