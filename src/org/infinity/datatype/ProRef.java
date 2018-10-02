@@ -117,7 +117,8 @@ public final class ProRef extends ResourceBitmap
       }
 
       for (final IdsMapEntry e: proMap.getAllValues()) {
-        proList.add(new RefEntry(e.getID(), e.getSymbol().toUpperCase(Locale.ENGLISH) + ".PRO"));
+        proList.add(new RefEntry(e.getID(), e.getSymbol().toUpperCase(Locale.ENGLISH) + ".PRO",
+                                 e.getSymbol()));
       }
     }
     return proList;

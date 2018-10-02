@@ -170,7 +170,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
     addField(new DecNumber(buffer, offset + 34, 2, ABILITY_NUM_CHARGES));
     addField(new Bitmap(buffer, offset + 36, 2, ABILITY_WHEN_DRAINED, s_drain));
     addField(new Flag(buffer, offset + 38, 4, ITM_ABIL_FLAGS, s_recharge));
-    if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
+    if (ResourceFactory.resourceExists("PROJECTL.IDS") && ResourceFactory.resourceExists("MISSILE.IDS")) {
       addField(new ProRef(buffer, offset + 42, ABILITY_PROJECTILE));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Bitmap(buffer, offset + 42, 2, ABILITY_PROJECTILE, s_proj_pst));
