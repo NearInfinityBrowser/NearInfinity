@@ -38,18 +38,32 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * Represents reference to another resource in game. This resource can be
+ * sound, item, dialog, creature, image
+ */
 public class ResourceRef extends Datatype
     implements Editable, IsTextual, IsReference, ActionListener, ListSelectionListener
 {
-  private static final Comparator<Object> ignoreCaseExtComparator = new IgnoreCaseExtComparator();
+  private static final Comparator<ResourceRefEntry> IGNORE_CASE_EXT_COMPARATOR = new IgnoreCaseExtComparator();
 
-  private static final String NONE = "None";
+  /** Special constant that represents absense of resource in the field. */
+  private static final ResourceRefEntry NONE = new ResourceRefEntry("None");
+  /** Possible file extensions that can have this resource. */
   private final String[] type;
+  /** Raw bytes of the resource reference, readed from stream. */
   private final ByteBuffer buffer;
   private String curtype;
+  /** Name of the resource, called {@code ResRef}, 8 bytes usually. */
   private String resname;
+  /** Button that used to open editor of current selected element in the list. */
   private JButton bView;
-  private TextListPanel list;
+  /**
+   * GUI component that lists all avalible resources that can be setted to this
+   * resource reference and have edit field for ability to enter resource reference
+   * manually.
+   */
+  private TextListPanel<ResourceRefEntry> list;
 
   public ResourceRef(ByteBuffer h_buffer, int offset, String name, String type)
   {
@@ -107,14 +121,9 @@ public class ResourceRef extends Datatype
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bView) {
-      Object selected = list.getSelectedValue();
-      if (selected == NONE) {
-        new ViewFrame(list.getTopLevelAncestor(), null);
-      } else {
-        ResourceEntry entry = ((ResourceRefEntry)selected).entry;
-        if (entry != null) {
-          new ViewFrame(list.getTopLevelAncestor(), ResourceFactory.getResource(entry));
-        }
+      final ResourceRefEntry selected = list.getSelectedValue();
+      if (isEditable(selected)) {
+        new ViewFrame(list.getTopLevelAncestor(), ResourceFactory.getResource(selected.entry));
       }
     }
   }
@@ -126,24 +135,25 @@ public class ResourceRef extends Datatype
   @Override
   public JComponent edit(final ActionListener container)
   {
-    List<List<ResourceEntry>> resourceList = new ArrayList<List<ResourceEntry>>(type.length);
+    final List<List<ResourceEntry>> resourceList = new ArrayList<>(type.length);
     int entrynum = 0;
-    for (int i = 0; i < type.length; i++) {
-      resourceList.add(ResourceFactory.getResources(type[i]));
-      entrynum += resourceList.get(i).size();
+    for (String ext : type) {
+      final List<ResourceEntry> entries = ResourceFactory.getResources(ext);
+      resourceList.add(entries);
+      entrynum += entries.size();
     }
 
-    List<Object> values = new ArrayList<Object>(1 + entrynum);
+    final List<ResourceRefEntry> values = new ArrayList<>(1 + entrynum);
     values.add(NONE);
-    for (int i = 0; i < type.length; i++) {
-      for (int j = 0; j < resourceList.get(i).size(); j++) {
-        ResourceEntry entry = resourceList.get(i).get(j);
+    for (List<ResourceEntry> resources : resourceList) {
+      for (ResourceEntry entry : resources) {
+        //FIXME: instead of toString call use specialized method
         if (entry.toString().lastIndexOf('.') <= 8 && isLegalEntry(entry))
           values.add(new ResourceRefEntry(entry));
       }
-      addExtraEntries(values);
+      addExtraEntries(values);//FIXME: It seems that this must be outside of cycle
     }
-    Collections.sort(values, ignoreCaseExtComparator);
+    Collections.sort(values, IGNORE_CASE_EXT_COMPARATOR);
     list = new TextListPanel(values, false);
     list.addMouseListener(new MouseAdapter()
     {
@@ -158,22 +168,19 @@ public class ResourceRef extends Datatype
     ResourceEntry entry = null;
     for (int i = 0; i < type.length && entry == null; i++) {
       entry = ResourceFactory.getResourceEntry(resname + '.' + type[i], true);
-      if (entry != null) {
-        for (int j = 0; j < values.size(); j++) {
-          Object o = values.get(j);
-          if (o instanceof ResourceRefEntry && ((ResourceRefEntry)o).entry.equals(entry)) {
-            list.setSelectedValue(o, true);
-            break;
-          }
+    }
+    if (entry != null) {
+      for (ResourceRefEntry e : values) {
+        if (entry.equals(e.entry)) {
+          list.setSelectedValue(e, true);
+          break;
         }
       }
-    }
-    if (entry == null) {
+    } else {
       list.setSelectedValue(NONE, true);
-      for (int j = 0; j < values.size(); j++) {
-        Object o = values.get(j);
-        if (o instanceof ResourceRefEntry && ((ResourceRefEntry)o).name.equals(resname)) {
-          list.setSelectedValue(o, true);
+      for (ResourceRefEntry e : values) {
+        if (e.name.equals(resname)) {
+          list.setSelectedValue(e, true);
           break;
         }
       }
@@ -184,8 +191,7 @@ public class ResourceRef extends Datatype
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
     bView = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
     bView.addActionListener(this);
-    bView.setEnabled(list.getSelectedValue() != null && list.getSelectedValue() != NONE &&
-                     ((ResourceRefEntry)list.getSelectedValue()).entry != null);
+    bView.setEnabled(isEditable(list.getSelectedValue()));
     list.addListSelectionListener(this);
 
     GridBagLayout gbl = new GridBagLayout();
@@ -215,7 +221,6 @@ public class ResourceRef extends Datatype
     panel.add(bView);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
-    panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
     return panel;
   }
 
@@ -228,9 +233,9 @@ public class ResourceRef extends Datatype
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
-    Object selected = list.getSelectedValue();
+    final ResourceRefEntry selected = list.getSelectedValue();
     if (selected == NONE) {
-      resname = NONE;
+      resname = NONE.name;//FIXME: use null instead of this
 
       // notifying listeners
       fireValueUpdated(new UpdateEvent(this, struct));
@@ -238,16 +243,18 @@ public class ResourceRef extends Datatype
       return true;
     }
 
-    ResourceEntry entry = ((ResourceRefEntry)selected).entry;
+    final ResourceEntry entry = selected.entry;
     if (entry == null) {
-      resname = ((ResourceRefEntry)selected).name;
+      resname = selected.name;
     } else {
       int i = -1;
-      for (int j = 0; j < type.length && i == -1; j++) {
-        i = entry.toString().indexOf('.' + type[j].toUpperCase(Locale.ENGLISH));
+      for (String ext : type) {
+        //TODO: It seems that instead of toString getExtension must be used
+        i = entry.toString().indexOf('.' + ext.toUpperCase(Locale.ENGLISH));
         if (i != -1) {
           resname = entry.toString().substring(0, i);
-          curtype = type[j];
+          curtype = ext;
+          break;
         }
       }
       if (i == -1) {
@@ -269,9 +276,7 @@ public class ResourceRef extends Datatype
   @Override
   public void valueChanged(ListSelectionEvent e)
   {
-    bView.setEnabled(list.getSelectedValue() != null &&
-                     list.getSelectedValue() != NONE &&
-                     ((ResourceRefEntry)list.getSelectedValue()).entry != null);
+    bView.setEnabled(isEditable(list.getSelectedValue()));
   }
 
 // --------------------- End Interface ListSelectionListener ---------------------
@@ -282,11 +287,11 @@ public class ResourceRef extends Datatype
   @Override
   public void write(OutputStream os) throws IOException
   {
-    if (resname.equalsIgnoreCase(NONE)) {
+    if (resname.equalsIgnoreCase(NONE.name)) {//FIXME: use null instead of NONE.name
       buffer.position(0);
       String s = StreamUtils.readString(buffer, buffer.limit());
       buffer.position(0);
-      if (s.equalsIgnoreCase(NONE)) {
+      if (s.equalsIgnoreCase(NONE.name)) {// TODO: What this check do?
         StreamUtils.writeBytes(os, buffer);
       } else {
         StreamUtils.writeBytes(os, (byte)0, buffer.limit());
@@ -305,21 +310,14 @@ public class ResourceRef extends Datatype
   {
     StreamUtils.copyBytes(buffer, offset, this.buffer, 0, getSize());
     this.buffer.position(0);
-    String s = StreamUtils.readString(this.buffer, this.buffer.limit());
-    if (s.isEmpty() || s.equalsIgnoreCase(NONE)) {
-      resname = NONE;
-    } else {
-      resname = s.toUpperCase(Locale.ENGLISH);
-      if (resname.equalsIgnoreCase(NONE)) {
-        resname = NONE;
-      }
-    }
+    final String s = StreamUtils.readString(this.buffer, this.buffer.limit()).toUpperCase(Locale.ENGLISH);
+    resname = s.isEmpty() || s.equalsIgnoreCase(NONE.name) ? NONE.name : s;//FIXME: use null instead of NONE.name
 
     // determine the correct file extension
-    if (!resname.equals(NONE)) {
-      for (int i = 0; i < this.type.length; i++) {
-        if (null != ResourceFactory.getResourceEntry(resname + "." + this.type[i], true)) {
-          curtype = this.type[i];
+    if (!resname.equals(NONE.name)) { //FIXME: use null instead of NONE.name
+      for (String ext : type) {
+        if (null != ResourceFactory.getResourceEntry(resname + "." + ext, true)) {
+          curtype = ext;
           break;
         }
       }
@@ -333,7 +331,7 @@ public class ResourceRef extends Datatype
   @Override
   public String toString()
   {
-    if (resname.equals(NONE))
+    if (resname.equals(NONE.name))//FIXME: use null instead of NONE.name
       return resname;
     String searchName = getSearchName();
     if (searchName != null)
@@ -356,18 +354,17 @@ public class ResourceRef extends Datatype
   @Override
   public String getResourceName()
   {
-    if (resname.equals(NONE)) {
-      return resname;
-    } else {
+    if (!resname.equals(NONE.name)) {//FIXME: use null instead of NONE.name
       return resname + '.' + curtype;
     }
+    return resname;
   }
 
 //--------------------- End Interface IsReference ---------------------
 
   public boolean isEmpty()
   {
-    return (resname.equals(NONE));
+    return (resname.equals(NONE.name));//FIXME: use null instead of NONE.name
   }
 
   public String getSearchName()
@@ -388,12 +385,15 @@ public class ResourceRef extends Datatype
     return entry.toString().lastIndexOf('.') != 0;
   }
 
-  void addExtraEntries(List<Object> entries)
+  void addExtraEntries(List<ResourceRefEntry> entries)
   {
   }
 
+  private boolean isEditable(ResourceRefEntry ref) {
+    return ref != null && ref != NONE && ref.entry != null;
+  }
 // -------------------------- INNER CLASSES --------------------------
-
+  /** Class that represents resource reference in the list of choice. */
   static final class ResourceRefEntry
   {
     private final ResourceEntry entry;
@@ -425,26 +425,25 @@ public class ResourceRef extends Datatype
     }
   }
 
-  private static class IgnoreCaseExtComparator implements Comparator<Object>
+  private static final class IgnoreCaseExtComparator implements Comparator<ResourceRefEntry>
   {
     @Override
-    public int compare(Object o1, Object o2)
+    public int compare(ResourceRefEntry o1, ResourceRefEntry o2)
     {
-      if (o1 != null && o2 != null) {
-        String s1 = o1.toString();
-        String s2 = o2.toString();
-        int i1 = s1.lastIndexOf('.') > 0 ? s1.lastIndexOf('.') : s1.length();
-        int i2 = s2.lastIndexOf('.') > 0 ? s2.lastIndexOf('.') : s2.length();
-        return s1.substring(0, i1).compareToIgnoreCase(s2.substring(0, i2));
-      } else {
-        return 0;
-      }
-    }
+      // null always smaller any other value
+      if (o1 == null) return o2 == null ? 0 : -1;
+      if (o2 == null) return 1;
 
-    @Override
-    public boolean equals(Object obj)
-    {
-      return obj.equals(this);
+      // NONE always smaller any other value except null
+      if (o1 == NONE) return o2 == NONE ? 0 : -1;
+      if (o2 == NONE) return 1;
+
+      final String s1 = o1.toString();
+      final String s2 = o2.toString();
+      //TODO: must use special method to extract only name without extension
+      final int i1 = s1.lastIndexOf('.') > 0 ? s1.lastIndexOf('.') : s1.length();
+      final int i2 = s2.lastIndexOf('.') > 0 ? s2.lastIndexOf('.') : s2.length();
+      return s1.substring(0, i1).compareToIgnoreCase(s2.substring(0, i2));
     }
   }
 }
