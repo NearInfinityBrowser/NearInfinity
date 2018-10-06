@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -17,8 +17,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -27,7 +25,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.ProgressMonitor;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -50,13 +47,11 @@ import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.bcs.ScriptMessage;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
 
-public final class ScriptChecker implements Runnable, ActionListener, ListSelectionListener, ChangeListener
+/** Performs checking {@link BCS} & {@code BS} resources. */
+public final class ScriptChecker extends AbstractChecker implements Runnable, ActionListener, ListSelectionListener, ChangeListener
 {
-  private static final String FMT_PROGRESS = "Checking resource %d/%d";
-
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
   private JTabbedPane tabbedPane;
@@ -64,9 +59,6 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
   private SortableTable errorTable;
   /** List of the {@link ScriptErrorsTableLine} objects with compiler warnings. */
   private SortableTable warningTable;
-  private ProgressMonitor progress;
-  private int progressIndex;
-  private List<ResourceEntry> scriptFiles;
 
   public ScriptChecker()
   {
@@ -171,17 +163,11 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
   @Override
   public void run()
   {
-    WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
+    final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
-      ThreadPoolExecutor executor = Misc.createThreadPool();
-      scriptFiles = ResourceFactory.getResources("BCS");
+      final List<ResourceEntry> scriptFiles = ResourceFactory.getResources("BCS");
       scriptFiles.addAll(ResourceFactory.getResources("BS"));
-      progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking scripts..." + Misc.MSG_EXPAND_LARGE,
-                                     String.format(FMT_PROGRESS, scriptFiles.size(), scriptFiles.size()),
-                                     0, scriptFiles.size());
-      progress.setNote(String.format(FMT_PROGRESS, 0, scriptFiles.size()));
 
       final Class<?>[] colClasses = {ResourceEntry.class, String.class, Integer.class};
       errorTable = new SortableTable(new String[]{"Script", "Error message", "Line"},
@@ -191,43 +177,14 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
                                        colClasses,
                                        new Integer[]{120, 440, 50});
 
-      boolean isCancelled = false;
-      Debugging.timerReset();
-      for (int i = 0; i < scriptFiles.size(); i++) {
-        Misc.isQueueReady(executor, true, -1);
-        executor.execute(new Worker(scriptFiles.get(i)));
-        if (progress.isCanceled()) {
-          isCancelled = true;
-          break;
-        }
-      }
-
-      // enforcing thread termination if process has been cancelled
-      if (isCancelled) {
-        executor.shutdownNow();
-      } else {
-        executor.shutdown();
-      }
-
-      // waiting for pending threads to terminate
-      while (!executor.isTerminated()) {
-        if (!isCancelled && progress.isCanceled()) {
-          executor.shutdownNow();
-          isCancelled = true;
-        }
-        try { Thread.sleep(1); } catch (InterruptedException e) {}
-      }
-
-      if (isCancelled) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Operation cancelled",
-                                      "Info", JOptionPane.INFORMATION_MESSAGE);
+      if (runCheck("Checking scripts...", scriptFiles)) {
         return;
       }
 
-      if (errorTable.getRowCount() + warningTable.getRowCount() == 0)
+      if (errorTable.getRowCount() + warningTable.getRowCount() == 0) {
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors or warnings found",
                                       "Info", JOptionPane.INFORMATION_MESSAGE);
-      else {
+      } else {
         errorTable.tableComplete();
         warningTable.tableComplete();
         resultFrame = new ChildFrame("Result of script check", true);
@@ -291,33 +248,42 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
         resultFrame.setVisible(true);
       }
     } finally {
-      advanceProgress(true);
       blocker.setBlocked(false);
-      if (scriptFiles != null) {
-        scriptFiles.clear();
-        scriptFiles = null;
-      }
     }
-    Debugging.timerShow("Check completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
 
-  private synchronized void advanceProgress(boolean finished)
-  {
-    if (progress != null) {
-      if (finished) {
-        progressIndex = 0;
-        progress.close();
-        progress = null;
-      } else {
-        progressIndex++;
-        if (progressIndex % 100 == 0) {
-          progress.setNote(String.format(FMT_PROGRESS, progressIndex, scriptFiles.size()));
+  @Override
+  protected Runnable newWorker(ResourceEntry entry) {
+    return () -> {
+      try {
+        final BcsResource script = new BcsResource(entry);
+        final Decompiler decompiler = new Decompiler(script.getCode(), true);
+        decompiler.setGenerateComments(false);
+        decompiler.setGenerateResourcesUsed(false);
+
+        final Compiler compiler = new Compiler(decompiler.getSource());
+        compiler.compile();
+        for (final ScriptMessage sm : compiler.getErrors()) {
+          synchronized (errorTable) {
+            errorTable.addTableItem(new ScriptErrorsTableLine(entry, sm.getLine(), sm.getMessage(),
+                                                              ScriptErrorsTableLine.Type.ERROR));
+          }
         }
-        progress.setProgress(progressIndex);
+        for (final ScriptMessage sm : compiler.getWarnings()) {
+          synchronized (warningTable) {
+            warningTable.addTableItem(new ScriptErrorsTableLine(entry, sm.getLine(), sm.getMessage(),
+                                                                ScriptErrorsTableLine.Type.WARNING));
+          }
+        }
+      } catch (Exception e) {
+        synchronized (System.err) {
+          e.printStackTrace();
+        }
       }
-    }
+      advanceProgress();
+    };
   }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -360,50 +326,4 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
                            resourceEntry.toString(), type, error, lineNr);
     }
   }
-
-  private class Worker implements Runnable
-  {
-    private final ResourceEntry entry;
-
-    public Worker(ResourceEntry entry)
-    {
-      this.entry = entry;
-    }
-
-    @Override
-    public void run()
-    {
-      if (entry != null) {
-        try {
-          BcsResource script = new BcsResource(entry);
-          Decompiler decompiler = new Decompiler(script.getCode(), true);
-          decompiler.setGenerateComments(false);
-          decompiler.setGenerateResourcesUsed(false);
-          String decompiled = decompiler.getSource();
-          Compiler compiler = new Compiler(decompiled);
-          compiler.compile();
-          SortedSet<ScriptMessage> errorMap = compiler.getErrors();
-          for (final ScriptMessage sm: errorMap) {
-            synchronized (errorTable) {
-              errorTable.addTableItem(new ScriptErrorsTableLine(entry, sm.getLine(), sm.getMessage(),
-                                                                ScriptErrorsTableLine.Type.ERROR));
-            }
-          }
-          SortedSet<ScriptMessage> warningMap = compiler.getWarnings();
-          for (final ScriptMessage sm: warningMap) {
-            synchronized (warningTable) {
-              warningTable.addTableItem(new ScriptErrorsTableLine(entry, sm.getLine(), sm.getMessage(),
-                                                                  ScriptErrorsTableLine.Type.WARNING));
-            }
-          }
-        } catch (Exception e) {
-          synchronized (System.err) {
-            e.printStackTrace();
-          }
-        }
-      }
-      advanceProgress(false);
-    }
-  }
 }
-

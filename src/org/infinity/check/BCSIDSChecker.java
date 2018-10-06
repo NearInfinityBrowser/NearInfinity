@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -16,8 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.SortedMap;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -26,7 +25,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.ProgressMonitor;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -46,20 +44,15 @@ import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
 
-public final class BCSIDSChecker implements Runnable, ActionListener, ListSelectionListener
+/** Performs checking {@link BCS} & {@code BS} resources. */
+public final class BCSIDSChecker extends AbstractChecker implements Runnable, ActionListener, ListSelectionListener
 {
-  private static final String FMT_PROGRESS = "Checking resource %d/%d";
-
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
   /** List of the {@link BCSIDSErrorTableLine} objects. */
   private SortableTable table;
-  private ProgressMonitor progress;
-  private int progressIndex;
-  private List<ResourceEntry> bcsFiles;
 
   public BCSIDSChecker()
   {
@@ -141,52 +134,17 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
   @Override
   public void run()
   {
-    WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
+    final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
-      ThreadPoolExecutor executor = Misc.createThreadPool();
-      bcsFiles = ResourceFactory.getResources("BCS");
+      final List<ResourceEntry> bcsFiles = ResourceFactory.getResources("BCS");
       bcsFiles.addAll(ResourceFactory.getResources("BS"));
-      progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking..." + Misc.MSG_EXPAND_LARGE,
-                                     String.format(FMT_PROGRESS, bcsFiles.size(), bcsFiles.size()),
-                                     0, bcsFiles.size());
-      progress.setNote(String.format(FMT_PROGRESS, 0, bcsFiles.size()));
 
       table = new SortableTable(new String[]{"File", "Error message", "Line"},
                                 new Class<?>[]{ResourceEntry.class, String.class, Integer.class},
                                 new Integer[]{100, 300, 50});
 
-      boolean isCancelled = false;
-      Debugging.timerReset();
-      for (int i = 0; i < bcsFiles.size(); i++) {
-        Misc.isQueueReady(executor, true, -1);
-        executor.execute(new Worker(bcsFiles.get(i)));
-        if (progress.isCanceled()) {
-          isCancelled = true;
-          break;
-        }
-      }
-
-      // enforcing thread termination if process has been cancelled
-      if (isCancelled) {
-        executor.shutdownNow();
-      } else {
-        executor.shutdown();
-      }
-
-      // waiting for pending threads to terminate
-      while (!executor.isTerminated()) {
-        if (!isCancelled && progress.isCanceled()) {
-          executor.shutdownNow();
-          isCancelled = true;
-        }
-        try { Thread.sleep(1); } catch (InterruptedException e) {}
-      }
-
-      if (isCancelled) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Operation cancelled",
-                                      "Info", JOptionPane.INFORMATION_MESSAGE);
+      if (runCheck("Checking...", bcsFiles)) {
         return;
       }
 
@@ -246,56 +204,50 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
         resultFrame.setVisible(true);
       }
     } finally {
-      advanceProgress(true);
       blocker.setBlocked(false);
-      if (bcsFiles != null) {
-        bcsFiles.clear();
-        bcsFiles = null;
-      }
     }
-    Debugging.timerShow("Check completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
 
-  private void checkScript(BcsResource script)
-  {
-    Decompiler decompiler = new Decompiler(script.getCode(), ScriptType.BCS, true);
-    decompiler.setGenerateComments(false);
-    decompiler.setGenerateResourcesUsed(true);
-    try {
-      decompiler.decompile();
-      SortedMap<Integer, String> idsErrors = decompiler.getIdsErrors();
-      for (final Integer lineNr: idsErrors.keySet()) {
-        String error = idsErrors.get(lineNr);
-        if (error.indexOf("GTIMES.IDS") == -1 &&
-            error.indexOf("SCROLL.IDS") == -1 &&
-            error.indexOf("SHOUTIDS.IDS") == -1 &&
-            error.indexOf("SPECIFIC.IDS") == -1 &&
-            error.indexOf("TIME.IDS") == -1) {
-          synchronized (table) {
-            table.addTableItem(new BCSIDSErrorTableLine(script.getResourceEntry(), error, lineNr));
-          }
+  @Override
+  protected Runnable newWorker(ResourceEntry entry) {
+    return () -> {
+      try {
+        checkScript(new BcsResource(entry));
+      } catch (Exception e) {
+        synchronized (System.err) {
+          e.printStackTrace();
         }
       }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+      advanceProgress();
+    };
   }
 
-  private synchronized void advanceProgress(boolean finished)
+  /**
+   * Performs script checking. This method can be called from several threads
+   *
+   * @param script Script resource for check. Never {@code null}
+   *
+   * @throws Exception If {@code script} contains invalid code
+   */
+  private void checkScript(BcsResource script) throws Exception
   {
-    if (progress != null) {
-      if (finished) {
-        progressIndex = 0;
-        progress.close();
-        progress = null;
-      } else {
-        progressIndex++;
-        if (progressIndex % 100 == 0) {
-          progress.setNote(String.format(FMT_PROGRESS, progressIndex, bcsFiles.size()));
+    final Decompiler decompiler = new Decompiler(script.getCode(), ScriptType.BCS, true);
+    decompiler.setGenerateComments(false);
+    decompiler.setGenerateResourcesUsed(true);
+    decompiler.decompile();
+    for (final Map.Entry<Integer, String> e : decompiler.getIdsErrors().entrySet()) {
+      final Integer lineNr = e.getKey();
+      final String error = e.getValue();
+      if (!error.contains("GTIMES.IDS") &&
+          !error.contains("SCROLL.IDS") &&
+          !error.contains("SHOUTIDS.IDS") &&
+          !error.contains("SPECIFIC.IDS") &&
+          !error.contains("TIME.IDS")) {
+        synchronized (table) {
+          table.addTableItem(new BCSIDSErrorTableLine(script.getResourceEntry(), error, lineNr));
         }
-        progress.setProgress(progressIndex);
       }
     }
   }
@@ -332,30 +284,4 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
                            resourceEntry.toString(), error, lineNr);
     }
   }
-
-  private class Worker implements Runnable
-  {
-    private final ResourceEntry entry;
-
-    public Worker(ResourceEntry entry)
-    {
-      this.entry = entry;
-    }
-
-    @Override
-    public void run()
-    {
-      if (entry != null) {
-        try {
-          checkScript(new BcsResource(entry));
-        } catch (Exception e) {
-          synchronized (System.err) {
-            e.printStackTrace();
-          }
-        }
-      }
-      advanceProgress(false);
-    }
-  }
 }
-
