@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -30,7 +29,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.ProgressMonitor;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -56,13 +54,11 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.Tilemap;
-import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
 
-public final class StructChecker extends ChildFrame implements ActionListener, Runnable,
+public final class StructChecker extends TypeChecker implements ActionListener, Runnable,
                                                                ListSelectionListener
 {
-  private static final String FMT_PROGRESS = "Checking %ss...";
   private static final String[] FILETYPES = {"ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM",
                                              "PRO", "SPL", "STO", "VEF", "VVC", "WED", "WMP"};
   private static final HashMap<String, StructInfo> fileInfo = new HashMap<String, StructInfo>();
@@ -95,8 +91,6 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
   private final List<ResourceEntry> files = new ArrayList<>();
   /** List of the {@link Corruption} objects. */
   private final SortableTable table;
-  private ProgressMonitor progress;
-  private int progressIndex;
 
   public StructChecker()
   {
@@ -231,115 +225,77 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
   @Override
   public void run()
   {
-    try {
-      String type = "WWWW";
-      progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking..." + Misc.MSG_EXPAND_SMALL,
-                                     String.format(FMT_PROGRESS, type),
-                                     0, files.size());
-      progress.setMillisToDecideToPopup(100);
-      ThreadPoolExecutor executor = Misc.createThreadPool();
-      boolean isCancelled = false;
-      Debugging.timerReset();
-      for (int i = 0; i < files.size(); i++) {
-        ResourceEntry entry = files.get(i);
-        if (i % 10 == 0) {
-          String ext = entry.getExtension();
-          if (ext != null && !type.equalsIgnoreCase(ext)) {
-            type = ext;
-            progress.setNote(String.format(FMT_PROGRESS, type));
-          }
-        }
-        Misc.isQueueReady(executor, true, -1);
-        executor.execute(new Worker(entry));
-        if (progress.isCanceled()) {
-          isCancelled = true;
-          break;
-        }
-      }
+    if (runCheck(files)) {
+      resultFrame.close();
+      return;
+    }
 
-      // enforcing thread termination if process has been cancelled
-      if (isCancelled) {
-        executor.shutdownNow();
-      } else {
-        executor.shutdown();
-      }
-
-      // waiting for pending threads to terminate
-      while (!executor.isTerminated()) {
-        if (!isCancelled && progress.isCanceled()) {
-          executor.shutdownNow();
-          isCancelled = true;
-        }
-        try { Thread.sleep(1); } catch (InterruptedException e) {}
-      }
-
-      if (isCancelled) {
-        resultFrame.close();
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Check canceled", "Info",
-                                      JOptionPane.INFORMATION_MESSAGE);
-        return;
-      }
-
-      if (table.getRowCount() == 0) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors found",
-                                      "Info", JOptionPane.INFORMATION_MESSAGE);
-      } else {
-        table.tableComplete();
-        resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
-        JLabel count = new JLabel(table.getRowCount() + " error(s) found", JLabel.CENTER);
-        count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
-        bopen.setMnemonic('o');
-        bopennew.setMnemonic('n');
-        bsave.setMnemonic('s');
-        resultFrame.getRootPane().setDefaultButton(bopennew);
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        panel.add(bopen);
-        panel.add(bopennew);
-        panel.add(bsave);
-        JScrollPane scrollTable = new JScrollPane(table);
-        scrollTable.getViewport().setBackground(table.getBackground());
-        JPanel pane = (JPanel)resultFrame.getContentPane();
-        pane.setLayout(new BorderLayout(0, 3));
-        pane.add(count, BorderLayout.NORTH);
-        pane.add(scrollTable, BorderLayout.CENTER);
-        pane.add(panel, BorderLayout.SOUTH);
-        bopen.setEnabled(false);
-        bopennew.setEnabled(false);
-        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
-        table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
-        table.getSelectionModel().addListSelectionListener(this);
-        table.addMouseListener(new MouseAdapter()
+    if (table.getRowCount() == 0) {
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors found",
+                                    "Info", JOptionPane.INFORMATION_MESSAGE);
+    } else {
+      table.tableComplete();
+      resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
+      JLabel count = new JLabel(table.getRowCount() + " error(s) found", JLabel.CENTER);
+      count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
+      bopen.setMnemonic('o');
+      bopennew.setMnemonic('n');
+      bsave.setMnemonic('s');
+      resultFrame.getRootPane().setDefaultButton(bopennew);
+      JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+      panel.add(bopen);
+      panel.add(bopennew);
+      panel.add(bsave);
+      JScrollPane scrollTable = new JScrollPane(table);
+      scrollTable.getViewport().setBackground(table.getBackground());
+      JPanel pane = (JPanel)resultFrame.getContentPane();
+      pane.setLayout(new BorderLayout(0, 3));
+      pane.add(count, BorderLayout.NORTH);
+      pane.add(scrollTable, BorderLayout.CENTER);
+      pane.add(panel, BorderLayout.SOUTH);
+      bopen.setEnabled(false);
+      bopennew.setEnabled(false);
+      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+      table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
+      table.getSelectionModel().addListSelectionListener(this);
+      table.addMouseListener(new MouseAdapter()
+      {
+        @Override
+        public void mouseReleased(MouseEvent event)
         {
-          @Override
-          public void mouseReleased(MouseEvent event)
-          {
-            if (event.getClickCount() == 2) {
-              int row = table.getSelectedRow();
-              if (row != -1) {
-                ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
-                Resource resource = ResourceFactory.getResource(resourceEntry);
-                new ViewFrame(resultFrame, resource);
-                ((AbstractStruct)resource).getViewer().selectEntry((String)table.getValueAt(row, 1));
-              }
+          if (event.getClickCount() == 2) {
+            final int row = table.getSelectedRow();
+            if (row != -1) {
+              final ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+              final Resource resource = ResourceFactory.getResource(resourceEntry);
+              new ViewFrame(resultFrame, resource);
+              ((AbstractStruct)resource).getViewer().selectEntry((String)table.getValueAt(row, 1));
             }
           }
-        });
-        bopen.addActionListener(this);
-        bopennew.addActionListener(this);
-        bsave.addActionListener(this);
-        pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-        resultFrame.setSize(700, 600);
-        Center.center(resultFrame, NearInfinity.getInstance().getBounds());
-        resultFrame.setVisible(true);
-      }
-    } finally {
-      advanceProgress(true);
+        }
+      });
+      bopen.addActionListener(this);
+      bopennew.addActionListener(this);
+      bsave.addActionListener(this);
+      pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      resultFrame.setSize(700, 600);
+      Center.center(resultFrame, NearInfinity.getInstance().getBounds());
+      resultFrame.setVisible(true);
     }
-    Debugging.timerShow("Check completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
+
+  @Override
+  protected Runnable newWorker(ResourceEntry entry) {
+    return () -> {
+      final Resource resource = ResourceFactory.getResource(entry);
+      if (resource instanceof AbstractStruct) {
+        search(entry, (AbstractStruct)resource);
+      }
+      advanceProgress();
+    };
+  }
 
   private void search(ResourceEntry entry, AbstractStruct struct)
   {
@@ -424,7 +380,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
   // Checking for WED-specific corruptions
   private List<Corruption> getWedCorruption(ResourceEntry entry, AbstractStruct struct)
   {
-    List<Corruption> list = new ArrayList<Corruption>();
+    final List<Corruption> list = new ArrayList<>();
     if (entry.getExtension().equalsIgnoreCase("WED")) {
       final int ovlSize = 0x18; // size of an Overlay structure
       int ovlCount = ((SectionCount)struct.getAttribute(8, false)).getValue(); // # overlays
@@ -534,21 +490,6 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
     }
     return list;
   }
-
-  private synchronized void advanceProgress(boolean finished)
-  {
-    if (progress != null) {
-      if (finished) {
-        progressIndex = 0;
-        progress.close();
-        progress = null;
-      } else {
-        progressIndex++;
-        progress.setProgress(progressIndex);
-      }
-    }
-  }
-
 // -------------------------- INNER CLASSES --------------------------
 
   private static final class Corruption implements TableItem
@@ -584,7 +525,7 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
     }
   }
 
-  // Stores supported signature and versions for a single structured resource format
+  /** Stores supported signature and versions for a single structured resource format. */
   private static final class StructInfo
   {
     public final String signature;
@@ -620,28 +561,6 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
         }
       }
       return false;
-    }
-  }
-
-  private class Worker implements Runnable
-  {
-    private final ResourceEntry entry;
-
-    public Worker(ResourceEntry entry)
-    {
-      this.entry = entry;
-    }
-
-    @Override
-    public void run()
-    {
-      if (entry != null) {
-        Resource resource = ResourceFactory.getResource(entry);
-        if (resource != null) {
-          search(entry, (AbstractStruct)resource);
-        }
-      }
-      advanceProgress(false);
     }
   }
 }

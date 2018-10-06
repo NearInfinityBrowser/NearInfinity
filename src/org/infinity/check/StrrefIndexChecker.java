@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -18,8 +18,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,7 +29,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.ProgressMonitor;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -61,14 +58,12 @@ import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.gam.JournalEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
-import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
-public class StrrefIndexChecker extends ChildFrame implements ActionListener, ListSelectionListener,
+public class StrrefIndexChecker extends TypeChecker implements ActionListener, ListSelectionListener,
                                                               Runnable
 {
-  private static final String FMT_PROGRESS = "Checking %ss...";
   private static final String[] FILETYPES = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE", "DLG",
                                              "EFF", "GAM", "INI", "ITM", "SPL", "SRC", "STO", "WMP"};
   private final ChildFrame resultFrame = new ChildFrame("Illegal strrefs found", true);
@@ -79,13 +74,11 @@ public class StrrefIndexChecker extends ChildFrame implements ActionListener, Li
   private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
   private final JButton bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
   private final JCheckBox[] boxes = new JCheckBox[FILETYPES.length];
-  private final List<ResourceEntry> files = new ArrayList<ResourceEntry>();
+  private final List<ResourceEntry> files = new ArrayList<>();
 
   /** List of the {@link StrrefEntry} objects. */
   private SortableTable table;
   private int strrefCount;
-  private ProgressMonitor progress;
-  private int progressIndex;
 
   public StrrefIndexChecker()
   {
@@ -218,162 +211,121 @@ public class StrrefIndexChecker extends ChildFrame implements ActionListener, Li
   @Override
   public void run()
   {
-    try {
-      strrefCount = StringTable.getNumEntries();
-      String type = "WWWW";
-      progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking..." + Misc.MSG_EXPAND_SMALL,
-                                     String.format(FMT_PROGRESS, type),
-                                     0, files.size());
-      progress.setMillisToDecideToPopup(100);
-      ThreadPoolExecutor executor = Misc.createThreadPool();
-      boolean isCancelled = false;
-      Debugging.timerReset();
-      for (int i = 0; i < files.size(); i++) {
-        ResourceEntry entry = files.get(i);
-        if (i % 10 == 0) {
-          String ext = entry.getExtension();
-          if (ext != null && !type.equalsIgnoreCase(ext)) {
-            type = ext;
-            progress.setNote(String.format(FMT_PROGRESS, type));
-          }
-        }
-        Misc.isQueueReady(executor, true, -1);
-        executor.execute(new Worker(entry));
-        if (progress.isCanceled()) {
-          isCancelled = true;
-          break;
-        }
-      }
+    strrefCount = StringTable.getNumEntries();
+    if (runCheck(files)) {
+      resultFrame.close();
+      return;
+    }
 
-      // enforcing thread termination if process has been cancelled
-      if (isCancelled) {
-        executor.shutdownNow();
-      } else {
-        executor.shutdown();
-      }
-
-      // waiting for pending threads to terminate
-      while (!executor.isTerminated()) {
-        if (!isCancelled && progress.isCanceled()) {
-          executor.shutdownNow();
-          isCancelled = true;
-        }
-        try { Thread.sleep(1); } catch (InterruptedException e) {}
-      }
-
-      if (isCancelled) {
-        resultFrame.close();
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Check canceled", "Info",
-                                      JOptionPane.INFORMATION_MESSAGE);
-        return;
-      }
-
-      if (table.getRowCount() == 0) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors found",
-                                      "Info", JOptionPane.INFORMATION_MESSAGE);
-      } else {
-        table.tableComplete();
-        resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
-        JLabel count = new JLabel(table.getRowCount() + " error(s) found", JLabel.CENTER);
-        count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
-        bopen.setMnemonic('o');
-        bopennew.setMnemonic('n');
-        bsave.setMnemonic('s');
-        resultFrame.getRootPane().setDefaultButton(bopennew);
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        panel.add(bopen);
-        panel.add(bopennew);
-        panel.add(bsave);
-        JScrollPane scrollTable = new JScrollPane(table);
-        scrollTable.getViewport().setBackground(table.getBackground());
-        JPanel pane = (JPanel)resultFrame.getContentPane();
-        pane.setLayout(new BorderLayout(0, 3));
-        pane.add(count, BorderLayout.NORTH);
-        pane.add(scrollTable, BorderLayout.CENTER);
-        pane.add(panel, BorderLayout.SOUTH);
-        bopen.setEnabled(false);
-        bopennew.setEnabled(false);
-        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
-        table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
-        table.getSelectionModel().addListSelectionListener(this);
-        table.addMouseListener(new MouseAdapter()
+    if (table.getRowCount() == 0) {
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors found",
+                                    "Info", JOptionPane.INFORMATION_MESSAGE);
+    } else {
+      table.tableComplete();
+      resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
+      JLabel count = new JLabel(table.getRowCount() + " error(s) found", JLabel.CENTER);
+      count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
+      bopen.setMnemonic('o');
+      bopennew.setMnemonic('n');
+      bsave.setMnemonic('s');
+      resultFrame.getRootPane().setDefaultButton(bopennew);
+      JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+      panel.add(bopen);
+      panel.add(bopennew);
+      panel.add(bsave);
+      JScrollPane scrollTable = new JScrollPane(table);
+      scrollTable.getViewport().setBackground(table.getBackground());
+      JPanel pane = (JPanel)resultFrame.getContentPane();
+      pane.setLayout(new BorderLayout(0, 3));
+      pane.add(count, BorderLayout.NORTH);
+      pane.add(scrollTable, BorderLayout.CENTER);
+      pane.add(panel, BorderLayout.SOUTH);
+      bopen.setEnabled(false);
+      bopennew.setEnabled(false);
+      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+      table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
+      table.getSelectionModel().addListSelectionListener(this);
+      table.addMouseListener(new MouseAdapter()
+      {
+        @Override
+        public void mouseReleased(MouseEvent event)
         {
-          @Override
-          public void mouseReleased(MouseEvent event)
-          {
-            if (event.getClickCount() == 2) {
-              int row = table.getSelectedRow();
-              if (row != -1) {
-                ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
-                Resource resource = ResourceFactory.getResource(resourceEntry);
-                new ViewFrame(resultFrame, resource);
-                StrrefEntry item = (StrrefEntry)table.getTableItemAt(row);
-                if (item.isText) {
-                  ((TextResource)resource).highlightText(item.line, Integer.toString(item.strref));
-                } else {
-                  ((AbstractStruct)resource).getViewer().selectEntry(item.offset);
-                }
+          if (event.getClickCount() == 2) {
+            final int row = table.getSelectedRow();
+            if (row != -1) {
+              final ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
+              final Resource resource = ResourceFactory.getResource(resourceEntry);
+              new ViewFrame(resultFrame, resource);
+              final StrrefEntry item = (StrrefEntry)table.getTableItemAt(row);
+              if (item.isText) {
+                ((TextResource)resource).highlightText(item.line, Integer.toString(item.strref));
+              } else {
+                ((AbstractStruct)resource).getViewer().selectEntry(item.offset);
               }
             }
           }
-        });
-        bopen.addActionListener(this);
-        bopennew.addActionListener(this);
-        bsave.addActionListener(this);
-        pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-        resultFrame.setSize(700, 600);
-        Center.center(resultFrame, NearInfinity.getInstance().getBounds());
-        resultFrame.setVisible(true);
-      }
-    } finally {
-      advanceProgress(true);
+        }
+      });
+      bopen.addActionListener(this);
+      bopennew.addActionListener(this);
+      bsave.addActionListener(this);
+      pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      resultFrame.setSize(700, 600);
+      Center.center(resultFrame, NearInfinity.getInstance().getBounds());
+      resultFrame.setVisible(true);
     }
-    Debugging.timerShow("Check completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 //--------------------- End Interface Runnable ---------------------
 
+  @Override
+  protected Runnable newWorker(ResourceEntry entry) {
+    return () -> {
+      final Resource resource = ResourceFactory.getResource(entry);
+      if (resource instanceof DlgResource) {
+        checkDialog((DlgResource)resource);
+      } else if (resource instanceof BcsResource) {
+        checkScript((BcsResource)resource);
+      } else if (resource instanceof PlainTextResource) {
+        checkText((PlainTextResource)resource);
+      } else if (resource instanceof AbstractStruct) {
+        checkStruct((AbstractStruct)resource);
+      }
+      advanceProgress();
+    };
+  }
+
   private void checkDialog(DlgResource dialog)
   {
-    if (dialog != null) {
-      List<StructEntry> flatList = dialog.getFlatList();
-      for (final StructEntry entry: flatList) {
-        if (entry instanceof StringRef) {
-          int strref = ((StringRef)entry).getValue();
-          if (strref < -1 || strref >= strrefCount) {
-            synchronized (table) {
-              table.addTableItem(new StrrefEntry(dialog.getResourceEntry(), entry.getOffset(), strref));
-            }
+    for (final StructEntry entry : dialog.getFlatList()) {
+      if (entry instanceof StringRef) {
+        final int strref = ((StringRef)entry).getValue();
+        if (strref < -1 || strref >= strrefCount) {
+          synchronized (table) {
+            table.addTableItem(new StrrefEntry(dialog.getResourceEntry(), entry.getOffset(), strref));
           }
-        } else if (entry instanceof AbstractCode) {
-          AbstractCode code = (AbstractCode)entry;
-          try {
-            Compiler compiler = new Compiler(code.toString(),
-                                               (code instanceof Action) ? ScriptType.ACTION
-                                                                        : ScriptType.TRIGGER);
-            String compiled = compiler.getCode();
-            Decompiler decompiler = new Decompiler(compiled, true);
-            decompiler.setGenerateComments(false);
-            decompiler.setGenerateResourcesUsed(true);
-            if (code instanceof Action) {
-              decompiler.setScriptType(ScriptType.ACTION);
-            } else {
-              decompiler.setScriptType(ScriptType.TRIGGER);
-            }
-            decompiler.decompile();
-            Set<Integer> used = decompiler.getStringRefsUsed();
-            for (final Integer stringRef : used) {
-              int strref = stringRef.intValue();
-              if (strref < -1 || strref >= strrefCount) {
-                synchronized (table) {
-                  table.addTableItem(new StrrefEntry(dialog.getResourceEntry(), entry.getOffset(), strref));
-                }
+        }
+      } else if (entry instanceof AbstractCode) {
+        final AbstractCode code = (AbstractCode)entry;
+        try {
+          final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
+          final Compiler compiler = new Compiler(code.toString(), type);
+
+          final Decompiler decompiler = new Decompiler(compiler.getCode(), true);
+          decompiler.setGenerateComments(false);
+          decompiler.setGenerateResourcesUsed(true);
+          decompiler.setScriptType(type);
+          decompiler.decompile();
+          for (final Integer stringRef : decompiler.getStringRefsUsed()) {
+            final int strref = stringRef.intValue();
+            if (strref < -1 || strref >= strrefCount) {
+              synchronized (table) {
+                table.addTableItem(new StrrefEntry(dialog.getResourceEntry(), entry.getOffset(), strref));
               }
             }
-          } catch (Exception e) {
-            e.printStackTrace();
           }
+        } catch (Exception e) {
+          e.printStackTrace();
         }
       }
     }
@@ -381,58 +333,52 @@ public class StrrefIndexChecker extends ChildFrame implements ActionListener, Li
 
   private void checkScript(BcsResource script)
   {
-    if (script != null) {
-      Decompiler decompiler = new Decompiler(script.getCode(), true);
-      decompiler.setGenerateComments(false);
-      decompiler.setGenerateResourcesUsed(true);
-      try {
-        decompiler.decompile();
-        Set<Integer> used = decompiler.getStringRefsUsed();
-        for (final Integer stringRef : used) {
-          int strref = stringRef.intValue();
-          if (strref < -1 || strref >= strrefCount) {
-            // XXX: search routine may produce false positives
-            String strrefString = stringRef.toString();
-            String source = decompiler.getSource();
-            String[] lines = source.split("\r?\n");
-            int line = -1, pos = -1, len = -1;
-            Pattern pattern = Pattern.compile("\\b" + strrefString + "\\b", Pattern.DOTALL);
-            for (int i = 0; i < lines.length; i++) {
-              Matcher matcher = pattern.matcher(lines[i]);
-              if (matcher.find()) {
-                line = i;
-                pos = matcher.start();
-                len = matcher.end() - pos;
-                break;
-              }
-            }
-            synchronized (table) {
-              table.addTableItem(new StrrefEntry(script.getResourceEntry(), line + 1, pos + 1, len, strref));
+    final Decompiler decompiler = new Decompiler(script.getCode(), true);
+    decompiler.setGenerateComments(false);
+    decompiler.setGenerateResourcesUsed(true);
+    try {
+      decompiler.decompile();
+      for (final Integer stringRef : decompiler.getStringRefsUsed()) {
+        final int strref = stringRef.intValue();
+        if (strref < -1 || strref >= strrefCount) {
+          // XXX: search routine may produce false positives
+          final String strrefString = stringRef.toString();
+          final String source = decompiler.getSource();
+          final String[] lines = source.split("\r?\n");
+          int line = -1, pos = -1, len = -1;
+          final Pattern pattern = Pattern.compile("\\b" + strrefString + "\\b", Pattern.DOTALL);
+          for (int i = 0; i < lines.length; i++) {
+            final Matcher matcher = pattern.matcher(lines[i]);
+            if (matcher.find()) {
+              line = i;
+              pos = matcher.start();
+              len = matcher.end() - pos;
+              break;
             }
           }
+          synchronized (table) {
+            table.addTableItem(new StrrefEntry(script.getResourceEntry(), line + 1, pos + 1, len, strref));
+          }
         }
-      } catch (Exception e) {
-        e.printStackTrace();
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
   private void checkStruct(AbstractStruct struct)
   {
-    if (struct != null) {
-      List<StructEntry> flatList = struct.getFlatList();
-      for (final StructEntry entry: flatList) {
-        if (entry instanceof StringRef) {
-          int strref = ((StringRef)entry).getValue();
-          if (strref < -1 || strref >= strrefCount) {
-            if (strref >= 3000000 &&
-                (entry.getParent() instanceof AutomapNote || entry.getParent() instanceof JournalEntry)) {
-              // skip talk override entries
-              continue;
-            }
-            synchronized (table) {
-              table.addTableItem(new StrrefEntry(struct.getResourceEntry(), entry.getOffset(), strref));
-            }
+    for (final StructEntry entry : struct.getFlatList()) {
+      if (entry instanceof StringRef) {
+        final int strref = ((StringRef)entry).getValue();
+        if (strref < -1 || strref >= strrefCount) {
+          if (strref >= 3000000 &&
+              (entry.getParent() instanceof AutomapNote || entry.getParent() instanceof JournalEntry)) {
+            // skip talk override entries
+            continue;
+          }
+          synchronized (table) {
+            table.addTableItem(new StrrefEntry(struct.getResourceEntry(), entry.getOffset(), strref));
           }
         }
       }
@@ -441,43 +387,27 @@ public class StrrefIndexChecker extends ChildFrame implements ActionListener, Li
 
   private void checkText(PlainTextResource text)
   {
-    if (text != null) {
-      Pattern pattern = Pattern.compile("\\b\\d+\\b", Pattern.DOTALL);
-      String[] lines = text.getText().split("\r?\n");
-      for (int i = 0; i < lines.length; i++) {
-        Matcher matcher = pattern.matcher(lines[i]);
-        while (matcher.find()) {
-          int line = i;
-          int pos = matcher.start();
-          int len = matcher.end() - pos;
-          try {
-            long strref = Long.parseLong(lines[line].substring(pos, pos + len));
-            // skip values out of integer range
-            if (strref >= Integer.MIN_VALUE && strref <= Integer.MAX_VALUE) {
-              if (strref < -1 || strref > strrefCount) {
-                synchronized (table) {
-                  table.addTableItem(new StrrefEntry(text.getResourceEntry(), line + 1, pos + 1, len, (int)strref));
-                }
+    final Pattern pattern = Pattern.compile("\\b\\d+\\b", Pattern.DOTALL);
+    final String[] lines = text.getText().split("\r?\n");
+    for (int i = 0; i < lines.length; i++) {
+      final Matcher matcher = pattern.matcher(lines[i]);
+      while (matcher.find()) {
+        final int line = i;
+        final int pos = matcher.start();
+        final int len = matcher.end() - pos;
+        try {
+          final long strref = Long.parseLong(lines[line].substring(pos, pos + len));
+          // skip values out of integer range
+          if (strref >= Integer.MIN_VALUE && strref <= Integer.MAX_VALUE) {
+            if (strref < -1 || strref > strrefCount) {
+              synchronized (table) {
+                table.addTableItem(new StrrefEntry(text.getResourceEntry(), line + 1, pos + 1, len, (int)strref));
               }
             }
-          } catch (NumberFormatException e) {
-            e.printStackTrace();
           }
+        } catch (NumberFormatException e) {
+          e.printStackTrace();
         }
-      }
-    }
-  }
-
-  private synchronized void advanceProgress(boolean finished)
-  {
-    if (progress != null) {
-      if (finished) {
-        progressIndex = 0;
-        progress.close();
-        progress = null;
-      } else {
-        progressIndex++;
-        progress.setProgress(progressIndex);
       }
     }
   }
@@ -536,34 +466,6 @@ public class StrrefIndexChecker extends ChildFrame implements ActionListener, Li
       }
       sb.append("  Strref: ").append(strref);
       return sb.toString();
-    }
-  }
-
-  private class Worker implements Runnable
-  {
-    private final ResourceEntry entry;
-
-    public Worker(ResourceEntry entry)
-    {
-      this.entry = entry;
-    }
-
-    @Override
-    public void run()
-    {
-      if (entry != null) {
-        Resource resource = ResourceFactory.getResource(entry);
-        if (resource instanceof DlgResource) {
-          checkDialog((DlgResource)resource);
-        } else if (resource instanceof BcsResource) {
-          checkScript((BcsResource)resource);
-        } else if (resource instanceof PlainTextResource) {
-          checkText((PlainTextResource)resource);
-        } else if (resource instanceof AbstractStruct) {
-          checkStruct((AbstractStruct)resource);
-        }
-      }
-      advanceProgress(false);
     }
   }
 }
