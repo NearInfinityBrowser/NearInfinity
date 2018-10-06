@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -93,7 +92,8 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
   private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
   private final JButton bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
   private final JCheckBox[] boxes = new JCheckBox[FILETYPES.length];
-  private final List<ResourceEntry> files = new ArrayList<ResourceEntry>();
+  private final List<ResourceEntry> files = new ArrayList<>();
+  /** List of the {@link Corruption} objects. */
   private final SortableTable table;
   private ProgressMonitor progress;
   private int progressIndex;
@@ -103,10 +103,9 @@ public final class StructChecker extends ChildFrame implements ActionListener, R
     super("Find Corrupted Files");
     setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
 
-    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
-    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
-    table = new SortableTable(Arrays.asList(new String[]{"File", "Offset", "Error message"}),
-                              colClasses, Arrays.asList(new Integer[]{50, 50, 400}));
+    table = new SortableTable(new String[]{"File", "Offset", "Error message"},
+                              new Class<?>[]{ResourceEntry.class, String.class, String.class},//TODO: replace "Offset" by Integer
+                              new Integer[]{50, 50, 400});
 
     bstart.setMnemonic('s');
     bcancel.setMnemonic('c');

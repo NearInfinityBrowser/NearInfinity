@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -82,6 +81,7 @@ public class StrrefIndexChecker extends ChildFrame implements ActionListener, Li
   private final JCheckBox[] boxes = new JCheckBox[FILETYPES.length];
   private final List<ResourceEntry> files = new ArrayList<ResourceEntry>();
 
+  /** List of the {@link StrrefEntry} objects. */
   private SortableTable table;
   private int strrefCount;
   private ProgressMonitor progress;
@@ -92,10 +92,9 @@ public class StrrefIndexChecker extends ChildFrame implements ActionListener, Li
     super("Find illegal strrefs");
     setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
 
-    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
-    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
-    table = new SortableTable(Arrays.asList(new String[]{"File", "Offset / Line:Pos", "Strref"}),
-                              colClasses, Arrays.asList(new Integer[]{200, 100, 100}));
+    table = new SortableTable(new String[]{"File", "Offset / Line:Pos", "Strref"},
+                              new Class<?>[]{StrrefEntry.class, String.class, Integer.class},
+                              new Integer[]{200, 100, 100});
 
     bstart.setMnemonic('s');
     bcancel.setMnemonic('c');

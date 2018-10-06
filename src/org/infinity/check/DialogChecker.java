@@ -16,8 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
@@ -68,7 +66,10 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
   private JTabbedPane tabbedPane;
-  private SortableTable errorTable, warningTable;
+  /** List of the {@link ActionErrorsTableLine} objects with compiler errors in dialog actions. */
+  private SortableTable errorTable;
+  /** List of the {@link ActionErrorsTableLine} objects with compiler warnings in dialog actions. */
+  private SortableTable warningTable;
   private ProgressMonitor progress;
   private int progressIndex;
   private List<ResourceEntry> dlgFiles;
@@ -196,15 +197,15 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
                                      0, dlgFiles.size());
       progress.setNote(String.format(FMT_PROGRESS, 0, dlgFiles.size()));
 
-      List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(4);
-      colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
-      colClasses.add(Integer.class);
+      final Class<?>[] colClasses = {ResourceEntry.class, String.class, String.class, Integer.class};
       errorTable = new SortableTable(
-          Arrays.asList(new String[]{"Dialogue", "Trigger/Action", "Error message", "Line"}),
-          colClasses, Arrays.asList(new Integer[]{50, 100, 350, 10}));
+          new String[]{"Dialogue", "Trigger/Action", "Error message", "Line"},
+          colClasses,
+          new Integer[]{50, 100, 350, 10});
       warningTable = new SortableTable(
-          Arrays.asList(new String[]{"Dialogue", "Trigger/Action", "Warning", "Line"}),
-          colClasses, Arrays.asList(new Integer[]{50, 100, 350, 10}));
+          new String[]{"Dialogue", "Trigger/Action", "Warning", "Line"},
+          colClasses,
+          new Integer[]{50, 100, 350, 10});
 
       boolean isCancelled = false;
       Debugging.timerReset();

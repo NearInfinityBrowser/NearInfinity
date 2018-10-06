@@ -16,8 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -62,7 +60,10 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
   private JTabbedPane tabbedPane;
-  private SortableTable errorTable, warningTable;
+  /** List of the {@link ScriptErrorsTableLine} objects with compiler errors. */
+  private SortableTable errorTable;
+  /** List of the {@link ScriptErrorsTableLine} objects with compiler warnings. */
+  private SortableTable warningTable;
   private ProgressMonitor progress;
   private int progressIndex;
   private List<ResourceEntry> scriptFiles;
@@ -182,12 +183,13 @@ public final class ScriptChecker implements Runnable, ActionListener, ListSelect
                                      0, scriptFiles.size());
       progress.setNote(String.format(FMT_PROGRESS, 0, scriptFiles.size()));
 
-      List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
-      colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
-      errorTable = new SortableTable(Arrays.asList(new String[]{"Script", "Error message", "Line"}),
-                                     colClasses, Arrays.asList(new Integer[]{120, 440, 50}));
-      warningTable = new SortableTable(Arrays.asList(new String[]{"Script", "Warning", "Line"}),
-                                       colClasses, Arrays.asList(new Integer[]{120, 440, 50}));
+      final Class<?>[] colClasses = {ResourceEntry.class, String.class, Integer.class};
+      errorTable = new SortableTable(new String[]{"Script", "Error message", "Line"},
+                                     colClasses,
+                                     new Integer[]{120, 440, 50});
+      warningTable = new SortableTable(new String[]{"Script", "Warning", "Line"},
+                                       colClasses,
+                                       new Integer[]{120, 440, 50});
 
       boolean isCancelled = false;
       Debugging.timerReset();

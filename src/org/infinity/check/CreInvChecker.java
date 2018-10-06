@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -59,6 +58,7 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
 
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
+  /** List of the {@link CreInvError} objects. */
   private SortableTable table;
   private ProgressMonitor progress;
   private int progressIndex;
@@ -153,10 +153,9 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
                                      0, creFiles.size());
       progress.setNote(String.format(FMT_PROGRESS, 0, creFiles.size()));
 
-      List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
-      colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
-      table = new SortableTable(Arrays.asList(new String[]{"File", "Name", "Item"}),
-                                colClasses, Arrays.asList(new Integer[]{100, 100, 200}));
+      table = new SortableTable(new String[]{"File", "Name", "Item"},
+                                new Class<?>[]{ResourceEntry.class, String.class, Item.class},
+                                new Integer[]{100, 100, 200});
 
       boolean isCancelled = false;
       Debugging.timerReset();

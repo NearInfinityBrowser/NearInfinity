@@ -15,8 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -57,6 +55,7 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
 
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
+  /** List of the {@link BCSIDSErrorTableLine} objects. */
   private SortableTable table;
   private ProgressMonitor progress;
   private int progressIndex;
@@ -154,10 +153,9 @@ public final class BCSIDSChecker implements Runnable, ActionListener, ListSelect
                                      0, bcsFiles.size());
       progress.setNote(String.format(FMT_PROGRESS, 0, bcsFiles.size()));
 
-      List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
-      colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
-      table = new SortableTable(Arrays.asList(new String[]{"File", "Error message", "Line"}),
-                                colClasses, Arrays.asList(new Integer[]{100, 300, 50}));
+      table = new SortableTable(new String[]{"File", "Error message", "Line"},
+                                new Class<?>[]{ResourceEntry.class, String.class, Integer.class},
+                                new Integer[]{100, 300, 50});
 
       boolean isCancelled = false;
       Debugging.timerReset();

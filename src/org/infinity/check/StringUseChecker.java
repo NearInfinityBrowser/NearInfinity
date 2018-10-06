@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -71,6 +70,7 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
                                              "INI", "ITM", "SPL", "SRC", "STO", "WMP"};
   private ChildFrame resultFrame;
   private JTextArea textArea;
+  /** List of the {@link UnusedStringTableItem} objects. */
   private SortableTable table;
   private boolean[] strUsed;
   private JMenuItem save;
@@ -118,10 +118,9 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
                                      String.format(FMT_PROGRESS, type),
                                      0, files.size());
 
-      List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(2);
-      colClasses.add(Object.class); colClasses.add(Integer.class);
-      table = new SortableTable(Arrays.asList(new String[]{"String", "StrRef"}),
-                                colClasses, Arrays.asList(new Integer[]{450, 20}));
+      table = new SortableTable(new String[]{"String", "StrRef"},
+                                new Class<?>[]{String.class, Integer.class},
+                                new Integer[]{450, 20});
 
       strUsed = new boolean[StringTable.getNumEntries() + 1];
       boolean isCancelled = false;

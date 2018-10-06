@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -86,6 +85,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
   private final List<ResourceEntry> checkList = new ArrayList<ResourceEntry>();
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
+  /** List of the {@link UnusedFileTableItem} objects. */
   private SortableTable table;
   private String checkType;
   private ProgressMonitor progress;
@@ -223,10 +223,9 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
                                      0, files.size());
       progress.setNote(String.format(FMT_PROGRESS, 0, files.size()));
 
-      List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(2);
-      colClasses.add(Object.class); colClasses.add(Object.class);
-      table = new SortableTable(Arrays.asList(new String[]{"File", "Name"}),
-                                colClasses, Arrays.asList(new Integer[]{200, 200}));
+      table = new SortableTable(new String[]{"File", "Name"},
+                                new Class<?>[]{ResourceEntry.class, String.class},
+                                new Integer[]{200, 200});
 
       checkList.addAll(ResourceFactory.getResources(checkType));
       boolean isCancelled = false;
