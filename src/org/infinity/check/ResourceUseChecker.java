@@ -86,6 +86,7 @@ public final class ResourceUseChecker extends AbstractChecker implements Runnabl
 
   public ResourceUseChecker(Component parent)
   {
+    super(MULTI_TYPE_FORMAT);
     ButtonGroup bg = new ButtonGroup();
     JPanel radioPanel = new JPanel(new GridLayout(0, 1));
     for (int i = 0; i < typeButtons.length; i++) {

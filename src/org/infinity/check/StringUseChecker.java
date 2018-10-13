@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -12,9 +12,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,7 +25,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.ProgressMonitor;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -57,14 +53,11 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.search.SearchClient;
 import org.infinity.search.SearchMaster;
-import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
-public final class StringUseChecker implements Runnable, ListSelectionListener, SearchClient, ActionListener
+public final class StringUseChecker extends AbstractChecker implements Runnable, ListSelectionListener, SearchClient, ActionListener
 {
-  private static final String FMT_PROGRESS = "Checking %ss...";
-
   private static final Pattern NUMBERPATTERN = Pattern.compile("\\d+", Pattern.DOTALL);
   private static final String[] FILETYPES = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE", "DLG", "EFF",
                                              "INI", "ITM", "SPL", "SRC", "STO", "WMP"};
@@ -74,12 +67,10 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
   private SortableTable table;
   private boolean[] strUsed;
   private JMenuItem save;
-  private List<ResourceEntry> files;
-  private ProgressMonitor progress;
-  private int progressIndex;
 
   public StringUseChecker()
   {
+    super(MULTI_TYPE_FORMAT);
     new Thread(this).start();
   }
 
@@ -105,65 +96,22 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
   @Override
   public void run()
   {
-    WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
+    final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
-      ThreadPoolExecutor executor = Misc.createThreadPool();
-      files = new ArrayList<ResourceEntry>();
-      for (final String fileType : FILETYPES)
+      final ArrayList<ResourceEntry> files = new ArrayList<>();
+      for (final String fileType : FILETYPES) {
         files.addAll(ResourceFactory.getResources(fileType));
-      String type = "WWWW";
-      progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Searching..." + Misc.MSG_EXPAND_SMALL,
-                                     String.format(FMT_PROGRESS, type),
-                                     0, files.size());
+      }
+
+      strUsed = new boolean[StringTable.getNumEntries() + 1];
+      if (runCheck("Searching...", files)) {
+        return;
+      }
 
       table = new SortableTable(new String[]{"String", "StrRef"},
                                 new Class<?>[]{String.class, Integer.class},
                                 new Integer[]{450, 20});
-
-      strUsed = new boolean[StringTable.getNumEntries() + 1];
-      boolean isCancelled = false;
-      Debugging.timerReset();
-      for (int i = 0; i < files.size(); i++) {
-        ResourceEntry entry = files.get(i);
-        if (i % 10 == 0) {
-          String ext = entry.getExtension();
-          if (ext != null && !type.equalsIgnoreCase(ext)) {
-            type = ext;
-            progress.setNote(String.format(FMT_PROGRESS, type));
-          }
-        }
-        Misc.isQueueReady(executor, true, -1);
-        executor.execute(new Worker(entry));
-        if (progress.isCanceled()) {
-          isCancelled = true;
-          break;
-        }
-      }
-
-      // enforcing thread termination if process has been cancelled
-      if (isCancelled) {
-        executor.shutdownNow();
-      } else {
-        executor.shutdown();
-      }
-
-      // waiting for pending threads to terminate
-      while (!executor.isTerminated()) {
-        if (!isCancelled && progress.isCanceled()) {
-          executor.shutdownNow();
-          isCancelled = true;
-        }
-        try { Thread.sleep(1); } catch (InterruptedException e) {}
-      }
-
-      if (isCancelled) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Operation cancelled",
-                                      "Info", JOptionPane.INFORMATION_MESSAGE);
-        return;
-      }
-
       for (int i = 0; i < strUsed.length; i++) {
         if (!strUsed[i]) {
           table.addTableItem(new UnusedStringTableItem(i));
@@ -211,17 +159,28 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
         resultFrame.setVisible(true);
       }
     } finally {
-      advanceProgress(true);
       blocker.setBlocked(false);
-      if (files != null) {
-        files.clear();
-        files = null;
-      }
     }
-    Debugging.timerShow("Check completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
+
+  @Override
+  protected Runnable newWorker(ResourceEntry entry) {
+    return () -> {
+      final Resource resource = ResourceFactory.getResource(entry);
+      if (resource instanceof DlgResource) {
+        checkDialog((DlgResource)resource);
+      } else if (resource instanceof BcsResource) {
+        checkScript((BcsResource)resource);
+      } else if (resource instanceof PlainTextResource) {
+        checkTextfile((PlainTextResource)resource);
+      } else if (resource != null) {
+        checkStruct((AbstractStruct)resource);
+      }
+      advanceProgress();
+    };
+  }
 
 // --------------------- Begin Interface ActionListener ---------------------
 
@@ -284,41 +243,17 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
 
   private void checkDialog(DlgResource dialog)
   {
-    List<StructEntry> flatList = dialog.getFlatList();
-    for (int i = 0; i < flatList.size(); i++) {
-      if (flatList.get(i) instanceof StringRef) {
-        StringRef ref = (StringRef)flatList.get(i);
-        if (ref.getValue() >= 0 && ref.getValue() < strUsed.length) {
-          synchronized (strUsed) {
-            strUsed[ref.getValue()] = true;
-          }
-        }
+    for (StructEntry entry : dialog.getFlatList()) {
+      if (entry instanceof StringRef) {
+        checkStringRef((StringRef)entry);
       }
-      else if (flatList.get(i) instanceof AbstractCode) {
-        AbstractCode code = (AbstractCode)flatList.get(i);
+      else if (entry instanceof AbstractCode) {
+        final AbstractCode code = (AbstractCode)entry;
         try {
-          Compiler compiler = new Compiler(code.toString(),
-                                             (code instanceof Action) ? ScriptType.ACTION :
-                                                                        ScriptType.TRIGGER);
-          String compiled = compiler.getCode();
-          Decompiler decompiler = new Decompiler(compiled, true);
-          decompiler.setGenerateComments(false);
-          decompiler.setGenerateResourcesUsed(true);
-          if (code instanceof Action) {
-            decompiler.setScriptType(ScriptType.ACTION);
-          } else {
-            decompiler.setScriptType(ScriptType.TRIGGER);
-          }
-          decompiler.decompile();
-          Set<Integer> used = decompiler.getStringRefsUsed();
-          for (final Integer stringRef : used) {
-            int u = stringRef.intValue();
-            if (u >= 0 && u < strUsed.length) {
-              synchronized (strUsed) {
-                strUsed[u] = true;
-              }
-            }
-          }
+          final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
+          final Compiler compiler = new Compiler(code.getText(), type);
+
+          checkCode(compiler.getCode(), type);
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -328,20 +263,8 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
 
   private void checkScript(BcsResource script)
   {
-    Decompiler decompiler = new Decompiler(script.getCode(), true);
-    decompiler.setGenerateComments(false);
-    decompiler.setGenerateResourcesUsed(true);
     try {
-      decompiler.decompile();
-      Set<Integer> used = decompiler.getStringRefsUsed();
-      for (final Integer stringRef : used) {
-        int u = stringRef.intValue();
-        if (u >= 0 && u < strUsed.length) {
-          synchronized (strUsed) {
-            strUsed[u] = true;
-          }
-        }
-      }
+      checkCode(script.getCode(), null);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -349,24 +272,18 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
 
   private void checkStruct(AbstractStruct struct)
   {
-    List<StructEntry> flatList = struct.getFlatList();
-    for (int i = 0, size = flatList.size(); i < size; i++) {
-      if (flatList.get(i) instanceof StringRef) {
-        StringRef ref = (StringRef)flatList.get(i);
-        if (ref.getValue() >= 0 && ref.getValue() < strUsed.length) {
-          synchronized (strUsed) {
-            strUsed[ref.getValue()] = true;
-          }
-        }
+    for (StructEntry entry : struct.getFlatList()) {
+      if (entry instanceof StringRef) {
+        checkStringRef((StringRef)entry);
       }
     }
   }
 
   private void checkTextfile(PlainTextResource text)
   {
-    Matcher m = NUMBERPATTERN.matcher(text.getText());
+    final Matcher m = NUMBERPATTERN.matcher(text.getText());
     while (m.find()) {
-      long nr = Long.parseLong(text.getText().substring(m.start(), m.end()));
+      final long nr = Long.parseLong(m.group());
       if (nr >= 0 && nr < strUsed.length) {
         synchronized (strUsed) {
           strUsed[(int)nr] = true;
@@ -375,16 +292,32 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
     }
   }
 
-  private synchronized void advanceProgress(boolean finished)
+  private void checkCode(String compiledCode, ScriptType type) throws Exception
   {
-    if (progress != null) {
-      if (finished) {
-        progressIndex = 0;
-        progress.close();
-        progress = null;
-      } else {
-        progressIndex++;
-        progress.setProgress(progressIndex);
+    final Decompiler decompiler = new Decompiler(compiledCode, true);
+    decompiler.setGenerateComments(false);
+    decompiler.setGenerateResourcesUsed(true);
+    if (type != null) {
+      decompiler.setScriptType(type);
+    }
+    decompiler.decompile();
+
+    for (final Integer stringRef : decompiler.getStringRefsUsed()) {
+      final int u = stringRef.intValue();
+      if (u >= 0 && u < strUsed.length) {
+        synchronized (strUsed) {
+          strUsed[u] = true;
+        }
+      }
+    }
+  }
+
+  private void checkStringRef(StringRef ref)
+  {
+    final int index = ref.getValue();
+    if (index >= 0 && index < strUsed.length) {
+      synchronized (strUsed) {
+        strUsed[index] = true;
       }
     }
   }
@@ -416,33 +349,4 @@ public final class StringUseChecker implements Runnable, ListSelectionListener, 
       return string;
     }
   }
-
-  private class Worker implements Runnable
-  {
-    private final ResourceEntry entry;
-
-    public Worker(ResourceEntry entry)
-    {
-      this.entry = entry;
-    }
-
-    @Override
-    public void run()
-    {
-      if (entry != null) {
-        Resource resource = ResourceFactory.getResource(entry);
-        if (resource instanceof DlgResource) {
-          checkDialog((DlgResource)resource);
-        } else if (resource instanceof BcsResource) {
-          checkScript((BcsResource)resource);
-        } else if (resource instanceof PlainTextResource) {
-          checkTextfile((PlainTextResource)resource);
-        } else if (resource != null) {
-          checkStruct((AbstractStruct)resource);
-        }
-      }
-      advanceProgress(false);
-    }
-  }
 }
-

@@ -62,6 +62,7 @@ public final class ScriptChecker extends AbstractChecker implements Runnable, Ac
 
   public ScriptChecker()
   {
+    super(MULTI_TYPE_FORMAT);
     new Thread(this).start();
   }
 

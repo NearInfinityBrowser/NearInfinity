@@ -22,7 +22,8 @@ import org.infinity.util.Misc;
 public abstract class AbstractChecker
 {
   /** Text for progress note. Contains two int placeholders: current and maximum count of items. */
-  private static final String FMT_PROGRESS = "Checking resource %d/%d";
+  public static final String ONE_TYPE_FORMAT   = "Checking resource %2$d/%3$d";
+  public static final String MULTI_TYPE_FORMAT = "Checking %1$ss %2$d/%3$d";
 
   /**
    * Handle to widget that shows check progress. Creates when {@link #runCheck}
@@ -32,6 +33,13 @@ public abstract class AbstractChecker
   private ProgressMonitor progress;
   /** Current number of checked items, that progress shows. */
   private int progressIndex;
+  private String lastExt;
+  /** Text for progress note. Contains two int placeholders: current and maximum count of items. */
+  private final String operationFormat;
+
+  protected AbstractChecker(String operationFormat) {
+    this.operationFormat = operationFormat;
+  }
 
   /**
    * Creates new work item for check specified resource.
@@ -55,26 +63,39 @@ public abstract class AbstractChecker
    */
   protected boolean runCheck(String progressTitle, List<ResourceEntry> entries)
   {
+    if (entries.isEmpty()) {
+      return false;
+    }
     try {
       final int max = entries.size();
-      progressIndex = 0;
       progress = new ProgressMonitor(
         NearInfinity.getInstance(), progressTitle + Misc.MSG_EXPAND_LARGE,
-        String.format(FMT_PROGRESS, max, max),
+        String.format(operationFormat, "WWWW", max, max),
         0, max
       );
-      progress.setNote(String.format(FMT_PROGRESS, 0, max));
+      progressIndex = 0;
+      lastExt = entries.get(0).getExtension();
+      updateProgressNote();
 
       final ThreadPoolExecutor executor = Misc.createThreadPool();
       boolean isCancelled = false;
       Debugging.timerReset();
+      int i = 0;
       for (ResourceEntry entry : entries) {
         if (progress.isCanceled()) {
           break;
         }
         if (entry == null) {
+          ++i;
           advanceProgress(false);
           continue;
+        }
+        if (i++ % 10 == 0) {
+          final String ext = entry.getExtension();
+          if (!lastExt.equalsIgnoreCase(ext)) {
+            lastExt = ext;
+            updateProgressNote();
+          }
         }
 
         Misc.isQueueReady(executor, true, -1);
@@ -125,10 +146,13 @@ public abstract class AbstractChecker
       } else {
         progressIndex++;
         if (progressIndex % 100 == 0) {
-          progress.setNote(String.format(FMT_PROGRESS, progressIndex, progress.getMaximum()));
+          updateProgressNote();
         }
         progress.setProgress(progressIndex);
       }
     }
+  }
+  private void updateProgressNote() {
+    progress.setNote(String.format(operationFormat, lastExt, progressIndex, progress.getMaximum()));
   }
 }

@@ -68,6 +68,7 @@ public final class DialogChecker extends AbstractChecker implements Runnable, Ac
 
   public DialogChecker(boolean checkOnlyOverride)
   {
+    super(ONE_TYPE_FORMAT);
     this.checkOnlyOverride = checkOnlyOverride;
     new Thread(this).start();
   }

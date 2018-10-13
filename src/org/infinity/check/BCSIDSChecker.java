@@ -56,6 +56,7 @@ public final class BCSIDSChecker extends AbstractChecker implements Runnable, Ac
 
   public BCSIDSChecker()
   {
+    super(ONE_TYPE_FORMAT);
     new Thread(this).start();
   }
 

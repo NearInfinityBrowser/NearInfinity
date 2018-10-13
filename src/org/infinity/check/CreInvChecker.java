@@ -58,6 +58,7 @@ public final class CreInvChecker extends AbstractChecker implements Runnable, Ac
 
   public CreInvChecker()
   {
+    super(ONE_TYPE_FORMAT);
     new Thread(this).start();
   }
 
