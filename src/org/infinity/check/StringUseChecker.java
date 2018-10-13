@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFileChooser;
@@ -61,9 +60,6 @@ import org.infinity.util.StringTable;
 
 public final class StringUseChecker extends AbstractSearcher implements Runnable, ListSelectionListener, SearchClient, ActionListener
 {
-  private static final Pattern NUMBERPATTERN = Pattern.compile("\\d+", Pattern.DOTALL);
-  private static final String[] FILETYPES = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE", "DLG", "EFF",
-                                             "INI", "ITM", "SPL", "SRC", "STO", "WMP"};
   private ChildFrame resultFrame;
   private JTextArea textArea;
   /** List of the {@link UnusedStringTableItem} objects. */
@@ -103,7 +99,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
     blocker.setBlocked(true);
     try {
       final ArrayList<ResourceEntry> files = new ArrayList<>();
-      for (final String fileType : FILETYPES) {
+      for (final String fileType : StringReferenceSearcher.FILE_TYPES) {
         files.addAll(ResourceFactory.getResources(fileType));
       }
 
@@ -284,7 +280,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
 
   private void checkTextfile(PlainTextResource text)
   {
-    final Matcher m = NUMBERPATTERN.matcher(text.getText());
+    final Matcher m = StringReferenceSearcher.NUMBER_PATTERN.matcher(text.getText());
     while (m.find()) {
       final long nr = Long.parseLong(m.group());
       if (nr >= 0 && nr < strUsed.length) {
