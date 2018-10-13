@@ -6,9 +6,7 @@ package org.infinity.check;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedWriter;
@@ -16,14 +14,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -61,20 +56,14 @@ import org.infinity.resource.text.PlainTextResource;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
-public class StrrefIndexChecker extends TypeChecker implements ActionListener, ListSelectionListener,
-                                                              Runnable
+public class StrrefIndexChecker extends AbstractChecker implements ListSelectionListener
 {
   private static final String[] FILETYPES = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE", "DLG",
                                              "EFF", "GAM", "INI", "ITM", "SPL", "SRC", "STO", "WMP"};
   private final ChildFrame resultFrame = new ChildFrame("Illegal strrefs found", true);
-  private final JButton bstart = new JButton("Check", Icons.getIcon(Icons.ICON_FIND_16));
-  private final JButton bcancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
-  private final JButton binvert = new JButton("Invert", Icons.getIcon(Icons.ICON_REFRESH_16));
   private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
   private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
   private final JButton bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
-  private final JCheckBox[] boxes = new JCheckBox[FILETYPES.length];
-  private final List<ResourceEntry> files = new ArrayList<>();
 
   /** List of the {@link StrrefEntry} objects. */
   private SortableTable table;
@@ -82,52 +71,11 @@ public class StrrefIndexChecker extends TypeChecker implements ActionListener, L
 
   public StrrefIndexChecker()
   {
-    super("Find illegal strrefs");
-    setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
+    super("Find illegal strrefs", "StrrefIndexChecker", FILETYPES);
 
     table = new SortableTable(new String[]{"File", "Offset / Line:Pos", "Strref"},
                               new Class<?>[]{StrrefEntry.class, String.class, Integer.class},
                               new Integer[]{200, 100, 100});
-
-    bstart.setMnemonic('s');
-    bcancel.setMnemonic('c');
-    binvert.setMnemonic('i');
-    bstart.addActionListener(this);
-    bcancel.addActionListener(this);
-    binvert.addActionListener(this);
-    getRootPane().setDefaultButton(bstart);
-
-    JPanel boxpanel = new JPanel(new GridLayout(0, 2, 3, 3));
-    for (int i = 0; i < boxes.length; i++) {
-      boxes[i] = new JCheckBox(FILETYPES[i], true);
-      boxpanel.add(boxes[i]);
-    }
-    boxpanel.setBorder(BorderFactory.createEmptyBorder(3, 12, 3, 0));
-
-    JPanel ipanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    ipanel.add(binvert);
-    JPanel innerpanel = new JPanel(new BorderLayout());
-    innerpanel.add(boxpanel, BorderLayout.CENTER);
-    innerpanel.add(ipanel, BorderLayout.SOUTH);
-    innerpanel.setBorder(BorderFactory.createTitledBorder("Select files to check:"));
-
-    JPanel bpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    bpanel.add(bstart);
-    bpanel.add(bcancel);
-
-    JPanel mainpanel = new JPanel(new BorderLayout());
-    mainpanel.add(innerpanel, BorderLayout.CENTER);
-    mainpanel.add(bpanel, BorderLayout.SOUTH);
-    mainpanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-
-    JPanel pane = (JPanel)getContentPane();
-    pane.setLayout(new BorderLayout());
-    pane.add(mainpanel, BorderLayout.CENTER);
-
-    pack();
-    setMinimumSize(getPreferredSize());
-    Center.center(this, NearInfinity.getInstance().getBounds());
-    setVisible(true);
   }
 
 //--------------------- Begin Interface ActionListener ---------------------
@@ -135,23 +83,7 @@ public class StrrefIndexChecker extends TypeChecker implements ActionListener, L
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bstart) {
-      setVisible(false);
-      for (int i = 0; i < FILETYPES.length; i++) {
-        if (boxes[i].isSelected()) {
-          files.addAll(ResourceFactory.getResources(FILETYPES[i]));
-        }
-      }
-      if (files.size() > 0) {
-        new Thread(this).start();
-      }
-    } else if (event.getSource() == binvert) {
-      for (final JCheckBox cb: boxes) {
-        cb.setSelected(!cb.isSelected());
-      }
-    } else if (event.getSource() == bcancel) {
-      setVisible(false);
-    } else if (event.getSource() == bopen) {
+    if (event.getSource() == bopen) {
       int row = table.getSelectedRow();
       if (row >= 0) {
         ResourceEntry entry = (ResourceEntry)table.getValueAt(row, 0);
@@ -190,6 +122,8 @@ public class StrrefIndexChecker extends TypeChecker implements ActionListener, L
           e.printStackTrace();
         }
       }
+    } else {
+      super.actionPerformed(event);
     }
   }
 

@@ -6,9 +6,7 @@ package org.infinity.check;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedWriter;
@@ -23,7 +21,6 @@ import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -56,8 +53,7 @@ import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.Tilemap;
 import org.infinity.util.Misc;
 
-public final class StructChecker extends TypeChecker implements ActionListener, Runnable,
-                                                               ListSelectionListener
+public final class StructChecker extends AbstractChecker implements ListSelectionListener
 {
   private static final String[] FILETYPES = {"ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM",
                                              "PRO", "SPL", "STO", "VEF", "VVC", "WED", "WMP"};
@@ -81,64 +77,19 @@ public final class StructChecker extends TypeChecker implements ActionListener, 
   }
 
   private final ChildFrame resultFrame = new ChildFrame("Corrupted files found", true);
-  private final JButton bstart = new JButton("Check", Icons.getIcon(Icons.ICON_FIND_16));
-  private final JButton bcancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
-  private final JButton binvert = new JButton("Invert", Icons.getIcon(Icons.ICON_REFRESH_16));
   private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
   private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
   private final JButton bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
-  private final JCheckBox[] boxes = new JCheckBox[FILETYPES.length];
-  private final List<ResourceEntry> files = new ArrayList<>();
   /** List of the {@link Corruption} objects. */
   private final SortableTable table;
 
   public StructChecker()
   {
-    super("Find Corrupted Files");
-    setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
+    super("Find Corrupted Files", "StructChecker", FILETYPES);
 
     table = new SortableTable(new String[]{"File", "Offset", "Error message"},
                               new Class<?>[]{ResourceEntry.class, String.class, String.class},//TODO: replace "Offset" by Integer
                               new Integer[]{50, 50, 400});
-
-    bstart.setMnemonic('s');
-    bcancel.setMnemonic('c');
-    binvert.setMnemonic('i');
-    bstart.addActionListener(this);
-    bcancel.addActionListener(this);
-    binvert.addActionListener(this);
-    getRootPane().setDefaultButton(bstart);
-
-    JPanel boxpanel = new JPanel(new GridLayout(0, 2, 3, 3));
-    for (int i = 0; i < boxes.length; i++) {
-      boxes[i] = new JCheckBox(FILETYPES[i], true);
-      boxpanel.add(boxes[i]);
-    }
-    boxpanel.setBorder(BorderFactory.createEmptyBorder(3, 12, 3, 0));
-
-    JPanel ipanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    ipanel.add(binvert);
-    JPanel innerpanel = new JPanel(new BorderLayout());
-    innerpanel.add(boxpanel, BorderLayout.CENTER);
-    innerpanel.add(ipanel, BorderLayout.SOUTH);
-    innerpanel.setBorder(BorderFactory.createTitledBorder("Select files to check:"));
-
-    JPanel bpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    bpanel.add(bstart);
-    bpanel.add(bcancel);
-
-    JPanel mainpanel = new JPanel(new BorderLayout());
-    mainpanel.add(innerpanel, BorderLayout.CENTER);
-    mainpanel.add(bpanel, BorderLayout.SOUTH);
-    mainpanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-
-    JPanel pane = (JPanel)getContentPane();
-    pane.setLayout(new BorderLayout());
-    pane.add(mainpanel, BorderLayout.CENTER);
-
-    pack();
-    Center.center(this, NearInfinity.getInstance().getBounds());
-    setVisible(true);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -146,22 +97,7 @@ public final class StructChecker extends TypeChecker implements ActionListener, 
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bstart) {
-      setVisible(false);
-      for (int i = 0; i < FILETYPES.length; i++) {
-        if (boxes[i].isSelected())
-          files.addAll(ResourceFactory.getResources(FILETYPES[i]));
-      }
-      if (files.size() > 0)
-        new Thread(this).start();
-    }
-    else if (event.getSource() == binvert) {
-      for (final JCheckBox box : boxes)
-        box.setSelected(!box.isSelected());
-    }
-    else if (event.getSource() == bcancel)
-      setVisible(false);
-    else if (event.getSource() == bopen) {
+    if (event.getSource() == bopen) {
       int row = table.getSelectedRow();
       if (row != -1) {
         ResourceEntry resourceEntry = (ResourceEntry)table.getValueAt(row, 0);
@@ -202,6 +138,8 @@ public final class StructChecker extends TypeChecker implements ActionListener, 
           e.printStackTrace();
         }
       }
+    } else {
+      super.actionPerformed(event);
     }
   }
 
