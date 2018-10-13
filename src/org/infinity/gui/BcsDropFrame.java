@@ -258,7 +258,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     if (!cbIgnoreWarnings.isSelected()) {
       errors.addAll(warnings);
     }
-    if (errors.size() == 0) {
+    if (errors.isEmpty()) {
       String filename = file.getFileName().toString();
       filename = filename.substring(0, filename.lastIndexOf((int)'.'));
       if (rbSaveBCS.isSelected()) {
@@ -321,8 +321,8 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     long startTime = System.currentTimeMillis();
     int ok = 0, failed = 0;
     if (component == compZone) {
-      for (int i = 0; i < files.size(); i++) {
-        Path file = files.get(i).toPath();
+      for (File f : files) {
+        Path file = f.toPath();
         if (Files.isDirectory(file)) {
           try (DirectoryStream<Path> dstream = Files.newDirectoryStream(file)) {
             for (final Path p: dstream) {
@@ -337,7 +337,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
           if (errors == null) {
             failed++;
           } else {
-            if (errors.size() == 0) {
+            if (errors.isEmpty()) {
               ok++;
             } else {
               for (final ScriptMessage sm: errors) {
@@ -353,10 +353,10 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       }
     }
     else if (component == decompZone) {
-      for (int i = 0; i < files.size(); i++) {
-        Path file = files.get(i).toPath();
+      for (File f : files) {
+        final Path file = f.toPath();
         if (Files.isDirectory(file)) {
-          try (DirectoryStream<Path> dstream = Files.newDirectoryStream(file)) {
+          try (final DirectoryStream<Path> dstream = Files.newDirectoryStream(file)) {
             for (final Path p: dstream) {
               files.add(p.toFile());
             }
@@ -435,7 +435,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     @Override
     public void run()
     {
-      filesDropped(component, new ArrayList<File>(files));
+      filesDropped(component, new ArrayList<>(files));
     }
   }
 

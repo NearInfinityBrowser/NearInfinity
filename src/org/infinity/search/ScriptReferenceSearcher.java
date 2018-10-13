@@ -32,9 +32,9 @@ import org.infinity.resource.text.PlainTextResource;
  */
 public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
 {
-  public ScriptReferenceSearcher(ResourceEntry targetEntry, Component parent)
+  public ScriptReferenceSearcher(ResourceEntry bcsScript, Component parent)
   {
-    super(targetEntry, new String[]{"ARE", "BCS", "CHR", "CRE", "DLG", "INI"}, parent);
+    super(bcsScript, new String[]{"ARE", "BCS", "CHR", "CRE", "DLG", "INI"}, parent);
   }
 
   @Override
