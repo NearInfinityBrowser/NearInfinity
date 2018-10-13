@@ -5,6 +5,7 @@
 package org.infinity.check;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
@@ -51,12 +52,14 @@ import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
+import org.infinity.search.AbstractSearcher;
 import org.infinity.search.SearchClient;
 import org.infinity.search.SearchMaster;
+import org.infinity.search.StringReferenceSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
-public final class StringUseChecker extends AbstractChecker implements Runnable, ListSelectionListener, SearchClient, ActionListener
+public final class StringUseChecker extends AbstractSearcher implements Runnable, ListSelectionListener, SearchClient, ActionListener
 {
   private static final Pattern NUMBERPATTERN = Pattern.compile("\\d+", Pattern.DOTALL);
   private static final String[] FILETYPES = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE", "DLG", "EFF",
@@ -68,9 +71,9 @@ public final class StringUseChecker extends AbstractChecker implements Runnable,
   private boolean[] strUsed;
   private JMenuItem save;
 
-  public StringUseChecker()
+  public StringUseChecker(Component parent)
   {
-    super(MULTI_TYPE_FORMAT);
+    super(CHECK_MULTI_TYPE_FORMAT, parent);
     new Thread(this).start();
   }
 
@@ -105,7 +108,7 @@ public final class StringUseChecker extends AbstractChecker implements Runnable,
       }
 
       strUsed = new boolean[StringTable.getNumEntries() + 1];
-      if (runCheck("Searching...", files)) {
+      if (runSearch("Searching", files)) {
         return;
       }
 

@@ -58,7 +58,7 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
 
   public DialogSearcher(List<ResourceEntry> files, Component parent)
   {
-    super(parent);
+    super(SEARCH_ONE_TYPE_FORMAT, parent);
     this.files = files;
     String title = "Find: DLG files";
     if (files.size() == 1)
@@ -161,7 +161,7 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
       // executing multithreaded search
       inputFrame.setVisible(false);
       resultFrame = new ReferenceHitFrame(term, parent);
-      if (runSearch(files)) {
+      if (runSearch("Searching", files)) {
         resultFrame.close();
       } else {
         resultFrame.setVisible(true);

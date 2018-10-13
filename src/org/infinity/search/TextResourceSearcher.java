@@ -47,7 +47,7 @@ public final class TextResourceSearcher extends AbstractSearcher implements Runn
 
   public TextResourceSearcher(List<ResourceEntry> files, Container parent)
   {
-    super(parent);
+    super(SEARCH_ONE_TYPE_FORMAT, parent);
     this.files = files;
 
     String title = "";
@@ -155,7 +155,7 @@ public final class TextResourceSearcher extends AbstractSearcher implements Runn
       inputFrame.setVisible(false);
       resultFrame = new TextHitFrame(term, parent);
 
-      if (runSearch(files)) {
+      if (runSearch("Searching", files)) {
         resultFrame.close();
       } else {
         resultFrame.setVisible(true);

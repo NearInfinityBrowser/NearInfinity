@@ -5,6 +5,7 @@
 package org.infinity.check;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -52,10 +53,11 @@ import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 
 /** Performs checking {@link DLG} resources. */
-public final class DialogChecker extends AbstractChecker implements Runnable, ActionListener, ListSelectionListener, ChangeListener
+public final class DialogChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener, ChangeListener
 {
   private final boolean checkOnlyOverride;
   private ChildFrame resultFrame;
@@ -66,9 +68,9 @@ public final class DialogChecker extends AbstractChecker implements Runnable, Ac
   /** List of the {@link ActionErrorsTableLine} objects with compiler warnings in dialog actions. */
   private SortableTable warningTable;
 
-  public DialogChecker(boolean checkOnlyOverride)
+  public DialogChecker(boolean checkOnlyOverride, Component parent)
   {
-    super(ONE_TYPE_FORMAT);
+    super(CHECK_ONE_TYPE_FORMAT, parent);
     this.checkOnlyOverride = checkOnlyOverride;
     new Thread(this).start();
   }
@@ -194,7 +196,7 @@ public final class DialogChecker extends AbstractChecker implements Runnable, Ac
           colClasses,
           new Integer[]{50, 100, 350, 10});
 
-      if (runCheck("Checking dialogue triggers & actions...", dlgFiles)) {
+      if (runSearch("Checking dialogue triggers & actions", dlgFiles)) {
         return;
       }
 

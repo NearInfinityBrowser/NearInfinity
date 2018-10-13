@@ -58,7 +58,7 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
 
   public AttributeSearcher(AbstractStruct struct, StructEntry structEntry, Component parent)
   {
-    super(parent);
+    super(SEARCH_ONE_TYPE_FORMAT, parent);
     this.structEntry = structEntry;
     while (struct.getSuperStruct() != null)
       struct = struct.getSuperStruct();
@@ -215,7 +215,7 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
       inputFrame.setVisible(false);
       resultFrame = new ReferenceHitFrame(title, parent);
 
-      if (runSearch(files)) {
+      if (runSearch("Searching", files)) {
         resultFrame.close();
       } else {
         resultFrame.setVisible(true);

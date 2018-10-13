@@ -62,10 +62,11 @@ import org.infinity.resource.dlg.State;
 import org.infinity.resource.dlg.Transition;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
+import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
-public final class ResourceUseChecker extends AbstractChecker implements Runnable, ListSelectionListener, ActionListener
+public final class ResourceUseChecker extends AbstractSearcher implements Runnable, ListSelectionListener, ActionListener
 {
   private static final Pattern RESREFPATTERN = Pattern.compile("\\w{3,8}");
   private static final String[] FILETYPES = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE",
@@ -86,7 +87,7 @@ public final class ResourceUseChecker extends AbstractChecker implements Runnabl
 
   public ResourceUseChecker(Component parent)
   {
-    super(MULTI_TYPE_FORMAT);
+    super(CHECK_MULTI_TYPE_FORMAT, parent);
     ButtonGroup bg = new ButtonGroup();
     JPanel radioPanel = new JPanel(new GridLayout(0, 1));
     for (int i = 0; i < typeButtons.length; i++) {
@@ -211,7 +212,7 @@ public final class ResourceUseChecker extends AbstractChecker implements Runnabl
       }
 
       unusedResources.addAll(ResourceFactory.getResources(checkType));
-      if (runCheck("Searching...", files)) {
+      if (runSearch("Searching", files)) {
         return;
       }
 

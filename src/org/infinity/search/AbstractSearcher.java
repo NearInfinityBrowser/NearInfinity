@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import javax.swing.JOptionPane;
 import javax.swing.ProgressMonitor;
+import org.infinity.NearInfinity;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Debugging;
 import org.infinity.util.Misc;
@@ -22,7 +23,11 @@ import org.infinity.util.Misc;
 public abstract class AbstractSearcher
 {
   /** Text for progress note. Contains two int placeholders: current and maximum count of items. */
-  private static final String FMT_PROGRESS = "Processing resource %d/%d";
+  public static final String SEARCH_ONE_TYPE_FORMAT   = "Processing resource %2$d/%3$d";
+  public static final String SEARCH_MULTI_TYPE_FORMAT = "Processing %1$ss %2$d/%3$d";
+  /** Text for progress note. Contains two int placeholders: current and maximum count of items. */
+  public static final String CHECK_ONE_TYPE_FORMAT   = "Checking resource %2$d/%3$d";
+  public static final String CHECK_MULTI_TYPE_FORMAT = "Checking %1$ss %2$d/%3$d";
 
   /**
    * Handle to widget that shows search progress. Creates when {@link #runSearch}
@@ -32,10 +37,15 @@ public abstract class AbstractSearcher
   private ProgressMonitor progress;
   /** Current number of checked items, that progress shows. */
   private int progressIndex;
+  /** Extension of the last processed resource. */
+  private String lastExt;
+  /** Text for progress note. Contains two int placeholders: current and maximum count of items. */
+  private final String operationFormat;
   /** GUI component that own search window. */
   protected final Component parent;
 
-  public AbstractSearcher(Component parent) {
+  protected AbstractSearcher(String operationFormat, Component parent) {
+    this.operationFormat = operationFormat;
     this.parent = parent;
   }
 
@@ -52,34 +62,49 @@ public abstract class AbstractSearcher
    * Runs check that {@link #newWorker spawns} working items that performs actual
    * checking.
    *
+   * @param operation Brief description of what kind of resources is searches/checked
+   *        (dialogs, scripts and so on)
    * @param entries Entries for search. Any {@code null} values will be ignored,
    *        any other will be searched in several threads
    *
    * @return {@code true}, if search cancelled, {@code false} otherwise
    */
-  protected boolean runSearch(List<ResourceEntry> entries)
+  protected boolean runSearch(String operation, List<ResourceEntry> entries)
   {
+    if (entries.isEmpty()) {
+      return false;
+    }
     try {
       final int max = entries.size();
       progressIndex = 0;
       progress = new ProgressMonitor(
-        parent, "Searching..." + Misc.MSG_EXPAND_LARGE,
-        String.format(FMT_PROGRESS, max, max),
+        NearInfinity.getInstance(), operation + "..." + Misc.MSG_EXPAND_LARGE,
+        String.format(operationFormat, "WWWW", max, max),
         0, max
       );
-      progress.setNote(String.format(FMT_PROGRESS, 0, max));
       progress.setMillisToDecideToPopup(100);
+      lastExt = entries.get(0).getExtension();
+      updateProgressNote();
 
       final ThreadPoolExecutor executor = Misc.createThreadPool();
       boolean isCancelled = false;
       Debugging.timerReset();
+      int i = 0;
       for (ResourceEntry entry : entries) {
         if (progress.isCanceled()) {
           break;
         }
         if (entry == null) {
+          ++i;
           advanceProgress(false);
           continue;
+        }
+        if (i++ % 10 == 0) {
+          final String ext = entry.getExtension();
+          if (!lastExt.equalsIgnoreCase(ext)) {
+            lastExt = ext;
+            updateProgressNote();
+          }
         }
 
         Misc.isQueueReady(executor, true, -1);
@@ -102,10 +127,10 @@ public abstract class AbstractSearcher
         try { Thread.sleep(1); } catch (InterruptedException e) {}
       }
 
-      Debugging.timerShow("Search completed", Debugging.TimeFormat.MILLISECONDS);
+      Debugging.timerShow(operation + " completed", Debugging.TimeFormat.MILLISECONDS);
 
       if (isCancelled) {
-        JOptionPane.showMessageDialog(parent, "Search cancelled",
+        JOptionPane.showMessageDialog(parent, operation + " cancelled",
                                       "Info", JOptionPane.INFORMATION_MESSAGE);
       }
       return isCancelled;
@@ -130,10 +155,13 @@ public abstract class AbstractSearcher
       } else {
         progressIndex++;
         if (progressIndex % 100 == 0) {
-          progress.setNote(String.format(FMT_PROGRESS, progressIndex, progress.getMaximum()));
+          updateProgressNote();
         }
         progress.setProgress(progressIndex);
       }
     }
+  }
+  private void updateProgressNote() {
+    progress.setNote(String.format(operationFormat, lastExt, progressIndex, progress.getMaximum()));
   }
 }

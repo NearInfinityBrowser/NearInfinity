@@ -5,6 +5,7 @@
 package org.infinity.check;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -47,10 +48,11 @@ import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.bcs.ScriptMessage;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 
 /** Performs checking {@link BCS} & {@code BS} resources. */
-public final class ScriptChecker extends AbstractChecker implements Runnable, ActionListener, ListSelectionListener, ChangeListener
+public final class ScriptChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener, ChangeListener
 {
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
@@ -60,9 +62,9 @@ public final class ScriptChecker extends AbstractChecker implements Runnable, Ac
   /** List of the {@link ScriptErrorsTableLine} objects with compiler warnings. */
   private SortableTable warningTable;
 
-  public ScriptChecker()
+  public ScriptChecker(Component parent)
   {
-    super(MULTI_TYPE_FORMAT);
+    super(CHECK_MULTI_TYPE_FORMAT, parent);
     new Thread(this).start();
   }
 
@@ -178,7 +180,7 @@ public final class ScriptChecker extends AbstractChecker implements Runnable, Ac
                                        colClasses,
                                        new Integer[]{120, 440, 50});
 
-      if (runCheck("Checking scripts...", scriptFiles)) {
+      if (runSearch("Checking scripts", scriptFiles)) {
         return;
       }
 

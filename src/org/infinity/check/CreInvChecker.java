@@ -5,6 +5,7 @@
 package org.infinity.check;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,19 +47,20 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.Item;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 
 /** Performs checking {@link CRE} & {@code CHR} resources. */
-public final class CreInvChecker extends AbstractChecker implements Runnable, ActionListener, ListSelectionListener
+public final class CreInvChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener
 {
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
   /** List of the {@link CreInvError} objects. */
   private SortableTable table;
 
-  public CreInvChecker()
+  public CreInvChecker(Component parent)
   {
-    super(ONE_TYPE_FORMAT);
+    super(CHECK_ONE_TYPE_FORMAT, parent);
     new Thread(this).start();
   }
 
@@ -144,7 +146,7 @@ public final class CreInvChecker extends AbstractChecker implements Runnable, Ac
                                 new Class<?>[]{ResourceEntry.class, String.class, Item.class},
                                 new Integer[]{100, 100, 200});
 
-      if (runCheck("Checking inventories...", creFiles)) {
+      if (runSearch("Checking inventories", creFiles)) {
         return;
       }
 

@@ -5,6 +5,7 @@
 package org.infinity.check;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -44,19 +45,20 @@ import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 
 /** Performs checking {@link BCS} & {@code BS} resources. */
-public final class BCSIDSChecker extends AbstractChecker implements Runnable, ActionListener, ListSelectionListener
+public final class BCSIDSChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener
 {
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
   /** List of the {@link BCSIDSErrorTableLine} objects. */
   private SortableTable table;
 
-  public BCSIDSChecker()
+  public BCSIDSChecker(Component parent)
   {
-    super(ONE_TYPE_FORMAT);
+    super(CHECK_ONE_TYPE_FORMAT, parent);
     new Thread(this).start();
   }
 
@@ -145,7 +147,7 @@ public final class BCSIDSChecker extends AbstractChecker implements Runnable, Ac
                                 new Class<?>[]{ResourceEntry.class, String.class, Integer.class},
                                 new Integer[]{100, 300, 50});
 
-      if (runCheck("Checking...", bcsFiles)) {
+      if (runSearch("Checking", bcsFiles)) {
         return;
       }
 

@@ -22,7 +22,6 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import org.infinity.check.AbstractChecker;
 
 import org.infinity.datatype.TextString;
 import org.infinity.gui.Center;
@@ -35,7 +34,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.key.ResourceEntry;
 
-abstract class AbstractReferenceSearcher extends AbstractChecker implements Runnable, ActionListener
+abstract class AbstractReferenceSearcher extends AbstractSearcher implements Runnable, ActionListener
 {
   protected static final String[] FILE_TYPES = {"2DA", "ARE", "BCS", "CHR", "CHU", "CRE", "DLG",
                                                 "EFF", "GAM", "INI", "ITM", "PRO", "SAV", "SPL",
@@ -70,7 +69,7 @@ abstract class AbstractReferenceSearcher extends AbstractChecker implements Runn
 
   AbstractReferenceSearcher(ResourceEntry targetEntry, String filetypes[], boolean[] preselect, Component parent)
   {
-    super("Processing %1$ss %2$d/%3$d");
+    super(SEARCH_MULTI_TYPE_FORMAT, parent);
     this.targetEntry = targetEntry;
     if (targetEntry != null && "CRE".equalsIgnoreCase(targetEntry.getExtension())) {
       try {
@@ -231,7 +230,7 @@ abstract class AbstractReferenceSearcher extends AbstractChecker implements Runn
   public void run()
   {
     // executing multithreaded search
-    if (runCheck("Searching...", files)) {
+    if (runSearch("Searching", files)) {
       hitFrame.close();
       return;
     }
