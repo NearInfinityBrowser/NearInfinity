@@ -99,11 +99,11 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
       JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
       chooser.setDialogTitle("Save result");
       chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "result.txt"));
-      if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+      if (chooser.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
         Path output = chooser.getSelectedFile().toPath();
         if (Files.exists(output)) {
           String[] options = {"Overwrite", "Cancel"};
-          if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?",
+          if (JOptionPane.showOptionDialog(resultFrame, output + " exists. Overwrite?",
                                            "Save result", JOptionPane.YES_NO_OPTION,
                                            JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
             return;
@@ -114,10 +114,10 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
           for (int i = 0; i < table.getRowCount(); i++) {
             bw.write(table.getTableItemAt(i).toString()); bw.newLine();
           }
-          JOptionPane.showMessageDialog(this, "Result saved to " + output, "Save complete",
+          JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output, "Save complete",
                                         JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
-          JOptionPane.showMessageDialog(this, "Error while saving " + output,"Error",
+          JOptionPane.showMessageDialog(resultFrame, "Error while saving " + output, "Error",
                                         JOptionPane.ERROR_MESSAGE);
           e.printStackTrace();
         }
