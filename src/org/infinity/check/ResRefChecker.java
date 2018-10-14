@@ -56,7 +56,7 @@ public final class ResRefChecker extends AbstractChecker
   protected Runnable newWorker(ResourceEntry entry) {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
-      if (resource != null) {
+      if (resource instanceof AbstractStruct) {
         search(entry, (AbstractStruct)resource);
       }
       advanceProgress();

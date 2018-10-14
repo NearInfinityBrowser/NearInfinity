@@ -53,13 +53,12 @@ import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.gam.JournalEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
+import org.infinity.search.StringReferenceSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
 public class StrrefIndexChecker extends AbstractChecker implements ListSelectionListener
 {
-  private static final String[] FILETYPES = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE", "DLG",
-                                             "EFF", "GAM", "INI", "ITM", "SPL", "SRC", "STO", "WMP"};
   private final ChildFrame resultFrame = new ChildFrame("Illegal strrefs found", true);
   private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
   private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
@@ -71,7 +70,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
 
   public StrrefIndexChecker()
   {
-    super("Find illegal strrefs", "StrrefIndexChecker", FILETYPES);
+    super("Find illegal strrefs", "StrrefIndexChecker", StringReferenceSearcher.FILE_TYPES);
 
     table = new SortableTable(new String[]{"File", "Offset / Line:Pos", "Strref"},
                               new Class<?>[]{StrrefEntry.class, String.class, Integer.class},
@@ -321,10 +320,9 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
 
   private void checkText(PlainTextResource text)
   {
-    final Pattern pattern = Pattern.compile("\\b\\d+\\b", Pattern.DOTALL);
     final String[] lines = text.getText().split("\r?\n");
     for (int i = 0; i < lines.length; i++) {
-      final Matcher matcher = pattern.matcher(lines[i]);
+      final Matcher matcher = StringReferenceSearcher.NUMBER_PATTERN.matcher(lines[i]);
       while (matcher.find()) {
         final int line = i;
         final int pos = matcher.start();

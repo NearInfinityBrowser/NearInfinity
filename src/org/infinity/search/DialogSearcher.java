@@ -137,7 +137,7 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
   {
     String term = tfinput.getText();
     if (!cbregex.isSelected()) {
-      term = term.replaceAll("(\\W)", "\\\\$1");
+      term = Pattern.quote(term);
     }
     if (cbwhole.isSelected()) {
       term = ".*\\b" + term + "\\b.*";
@@ -178,9 +178,10 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
   protected Runnable newWorker(ResourceEntry entry) {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
-      if (resource != null) {
+      if (resource instanceof AbstractStruct) {
         final Map<StructEntry, StructEntry> searchMap = makeSearchMap((AbstractStruct)resource);
-        for (final StructEntry searchEntry : searchMap.keySet()) {
+        for (final Map.Entry<StructEntry, StructEntry> e : searchMap.entrySet()) {
+          final StructEntry searchEntry = e.getKey();
           String s = null;
           if (searchEntry instanceof StringRef) {
             s = searchEntry.toString();
@@ -200,10 +201,10 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
                   System.err.println("Error(s) compiling " + entry.toString() + " - " + searchEntry.getName());
                 }
               }
-            } catch (Exception e) {
+            } catch (Exception ex) {
               synchronized (System.err) {
                 System.err.println("Exception (de)compiling " + entry.toString() + " - " + searchEntry.getName());
-                e.printStackTrace();
+                ex.printStackTrace();
               }
             }
             if (s == null) {
@@ -212,7 +213,7 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
           }
           final Matcher matcher = regPattern.matcher(s);
           if (matcher.matches()) {
-            addResult(entry, searchMap.get(searchEntry).getName(), searchEntry);
+            addResult(entry, e.getValue().getName(), searchEntry);
           }
         }
       }

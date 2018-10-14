@@ -232,9 +232,10 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
   @Override
   protected Runnable newWorker(ResourceEntry entry) {
     return () -> {
-      final AbstractStruct resource = (AbstractStruct)ResourceFactory.getResource(entry);
-      if (resource != null) {
-        for (StructEntry searchEntry : resource.getFlatList()) {
+      final Resource resource = ResourceFactory.getResource(entry);
+      if (resource instanceof AbstractStruct) {
+        final AbstractStruct struct = (AbstractStruct)resource;
+        for (StructEntry searchEntry : struct.getFlatList()) {
           // skipping fields located in different parent structures
           if (structEntry.getParent().getClass() != searchEntry.getParent().getClass()) {
             continue;
@@ -256,7 +257,7 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
             }
 
             if (hit) {
-              AbstractStruct superStruct = resource.getSuperStruct(searchEntry);
+              AbstractStruct superStruct = struct.getSuperStruct(searchEntry);
               if (superStruct instanceof Resource || superStruct == null) {
                 addHit(entry, entry.getSearchString(), searchEntry);
               } else {

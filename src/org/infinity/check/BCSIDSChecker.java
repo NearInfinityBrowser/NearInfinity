@@ -48,7 +48,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 
-/** Performs checking {@link BCS} & {@code BS} resources. */
+/** Performs checking {@link BcsResource BCS} & {@code BS} resources. */
 public final class BCSIDSChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener
 {
   private ChildFrame resultFrame;

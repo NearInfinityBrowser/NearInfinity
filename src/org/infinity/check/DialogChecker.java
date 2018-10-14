@@ -56,7 +56,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 
-/** Performs checking {@link DLG} resources. */
+/** Performs checking {@link DlgResource DLG} resources. */
 public final class DialogChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener, ChangeListener
 {
   private final boolean checkOnlyOverride;

@@ -28,6 +28,7 @@ import javax.swing.JTextField;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.icon.Icons;
+import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.key.ResourceEntry;
@@ -130,7 +131,7 @@ public final class TextResourceSearcher extends AbstractSearcher implements Runn
   {
     String term = tfinput.getText();
     if (!cbregex.isSelected()) {
-      term = term.replaceAll("(\\W)", "\\\\$1");
+      term = Pattern.quote(term);
     }
     if (cbwhole.isSelected()) {
       term = ".*\\b" + term + "\\b.*";
@@ -171,9 +172,9 @@ public final class TextResourceSearcher extends AbstractSearcher implements Runn
   @Override
   protected Runnable newWorker(ResourceEntry entry) {
     return () -> {
-      final TextResource resource = (TextResource)ResourceFactory.getResource(entry);
-      if (resource != null) {
-        try (final BufferedReader br = new BufferedReader(new StringReader(resource.getText()))) {
+      final Resource resource = ResourceFactory.getResource(entry);
+      if (resource instanceof TextResource) {
+        try (final BufferedReader br = new BufferedReader(new StringReader(((TextResource)resource).getText()))) {
           String line;
           int linenr = 0;
           while ((line = br.readLine()) != null) {
@@ -183,7 +184,9 @@ public final class TextResourceSearcher extends AbstractSearcher implements Runn
             }
           }
         } catch (IOException e) {
-          e.printStackTrace();
+          synchronized (System.err) {
+            e.printStackTrace();
+          }
         }
       }
       advanceProgress();

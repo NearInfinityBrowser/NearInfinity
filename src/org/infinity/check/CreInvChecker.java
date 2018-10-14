@@ -50,7 +50,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 
-/** Performs checking {@link CRE} & {@code CHR} resources. */
+/** Performs checking {@link CreResource CRE} & {@code CHR} resources. */
 public final class CreInvChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener
 {
   private ChildFrame resultFrame;
