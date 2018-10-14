@@ -18,8 +18,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
 import org.infinity.NearInfinity;
+import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.BrowserMenuBar;
+import org.infinity.resource.HasIcon;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.cre.CreResource;
@@ -34,8 +37,8 @@ import org.infinity.util.io.StreamUtils;
 
 public abstract class ResourceEntry implements Comparable<ResourceEntry>
 {
-  // list of file extensions not shown in the resource tree
-  private static final HashSet<String> skippedExtensions = new HashSet<String>();
+  /** List of file extensions not shown in the resource tree. */
+  private static final HashSet<String> skippedExtensions = new HashSet<>();
 
   static {
     skippedExtensions.add("BAK");
@@ -146,6 +149,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
                          BrowserMenuBar.getInstance().ignoreOverrides());
   }
 
+  /** Get icon that used in navigation tree for a resource. */
   public ImageIcon getIcon()
   {
     return ResourceFactory.getKeyfile().getIcon(getExtension());
@@ -210,6 +214,19 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
       }
     }
     return searchString;
+  }
+
+  /**
+   * Retrieves image that associated with the resource to what this pointer refer.
+   *
+   * @return Image if resource exists and have icon or {@code null} otherwise
+   */
+  public ResourceRef getResourceIcon() {
+    final Resource resource = ResourceFactory.getResource(this);
+    if (resource instanceof HasIcon) {
+      return ((HasIcon)resource).getIcon();
+    }
+    return null;
   }
 
   /**

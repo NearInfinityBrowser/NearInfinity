@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.sto;
@@ -12,12 +12,24 @@ import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.resource.HasIcon;
 import org.infinity.util.io.StreamUtils;
 
-public final class ItemSale extends AbstractStruct implements AddRemovable
+/**
+ * Structure for the item for sale in the store, used by games:
+ * <ul>
+ * <li>Baldur's Gate: Tales of the Swoard Coast</li>
+ * <li>Baldur's Gate II: Throne of Baal</li>
+ * <li>Icewind Dale: Heart of Winter</li>
+ * <li>Icewind Dale: Enhanced Edition</li>
+ * <li>Icewind Dale II</li>
+ * </ul>
+ */
+public final class ItemSale extends AbstractStruct implements AddRemovable, HasIcon
 {
   // STO/ItemSale-specific field labels
   public static final String STO_SALE                 = "Item for sale";
+  /** Name of the field with ResRef to the item to sale. */
   public static final String STO_SALE_ITEM            = "Item";
   public static final String STO_SALE_EXPIRATION      = "Expiration time";
   public static final String STO_SALE_QUANTITY_FMT    = "Quantity/Charges %d";
@@ -62,5 +74,7 @@ public final class ItemSale extends AbstractStruct implements AddRemovable
     addField(new Bitmap(buffer, offset + 24, 4, STO_SALE_INFINITE_SUPPLY, s_noyes));
     return offset + 28;
   }
-}
 
+  @Override
+  public ResourceRef getIcon() { return getIndirectIcon(STO_SALE_ITEM); }
+}

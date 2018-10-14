@@ -49,6 +49,8 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.HasIcon;
+import org.infinity.resource.IconCache;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -355,7 +357,7 @@ public final class ViewerUtil
         if (renderer == null) {
           list.setCellRenderer(new StructListRenderer(attrName));
         }
-        List<AbstractStruct> templist = new ArrayList<AbstractStruct>();
+        List<AbstractStruct> templist = new ArrayList<>();
         for (int i = 0; i < struct.getFieldCount(); i++) {
           StructEntry o = struct.getField(i);
           if (o.getClass() == listClass) {
@@ -490,8 +492,11 @@ public final class ViewerUtil
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
                                                   boolean cellHasFocus)
     {
-      JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      final JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       label.setText(getListValue(value));
+      if (value instanceof HasIcon) {
+        label.setIcon(IconCache.getIcon((HasIcon) value));
+      }
       return label;
     }
 

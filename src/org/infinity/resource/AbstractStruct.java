@@ -1258,4 +1258,27 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
     throw new IllegalArgumentException("Field '" + attrName + "' not a resource reference");
   }
+  /**
+   * Returns image that represents structure to which refers specified attribute.
+   *
+   * @param attrName Name of field that contains {@link ResourceRef} to the resource
+   *        that can have icon
+   *
+   * @return Icon or {@code null} if referenced resource does not exist or does
+   *         not have an icon
+   *
+   * @throws IllegalArgumentException If specified attribute not exists or not
+   *         {@link ResourceRef} attribute
+   */
+  protected ResourceRef getIndirectIcon(String attrName) throws IllegalArgumentException
+  {
+    final StructEntry field = getAttribute(attrName);
+    if (field instanceof ResourceRef) {
+      final String resName = ((ResourceRef)field).getResourceName();
+      final ResourceEntry resourceWithIcon = ResourceFactory.getResourceEntry(resName);
+
+      return resourceWithIcon == null ? null : resourceWithIcon.getResourceIcon();
+    }
+    throw new IllegalArgumentException("Field '" + attrName + "' not a resource reference");
+  }
 }

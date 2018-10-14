@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.sto;
@@ -14,9 +14,16 @@ import org.infinity.datatype.StringRef;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.resource.HasIcon;
 import org.infinity.util.io.StreamUtils;
 
-public final class ItemSale11 extends AbstractStruct implements AddRemovable
+/**
+ * Structure for the item for sale in the store, used by games:
+ * <ul>
+ * <li>Planespace: Torment</li>
+ * </ul>
+ */
+public final class ItemSale11 extends AbstractStruct implements AddRemovable, HasIcon
 {
   // STO/ItemSale-specific field labels
   public static final String STO_SALE                 = "Item for sale";
@@ -66,5 +73,7 @@ public final class ItemSale11 extends AbstractStruct implements AddRemovable
     addField(new Unknown(buffer, offset + 32, 56));
     return offset + 88;
   }
-}
 
+  @Override
+  public ResourceRef getIcon() { return getIndirectIcon(STO_SALE_ITEM); }
+}
