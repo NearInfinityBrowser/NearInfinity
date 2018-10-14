@@ -33,6 +33,7 @@ import org.infinity.gui.TextListPanel;
 import org.infinity.gui.ViewFrame;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.HasIcon;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
@@ -390,7 +391,7 @@ public class ResourceRef extends Datatype
 
 // -------------------------- INNER CLASSES --------------------------
   /** Class that represents resource reference in the list of choice. */
-  static final class ResourceRefEntry
+  static final class ResourceRefEntry implements HasIcon
   {
     private final ResourceEntry entry;
     private final String name;
@@ -418,6 +419,14 @@ public class ResourceRef extends Datatype
     public String toString()
     {
       return name;
+    }
+
+    @Override
+    public ResourceRef getIcon() {
+      if (entry != null) {
+        return entry.getResourceIcon();
+      }
+      return null;
     }
   }
 

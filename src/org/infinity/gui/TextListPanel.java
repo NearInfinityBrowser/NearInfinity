@@ -5,12 +5,15 @@
 package org.infinity.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.MouseListener;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -22,6 +25,8 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.infinity.resource.HasIcon;
+import org.infinity.resource.IconCache;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 
@@ -46,6 +51,18 @@ public final class TextListPanel<E> extends JPanel implements DocumentListener, 
     list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     list.addListSelectionListener(this);
     list.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    list.setCellRenderer(new DefaultListCellRenderer() {
+      @Override
+      public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                    boolean isSelected, boolean cellHasFocus)
+      {
+        final JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        if (value instanceof HasIcon) {
+          label.setIcon(IconCache.getIcon((HasIcon) value));
+        }
+        return label;
+      }
+    });
     tfield.getDocument().addDocumentListener(this);
 
     setLayout(new BorderLayout());
