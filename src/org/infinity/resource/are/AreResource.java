@@ -133,6 +133,14 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   private StructHexViewer hexViewer;
   private AreaViewer areaViewer;
 
+  /**
+   * Retrivies localized name of the area from {@code mapname.2da} resource. If such
+   * resource does not exists, or not contains mapping for the specified area, returns
+   * {@code null}.
+   *
+   * @param entry Pointer to ARE resource. If {@code null}, method returns {@code null}
+   * @return String with localized name of the area from male talk table
+   */
   public static String getSearchString(ResourceEntry entry)
   {
     String retVal = null;

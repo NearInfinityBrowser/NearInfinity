@@ -754,13 +754,19 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     public Component getTreeCellRendererComponent(JTree tree, Object o, boolean sel, boolean expanded,
                                                   boolean leaf, int row, boolean hasFocus)
     {
+      super.getTreeCellRendererComponent(tree, o, sel, expanded, leaf, row, hasFocus);
       if (leaf && o instanceof ResourceEntry) {
-        super.getTreeCellRendererComponent(tree, o, sel, expanded, leaf, row, hasFocus);
-        setIcon(((ResourceEntry)o).getIcon());
-        return this;
+        final ResourceEntry e = (ResourceEntry)o;
+        final String name  = e.getResourceName();
+        final String title = e.getSearchString();
+        //TODO: refactor code and remove "No such index" comparison
+        // Now getSearchString returns that string when StringRef index not found
+        // in the talk table
+        final boolean hasTitle = title != null && !title.isEmpty() && !"No such index".equals(title);
+        setText(hasTitle ? name + " - " + title : name);
+        setIcon(e.getIcon());
       }
-      else
-        return super.getTreeCellRendererComponent(tree, o, sel, expanded, leaf, row, hasFocus);
+      return this;
     }
   }
 }
