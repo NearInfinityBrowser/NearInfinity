@@ -32,6 +32,10 @@ import org.infinity.resource.key.ResourceEntry;
 public class FileTypeSelector extends JPanel implements ActionListener
 {
   //<editor-fold defaultstate="collapsed" desc="Fields">
+  /**
+   * Stores last chosed array of selected checkboxes for each resource type.
+   * Each array has length equals to length of {@link #filetypes}
+   */
   private static final HashMap<String, boolean[]> LAST_SELECTION = new HashMap<>();
 
   /** Extensions of files with resources in which it is possible to search. */

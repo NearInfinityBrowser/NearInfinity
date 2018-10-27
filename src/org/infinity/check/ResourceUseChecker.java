@@ -366,7 +366,9 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
   }
 
   /**
-   * Performs code checking. This method can be called from several threads
+   * Removes from {@link #unusedResources} all resources to which the script code refers.
+   * <p>
+   * This method can be called from several threads
    *
    * @param code Code to action or trigger in dialog. Never {@code null}
    *
@@ -390,13 +392,32 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
     }
   }
 
-  private void checkResourceRef(ResourceRef ref) {
+  /**
+   * If type (a.k.a. extension) of the resource equals to the {@link #checkType
+   * type of checking resources}, removes specified resource name from
+   * {@link #unusedResources}, otherwise do nothing.
+   * <p>
+   * This method can be called from several threads
+   *
+   * @param ref Reference to the resource for checking
+   */
+  private void checkResourceRef(ResourceRef ref)
+  {
     if (checkType.equalsIgnoreCase(ref.getType())) {
       removeEntries(ref.getResourceName());
     }
   }
 
-  private void checkSound(StringRef ref) {
+  /**
+   * If string reference has the associated sound, removes this sound from
+   * {@link #unusedResources}, otherwise do nothing.
+   * <p>
+   * This method can be called from several threads
+   *
+   * @param ref Reference to entry in string table that contains sound file name
+   */
+  private void checkSound(StringRef ref)
+  {
     final int index = ref.getValue();
     if (index >= 0) {
       final String wav = StringTable.getSoundResource(index);
@@ -408,10 +429,13 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
 
   /**
    * Removes from {@link #unusedResources} all entries that name equals {@code name}.
+   * <p>
+   * This method can be called from several threads
    *
    * @param name Resource name that must be erased from unused list
    */
-  private void removeEntries(String name) {
+  private void removeEntries(String name)
+  {
     synchronized (unusedResources) {
       for (final Iterator<ResourceEntry> it = unusedResources.iterator(); it.hasNext();) {
         if (it.next().toString().equalsIgnoreCase(name)) {

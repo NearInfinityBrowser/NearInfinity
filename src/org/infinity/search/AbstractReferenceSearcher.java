@@ -46,6 +46,7 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
   private final ReferenceHitFrame hitFrame;
   /** Optional alternate name to search for. */
   protected String targetEntryName;
+  /** Actual list of resources in which perform search. */
   private List<ResourceEntry> files;
 
   AbstractReferenceSearcher(ResourceEntry targetEntry, String filetypes[], Component parent)
@@ -153,6 +154,13 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
     };
   }
 
+  /**
+   * Registers match hit.
+   *
+   * @param entry Pointer to resource in which match found
+   * @param name Localized name of the matched resource
+   * @param ref Field in the matched resource that contains founded object
+   */
   synchronized void addHit(ResourceEntry entry, String name, StructEntry ref)
   {
     hitFrame.addHit(entry, name, ref);

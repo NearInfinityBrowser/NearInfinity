@@ -4,9 +4,16 @@
 
 package org.infinity.resource;
 
+/**
+ * Implementors of this interface, must have a constructor without arguments.
+ */
 public interface AddRemovable extends StructEntry
 {
-  // Must have an empty constructor.
+  /**
+   * Determines if this entry can be removed from or added to its owner structure.
+   *
+   * @return {@code true} if this object can be removed or added now and {@code false} otherwise
+   */
   boolean canRemove();
 }
 

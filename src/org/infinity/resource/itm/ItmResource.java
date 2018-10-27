@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.itm;
@@ -38,11 +38,29 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.spl.SplResource;
 import org.infinity.search.SearchOptions;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * This resource describes an "item". Items include weapons, armor, books, scrolls,
+ * rings and more. Items can have attached {@link Ability abilties}, occuring either
+ * when a target creature it hit, or when the item is equipped. ITM files have a
+ * similar structure to {@link SplResource SPL} files.
+ * <p>
+ * ITM files consist of a main header, zero or more extended headers (each containing
+ * zero or more feature blocks) and zero or more casting feature blocks. All the
+ * feature blocks are stored as a continuous data segment, with each extended header
+ * containing an offset into this data, and the main header containing an offset into
+ * this data for the casting feature blocks.
+ * <p>
+ * A creature must meet the minimum stat requirements to be able to converse with an item.
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/itm_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/itm_v1.htm</a>
+ */
 public final class ItmResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
   // ITM-specific field labels
@@ -503,8 +521,10 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   }
 
 
-  // Called by "Extended Search"
-  // Checks whether the specified resource entry matches all available search options.
+  /**
+   * Called by "Extended Search"
+   * Checks whether the specified resource entry matches all available search options.
+   */
   public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
   {
     if (entry != null && searchOptions != null) {

@@ -47,7 +47,46 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.updater.Utils;
 import org.infinity.util.StringTable;
 
-
+/**
+ * DLG resource contains the structure of conversation, in what is effectievly
+ * a state machine. Dialogs contains string references into the {@link StringTable TLK}
+ * file that make up the actual words of the conversation. Dialogs bear similarities
+ * to scripts; each {@link State state} may have a series of {@link StateTrigger trigger}
+ * conditions, and effect a series of {@link Action actions}. If the any of the
+ * triggers for a state evaluate to {@code false}, the state is skipped and the
+ * triggers in the next state are evaluated - this occurs when entering into
+ * a dialog state, and when presenting a list of {@link Transition responses}.
+ *
+ * <code><pre>
+ * state 0:
+ *    trigger: NumTimesTalkedTo(0)
+ *    Text: "Hello, sailor!"
+ *
+ * state 1:
+ *    trigger: NumTimesTalkedToGT(5)
+ *    Text: "Go away, already!"
+ *
+ * state 2:
+ *    Text: "Hail and well met, yada yada yada."
+ * </pre></code>
+ *
+ * Dialog always attempt to start at state 0. The first time this sample dialog is
+ * entered the trigger in state 0 is {@code true}, hence the character responds
+ * {@code "Hello, sailor!"}. Subsequent times the dialog is entered the trigger
+ * in state 0 will be {@code false}, and state 1 is evaluated - this trigger also
+ * fails and so state 2 is evaluated. This state evaluates {@code true}, and get
+ * the associated message is displayed.
+ * <p>
+ * If the dialog is initiaed five or more times, the trigger in state 1 will evaluate
+ * to {@code true} and the message associated with that state will be displayed.
+ * <p>
+ * In addition to the triggers outlined above, states present a list of responses
+ * (aka {@link Transition transitions}). Each response may have a series of behaviours
+ * associated with it; the response text, a journal entry or an {@link Action action}.
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/dlg_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/dlg_v1.htm</a>
+ */
 public final class DlgResource extends AbstractStruct
     implements Resource, HasAddRemovable, HasViewerTabs, ChangeListener, ActionListener
 {

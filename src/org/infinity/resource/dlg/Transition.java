@@ -14,6 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
 
+/** Player {@link DlgResource dialog} option. */
 public final class Transition extends AbstractStruct implements AddRemovable
 {
   // DLG/Transition-specific field labels
@@ -31,6 +32,7 @@ public final class Transition extends AbstractStruct implements AddRemovable
                                           "Add unsolved quest", "Add journal note", "Add solved quest",
                                           "EE: Execute immediate;Attempt to execute non-blocking script actions instantly.",
                                           "EE: Clear actions"};
+  /** Transition number which is unique defining it in a dialog. */
   private int nr;
 
   Transition() throws Exception

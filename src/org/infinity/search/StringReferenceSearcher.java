@@ -143,6 +143,13 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
     }
   }
 
+  /**
+   * Recursively searches references to string {@link #searchvalue} in all fields
+   * of specified structure and it's substructures.
+   *
+   * @param entry Pointer to resource in which search performed
+   * @param struct Structure from that entry
+   */
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
     for (int i = 0; i < struct.getFieldCount(); i++) {

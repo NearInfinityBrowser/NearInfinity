@@ -291,6 +291,17 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
     }
   }
 
+  /**
+   * Mark all strings from {@link StringTable string table} to which the script
+   * code refers, as used.
+   * <p>
+   * This method can be called from several threads
+   *
+   * @param compiledCode Compiled code from BCS, dialog action or trigger.
+   *        Must not be {@code null}
+   *
+   * @throws Exception If {@code compiledCode} contains invalid code
+   */
   private void checkCode(String compiledCode, ScriptType type) throws Exception
   {
     final Decompiler decompiler = new Decompiler(compiledCode, true);
@@ -311,6 +322,13 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
     }
   }
 
+  /**
+   * Mark specified string as used.
+   * <p>
+   * This method can be called from several threads
+   *
+   * @param ref Rererence to string in the {@link StringTable string table}
+   */
   private void checkStringRef(StringRef ref)
   {
     final int index = ref.getValue();

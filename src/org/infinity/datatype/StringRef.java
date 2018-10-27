@@ -352,8 +352,11 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
     final String resname = StringTable.getSoundResource(value);
     bPlay.setEnabled(!resname.isEmpty() && ResourceFactory.resourceExists(resname + ".WAV"));
   }
-
-  /** Extracts current value of string reference from editor. */
+  /**
+   * Extracts current value of string reference from editor. This value may not
+   * be saved yet in string field of {@link #getParent() owner structure}, it is
+   * value of current string that editor is display.
+   */
   private int getValueFromEditor()
   {
     return ((Number)sRefNr.getValue()).intValue();
