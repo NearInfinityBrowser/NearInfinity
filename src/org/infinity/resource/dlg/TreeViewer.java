@@ -21,8 +21,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -796,8 +794,12 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     private final ArrayList<StateItem> states = new ArrayList<StateItem>();
     private final ImageIcon icon;
 
-    private int numStates, numTransitions, numStateTriggers, numResponseTriggers, numActions;
-    private String flags;
+    private final int numStates;
+    private final int numTransitions;
+    private final int numStateTriggers;
+    private final int numResponseTriggers;
+    private final int numActions;
+    private final String flags;
 
     public RootItem(DlgResource dlg)
     {
@@ -805,52 +807,28 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
       this.icon = showIcons() ? ICON : null;
 
-      if (getDialog() != null) {
-        StructEntry entry = getDialog().getAttribute(DlgResource.DLG_NUM_STATES);
-        if (entry instanceof SectionCount) {
-          numStates = ((SectionCount)entry).getValue();
-        }
-        entry = getDialog().getAttribute(DlgResource.DLG_NUM_RESPONSES);
-        if (entry instanceof SectionCount) {
-          numTransitions = ((SectionCount)entry).getValue();
-        }
-        entry = getDialog().getAttribute(DlgResource.DLG_NUM_STATE_TRIGGERS);
-        if (entry instanceof SectionCount) {
-          numStateTriggers = ((SectionCount)entry).getValue();
-        }
-        entry = getDialog().getAttribute(DlgResource.DLG_NUM_RESPONSE_TRIGGERS);
-        if (entry instanceof SectionCount) {
-          numResponseTriggers = ((SectionCount)entry).getValue();
-        }
-        entry = getDialog().getAttribute(DlgResource.DLG_NUM_ACTIONS);
-        if (entry instanceof SectionCount) {
-          numActions = ((SectionCount)entry).getValue();
-        }
-        entry = getDialog().getAttribute(DlgResource.DLG_THREAT_RESPONSE);
-        if (entry instanceof Flag) {
-          flags = ((Flag)entry).toString();
-        }
+      numStates           = getAttribute(DlgResource.DLG_NUM_STATES);
+      numTransitions      = getAttribute(DlgResource.DLG_NUM_RESPONSES);
+      numStateTriggers    = getAttribute(DlgResource.DLG_NUM_STATE_TRIGGERS);
+      numResponseTriggers = getAttribute(DlgResource.DLG_NUM_RESPONSE_TRIGGERS);
+      numActions          = getAttribute(DlgResource.DLG_NUM_ACTIONS);
 
-        // finding and storing initial states (sorted by trigger index in ascending order)
-        int count = 0;
-        for (StructEntry e: getDialog().getList()) {
-          if (e instanceof State) {
-            ++count;
-            if (((State)e).getTriggerIndex() >= 0) {
-              states.add(new StateItem(getDialog(), (State)e));
-            }
-            if (count >= numStates) {
-              break;
-            }
+      final StructEntry entry = dlg.getAttribute(DlgResource.DLG_THREAT_RESPONSE);
+      flags = entry instanceof Flag ? ((Flag)entry).toString() : null;
+
+      // finding and storing initial states
+      int count = 0;
+      for (StructEntry e : dlg.getList()) {
+        if (e instanceof State) {
+          // First state always under root
+          if (count == 0 || ((State)e).getTriggerIndex() >= 0) {
+            states.add(new StateItem(dlg, (State)e));
+          }
+          if (++count >= numStates) {
+            // All states readed, so break cycle
+            break;
           }
         }
-        Collections.sort(states, new Comparator<StateItem>() {
-          @Override
-          public int compare(StateItem o1, StateItem o2)
-          {
-            return o1.getState().getTriggerIndex() - o2.getState().getTriggerIndex();
-          }
-        });
       }
     }
 
@@ -873,6 +851,21 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     public Icon getIcon()
     {
       return icon;
+    }
+
+    /**
+     * Extracts specified {@link SectionCount} attribute from dialog.
+     *
+     * @param attrName Attribute name
+     * @return value of the attribute or 0 if attribute does not exists
+     */
+    private int getAttribute(String attrName)
+    {
+      final StructEntry entry = getDialog().getAttribute(attrName);
+      if (entry instanceof SectionCount) {
+        return ((SectionCount)entry).getValue();
+      }
+      return 0;
     }
 
     @Override
