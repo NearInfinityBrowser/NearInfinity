@@ -70,6 +70,22 @@ import org.infinity.util.StringTable;
 final class TreeViewer extends JPanel implements ActionListener, TreeSelectionListener,
                                                  TableModelListener, PropertyChangeListener
 {
+  /**
+   * This array contains background colors for other dialogs to which viewed dialog
+   * refers. Colors are assigned to other resources from this array on rotation basis.
+   */
+  private static final Color[] OTHER_DIALOG_COLORS = {
+    new Color(0xd8d8ff),
+    new Color(0xb8ffb8),
+    new Color(0xffd0d0),
+    new Color(0xffc8ff),
+    new Color(0xffffa0),
+    new Color(0xe0e0e0),
+    new Color(0x85ffc2),
+    new Color(0xffd3a6),
+    new Color(0x99ccff),
+    new Color(0xffa3d1),
+  };
   private final JPopupMenu pmTree = new JPopupMenu();
   private final JMenuItem miExpandAll = new JMenuItem("Expand all nodes");
   private final JMenuItem miExpand = new JMenuItem("Expand selected node");
@@ -89,6 +105,8 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private TreeWorker worker;
   private WindowBlocker blocker;
 
+  /** Background colors for text in dialogs to that can refer main dialog. */
+  private HashMap<DlgResource, Color> dialogColors = new HashMap<>();
 
   TreeViewer(DlgResource dlg)
   {
@@ -432,6 +450,15 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
     // drawing custom icons for each node type
     dlgTree.setCellRenderer(new DefaultTreeCellRenderer() {
+      private Color getColor(DlgResource dialog)
+      {
+        if (dlg == dialog) {
+          return null;
+        }
+        return dialogColors.computeIfAbsent(dialog,
+            d -> OTHER_DIALOG_COLORS[dialogColors.size() % OTHER_DIALOG_COLORS.length]
+        );
+      }
       @Override
       public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
                                                     boolean expanded, boolean leaf, int row,
@@ -443,9 +470,13 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
           final ItemBase data = (ItemBase)node.getUserObject();
 
           setIcon(data.getIcon());
+
+          final BrowserMenuBar options = BrowserMenuBar.getInstance();
+          setBackgroundNonSelectionColor(options.colorizeOtherDialogs() ? getColor(data.getDialog()) : null);
+
           if (data instanceof StateItem) {
             final State s = ((StateItem) data).getState();
-            if (s.getNumber() == 0 && s.getTriggerIndex() < 0 && BrowserMenuBar.getInstance().alwaysShowState0()) {
+            if (s.getNumber() == 0 && s.getTriggerIndex() < 0 && options.alwaysShowState0()) {
               setForeground(Color.GRAY);
             }
           }
