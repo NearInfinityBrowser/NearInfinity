@@ -77,7 +77,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private final JMenuItem miCollapse = new JMenuItem("Collapse selected nodes");
   private final JMenuItem miEditEntry = new JMenuItem("Edit selected entry");
 
-  // caches ViewFrame instances used to display external dialog entries
+  /** Caches ViewFrame instances used to display external dialog entries. */
   private final HashMap<String, ViewFrame> mapViewer = new HashMap<String, ViewFrame>();
 
   private final DlgResource dlg;
@@ -518,7 +518,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     add(splitv, BorderLayout.CENTER);
   }
 
-  // Checks whether given path contains a node with the specified item object
+  /** Checks whether given path contains a node with the specified item object. */
   private boolean nodeExists(TreePath path, Object item)
   {
     if (path != null && item != null) {
@@ -537,7 +537,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     return false;
   }
 
-  // Expands all children and their children of the given path
+  /** Expands all children and their children of the given path. */
   private void expandNode(TreePath path)
   {
     final TreePath curPath = path;
@@ -573,7 +573,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     }
   }
 
-  // Collapses all children and their children of the given path
+  /** Collapses all children and their children of the given path. */
   private void collapseNode(TreePath path)
   {
     final TreePath curPath = path;
@@ -602,7 +602,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     }
   }
 
-  // Returns true if the given path contains expanded nodes
+  /** Returns true if the given path contains expanded nodes. */
   private boolean isNodeExpanded(TreePath path)
   {
     boolean retVal = true;
@@ -624,7 +624,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     return retVal;
   }
 
-  // Returns true if the given path contains collapsed nodes
+  /** Returns true if the given path contains collapsed nodes. */
   private boolean isNodeCollapsed(TreePath path)
   {
     boolean retVal = true;
