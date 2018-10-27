@@ -32,9 +32,7 @@ final class TransitionItem extends ItemBase
 
   public void setTransition(Transition trans)
   {
-    if (trans != null) {
-      this.trans = trans;
-    }
+    this.trans = trans;
   }
 
   @Override

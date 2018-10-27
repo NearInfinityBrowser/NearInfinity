@@ -331,23 +331,24 @@ final class DlgTreeModel implements TreeModel
 
   private void initState(StateItem state)
   {
-    if (state != null) {
-      DlgResource dlg = state.getDialog();
-      HashMap<Integer, StateItem> map = getStateTable(dlg.getResourceEntry().getResourceName());
-      if (map == null) {
-        map = new HashMap<>();
-        setStateTable(dlg.getResourceEntry().getResourceName(), map);
-      }
+    final DlgResource dlg = state.getDialog();
+    final String dlgName = dlg.getResourceEntry().getResourceName();
+    HashMap<Integer, StateItem> map = getStateTable(dlgName);
+    if (map == null) {
+      map = new HashMap<>();
+      setStateTable(dlgName, map);
+    }
 
-      if (!map.containsKey(Integer.valueOf(state.getState().getNumber()))) {
-        map.put(Integer.valueOf(state.getState().getNumber()), state);
+    final Integer number = state.getState().getNumber();
+    if (!map.containsKey(number)) {
+      map.put(number, state);
 
-        for (int i = 0; i < state.getState().getTransCount(); i++) {
-          int transIdx = state.getState().getFirstTrans() + i;
-          StructEntry entry = dlg.getAttribute(Transition.DLG_TRANS + " " + transIdx);
-          if (entry instanceof Transition) {
-            initTransition(new TransitionItem(dlg, (Transition)entry));
-          }
+      final int start = state.getState().getFirstTrans();
+      final int count = state.getState().getTransCount();
+      for (int i = start; i < start + count; ++i) {
+        final StructEntry entry = dlg.getAttribute(Transition.DLG_TRANS + " " + i);
+        if (entry instanceof Transition) {
+          initTransition(new TransitionItem(dlg, (Transition)entry));
         }
       }
     }
@@ -355,27 +356,28 @@ final class DlgTreeModel implements TreeModel
 
   private void initTransition(TransitionItem trans)
   {
-    if (trans != null) {
-      DlgResource dlg = trans.getDialog();
-      HashMap<Integer, TransitionItem> map = getTransitionTable(dlg.getResourceEntry().getResourceName());
-      if (map == null) {
-        map = new HashMap<>();
-        setTransitionTable(dlg.getResourceEntry().getResourceName(), map);
-      }
+    final DlgResource dlg = trans.getDialog();
+    final String dlgName  = dlg.getResourceEntry().getResourceName();
+    HashMap<Integer, TransitionItem> map = getTransitionTable(dlgName);
+    if (map == null) {
+      map = new HashMap<>();
+      setTransitionTable(dlgName, map);
+    }
 
-      if (!map.containsKey(Integer.valueOf(trans.getTransition().getNumber()))) {
-        map.put(Integer.valueOf(trans.getTransition().getNumber()), trans);
+    final Transition t = trans.getTransition();
+    final Integer number = t.getNumber();
+    if (!map.containsKey(number)) {
+      map.put(number, trans);
 
-        if (!trans.getTransition().getFlag().isFlagSet(3)) {
-          // dialog continues
-          ResourceRef dlgRef = trans.getTransition().getNextDialog();
-          int stateIdx = trans.getTransition().getNextDialogState();
-          dlg = getDialogResource(dlgRef.getResourceName());
-          if (dlg != null && stateIdx >= 0) {
-            StructEntry entry = dlg.getAttribute(State.DLG_STATE + " " + stateIdx);
-            if (entry instanceof State) {
-              initState(new StateItem(dlg, (State)entry));
-            }
+      if (!t.getFlag().isFlagSet(3)) {
+        // dialog continues
+        final String nextDlgName  = t.getNextDialog().getResourceName();
+        final DlgResource nextDlg = getDialogResource(nextDlgName);
+        final int stateIdx = t.getNextDialogState();
+        if (nextDlg != null && stateIdx >= 0) {
+          final StructEntry entry = nextDlg.getAttribute(State.DLG_STATE + " " + stateIdx);
+          if (entry instanceof State) {
+            initState(new StateItem(nextDlg, (State)entry));
           }
         }
       }

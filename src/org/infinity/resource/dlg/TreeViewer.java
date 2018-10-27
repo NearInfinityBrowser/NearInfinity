@@ -21,7 +21,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.JMenuItem;
@@ -58,6 +57,7 @@ import org.infinity.NearInfinity;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.LinkButton;
 import org.infinity.gui.ScriptTextArea;
+import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
@@ -94,7 +94,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private final JMenuItem miEditEntry = new JMenuItem("Edit selected entry");
 
   /** Caches ViewFrame instances used to display external dialog entries. */
-  private final HashMap<String, ViewFrame> mapViewer = new HashMap<String, ViewFrame>();
+  private final HashMap<DlgResource, ViewFrame> mapViewer = new HashMap<>();
 
   private final DlgResource dlg;
   private final JTree dlgTree;
@@ -126,39 +126,38 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   public void actionPerformed(ActionEvent e)
   {
     if (e.getSource() == miEditEntry) {
-      TreePath path = dlgTree.getSelectionPath();
-      if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-        if (node.getUserObject() instanceof ItemBase) {
-          ItemBase item = (ItemBase)node.getUserObject();
-          boolean isExtern = (!item.getDialogName().equals(dlg.getResourceEntry().getResourceName()));
-          if (isExtern) {
-            ViewFrame vf = mapViewer.get(item.getDialogName().toUpperCase(Locale.ENGLISH));
-            // reuseing external dialog window if possible
-            if (vf != null && vf.isVisible()) {
-              vf.toFront();
-            } else {
-              vf = new ViewFrame(this, item.getDialog());
-              mapViewer.put(item.getDialogName().toUpperCase(Locale.ENGLISH), vf);
-            }
+      final TreePath path = dlgTree.getSelectionPath();
+      if (path != null) {
+        final DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+        final ItemBase item = (ItemBase)node.getUserObject();
+        final DlgResource curDlg = item.getDialog();
+        if (curDlg != dlg) {
+          ViewFrame vf = mapViewer.get(curDlg);
+          // reuseing external dialog window if possible
+          if (vf != null && vf.isVisible()) {
+            vf.toFront();
+          } else {
+            vf = new ViewFrame(this, curDlg);
+            mapViewer.put(curDlg, vf);
           }
+        }
 
-          if (item.getDialog().getViewer() != null) {
-            // selecting table entry
-            Viewer viewer = (Viewer)item.getDialog().getViewerTab(0);
-            if (node.getUserObject() instanceof RootItem) {
-              item.getDialog().getViewer().selectEntry(0);
-            } else if (node.getUserObject() instanceof StateItem) {
-              int stateIdx = ((StateItem)item).getState().getNumber();
-              item.getDialog().getViewer().selectEntry(State.DLG_STATE + " " + stateIdx);
-              viewer.showStateWithStructEntry(((StateItem)item).getState());
-            } else if (node.getUserObject() instanceof TransitionItem) {
-              int transIdx = ((TransitionItem)item).getTransition().getNumber();
-              item.getDialog().getViewer().selectEntry(Transition.DLG_TRANS + " " + transIdx);
-              viewer.showStateWithStructEntry(((TransitionItem)item).getTransition());
-            }
-            item.getDialog().selectEditTab();
+        final StructViewer viewer = curDlg.getViewer();
+        if (viewer != null) {
+          // selecting table entry
+          final Viewer tab = (Viewer)curDlg.getViewerTab(0);
+          if (item instanceof RootItem) {
+            viewer.selectEntry(0);
+          } else if (item instanceof StateItem) {
+            final State s = ((StateItem)item).getState();
+            viewer.selectEntry(s.getName());
+            tab.showStateWithStructEntry(s);
+          } else if (item instanceof TransitionItem) {
+            final Transition t = ((TransitionItem)item).getTransition();
+            viewer.selectEntry(t.getName());
+            tab.showStateWithStructEntry(t);
           }
+          curDlg.selectEditTab();
         }
       }
     } else if (e.getSource() == miExpandAll) {
@@ -204,21 +203,16 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   public void valueChanged(TreeSelectionEvent e)
   {
     if (e.getSource() == dlgTree) {
-      Object node = dlgTree.getLastSelectedPathComponent();
-      if (node instanceof DefaultMutableTreeNode) {
-        Object data = ((DefaultMutableTreeNode)node).getUserObject();
-        if (data instanceof StateItem) {
-          // dialog state found
-          updateStateInfo((StateItem)data);
-        } else if (data instanceof TransitionItem) {
-          // dialog response found
-          updateTransitionInfo((TransitionItem)data);
-        } else {
-          // no valid type found
-          dlgInfo.showPanel(ItemInfo.CARD_EMPTY);
-        }
+      final Object node = dlgTree.getLastSelectedPathComponent();
+      final Object data = ((DefaultMutableTreeNode)node).getUserObject();
+      if (data instanceof StateItem) {
+        // dialog state found
+        updateStateInfo((StateItem)data);
+      } else if (data instanceof TransitionItem) {
+        // dialog response found
+        updateTransitionInfo((TransitionItem)data);
       } else {
-        // no node selected
+        // no valid type found
         dlgInfo.showPanel(ItemInfo.CARD_EMPTY);
       }
     }
@@ -228,43 +222,43 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
 //--------------------- Begin Interface TableModelListener ---------------------
 
- @Override
- public void tableChanged(TableModelEvent e)
- {
-   // Insertion or removal of nodes not yet supported
-   if (e.getType() == TableModelEvent.UPDATE) {
-     if (dlgModel != null) {
-       if (e.getSource() instanceof State) {
-         State state = (State)e.getSource();
-         dlgModel.updateState(state);
-       } else if (e.getSource() instanceof Transition) {
-         Transition trans = (Transition)e.getSource();
-         dlgModel.updateTransition(trans);
-       } else if (e.getSource() instanceof DlgResource) {
-         dlgModel.updateRoot();
-       }
-     }
-   }
- }
+  @Override
+  public void tableChanged(TableModelEvent e)
+  {
+    // Insertion or removal of nodes not yet supported
+    if (e.getType() == TableModelEvent.UPDATE) {
+      if (dlgModel != null) {
+        if (e.getSource() instanceof State) {
+          State state = (State)e.getSource();
+          dlgModel.updateState(state);
+        } else if (e.getSource() instanceof Transition) {
+          Transition trans = (Transition)e.getSource();
+          dlgModel.updateTransition(trans);
+        } else if (e.getSource() instanceof DlgResource) {
+          dlgModel.updateRoot();
+        }
+      }
+    }
+  }
 
 //--------------------- End Interface TableModelListener ---------------------
 
 //--------------------- Begin Interface PropertyChangeListener ---------------------
 
- @Override
- public void propertyChange(PropertyChangeEvent event)
- {
-   if (event.getSource() == worker) {
-     if ("state".equals(event.getPropertyName()) &&
-         TreeWorker.StateValue.DONE == event.getNewValue()) {
-       if (blocker != null) {
-         blocker.setBlocked(false);
-         blocker = null;
-       }
-       worker = null;
-     }
-   }
- }
+  @Override
+  public void propertyChange(PropertyChangeEvent event)
+  {
+    if (event.getSource() == worker) {
+      if ("state".equals(event.getPropertyName()) &&
+          TreeWorker.StateValue.DONE == event.getNewValue()) {
+        if (blocker != null) {
+          blocker.setBlocked(false);
+          blocker = null;
+        }
+        worker = null;
+      }
+    }
+  }
 
 //--------------------- End Interface PropertyChangeListener ---------------------
 
@@ -279,131 +273,107 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
   private void updateStateInfo(StateItem si)
   {
-    if (si != null && si.getDialog() != null && si.getState() != null) {
-      DlgResource curDlg = si.getDialog();
-      State state = si.getState();
+    final DlgResource curDlg = si.getDialog();
+    final State state = si.getState();
 
-      // updating info box title
-      StringBuilder sb = new StringBuilder(state.getName() + ", ");
-      if (curDlg != dlg) {
-        sb.append(String.format("Dialog: %s, ", curDlg.getResourceEntry().getResourceName()));
-      }
-      sb.append(String.format("Responses: %d", state.getTransCount()));
-      if (state.getTriggerIndex() >= 0) {
-        sb.append(String.format(", Weight: %d", state.getTriggerIndex()));
-      }
-      dlgInfo.updateControlBorder(ItemInfo.Type.STATE, sb.toString());
-
-      // updating state text
-      dlgInfo.showControl(ItemInfo.Type.STATE_TEXT, true);
-      dlgInfo.updateControlText(ItemInfo.Type.STATE_TEXT, StringTable.getStringRef(state.getResponse().getValue()));
-
-      // updating state WAV Res
-      String responseText = StringTable.getSoundResource(state.getResponse().getValue());
-      if (!responseText.isEmpty()) {
-        dlgInfo.showControl(ItemInfo.Type.STATE_WAV, true);
-        dlgInfo.updateControlText(ItemInfo.Type.STATE_WAV, responseText + ".WAV");
-      } else {
-        dlgInfo.showControl(ItemInfo.Type.STATE_WAV, false);
-      }
-
-      // updating state triggers
-      if (state.getTriggerIndex() >= 0) {
-        dlgInfo.showControl(ItemInfo.Type.STATE_TRIGGER, true);
-        StructEntry entry = curDlg.getAttribute(StateTrigger.DLG_STATETRIGGER + " " + state.getTriggerIndex());
-        if (entry instanceof StateTrigger) {
-          dlgInfo.updateControlText(ItemInfo.Type.STATE_TRIGGER, ((StateTrigger)entry).toString());
-        } else {
-          dlgInfo.updateControlText(ItemInfo.Type.STATE_TRIGGER, "");
-        }
-      } else {
-        dlgInfo.showControl(ItemInfo.Type.STATE_TRIGGER, false);
-      }
-
-      dlgInfo.showPanel(ItemInfo.CARD_STATE);
-
-      // jumping to top of scroll area
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() { spInfo.getVerticalScrollBar().setValue(0); }
-      });
-    } else {
-      dlgInfo.showPanel(ItemInfo.CARD_EMPTY);
+    // updating info box title
+    final StringBuilder sb = new StringBuilder(state.getName() + ", ");
+    if (curDlg != dlg) {
+      sb.append(String.format("Dialog: %s, ", curDlg.getResourceEntry().getResourceName()));
     }
+    sb.append(String.format("Responses: %d", state.getTransCount()));
+    if (state.getTriggerIndex() >= 0) {
+      sb.append(String.format(", Weight: %d", state.getTriggerIndex()));
+    }
+    dlgInfo.updateControlBorder(ItemInfo.Type.STATE, sb.toString());
+
+    // updating state text
+    dlgInfo.showControl(ItemInfo.Type.STATE_TEXT, true);
+    dlgInfo.updateControlText(ItemInfo.Type.STATE_TEXT, StringTable.getStringRef(state.getResponse().getValue()));
+
+    // updating state WAV Res
+    final String responseText = StringTable.getSoundResource(state.getResponse().getValue());
+    if (!responseText.isEmpty()) {
+      dlgInfo.showControl(ItemInfo.Type.STATE_WAV, true);
+      dlgInfo.updateControlText(ItemInfo.Type.STATE_WAV, responseText + ".WAV");
+    } else {
+      dlgInfo.showControl(ItemInfo.Type.STATE_WAV, false);
+    }
+
+    // updating state triggers
+    if (state.getTriggerIndex() >= 0) {
+      dlgInfo.showControl(ItemInfo.Type.STATE_TRIGGER, true);
+      final StructEntry entry = curDlg.getAttribute(StateTrigger.DLG_STATETRIGGER + " " + state.getTriggerIndex());
+      final String text = entry instanceof StateTrigger ? ((StateTrigger)entry).getText() : "";
+      dlgInfo.updateControlText(ItemInfo.Type.STATE_TRIGGER, text);
+    } else {
+      dlgInfo.showControl(ItemInfo.Type.STATE_TRIGGER, false);
+    }
+
+    dlgInfo.showPanel(ItemInfo.CARD_STATE);
+
+    // jumping to top of scroll area
+    SwingUtilities.invokeLater(() -> spInfo.getVerticalScrollBar().setValue(0));
   }
 
   private void updateTransitionInfo(TransitionItem ti)
   {
-    if (ti != null && ti.getDialog() != null && ti.getTransition() != null) {
-      DlgResource curDlg = ti.getDialog();
-      Transition trans = ti.getTransition();
-      StructEntry entry;
+    final DlgResource curDlg = ti.getDialog();
+    final Transition trans = ti.getTransition();
 
-      // updating info box title
-      StringBuilder sb = new StringBuilder(trans.getName());
-      if (curDlg != dlg) {
-        sb.append(String.format(", Dialog: %s", curDlg.getResourceEntry().getResourceName()));
-      }
-      dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE, sb.toString());
-
-      // updating flags
-      dlgInfo.showControl(ItemInfo.Type.RESPONSE_FLAGS, true);
-      dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_FLAGS, trans.getFlag().toString());
-
-      // updating response text
-      if (trans.getFlag().isFlagSet(0)) {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_TEXT, true);
-        dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TEXT,
-                                  StringTable.getStringRef(trans.getAssociatedText().getValue()));
-      } else {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_TEXT, false);
-      }
-
-      // updating journal entry
-      if (trans.getFlag().isFlagSet(4)) {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_JOURNAL, true);
-        dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_JOURNAL,
-                                  StringTable.getStringRef(trans.getJournalEntry().getValue()));
-      } else {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_JOURNAL, false);
-      }
-
-      // updating response trigger
-      if (trans.getFlag().isFlagSet(1)) {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_TRIGGER, true);
-        entry = curDlg.getAttribute(ResponseTrigger.DLG_RESPONSETRIGGER + " " + trans.getTriggerIndex());
-        if (entry instanceof ResponseTrigger) {
-          dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TRIGGER, ((ResponseTrigger)entry).toString());
-        } else {
-          dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TRIGGER, "");
-        }
-      } else {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_TRIGGER, false);
-      }
-
-      // updating action
-      if (trans.getFlag().isFlagSet(2)) {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_ACTION, true);
-        entry = curDlg.getAttribute(Action.DLG_ACTION + " " + trans.getActionIndex());
-        if (entry instanceof Action) {
-          dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_ACTION, ((Action)entry).toString());
-        } else {
-          dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_ACTION, "");
-        }
-      } else {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_ACTION, false);
-      }
-
-      dlgInfo.showPanel(ItemInfo.CARD_RESPONSE);
-
-      // jumping to top of scroll area
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() { spInfo.getVerticalScrollBar().setValue(0); }
-      });
-    } else {
-      dlgInfo.showPanel(ItemInfo.CARD_EMPTY);
+    // updating info box title
+    final StringBuilder sb = new StringBuilder(trans.getName());
+    if (curDlg != dlg) {
+      sb.append(String.format(", Dialog: %s", curDlg.getResourceEntry().getResourceName()));
     }
+    dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE, sb.toString());
+
+    // updating flags
+    dlgInfo.showControl(ItemInfo.Type.RESPONSE_FLAGS, true);
+    dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_FLAGS, trans.getFlag().toString());
+
+    // updating response text
+    if (trans.getFlag().isFlagSet(0)) {
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_TEXT, true);
+      dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TEXT,
+                                StringTable.getStringRef(trans.getAssociatedText().getValue()));
+    } else {
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_TEXT, false);
+    }
+
+    // updating journal entry
+    if (trans.getFlag().isFlagSet(4)) {
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_JOURNAL, true);
+      dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_JOURNAL,
+                                StringTable.getStringRef(trans.getJournalEntry().getValue()));
+    } else {
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_JOURNAL, false);
+    }
+
+    // updating response trigger
+    if (trans.getFlag().isFlagSet(1)) {
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_TRIGGER, true);
+      final StructEntry entry = curDlg.getAttribute(ResponseTrigger.DLG_RESPONSETRIGGER + " " + trans.getTriggerIndex());
+      final String text = entry instanceof ResponseTrigger ? ((ResponseTrigger)entry).getText() : "";
+      dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TRIGGER, text);
+    } else {
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_TRIGGER, false);
+    }
+
+    // updating action
+    if (trans.getFlag().isFlagSet(2)) {
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_ACTION, true);
+      final StructEntry entry = curDlg.getAttribute(Action.DLG_ACTION + " " + trans.getActionIndex());
+      final String text = entry instanceof Action ? ((Action)entry).getText() : "";
+      dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_ACTION, text);
+    } else {
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_ACTION, false);
+    }
+
+    dlgInfo.showPanel(ItemInfo.CARD_RESPONSE);
+
+    // jumping to top of scroll area
+    SwingUtilities.invokeLater(() -> spInfo.getVerticalScrollBar().setValue(0));
   }
 
   private void initControls()
@@ -554,14 +524,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   {
     if (path != null && item != null) {
       final Object[] nodes = path.getPath();
-      if (nodes != null) {
-        for (int i = 1; i < nodes.length; i++) {
-          if (nodes[i] instanceof DefaultMutableTreeNode) {
-            final Object curItem = ((DefaultMutableTreeNode)nodes[i]).getUserObject();
-            if (item.equals(curItem)) {
-              return true;
-            }
-          }
+      for (int i = 1; i < nodes.length; i++) {
+        final Object curItem = ((DefaultMutableTreeNode)nodes[i]).getUserObject();
+        if (item.equals(curItem)) {
+          return true;
         }
       }
     }

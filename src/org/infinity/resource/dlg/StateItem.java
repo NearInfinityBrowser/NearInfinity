@@ -32,9 +32,7 @@ final class StateItem extends ItemBase
 
   public void setState(State state)
   {
-    if (state != null) {
-      this.state = state;
-    }
+    this.state = state;
   }
 
   @Override
