@@ -197,6 +197,24 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       return null;
     }
 
+    /**
+     * Mark name and description strings that describe creatures in a bestiary,
+     * as used (set {@code true} at appropriate indexes in the {@code used} parameter).
+     * <p>
+     * If the array has the insufficient length, the appropriate strings are not marked
+     *
+     * @param used Array of used string indexes
+     */
+    public void markUsed(boolean[] used)
+    {
+      if (nameStrRef >= 0 && nameStrRef < used.length) {
+        used[nameStrRef] = true;
+      }
+      if (descStrRef >= 0 && descStrRef < used.length) {
+        used[descStrRef] = true;
+      }
+    }
+
     @Override
     public String toString()
     {
@@ -497,6 +515,27 @@ public final class Bestiary extends Datatype implements Editable, TableModel
    * @return {@code true} if player already see this creature in a game, {@code false} otherwise
    */
   public boolean isKnown(int creatureIndex) { return known[creatureIndex] != 0; }
+
+  /**
+   * Mark all strings that describe creatures in a bestiary, as used (set {@code true}
+   * at appropriate indexes in the {@code used} parameter).
+   * <p>
+   * If the array has the insufficient length, the appropriate strings are not marked
+   *
+   * @param used Array of used string indexes
+   */
+  public static void markUsedStrings(boolean[] used)
+  {
+    for (Creature cre : readCreatures()) {
+      cre.markUsed(used);
+    }
+    if (EMPTY_BESTIARY_NAME < used.length) {
+      used[EMPTY_BESTIARY_NAME] = true;
+    }
+    if (EMPTY_BESTIARY_DESC < used.length) {
+      used[EMPTY_BESTIARY_DESC] = true;
+    }
+  }
 
   private void fireTableChanged(int row)
   {
