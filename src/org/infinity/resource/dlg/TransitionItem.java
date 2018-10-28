@@ -8,14 +8,11 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import org.infinity.icon.Icons;
-import org.infinity.util.StringTable;
 
 /** Encapsulates a dialog transition entry. */
 final class TransitionItem extends ItemBase
 {
   private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_PLAY_16);
-  /** Maximum string length to display. */
-  private static final int MAX_LENGTH = 100;
 
   private final ImageIcon icon;
 
@@ -49,35 +46,16 @@ final class TransitionItem extends ItemBase
   @Override
   public String toString()
   {
-    if (trans != null) {
-      if (trans.getFlag().isFlagSet(0)) {
-        // Transition contains text
-        String text = StringTable.getStringRef(trans.getAssociatedText().getValue(),
-                                               showStrrefs() ? StringTable.Format.STRREF_PREFIX : StringTable.Format.NONE);
-        if (text.length() > MAX_LENGTH) {
-          text = text.substring(0, MAX_LENGTH) + "...";
-        }
-        String dlg = getDialog().getResourceEntry().getResourceName();
-        if (trans.getNextDialog().isEmpty() ||
-            trans.getNextDialog().getResourceName().equalsIgnoreCase(dlg)) {
-          return String.format("%s: %s", trans.getName(), text);
-        } else {
-          return String.format("%s: %s [%s]",
-                               trans.getName(), text, trans.getNextDialog().getResourceName());
-        }
-      } else {
-        // Transition contains no text
-        String dlg = getDialog().getResourceEntry().getResourceName();
-        if (trans.getNextDialog().isEmpty() ||
-            trans.getNextDialog().getResourceName().equalsIgnoreCase(dlg)) {
-          return String.format("%s: (No text)", trans.getName());
-        } else {
-          return String.format("%s: (No text) [%s]",
-                               trans.getName(), trans.getNextDialog().getResourceName());
-        }
-      }
-    } else {
-      return "(Invalid response)";
+    String text = "(No text)";
+    if (trans.getFlag().isFlagSet(0)) {
+      // Flag 0: Transition contains text
+      text = getText(trans.getAssociatedText());
     }
+    final String nextDlg = trans.getNextDialog().getResourceName();
+    //TODO: When getResourceName() will return null, replace check `.isEmpty()` to `nextDlg == null`
+    if (trans.getNextDialog().isEmpty() || nextDlg.equalsIgnoreCase(getDialogName())) {
+      return String.format("%s: %s", trans.getName(), text);
+    }
+    return String.format("%s: %s [%s]", trans.getName(), text, nextDlg);
   }
 }
