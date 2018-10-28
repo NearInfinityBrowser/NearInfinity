@@ -212,7 +212,8 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
 //--------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry) {
+  protected Runnable newWorker(ResourceEntry entry)
+  {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof DlgResource) {
@@ -380,7 +381,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     {
       switch (columnIndex) {
         case 0: return entry;
-        case 1: return isText ? (Integer.toString(line) + ":" + Integer.toString(pos)) : Integer.toHexString(offset) + 'h';
+        case 1: return isText ? (line + ":" + pos) : Integer.toHexString(offset) + 'h';
         default: return Integer.toString(strref);
       }
     }

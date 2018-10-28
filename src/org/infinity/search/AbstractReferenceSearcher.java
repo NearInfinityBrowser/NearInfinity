@@ -144,7 +144,8 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
 // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry) {
+  protected Runnable newWorker(ResourceEntry entry)
+  {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource != null) {

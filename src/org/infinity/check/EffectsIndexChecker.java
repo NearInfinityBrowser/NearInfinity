@@ -43,7 +43,8 @@ public class EffectsIndexChecker extends AbstractChecker
 // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry) {
+  protected Runnable newWorker(ResourceEntry entry)
+  {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof AbstractStruct) {

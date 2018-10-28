@@ -175,7 +175,8 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
 // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry) {
+  protected Runnable newWorker(ResourceEntry entry)
+  {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof AbstractStruct) {

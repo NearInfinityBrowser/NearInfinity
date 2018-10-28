@@ -25,7 +25,8 @@ import org.infinity.search.FileTypeSelector;
  *
  * @author Mingun
  */
-public abstract class AbstractChecker extends AbstractSearcher implements ActionListener, Runnable {
+public abstract class AbstractChecker extends AbstractSearcher implements ActionListener, Runnable
+{
   /** The window with checkboxes allowing to configure operation settings before its start. */
   private final ChildFrame settingsWindow;
   /** Selector of file types in which search must be performed. */
@@ -83,7 +84,7 @@ public abstract class AbstractChecker extends AbstractSearcher implements Action
     return runSearch("Checking", entries);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListeneer">
+  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {

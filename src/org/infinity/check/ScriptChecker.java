@@ -258,7 +258,8 @@ public final class ScriptChecker extends AbstractSearcher implements Runnable, A
 // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry) {
+  protected Runnable newWorker(ResourceEntry entry)
+  {
     return () -> {
       try {
         final BcsResource script = new BcsResource(entry);

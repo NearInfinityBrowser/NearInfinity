@@ -288,7 +288,8 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
 // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry) {
+  protected Runnable newWorker(ResourceEntry entry)
+  {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof DlgResource) {
@@ -374,7 +375,8 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
    *
    * @throws Exception If {@code script} contains invalid code
    */
-  private void checkCode(AbstractCode code) throws Exception {
+  private void checkCode(AbstractCode code) throws Exception
+  {
     final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
     final Compiler compiler = new Compiler(code.toString(), type);
     final String compiled = compiler.getCode();

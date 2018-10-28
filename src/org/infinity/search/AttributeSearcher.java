@@ -230,7 +230,8 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
 // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry) {
+  protected Runnable newWorker(ResourceEntry entry)
+  {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof AbstractStruct) {
