@@ -538,6 +538,15 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       editGameIni(this);
     } else if (event.getActionCommand().equals("Refresh")) {
       refreshGame();
+    } else if (event.getActionCommand().equals("RefreshTree")) {
+      try {
+        WindowBlocker.blockWindow(this, true);
+        tree.reloadRenderer();
+        tree.repaint();
+        tree.requestFocusInWindow();
+      } finally {
+        WindowBlocker.blockWindow(this, false);
+      }
     } else if (event.getActionCommand().equals("ChangeLook")) {
       try {
         LookAndFeelInfo info = BrowserMenuBar.getInstance().getLookAndFeel();
