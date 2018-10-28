@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -20,15 +20,10 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Locale;
-import java.util.Stack;
 
 import javax.swing.BorderFactory;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -48,8 +43,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
@@ -62,17 +55,12 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.infinity.NearInfinity;
-import org.infinity.datatype.Flag;
-import org.infinity.datatype.ResourceRef;
-import org.infinity.datatype.SectionCount;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.LinkButton;
 import org.infinity.gui.ScriptTextArea;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
-import org.infinity.icon.Icons;
-import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
@@ -656,10 +644,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
 //-------------------------- INNER CLASSES --------------------------
 
-  // Applies expand or collapse operations on a set of dialog tree nodes in a background task
+  /** Applies expand or collapse operations on a set of dialog tree nodes in a background task. */
   private static class TreeWorker extends SwingWorker<Void, Void>
   {
-    // Supported operations
+    /** Supported operations. */
     public enum Type { EXPAND, COLLAPSE }
 
     private final TreeViewer instance;
@@ -746,806 +734,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     }
   }
 
-  // Common base class for node type specific classes
-  private static abstract class ItemBase
-  {
-     private final DlgResource dlg;
-     private final boolean showStrrefs;
-     private final boolean showIcons;
-
-     public ItemBase(DlgResource dlg)
-     {
-       this.dlg = dlg;
-       this.showStrrefs = BrowserMenuBar.getInstance().showStrrefs();
-       this.showIcons = BrowserMenuBar.getInstance().showDlgTreeIcons();
-     }
-
-     /** Returns the dialog resource object. */
-     public DlgResource getDialog()
-     {
-       return dlg;
-     }
-
-     /** Returns the dialog resource name. */
-     public String getDialogName()
-     {
-       if (dlg != null) {
-         return dlg.getResourceEntry().getResourceName();
-       } else {
-         return "";
-       }
-     }
-
-     /** Returns the icon associated with the item type. */
-     public abstract Icon getIcon();
-
-     /** Returns whether to show the Strref value next to the string. */
-     protected boolean showStrrefs() { return showStrrefs; }
-
-     /** Returns whether to display icons in front of the nodes. */
-     protected boolean showIcons() { return showIcons; }
-  }
-
-  // Meta class for identifying root node
-  private static final class RootItem extends ItemBase
-  {
-    private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16);
-
-    private final ArrayList<StateItem> states = new ArrayList<StateItem>();
-    private final ImageIcon icon;
-
-    private final int numStates;
-    private final int numTransitions;
-    private final int numStateTriggers;
-    private final int numResponseTriggers;
-    private final int numActions;
-    private final String flags;
-
-    public RootItem(DlgResource dlg)
-    {
-      super(dlg);
-
-      this.icon = showIcons() ? ICON : null;
-
-      numStates           = getAttribute(DlgResource.DLG_NUM_STATES);
-      numTransitions      = getAttribute(DlgResource.DLG_NUM_RESPONSES);
-      numStateTriggers    = getAttribute(DlgResource.DLG_NUM_STATE_TRIGGERS);
-      numResponseTriggers = getAttribute(DlgResource.DLG_NUM_RESPONSE_TRIGGERS);
-      numActions          = getAttribute(DlgResource.DLG_NUM_ACTIONS);
-
-      final StructEntry entry = dlg.getAttribute(DlgResource.DLG_THREAT_RESPONSE);
-      flags = entry instanceof Flag ? ((Flag)entry).toString() : null;
-
-      // finding and storing initial states
-      int count = 0;
-      for (StructEntry e : dlg.getList()) {
-        if (e instanceof State) {
-          // First state always under root
-          if (count == 0 || ((State)e).getTriggerIndex() >= 0) {
-            states.add(new StateItem(dlg, (State)e));
-          }
-          if (++count >= numStates) {
-            // All states readed, so break cycle
-            break;
-          }
-        }
-      }
-    }
-
-    /** Returns number of available initial states. */
-    public int getInitialStateCount()
-    {
-      return states.size();
-    }
-
-    /** Returns the StateItem at the given index or null on error. */
-    public StateItem getInitialState(int index)
-    {
-      if (index >= 0 && index < states.size()) {
-        return states.get(index);
-      }
-      return null;
-    }
-
-    @Override
-    public Icon getIcon()
-    {
-      return icon;
-    }
-
-    /**
-     * Extracts specified {@link SectionCount} attribute from dialog.
-     *
-     * @param attrName Attribute name
-     * @return value of the attribute or 0 if attribute does not exists
-     */
-    private int getAttribute(String attrName)
-    {
-      final StructEntry entry = getDialog().getAttribute(attrName);
-      if (entry instanceof SectionCount) {
-        return ((SectionCount)entry).getValue();
-      }
-      return 0;
-    }
-
-    @Override
-    public String toString()
-    {
-      StringBuilder sb = new StringBuilder();
-      if (!getDialogName().isEmpty()) {
-        sb.append(getDialogName());
-      } else {
-        sb.append("(Invalid DLG resource)");
-      }
-      sb.append(" (states: ").append(Integer.toString(numStates));
-      sb.append(", responses: ").append(Integer.toString(numTransitions));
-      sb.append(", state triggers: ").append(Integer.toString(numStateTriggers));
-      sb.append(", response triggers: ").append(Integer.toString(numResponseTriggers));
-      sb.append(", actions: ").append(Integer.toString(numActions));
-      if (flags != null) {
-        sb.append(", flags: ").append(flags);
-      }
-      sb.append(")");
-
-      return sb.toString();
-    }
-  }
-
-
-  // Encapsulates a dialog state entry
-  private static final class StateItem extends ItemBase
-  {
-    private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_STOP_16);
-    private static final int MAX_LENGTH = 100;    // max. string length to display
-
-    private final ImageIcon icon;
-
-    private State state;
-
-    public StateItem(DlgResource dlg, State state)
-    {
-      super(dlg);
-      this.icon = showIcons() ? ICON : null;
-      this.state = state;
-    }
-
-    public State getState()
-    {
-      return state;
-    }
-
-    public void setState(State state)
-    {
-      if (state != null) {
-        this.state = state;
-      }
-    }
-
-    @Override
-    public Icon getIcon()
-    {
-      return icon;
-    }
-
-    @Override
-    public String toString()
-    {
-      if (state != null) {
-        String text = StringTable.getStringRef(state.getResponse().getValue(),
-                                               showStrrefs() ? StringTable.Format.STRREF_PREFIX : StringTable.Format.NONE);
-        if (text.length() > MAX_LENGTH) {
-          text = text.substring(0, MAX_LENGTH) + "...";
-        }
-        return String.format("%s: %s", state.getName(), text);
-      } else {
-        return "(Invalid state)";
-      }
-    }
-  }
-
-
-  // Encapsulates a dialog transition entry
-  private static final class TransitionItem extends ItemBase
-  {
-    private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_PLAY_16);
-    private static final int MAX_LENGTH = 100;    // max. string length to display
-
-    private final ImageIcon icon;
-
-    private Transition trans;
-
-    public TransitionItem(DlgResource dlg, Transition trans)
-    {
-      super(dlg);
-      this.icon = showIcons() ? ICON : null;
-      this.trans = trans;
-    }
-
-    public Transition getTransition()
-    {
-      return trans;
-    }
-
-    public void setTransition(Transition trans)
-    {
-      if (trans != null) {
-        this.trans = trans;
-      }
-    }
-
-    @Override
-    public Icon getIcon()
-    {
-      return icon;
-    }
-
-    @Override
-    public String toString()
-    {
-      if (trans != null) {
-        if (trans.getFlag().isFlagSet(0)) {
-          // Transition contains text
-          String text = StringTable.getStringRef(trans.getAssociatedText().getValue(),
-                                                 showStrrefs() ? StringTable.Format.STRREF_PREFIX : StringTable.Format.NONE);
-          if (text.length() > MAX_LENGTH) {
-            text = text.substring(0, MAX_LENGTH) + "...";
-          }
-          String dlg = getDialog().getResourceEntry().getResourceName();
-          if (trans.getNextDialog().isEmpty() ||
-              trans.getNextDialog().getResourceName().equalsIgnoreCase(dlg)) {
-            return String.format("%s: %s", trans.getName(), text);
-          } else {
-            return String.format("%s: %s [%s]",
-                                 trans.getName(), text, trans.getNextDialog().getResourceName());
-          }
-        } else {
-          // Transition contains no text
-          String dlg = getDialog().getResourceEntry().getResourceName();
-          if (trans.getNextDialog().isEmpty() ||
-              trans.getNextDialog().getResourceName().equalsIgnoreCase(dlg)) {
-            return String.format("%s: (No text)", trans.getName());
-          } else {
-            return String.format("%s: (No text) [%s]",
-                                 trans.getName(), trans.getNextDialog().getResourceName());
-          }
-        }
-      } else {
-        return "(Invalid response)";
-      }
-    }
-  }
-
-
-  // Creates and manages the dialog tree structure
-  private static final class DlgTreeModel implements TreeModel
-  {
-    private final ArrayList<TreeModelListener> listeners = new ArrayList<TreeModelListener>();
-    // maps dialog resources to tables of state index/item pairs
-    private final HashMap<String, HashMap<Integer, StateItem>> mapState = new HashMap<String, HashMap<Integer, StateItem>>();
-    // maps dialog resources to tables of transition index/item pairs
-    private final HashMap<String, HashMap<Integer, TransitionItem>> mapTransition = new HashMap<String, HashMap<Integer, TransitionItem>>();
-
-    private RootItem root;
-    private DlgResource dlg;
-    private DefaultMutableTreeNode nodeRoot;
-
-    public DlgTreeModel(DlgResource dlg)
-    {
-      reset(dlg);
-    }
-
-  //--------------------- Begin Interface TreeModel ---------------------
-
-    @Override
-    public Object getRoot()
-    {
-      return updateNodeChildren(nodeRoot);
-    }
-
-    @Override
-    public Object getChild(Object parent, int index)
-    {
-      DefaultMutableTreeNode node = null;
-      if (parent instanceof DefaultMutableTreeNode) {
-        DefaultMutableTreeNode nodeParent = (DefaultMutableTreeNode)parent;
-        nodeParent = updateNodeChildren(nodeParent);
-        if (index >= 0 && index < nodeParent.getChildCount()) {
-          node = (DefaultMutableTreeNode)nodeParent.getChildAt(index);
-        }
-      }
-      return updateNodeChildren(node);
-    }
-
-    @Override
-    public int getChildCount(Object parent)
-    {
-      if (parent instanceof DefaultMutableTreeNode) {
-        DefaultMutableTreeNode nodeParent = (DefaultMutableTreeNode)parent;
-        nodeParent = updateNodeChildren(nodeParent);
-        return nodeParent.getChildCount();
-      }
-      return 0;
-    }
-
-    @Override
-    public boolean isLeaf(Object node)
-    {
-      if (node instanceof DefaultMutableTreeNode) {
-        return ((DefaultMutableTreeNode)node).isLeaf();
-      }
-      return false;
-    }
-
-    @Override
-    public void valueForPathChanged(TreePath path, Object newValue)
-    {
-      // immutable
-    }
-
-    @Override
-    public int getIndexOfChild(Object parent, Object child)
-    {
-      if (parent instanceof DefaultMutableTreeNode && child instanceof DefaultMutableTreeNode) {
-        DefaultMutableTreeNode nodeParent = (DefaultMutableTreeNode)parent;
-        for (int i = 0; i < nodeParent.getChildCount(); i++) {
-          TreeNode nodeChild = nodeParent.getChildAt(i);
-          if (nodeChild == child) {
-            return i;
-          }
-        }
-      }
-      return -1;
-    }
-
-    @Override
-    public void addTreeModelListener(TreeModelListener l)
-    {
-      if (l != null && !listeners.contains(l)) {
-        listeners.add(l);
-      }
-    }
-
-    @Override
-    public void removeTreeModelListener(TreeModelListener l)
-    {
-      if (l != null) {
-        int idx = listeners.indexOf(l);
-        if (idx >= 0) {
-          listeners.remove(idx);
-        }
-      }
-    }
-
-  //--------------------- End Interface TreeModel ---------------------
-
-    public void nodeChanged(TreeNode node)
-    {
-      if (node != null) {
-        if (node.getParent() == null) {
-          fireTreeNodesChanged(this, null, null, null);
-        } else {
-          fireTreeNodesChanged(this, createNodePath(node.getParent()),
-                               new int[]{getChildNodeIndex(node)}, new Object[]{node});
-        }
-      }
-    }
-
-    public void nodeStructureChanged(TreeNode node)
-    {
-      if (node.getParent() == null) {
-        fireTreeStructureChanged(this, null, null, null);
-      } else {
-        fireTreeStructureChanged(this, createNodePath(node.getParent()),
-                                 new int[getChildNodeIndex(node)], new Object[]{node});
-      }
-    }
-
-    /** Removes any old content and re-initializes the model with the data from the given dialog resource. */
-    public void reset(DlgResource dlg)
-    {
-      // clearing maps
-      Iterator<String> iter = mapState.keySet().iterator();
-      while (iter.hasNext()) {
-        HashMap<Integer, StateItem> map = mapState.get(iter.next());
-        if (map != null) {
-          map.clear();
-        }
-      }
-      mapState.clear();
-
-      iter = mapTransition.keySet().iterator();
-      while (iter.hasNext()) {
-        HashMap<Integer, TransitionItem> map = mapTransition.get(iter.next());
-        if (map != null) {
-          map.clear();
-        }
-      }
-      mapTransition.clear();
-
-      root = null;
-      nodeRoot = null;
-
-      this.dlg = dlg;
-
-      root = new RootItem(dlg);
-      for (int i = 0; i < root.getInitialStateCount(); i++) {
-        initState(root.getInitialState(i));
-      }
-      nodeRoot = new DefaultMutableTreeNode(root, true);
-
-      // notifying listeners
-      nodeStructureChanged((DefaultMutableTreeNode)getRoot());
-    }
-
-    public void updateState(State state)
-    {
-      if (state != null) {
-        int stateIdx = state.getNumber();
-        HashMap<Integer, StateItem> map = getStateTable(dlg.getResourceEntry().getResourceName());
-        if (map != null) {
-          Iterator<Integer> iter = map.keySet().iterator();
-          while (iter.hasNext()) {
-            StateItem item = map.get(iter.next());
-            if (item != null && item.getState().getNumber() == stateIdx) {
-              item.setState(state);
-              triggerNodeChanged((DefaultMutableTreeNode)getRoot(), item);
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    public void updateTransition(Transition trans)
-    {
-      if (trans != null) {
-        int transIdx = trans.getNumber();
-        HashMap<Integer, TransitionItem> map = getTransitionTable(dlg.getResourceEntry().getResourceName());
-        if (map != null) {
-          Iterator<Integer> iter = map.keySet().iterator();
-          while (iter.hasNext()) {
-            TransitionItem item = map.get(iter.next());
-            if (item != null && item.getTransition().getNumber() == transIdx) {
-              item.setTransition(trans);
-              triggerNodeChanged((DefaultMutableTreeNode)getRoot(), item);
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    public void updateRoot()
-    {
-      root = new RootItem(dlg);
-      nodeRoot.setUserObject(root);
-      nodeChanged(nodeRoot);
-    }
-
-    // Recursively parses the tree and triggers a nodeChanged event for each node containing data.
-    private void triggerNodeChanged(DefaultMutableTreeNode node, Object data)
-    {
-      if (node != null && data != null) {
-        if (node.getUserObject() == data) {
-          nodeChanged(node);
-        }
-        for (int i = 0; i < node.getChildCount(); i++) {
-          triggerNodeChanged((DefaultMutableTreeNode)node.getChildAt(i), data);
-        }
-      }
-    }
-
-    // Generates an array of TreeNode objects from root to specified node
-    private Object[] createNodePath(TreeNode node)
-    {
-      Object[] retVal;
-      if (node != null) {
-        Stack<TreeNode> stack = new Stack<TreeNode>();
-        while (node != null) {
-          stack.push(node);
-          node = node.getParent();
-        }
-        retVal = new Object[stack.size()];
-        for (int i = 0; i < retVal.length; i++) {
-          retVal[i] = stack.pop();
-        }
-        return retVal;
-      } else {
-        retVal = new Object[0];
-      }
-      return retVal;
-    }
-
-    // Determines the child index based on the specified node's parent
-    private int getChildNodeIndex(TreeNode node)
-    {
-      int retVal = 0;
-      if (node != null && node.getParent() != null) {
-        TreeNode parent = node.getParent();
-        for (int i = 0; i < parent.getChildCount(); i++) {
-          if (parent.getChildAt(i) == node) {
-            retVal = i;
-            break;
-          }
-        }
-      }
-      return retVal;
-    }
-
-    private void fireTreeNodesChanged(Object source, Object[] path, int[] childIndices,
-                                      Object[] children)
-    {
-      if (!listeners.isEmpty()) {
-        TreeModelEvent event;
-        if (path == null || path.length == 0) {
-          event = new TreeModelEvent(source, (TreePath)null);
-        } else {
-          event = new TreeModelEvent(source, path, childIndices, children);
-        }
-        for (int i = listeners.size()-1; i >= 0; i--) {
-          TreeModelListener tml = listeners.get(i);
-          tml.treeNodesChanged(event);
-        }
-      }
-    }
-
-//    private void fireTreeNodesInserted(Object source, Object[] path, int[] childIndices,
-//                                       Object[] children)
-//    {
-//      if (!listeners.isEmpty()) {
-//        TreeModelEvent event;
-//        if (path == null || path.length == 0) {
-//          event = new TreeModelEvent(source, (TreePath)null);
-//        } else {
-//          event = new TreeModelEvent(source, path, childIndices, children);
-//        }
-//        for (int i = listeners.size()-1; i >= 0; i--) {
-//          TreeModelListener tml = listeners.get(i);
-//          tml.treeNodesInserted(event);
-//        }
-//      }
-//    }
-
-//    private void fireTreeNodesRemoved(Object source, Object[] path, int[] childIndices,
-//                                       Object[] children)
-//    {
-//      if (!listeners.isEmpty()) {
-//        TreeModelEvent event;
-//        if (path == null || path.length == 0) {
-//          event = new TreeModelEvent(source, (TreePath)null);
-//        } else {
-//          event = new TreeModelEvent(source, path, childIndices, children);
-//        }
-//        for (int i = listeners.size()-1; i >= 0; i--) {
-//          TreeModelListener tml = listeners.get(i);
-//          tml.treeNodesRemoved(event);
-//        }
-//      }
-//    }
-
-    private void fireTreeStructureChanged(Object source, Object[] path, int[] childIndices,
-                                       Object[] children)
-    {
-      if (!listeners.isEmpty()) {
-        TreeModelEvent event;
-        if (path == null || path.length == 0) {
-          event = new TreeModelEvent(source, (TreePath)null);
-        } else {
-          event = new TreeModelEvent(source, path, childIndices, children);
-        }
-        for (int i = listeners.size()-1; i >= 0; i--) {
-          TreeModelListener tml = listeners.get(i);
-          tml.treeStructureChanged(event);
-        }
-      }
-    }
-
-    private void initState(StateItem state)
-    {
-      if (state != null) {
-        DlgResource dlg = state.getDialog();
-        HashMap<Integer, StateItem> map = getStateTable(dlg.getResourceEntry().getResourceName());
-        if (map == null) {
-          map = new HashMap<Integer, StateItem>();
-          setStateTable(dlg.getResourceEntry().getResourceName(), map);
-        }
-
-        if (!map.containsKey(Integer.valueOf(state.getState().getNumber()))) {
-          map.put(Integer.valueOf(state.getState().getNumber()), state);
-
-          for (int i = 0; i < state.getState().getTransCount(); i++) {
-            int transIdx = state.getState().getFirstTrans() + i;
-            StructEntry entry = dlg.getAttribute(Transition.DLG_TRANS + " " + transIdx);
-            if (entry instanceof Transition) {
-              initTransition(new TransitionItem(dlg, (Transition)entry));
-            }
-          }
-        }
-      }
-    }
-
-    private void initTransition(TransitionItem trans)
-    {
-      if (trans != null) {
-        DlgResource dlg = trans.getDialog();
-        HashMap<Integer, TransitionItem> map = getTransitionTable(dlg.getResourceEntry().getResourceName());
-        if (map == null) {
-          map = new HashMap<Integer, TransitionItem>();
-          setTransitionTable(dlg.getResourceEntry().getResourceName(), map);
-        }
-
-        if (!map.containsKey(Integer.valueOf(trans.getTransition().getNumber()))) {
-          map.put(Integer.valueOf(trans.getTransition().getNumber()), trans);
-
-          if (!trans.getTransition().getFlag().isFlagSet(3)) {
-            // dialog continues
-            ResourceRef dlgRef = trans.getTransition().getNextDialog();
-            int stateIdx = trans.getTransition().getNextDialogState();
-            dlg = getDialogResource(dlgRef.getResourceName());
-            if (dlg != null && stateIdx >= 0) {
-              StructEntry entry = dlg.getAttribute(State.DLG_STATE + " " + stateIdx);
-              if (entry instanceof State) {
-                initState(new StateItem(dlg, (State)entry));
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Returns a dialog resource object based on the specified resource name
-    // Reuses exising DlgResource objects if available
-    private DlgResource getDialogResource(String dlgName)
-    {
-      if (dlgName != null) {
-        if (containsStateTable(dlgName)) {
-          HashMap<Integer, StateItem> map = getStateTable(dlgName);
-          if (!map.keySet().isEmpty()) {
-            return map.get(map.keySet().iterator().next()).getDialog();
-          }
-        } else if (containsTransitionTable(dlgName)) {
-          HashMap<Integer, TransitionItem> map = getTransitionTable(dlgName);
-          if (!map.keySet().isEmpty()) {
-            return map.get(map.keySet().iterator().next()).getDialog();
-          }
-        } else if (ResourceFactory.resourceExists(dlgName)) {
-          try {
-            return new DlgResource(ResourceFactory.getResourceEntry(dlgName));
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
-      }
-      return null;
-    }
-
-    // Adds all available child nodes to the given parent node
-    private DefaultMutableTreeNode updateNodeChildren(DefaultMutableTreeNode parent)
-    {
-      if (parent != null) {
-        if (parent.getUserObject() instanceof StateItem) {
-          return updateStateNodeChildren(parent);
-        } else if (parent.getUserObject() instanceof TransitionItem) {
-          return updateTransitionNodeChildren(parent);
-        } else if (parent.getUserObject() instanceof RootItem) {
-          return updateRootNodeChildren(parent);
-        }
-      }
-      return parent;
-    }
-
-    // Adds all available transition child nodes to the given parent state node
-    private DefaultMutableTreeNode updateStateNodeChildren(DefaultMutableTreeNode parent)
-    {
-      if (parent != null && parent.getUserObject() instanceof StateItem) {
-        StateItem state = (StateItem)parent.getUserObject();
-        String dlgName = state.getDialog().getResourceEntry().getResourceName();
-        int count = state.getState().getTransCount();
-        while (parent.getChildCount() < count) {
-          int transIdx = state.getState().getFirstTrans() + parent.getChildCount();
-          TransitionItem child = getTransitionTable(dlgName).get(Integer.valueOf(transIdx));
-          boolean allowChildren = !child.getTransition().getFlag().isFlagSet(3);
-          DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, allowChildren);
-          parent.add(nodeChild);
-        }
-      }
-      return parent;
-    }
-
-    // Adds all available state child nodes to the given parent transition node
-    private DefaultMutableTreeNode updateTransitionNodeChildren(DefaultMutableTreeNode parent)
-    {
-      if (parent != null && parent.getUserObject() instanceof TransitionItem) {
-        // transitions only allow a single state as child
-        if (parent.getChildCount() < 1) {
-          TransitionItem trans = (TransitionItem)parent.getUserObject();
-          ResourceRef dlgRef = trans.getTransition().getNextDialog();
-          if (!dlgRef.isEmpty()) {
-            String dlgName = dlgRef.getResourceName();
-            int stateIdx = trans.getTransition().getNextDialogState();
-            StateItem child = getStateTable(dlgName).get(Integer.valueOf(stateIdx));
-            DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, true);
-            parent.add(nodeChild);
-          }
-        }
-      }
-      return parent;
-    }
-
-    // Adds all available initial state child nodes to the given parent root node
-    private DefaultMutableTreeNode updateRootNodeChildren(DefaultMutableTreeNode parent)
-    {
-      if (parent != null && parent.getUserObject() instanceof RootItem) {
-        RootItem root = (RootItem)parent.getUserObject();
-        while (parent.getChildCount() < root.getInitialStateCount()) {
-          int stateIdx = parent.getChildCount();
-          StateItem child = root.getInitialState(stateIdx);
-          DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, true);
-          parent.add(nodeChild);
-        }
-      }
-      return parent;
-    }
-
-    // Returns the state table of the specified dialog resource
-    private HashMap<Integer, StateItem> getStateTable(String dlgName)
-    {
-      if (dlgName != null) {
-        return mapState.get(dlgName.toUpperCase(Locale.ENGLISH));
-      } else {
-        return null;
-      }
-    }
-
-    // Adds or replaces a dialog resource entry with its associated state table
-    private void setStateTable(String dlgName, HashMap<Integer, StateItem> map)
-    {
-      if (dlgName != null) {
-        mapState.put(dlgName.toUpperCase(Locale.ENGLISH), map);
-      }
-    }
-
-    // Returns whether the specified dialog resource has been mapped
-    private boolean containsStateTable(String dlgName)
-    {
-      if (dlgName != null) {
-        return mapState.containsKey(dlgName.toUpperCase(Locale.ENGLISH));
-      } else {
-        return false;
-      }
-    }
-
-    // Returns the transition table of the specified dialog resource
-    private HashMap<Integer, TransitionItem> getTransitionTable(String dlgName)
-    {
-      if (dlgName != null) {
-        return mapTransition.get(dlgName.toUpperCase(Locale.ENGLISH));
-      } else {
-        return null;
-      }
-    }
-
-    // Adds or replaces a dialog resource entry with its associated transition table
-    private void setTransitionTable(String dlgName, HashMap<Integer, TransitionItem> map)
-    {
-      if (dlgName != null) {
-        mapTransition.put(dlgName.toUpperCase(Locale.ENGLISH), map);
-      }
-    }
-
-    // Returns whether the specified dialog resource has been mapped
-    private boolean containsTransitionTable(String dlgName)
-    {
-      if (dlgName != null) {
-        return mapTransition.containsKey(dlgName.toUpperCase(Locale.ENGLISH));
-      } else {
-        return false;
-      }
-    }
-  }
-
-
-  // Panel for displaying information about the current dialog state or trigger
+  /** Panel for displaying information about the current dialog state or trigger. */
   private static final class ItemInfo extends JPanel
   {
     /** Identifies the respective controls for displaying information. */
@@ -1736,7 +925,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     }
 
 
-    // Returns the given control
+    /** Returns the given control. */
     private JPanel getControl(Type type)
     {
       switch (type) {
@@ -1754,7 +943,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       return new JPanel();
     }
 
-    // Clears and disables controls in the specified panel
+    /** Clears and disables controls in the specified panel. */
     private void clearCard(String cardName)
     {
       if (cardName != null) {
@@ -1780,7 +969,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     }
 
-    // Helper method for creating a read-only textarea component
+    /** Helper method for creating a read-only textarea component. */
     private JTextArea createReadOnlyTextArea()
     {
       JTextArea ta = new JTextArea();
@@ -1793,7 +982,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       return ta;
     }
 
-    // Helper method for creating a ScriptTextArea component
+    /** Helper method for creating a ScriptTextArea component. */
     private ScriptTextArea createScriptTextArea(boolean readOnly)
     {
       ScriptTextArea ta = new ScriptTextArea();
@@ -1808,7 +997,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       return ta;
     }
 
-    // Helper method for creating a read-only textfield component
+    /** Helper method for creating a read-only textfield component. */
     private JTextField createReadOnlyTextField()
     {
       JTextField tf = new JTextField();
@@ -1820,7 +1009,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       return tf;
     }
 
-    // Returns a modified TitledBorder object
+    /** Returns a modified TitledBorder object. */
     private TitledBorder createTitledBorder(String title, int fontStyle, boolean isTitle)
     {
       if(title == null) title = "";
