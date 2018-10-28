@@ -388,17 +388,24 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public String toString()
   {
     // limit text length to speed things up
-    final StringBuilder sb = new StringBuilder(160);
+    int capacity = 160;
+    final StringBuilder sb = new StringBuilder(capacity);
     for (int i = 0, count = getFieldCount(); i < count; i++) {
-      StructEntry datatype = getField(i);
-      String text = datatype.getName() + ": " + datatype.toString() + ',';
-      if (sb.length() + text.length() < sb.capacity()) {
+      final StructEntry field = getField(i);
+      final String text = field.getName() + ": " + field;
+
+      if (i != 0) {
+        sb.append(',');
+        --capacity;
+      }
+      if (text.length() < capacity) {
         sb.append(text);
       } else {
-        if (sb.length() + text.length() / 2 < sb.capacity()) {
-          sb.append(text);
-        }
-        i = count;
+        sb.append(text, 0, capacity);
+      }
+      capacity -= text.length();
+      if (capacity < 0 || capacity == 0 && i != count) {
+        break;
       }
     }
     return sb.toString();
