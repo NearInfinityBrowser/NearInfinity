@@ -16,9 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -53,6 +50,7 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
   private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
   private final JButton bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
   private final JLabel count;
+  /** List of the {@link TextHit} objects. */
   private final SortableTable table;
   private final String query;
 
@@ -63,10 +61,9 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
     this.parent = parent;
     setIconImage(Icons.getIcon(Icons.ICON_HISTORY_16).getImage());
 
-    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
-    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
-    table = new SortableTable(Arrays.asList(new String[]{"File", "Text", "Line"}),
-                              colClasses, Arrays.asList(new Integer[]{100, 300, 50}));
+    table = new SortableTable(new String[]{"File", "Text", "Line"},
+                              new Class<?>[]{ResourceEntry.class, String.class, Integer.class},
+                              new Integer[]{100, 300, 50});
 
     bopen.setMnemonic('o');
     bopennew.setMnemonic('n');

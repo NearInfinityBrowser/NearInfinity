@@ -16,9 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -59,6 +56,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
   private final JButton bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
   private final JLabel count;
   private final Object query;
+  /** List of the {@link ReferenceHit} objects. */
   private final SortableTable table;
 
   public ReferenceHitFrame(Object query, Component parent)
@@ -68,10 +66,9 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     this.parent = parent;
     setIconImage(Icons.getIcon(Icons.ICON_HISTORY_16).getImage());
 
-    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
-    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
-    table = new SortableTable(Arrays.asList(new String[]{"File", "Name", "Attribute"}),
-                              colClasses, Arrays.asList(new Integer[]{100, 100, 300}));
+    table = new SortableTable(new String[]{"File", "Name", "Attribute"},
+                              new Class<?>[]{ResourceEntry.class, String.class, String.class},
+                              new Integer[]{100, 100, 300});
 
     bopen.setMnemonic('o');
     bopennew.setMnemonic('n');

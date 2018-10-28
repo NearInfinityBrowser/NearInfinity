@@ -1,10 +1,11 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,9 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -27,13 +26,11 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.ProgressMonitor;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.HexNumber;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
@@ -50,22 +47,20 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.Item;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.Debugging;
+import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 
-public final class CreInvChecker implements Runnable, ActionListener, ListSelectionListener
+/** Performs checking {@link CreResource CRE} & {@code CHR} resources. */
+public final class CreInvChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener
 {
-  private static final String FMT_PROGRESS = "Checking resource %d/%d";
-
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
+  /** List of the {@link CreInvError} objects. */
   private SortableTable table;
-  private ProgressMonitor progress;
-  private int progressIndex;
-  private List<ResourceEntry> creFiles;
 
-  public CreInvChecker()
+  public CreInvChecker(Component parent)
   {
+    super(CHECK_ONE_TYPE_FORMAT, parent);
     new Thread(this).start();
   }
 
@@ -141,60 +136,24 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
   @Override
   public void run()
   {
-    WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
+    final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
-      ThreadPoolExecutor executor = Misc.createThreadPool();
-      creFiles = ResourceFactory.getResources("CRE");
+      final List<ResourceEntry> creFiles = ResourceFactory.getResources("CRE");
       creFiles.addAll(ResourceFactory.getResources("CHR"));
-      progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking inventories..." + Misc.MSG_EXPAND_LARGE,
-                                     String.format(FMT_PROGRESS, creFiles.size(), creFiles.size()),
-                                     0, creFiles.size());
-      progress.setNote(String.format(FMT_PROGRESS, 0, creFiles.size()));
 
-      List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
-      colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
-      table = new SortableTable(Arrays.asList(new String[]{"File", "Name", "Item"}),
-                                colClasses, Arrays.asList(new Integer[]{100, 100, 200}));
+      table = new SortableTable(new String[]{"File", "Name", "Item"},
+                                new Class<?>[]{ResourceEntry.class, String.class, Item.class},
+                                new Integer[]{100, 100, 200});
 
-      boolean isCancelled = false;
-      Debugging.timerReset();
-      for (int i = 0; i < creFiles.size(); i++) {
-        Misc.isQueueReady(executor, true, -1);
-        executor.execute(new Worker(creFiles.get(i)));
-        if (progress.isCanceled()) {
-          isCancelled = true;
-          break;
-        }
-      }
-
-      // enforcing thread termination if process has been cancelled
-      if (isCancelled) {
-        executor.shutdownNow();
-      } else {
-        executor.shutdown();
-      }
-
-      // waiting for pending threads to terminate
-      while (!executor.isTerminated()) {
-        if (!isCancelled && progress.isCanceled()) {
-          executor.shutdownNow();
-          isCancelled = true;
-        }
-        try { Thread.sleep(1); } catch (InterruptedException e) {}
-      }
-
-      if (isCancelled) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Operation cancelled",
-                                      "Info", JOptionPane.INFORMATION_MESSAGE);
+      if (runSearch("Checking inventories", creFiles)) {
         return;
       }
 
-      if (table.getRowCount() == 0)
+      if (table.getRowCount() == 0) {
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No hits found",
                                       "Info", JOptionPane.INFORMATION_MESSAGE);
-      else {
+      } else {
         resultFrame = new ChildFrame("Result of CRE inventory check", true);
         resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
         bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
@@ -247,61 +206,53 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
         resultFrame.setVisible(true);
       }
     } finally {
-      advanceProgress(true);
       blocker.setBlocked(false);
-      if (creFiles != null) {
-        creFiles.clear();
-        creFiles = null;
-      }
     }
-    Debugging.timerShow("Check completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
 
+  @Override
+  protected Runnable newWorker(ResourceEntry entry) {
+    return () -> {
+      try {
+        checkCreature(new CreResource(entry));
+      } catch (Exception e) {
+        synchronized (System.err) {
+          e.printStackTrace();
+        }
+      }
+      advanceProgress();
+    };
+  }
+
   private void checkCreature(CreResource cre)
   {
-    final List<StructEntry> items = new ArrayList<StructEntry>();
-    final List<StructEntry> slots = new ArrayList<StructEntry>();
-    HexNumber slots_offset = (HexNumber)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS);
+    final List<Item> items = new ArrayList<>();
+    final List<DecNumber> slots = new ArrayList<>();
+    final DecNumber slots_offset = (DecNumber)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS);
     for (int i = 0; i < cre.getFieldCount(); i++) {
-      StructEntry entry = cre.getField(i);
-      if (entry instanceof Item)
-        items.add(entry);
-      else if (entry.getOffset() >= slots_offset.getValue() + cre.getOffset() &&
+      final StructEntry entry = cre.getField(i);
+      if (entry instanceof Item) {
+        items.add((Item)entry);
+      } else if (entry.getOffset() >= slots_offset.getValue() + cre.getOffset() &&
                entry instanceof DecNumber
                && !entry.getName().equals(CreResource.CRE_SELECTED_WEAPON_SLOT)
                && !entry.getName().equals(CreResource.CRE_SELECTED_WEAPON_ABILITY))
-        slots.add(entry);
+        slots.add((DecNumber)entry);
     }
-    for (int i = 0; i < slots.size(); i++) {
-      DecNumber slot = (DecNumber)slots.get(i);
-      if (slot.getValue() >= 0 && slot.getValue() < items.size())
-        items.set(slot.getValue(), slots_offset); // Dummy object
+    //TODO: Investigate ability to changes slots to sed and use slots.contains(...) below
+    for (DecNumber slot : slots) {
+      final int value = slot.getValue();
+      if (value >= 0 && value < items.size()) {
+        items.set(value, null);
+      }
     }
-    for (int i = 0; i < items.size(); i++) {
-      if (items.get(i) != slots_offset) {
-        Item item = (Item)items.get(i);
+    for (Item item : items) {
+      if (item != null) {
         synchronized (table) {
           table.addTableItem(new CreInvError(cre.getResourceEntry(), item));
         }
-      }
-    }
-  }
-
-  private synchronized void advanceProgress(boolean finished)
-  {
-    if (progress != null) {
-      if (finished) {
-        progressIndex = 0;
-        progress.close();
-        progress = null;
-      } else {
-        progressIndex++;
-        if (progressIndex % 100 == 0) {
-          progress.setNote(String.format(FMT_PROGRESS, progressIndex, creFiles.size()));
-        }
-        progress.setProgress(progressIndex);
       }
     }
   }
@@ -337,30 +288,4 @@ public final class CreInvChecker implements Runnable, ActionListener, ListSelect
                            resourceEntry.toString(), resourceEntry.getSearchString(), itemRef.toString());
     }
   }
-
-  private class Worker implements Runnable
-  {
-    private final ResourceEntry entry;
-
-    public Worker(ResourceEntry entry)
-    {
-      this.entry = entry;
-    }
-
-    @Override
-    public void run()
-    {
-      if (entry != null) {
-        try {
-          checkCreature(new CreResource(entry));
-        } catch (Exception e) {
-          synchronized (System.err) {
-            e.printStackTrace();
-          }
-        }
-      }
-      advanceProgress(false);
-    }
-  }
 }
-

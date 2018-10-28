@@ -1490,23 +1490,23 @@ public final class BrowserMenuBar extends JMenuBar
         bcsframe.setVisible(true);
       }
       else if (event.getSource() == toolCheckAllDialog)
-        new DialogChecker(false);
+        new DialogChecker(false, NearInfinity.getInstance());
       else if (event.getSource() == toolCheckOverrideDialog)
-        new DialogChecker(true);
+        new DialogChecker(true, NearInfinity.getInstance());
       else if (event.getSource() == toolCheckResRef)
         new ResRefChecker();
       else if (event.getSource() == toolCheckCREInv)
-        new CreInvChecker();
+        new CreInvChecker(NearInfinity.getInstance());
       else if (event.getSource() == toolCheckIDSRef)
         new IDSRefChecker();
       else if (event.getSource() == toolCheckIDSBCSRef)
-        new BCSIDSChecker();
+        new BCSIDSChecker(NearInfinity.getInstance());
       else if (event.getSource() == toolCheckScripts)
-        new ScriptChecker();
+        new ScriptChecker(NearInfinity.getInstance());
       else if (event.getSource() == toolCheckStructs)
         new StructChecker();
       else if (event.getSource() == toolCheckStringUse)
-        new StringUseChecker();
+        new StringUseChecker(NearInfinity.getInstance());
       else if (event.getSource() == toolCheckStringIndex)
         new StrrefIndexChecker();
       else if (event.getSource() == toolCheckFileUse)
