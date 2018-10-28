@@ -138,8 +138,10 @@ public abstract class AbstractSearcher
       advanceProgress(true);
     }
   }
+
   /** Move progress along. */
   protected final void advanceProgress() { advanceProgress(false); }
+
   /**
    * Move progress along.
    *
@@ -161,6 +163,7 @@ public abstract class AbstractSearcher
       }
     }
   }
+
   private void updateProgressNote() {
     progress.setNote(String.format(operationFormat, lastExt, progressIndex, progress.getMaximum()));
   }

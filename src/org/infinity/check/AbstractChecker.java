@@ -82,6 +82,7 @@ public abstract class AbstractChecker extends AbstractSearcher implements Action
   {
     return runSearch("Checking", entries);
   }
+
   //<editor-fold defaultstate="collapsed" desc="ActionListeneer">
   @Override
   public void actionPerformed(ActionEvent event)
