@@ -439,11 +439,15 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       {
         Component c = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, focused);
         if (value instanceof DefaultMutableTreeNode) {
-          Object data = ((DefaultMutableTreeNode)value).getUserObject();
-          if (data instanceof ItemBase) {
-            setIcon(((ItemBase)data).getIcon());
-          } else {
-            setIcon(null);
+          final DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
+          final ItemBase data = (ItemBase)node.getUserObject();
+
+          setIcon(data.getIcon());
+          if (data instanceof StateItem) {
+            final State s = ((StateItem) data).getState();
+            if (s.getNumber() == 0 && s.getTriggerIndex() < 0 && BrowserMenuBar.getInstance().alwaysShowState0()) {
+              setForeground(Color.GRAY);
+            }
           }
         }
         return c;

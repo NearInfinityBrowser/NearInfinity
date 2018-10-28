@@ -11,6 +11,7 @@ import javax.swing.ImageIcon;
 
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.SectionCount;
+import org.infinity.gui.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.StructEntry;
 
@@ -44,13 +45,15 @@ final class RootItem extends ItemBase
     final StructEntry entry = dlg.getAttribute(DlgResource.DLG_THREAT_RESPONSE);
     flags = entry instanceof Flag ? ((Flag)entry).toString() : null;
 
+    final boolean alwaysShow = BrowserMenuBar.getInstance().alwaysShowState0();
     // finding and storing initial states
     int count = 0;
     for (StructEntry e : dlg.getList()) {
       if (e instanceof State) {
-        // First state always under root
-        if (count == 0 || ((State)e).getTriggerIndex() >= 0) {
-          states.add(new StateItem(dlg, (State)e));
+        final State s = (State)e;
+        // First state always under root, if setting is checked
+        if (alwaysShow && count == 0 || s.getTriggerIndex() >= 0) {
+          states.add(new StateItem(dlg, s));
         }
         if (++count >= numStates) {
           // All states readed, so break cycle
