@@ -196,7 +196,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
           try (InputStream is = getResourceDataAsStream()) {
             searchString = StoResource.getSearchString(is);
           }
-        } else if (extension.equalsIgnoreCase("ARE") && Profile.isEnhancedEdition()) {
+        } else if (extension.equalsIgnoreCase("ARE")) {
           searchString = AreResource.getSearchString(this);
         }
       } catch (Exception e) {
