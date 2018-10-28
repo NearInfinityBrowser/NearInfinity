@@ -5,7 +5,6 @@
 package org.infinity.search;
 
 import java.awt.Component;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,16 +24,36 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sav.SavResource;
 import org.infinity.resource.text.PlainTextResource;
 
+/** Performs search of the specified string reference in other resources. */
 public final class StringReferenceSearcher extends AbstractReferenceSearcher
 {
-  private static final Pattern NUMBERPATTERN = Pattern.compile("\\d+", Pattern.DOTALL);
+  /**
+   * Regular expression, used to the find string references in the
+   * {@link PlainTextResource text resources}.
+   * Expression consists from three parts:
+   * <ul>
+   * <li>lookbehind for a dot that filters fractional part of the floating-point value</li>
+   * <li>integer part itself surrounded with word boundaries to filter things like 2 in {@code 2DA}</li>
+   * <li>lookahead for a dot that filter integer part of the floating-point value</li>
+   * </ul>
+   */
+  public static final Pattern NUMBER_PATTERN = Pattern.compile("(?<!\\.)" + "\\b\\d+\\b" + "(?!\\.)", Pattern.DOTALL);
+  /** Array of resource extensions which can contains string references. */
+  public static final String[] FILE_TYPES = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE", "DLG", "EFF",
+                                            "GAM", "INI", "ITM", "SPL", "SRC", "STO", "TOH", "WMP"};
+  /** Searched string reference value. */
   private final int searchvalue;
 
-  public StringReferenceSearcher(int searchvalue, Component parent)
+  /**
+   * Creates finder that searches localizable string in the resources.
+   *
+   * @param stringRef Searched string reference value
+   * @param parent GUI component that will be parent for results window
+   */
+  public StringReferenceSearcher(int stringRef, Component parent)
   {
-    super(null, new String[]{"2DA", "ARE", "BCS", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "INI",
-                             "ITM", "SPL", "SRC", "STO", "TOH", "WMP"}, parent);
-    this.searchvalue = searchvalue;
+    super(null, FILE_TYPES, parent);
+    this.searchvalue = stringRef;
   }
 
   @Override
@@ -55,29 +74,25 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
   private void searchDialog(ResourceEntry entry, AbstractStruct dialog)
   {
     for (int i = 0; i < dialog.getFieldCount(); i++) {
-      StructEntry o = dialog.getField(i);
-      if (o instanceof StringRef && ((StringRef)o).getValue() == searchvalue)
+      final StructEntry o = dialog.getField(i);
+      if (o instanceof StringRef && ((StringRef)o).getValue() == searchvalue) {
         addHit(entry, entry.getSearchString(), o);
-      else if (o instanceof AbstractCode) {
-        AbstractCode sourceCode = (AbstractCode)o;
+      } else if (o instanceof AbstractCode) {
+        final AbstractCode sourceCode = (AbstractCode)o;
         try {
-          Compiler compiler = new Compiler(sourceCode.toString(),
-                                             (sourceCode instanceof Action) ? ScriptType.ACTION :
-                                                                              ScriptType.TRIGGER);
-          String code = compiler.getCode();
-          if (compiler.getErrors().size() == 0) {
-            Decompiler decompiler = new Decompiler(code, true);
+          final ScriptType type = sourceCode instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
+          final Compiler compiler = new Compiler(sourceCode.toString(), type);
+          final String code = compiler.getCode();
+          if (compiler.getErrors().isEmpty()) {
+            final Decompiler decompiler = new Decompiler(code, true);
             decompiler.setGenerateComments(false);
             decompiler.setGenerateResourcesUsed(true);
-            if (o instanceof Action) {
-              decompiler.setScriptType(ScriptType.ACTION);
-            } else {
-              decompiler.setScriptType(ScriptType.TRIGGER);
-            }
+            decompiler.setScriptType(type);
             decompiler.decompile();
             for (final Integer stringRef : decompiler.getStringRefsUsed()) {
-              if (stringRef.intValue() == searchvalue)
+              if (stringRef.intValue() == searchvalue) {
                 addHit(entry, entry.getSearchString(), sourceCode);
+              }
             }
           }
         } catch (Exception e) {
@@ -85,8 +100,9 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
           e.printStackTrace();
         }
       }
-      else if (o instanceof AbstractStruct)
+      else if (o instanceof AbstractStruct) {
         searchDialog(entry, (AbstractStruct)o);
+      }
     }
   }
 
@@ -103,12 +119,11 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchSave(ResourceEntry entry, SavResource savfile)
   {
-    List<? extends ResourceEntry> entries = savfile.getFileHandler().getFileEntries();
-    for (int i = 0; i < entries.size(); i++) {
-      ResourceEntry saventry = (ResourceEntry)entries.get(i);
+    for (ResourceEntry saventry : savfile.getFileHandler().getFileEntries()) {
       Resource resource = ResourceFactory.getResource(saventry);
-      if (resource instanceof AbstractStruct)
+      if (resource instanceof AbstractStruct) {
         searchSavStruct(entry, saventry, (AbstractStruct)resource);
+      }
     }
   }
 
@@ -141,11 +156,12 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchText(ResourceEntry entry, PlainTextResource text)
   {
-    Matcher m = NUMBERPATTERN.matcher(text.getText());
+    final Matcher m = NUMBER_PATTERN.matcher(text.getText());
     while (m.find()) {
-      long nr = Long.parseLong(text.getText().substring(m.start(), m.end()));
-      if (nr == searchvalue)
+      long nr = Long.parseLong(m.group());
+      if (nr == searchvalue) {
         addHit(entry, null, null);
+      }
     }
   }
 }

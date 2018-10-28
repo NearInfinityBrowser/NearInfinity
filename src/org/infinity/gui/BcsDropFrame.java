@@ -30,7 +30,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.SortedSet;
@@ -77,6 +76,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
   private final JRadioButton rbOtherDir = new JRadioButton("Other ", false);
   private final JTabbedPane tabbedPane = new JTabbedPane();
   private final JTextField tfOtherDir = new JTextField(10);
+  /** List of the {@link CompileError} objects. */
   private final SortableTable table;
   private final WindowBlocker blocker;
 
@@ -89,10 +89,9 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     compZone.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
     decompZone.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
 
-    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
-    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Integer.class);
-    table = new SortableTable(Arrays.asList(new String[]{"File", "Errors/Warnings", "Line"}),
-                              colClasses, Arrays.asList(new Integer[]{200, 400, 100}));
+    table = new SortableTable(new String[]{"File", "Errors/Warnings", "Line"},
+                              new Class<?>[]{FileResourceEntry.class, String.class, Integer.class},
+                              new Integer[]{200, 400, 100});
 
     table.getSelectionModel().addListSelectionListener(this);
     table.addMouseListener(new MouseAdapter()
@@ -259,7 +258,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     if (!cbIgnoreWarnings.isSelected()) {
       errors.addAll(warnings);
     }
-    if (errors.size() == 0) {
+    if (errors.isEmpty()) {
       String filename = file.getFileName().toString();
       filename = filename.substring(0, filename.lastIndexOf((int)'.'));
       if (rbSaveBCS.isSelected()) {
@@ -322,8 +321,8 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     long startTime = System.currentTimeMillis();
     int ok = 0, failed = 0;
     if (component == compZone) {
-      for (int i = 0; i < files.size(); i++) {
-        Path file = files.get(i).toPath();
+      for (File f : files) {
+        Path file = f.toPath();
         if (Files.isDirectory(file)) {
           try (DirectoryStream<Path> dstream = Files.newDirectoryStream(file)) {
             for (final Path p: dstream) {
@@ -338,7 +337,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
           if (errors == null) {
             failed++;
           } else {
-            if (errors.size() == 0) {
+            if (errors.isEmpty()) {
               ok++;
             } else {
               for (final ScriptMessage sm: errors) {
@@ -354,10 +353,10 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       }
     }
     else if (component == decompZone) {
-      for (int i = 0; i < files.size(); i++) {
-        Path file = files.get(i).toPath();
+      for (File f : files) {
+        final Path file = f.toPath();
         if (Files.isDirectory(file)) {
-          try (DirectoryStream<Path> dstream = Files.newDirectoryStream(file)) {
+          try (final DirectoryStream<Path> dstream = Files.newDirectoryStream(file)) {
             for (final Path p: dstream) {
               files.add(p.toFile());
             }
@@ -436,7 +435,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     @Override
     public void run()
     {
-      filesDropped(component, new ArrayList<File>(files));
+      filesDropped(component, new ArrayList<>(files));
     }
   }
 

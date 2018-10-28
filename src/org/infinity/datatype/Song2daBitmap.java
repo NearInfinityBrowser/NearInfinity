@@ -23,12 +23,12 @@ import org.infinity.util.io.FileManager;
 /** Specialized ResourceBitmap type for parsing ARE song reference entries. */
 public class Song2daBitmap extends ResourceBitmap
 {
-  // Cached content of the song entries
-  private static final ArrayList<RefEntry> SongList = new ArrayList<ResourceBitmap.RefEntry>();
+  /** Cached content of the song entries. */
+  private static final ArrayList<RefEntry> SongList = new ArrayList<>();
 
-  // Source of music resource references
+  /** Source of music resource references. */
   private static String TableName;
-  // Textual representation of the song reference field data
+  /** Textual representation of the song reference field data. */
   private static String FormatString = FMT_REF_NAME_VALUE;
 
   public Song2daBitmap(ByteBuffer buffer, int offset, int length)
@@ -83,7 +83,7 @@ public class Song2daBitmap extends ResourceBitmap
     return SongList;
   }
 
-  // Create song references for BG2 and Enhanced Edition games
+  /** Create song references for BG2 and Enhanced Edition games. */
   private static List<RefEntry> createSongList_SONGLIST(List<Path> searchDirs)
   {
     if (SongList.isEmpty()) {
@@ -105,7 +105,7 @@ public class Song2daBitmap extends ResourceBitmap
     return SongList;
   }
 
-  // Create song references for IWD and IWD2
+  /** Create song references for IWD and IWD2. */
   private static List<RefEntry> createSongList_MUSIC(List<Path> searchDirs)
   {
     if (SongList.isEmpty()) {
@@ -128,7 +128,7 @@ public class Song2daBitmap extends ResourceBitmap
     return SongList;
   }
 
-  // Create song references for PST
+  /** Create song references for PST. */
   private static List<RefEntry> createSongList_PST(List<Path> searchDirs)
   {
     if (SongList.isEmpty()) {
@@ -185,16 +185,16 @@ public class Song2daBitmap extends ResourceBitmap
         final String ref  = map[i];
         final String name = map[i+1];
         if (ref != null) {
-          SongList.add(new RefEntry(i, ref, name, searchDirs));
+          SongList.add(new RefEntry(i/2, ref, name, searchDirs));
         } else {
-          SongList.add(new RefEntry(i, "None", name));
+          SongList.add(new RefEntry(i/2, "None", name));
         }
       }
     }
     return SongList;
   }
 
-  // Create song references for BG1
+  /** Create song references for BG1. */
   private static List<RefEntry> createSongList_BG1(List<Path> searchDirs)
   {
     if (SongList.isEmpty()) {

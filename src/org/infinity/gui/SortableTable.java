@@ -5,8 +5,8 @@
 package org.infinity.gui;
 
 import java.awt.Component;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -19,44 +19,26 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
 import org.infinity.icon.Icons;
 
-public final class SortableTable extends JTable
+public final class SortableTable extends JTable implements MouseListener
 {
   private final SortableTableModel tableModel;
   private boolean sortAscending;
   private int sortByColumn;
 
-  public SortableTable(List<String> columnNames, List<Class<? extends Object>> columnClasses, List<Integer> columnWidths)
+  public SortableTable(String[] columnNames, Class<?>[] columnClasses, Integer[] columnWidths)
   {
     tableModel = new SortableTableModel(columnNames, columnClasses);
     setModel(tableModel);
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setDefaultRenderer(Object.class, new ToolTipTableCellRenderer());
     getTableHeader().setDefaultRenderer(new TableHeaderRenderer());
-    getTableHeader().addMouseListener(new MouseAdapter()
-    {
-      @Override
-      public void mouseClicked(MouseEvent event)
-      {
-        TableColumnModel columnModel = getColumnModel();
-        int viewColumn = columnModel.getColumnIndexAtX(event.getX());
-        int column = convertColumnIndexToModel(viewColumn);
-        if (column == sortByColumn)
-          sortAscending = !sortAscending;
-        else {
-          sortByColumn = column;
-          sortAscending = false;
-        }
-        getTableHeader().repaint();
-        tableModel.sort();
-      }
-    });
-    for (int i = 0; i < columnWidths.size(); i++)
-      getColumnModel().getColumn(i).setPreferredWidth(columnWidths.get(i));
+    getTableHeader().addMouseListener(this);
+    for (int i = 0; i < columnWidths.length; i++)
+      getColumnModel().getColumn(i).setPreferredWidth(columnWidths[i]);
   }
 
   public void addTableItem(TableItem item)
@@ -84,6 +66,32 @@ public final class SortableTable extends JTable
     this.sortByColumn = sortByColumn;
     tableModel.sort();
   }
+
+  @Override
+  public void mouseClicked(MouseEvent e) {
+    final int viewColumn = getColumnModel().getColumnIndexAtX(e.getX());
+    final int column = convertColumnIndexToModel(viewColumn);
+    if (column == sortByColumn)
+      sortAscending = !sortAscending;
+    else {
+      sortByColumn = column;
+      sortAscending = false;
+    }
+    getTableHeader().repaint();
+    tableModel.sort();
+  }
+
+  @Override
+  public void mousePressed(MouseEvent e) {}
+
+  @Override
+  public void mouseReleased(MouseEvent e) {}
+
+  @Override
+  public void mouseEntered(MouseEvent e) {}
+
+  @Override
+  public void mouseExited(MouseEvent e) {}
 
 // -------------------------- INNER CLASSES --------------------------
 
@@ -119,23 +127,15 @@ public final class SortableTable extends JTable
 
   private final class SortableTableModel implements TableModel, Comparator<TableItem>
   {
-    private final List<TableModelListener> listeners = new ArrayList<TableModelListener>();
-    private final List<TableItem> tableItems = new ArrayList<TableItem>();
-    private final List<Class<? extends Object>> columnClasses;
-    private final List<String> columnNames;
+    private final List<TableModelListener> listeners = new ArrayList<>();
+    private final List<TableItem> tableItems = new ArrayList<>();
+    private final Class<?>[] columnClasses;
+    private final String[] columnNames;
 
-    private SortableTableModel(List<String> columnNames, List<Class<? extends Object>> columnClasses)
+    private SortableTableModel(String[] columnNames, Class<?>[] columnClasses)
     {
-      if (columnNames != null) {
-        this.columnNames = columnNames;
-      } else {
-        this.columnNames = new ArrayList<String>();
-      }
-      if (columnClasses != null) {
-        this.columnClasses = columnClasses;
-      } else {
-        this.columnClasses = new ArrayList<Class<? extends Object>>();
-      }
+      this.columnNames   = columnNames   != null ? columnNames   : new String[0];
+      this.columnClasses = columnClasses != null ? columnClasses : new Class<?>[0];
     }
 
     private void addTableItem(TableItem item)
@@ -148,38 +148,42 @@ public final class SortableTable extends JTable
       return tableItems.get(rowIndex);
     }
 
+    private void fireTableChangedEvent()
+    {
+      final TableModelEvent event = new TableModelEvent(this);
+      for (TableModelListener l : listeners) {
+        l.tableChanged(event);
+      }
+    }
+
     public void sort()
     {
       Collections.sort(tableItems, this);
-      TableModelEvent event = new TableModelEvent(this);
-      for (int i = 0; i < listeners.size(); i++)
-        listeners.get(i).tableChanged(event);
+      fireTableChangedEvent();
     }
 
     private void clear()
     {
       tableItems.clear();
-      TableModelEvent event = new TableModelEvent(this);
-      for (int i = 0; i < listeners.size(); i++)
-        listeners.get(i).tableChanged(event);
+      fireTableChangedEvent();
     }
 
     @Override
-    public Class<? extends Object> getColumnClass(int columnIndex)
+    public Class<?> getColumnClass(int columnIndex)
     {
-      return columnClasses.get(columnIndex);
+      return columnClasses[columnIndex];
     }
 
     @Override
     public int getColumnCount()
     {
-      return columnClasses.size();
+      return columnClasses.length;
     }
 
     @Override
     public String getColumnName(int columnIndex)
     {
-      return columnNames.get(columnIndex);
+      return columnNames[columnIndex];
     }
 
     @Override

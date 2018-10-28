@@ -1,10 +1,11 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,12 +17,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -30,7 +27,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.ProgressMonitor;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -57,24 +53,24 @@ import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.Debugging;
+import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 
-public final class DialogChecker implements Runnable, ActionListener, ListSelectionListener, ChangeListener
+/** Performs checking {@link DlgResource DLG} resources. */
+public final class DialogChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener, ChangeListener
 {
-  private static final String FMT_PROGRESS = "Checking resource %d/%d";
-
   private final boolean checkOnlyOverride;
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
   private JTabbedPane tabbedPane;
-  private SortableTable errorTable, warningTable;
-  private ProgressMonitor progress;
-  private int progressIndex;
-  private List<ResourceEntry> dlgFiles;
+  /** List of the {@link ActionErrorsTableLine} objects with compiler errors in dialog actions. */
+  private SortableTable errorTable;
+  /** List of the {@link ActionErrorsTableLine} objects with compiler warnings in dialog actions. */
+  private SortableTable warningTable;
 
-  public DialogChecker(boolean checkOnlyOverride)
+  public DialogChecker(boolean checkOnlyOverride, Component parent)
   {
+    super(CHECK_ONE_TYPE_FORMAT, parent);
     this.checkOnlyOverride = checkOnlyOverride;
     new Thread(this).start();
   }
@@ -178,11 +174,10 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
   @Override
   public void run()
   {
-    WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
+    final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
-      ThreadPoolExecutor executor = Misc.createThreadPool();
-      dlgFiles = ResourceFactory.getResources("DLG");
+      final List<ResourceEntry> dlgFiles = ResourceFactory.getResources("DLG");
       if (checkOnlyOverride) {
         for (Iterator<ResourceEntry> i = dlgFiles.iterator(); i.hasNext();) {
           ResourceEntry resourceEntry = i.next();
@@ -190,59 +185,25 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
             i.remove();
         }
       }
-      progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Checking dialogue triggers & actions...",
-                                     String.format(FMT_PROGRESS, dlgFiles.size(), dlgFiles.size()),
-                                     0, dlgFiles.size());
-      progress.setNote(String.format(FMT_PROGRESS, 0, dlgFiles.size()));
 
-      List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(4);
-      colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
-      colClasses.add(Integer.class);
+      final Class<?>[] colClasses = {ResourceEntry.class, String.class, String.class, Integer.class};
       errorTable = new SortableTable(
-          Arrays.asList(new String[]{"Dialogue", "Trigger/Action", "Error message", "Line"}),
-          colClasses, Arrays.asList(new Integer[]{50, 100, 350, 10}));
+          new String[]{"Dialogue", "Trigger/Action", "Error message", "Line"},
+          colClasses,
+          new Integer[]{50, 100, 350, 10});
       warningTable = new SortableTable(
-          Arrays.asList(new String[]{"Dialogue", "Trigger/Action", "Warning", "Line"}),
-          colClasses, Arrays.asList(new Integer[]{50, 100, 350, 10}));
+          new String[]{"Dialogue", "Trigger/Action", "Warning", "Line"},
+          colClasses,
+          new Integer[]{50, 100, 350, 10});
 
-      boolean isCancelled = false;
-      Debugging.timerReset();
-      for (int i = 0; i < dlgFiles.size(); i++) {
-        Misc.isQueueReady(executor, true, -1);
-        executor.execute(new Worker(dlgFiles.get(i)));
-        if (progress.isCanceled()) {
-          isCancelled = true;
-          break;
-        }
-      }
-
-      // enforcing thread termination if process has been cancelled
-      if (isCancelled) {
-        executor.shutdownNow();
-      } else {
-        executor.shutdown();
-      }
-
-      // waiting for pending threads to terminate
-      while (!executor.isTerminated()) {
-        if (!isCancelled && progress.isCanceled()) {
-          executor.shutdownNow();
-          isCancelled = true;
-        }
-        try { Thread.sleep(1); } catch (InterruptedException e) {}
-      }
-
-      if (isCancelled) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Operation cancelled",
-                                      "Info", JOptionPane.INFORMATION_MESSAGE);
+      if (runSearch("Checking dialogue triggers & actions", dlgFiles)) {
         return;
       }
 
-      if (errorTable.getRowCount() + warningTable.getRowCount() == 0)
+      if (errorTable.getRowCount() + warningTable.getRowCount() == 0) {
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No errors or warnings found",
                                       "Info", JOptionPane.INFORMATION_MESSAGE);
-      else {
+      } else {
         errorTable.tableComplete();
         warningTable.tableComplete();
         resultFrame = new ChildFrame("Result of triggers & actions check", true);
@@ -306,31 +267,54 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
         resultFrame.setVisible(true);
       }
     } finally {
-      advanceProgress(true);
       blocker.setBlocked(false);
-      if (dlgFiles != null) {
-        dlgFiles.clear();
-        dlgFiles = null;
-      }
     }
-    Debugging.timerShow("Check completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
 
-  private synchronized void advanceProgress(boolean finished)
-  {
-    if (progress != null) {
-      if (finished) {
-        progressIndex = 0;
-        progress.close();
-        progress = null;
-      } else {
-        progressIndex++;
-        if (progressIndex % 100 == 0) {
-          progress.setNote(String.format(FMT_PROGRESS, progressIndex, dlgFiles.size()));
+  @Override
+  protected Runnable newWorker(ResourceEntry entry) {
+    return () -> {
+      try {
+        final DlgResource dialog = new DlgResource(entry);
+        for (int i = 0; i < dialog.getFieldCount(); ++i) {
+          final StructEntry o = dialog.getField(i);
+          if (o instanceof AbstractCode) {
+            checkCode(entry, (AbstractCode)o);
+          }
         }
-        progress.setProgress(progressIndex);
+      } catch (Exception e) {
+        synchronized (System.err) {
+          e.printStackTrace();
+        }
+      }
+      advanceProgress();
+    };
+  }
+
+  /**
+   * Performs code checking. This method can be called from several threads
+   *
+   * @param entry Pointer to dialog resource for check. Never {@code null}
+   * @param code Code of action or trigger in dialog. Never {@code null}
+   *
+   * @throws Exception If {@code script} contains invalid code
+   */
+  private void checkCode(ResourceEntry entry, AbstractCode code) {
+    final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
+    final Compiler compiler = new Compiler(code.toString(), type);
+    compiler.getCode();
+    for (final ScriptMessage sm : compiler.getErrors()) {
+      synchronized (errorTable) {
+        errorTable.addTableItem(new ActionErrorsTableLine(entry, code, sm.getLine(), sm.getMessage(),
+                                                          ActionErrorsTableLine.Type.ERROR));
+      }
+    }
+    for (final ScriptMessage sm : compiler.getWarnings()) {
+      synchronized (warningTable) {
+        warningTable.addTableItem(new ActionErrorsTableLine(entry, code, sm.getLine(), sm.getMessage(),
+                                                            ActionErrorsTableLine.Type.WARNING));
       }
     }
   }
@@ -380,54 +364,4 @@ public final class DialogChecker implements Runnable, ActionListener, ListSelect
                            resourceEntry.toString(), structEntry.getName(), type, error, lineNr);
     }
   }
-
-  private class Worker implements Runnable
-  {
-    private final ResourceEntry entry;
-
-    public Worker(ResourceEntry entry)
-    {
-      this.entry = entry;
-    }
-
-    @Override
-    public void run()
-    {
-      if (entry != null) {
-        try {
-          DlgResource dialog = new DlgResource(entry);
-          for (int j = 0; j < dialog.getFieldCount(); j++) {
-            StructEntry o = dialog.getField(j);
-            if (o instanceof AbstractCode) {
-              AbstractCode dialogCode = (AbstractCode)o;
-              Compiler compiler = new Compiler(dialogCode.toString(),
-                                                 (dialogCode instanceof Action) ? ScriptType.ACTION :
-                                                                                  ScriptType.TRIGGER);
-              compiler.getCode();
-              SortedSet<ScriptMessage> errorMap = compiler.getErrors();
-              for (final ScriptMessage sm: errorMap) {
-                synchronized (errorTable) {
-                  errorTable.addTableItem(new ActionErrorsTableLine(entry, dialogCode, sm.getLine(), sm.getMessage(),
-                                                                    ActionErrorsTableLine.Type.ERROR));
-                }
-              }
-              SortedSet<ScriptMessage> warningMap = compiler.getWarnings();
-              for (final ScriptMessage sm : warningMap) {
-                synchronized (warningTable) {
-                  warningTable.addTableItem(new ActionErrorsTableLine(entry, dialogCode, sm.getLine(), sm.getMessage(),
-                                                                      ActionErrorsTableLine.Type.WARNING));
-                }
-              }
-            }
-          }
-        } catch (Exception e) {
-          synchronized (System.err) {
-            e.printStackTrace();
-          }
-        }
-      }
-      advanceProgress(false);
-    }
-  }
 }
-

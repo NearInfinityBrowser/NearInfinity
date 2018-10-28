@@ -7,26 +7,34 @@ package org.infinity.search;
 import java.awt.Component;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.infinity.datatype.IsTextual;
 
 import org.infinity.datatype.ResourceRef;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.Actor;
+import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.Container;
 import org.infinity.resource.are.Door;
 import org.infinity.resource.are.ITEPoint;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.dlg.AbstractCode;
+import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 
+/**
+ * Performs search usages of the specified script in the {@link AreResource area},
+ * {@link BcsResource script}, {@link CreResource characters and creatures},
+ * {@link DlgResource dialogues} ant the ini files.
+ */
 public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
 {
-  public ScriptReferenceSearcher(ResourceEntry targetEntry, Component parent)
+  public ScriptReferenceSearcher(ResourceEntry bcsScript, Component parent)
   {
-    super(targetEntry, new String[]{"ARE", "BCS", "CHR", "CRE", "DLG", "INI"}, parent);
+    super(bcsScript, new String[]{"ARE", "BCS", "CHR", "CRE", "DLG", "INI"}, parent);
   }
 
   @Override
@@ -44,17 +52,18 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
+    final String name = targetEntry.getResourceName();
     for (int i = 0; i < struct.getFieldCount(); i++) {
-      StructEntry o = struct.getField(i);
+      final StructEntry o = struct.getField(i);
       if (o instanceof ResourceRef &&
-          ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString())) {
-        ResourceRef ref = (ResourceRef)o;
+          ((ResourceRef)o).getResourceName().equalsIgnoreCase(name)) {
         if (struct instanceof CreResource) {
-          addHit(entry, entry.getSearchString(), ref);
+          addHit(entry, entry.getSearchString(), o);
         } else if (struct instanceof Actor) {
-          addHit(entry, struct.getField(20).toString(), ref);
+          final IsTextual actorName = (IsTextual)struct.getAttribute(Actor.ARE_ACTOR_NAME);
+          addHit(entry, actorName.getText(), o);
         } else {
-          addHit(entry, null, ref);
+          addHit(entry, null, o);
         }
       }
       else if (o instanceof Actor ||
@@ -64,15 +73,15 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
         searchStruct(entry, (AbstractStruct)o);
       }
       else if (o instanceof AbstractCode) {
-        searchScript(entry, o.toString(), o);
+        searchScript(entry, ((AbstractCode)o).getText(), o);
       }
     }
   }
 
   private void searchText(ResourceEntry entry, String text)
   {
-    String name = getTargetEntry().getResourceName();
-    int idx = name.lastIndexOf('.');
+    String name = targetEntry.getResourceName();
+    int idx = name.lastIndexOf('.');//TODO: add special method to get name without extension
     if (idx > 0) {
       name = name.substring(0, idx);
     }
@@ -85,8 +94,8 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchScript(ResourceEntry entry, String script, StructEntry ref)
   {
-    String name = getTargetEntry().getResourceName();
-    int idx = name.lastIndexOf('.');
+    String name = targetEntry.getResourceName();
+    int idx = name.lastIndexOf('.');//TODO: add special method to get name without extension
     if (idx > 0) {
       name = name.substring(0, idx);
     }
