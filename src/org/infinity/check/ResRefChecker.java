@@ -31,7 +31,7 @@ public final class ResRefChecker extends AbstractChecker
     super("ResRef Checker", "ResRefChecker", FILETYPES);
     hitFrame = new ReferenceHitFrame("Illegal ResourceRefs", NearInfinity.getInstance());
 
-    ResourceEntry spawnRef = ResourceFactory.getResourceEntry("SPAWNGRP.2DA");
+    final ResourceEntry spawnRef = ResourceFactory.getResourceEntry("SPAWNGRP.2DA");
     if (spawnRef != null) {
       PlainTextResource spawn = (PlainTextResource)ResourceFactory.getResource(spawnRef);
       extraValues = spawn.extract2DAHeaders();
@@ -66,38 +66,29 @@ public final class ResRefChecker extends AbstractChecker
   private void search(ResourceEntry entry, AbstractStruct struct)
   {
     for (StructEntry e : struct.getFlatList()) {
+      if (!(e instanceof ResourceRef)) { continue; }
+
+      final ResourceRef ref = (ResourceRef)e;
+      final String resourceName = ref.getResourceName();
+
+      //TODO: when getResourceName() will return null check on null instead of this
+      if (resourceName.equalsIgnoreCase("None")) { continue; }
+
+      // For spawn refs skip values from SPAWNGRP.2DA
       if (e instanceof SpawnResourceRef) {
-        final SpawnResourceRef ref = (SpawnResourceRef)e;
-        final String resourceName = ref.getResourceName();
-        if (resourceName.equalsIgnoreCase("None")) {//FIXME: find reason fo this check and remove it
-          // ignore
-        } else if (extraValues != null && extraValues.contains(ref.getText())) {
-          // ignore
-        } else if (!ResourceFactory.resourceExists(resourceName)) {
-          synchronized (hitFrame) {
-            hitFrame.addHit(entry, entry.getSearchString(), ref);
-          }
-        } else if (!ref.isLegalEntry(ResourceFactory.getResourceEntry(resourceName))) {
-          synchronized (hitFrame) {
-            hitFrame.addHit(entry, entry.getSearchString(), ref);
-          }
+        if (extraValues != null && extraValues.contains(ref.getText())) {
+          continue;
+        }
+      } else {
+        if (struct instanceof CreResource && resourceName.length() >= 3 && resourceName.substring(0, 3).equalsIgnoreCase("rnd")) {
+          continue;
         }
       }
-      else if (e instanceof ResourceRef) {
-        final ResourceRef ref = (ResourceRef)e;
-        final String resourceName = ref.getResourceName();
-        if (resourceName.equalsIgnoreCase("None")) {//FIXME: find reason fo this check and remove it
-          // ignore
-        } else if (struct instanceof CreResource && resourceName.substring(0, 3).equalsIgnoreCase("rnd")) {
-          // ignore
-        } else if (!ResourceFactory.resourceExists(resourceName)) {
-          synchronized (hitFrame) {
-            hitFrame.addHit(entry, entry.getSearchString(), ref);
-          }
-        } else if (!ref.isLegalEntry(ResourceFactory.getResourceEntry(resourceName))) {
-          synchronized (hitFrame) {
-            hitFrame.addHit(entry, entry.getSearchString(), ref);
-          }
+
+      final ResourceEntry resource = ResourceFactory.getResourceEntry(resourceName);
+      if (!ref.isLegalEntry(resource)) {
+        synchronized (hitFrame) {
+          hitFrame.addHit(entry, entry.getSearchString(), ref);
         }
       }
     }

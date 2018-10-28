@@ -6,5 +6,11 @@ package org.infinity.datatype;
 
 public interface IsReference
 {
-  String getResourceName();
+  /**
+   * Gets full resource name: name dot extension.
+   *
+   * @return String {@code "None"} or empty string, if object not contains
+   *         reference, reference to resource otherwise.
+   */
+  String getResourceName();//FIXME: Replace special value to null
 }
