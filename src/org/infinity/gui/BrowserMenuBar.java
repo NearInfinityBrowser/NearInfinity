@@ -2939,14 +2939,15 @@ public final class BrowserMenuBar extends JMenuBar
       final String originalVersion = "From Near Infinity 1.32.1 beta 24";
       final String originalCopyright = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
       final ObjectString originalLink = new ObjectString("Website", "http://www.idi.ntnu.no/~joh/ni/");
-      // List of contributors (ordered chronologically)
+      // List of contributors (sorted alphabetically)
       final String[] contributors = {
+          "Argent77",
           "devSin",
+          "Fredrik Lindgren (aka Wisp)",
           "FredSRichardson",
+          "Mingun",
           "Taimon",
           "Valerio Bigiani (aka The Bigg)",
-          "Fredrik Lindgren (aka Wisp)",
-          "Argent77",
       };
       // More contributors, in separate block
       final String[] contributorsMisc = {
@@ -3037,7 +3038,7 @@ public final class BrowserMenuBar extends JMenuBar
 
         // adding title
         int row = 0;
-        JLabel label = new JLabel("Additional Contributors (in chronological order):");
+        JLabel label = new JLabel("Additional Contributors (in alphabetical order):");
         label.setFont(smallFont.deriveFont(Misc.getScaledValue(12.0f)));
         gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 2, 0), 0, 0);
