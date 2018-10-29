@@ -331,7 +331,7 @@ public class SpellProtType extends Bitmap
               label = String.format("Match entries %d or %d", value, rel);
               break;
             case 0x104: // negate 0x103
-              label = String.format("Not match entries %d or %d", value, rel);
+              label = String.format("Not match entries %d and %d", value, rel);
               break;
             case 0x105: // source and target morale match
               switch (rel) {
