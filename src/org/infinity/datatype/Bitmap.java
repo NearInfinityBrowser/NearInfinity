@@ -95,7 +95,6 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
     panel.add(bUpdate);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
-    panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
     return panel;
   }
 

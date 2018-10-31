@@ -190,7 +190,6 @@ public class ResourceBitmap extends Datatype
     panel.add(bView);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
-    panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
     return panel;
   }
 

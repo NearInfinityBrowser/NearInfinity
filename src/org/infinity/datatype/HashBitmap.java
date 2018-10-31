@@ -148,7 +148,6 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
     panel.add(p);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
-    panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
     return panel;
   }
 

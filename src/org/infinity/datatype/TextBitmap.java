@@ -106,7 +106,6 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
     panel.add(bUpdate);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
-    panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
     return panel;
   }
 

@@ -165,7 +165,6 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     panel.add(bPanel, BorderLayout.SOUTH);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_BROAD));
-    panel.setPreferredSize(Misc.getScaledDimension(DIM_WIDE));
 
     return panel;
   }
