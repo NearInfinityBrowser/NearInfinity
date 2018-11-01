@@ -35,6 +35,7 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -61,6 +62,7 @@ import org.infinity.datatype.EffectType;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HexNumber;
 import org.infinity.datatype.InlineEditable;
+import org.infinity.datatype.IsTextual;
 import org.infinity.datatype.Readable;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
@@ -76,6 +78,7 @@ import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.HasViewerTabs;
+import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -116,6 +119,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public static final String CMD_TOINT          = "ToInt";
   public static final String CMD_TOHEXINT       = "ToHexInt";
   public static final String CMD_TOFLAGS        = "ToFlags";
+  public static final String CMD_TORESLIST      = "ToResList";
   public static final String CMD_RESET          = "ResetType";
   public static final String CMD_SHOWVIEWER     = "ShowView";
   public static final String CMD_SHOWNEWVIEWER  = "ShowNewView";
@@ -147,6 +151,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem miReset = createMenuItem(CMD_RESET, "Reset field type", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miShowViewer = createMenuItem(CMD_SHOWVIEWER, "Show in viewer", null, this);
   private final JMenuItem miShowNewViewer = createMenuItem(CMD_COPYVALUE, "Show in new viewer", null, this);
+  private final JMenu menuToResref = createResrefMenu(CMD_TORESLIST, "Edit as resref", Profile.getAvailableResourceTypes(),
+                                                      Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JPanel lowerpanel = new JPanel(cards);
   private final JPanel editpanel = new JPanel();
   private final ButtonPanel buttonPanel = new ButtonPanel();
@@ -173,6 +179,27 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     return m;
   }
 
+  private static JMenu createResrefMenu(String cmd, String text, String[] types, Icon icon, ActionListener l)
+  {
+    JMenu menu = new JMenu(text);
+    if (icon != null) {
+      menu.setIcon(icon);
+    }
+
+    if (types == null) {
+      types = Profile.getAvailableResourceTypes();
+    }
+    for (final String type: types) {
+      JMenuItem m = new JMenuItem(type);
+      m.setActionCommand(cmd);
+      if (l != null) {
+        m.addActionListener(l);
+      }
+      menu.add(m);
+    }
+
+    return menu;
+  }
 
   public StructViewer(AbstractStruct struct)
   {
@@ -228,6 +255,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     popupmenu.add(miToInt);
     popupmenu.add(miToHexInt);
     popupmenu.add(miToFlags);
+    popupmenu.add(menuToResref);
     popupmenu.add(miToString);
     popupmenu.add(miReset);
     if (struct instanceof DlgResource) {
@@ -247,6 +275,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     miToInt.setEnabled(false);
     miToHexInt.setEnabled(false);
     miToFlags.setEnabled(false);
+    menuToResref.setEnabled(false);
     miToString.setEnabled(false);
     miReset.setEnabled(false);
     miShowViewer.setEnabled(false);
@@ -522,6 +551,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       convertAttribute(min, miToHexInt);
     } else if (CMD_TOFLAGS.equals(cmd)) {
       convertAttribute(min, miToFlags);
+    } else if (CMD_TORESLIST.equals(cmd)) {
+      convertAttribute(min, (JMenuItem)event.getSource());
     } else if (CMD_TOSTRING.equals(cmd)) {
       convertAttribute(min, miToString);
     } else if (CMD_RESET.equals(cmd)) {
@@ -640,6 +671,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miToInt.setEnabled(false);
       miToHexInt.setEnabled(false);
       miToFlags.setEnabled(false);
+      menuToResref.setEnabled(false);
       miToString.setEnabled(false);
       miReset.setEnabled(false);
       miShowViewer.setEnabled(false);
@@ -715,6 +747,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                              selected instanceof SectionCount ||
                              selected instanceof SectionOffset ||
                              selected instanceof AbstractCode));
+      menuToResref.setEnabled(isDataType && isReadable &&
+                              selected instanceof IsTextual &&
+                              ((Datatype)selected).getSize() == 8);
       miToString.setEnabled(isDataType && isReadable &&
                             (selected instanceof Unknown ||
                              selected instanceof ResourceRef ||
@@ -1150,6 +1185,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         newentry = new HexNumber(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miToFlags) {
         newentry = new Flag(bb, 0, entry.getSize(), entry.getName(), null);
+      } else if (CMD_TORESLIST.equals(menuitem.getActionCommand())) {
+        newentry = new ResourceRef(bb, 0, entry.getName(), menuitem.getText());
       } else if (menuitem == miToString) {
         newentry = new TextString(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miReset) {
