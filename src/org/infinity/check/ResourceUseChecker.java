@@ -298,7 +298,7 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
         checkScript((BcsResource)resource);
       } else if (resource instanceof PlainTextResource) {
         checkTextfile((PlainTextResource)resource);
-      } else if (resource != null) {
+      } else if (resource instanceof AbstractStruct) {
         checkStruct((AbstractStruct)resource);
       }
       advanceProgress();

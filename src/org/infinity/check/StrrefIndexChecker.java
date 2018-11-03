@@ -190,9 +190,9 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
               final Resource resource = ResourceFactory.getResource(resourceEntry);
               new ViewFrame(resultFrame, resource);
               final StrrefEntry item = (StrrefEntry)table.getTableItemAt(row);
-              if (item.isText) {
+              if (item.isText && resource instanceof TextResource) {
                 ((TextResource)resource).highlightText(item.line, Integer.toString(item.strref));
-              } else {
+              } else if (resource instanceof AbstractStruct) {
                 ((AbstractStruct)resource).getViewer().selectEntry(item.offset);
               }
             }

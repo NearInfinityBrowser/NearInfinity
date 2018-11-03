@@ -59,16 +59,17 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
   @Override
   protected void search(ResourceEntry entry, Resource resource)
   {
-    if (resource instanceof BcsResource)
+    if (resource instanceof BcsResource) {
       searchScript(entry, (BcsResource)resource);
-    else if (resource instanceof DlgResource)
+    } else if (resource instanceof DlgResource) {
       searchDialog(entry, (AbstractStruct)resource);
-    else if (resource instanceof SavResource)
+    } else if (resource instanceof SavResource) {
       searchSave(entry, (SavResource)resource);
-    else if (resource instanceof PlainTextResource)
+    } else if (resource instanceof PlainTextResource) {
       searchText(entry, (PlainTextResource)resource);
-    else
+    } else if (resource instanceof AbstractStruct) {
       searchStruct(entry, (AbstractStruct)resource);
+    }
   }
 
   private void searchDialog(ResourceEntry entry, AbstractStruct dialog)

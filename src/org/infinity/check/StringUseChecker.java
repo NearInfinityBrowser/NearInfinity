@@ -175,7 +175,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
         checkScript((BcsResource)resource);
       } else if (resource instanceof PlainTextResource) {
         checkTextfile((PlainTextResource)resource);
-      } else if (resource != null) {
+      } else if (resource instanceof AbstractStruct) {
         checkStruct((AbstractStruct)resource);
       }
       advanceProgress();
