@@ -243,12 +243,11 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
         final AbstractCode code = (AbstractCode)entry;
         try {
           final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
-          final Compiler compiler = new Compiler(code.toString(), type);
+          final Compiler compiler = new Compiler(code.getText(), type);
 
-          final Decompiler decompiler = new Decompiler(compiler.getCode(), true);
+          final Decompiler decompiler = new Decompiler(compiler.getCode(), type, true);
           decompiler.setGenerateComments(false);
           decompiler.setGenerateResourcesUsed(true);
-          decompiler.setScriptType(type);
           decompiler.decompile();
           for (final Integer stringRef : decompiler.getStringRefsUsed()) {
             final int strref = stringRef.intValue();

@@ -264,7 +264,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
   private void checkScript(BcsResource script)
   {
     try {
-      checkCode(script.getCode(), null);
+      checkCode(script.getCode(), ScriptType.BCS);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -305,19 +305,16 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
    */
   private void checkCode(String compiledCode, ScriptType type) throws Exception
   {
-    final Decompiler decompiler = new Decompiler(compiledCode, true);
+    final Decompiler decompiler = new Decompiler(compiledCode, type, true);
     decompiler.setGenerateComments(false);
     decompiler.setGenerateResourcesUsed(true);
-    if (type != null) {
-      decompiler.setScriptType(type);
-    }
     decompiler.decompile();
 
-    for (final Integer stringRef : decompiler.getStringRefsUsed()) {
-      final int u = stringRef.intValue();
-      if (u >= 0 && u < strUsed.length) {
-        synchronized (strUsed) {
-          strUsed[u] = true;
+    synchronized (strUsed) {
+      for (final Integer stringRef : decompiler.getStringRefsUsed()) {
+        final int index = stringRef.intValue();
+        if (index >= 0 && index < strUsed.length) {
+          strUsed[index] = true;
         }
       }
     }

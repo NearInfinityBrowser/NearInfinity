@@ -267,7 +267,7 @@ public final class ScriptChecker extends AbstractSearcher implements Runnable, A
         decompiler.setGenerateComments(false);
         decompiler.setGenerateResourcesUsed(false);
 
-        final Compiler compiler = new Compiler(decompiler.getSource());
+        final Compiler compiler = new Compiler(decompiler.decompile());
         compiler.compile();
         for (final ScriptMessage sm : compiler.getErrors()) {
           synchronized (errorTable) {

@@ -188,14 +188,14 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
             s = searchEntry.toString();
           } else if (searchEntry instanceof AbstractCode) {
             try {
+              final AbstractCode code = (AbstractCode)searchEntry;
               final ScriptType type = searchEntry instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
-              final Compiler compiler = new Compiler(searchEntry.toString(), type);
-              final String code = compiler.getCode();
+              final Compiler compiler = new Compiler(code.getText(), type);
+
               if (compiler.getErrors().isEmpty()) {
-                final Decompiler decompiler = new Decompiler(code, false);
+                final Decompiler decompiler = new Decompiler(compiler.getCode(), type, false);
                 decompiler.setGenerateComments(false);
                 decompiler.setGenerateResourcesUsed(false);
-                decompiler.setScriptType(type);
                 s = decompiler.getSource();
               } else {
                 synchronized (System.err) {

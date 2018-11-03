@@ -642,18 +642,11 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       bPlay.setEnabled(false);
       bGoto.setEnabled(true);
       structEntry = trigger;
-      Compiler compiler = new Compiler(trigger.toString(),
-                                         (trigger instanceof Action) ? ScriptType.ACTION :
-                                                                       ScriptType.TRIGGER);
-      String code = compiler.getCode();
+      final ScriptType type = trigger instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
+      final Compiler compiler = new Compiler(trigger.getText(), type);
       try {
-        if (compiler.getErrors().size() == 0) {
-          Decompiler decompiler = new Decompiler(code, true);
-          if (trigger instanceof Action) {
-            decompiler.setScriptType(ScriptType.ACTION);
-          } else {
-            decompiler.setScriptType(ScriptType.TRIGGER);
-          }
+        if (compiler.getErrors().isEmpty()) {
+          final Decompiler decompiler = new Decompiler(compiler.getCode(), type, true);
           textArea.setText(decompiler.getSource());
         } else {
           textArea.setText(trigger.toString());
@@ -699,4 +692,3 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     }
   }
 }
-

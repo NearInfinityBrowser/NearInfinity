@@ -81,13 +81,11 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
         final AbstractCode sourceCode = (AbstractCode)o;
         try {
           final ScriptType type = sourceCode instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
-          final Compiler compiler = new Compiler(sourceCode.toString(), type);
-          final String code = compiler.getCode();
+          final Compiler compiler = new Compiler(sourceCode.getText(), type);
           if (compiler.getErrors().isEmpty()) {
-            final Decompiler decompiler = new Decompiler(code, true);
+            final Decompiler decompiler = new Decompiler(compiler.getCode(), type, true);
             decompiler.setGenerateComments(false);
             decompiler.setGenerateResourcesUsed(true);
-            decompiler.setScriptType(type);
             decompiler.decompile();
             for (final Integer stringRef : decompiler.getStringRefsUsed()) {
               if (stringRef.intValue() == searchvalue) {

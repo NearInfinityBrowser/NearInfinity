@@ -73,38 +73,35 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchDialog(ResourceEntry entry, AbstractStruct dialog)
   {
-    boolean hit = false;
+    final String targetName = targetEntry.getResourceName();
     for (int i = 0; i < dialog.getFieldCount(); i++) {
       StructEntry o = dialog.getField(i);
       if (o instanceof ResourceRef &&
-          ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString())) {
+          ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetName)) {
         addHit(entry, entry.getSearchString(), o);
       }
       else if (o instanceof AbstractCode) {
-        AbstractCode sourceCode = (AbstractCode)o;
+        final AbstractCode sourceCode = (AbstractCode)o;
         try {
-          Compiler compiler = new Compiler(sourceCode.toString(),
-                                             (sourceCode instanceof Action) ? ScriptType.ACTION :
-                                                                              ScriptType.TRIGGER);
-          String code = compiler.getCode();
-          if (compiler.getErrors().size() == 0) {
-            Decompiler decompiler = new Decompiler(code, true);
+          final ScriptType type = sourceCode instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
+          final Compiler compiler = new Compiler(sourceCode.getText(), type);
+          final String code = compiler.getCode();
+          if (compiler.getErrors().isEmpty()) {
+            final Decompiler decompiler = new Decompiler(code, type, true);
             decompiler.setGenerateComments(false);
             decompiler.setGenerateResourcesUsed(true);
-            if (o instanceof Action) {
-              decompiler.setScriptType(ScriptType.ACTION);
-            } else {
-              decompiler.setScriptType(ScriptType.TRIGGER);
-            }
             decompiler.decompile();
+
+            boolean hit = false;
             for (final ResourceEntry resourceUsed : decompiler.getResourcesUsed()) {
-              if (targetEntry.toString().equalsIgnoreCase(resourceUsed.toString())) {
+              final String resName = resourceUsed.getResourceName();
+              if (targetName.equalsIgnoreCase(resName)) {
                 hit = true;
                 addHit(entry, entry.getSearchString(), sourceCode);
               } else if (targetEntry == resourceUsed) {
                 // searching for symbolic spell names
                 String s = org.infinity.resource.spl.Viewer.getSymbolicName(targetEntry, false);
-                if (s != null && s.equalsIgnoreCase(resourceUsed.toString())) {
+                if (s != null && s.equalsIgnoreCase(resName)) {
                   addHit(entry, s, sourceCode);
                 }
               }
@@ -299,4 +296,3 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
     }
   }
 }
-

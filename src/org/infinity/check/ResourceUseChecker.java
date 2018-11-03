@@ -313,7 +313,11 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
       }
       else if (entry instanceof AbstractCode) {
         try {
-          checkCode((AbstractCode)entry);
+          final AbstractCode code = (AbstractCode)entry;
+          final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
+          final Compiler compiler = new Compiler(code.getText(), type);
+
+          checkCode(compiler.getCode(), type);
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -331,16 +335,8 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
 
   private void checkScript(BcsResource script)
   {
-    final Decompiler decompiler = new Decompiler(script.getCode(), true);
-    decompiler.setGenerateComments(false);
-    decompiler.setGenerateResourcesUsed(true);
     try {
-      decompiler.decompile();
-      for (final ResourceEntry entry : decompiler.getResourcesUsed()) {
-        synchronized (unusedResources) {
-          unusedResources.remove(entry);
-        }
-      }
+      checkCode(script.getCode(), ScriptType.BCS);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -371,24 +367,20 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
    * <p>
    * This method can be called from several threads
    *
-   * @param code Code to action or trigger in dialog. Never {@code null}
+   * @param compiledCode Compiled code from BCS, dialog action or trigger.
+   *        Must not be {@code null}
    *
-   * @throws Exception If {@code script} contains invalid code
+   * @throws Exception If {@code compiledCode} contains invalid code
    */
-  private void checkCode(AbstractCode code) throws Exception
+  private void checkCode(String compiledCode, ScriptType type) throws Exception
   {
-    final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
-    final Compiler compiler = new Compiler(code.toString(), type);
-    final String compiled = compiler.getCode();
-    final Decompiler decompiler = new Decompiler(compiled, ScriptType.BCS, true);
-
+    final Decompiler decompiler = new Decompiler(compiledCode, type, true);
     decompiler.setGenerateComments(false);
     decompiler.setGenerateResourcesUsed(true);
-    decompiler.setScriptType(type);
     decompiler.decompile();
 
-    for (final ResourceEntry entry : decompiler.getResourcesUsed()) {
-      synchronized (unusedResources) {
+    synchronized (unusedResources) {
+      for (final ResourceEntry entry : decompiler.getResourcesUsed()) {
         unusedResources.remove(entry);
       }
     }
@@ -440,7 +432,7 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
   {
     synchronized (unusedResources) {
       for (final Iterator<ResourceEntry> it = unusedResources.iterator(); it.hasNext();) {
-        if (it.next().toString().equalsIgnoreCase(name)) {
+        if (it.next().getResourceName().equalsIgnoreCase(name)) {
           it.remove();
           break;
         }
