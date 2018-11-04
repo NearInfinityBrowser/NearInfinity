@@ -48,24 +48,20 @@ final class DlgTreeModel implements TreeModel
   @Override
   public Object getChild(Object parent, int index)
   {
-    DefaultMutableTreeNode node = null;
     if (parent instanceof DefaultMutableTreeNode) {
-      DefaultMutableTreeNode nodeParent = (DefaultMutableTreeNode)parent;
-      nodeParent = updateNodeChildren(nodeParent);
+      final DefaultMutableTreeNode nodeParent = updateNodeChildren((DefaultMutableTreeNode)parent);
       if (index >= 0 && index < nodeParent.getChildCount()) {
-        node = (DefaultMutableTreeNode)nodeParent.getChildAt(index);
+        return updateNodeChildren((DefaultMutableTreeNode)nodeParent.getChildAt(index));
       }
     }
-    return updateNodeChildren(node);
+    return null;
   }
 
   @Override
   public int getChildCount(Object parent)
   {
-    if (parent instanceof DefaultMutableTreeNode) {
-      DefaultMutableTreeNode nodeParent = (DefaultMutableTreeNode)parent;
-      nodeParent = updateNodeChildren(nodeParent);
-      return nodeParent.getChildCount();
+    if (parent instanceof TreeNode) {
+      return ((TreeNode)parent).getChildCount();
     }
     return 0;
   }
@@ -73,8 +69,8 @@ final class DlgTreeModel implements TreeModel
   @Override
   public boolean isLeaf(Object node)
   {
-    if (node instanceof DefaultMutableTreeNode) {
-      return ((DefaultMutableTreeNode)node).isLeaf();
+    if (node instanceof TreeNode) {
+      return ((TreeNode)node).isLeaf();
     }
     return false;
   }
@@ -88,8 +84,8 @@ final class DlgTreeModel implements TreeModel
   @Override
   public int getIndexOfChild(Object parent, Object child)
   {
-    if (parent instanceof DefaultMutableTreeNode && child instanceof DefaultMutableTreeNode) {
-      DefaultMutableTreeNode nodeParent = (DefaultMutableTreeNode)parent;
+    if (parent instanceof TreeNode && child instanceof TreeNode) {
+      final TreeNode nodeParent = (TreeNode)parent;
       for (int i = 0; i < nodeParent.getChildCount(); i++) {
         TreeNode nodeChild = nodeParent.getChildAt(i);
         if (nodeChild == child) {
