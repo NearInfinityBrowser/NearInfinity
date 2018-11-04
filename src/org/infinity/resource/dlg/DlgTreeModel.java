@@ -17,7 +17,6 @@ import javax.swing.tree.TreePath;
 
 import org.infinity.datatype.ResourceRef;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.StructEntry;
 
 /** Creates and manages the dialog tree structure. */
 final class DlgTreeModel implements TreeModel
@@ -326,10 +325,7 @@ final class DlgTreeModel implements TreeModel
       final int start = state.getState().getFirstTrans();
       final int count = state.getState().getTransCount();
       for (int i = start; i < start + count; ++i) {
-        final StructEntry entry = dlg.getAttribute(Transition.DLG_TRANS + " " + i);
-        if (entry instanceof Transition) {
-          initTransition(new TransitionItem(state, (Transition)entry));
-        }
+        initTransition(new TransitionItem(state, dlg.getTransition(i)));
       }
     }
   }
@@ -355,11 +351,7 @@ final class DlgTreeModel implements TreeModel
         final DlgResource nextDlg = getDialogResource(nextDlgName);
         final int stateIdx = t.getNextDialogState();
         if (nextDlg != null && stateIdx >= 0) {
-          final StructEntry entry = nextDlg.getAttribute(State.DLG_STATE + " " + stateIdx);
-          if (entry instanceof State) {
-            //FIXME: add main item
-            initState(new StateItem(nextDlg, trans, null, (State)entry));
-          }
+          initState(new StateItem(nextDlg, trans, null, nextDlg.getState(stateIdx)));
         }
       }
     }

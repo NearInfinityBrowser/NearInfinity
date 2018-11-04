@@ -379,6 +379,28 @@ public final class DlgResource extends AbstractStruct
     return offset + textSize;
   }
 
+  /**
+   * Returns state with specified number from this dialog.
+   *
+   * @param stateIdx State number
+   * @return State with specified number or {@code null}, if such transition not exist
+   */
+  public State getState(int stateIdx)
+  {
+    return (State)getAttribute(State.DLG_STATE + " " + stateIdx);
+  }
+
+  /**
+   * Returns transition with specified number from this dialog.
+   *
+   * @param transIdx Transition number
+   * @return Transition with specified number or {@code null}, if such transition not exist
+   */
+  public Transition getTransition(int transIdx)
+  {
+    return (Transition)getAttribute(Transition.DLG_TRANS + " " + transIdx);
+  }
+
   // sorry for this (visibility)
   public void showStateWithStructEntry(StructEntry entry) {
     if (detailViewer == null) {
@@ -549,12 +571,7 @@ public final class DlgResource extends AbstractStruct
       ArrayList<DlgState> statesList = new ArrayList<>();
       int numStates = ((IsNumeric)getAttribute(DLG_NUM_STATES)).getValue();
       for (int idx = 0; idx < numStates; idx++) {
-        entry = getAttribute(State.DLG_STATE + " " + idx);
-        if (entry instanceof State) {
-          statesList.add(new DlgState((State)entry));
-        } else {
-          break;
-        }
+        statesList.add(new DlgState(getState(idx)));
       }
 
       // scanning for state origins and weight information
@@ -665,10 +682,7 @@ public final class DlgResource extends AbstractStruct
       int numResponses = ((IsNumeric)state.getAttribute(State.DLG_STATE_NUM_RESPONSES)).getValue();
       if (numResponses > 0) {
         for (int idx = 0; idx < numResponses; idx++) {
-          StructEntry e = getAttribute(Transition.DLG_TRANS + " " + (responseIndex + idx));
-          if (e instanceof Transition) {
-            responses.add(new DlgResponse((Transition)e));
-          }
+          responses.add(new DlgResponse(getTransition(responseIndex + idx)));
         }
       }
     }
