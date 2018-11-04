@@ -199,6 +199,11 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionDlgShowIcons.isSelected();
   }
 
+  public boolean alwaysShowState0()
+  {
+    return optionsMenu.optionDlgAlwaysShowState0.isSelected();
+  }
+
   public boolean getHexColorMapEnabled()
   {
     return optionsMenu.optionShowHexColored.isSelected();
@@ -1612,6 +1617,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_MORECOMPILERWARNINGS     = "MoreCompilerWarnings";
     private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
     private static final String OPTION_DLG_SHOWICONS            = "DlgShowIcons";
+    private static final String OPTION_DLG_ALWAYS_SHOW_STATE_0  = "DlgAlwaysShowState0";
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
     private static final String OPTION_KEEPVIEWONCOPY           = "UpdateTreeOnCopy";
     private static final String OPTION_SHOWTREESEARCHNAMES      = "ShowTreeSearchNames";
@@ -1682,9 +1688,11 @@ public final class BrowserMenuBar extends JMenuBar
 
     private JCheckBoxMenuItem optionAutocheckBCS, optionMoreCompileWarnings;
 
+    private JCheckBoxMenuItem optionDlgShowIcons, optionDlgAlwaysShowState0;
+
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride,
                               optionIgnoreReadErrors, optionCacheOverride, optionShowStrrefs,
-                              optionDlgShowIcons, optionShowHexColored, optionShowUnknownResources,
+                              optionShowHexColored, optionShowUnknownResources,
                               optionKeepViewOnCopy, optionTreeSearchNames;
 //                              optionMonitorFileChanges;
     private final JMenu mCharsetMenu, mLanguageMenu;
@@ -1744,9 +1752,6 @@ public final class BrowserMenuBar extends JMenuBar
       optionShowStrrefs =
           new JCheckBoxMenuItem("Show Strrefs in View tabs", getPrefs().getBoolean(OPTION_SHOWSTRREFS, false));
       add(optionShowStrrefs);
-      optionDlgShowIcons =
-          new JCheckBoxMenuItem("Show icons in DLG tree viewer", getPrefs().getBoolean(OPTION_DLG_SHOWICONS, true));
-      add(optionDlgShowIcons);
       optionShowHexColored =
           new JCheckBoxMenuItem("Show colored blocks in Raw tabs", getPrefs().getBoolean(OPTION_SHOWHEXCOLORED, true));
       add(optionShowHexColored);
@@ -1936,6 +1941,18 @@ public final class BrowserMenuBar extends JMenuBar
       optionTextLineNumbers = new JCheckBoxMenuItem("Show Line Numbers",
                                                     getPrefs().getBoolean(OPTION_TEXT_SHOWLINENUMBERS, true));
       textMenu.add(optionTextLineNumbers);
+
+      // Options->Dialog Viewer
+      final JMenu dialogMenu = new JMenu("Dialog Viewer");
+      add(dialogMenu);
+      optionDlgShowIcons =
+          new JCheckBoxMenuItem("Show icons in DLG tree viewer", getPrefs().getBoolean(OPTION_DLG_SHOWICONS, true));
+      dialogMenu.add(optionDlgShowIcons);
+      optionDlgAlwaysShowState0 =
+          new JCheckBoxMenuItem("Always show State 0 in DLG tree viewer", getPrefs().getBoolean(OPTION_DLG_ALWAYS_SHOW_STATE_0, false));
+      dialogMenu.add(optionDlgAlwaysShowState0);
+
+      addSeparator();
 
       // Options->Show ResourceRefs As
       JMenu showresrefmenu = new JMenu("Show ResourceRefs As");
@@ -2362,6 +2379,7 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_MORECOMPILERWARNINGS, optionMoreCompileWarnings.isSelected());
       getPrefs().putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
       getPrefs().putBoolean(OPTION_DLG_SHOWICONS, optionDlgShowIcons.isSelected());
+      getPrefs().putBoolean(OPTION_DLG_ALWAYS_SHOW_STATE_0, optionDlgAlwaysShowState0.isSelected());
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
       getPrefs().putBoolean(OPTION_KEEPVIEWONCOPY, optionKeepViewOnCopy.isSelected());
       getPrefs().putBoolean(OPTION_SHOWTREESEARCHNAMES, optionTreeSearchNames.isSelected());
