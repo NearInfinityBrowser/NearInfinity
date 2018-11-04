@@ -12,17 +12,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -42,7 +36,6 @@ import org.infinity.gui.ViewFrame;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -102,37 +95,8 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
-      fc.setDialogTitle("Save result");
-      fc.setSelectedFile(new File(fc.getCurrentDirectory(), "result.txt"));
-      if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
-        Path output = fc.getSelectedFile().toPath();
-        if (Files.exists(output)) {
-          String[] options = {"Overwrite", "Cancel"};
-          if (JOptionPane.showOptionDialog(resultFrame, output + " exists. Overwrite?",
-                                           "Save result", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
-            return;
-          }
-        }
-        try (BufferedWriter bw = Files.newBufferedWriter(output)) {
-          bw.write("Result of triggers & actions check"); bw.newLine();
-          if (table == errorTable) {
-            bw.write("Number of errors: " + table.getRowCount()); bw.newLine();
-          } else {
-            bw.write("Number of warnings: " + table.getRowCount()); bw.newLine();
-          }
-          for (int i = 0; i < table.getRowCount(); i++) {
-            bw.write(table.getTableItemAt(i).toString()); bw.newLine();
-          }
-          JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output,
-                                        "Save complete", JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException ioe) {
-          JOptionPane.showMessageDialog(resultFrame, "Error while savig " + output,
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-          ioe.printStackTrace();
-        }
-      }
+      final String type = table == errorTable ? "Errors" : "Warnings";
+      table.saveCheckResult(resultFrame, type + " in triggers & actions of dialogs");
     }
   }
 
@@ -299,12 +263,12 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
    * @param entry Pointer to dialog resource for check. Never {@code null}
    * @param code Code of action or trigger in dialog. Never {@code null}
    *
-   * @throws Exception If {@code script} contains invalid code
+   * @throws Exception If {@code code} contains invalid code
    */
   private void checkCode(ResourceEntry entry, AbstractCode code) {
     final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
     final Compiler compiler = new Compiler(code.toString(), type);
-    compiler.getCode();
+    compiler.compile();
     for (final ScriptMessage sm : compiler.getErrors()) {
       synchronized (errorTable) {
         errorTable.addTableItem(new ActionErrorsTableLine(entry, code, sm.getLine(), sm.getMessage(),
@@ -329,16 +293,16 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
     }
 
     private final ResourceEntry resourceEntry;
-    private final StructEntry structEntry;
+    private final AbstractCode codeEntry;
     private final Integer lineNr;
     private final String error;
     private final Type type;
 
-    private ActionErrorsTableLine(ResourceEntry resourceEntry, StructEntry structEntry, Integer lineNr,
+    private ActionErrorsTableLine(ResourceEntry resourceEntry, AbstractCode codeEntry, Integer lineNr,
                                   String error, Type type)
     {
       this.resourceEntry = resourceEntry;
-      this.structEntry = structEntry;
+      this.codeEntry = codeEntry;
       this.lineNr = lineNr;
       this.error = error;
       this.type = type;
@@ -350,7 +314,7 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
       if (columnIndex == 0)
         return resourceEntry;
       else if (columnIndex == 1)
-        return structEntry.getName();
+        return codeEntry.getName();
       else if (columnIndex == 2)
         return error;
       return lineNr;
@@ -359,9 +323,9 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
     @Override
     public String toString()
     {
-      String type = (this.type == Type.ERROR) ? "Error" : "Warning";
-      return String.format("File: %s  Type: %s  %s: %s  Line: %d",
-                           resourceEntry.toString(), structEntry.getName(), type, error, lineNr);
+      final String type = (this.type == Type.ERROR) ? "Error" : "Warning";
+      return String.format("File: %s, Line: %d, Owner: %s, %s: %s",
+                           resourceEntry.getResourceName(), lineNr, codeEntry.getName(), type, error);
     }
   }
 }

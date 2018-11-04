@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -11,15 +11,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -35,7 +29,6 @@ import org.infinity.gui.SortableTable;
 import org.infinity.gui.TableItem;
 import org.infinity.gui.ViewFrame;
 import org.infinity.icon.Icons;
-import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
@@ -146,32 +139,7 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
-      chooser.setDialogTitle("Save search result");
-      chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "result.txt"));
-      if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-        Path output = chooser.getSelectedFile().toPath();
-        if (Files.exists(output)) {
-          String options[] = {"Overwrite", "Cancel"};
-          if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?",
-                                           "Save result", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
-            return;
-        }
-        try (BufferedWriter bw = Files.newBufferedWriter(output)) {
-          bw.write("Searched for: " + query); bw.newLine();
-          bw.write("Number of hits: " + table.getRowCount()); bw.newLine();
-          for (int i = 0; i < table.getRowCount(); i++) {
-            bw.write(table.getTableItemAt(i).toString()); bw.newLine();
-          }
-          JOptionPane.showMessageDialog(this, "Result saved to " + output, "Save complete",
-                                        JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException e) {
-          JOptionPane.showMessageDialog(this, "Error while saving " + output,
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-          e.printStackTrace();
-        }
-      }
+      table.saveSearchResult(this, query);
     }
   }
 
@@ -216,7 +184,7 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
     private TextHit(ResourceEntry entry, String name, int linenr)
     {
       this.entry = entry;
-      line = name;
+      this.line = name;
       this.linenr = linenr;
     }
 
@@ -233,8 +201,8 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
     @Override
     public String toString()
     {
-      return String.format("File: %s  Text: %s  Line: %d",
-                           entry.toString(), line, linenr);
+      return String.format("File: %s, Line: %d, Text: %s",
+                           entry.getResourceName(), linenr, line);
     }
   }
 }

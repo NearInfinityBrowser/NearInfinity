@@ -9,11 +9,6 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,7 +16,6 @@ import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -44,7 +38,6 @@ import org.infinity.gui.TableItem;
 import org.infinity.gui.ViewFrame;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -112,32 +105,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
-      chooser.setDialogTitle("Save result");
-      chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "result.txt"));
-      if (chooser.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
-        Path output = chooser.getSelectedFile().toPath();
-        if (Files.exists(output)) {
-          String[] options = {"Overwrite", "Cancel"};
-          if (JOptionPane.showOptionDialog(resultFrame, output + " exists. Overwrite?",
-                                           "Save result", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
-            return;
-        }
-        try (BufferedWriter bw = Files.newBufferedWriter(output)) {
-          bw.write("File corruption search"); bw.newLine();
-          bw.write("Number of errors: " + table.getRowCount()); bw.newLine();
-          for (int i = 0; i < table.getRowCount(); i++) {
-            bw.write(table.getTableItemAt(i).toString()); bw.newLine();
-          }
-          JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output, "Save complete",
-                                        JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException e) {
-          JOptionPane.showMessageDialog(resultFrame, "Error while saving " + output,
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-          e.printStackTrace();
-        }
-      }
+      table.saveCheckResult(resultFrame, "Corrupted files");
     } else {
       super.actionPerformed(event);
     }
@@ -457,9 +425,9 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
     @Override
     public String toString()
     {
-      return "File: " + resourceEntry
-           + "  Offset: " + offset
-           + "  Error message: " + errorMsg;
+      return "File: " + resourceEntry.getResourceName()
+           + ", Offset: " + offset
+           + ", Error: " + errorMsg;
     }
   }
 
