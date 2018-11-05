@@ -4,7 +4,10 @@
 
 package org.infinity.resource.dlg;
 
+import java.util.Enumeration;
 import javax.swing.Icon;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import org.infinity.datatype.StringRef;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.util.StringTable;
@@ -12,13 +15,13 @@ import static org.infinity.util.StringTable.Format.NONE;
 import static org.infinity.util.StringTable.Format.STRREF_PREFIX;
 
 /** Common base class for node type specific classes. */
-abstract class ItemBase
+abstract class ItemBase implements TreeNode
 {
   /** Maximum string length to display. */
   private static final int MAX_LENGTH = 200;
 
   /** Dialog from which this item. Dialogs can use several dialog resources in one conversation. */
-  private final DlgResource dlg;
+  protected final DlgResource dlg;
   private final boolean showStrrefs;
   private final boolean showIcons;
 
@@ -45,8 +48,33 @@ abstract class ItemBase
     }
   }
 
+  /**
+   * Gets path that represents this node in the tree.
+   *
+   * @return Path from root to this node
+   */
+  public TreePath getPath()
+  {
+    final ItemBase parent = getParent();
+    if (parent == null) {
+      return new TreePath(this);
+    }
+    return parent.getPath().pathByAddingChild(this);
+  }
+
   /** Returns the icon associated with the item type. */
   public abstract Icon getIcon();
+
+  //<editor-fold defaultstate="collapsed" desc="TreeNode">
+  @Override
+  public abstract ItemBase getChildAt(int childIndex);
+
+  @Override
+  public abstract ItemBase getParent();
+
+  @Override
+  public abstract Enumeration<? extends ItemBase> children();
+  //</editor-fold>
 
   /** Returns whether to display icons in front of the nodes. */
   protected boolean showIcons() { return showIcons; }
@@ -64,4 +92,20 @@ abstract class ItemBase
     }
     return text;
   }
+}
+
+/** Auxiliary class, being the parent for states, for a type safety. */
+abstract class StateOwnerItem extends ItemBase
+{
+  public StateOwnerItem(DlgResource dlg) {
+    super(dlg);
+  }
+
+  //<editor-fold defaultstate="collapsed" desc="TreeNode">
+  @Override
+  public abstract StateItem getChildAt(int childIndex);
+
+  @Override
+  public abstract Enumeration<? extends StateItem> children();
+  //</editor-fold>
 }

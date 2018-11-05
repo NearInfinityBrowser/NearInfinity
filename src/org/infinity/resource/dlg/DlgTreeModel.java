@@ -150,8 +150,8 @@ final class DlgTreeModel implements TreeModel
     root = new RootItem(dlg);
     nodeRoot = new DefaultMutableTreeNode(root, true);
 
-    for (int i = 0; i < root.getInitialStateCount(); i++) {
-      initState(root.getInitialState(i));
+    for (StateItem state : root) {
+      initState(state);
     }
 
     // notifying listeners
@@ -328,7 +328,7 @@ final class DlgTreeModel implements TreeModel
       for (int i = start; i < start + count; ++i) {
         final StructEntry entry = dlg.getAttribute(Transition.DLG_TRANS + " " + i);
         if (entry instanceof Transition) {
-          initTransition(new TransitionItem(dlg, (Transition)entry));
+          initTransition(new TransitionItem(state, (Transition)entry));
         }
       }
     }
@@ -357,7 +357,8 @@ final class DlgTreeModel implements TreeModel
         if (nextDlg != null && stateIdx >= 0) {
           final StructEntry entry = nextDlg.getAttribute(State.DLG_STATE + " " + stateIdx);
           if (entry instanceof State) {
-            initState(new StateItem(nextDlg, (State)entry));
+            //FIXME: add main item
+            initState(new StateItem(nextDlg, trans, null, (State)entry));
           }
         }
       }

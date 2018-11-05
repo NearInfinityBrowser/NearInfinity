@@ -5,9 +5,13 @@
 package org.infinity.resource.dlg;
 
 import java.util.ArrayList;
+import static java.util.Collections.enumeration;
+import java.util.Enumeration;
+import java.util.Iterator;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.tree.TreeNode;
 
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.SectionCount;
@@ -16,7 +20,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.StructEntry;
 
 /** Meta class for identifying root node. */
-final class RootItem extends ItemBase
+final class RootItem extends StateOwnerItem implements Iterable<StateItem>
 {
   private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16);
 
@@ -54,7 +58,7 @@ final class RootItem extends ItemBase
         final State s = (State)e;
         // First state always under root, if setting is checked
         if (alwaysShow && count == 0 || s.getTriggerIndex() >= 0) {
-          states.add(new StateItem(dlg, s));
+          states.add(new StateItem(dlg, this, null, s));
         }
         if (++count >= numStates) {
           // All states readed, so break cycle
@@ -84,6 +88,34 @@ final class RootItem extends ItemBase
   {
     return icon;
   }
+
+  //<editor-fold defaultstate="collapsed" desc="TreeNode">
+  @Override
+  public StateItem getChildAt(int childIndex) { return states.get(childIndex); }
+
+  @Override
+  public int getChildCount() { return states.size(); }
+
+  @Override
+  public ItemBase getParent() { return null; }
+
+  @Override
+  public int getIndex(TreeNode node) { return states.indexOf(node); }
+
+  @Override
+  public boolean getAllowsChildren() { return true; }
+
+  @Override
+  public boolean isLeaf() { return states.isEmpty(); }
+
+  @Override
+  public Enumeration<? extends StateItem> children() { return enumeration(states); }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="Iterable">
+  @Override
+  public Iterator<StateItem> iterator() { return states.iterator(); }
+  //</editor-fold>
 
   /**
    * Extracts specified {@link SectionCount} attribute from dialog.
