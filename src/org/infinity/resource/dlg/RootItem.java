@@ -58,7 +58,7 @@ final class RootItem extends StateOwnerItem implements Iterable<StateItem>
         final State s = (State)e;
         // First state always under root, if setting is checked
         if (alwaysShow && count == 0 || s.getTriggerIndex() >= 0) {
-          states.add(new StateItem(dlg, this, null, s));
+          states.add(new StateItem(s, this, null));
         }
         if (++count >= numStates) {
           // All states readed, so break cycle

@@ -30,9 +30,9 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
 
   private State state;
 
-  public StateItem(DlgResource dlg, StateOwnerItem parent, StateItem main, State state)
+  public StateItem(State state, StateOwnerItem parent, StateItem main)
   {
-    super(dlg);
+    super((DlgResource)state.getParent());
     this.parent = parent;
     this.main = main;
     this.icon = showIcons() ? ICON : null;
@@ -48,6 +48,12 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
   {
     this.state = state;
     this.trans = new ArrayList<>(state.getTransCount());
+
+    final int start = state.getFirstTrans();
+    final int count = state.getTransCount();
+    for (int i = start; i < start + count; ++i) {
+      trans.add(new TransitionItem(this, dlg.getTransition(i)));
+    }
   }
 
   @Override

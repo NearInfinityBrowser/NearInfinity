@@ -351,7 +351,7 @@ final class DlgTreeModel implements TreeModel
         final DlgResource nextDlg = getDialogResource(nextDlgName);
         final int stateIdx = t.getNextDialogState();
         if (nextDlg != null && stateIdx >= 0) {
-          initState(new StateItem(nextDlg, trans, null, nextDlg.getState(stateIdx)));
+          initState(new StateItem(nextDlg.getState(stateIdx), trans, null));
         }
       }
     }
