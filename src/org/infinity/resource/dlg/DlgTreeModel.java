@@ -6,9 +6,7 @@ package org.infinity.resource.dlg;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Locale;
-import java.util.Stack;
 
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
@@ -151,16 +149,14 @@ final class DlgTreeModel implements TreeModel
     mapState.clear();
     mapTransition.clear();
 
-    root = null;
-    nodeRoot = null;
-
     this.dlg = dlg;
 
     root = new RootItem(dlg);
+    nodeRoot = new DefaultMutableTreeNode(root, true);
+
     for (int i = 0; i < root.getInitialStateCount(); i++) {
       initState(root.getInitialState(i));
     }
-    nodeRoot = new DefaultMutableTreeNode(root, true);
 
     // notifying listeners
     nodeStructureChanged((DefaultMutableTreeNode)getRoot());
@@ -169,17 +165,12 @@ final class DlgTreeModel implements TreeModel
   public void updateState(State state)
   {
     if (state != null) {
-      int stateIdx = state.getNumber();
-      HashMap<Integer, StateItem> map = getStateTable(dlg.getResourceEntry().getResourceName());
+      final HashMap<Integer, StateItem> map = getStateTable(dlg.getResourceEntry().getResourceName());
       if (map != null) {
-        Iterator<Integer> iter = map.keySet().iterator();
-        while (iter.hasNext()) {
-          StateItem item = map.get(iter.next());
-          if (item != null && item.getState().getNumber() == stateIdx) {
-            item.setState(state);
-            triggerNodeChanged((DefaultMutableTreeNode)getRoot(), item);
-            break;
-          }
+        final StateItem item = map.get(state.getNumber());
+        if (item != null) {
+          item.setState(state);
+          triggerNodeChanged((DefaultMutableTreeNode)getRoot(), item);
         }
       }
     }
@@ -188,17 +179,12 @@ final class DlgTreeModel implements TreeModel
   public void updateTransition(Transition trans)
   {
     if (trans != null) {
-      int transIdx = trans.getNumber();
-      HashMap<Integer, TransitionItem> map = getTransitionTable(dlg.getResourceEntry().getResourceName());
+      final HashMap<Integer, TransitionItem> map = getTransitionTable(dlg.getResourceEntry().getResourceName());
       if (map != null) {
-        Iterator<Integer> iter = map.keySet().iterator();
-        while (iter.hasNext()) {
-          TransitionItem item = map.get(iter.next());
-          if (item != null && item.getTransition().getNumber() == transIdx) {
-            item.setTransition(trans);
-            triggerNodeChanged((DefaultMutableTreeNode)getRoot(), item);
-            break;
-          }
+        final TransitionItem item = map.get(trans.getNumber());
+        if (item != null) {
+          item.setTransition(trans);
+          triggerNodeChanged((DefaultMutableTreeNode)getRoot(), item);
         }
       }
     }
@@ -227,20 +213,18 @@ final class DlgTreeModel implements TreeModel
   /** Generates an array of TreeNode objects from root to specified node. */
   private Object[] createNodePath(TreeNode node)
   {
-    Object[] retVal;
-    if (node != null) {
-      Stack<TreeNode> stack = new Stack<TreeNode>();
-      while (node != null) {
-        stack.push(node);
-        node = node.getParent();
-      }
-      retVal = new Object[stack.size()];
-      for (int i = 0; i < retVal.length; i++) {
-        retVal[i] = stack.pop();
-      }
-      return retVal;
-    } else {
-      retVal = new Object[0];
+    final TreeNode leaf = node;
+    int count = 0;
+    while (node != null) {
+      ++count;
+      node = node.getParent();
+    }
+
+    final Object[] retVal = new Object[count];
+    node = leaf;
+    while (node != null) {
+      retVal[--count] = node;
+      node = node.getParent();
     }
     return retVal;
   }
