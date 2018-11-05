@@ -6,6 +6,7 @@ package org.infinity.resource.dlg;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 
 import javax.swing.event.TreeModelEvent;
@@ -26,15 +27,25 @@ final class DlgTreeModel implements TreeModel
   /** Maps used dialog names to dialog resources. */
   private final HashMap<String, DlgResource> linkedDialogs = new HashMap<>();
 
-  private RootItem root;
+  /** Maps state to tree items that represents it. Used for update tree when state changed. */
+  private final HashMap<State, List<StateItem>> allStates = new HashMap<>();
+  /** Maps transition to tree item that represents it. Used for update tree when transition changed. */
+  private final HashMap<Transition, TransitionItem> allTransitions = new HashMap<>();
+
+  private final RootItem root;
 
   public DlgTreeModel(DlgResource dlg)
   {
-    reset(dlg);
+    linkedDialogs.put(key(dlg.getName()), dlg);
+
+    root = new RootItem(dlg);
+    for (StateItem state : root) {
+      putState(state);
+      mainStates.put(state.getState(), state);
+    }
   }
 
-//--------------------- Begin Interface TreeModel ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="TreeModel">
   @Override
   public RootItem getRoot() { return root; }
 
@@ -102,63 +113,30 @@ final class DlgTreeModel implements TreeModel
   public void removeTreeModelListener(TreeModelListener l)
   {
     if (l != null) {
-      int idx = listeners.indexOf(l);
-      if (idx >= 0) {
-        listeners.remove(idx);
-      }
+      listeners.remove(l);
     }
   }
+  //</editor-fold>
 
-//--------------------- End Interface TreeModel ---------------------
-
-  public void nodeChanged(TreeNode node)
-  {
-    if (node != null) {
-      if (node.getParent() == null) {
-        fireTreeNodesChanged(this, null, null, null);
-      } else {
-        fireTreeNodesChanged(this, createNodePath(node.getParent()),
-                             new int[]{getChildNodeIndex(node)}, new Object[]{node});
-      }
-    }
-  }
-
-  public void nodeStructureChanged(TreeNode node)
-  {
-    if (node.getParent() == null) {//Root
-      fireTreeStructureChanged(this, null, null, null);
-    } else {
-      fireTreeStructureChanged(this, createNodePath(node.getParent()),
-                               new int[getChildNodeIndex(node)], new Object[]{node});
-    }
-  }
-
-  /** Removes any old content and re-initializes the model with the data from the given dialog resource. */
-  public void reset(DlgResource dlg)
-  {
-    mainStates.clear();
-    linkedDialogs.clear();
-    linkedDialogs.put(key(dlg.getName()), dlg);
-
-    root = new RootItem(dlg);
-    for (StateItem state : root) {
-      mainStates.put(state.getState(), state);
-    }
-
-    // notifying listeners
-    nodeStructureChanged(root);
-  }
-
+  //<editor-fold defaultstate="collapsed" desc="Events">
   /** Updates tree when specified state entry changed. */
   public void updateState(State state)
   {
-    //TODO: fire nodeChanged for linked StateItem
+    final List<StateItem> states = allStates.get(state);
+    if (states != null) {
+      for (StateItem item : states) {
+        nodeChanged(item);
+      }
+    }
   }
 
   /** Updates tree when specified transition entry changed. */
   public void updateTransition(Transition trans)
   {
-    //TODO: fire nodeChanged for linked TransitionItem
+    final TransitionItem item = allTransitions.get(trans);
+    if (item != null) {
+      nodeChanged(item);
+    }
   }
 
   public void updateRoot()
@@ -166,74 +144,38 @@ final class DlgTreeModel implements TreeModel
     nodeChanged(root);
   }
 
-  /** Generates an array of TreeNode objects from root to specified node. */
-  private Object[] createNodePath(TreeNode node)
+  private void putState(StateItem state)
   {
-    final TreeNode leaf = node;
-    int count = 0;
-    while (node != null) {
-      ++count;
-      node = node.getParent();
+    allStates.computeIfAbsent(state.getState(), s -> new ArrayList<>()).add(state);
+    for (TransitionItem trans : state) {
+      allTransitions.put(trans.getTransition(), trans);
     }
-
-    final Object[] retVal = new Object[count];
-    node = leaf;
-    while (node != null) {
-      retVal[--count] = node;
-      node = node.getParent();
-    }
-    return retVal;
   }
 
-  /** Determines the child index based on the specified node's parent. */
-  private int getChildNodeIndex(TreeNode node)
+  //<editor-fold defaultstate="collapsed" desc="Event emitting">
+  private void nodeChanged(ItemBase node)
   {
-    int retVal = 0;
-    if (node != null && node.getParent() != null) {
-      TreeNode parent = node.getParent();
-      for (int i = 0; i < parent.getChildCount(); i++) {
-        if (parent.getChildAt(i) == node) {
-          retVal = i;
-          break;
-        }
-      }
+    final TreeNode parent = node.getParent();
+    final Object[] children = {node};
+    if (parent == null) {
+      fireTreeNodesChanged(null, null, children);
+    } else {
+      fireTreeNodesChanged(node.getPath(), new int[]{parent.getIndex(node)}, children);
     }
-    return retVal;
   }
 
-  private void fireTreeNodesChanged(Object source, Object[] path, int[] childIndices,
-                                    Object[] children)
+  private void fireTreeNodesChanged(TreePath path, int[] childIndices, Object[] children)
   {
     if (!listeners.isEmpty()) {
-      TreeModelEvent event;
-      if (path == null || path.length == 0) {
-        event = new TreeModelEvent(source, (TreePath)null);
-      } else {
-        event = new TreeModelEvent(source, path, childIndices, children);
-      }
+      final TreeModelEvent event = new TreeModelEvent(this, path, childIndices, children);
       for (int i = listeners.size()-1; i >= 0; i--) {
         TreeModelListener tml = listeners.get(i);
         tml.treeNodesChanged(event);
       }
     }
   }
-
-  private void fireTreeStructureChanged(Object source, Object[] path, int[] childIndices,
-                                        Object[] children)
-  {
-    if (!listeners.isEmpty()) {
-      TreeModelEvent event;
-      if (path == null || path.length == 0) {
-        event = new TreeModelEvent(source, (TreePath)null);
-      } else {
-        event = new TreeModelEvent(source, path, childIndices, children);
-      }
-      for (int i = listeners.size()-1; i >= 0; i--) {
-        TreeModelListener tml = listeners.get(i);
-        tml.treeStructureChanged(event);
-      }
-    }
-  }
+  //</editor-fold>
+  //</editor-fold>
 
   /**
    * Returns a dialog resource object based on the specified resource name.
@@ -269,6 +211,7 @@ final class DlgTreeModel implements TreeModel
         final StateItem main = mainStates.get(state);
 
         trans.nextState = new StateItem(state, trans, main);
+        putState(trans.nextState);
         if (main == null) {
           mainStates.put(state, trans.nextState);
         }
