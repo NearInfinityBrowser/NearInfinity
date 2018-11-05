@@ -214,6 +214,11 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.dialogViewerMenu.colorizeOtherDialogs.isSelected();
   }
 
+  public boolean breakCyclesInDialogs()
+  {
+    return optionsMenu.dialogViewerMenu.breakCyclesInDialogs.isSelected();
+  }
+
   public boolean getHexColorMapEnabled()
   {
     return optionsMenu.optionShowHexColored.isSelected();
@@ -2842,6 +2847,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_SHOWICONS              = "DlgShowIcons";
     private static final String OPTION_ALWAYS_SHOW_STATE_0    = "DlgAlwaysShowState0";
     private static final String OPTION_COLORIZE_OTHER_DIALOGS = "DlgColorizeOtherDialogs";
+    private static final String OPTION_BREAK_CYCLES           = "DlgBreakCycles";
 
     /**
      * If checked, the tree will show icons on which it is possible to distinguish
@@ -2860,6 +2866,11 @@ public final class BrowserMenuBar extends JMenuBar
      * be drawn in other colors. By default this option is on.
      */
     final JCheckBoxMenuItem colorizeOtherDialogs;
+    /**
+     * If checked, the tree will not allow to open nodes which already met earlier
+     * in other place of a tree. By default this option is on.
+     */
+    final JCheckBoxMenuItem breakCyclesInDialogs;
 
     public DialogViewerMenu(Preferences prefs)
     {
@@ -2873,6 +2884,9 @@ public final class BrowserMenuBar extends JMenuBar
       colorizeOtherDialogs = new JCheckBoxMenuItem("Show colored entries from other dialogs",
                                         prefs.getBoolean(OPTION_COLORIZE_OTHER_DIALOGS, true));
       add(colorizeOtherDialogs);
+      breakCyclesInDialogs = new JCheckBoxMenuItem("Break cycles (NWN like tree)",
+                                        prefs.getBoolean(OPTION_BREAK_CYCLES, true));
+      add(breakCyclesInDialogs);
     }
 
     void storePreferences(Preferences prefs)
@@ -2880,6 +2894,7 @@ public final class BrowserMenuBar extends JMenuBar
       prefs.putBoolean(OPTION_SHOWICONS, showIcons.isSelected());
       prefs.putBoolean(OPTION_ALWAYS_SHOW_STATE_0, alwaysShowState0.isSelected());
       prefs.putBoolean(OPTION_COLORIZE_OTHER_DIALOGS, colorizeOtherDialogs.isSelected());
+      prefs.putBoolean(OPTION_BREAK_CYCLES, breakCyclesInDialogs.isSelected());
     }
   }
 

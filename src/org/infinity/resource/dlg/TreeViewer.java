@@ -45,7 +45,6 @@ import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreeModel;
@@ -128,8 +127,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     if (e.getSource() == miEditEntry) {
       final TreePath path = dlgTree.getSelectionPath();
       if (path != null) {
-        final DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-        final ItemBase item = (ItemBase)node.getUserObject();
+        final ItemBase item = (ItemBase)path.getLastPathComponent();
         final DlgResource curDlg = item.getDialog();
         if (curDlg != dlg) {
           ViewFrame vf = mapViewer.get(curDlg);
@@ -203,8 +201,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   public void valueChanged(TreeSelectionEvent e)
   {
     if (e.getSource() == dlgTree) {
-      final Object node = dlgTree.getLastSelectedPathComponent();
-      final Object data = ((DefaultMutableTreeNode)node).getUserObject();
+      final Object data = dlgTree.getLastSelectedPathComponent();
       if (data instanceof StateItem) {
         // dialog state found
         updateStateInfo((StateItem)data);
@@ -435,20 +432,21 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
                                                     boolean focused)
       {
         Component c = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, focused);
-        if (value instanceof DefaultMutableTreeNode) {
-          final DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-          final ItemBase data = (ItemBase)node.getUserObject();
+        final ItemBase data = (ItemBase)value;
 
-          setIcon(data.getIcon());
+        setIcon(data.getIcon());
 
-          final BrowserMenuBar options = BrowserMenuBar.getInstance();
-          setBackgroundNonSelectionColor(options.colorizeOtherDialogs() ? getColor(data.getDialog()) : null);
+        final BrowserMenuBar options = BrowserMenuBar.getInstance();
+        setBackgroundNonSelectionColor(options.colorizeOtherDialogs() ? getColor(data.getDialog()) : null);
 
-          if (data instanceof StateItem) {
-            final State s = ((StateItem) data).getState();
-            if (s.getNumber() == 0 && s.getTriggerIndex() < 0 && options.alwaysShowState0()) {
-              setForeground(Color.GRAY);
-            }
+        if (value instanceof StateItem) {
+          final StateItem state = (StateItem)value;
+          final State s = state.getState();
+          if (s.getNumber() == 0 && s.getTriggerIndex() < 0 && options.alwaysShowState0()) {
+            setForeground(Color.GRAY);
+          } else
+          if (state.getMain() != null) {
+            setForeground(Color.GRAY);
           }
         }
         return c;
@@ -492,6 +490,25 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     dlgTree.addMouseListener(new MouseAdapter()
     {
       @Override
+      public void mouseClicked(MouseEvent e)
+      {
+        if (e.getSource() == dlgTree && e.getClickCount() == 2) {
+          final TreePath path = dlgTree.getPathForLocation(e.getX(), e.getY());
+          if (path == null) { return; }
+
+          final Object node = path.getLastPathComponent();
+          if (!(node instanceof StateItem)) { return; }
+
+          final StateItem state = (StateItem)node;
+          if (!state.getAllowsChildren()) {
+            final TreePath target = state.getMain().getPath();
+            dlgTree.setSelectionPath(target);
+            dlgTree.scrollPathToVisible(target);
+          }
+        }
+      }
+
+      @Override
       public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
 
       @Override
@@ -522,14 +539,11 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   /** Checks whether given path contains a node with the specified item object. */
   private boolean nodeExists(TreePath path, Object item)
   {
-    if (path != null && item != null) {
-      final Object[] nodes = path.getPath();
-      for (int i = 1; i < nodes.length; i++) {
-        final Object curItem = ((DefaultMutableTreeNode)nodes[i]).getUserObject();
-        if (item.equals(curItem)) {
-          return true;
-        }
+    while (path != null) {
+      if (item.equals(path.getLastPathComponent())) {
+        return true;
       }
+      path = path.getParentPath();
     }
     return false;
   }
@@ -540,9 +554,8 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     final TreePath curPath = path;
     if (worker != null && worker.userCancelled()) return;
     if (path != null) {
-      TreeNode node = (TreeNode)path.getLastPathComponent();
+      final TreeNode item = (TreeNode)path.getLastPathComponent();
 
-      final Object item = ((DefaultMutableTreeNode)node).getUserObject();
       if (item instanceof StateItem) {
         if (nodeExists(path.getParentPath(), item)) {
           return;
@@ -552,10 +565,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       if (worker != null) { worker.advanceProgress(); }
       if (!dlgTree.isExpanded(path)) {
         try {
-          SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() { dlgTree.expandPath(curPath); }
-          });
+          SwingUtilities.invokeAndWait(() -> dlgTree.expandPath(curPath));
         } catch (InterruptedException e) {
           e.printStackTrace();
         } catch (InvocationTargetException e) {
@@ -563,8 +573,8 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         }
       }
 
-      for (int i = 0, count = node.getChildCount(); i < count; i++) {
-        expandNode(curPath.pathByAddingChild(node.getChildAt(i)));
+      for (int i = 0, count = item.getChildCount(); i < count; i++) {
+        expandNode(curPath.pathByAddingChild(item.getChildAt(i)));
         if (worker != null && worker.userCancelled()) return;
       }
     }
@@ -586,10 +596,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       if (worker != null) { worker.advanceProgress(); }
       if (!dlgTree.isCollapsed(path)) {
         try {
-          SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() { dlgTree.collapsePath(curPath); }
-          });
+          SwingUtilities.invokeAndWait(() -> dlgTree.collapsePath(curPath));
         } catch (InterruptedException e) {
           e.printStackTrace();
         } catch (InvocationTargetException e) {

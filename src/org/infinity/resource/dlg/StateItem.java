@@ -11,6 +11,7 @@ import java.util.Iterator;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.tree.TreeNode;
+import org.infinity.gui.BrowserMenuBar;
 
 import org.infinity.icon.Icons;
 
@@ -56,6 +57,8 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
     }
   }
 
+  public StateItem getMain() { return main; }
+
   @Override
   public Icon getIcon()
   {
@@ -64,22 +67,31 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
 
   //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
-  public TransitionItem getChildAt(int childIndex) { return trans.get(childIndex); }
+  public TransitionItem getChildAt(int childIndex)
+  {
+    return getAllowsChildren() ? trans.get(childIndex) : null;
+  }
 
   @Override
-  public int getChildCount() { return trans.size(); }
+  public int getChildCount() { return getAllowsChildren() ? trans.size() : 0; }
 
   @Override
   public ItemBase getParent() { return parent; }
 
   @Override
-  public int getIndex(TreeNode node) { return trans.indexOf(node); }
+  public int getIndex(TreeNode node)
+  {
+    return getAllowsChildren() ? trans.indexOf(node) : -1;
+  }
 
   @Override
-  public boolean getAllowsChildren() { return true; }
+  public boolean getAllowsChildren()
+  {
+    return main == null || !BrowserMenuBar.getInstance().breakCyclesInDialogs();
+  }
 
   @Override
-  public boolean isLeaf() { return trans.isEmpty(); }
+  public boolean isLeaf() { return getAllowsChildren() ? trans.isEmpty() : true; }
 
   @Override
   public Enumeration<? extends TransitionItem> children() { return enumeration(trans); }

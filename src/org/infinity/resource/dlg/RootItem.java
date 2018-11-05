@@ -68,21 +68,6 @@ final class RootItem extends StateOwnerItem implements Iterable<StateItem>
     }
   }
 
-  /** Returns number of available initial states. */
-  public int getInitialStateCount()
-  {
-    return states.size();
-  }
-
-  /** Returns the StateItem at the given index or null on error. */
-  public StateItem getInitialState(int index)
-  {
-    if (index >= 0 && index < states.size()) {
-      return states.get(index);
-    }
-    return null;
-  }
-
   @Override
   public Icon getIcon()
   {
