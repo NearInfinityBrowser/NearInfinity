@@ -87,6 +87,7 @@ import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.dlg.State;
 import org.infinity.resource.dlg.Transition;
+import org.infinity.resource.dlg.TreeItemEntry;
 import org.infinity.search.AttributeSearcher;
 import org.infinity.search.DialogItemRefSearcher;
 import org.infinity.search.DialogStateReferenceSearcher;
@@ -121,6 +122,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public static final String CMD_TOFLAGS        = "ToFlags";
   public static final String CMD_TORESLIST      = "ToResList";
   public static final String CMD_RESET          = "ResetType";
+  public static final String CMD_SHOW_IN_TREE   = "ShowInTree";
   public static final String CMD_SHOWVIEWER     = "ShowView";
   public static final String CMD_SHOWNEWVIEWER  = "ShowNewView";
   public static final String UPDATE_VALUE       = "UpdateValue";
@@ -149,7 +151,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem miToHexInt = createMenuItem(CMD_TOHEXINT, "Edit as hex number", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miToFlags = createMenuItem(CMD_TOFLAGS, "Edit as bit field", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miReset = createMenuItem(CMD_RESET, "Reset field type", Icons.getIcon(Icons.ICON_REFRESH_16), this);
-  private final JMenuItem miShowViewer = createMenuItem(CMD_SHOWVIEWER, "Show in viewer", null, this);
+  private final JMenuItem miShowInTree = createMenuItem(CMD_SHOW_IN_TREE, "Show in tree", Icons.getIcon(Icons.ICON_SELECT_IN_TREE_16), this);
+  private final JMenuItem miShowViewer = createMenuItem(CMD_SHOWVIEWER, "Show in viewer", Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16), this);
   private final JMenuItem miShowNewViewer = createMenuItem(CMD_COPYVALUE, "Show in new viewer", null, this);
   private final JMenu menuToResref = createResrefMenu(CMD_TORESLIST, "Edit as resref", Profile.getAvailableResourceTypes(),
                                                       Icons.getIcon(Icons.ICON_REFRESH_16), this);
@@ -259,6 +262,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     popupmenu.add(miToString);
     popupmenu.add(miReset);
     if (struct instanceof DlgResource) {
+      popupmenu.add(miShowInTree);
       popupmenu.add(miShowViewer);
       popupmenu.add(miShowNewViewer);
     }
@@ -278,6 +282,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     menuToResref.setEnabled(false);
     miToString.setEnabled(false);
     miReset.setEnabled(false);
+    miShowInTree.setEnabled(false);
     miShowViewer.setEnabled(false);
     miShowNewViewer.setEnabled(false);
 
@@ -557,18 +562,19 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       convertAttribute(min, miToString);
     } else if (CMD_RESET.equals(cmd)) {
       convertAttribute(min, miReset);
+    } else if (CMD_SHOW_IN_TREE.equals(cmd)) {
+      // this should only be available for DlgResources
+      final DlgResource dlgRes = (DlgResource) struct;
+      dlgRes.selectInTree((TreeItemEntry)table.getValueAt(min, 1));
     } else if (CMD_SHOWVIEWER.equals(cmd)) {
       // this should only be available for DlgResources
-      DlgResource dlgRes = (DlgResource) struct;
-      dlgRes.showStateWithStructEntry((StructEntry)table.getValueAt(min, 1));
-      JComponent detailViewer = dlgRes.getViewerTab(0);
-      JTabbedPane parent = (JTabbedPane) detailViewer.getParent();
-      parent.getModel().setSelectedIndex(parent.indexOfComponent(detailViewer));
+      final DlgResource dlgRes = (DlgResource) struct;
+      dlgRes.selectInEdit((StructEntry)table.getValueAt(min, 1));
     } else if (CMD_SHOWNEWVIEWER.equals(cmd)) {
       // get a copy of the resource first
       DlgResource dlgRes = (DlgResource) ResourceFactory.getResource(struct.getResourceEntry());
       createViewFrame(getTopLevelAncestor(), dlgRes);
-      dlgRes.showStateWithStructEntry((StructEntry)table.getValueAt(min, 1));
+      dlgRes.selectInEdit((StructEntry)table.getValueAt(min, 1));
     }
   }
 
@@ -674,6 +680,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       menuToResref.setEnabled(false);
       miToString.setEnabled(false);
       miReset.setEnabled(false);
+      miShowInTree.setEnabled(false);
       miShowViewer.setEnabled(false);
       if (miShowNewViewer != null) {
         miShowNewViewer.setEnabled(false);
@@ -759,13 +766,15 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                          isCachedStructEntry(((Datatype)selected).getOffset()) &&
                          getCachedStructEntry(((Datatype)selected).getOffset()) instanceof Readable &&
                          !(selected instanceof AbstractCode));
-      boolean isSpecialDlgStruct = (selected instanceof State
-                                 || selected instanceof Transition
-                                 || selected instanceof AbstractCode);
+      final boolean isSpecialDlgTreeItem = (selected instanceof State
+                                         || selected instanceof Transition);
+      final boolean isSpecialDlgStruct = isSpecialDlgTreeItem
+                                      || selected instanceof AbstractCode;
 
       if (miFindRefToItem != null) {
         miFindRefToItem.setEnabled(isSpecialDlgStruct);
       }
+      miShowInTree.setEnabled(isSpecialDlgTreeItem);
       miShowViewer.setEnabled(isSpecialDlgStruct);
       miShowNewViewer.setEnabled(isSpecialDlgStruct);
 

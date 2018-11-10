@@ -105,7 +105,7 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
   @Override
   public String toString()
   {
-    final String text = getText(state.getResponse());
+    final String text = getText(state.getAssociatedText());
     return String.format("%s: %s", state.getName(), text);
   }
 }

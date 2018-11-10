@@ -4,6 +4,7 @@
 
 package org.infinity.resource.dlg;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -176,6 +177,103 @@ final class DlgTreeModel implements TreeModel
   }
   //</editor-fold>
   //</editor-fold>
+
+  /**
+   * Translates child struct of the dialog that this tree represents, to GUI item.
+   * For {@link State states} returns main state.
+   *
+   * @param entry Child struct of the dialog for search
+   * @return GUI item or {@code null} if such item not have GUI element
+   */
+  public ItemBase map(TreeItemEntry entry)
+  {
+    if (entry instanceof State) {
+      final StateItem item = mainStates.get(entry);
+      if (item == null) {
+        return slowFindState((State)entry);
+      }
+      return item;
+    }
+    final TransitionItem item = allTransitions.get(entry);
+    if (item == null) {
+      return slowFindTransition((Transition)entry);
+    }
+    return item;
+  }
+
+  private boolean checkState(ArrayDeque<TransitionItem> queue, StateItem state, State entry)
+  {
+    if (state.getState() == entry) {
+      return true;
+    }
+    for (TransitionItem trans : state) {
+      queue.add(trans);
+    }
+    return false;
+  }
+
+  /**
+   * Finds GUI item that corresponds specified state. Creates non-existent
+   * tree items when necessary.
+   *
+   * @param entry Child struct of the dialog for search
+   * @return Tree item that represents state or {@code null} if such state
+   *         did not exist in the dialog
+   */
+  private StateItem slowFindState(State entry)
+  {
+    final ArrayDeque<TransitionItem> queue = new ArrayDeque<>();
+    for (StateItem state : root) {
+      if (checkState(queue, state, entry)) {
+        return state;
+      }
+    }
+
+    TransitionItem trans;
+    while (true) {
+      trans = queue.poll();
+      if (trans == null) break;
+
+      initTransition(trans);
+      if (trans.nextState != null && checkState(queue, trans.nextState, entry)) {
+        return trans.nextState;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Finds GUI item that corresponds specified transition. Creates non-existent
+   * tree items when necessary.
+   *
+   * @param entry Child struct of the dialog for search
+   * @return Tree item that represents transition or {@code null} if such transition
+   *         did not exist in the dialog
+   */
+  private TransitionItem slowFindTransition(Transition entry)
+  {
+    final ArrayDeque<StateItem> queue = new ArrayDeque<>();
+    for (StateItem state : root) {
+      queue.add(state);
+    }
+
+    StateItem state;
+    while (true) {
+      state = queue.poll();
+      if (state == null) break;
+
+      for (TransitionItem trans : state) {
+        if (trans.getTransition() == entry) {
+          return trans;
+        }
+        initTransition(trans);
+        if (trans.nextState != null) {
+          queue.add(trans.nextState);
+        }
+      }
+    }
+    return null;
+  }
 
   /**
    * Returns a dialog resource object based on the specified resource name.

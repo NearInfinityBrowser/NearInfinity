@@ -149,11 +149,11 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
           } else if (item instanceof StateItem) {
             final State s = ((StateItem)item).getState();
             viewer.selectEntry(s.getName());
-            tab.showStateWithStructEntry(s);
+            tab.select(s);
           } else if (item instanceof TransitionItem) {
             final Transition t = ((TransitionItem)item).getTransition();
             viewer.selectEntry(t.getName());
-            tab.showStateWithStructEntry(t);
+            tab.select(t);
           }
           curDlg.selectEditTab();
         }
@@ -259,6 +259,21 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
 //--------------------- End Interface PropertyChangeListener ---------------------
 
+  /**
+   * Selects specified dialog state or transition in the tree. If such entry not
+   * exist in the dialog, do nothing. For {@link State states} selects main state.
+   *
+   * @param entry Child struct of the dialog for search
+   */
+  public void select(TreeItemEntry entry)
+  {
+    final ItemBase item = dlgModel.map(entry);
+    if (item != null) {
+      final TreePath path = item.getPath();
+      dlgTree.addSelectionPath(path);
+      dlgTree.scrollPathToVisible(path);
+    }
+  }
 
   private void updateStateInfo(StateItem si)
   {
@@ -276,12 +291,13 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     }
     dlgInfo.updateControlBorder(ItemInfo.Type.STATE, sb.toString());
 
+    final int strRef = state.getAssociatedText().getValue();
     // updating state text
     dlgInfo.showControl(ItemInfo.Type.STATE_TEXT, true);
-    dlgInfo.updateControlText(ItemInfo.Type.STATE_TEXT, StringTable.getStringRef(state.getResponse().getValue()));
+    dlgInfo.updateControlText(ItemInfo.Type.STATE_TEXT, StringTable.getStringRef(strRef));
 
     // updating state WAV Res
-    final String responseText = StringTable.getSoundResource(state.getResponse().getValue());
+    final String responseText = StringTable.getSoundResource(strRef);
     if (!responseText.isEmpty()) {
       dlgInfo.showControl(ItemInfo.Type.STATE_WAV, true);
       dlgInfo.updateControlText(ItemInfo.Type.STATE_WAV, responseText + ".WAV");

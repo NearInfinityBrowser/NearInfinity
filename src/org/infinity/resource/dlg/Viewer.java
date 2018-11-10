@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -38,6 +38,7 @@ import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.ScriptTextArea;
+import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewFrame;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
@@ -306,7 +307,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 // --------------------- End Interface TableModelListener ---------------------
 
   // for quickly jump to the corresponding state while only having a StructEntry
-  public void showStateWithStructEntry(StructEntry entry)
+  public void select(StructEntry entry)
   {
     int stateNrToShow = 0;
     int transNrToShow = 0;
@@ -379,7 +380,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       int strref = ((StringRef) entry).getValue();
       boolean found = false;
       for (State state : stateList) {
-        if (state.getResponse().getValue() == strref) {
+        if (state.getAssociatedText().getValue() == strref) {
           stateNrToShow = state.getNumber();
           transNrToShow = state.getFirstTrans();
           found = true;
@@ -521,8 +522,12 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
   private final class DlgPanel extends JPanel implements ActionListener
   {
+    /** Button used to view {@link #struct} in the new {@link StructViewer} instance.  */
     private final JButton bView = new JButton(Icons.getIcon(Icons.ICON_ZOOM_16));
+    /** Button used to open {@link #structEntry} in the table viewer. */
     private final JButton bGoto = new JButton(Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16));
+    /** Button used to open {@link #structEntry} in the tree viewer. */
+    private final JButton bTree = new JButton(Icons.getIcon(Icons.ICON_SELECT_IN_TREE_16));
     private final JButton bPlay = new JButton(Icons.getIcon(Icons.ICON_VOLUME_16));
     private final ScriptTextArea textArea = new ScriptTextArea();
     private final JLabel label = new JLabel();
@@ -538,15 +543,13 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     private DlgPanel(String title, boolean viewable, boolean useHighlighting)
     {
       this.title = title;
-      bView.setMargin(new Insets(0, 0, 0, 0));
-      bView.addActionListener(this);
-      bGoto.setMargin(bView.getMargin());
-      bGoto.addActionListener(this);
-      bPlay.setMargin(bView.getMargin());
-      bPlay.addActionListener(this);
-      bView.setToolTipText("View/Edit");
-      bGoto.setToolTipText("Select attribute");
-      bPlay.setToolTipText("Open associated sound");
+      final Insets insets = new Insets(0, 0, 0, 0);
+      initButton(bGoto, insets, "Select attribute");
+      initButton(bTree, insets, "Select in tree");
+      initButton(bView, insets, "View/Edit");
+      initButton(bPlay, insets, "Open associated sound");
+      bTree.setVisible(false);
+
       if (!useHighlighting) {
         textArea.applyExtendedSettings(null, null);
       }
@@ -563,34 +566,36 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         scroll.setLineNumbersEnabled(false);
       }
 
-      GridBagLayout gbl = new GridBagLayout();
+      setLayout(new GridBagLayout());
       GridBagConstraints gbc = new GridBagConstraints();
-      setLayout(gbl);
 
       gbc.insets = new Insets(0, 3, 0, 0);
       gbc.fill = GridBagConstraints.NONE;
       gbc.weightx = 0.0;
       gbc.weighty = 0.0;
       gbc.anchor = GridBagConstraints.WEST;
-      gbl.setConstraints(bGoto, gbc);
-      add(bGoto);
+      add(bGoto, gbc);
+      add(bTree, gbc);
       if (viewable) {
-        gbl.setConstraints(bView, gbc);
-        add(bView);
-        gbl.setConstraints(bPlay, gbc);
-        add(bPlay);
+        add(bView, gbc);
+        add(bPlay, gbc);
       }
 
       gbc.gridwidth = GridBagConstraints.REMAINDER;
       gbc.insets.right = 3;
-      gbl.setConstraints(label, gbc);
-      add(label);
+      add(label, gbc);
 
       gbc.fill = GridBagConstraints.BOTH;
       gbc.weightx = 1.0;
       gbc.weighty = 1.0;
-      gbl.setConstraints(scroll, gbc);
-      add(scroll);
+      add(scroll, gbc);
+    }
+
+    private void initButton(JButton button, Insets insets, String tooltip)
+    {
+      button.setMargin(insets);
+      button.setToolTipText(tooltip);
+      button.addActionListener(this);
     }
 
     private void display(State state, int number)
@@ -598,9 +603,11 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       label.setText(title + " (" + number + ')');
       bView.setEnabled(true);
       bGoto.setEnabled(true);
+      bTree.setVisible(true);
+      bTree.setEnabled(true);
       struct = state;
       structEntry = state;
-      StringRef response = state.getResponse();
+      StringRef response = state.getAssociatedText();
       textArea.setText(response.toString() + "\n(StrRef: " + response.getValue() + ')');
       bPlay.setEnabled(!StringTable.getSoundResource(response.getValue()).isEmpty());
       textArea.setCaretPosition(0);
@@ -611,6 +618,8 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       label.setText(title + " (" + number + ')');
       bView.setEnabled(true);
       bGoto.setEnabled(true);
+      bTree.setVisible(true);
+      bTree.setEnabled(true);
       struct = trans;
       structEntry = trans;
       StringRef assText = trans.getAssociatedText();
@@ -641,18 +650,21 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       bView.setEnabled(false);
       bPlay.setEnabled(false);
       bGoto.setEnabled(true);
+      bTree.setVisible(false);
       structEntry = trigger;
       final ScriptType type = trigger instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
-      final Compiler compiler = new Compiler(trigger.getText(), type);
+      final String text = trigger.getText();
+      final Compiler compiler = new Compiler(text, type);
+      final String code = compiler.getCode();
       try {
         if (compiler.getErrors().isEmpty()) {
-          final Decompiler decompiler = new Decompiler(compiler.getCode(), type, true);
+          Decompiler decompiler = new Decompiler(code, type, true);
           textArea.setText(decompiler.getSource());
         } else {
-          textArea.setText(trigger.toString());
+          textArea.setText(text);
         }
       } catch (Exception e) {
-        textArea.setText(trigger.toString());
+        textArea.setText(text);
       }
       textArea.setCaretPosition(0);
     }
@@ -663,6 +675,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       textArea.setText("");
       bView.setEnabled(false);
       bGoto.setEnabled(false);
+      bTree.setEnabled(false);
       struct = null;
       structEntry = null;
     }
@@ -674,15 +687,14 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         new ViewFrame(getTopLevelAncestor(), struct);
       } else if (event.getSource() == bGoto) {
         dlg.getViewer().selectEntry(structEntry.getName());
-      } else if (event.getSource() == bPlay) {
-        StringRef text = null;
-        if (struct instanceof State) {
-          text = ((State)struct).getResponse();
-        } else if (struct instanceof Transition) {
-          text = ((Transition)struct).getAssociatedText();
+      } else if (event.getSource() == bTree) {
+        if (struct instanceof TreeItemEntry) {
+          dlg.selectInTree((TreeItemEntry)struct);
         }
-        if (text != null) {
-          String resourceName = StringTable.getSoundResource(text.getValue());
+      } else if (event.getSource() == bPlay) {
+        if (struct instanceof TreeItemEntry) {
+          final int strRef = ((TreeItemEntry)struct).getAssociatedText().getValue();
+          final String resourceName = StringTable.getSoundResource(strRef);
           if (!resourceName.isEmpty()) {
             ResourceEntry entry = ResourceFactory.getResourceEntry(resourceName + ".WAV");
             new ViewFrame(getTopLevelAncestor(), ResourceFactory.getResource(entry));
@@ -692,4 +704,3 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     }
   }
 }
-

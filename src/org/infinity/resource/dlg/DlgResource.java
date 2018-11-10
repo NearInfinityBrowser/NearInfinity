@@ -4,6 +4,7 @@
 
 package org.infinity.resource.dlg;
 
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -19,6 +20,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.DecNumber;
@@ -381,11 +383,25 @@ public final class DlgResource extends AbstractStruct
   }
 
   // sorry for this (visibility)
-  public void showStateWithStructEntry(StructEntry entry) {
-    if (detailViewer == null) {
-      getViewerTab(0);
+  public void selectInEdit(StructEntry entry) {
+    final Viewer view = ((Viewer)getViewerTab(0));
+    view.select(entry);
+    final Container parent = view.getParent();
+    if (parent instanceof JTabbedPane) {
+      final JTabbedPane panned = (JTabbedPane)parent;
+      panned.setSelectedIndex(panned.indexOfComponent(view));
     }
-    detailViewer.showStateWithStructEntry(entry);
+  }
+
+  public void selectInTree(TreeItemEntry entry)
+  {
+    final TreeViewer view = ((TreeViewer)getViewerTab(1));
+    view.select(entry);
+    final Container parent = view.getParent();
+    if (parent instanceof JTabbedPane) {
+      final JTabbedPane panned = (JTabbedPane)parent;
+      panned.setSelectedIndex(panned.indexOfComponent(view));
+    }
   }
 
   /** Updates trigger/action references in states and responses. */

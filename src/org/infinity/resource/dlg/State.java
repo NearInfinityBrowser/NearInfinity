@@ -17,7 +17,7 @@ import org.infinity.util.io.StreamUtils;
  * list of {@link Transition responces} and may have associated {@link StateTrigger trigger}
  * with a condition, defining whether it is possible to use this state.
  */
-public final class State extends AbstractStruct implements AddRemovable
+public final class State extends AbstractStruct implements AddRemovable, TreeItemEntry
 {
   // DLG/State-specific field labels
   public static final String DLG_STATE                      = "State";
@@ -50,7 +50,8 @@ public final class State extends AbstractStruct implements AddRemovable
     return nr;
   }
 
-  public StringRef getResponse()
+  @Override
+  public StringRef getAssociatedText()
   {
     return (StringRef)getAttribute(DLG_STATE_RESPONSE);
   }

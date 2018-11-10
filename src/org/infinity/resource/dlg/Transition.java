@@ -15,7 +15,7 @@ import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
 
 /** Player {@link DlgResource dialog} option. */
-public final class Transition extends AbstractStruct implements AddRemovable
+public final class Transition extends AbstractStruct implements AddRemovable, TreeItemEntry
 {
   // DLG/Transition-specific field labels
   public static final String DLG_TRANS = "Response";
@@ -55,6 +55,7 @@ public final class Transition extends AbstractStruct implements AddRemovable
     }
   }
 
+  @Override
   public StringRef getAssociatedText()
   {
     return (StringRef)getAttribute(DLG_TRANS_TEXT);
