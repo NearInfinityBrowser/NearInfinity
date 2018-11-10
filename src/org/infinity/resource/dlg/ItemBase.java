@@ -48,6 +48,9 @@ abstract class ItemBase implements TreeNode
     return parent.getPath().pathByAddingChild(this);
   }
 
+  /** Returns main item - item from which the tree grows in break cycles mode. */
+  public abstract ItemBase getMain();
+
   /** Returns the dialog resource object. Dialogs can use several dialog resources in one conversation. */
   public abstract DlgResource getDialog();
 

@@ -67,6 +67,9 @@ final class RootItem extends StateOwnerItem implements Iterable<StateItem>
   }
 
   @Override
+  public ItemBase getMain() { return null; }
+
+  @Override
   public DlgResource getDialog() { return dlg; }
 
   @Override

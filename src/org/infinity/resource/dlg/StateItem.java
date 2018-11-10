@@ -25,15 +25,15 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
   /** Item to which need go to in break cycles tree view mode. */
   private final StateItem main;
   /** Items that represents transition tree nodes from this state. */
-  private ArrayList<TransitionItem> trans;
+  ArrayList<TransitionItem> trans;
 
-  private State state;
+  private final State state;
 
   public StateItem(State state, StateOwnerItem parent, StateItem main)
   {
     this.parent = parent;
     this.main = main;
-    setState(state);
+    this.state = state;
   }
 
   public State getState()
@@ -41,19 +41,7 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
     return state;
   }
 
-  public void setState(State state)
-  {
-    this.state = state;
-    this.trans = new ArrayList<>(state.getTransCount());
-
-    final int start = state.getFirstTrans();
-    final int count = state.getTransCount();
-    final DlgResource dlg = getDialog();
-    for (int i = start; i < start + count; ++i) {
-      trans.add(new TransitionItem(this, dlg.getTransition(i)));
-    }
-  }
-
+  @Override
   public StateItem getMain() { return main; }
 
   @Override

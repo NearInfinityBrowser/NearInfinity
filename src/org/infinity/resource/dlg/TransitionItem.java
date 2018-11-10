@@ -10,6 +10,7 @@ import java.util.Enumeration;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.tree.TreeNode;
+import org.infinity.gui.BrowserMenuBar;
 
 import org.infinity.icon.Icons;
 
@@ -20,14 +21,17 @@ final class TransitionItem extends StateOwnerItem
 
   /** Parent tree item from which this transition is available. */
   private final StateItem parent;
+  /** Item to which need go to in break cycles tree view mode. */
+  private final TransitionItem main;
   /** Tree item to which go this transition or {@code null}, if this transition terminates dialog. */
   StateItem nextState;
 
-  private Transition trans;
+  private final Transition trans;
 
-  public TransitionItem(StateItem parent, Transition trans)
+  public TransitionItem(StateItem parent, Transition trans, TransitionItem main)
   {
     this.parent = parent;
+    this.main = main;
     this.trans = trans;
   }
 
@@ -36,10 +40,8 @@ final class TransitionItem extends StateOwnerItem
     return trans;
   }
 
-  public void setTransition(Transition trans)
-  {
-    this.trans = trans;
-  }
+  @Override
+  public TransitionItem getMain() { return main; }
 
   @Override
   public DlgResource getDialog() { return (DlgResource)trans.getParent(); }
@@ -49,23 +51,23 @@ final class TransitionItem extends StateOwnerItem
 
   //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
-  public StateItem getChildAt(int childIndex) { return childIndex == 0 ? nextState : null; }
+  public StateItem getChildAt(int childIndex) { return isMain() && childIndex == 0 ? nextState : null; }
 
   @Override
-  public int getChildCount() { return nextState == null ? 0 : 1; }
+  public int getChildCount() { return isMain() && nextState != null ? 1 : 0; }
 
   @Override
   public StateItem getParent() { return parent; }
 
   @Override
-  public int getIndex(TreeNode node) { return node != null && node == nextState ? 0 : -1; }
+  public int getIndex(TreeNode node) { return isMain() && node != null && node == nextState ? 0 : -1; }
 
   // Flag 3: Terminates dialogue
   @Override
-  public boolean getAllowsChildren() { return !trans.getFlag().isFlagSet(3); }
+  public boolean getAllowsChildren() { return isMain() && !trans.getFlag().isFlagSet(3); }
 
   @Override
-  public boolean isLeaf() { return nextState == null; }
+  public boolean isLeaf() { return isMain() ? nextState == null : true; }
 
   @Override
   public Enumeration<? extends StateItem> children() { return enumeration(singletonList(nextState)); }
@@ -85,5 +87,10 @@ final class TransitionItem extends StateOwnerItem
       return String.format("%s: %s", trans.getName(), text);
     }
     return String.format("%s: %s [%s]", trans.getName(), text, nextDlg);
+  }
+
+  private boolean isMain()
+  {
+    return main == null || !BrowserMenuBar.getInstance().breakCyclesInDialogs();
   }
 }

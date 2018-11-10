@@ -427,10 +427,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
           final State s = state.getState();
           if (s.getNumber() == 0 && s.getTriggerIndex() < 0 && options.alwaysShowState0()) {
             setForeground(Color.GRAY);
-          } else
-          if (state.getMain() != null) {
-            setForeground(Color.GRAY);
           }
+        }
+        if (data.getMain() != null) {
+          setForeground(Color.GRAY);
         }
         return c;
       }
@@ -479,12 +479,9 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
           final TreePath path = dlgTree.getPathForLocation(e.getX(), e.getY());
           if (path == null) { return; }
 
-          final Object node = path.getLastPathComponent();
-          if (!(node instanceof StateItem)) { return; }
-
-          final StateItem state = (StateItem)node;
-          if (!state.getAllowsChildren()) {
-            final TreePath target = state.getMain().getPath();
+          final ItemBase item = (ItemBase)path.getLastPathComponent();
+          if (!item.getAllowsChildren() && item.getMain() != null) {
+            final TreePath target = item.getMain().getPath();
             dlgTree.setSelectionPath(target);
             dlgTree.scrollPathToVisible(target);
           }

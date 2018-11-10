@@ -25,15 +25,12 @@ import org.infinity.resource.ResourceFactory;
 final class DlgTreeModel implements TreeModel, TableModelListener
 {
   private final ArrayList<TreeModelListener> listeners = new ArrayList<>();
-  /** Maps dialog resources to tables of state index/item pairs. */
-  private final HashMap<State, StateItem> mainStates = new HashMap<>();
   /** Maps used dialog names to dialog resources. */
   private final HashMap<String, DlgResource> linkedDialogs = new HashMap<>();
-
-  /** Maps state to tree items that represents it. Used for update tree when state changed. */
-  private final HashMap<State, List<StateItem>> allStates = new HashMap<>();
-  /** Maps transition to tree item that represents it. Used for update tree when transition changed. */
-  private final HashMap<Transition, TransitionItem> allTransitions = new HashMap<>();
+  /** Maps dialog entries to main tree items - items wrom which the tree grows. */
+  private final HashMap<TreeItemEntry, ItemBase> mainItems = new HashMap<>();
+  /** Maps dialog entries  to tree items that represents it. Used for update tree when entry changes. */
+  private final HashMap<TreeItemEntry, List<ItemBase>> allItems = new HashMap<>();
 
   private final RootItem root;
 
@@ -43,8 +40,9 @@ final class DlgTreeModel implements TreeModel, TableModelListener
 
     root = new RootItem(dlg);
     for (StateItem state : root) {
-      putState(state);
-      mainStates.put(state.getState(), state);
+      initState(state);
+      allItems.computeIfAbsent(state.getState(), s -> new ArrayList<>()).add(state);
+      mainItems.put(state.getState(), state);
     }
     dlg.addTableModelListener(this);
   }
@@ -58,6 +56,9 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   {
     if (parent instanceof ItemBase) {
       final ItemBase child = ((ItemBase)parent).getChildAt(index);
+      if (child instanceof StateItem) {
+        initState((StateItem)child);
+      } else
       if (child instanceof TransitionItem) {
         initTransition((TransitionItem)child);
       }
@@ -129,11 +130,8 @@ final class DlgTreeModel implements TreeModel, TableModelListener
     final Object src = e.getSource();
     // TODO: Insertion or removal of nodes not yet supported
     if (e.getType() == TableModelEvent.UPDATE) {
-      if (src instanceof State) {
-        updateState((State)src);
-      } else
-      if (src instanceof Transition) {
-        updateTransition((Transition)src);
+      if (src instanceof TreeItemEntry) {
+        updateState((TreeItemEntry)src);
       } else
       if (src instanceof DlgResource) {
         nodeChanged(root);
@@ -144,30 +142,13 @@ final class DlgTreeModel implements TreeModel, TableModelListener
 
   //<editor-fold defaultstate="collapsed" desc="Events">
   /** Updates tree when specified state entry changed. */
-  private void updateState(State state)
+  private void updateState(TreeItemEntry state)
   {
-    final List<StateItem> states = allStates.get(state);
-    if (states != null) {
-      for (StateItem item : states) {
+    final List<ItemBase> items = allItems.get(state);
+    if (items != null) {
+      for (ItemBase item : items) {
         nodeChanged(item);
       }
-    }
-  }
-
-  /** Updates tree when specified transition entry changed. */
-  private void updateTransition(Transition trans)
-  {
-    final TransitionItem item = allTransitions.get(trans);
-    if (item != null) {
-      nodeChanged(item);
-    }
-  }
-
-  private void putState(StateItem state)
-  {
-    allStates.computeIfAbsent(state.getState(), s -> new ArrayList<>()).add(state);
-    for (TransitionItem trans : state) {
-      allTransitions.put(trans.getTransition(), trans);
     }
   }
 
@@ -205,15 +186,11 @@ final class DlgTreeModel implements TreeModel, TableModelListener
    */
   public ItemBase map(TreeItemEntry entry)
   {
-    if (entry instanceof State) {
-      final StateItem item = mainStates.get(entry);
-      if (item == null) {
+    final ItemBase item = mainItems.get(entry);
+    if (item == null) {
+      if (entry instanceof State) {
         return slowFindState((State)entry);
       }
-      return item;
-    }
-    final TransitionItem item = allTransitions.get(entry);
-    if (item == null) {
       return slowFindTransition((Transition)entry);
     }
     return item;
@@ -316,6 +293,29 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   private static String key(String dlgName) { return dlgName.toUpperCase(Locale.ENGLISH); }
 
   /** Adds all available child nodes to the given parent node. */
+  private void initState(StateItem state)
+  {
+    if (state.trans == null) {
+      final DlgResource dlg = state.getDialog();
+      final int start = state.getState().getFirstTrans();
+      final int count = state.getState().getTransCount();
+
+      state.trans = new ArrayList<>(count);
+      for (int i = start; i < start + count; ++i) {
+        final Transition trans = dlg.getTransition(i);
+        final TransitionItem main = (TransitionItem)mainItems.get(trans);
+        final TransitionItem item = new TransitionItem(state, trans, main);
+
+        state.trans.add(item);
+        allItems.computeIfAbsent(trans, t -> new ArrayList<>()).add(item);
+        if (main == null) {
+          mainItems.put(trans, item);
+        }
+      }
+    }
+  }
+
+  /** Adds all available child nodes to the given parent node. */
   private void initTransition(TransitionItem trans)
   {
     if (trans.nextState == null) {
@@ -324,12 +324,12 @@ final class DlgTreeModel implements TreeModel, TableModelListener
 
       if (nextDlg != null) {
         final State state = nextDlg.getState(t.getNextDialogState());
-        final StateItem main = mainStates.get(state);
+        final StateItem main = (StateItem)mainItems.get(state);
 
         trans.nextState = new StateItem(state, trans, main);
-        putState(trans.nextState);
+        allItems.computeIfAbsent(state, s -> new ArrayList<>()).add(trans.nextState);
         if (main == null) {
-          mainStates.put(state, trans.nextState);
+          mainItems.put(state, trans.nextState);
         }
       }
     }
