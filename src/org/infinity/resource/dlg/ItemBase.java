@@ -21,10 +21,12 @@ abstract class ItemBase implements TreeNode
   private static final int MAX_LENGTH = 200;
 
   private final boolean showStrrefs;
+  private final boolean showTechInfo;
 
   public ItemBase()
   {
     this.showStrrefs = BrowserMenuBar.getInstance().showStrrefs();
+    this.showTechInfo = BrowserMenuBar.getInstance().showDlgTechInfo();
   }
 
   /** Returns the dialog resource name. */
@@ -71,10 +73,23 @@ abstract class ItemBase implements TreeNode
   /**
    * Returns string that can be used to display in the tree.
    *
+   * @param entry Dialog entry to display
+   * @return String for tree item
+   */
+  protected final String getText(TreeItemEntry entry)
+  {
+    final String text = getText(entry.getAssociatedText());
+    return showTechInfo ? entry.getName() + ": " + text : text;
+  }
+
+  /**
+   * Returns string that can be used to display in the tree.
+   *
    * @param value Field with reference to string in the {@link StringTable string table}
    * @return String from string table if necessary cut down up to {@link #MAX_LENGTH} characters
    */
-  protected final String getText(StringRef value) {
+  private String getText(StringRef value)
+  {
     final String text = StringTable.getStringRef(value.getValue(), showStrrefs ? STRREF_PREFIX : NONE);
     if (text.length() > MAX_LENGTH) {
       return text.substring(0, MAX_LENGTH) + "...";

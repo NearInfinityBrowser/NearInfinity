@@ -88,9 +88,5 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
   //</editor-fold>
 
   @Override
-  public String toString()
-  {
-    final String text = getText(state.getAssociatedText());
-    return String.format("%s: %s", state.getName(), text);
-  }
+  public String toString() { return getText(state); }
 }

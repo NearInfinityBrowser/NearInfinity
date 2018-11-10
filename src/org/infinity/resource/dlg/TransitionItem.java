@@ -79,14 +79,14 @@ final class TransitionItem extends StateOwnerItem
     String text = "(No text)";
     if (trans.getFlag().isFlagSet(0)) {
       // Flag 0: Transition contains text
-      text = getText(trans.getAssociatedText());
+      text = getText(trans);
     }
     final String nextDlg = trans.getNextDialog().getResourceName();
     //TODO: When getResourceName() will return null, replace check `.isEmpty()` to `nextDlg == null`
     if (trans.getNextDialog().isEmpty() || nextDlg.equalsIgnoreCase(getDialogName())) {
-      return String.format("%s: %s", trans.getName(), text);
+      return text;
     }
-    return String.format("%s: %s [%s]", trans.getName(), text, nextDlg);
+    return String.format("%s [%s]", text, nextDlg);
   }
 
   private boolean isMain()

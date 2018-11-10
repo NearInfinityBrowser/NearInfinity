@@ -5,6 +5,7 @@
 package org.infinity.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -217,6 +218,16 @@ public final class BrowserMenuBar extends JMenuBar
   public boolean breakCyclesInDialogs()
   {
     return optionsMenu.dialogViewerMenu.breakCyclesInDialogs.isSelected();
+  }
+
+  public boolean useDifferentColorForResponses()
+  {
+    return optionsMenu.dialogViewerMenu.differentColorForResponses.isSelected();
+  }
+
+  public boolean showDlgTechInfo()
+  {
+    return optionsMenu.dialogViewerMenu.showTechInfo.isSelected();
   }
 
   public boolean getHexColorMapEnabled()
@@ -2848,6 +2859,8 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_ALWAYS_SHOW_STATE_0    = "DlgAlwaysShowState0";
     private static final String OPTION_COLORIZE_OTHER_DIALOGS = "DlgColorizeOtherDialogs";
     private static final String OPTION_BREAK_CYCLES           = "DlgBreakCycles";
+    private static final String OPTION_COLORIZE_RESPONSES     = "DlgColorizeResponses";
+    private static final String OPTION_SHOW_TECH_INFO         = "DlgShowTechInfo";
 
     /**
      * If checked, the tree will show icons on which it is possible to distinguish
@@ -2871,6 +2884,16 @@ public final class BrowserMenuBar extends JMenuBar
      * in other place of a tree. By default this option is on.
      */
     final JCheckBoxMenuItem breakCyclesInDialogs;
+    /**
+     * If checked, transition items in the tree will be drawn in {@link Color#BLUE blue}.
+     * By default this option is off.
+     */
+    final JCheckBoxMenuItem differentColorForResponses;
+    /**
+     * If checked, in the tree will be shown technical information: state or
+     * transition number. By default this option is on.
+     */
+    final JCheckBoxMenuItem showTechInfo;
 
     public DialogViewerMenu(Preferences prefs)
     {
@@ -2887,6 +2910,12 @@ public final class BrowserMenuBar extends JMenuBar
       breakCyclesInDialogs = new JCheckBoxMenuItem("Break cycles (NWN like tree)",
                                         prefs.getBoolean(OPTION_BREAK_CYCLES, true));
       add(breakCyclesInDialogs);
+      differentColorForResponses = new JCheckBoxMenuItem("Use different color for responses (PC replies)",
+                                        prefs.getBoolean(OPTION_COLORIZE_RESPONSES, false));
+      add(differentColorForResponses);
+      showTechInfo = new JCheckBoxMenuItem("Show state/response numbers",
+                                        prefs.getBoolean(OPTION_SHOW_TECH_INFO, true));
+      add(showTechInfo);
     }
 
     void storePreferences(Preferences prefs)
@@ -2895,6 +2924,8 @@ public final class BrowserMenuBar extends JMenuBar
       prefs.putBoolean(OPTION_ALWAYS_SHOW_STATE_0, alwaysShowState0.isSelected());
       prefs.putBoolean(OPTION_COLORIZE_OTHER_DIALOGS, colorizeOtherDialogs.isSelected());
       prefs.putBoolean(OPTION_BREAK_CYCLES, breakCyclesInDialogs.isSelected());
+      prefs.putBoolean(OPTION_COLORIZE_RESPONSES, differentColorForResponses.isSelected());
+      prefs.putBoolean(OPTION_SHOW_TECH_INFO, showTechInfo.isSelected());
     }
   }
 

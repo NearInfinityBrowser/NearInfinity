@@ -422,6 +422,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         setIcon(options.showDlgTreeIcons() ? data.getIcon() : null);
         setBackgroundNonSelectionColor(options.colorizeOtherDialogs() ? getColor(data.getDialog()) : null);
 
+        if (options.useDifferentColorForResponses() && value instanceof TransitionItem) {
+          setForeground(Color.BLUE);
+        }
+
         if (value instanceof StateItem) {
           final StateItem state = (StateItem)value;
           final State s = state.getState();
