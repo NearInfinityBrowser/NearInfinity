@@ -99,21 +99,21 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private final JTree dlgTree;
   private final ItemInfo dlgInfo;
 
-  private DlgTreeModel dlgModel;
+  private final DlgTreeModel dlgModel;
   private JScrollPane spInfo, spTree;
   private TreeWorker worker;
   private WindowBlocker blocker;
 
   /** Background colors for text in dialogs to that can refer main dialog. */
-  private HashMap<DlgResource, Color> dialogColors = new HashMap<>();
+  private final HashMap<DlgResource, Color> dialogColors = new HashMap<>();
 
   TreeViewer(DlgResource dlg)
   {
     super(new BorderLayout());
     this.dlg = dlg;
     this.dlg.addTableModelListener(this);
-    dlgModel = null;
-    dlgTree = new JTree((TreeModel)null);
+    dlgModel = new DlgTreeModel(dlg);
+    dlgTree = new JTree(dlgModel);
     dlgTree.addTreeSelectionListener(this);
     dlgInfo = new ItemInfo();
     initControls();
@@ -259,14 +259,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
 //--------------------- End Interface PropertyChangeListener ---------------------
 
-  /** Initializes the actual dialog content. */
-  public void init()
-  {
-    if (dlgModel == null) {
-      dlgModel = new DlgTreeModel(this.dlg);
-      dlgTree.setModel(dlgModel);
-    }
-  }
 
   private void updateStateInfo(StateItem si)
   {

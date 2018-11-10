@@ -19,8 +19,6 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.DecNumber;
@@ -34,7 +32,6 @@ import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.StructViewer;
-import org.infinity.gui.WindowBlocker;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasAddRemovable;
@@ -88,7 +85,7 @@ import org.infinity.util.StringTable;
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/dlg_v1.htm</a>
  */
 public final class DlgResource extends AbstractStruct
-    implements Resource, HasAddRemovable, HasViewerTabs, ChangeListener, ActionListener
+    implements Resource, HasAddRemovable, HasViewerTabs, ActionListener
 {
   // DLG-specific field labels
   public static final String DLG_OFFSET_STATES            = "States offset";
@@ -246,20 +243,6 @@ public final class DlgResource extends AbstractStruct
 
 // --------------------- End Interface ActionListener ---------------------
 
-// --------------------- Begin Interface ChangeListener ---------------------
-
-  @Override
-  public void stateChanged(ChangeEvent event)
-  {
-    if (getViewer() != null) {
-      if (getViewer().isTabSelected(getViewer().getTabIndex(TAB_TREE))) {
-        initTreeView();
-      }
-    }
-  }
-
-// --------------------- End Interface ChangeListener ---------------------
-
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -284,10 +267,6 @@ public final class DlgResource extends AbstractStruct
       bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportWeiDUDialog}, false);
       panel.addControl(position, bpmExport);
     }
-    if (viewer.isTabSelected(viewer.getTabIndex(TAB_TREE))) {
-      initTreeView();
-    }
-    viewer.addTabChangeListener(this);
   }
 
   @Override
@@ -407,16 +386,6 @@ public final class DlgResource extends AbstractStruct
       getViewerTab(0);
     }
     detailViewer.showStateWithStructEntry(entry);
-  }
-
-  private void initTreeView()
-  {
-    WindowBlocker.blockWindow(NearInfinity.getInstance(), true);
-    try {
-      treeViewer.init();
-    } finally {
-      WindowBlocker.blockWindow(NearInfinity.getInstance(), false);
-    }
   }
 
   /** Updates trigger/action references in states and responses. */
