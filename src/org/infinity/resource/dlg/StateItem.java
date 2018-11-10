@@ -27,16 +27,12 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
   /** Items that represents transition tree nodes from this state. */
   private ArrayList<TransitionItem> trans;
 
-  private final ImageIcon icon;
-
   private State state;
 
   public StateItem(State state, StateOwnerItem parent, StateItem main)
   {
-    super((DlgResource)state.getParent());
     this.parent = parent;
     this.main = main;
-    this.icon = showIcons() ? ICON : null;
     setState(state);
   }
 
@@ -52,6 +48,7 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
 
     final int start = state.getFirstTrans();
     final int count = state.getTransCount();
+    final DlgResource dlg = getDialog();
     for (int i = start; i < start + count; ++i) {
       trans.add(new TransitionItem(this, dlg.getTransition(i)));
     }
@@ -60,10 +57,10 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
   public StateItem getMain() { return main; }
 
   @Override
-  public Icon getIcon()
-  {
-    return icon;
-  }
+  public DlgResource getDialog() { return (DlgResource)state.getParent(); }
+
+  @Override
+  public Icon getIcon() { return ICON; }
 
   //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override

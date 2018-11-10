@@ -442,9 +442,8 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         Component c = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, focused);
         final ItemBase data = (ItemBase)value;
 
-        setIcon(data.getIcon());
-
         final BrowserMenuBar options = BrowserMenuBar.getInstance();
+        setIcon(options.showDlgTreeIcons() ? data.getIcon() : null);
         setBackgroundNonSelectionColor(options.colorizeOtherDialogs() ? getColor(data.getDialog()) : null);
 
         if (value instanceof StateItem) {

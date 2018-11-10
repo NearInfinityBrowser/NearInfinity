@@ -20,32 +20,18 @@ abstract class ItemBase implements TreeNode
   /** Maximum string length to display. */
   private static final int MAX_LENGTH = 200;
 
-  /** Dialog from which this item. Dialogs can use several dialog resources in one conversation. */
-  protected final DlgResource dlg;
   private final boolean showStrrefs;
-  private final boolean showIcons;
 
-  public ItemBase(DlgResource dlg)
+  public ItemBase()
   {
-    this.dlg = dlg;
     this.showStrrefs = BrowserMenuBar.getInstance().showStrrefs();
-    this.showIcons = BrowserMenuBar.getInstance().showDlgTreeIcons();
-  }
-
-  /** Returns the dialog resource object. */
-  public DlgResource getDialog()
-  {
-    return dlg;
   }
 
   /** Returns the dialog resource name. */
   public String getDialogName()
   {
-    if (dlg != null) {
-      return dlg.getResourceEntry().getResourceName();
-    } else {
-      return "";
-    }
+    final DlgResource dlg = getDialog();
+    return dlg == null ? "" : dlg.getResourceEntry().getResourceName();
   }
 
   /**
@@ -62,6 +48,9 @@ abstract class ItemBase implements TreeNode
     return parent.getPath().pathByAddingChild(this);
   }
 
+  /** Returns the dialog resource object. Dialogs can use several dialog resources in one conversation. */
+  public abstract DlgResource getDialog();
+
   /** Returns the icon associated with the item type. */
   public abstract Icon getIcon();
 
@@ -75,9 +64,6 @@ abstract class ItemBase implements TreeNode
   @Override
   public abstract Enumeration<? extends ItemBase> children();
   //</editor-fold>
-
-  /** Returns whether to display icons in front of the nodes. */
-  protected boolean showIcons() { return showIcons; }
 
   /**
    * Returns string that can be used to display in the tree.
@@ -97,10 +83,6 @@ abstract class ItemBase implements TreeNode
 /** Auxiliary class, being the parent for states, for a type safety. */
 abstract class StateOwnerItem extends ItemBase
 {
-  public StateOwnerItem(DlgResource dlg) {
-    super(dlg);
-  }
-
   //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
   public abstract StateItem getChildAt(int childIndex);

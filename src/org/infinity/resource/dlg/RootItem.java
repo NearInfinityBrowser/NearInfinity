@@ -24,9 +24,10 @@ final class RootItem extends StateOwnerItem implements Iterable<StateItem>
 {
   private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16);
 
+  /** Dialog which represents this tree. */
+  private final DlgResource dlg;
   /** States from which dialog can start. */
   private final ArrayList<StateItem> states = new ArrayList<>();
-  private final ImageIcon icon;
 
   private final int numStates;
   private final int numTransitions;
@@ -37,10 +38,7 @@ final class RootItem extends StateOwnerItem implements Iterable<StateItem>
 
   public RootItem(DlgResource dlg)
   {
-    super(dlg);
-
-    this.icon = showIcons() ? ICON : null;
-
+    this.dlg = dlg;
     numStates           = getAttribute(DlgResource.DLG_NUM_STATES);
     numTransitions      = getAttribute(DlgResource.DLG_NUM_RESPONSES);
     numStateTriggers    = getAttribute(DlgResource.DLG_NUM_STATE_TRIGGERS);
@@ -69,10 +67,10 @@ final class RootItem extends StateOwnerItem implements Iterable<StateItem>
   }
 
   @Override
-  public Icon getIcon()
-  {
-    return icon;
-  }
+  public DlgResource getDialog() { return dlg; }
+
+  @Override
+  public Icon getIcon() { return ICON; }
 
   //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
@@ -121,11 +119,7 @@ final class RootItem extends StateOwnerItem implements Iterable<StateItem>
   public String toString()
   {
     StringBuilder sb = new StringBuilder();
-    if (!getDialogName().isEmpty()) {
-      sb.append(getDialogName());
-    } else {
-      sb.append("(Invalid DLG resource)");
-    }
+    sb.append(getDialogName());
     sb.append(" (states: ").append(Integer.toString(numStates));
     sb.append(", responses: ").append(Integer.toString(numTransitions));
     sb.append(", state triggers: ").append(Integer.toString(numStateTriggers));

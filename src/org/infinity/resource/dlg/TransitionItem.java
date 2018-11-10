@@ -23,15 +23,11 @@ final class TransitionItem extends StateOwnerItem
   /** Tree item to which go this transition or {@code null}, if this transition terminates dialog. */
   StateItem nextState;
 
-  private final ImageIcon icon;
-
   private Transition trans;
 
   public TransitionItem(StateItem parent, Transition trans)
   {
-    super(parent.dlg);
     this.parent = parent;
-    this.icon = showIcons() ? ICON : null;
     this.trans = trans;
   }
 
@@ -46,10 +42,10 @@ final class TransitionItem extends StateOwnerItem
   }
 
   @Override
-  public Icon getIcon()
-  {
-    return icon;
-  }
+  public DlgResource getDialog() { return (DlgResource)trans.getParent(); }
+
+  @Override
+  public Icon getIcon() { return ICON; }
 
   //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
