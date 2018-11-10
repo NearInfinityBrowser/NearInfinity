@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
@@ -20,7 +22,7 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.resource.ResourceFactory;
 
 /** Creates and manages the dialog tree structure. */
-final class DlgTreeModel implements TreeModel
+final class DlgTreeModel implements TreeModel, TableModelListener
 {
   private final ArrayList<TreeModelListener> listeners = new ArrayList<>();
   /** Maps dialog resources to tables of state index/item pairs. */
@@ -44,6 +46,7 @@ final class DlgTreeModel implements TreeModel
       putState(state);
       mainStates.put(state.getState(), state);
     }
+    dlg.addTableModelListener(this);
   }
 
   //<editor-fold defaultstate="collapsed" desc="TreeModel">
@@ -119,9 +122,29 @@ final class DlgTreeModel implements TreeModel
   }
   //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="TableModelListener">
+  @Override
+  public void tableChanged(TableModelEvent e)
+  {
+    final Object src = e.getSource();
+    // TODO: Insertion or removal of nodes not yet supported
+    if (e.getType() == TableModelEvent.UPDATE) {
+      if (src instanceof State) {
+        updateState((State)src);
+      } else
+      if (src instanceof Transition) {
+        updateTransition((Transition)src);
+      } else
+      if (src instanceof DlgResource) {
+        nodeChanged(root);
+      }
+    }
+  }
+  //</editor-fold>
+
   //<editor-fold defaultstate="collapsed" desc="Events">
   /** Updates tree when specified state entry changed. */
-  public void updateState(State state)
+  private void updateState(State state)
   {
     final List<StateItem> states = allStates.get(state);
     if (states != null) {
@@ -132,17 +155,12 @@ final class DlgTreeModel implements TreeModel
   }
 
   /** Updates tree when specified transition entry changed. */
-  public void updateTransition(Transition trans)
+  private void updateTransition(Transition trans)
   {
     final TransitionItem item = allTransitions.get(trans);
     if (item != null) {
       nodeChanged(item);
     }
-  }
-
-  public void updateRoot()
-  {
-    nodeChanged(root);
   }
 
   private void putState(StateItem state)

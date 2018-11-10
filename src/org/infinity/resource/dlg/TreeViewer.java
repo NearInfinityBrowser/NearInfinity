@@ -67,7 +67,7 @@ import org.infinity.util.StringTable;
 
 /** Show dialog content as tree structure. */
 final class TreeViewer extends JPanel implements ActionListener, TreeSelectionListener,
-                                                 TableModelListener, PropertyChangeListener
+                                                 PropertyChangeListener
 {
   /**
    * This array contains background colors for other dialogs to which viewed dialog
@@ -111,7 +111,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   {
     super(new BorderLayout());
     this.dlg = dlg;
-    this.dlg.addTableModelListener(this);
     dlgModel = new DlgTreeModel(dlg);
     dlgTree = new JTree(dlgModel);
     dlgTree.addTreeSelectionListener(this);
@@ -216,29 +215,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   }
 
 //--------------------- End Interface TreeSelectionListener ---------------------
-
-//--------------------- Begin Interface TableModelListener ---------------------
-
-  @Override
-  public void tableChanged(TableModelEvent e)
-  {
-    // Insertion or removal of nodes not yet supported
-    if (e.getType() == TableModelEvent.UPDATE) {
-      if (dlgModel != null) {
-        if (e.getSource() instanceof State) {
-          State state = (State)e.getSource();
-          dlgModel.updateState(state);
-        } else if (e.getSource() instanceof Transition) {
-          Transition trans = (Transition)e.getSource();
-          dlgModel.updateTransition(trans);
-        } else if (e.getSource() instanceof DlgResource) {
-          dlgModel.updateRoot();
-        }
-      }
-    }
-  }
-
-//--------------------- End Interface TableModelListener ---------------------
 
 //--------------------- Begin Interface PropertyChangeListener ---------------------
 
