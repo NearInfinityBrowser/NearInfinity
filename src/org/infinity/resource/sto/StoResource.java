@@ -293,7 +293,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     }
 
     int endoffset = offset;
-    for (final StructEntry entry : getList()) {
+    for (final StructEntry entry : getFields()) {
       if (entry.getOffset() + entry.getSize() > endoffset)
         endoffset = entry.getOffset() + entry.getSize();
     }

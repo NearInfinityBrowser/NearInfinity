@@ -200,7 +200,7 @@ public final class CreInvChecker extends AbstractSearcher implements Runnable, A
     final List<Item> items = new ArrayList<>();
     final List<DecNumber> slots = new ArrayList<>();
     final DecNumber slots_offset = (DecNumber)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS);
-    for (final StructEntry entry : cre.getList()) {
+    for (final StructEntry entry : cre.getFields()) {
       if (entry instanceof Item) {
         items.add((Item)entry);
       } else if (entry.getOffset() >= slots_offset.getValue() + cre.getOffset() &&

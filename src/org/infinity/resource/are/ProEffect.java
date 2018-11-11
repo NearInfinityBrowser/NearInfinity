@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -42,13 +42,13 @@ public class ProEffect extends AbstractStruct implements AddRemovable
     addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
     EffectType type = new EffectType(buffer, offset + 8, 4);
     addField(type);
-    List<StructEntry> list = new ArrayList<StructEntry>();
+    final List<StructEntry> list = new ArrayList<>();
     offset = type.readAttributes(buffer, offset + 12, list);
-    addToList(getList().size() - 1, list);
+    addFields(getFields().size() - 1, list);
 
     list.clear();
     offset = Effect2.readCommon(list, buffer, offset);
-    addToList(getList().size() - 1, list);
+    addFields(getFields().size() - 1, list);
 
     return offset;
   }

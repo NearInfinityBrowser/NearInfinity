@@ -359,7 +359,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeFlatList(os);
+    super.writeFlatFields(os);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -751,13 +751,13 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     }
 
     offset = offset_items.getValue();
-    for (final StructEntry o : getList()) {
+    for (final StructEntry o : getFields()) {
       if (o instanceof Container)
         ((Container)o).readItems(buffer, offset);
     }
 
     offset = offset_vertices.getValue();
-    for (final StructEntry o : getList()) {
+    for (final StructEntry o : getFields()) {
       if (o instanceof HasVertices)
         ((HasVertices)o).readVertices(buffer, offset);
     }
@@ -770,10 +770,10 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     }
 
     int endoffset = offset;
-    for (final StructEntry entry : getList()) {
+    for (final StructEntry entry : getFields()) {
       if (entry instanceof HasVertices) {
         // may contain additional elements
-        for (final StructEntry subEntry : ((AbstractStruct)entry).getList()) {
+        for (final StructEntry subEntry : ((AbstractStruct)entry).getFields()) {
           endoffset = Math.max(endoffset, subEntry.getOffset() + subEntry.getSize());
         }
       } else {
@@ -787,7 +787,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
   private void updateActorCREOffsets()
   {
-    for (final StructEntry o : getList()) {
+    for (final StructEntry o : getFields()) {
       if (o instanceof Actor) {
         ((Actor)o).updateCREOffset();
       }
@@ -799,7 +799,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     // Assumes items offset is correct
     int offset = ((HexNumber)getAttribute(ARE_OFFSET_ITEMS)).getValue();
     int count = 0;
-    for (final StructEntry o : getList()) {
+    for (final StructEntry o : getFields()) {
       if (o instanceof Container) {
         Container container = (Container)o;
         int itemNum = container.updateItems(offset, count);
@@ -815,7 +815,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     // Assumes vertices offset is correct
     int offset = ((HexNumber)getAttribute(ARE_OFFSET_VERTICES)).getValue();
     int count = 0;
-    for (final StructEntry o : getList()) {
+    for (final StructEntry o : getFields()) {
       if (o instanceof HasVertices) {
         HasVertices vert = (HasVertices)o;
         int vertNum = vert.updateVertices(offset, count);

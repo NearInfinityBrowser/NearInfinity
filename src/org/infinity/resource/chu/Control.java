@@ -117,8 +117,8 @@ final class Control extends AbstractStruct // implements AddRemovable
   @Override
   public void write(OutputStream os) throws IOException
   {
-    getList().get(0).write(os);
-    getList().get(1).write(os);
+    getFields().get(0).write(os);
+    getFields().get(1).write(os);
   }
   //</editor-fold>
 
@@ -281,7 +281,7 @@ final class Control extends AbstractStruct // implements AddRemovable
 
   public void writeControl(OutputStream os) throws IOException
   {
-    final List<StructEntry> fields = getList();
+    final List<StructEntry> fields = getFields();
     for (int i = 2; i < fields.size(); i++) {
       fields.get(i).write(os);
     }

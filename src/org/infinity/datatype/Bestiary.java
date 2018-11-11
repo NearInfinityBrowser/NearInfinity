@@ -220,7 +220,7 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       KillVariable var = (KillVariable)game.getAttribute(offset.getValue(), KillVariable.class, false);
       if (var == null) return null;
 
-      final List<StructEntry> fields = game.getList();
+      final List<StructEntry> fields = game.getFields();
       final ListIterator<StructEntry> it = fields.listIterator(fields.indexOf(var));
       while (it.hasNext()) {
         final StructEntry entry = it.next();

@@ -184,7 +184,7 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
   @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
-    final StructEntry last = getList().get(getList().size() - 1);
+    final StructEntry last = getFields().get(getFields().size() - 1);
     ((DecNumber)getAttribute(GAM_NPC_CRE_SIZE)).setValue(last.getSize());
     super.datatypeAddedInChild(child, datatype);
   }
@@ -201,14 +201,14 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
   @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
-    final StructEntry last = getList().get(getList().size() - 1);
+    final StructEntry last = getFields().get(getFields().size() - 1);
     ((DecNumber)getAttribute(GAM_NPC_CRE_SIZE)).setValue(last.getSize());
     super.datatypeRemovedInChild(child, datatype);
   }
 
   void updateCREOffset()
   {
-    final StructEntry entry = getList().get(getList().size() - 1);
+    final StructEntry entry = getFields().get(getFields().size() - 1);
     if (entry instanceof CreResource)
       ((HexNumber)getAttribute(GAM_NPC_OFFSET_CRE)).setValue(entry.getOffset());
   }

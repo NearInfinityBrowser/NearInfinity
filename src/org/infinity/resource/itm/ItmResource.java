@@ -302,7 +302,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   public void write(OutputStream os) throws IOException
   {
     super.write(os);
-    for (final StructEntry o : getList()) {
+    for (final StructEntry o : getFields()) {
       if (o instanceof Ability) {
         Ability a = (Ability)o;
         a.writeEffects(os);
@@ -322,14 +322,14 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   protected void datatypeAdded(AddRemovable datatype)
   {
     if (datatype instanceof Effect) {
-      for (final StructEntry o : getList()) {
+      for (final StructEntry o : getFields()) {
         if (o instanceof Ability)
           ((Ability)o).incEffectsIndex(1);
       }
     }
     else if (datatype instanceof Ability) {
       int effect_count = ((SectionCount)getAttribute(ITM_NUM_GLOBAL_EFFECTS)).getValue();
-      for (final StructEntry o : getList()) {
+      for (final StructEntry o : getFields()) {
         if (o instanceof Ability) {
           Ability ability = (Ability)o;
           ability.setEffectsIndex(effect_count);
@@ -353,14 +353,14 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   protected void datatypeRemoved(AddRemovable datatype)
   {
     if (datatype instanceof Effect) {
-      for (final StructEntry o : getList()) {
+      for (final StructEntry o : getFields()) {
         if (o instanceof Ability)
           ((Ability)o).incEffectsIndex(-1);
       }
     }
     else if (datatype instanceof Ability) {
       int effect_count = ((SectionCount)getAttribute(ITM_NUM_GLOBAL_EFFECTS)).getValue();
-      for (final StructEntry o : getList()) {
+      for (final StructEntry o : getFields()) {
         if (o instanceof Ability) {
           Ability ability = (Ability)o;
           ability.setEffectsIndex(effect_count);
@@ -500,7 +500,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   private void incAbilityEffects(StructEntry child, AddRemovable datatype, int value)
   {
     if (child instanceof Ability && datatype instanceof Effect) {
-      final List<StructEntry> fields = getList();
+      final List<StructEntry> fields = getFields();
       final ListIterator<StructEntry> it = fields.listIterator(fields.indexOf(child) + 1);
       while (it.hasNext()) {
         final StructEntry se = it.next();

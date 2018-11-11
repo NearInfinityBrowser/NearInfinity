@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -148,20 +148,20 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     addField(new TextString(buffer, offset + 4, 4, COMMON_VERSION));
     EffectType type = new EffectType(buffer, offset + 8, 4);
     addField(type);
-    List<StructEntry> list = new ArrayList<StructEntry>();
+    final List<StructEntry> list = new ArrayList<>();
     offset = type.readAttributes(buffer, offset + 12, list);
-    addToList(getList().size() - 1, list);
+    addFields(getFields().size() - 1, list);
 
     list.clear();
     offset = readCommon(list, buffer, offset);
-    addToList(getList().size() - 1, list);
+    addFields(getFields().size() - 1, list);
 
     return offset;
   }
 
   /**
    * Creates a copy of the current structure, optionally converted to the EFF V1.0 format.
-   * @param asV2 {@code true} if result should be of {@link Effect} type.
+   * @param asV1 {@code true} if result should be of {@link Effect} type.
    * @return A copy of the current instance.
    * @throws Exception
    */
@@ -206,4 +206,3 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     return retVal;
   }
 }
-

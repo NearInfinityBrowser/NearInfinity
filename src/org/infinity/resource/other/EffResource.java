@@ -59,11 +59,11 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
     addField(type);
     List<StructEntry> list = new ArrayList<>();
     offset = type.readAttributes(buffer, offset + 20, list);
-    addToList(getList().size() - 1, list);
+    addFields(getFields().size() - 1, list);
 
     list.clear();
     Effect2.readCommon(list, buffer, offset);
-    addToList(getList().size() - 1, list);
+    addFields(getFields().size() - 1, list);
 
     return offset + 216;
   }

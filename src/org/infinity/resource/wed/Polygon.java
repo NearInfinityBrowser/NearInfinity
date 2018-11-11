@@ -98,7 +98,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
   {
     ((DecNumber)getAttribute(WED_POLY_VERTEX_INDEX)).setValue(startIndex);
     int count = 0;
-    for (final StructEntry entry : getList()) {
+    for (final StructEntry entry : getFields()) {
       if (entry instanceof Vertex) {
         entry.setOffset(offset);
         ((AbstractStruct)entry).realignStructOffsets();

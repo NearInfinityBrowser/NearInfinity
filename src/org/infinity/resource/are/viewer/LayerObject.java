@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -11,7 +11,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.EventListener;
-import java.util.List;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
@@ -236,21 +235,20 @@ public abstract class LayerObject
     if (superStruct != null && index >= 0 && count > 0 && type != null) {
       int idx = 0, cnt = 0;
       coords = new Point[count];
-      List<StructEntry> list = superStruct.getList();
-        for (int i = 0, size = list.size(); i < size; i++) {
-          if (list.get(i).getOffset() >= baseOfs && type.isAssignableFrom(list.get(i).getClass())) {
-            if (idx >= index) {
-              Vertex vertex = (Vertex)list.get(i);
-              coords[cnt] = new Point(((DecNumber)vertex.getAttribute(Vertex.VERTEX_X)).getValue(),
-                                      ((DecNumber)vertex.getAttribute(Vertex.VERTEX_Y)).getValue());
-              cnt++;
-              if (cnt >= count) {
-                break;
-              }
+      for (final StructEntry e : superStruct.getFields()) {
+        if (e.getOffset() >= baseOfs && type.isAssignableFrom(e.getClass())) {
+          if (idx >= index) {
+            final Vertex vertex = (Vertex)e;
+            coords[cnt] = new Point(((DecNumber)vertex.getAttribute(Vertex.VERTEX_X)).getValue(),
+                                    ((DecNumber)vertex.getAttribute(Vertex.VERTEX_Y)).getValue());
+            cnt++;
+            if (cnt >= count) {
+              break;
             }
-            idx++;
           }
+          idx++;
         }
+      }
 
       // filling up remaining coordinates with empty values (if any)
       for (int i = cnt; i < coords.length; i++) {

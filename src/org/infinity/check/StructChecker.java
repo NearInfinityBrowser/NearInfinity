@@ -206,7 +206,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
 
   private void search(ResourceEntry entry, AbstractStruct struct)
   {
-    List<StructEntry> flatList = struct.getFlatList();
+    final List<StructEntry> flatList = struct.getFlatFields();
     if (flatList.size() < 2) {
       return;
     }
@@ -350,10 +350,9 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
         int tileEndOfs = tileStartOfs + numTiles*tileSize;
         int indexEndOfs = indexStartOfs + 2*numTiles;
         // caching tile maps and tile lookup indices
-        HashMap<Integer, Tilemap> mapTiles = new HashMap<Integer, Tilemap>(numTiles*3/2, 0.8f);
-        HashMap<Integer, Integer> mapIndices = new HashMap<Integer, Integer>(numTiles*3/2, 0.8f);
-        for (Iterator<StructEntry> iter = overlay.getList().iterator(); iter.hasNext();) {
-          StructEntry item = iter.next();
+        final HashMap<Integer, Tilemap> mapTiles = new HashMap<>(numTiles*3/2, 0.8f);
+        final HashMap<Integer, Integer> mapIndices = new HashMap<>(numTiles*3/2, 0.8f);
+        for (final StructEntry item : overlay.getFields()) {
           int curOfs = item.getOffset();
           if (curOfs >= tileStartOfs && curOfs < tileEndOfs && item instanceof Tilemap) {
             int index = (curOfs - tileStartOfs) / item.getSize();

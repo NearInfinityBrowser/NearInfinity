@@ -226,7 +226,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeFlatList(os);
+    super.writeFlatFields(os);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -528,7 +528,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     }
 
     if (offset == 0) {
-      final StructEntry last = getList().get(getList().size() - 1);
+      final StructEntry last = getFields().get(getFields().size() - 1);
       offset = last.getOffset() + last.getSize();
     }
 
@@ -537,7 +537,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
   private void updateOffsets()
   {
-    for (final StructEntry o : getList()) {
+    for (final StructEntry o : getFields()) {
       if (o instanceof PartyNPC) {
         ((PartyNPC)o).updateCREOffset();
       }

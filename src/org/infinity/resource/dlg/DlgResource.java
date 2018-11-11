@@ -199,7 +199,7 @@ public final class DlgResource extends AbstractStruct
   @Override
   public void write(OutputStream os) throws IOException
   {
-    final List<StructEntry> fields = getList();
+    final List<StructEntry> fields = getFields();
     offsetState.setValue(0x30);
     if (fields.size() > 12 && fields.get(12).getName().equalsIgnoreCase(DLG_THREAT_RESPONSE))
       offsetState.setValue(0x34);
@@ -436,7 +436,7 @@ public final class DlgResource extends AbstractStruct
     final String name = dlg.getResourceEntry().getResourceName();
 
     boolean found = false;
-    for (final StructEntry e : getList()) {
+    for (final StructEntry e : getFields()) {
       if (!(e instanceof Transition)) continue;
 
       final Transition t = (Transition)e;
@@ -463,7 +463,7 @@ public final class DlgResource extends AbstractStruct
     final int number = trans.getNumber();
 
     boolean found = false;
-    for (final StructEntry e : getList()) {
+    for (final StructEntry e : getFields()) {
       if (!(e instanceof State)) continue;
 
       final State s = (State)e;

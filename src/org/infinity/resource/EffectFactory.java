@@ -450,7 +450,7 @@ public final class EffectFactory
         EnumMap<EffectEntry, Integer> map = new EnumMap<>(EffectEntry.class);
         boolean isV1 = (effType.getSize() == 2);
         int ofsOpcode = effType.getOffset();
-        int idxOpcode = struct.getList().indexOf(struct.getAttribute(ofsOpcode));
+        int idxOpcode = struct.getFields().indexOf(struct.getAttribute(ofsOpcode));
         if (isV1 && struct.getSize() >= 0x30) {
           // EFF V1.0
           map.put(EffectEntry.IDX_OPCODE, idxOpcode);
@@ -610,7 +610,7 @@ public final class EffectFactory
   public static StructEntry getEntryByIndex(AbstractStruct struct, int entryIndex) throws Exception
   {
     if (struct != null) {
-      return struct.getList().get(entryIndex);
+      return struct.getFields().get(entryIndex);
     } else
       throw new Exception("Invalid arguments specified");
   }
@@ -645,8 +645,8 @@ public final class EffectFactory
         EnumMap<EffectEntry, Integer> map = getEffectStructure(struct);
         if (map != null && map.containsKey(id)) {
           int idx = map.get(id);
-          if (idx >= 0 && idx < struct.getList().size()) {
-            return getEntryData(struct.getList().get(idx));
+          if (idx >= 0 && idx < struct.getFields().size()) {
+            return getEntryData(struct.getFields().get(idx));
           }
         }
       } catch (Exception e) {
@@ -671,7 +671,7 @@ public final class EffectFactory
         map != null && map.containsKey(index) && map.containsKey(offset)) {
       int idx = map.get(index);
       int ofs = map.get(offset);
-      final List<StructEntry> list = struct.getList();
+      final List<StructEntry> list = struct.getFields();
       if (idx >= 0 && idx < list.size() &&
           ofs >= struct.getOffset() && ofs < struct.getOffset() + struct.getSize()) {
         newEntry.setOffset(ofs);

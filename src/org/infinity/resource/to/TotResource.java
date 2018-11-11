@@ -55,7 +55,7 @@ public final class TotResource extends AbstractStruct implements Resource
     }
 
     int endoffset = offset;
-    for (final StructEntry entry : getList()) {
+    for (final StructEntry entry : getFields()) {
       if (entry.getOffset() + entry.getSize() > endoffset)
         endoffset = entry.getOffset() + entry.getSize();
     }

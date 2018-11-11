@@ -409,7 +409,7 @@ public final class Viewer extends JPanel
     {
       if (value instanceof AbstractStruct) {
         AbstractStruct struct = (AbstractStruct)value;
-        return struct.getName() + " (" + (struct.getList().size() - 2) + ')';
+        return struct.getName() + " (" + (struct.getFields().size() - 2) + ')';
       }
       if (value != null) {
         return value.toString();

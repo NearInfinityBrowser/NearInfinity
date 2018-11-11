@@ -343,7 +343,7 @@ public final class ViewerUtil
         list.setCellRenderer(renderer);
       }
       if (attrName == null) {
-        for (final StructEntry o : struct.getList()) {
+        for (final StructEntry o : struct.getFields()) {
           if (o.getClass() == listClass) {
             listModel.addElement(o);
           }
@@ -354,7 +354,7 @@ public final class ViewerUtil
           list.setCellRenderer(new StructListRenderer(attrName));
         }
         final List<AbstractStruct> templist = new ArrayList<>();
-        for (final StructEntry o : struct.getList()) {
+        for (final StructEntry o : struct.getFields()) {
           if (o.getClass() == listClass) {
             templist.add((AbstractStruct)o);
           }
@@ -407,7 +407,7 @@ public final class ViewerUtil
       if (event.getType() == TableModelEvent.DELETE) {
 
         // go through the list and find what was deleted
-        listModel.retainAll(struct.getList());
+        listModel.retainAll(struct.getFields());
         /*
         // Ineffective - any better solutions?
         if (comp == null) {
@@ -439,7 +439,7 @@ public final class ViewerUtil
         bOpen.setEnabled(!listModel.isEmpty() && listModel.get(0) instanceof Viewable);
       }
       else if (event.getType() == TableModelEvent.INSERT) {
-        final List<StructEntry> fields = struct.getList();
+        final List<StructEntry> fields = struct.getFields();
         for (int i = event.getFirstRow(); i <= event.getLastRow(); i++) {
           if (i >= fields.size()) {
             break;

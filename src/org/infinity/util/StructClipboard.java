@@ -106,7 +106,7 @@ public final class StructClipboard
   {
     copy(struct, firstIndex, lastIndex, false);
     for (int i = firstIndex; i <= lastIndex; i++) {
-      struct.removeDatatype((AddRemovable)struct.getList().get(firstIndex), true);
+      struct.removeDatatype((AddRemovable)struct.getFields().get(firstIndex), true);
     }
     fireStateChanged();
   }
@@ -194,7 +194,7 @@ public final class StructClipboard
 
   public int pasteValue(AbstractStruct struct, int index)
   {
-    final List<StructEntry> fields = struct.getList();
+    final List<StructEntry> fields = struct.getFields();
     for (int i = 0; i < contents.size(); i++) {
       final StructEntry oldEntry = fields.get(index + i);
       final StructEntry newEntry = contents.get(i);
@@ -207,7 +207,7 @@ public final class StructClipboard
         final StructEntry oldEntry = fields.get(index + i);
         final StructEntry newEntry = contents.get(i).clone();
         newEntry.copyNameAndOffset(oldEntry);
-        struct.setListEntry(index + i, newEntry);
+        struct.setField(index + i, newEntry);
       }
     } catch (CloneNotSupportedException e) {
       e.printStackTrace();
@@ -227,7 +227,7 @@ public final class StructClipboard
     this.contentsClass = struct.getClass();
     this.hasValues = hasValues;
     try {
-      for (final StructEntry entry : struct.getList().subList(firstIndex, lastIndex + 1)) {
+      for (final StructEntry entry : struct.getFields().subList(firstIndex, lastIndex + 1)) {
         contents.add(entry.clone());
       }
     } catch (CloneNotSupportedException e) {

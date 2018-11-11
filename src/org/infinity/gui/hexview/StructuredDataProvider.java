@@ -236,7 +236,7 @@ public class StructuredDataProvider implements IDataProvider
   public void reset()
   {
     close();
-    listStructures = getStruct().getFlatList();
+    listStructures = getStruct().getFlatFields();
     dataSize = 0;
     for (final StructEntry e: listStructures) {
       dataSize = Math.max(dataSize, e.getOffset()+e.getSize());

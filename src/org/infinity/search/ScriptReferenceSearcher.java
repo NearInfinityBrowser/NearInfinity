@@ -53,7 +53,7 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
     final String name = targetEntry.getResourceName();
-    for (final StructEntry o : struct.getList()) {
+    for (final StructEntry o : struct.getFields()) {
       if (o instanceof ResourceRef &&
           ((ResourceRef)o).getResourceName().equalsIgnoreCase(name)) {
         if (struct instanceof CreResource) {

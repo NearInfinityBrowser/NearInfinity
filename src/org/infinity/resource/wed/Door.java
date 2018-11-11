@@ -95,7 +95,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
 
   public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
-    for (final StructEntry o : getList()) {
+    for (final StructEntry o : getFields()) {
       if (o instanceof Polygon)
         ((Polygon)o).readVertices(buffer, offset);
     }
@@ -104,7 +104,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
   public void updatePolygonsOffset(int offset)
   {
     int polyOffset = Integer.MAX_VALUE;
-    for (final StructEntry o : getList()) {
+    for (final StructEntry o : getFields()) {
       if (o instanceof Polygon) {
         polyOffset = Math.min(polyOffset, ((Polygon)o).getOffset());
       }
@@ -113,13 +113,13 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
       offset = polyOffset;
     }
     ((SectionOffset)getAttribute(WED_DOOR_OFFSET_POLYGONS_OPEN)).setValue(offset);
-    for (final StructEntry o : getList()) {
+    for (final StructEntry o : getFields()) {
       if (o instanceof OpenPolygon) {
         offset += 18;
       }
     }
     ((SectionOffset)getAttribute(WED_DOOR_OFFSET_POLYGONS_CLOSED)).setValue(offset);
-    for (final StructEntry o : getList()) {
+    for (final StructEntry o : getFields()) {
       if (o instanceof ClosedPolygon) {
         offset += 18;
       }

@@ -59,12 +59,12 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   public void write(OutputStream os) throws IOException
   {
     super.write(os);
-    for (final StructEntry o : getList()) {
+    for (final StructEntry o : getFields()) {
       if (o instanceof Window) {
         ((Window)o).writeControlsTable(os);
       }
     }
-    for (final StructEntry o : getList()) {
+    for (final StructEntry o : getFields()) {
       if (o instanceof Window) {
         ((Window)o).writeControls(os);
       }

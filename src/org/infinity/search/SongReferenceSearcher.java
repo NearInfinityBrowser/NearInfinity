@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -114,7 +114,7 @@ public class SongReferenceSearcher extends AbstractReferenceSearcher
   {
     if (pattern == null) { return; }
 
-    for (final StructEntry e : dlg.getList()) {
+    for (final StructEntry e : dlg.getFields()) {
       if (e instanceof AbstractCode) {
         String text = ((AbstractCode)e).getText();
         searchText(entry, e, text);
@@ -140,7 +140,7 @@ public class SongReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
-    for (final StructEntry e : struct.getFlatList()) {
+    for (final StructEntry e : struct.getFlatFields()) {
       if (e instanceof Song2daBitmap) {
         if (songId == ((Song2daBitmap)e).getLongValue()) {
           addHit(entry, String.format("%s (%d)", targetEntry.getResourceName(), songId), e);

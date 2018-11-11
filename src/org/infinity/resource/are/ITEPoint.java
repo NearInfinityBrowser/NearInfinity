@@ -129,7 +129,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
   {
     ((DecNumber)getAttribute(ARE_TRIGGER_FIRST_VERTEX_INDEX)).setValue(number);
     int count = 0;
-    for (final StructEntry entry : getList()) {
+    for (final StructEntry entry : getFields()) {
       if (entry instanceof Vertex) {
         entry.setOffset(offset);
         ((Vertex)entry).realignStructOffsets();

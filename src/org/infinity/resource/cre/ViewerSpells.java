@@ -107,12 +107,12 @@ final class ViewerSpells extends JPanel implements ActionListener
     private void updateTable()
     {
       list.clear();
-      for (final StructEntry o : cre.getList()) {
+      for (final StructEntry o : cre.getFields()) {
         if (o instanceof SpellMemorization) {
           SpellMemorization inf = (SpellMemorization)o;
           int type = ((IsNumeric)inf.getAttribute(SpellMemorization.CRE_MEMORIZATION_TYPE)).getValue();
           int lvl = ((IsNumeric)inf.getAttribute(SpellMemorization.CRE_MEMORIZATION_LEVEL)).getValue();
-          for (final StructEntry p : inf.getList()) {
+          for (final StructEntry p : inf.getFields()) {
             if (p instanceof MemorizedSpells) {
               MemorizedSpells spell = (MemorizedSpells)p;
               addSpell(type, lvl, (ResourceRef)spell.getAttribute(MemorizedSpells.CRE_MEMORIZED_RESREF));

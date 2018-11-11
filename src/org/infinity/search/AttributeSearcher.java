@@ -235,7 +235,7 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof AbstractStruct) {
         final AbstractStruct struct = (AbstractStruct)resource;
-        for (StructEntry searchEntry : struct.getFlatList()) {
+        for (final StructEntry searchEntry : struct.getFlatFields()) {
           // skipping fields located in different parent structures
           if (structEntry.getParent().getClass() != searchEntry.getParent().getClass()) {
             continue;

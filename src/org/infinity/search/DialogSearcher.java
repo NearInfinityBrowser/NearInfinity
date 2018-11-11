@@ -225,7 +225,7 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
   private Map<StructEntry, StructEntry> makeSearchMap(AbstractStruct struct)
   {
     final SortedMap<StructEntry, StructEntry> map = new TreeMap<>();
-    for (final StructEntry entry : struct.getList()) {
+    for (final StructEntry entry : struct.getFields()) {
       if (entry instanceof AbstractStruct)
         map.putAll(makeSearchMap((AbstractStruct)entry));
       else if (cbsearchcode.isSelected() && entry instanceof AbstractCode)

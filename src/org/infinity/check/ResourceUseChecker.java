@@ -275,7 +275,7 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
 
   private void checkDialog(DlgResource dialog)
   {
-    for (StructEntry entry : dialog.getList()) {
+    for (final StructEntry entry : dialog.getFields()) {
       if (entry instanceof ResourceRef) {
         checkResourceRef((ResourceRef)entry);
       }
@@ -292,7 +292,7 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
       }
       else if (checkType.equalsIgnoreCase("WAV") &&
                (entry instanceof State || entry instanceof Transition)) {
-        for (StructEntry e : ((AbstractStruct)entry).getFlatList()) {
+        for (final StructEntry e : ((AbstractStruct)entry).getFlatFields()) {
           if (e instanceof StringRef) {
             checkSound((StringRef)e);
           }
@@ -312,7 +312,7 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
 
   private void checkStruct(AbstractStruct struct)
   {
-    for (StructEntry entry : struct.getFlatList()) {
+    for (final StructEntry entry : struct.getFlatFields()) {
       if (entry instanceof ResourceRef) {
         checkResourceRef((ResourceRef)entry);
       }

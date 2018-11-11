@@ -153,36 +153,36 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       // add/remove extended sections in the parent structure depending on the current value
       if (struct instanceof Resource && struct instanceof HasAddRemovable) {
         if (proType.getValue() == 3L) {         // area of effect
-          StructEntry entry = struct.getList().get(struct.getList().size() - 1);
+          StructEntry entry = struct.getFields().get(struct.getFields().size() - 1);
           try {
             if (!(entry instanceof ProSingleType) && !(entry instanceof ProAreaType))
-              struct.addDatatype(new ProSingleType(), struct.getList().size());
-            entry = struct.getList().get(struct.getList().size() - 1);
+              struct.addDatatype(new ProSingleType(), struct.getFields().size());
+            entry = struct.getFields().get(struct.getFields().size() - 1);
             if (!(entry instanceof ProAreaType))
-              struct.addDatatype(new ProAreaType(), struct.getList().size());
+              struct.addDatatype(new ProAreaType(), struct.getFields().size());
           } catch (Exception e) {
             e.printStackTrace();
             return false;
           }
         } else if (proType.getValue() == 2L) {  // single target
-          StructEntry entry = struct.getList().get(struct.getList().size() - 1);
+          StructEntry entry = struct.getFields().get(struct.getFields().size() - 1);
           if (entry instanceof ProAreaType)
             struct.removeDatatype((AddRemovable)entry, false);
-          entry = struct.getList().get(struct.getList().size() - 1);
+          entry = struct.getFields().get(struct.getFields().size() - 1);
           if (!(entry instanceof ProSingleType)) {
             try {
-              struct.addDatatype(new ProSingleType(), struct.getList().size());
+              struct.addDatatype(new ProSingleType(), struct.getFields().size());
             } catch (Exception e) {
               e.printStackTrace();
               return false;
             }
           }
         } else if (proType.getValue() == 1L) {  // no bam
-          if (struct.getList().size() > 2) {
-            StructEntry entry = struct.getList().get(struct.getList().size() - 1);
+          if (struct.getFields().size() > 2) {
+            StructEntry entry = struct.getFields().get(struct.getFields().size() - 1);
             if (entry instanceof ProAreaType)
               struct.removeDatatype((AddRemovable)entry, false);
-            entry = struct.getList().get(struct.getList().size() - 1);
+            entry = struct.getFields().get(struct.getFields().size() - 1);
             if (entry instanceof ProSingleType)
               struct.removeDatatype((AddRemovable)entry, false);
           }
@@ -360,8 +360,8 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
         final StructEntry newValue = newType.createCreatureValueFromType(valueBuffer, 0);
         newValue.setOffset(offset);
 
-        replaceEntry(newValue);
-        replaceEntry(newType);
+        replaceField(newValue);
+        replaceField(newType);
         return true;
       }
     }
@@ -382,8 +382,8 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
         final StructEntry newValue = newType.createIdsValueFromType(valueBuffer, 0);
         newValue.setOffset(offset);
 
-        replaceEntry(newValue);
-        replaceEntry(newType);
+        replaceField(newValue);
+        replaceField(newType);
         return true;
       }
     }

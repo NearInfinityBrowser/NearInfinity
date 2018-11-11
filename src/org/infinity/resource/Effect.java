@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -47,9 +47,9 @@ public final class Effect extends AbstractStruct implements AddRemovable
   {
     EffectType type = new EffectType(buffer, offset, 2);
     addField(type);
-    List<StructEntry> list = new ArrayList<StructEntry>();
+    final List<StructEntry> list = new ArrayList<>();
     offset = type.readAttributes(buffer, offset + 2, list);
-    addToList(getList().size() - 1, list);
+    addFields(getFields().size() - 1, list);
     return offset;
   }
 
@@ -125,4 +125,3 @@ public final class Effect extends AbstractStruct implements AddRemovable
     return retVal;
   }
 }
-

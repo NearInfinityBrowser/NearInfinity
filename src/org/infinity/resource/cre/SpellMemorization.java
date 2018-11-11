@@ -110,7 +110,7 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
   {
     ((DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_TABLE_INDEX)).setValue(startIndex);
     int count = 0;
-    for (final StructEntry entry : getList()) {
+    for (final StructEntry entry : getFields()) {
       if (entry instanceof MemorizedSpells) {
         entry.setOffset(offset);
         ((AbstractStruct)entry).realignStructOffsets();

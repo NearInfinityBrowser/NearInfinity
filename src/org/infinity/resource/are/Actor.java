@@ -180,7 +180,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
 
   void updateCREOffset()
   {
-    final StructEntry entry = getList().get(getList().size() - 1);
+    final StructEntry entry = getFields().get(getFields().size() - 1);
     if (entry instanceof CreResource)
       ((HexNumber)getAttribute(ARE_ACTOR_OFFSET_CRE_STRUCTURE)).setValue(entry.getOffset());
   }

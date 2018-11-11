@@ -200,7 +200,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
 
   private void checkDialog(DlgResource dialog)
   {
-    for (final StructEntry entry : dialog.getFlatList()) {
+    for (final StructEntry entry : dialog.getFlatFields()) {
       if (entry instanceof StringRef) {
         final int strref = ((StringRef)entry).getValue();
         if (strref < -1 || strref >= strrefCount) {
@@ -270,7 +270,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
 
   private void checkStruct(AbstractStruct struct)
   {
-    for (final StructEntry entry : struct.getFlatList()) {
+    for (final StructEntry entry : struct.getFlatFields()) {
       if (entry instanceof StringRef) {
         final int strref = ((StringRef)entry).getValue();
         if (strref < -1 || strref >= strrefCount) {

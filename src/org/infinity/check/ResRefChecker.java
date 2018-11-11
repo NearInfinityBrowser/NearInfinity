@@ -66,7 +66,7 @@ public final class ResRefChecker extends AbstractChecker
 
   private void search(ResourceEntry entry, AbstractStruct struct)
   {
-    for (StructEntry e : struct.getFlatList()) {
+    for (final StructEntry e : struct.getFlatFields()) {
       if (!(e instanceof ResourceRef)) { continue; }
 
       final ResourceRef ref = (ResourceRef)e;

@@ -576,7 +576,7 @@ public final class CreResource extends AbstractStruct
 
   private static void adjustEntryOffsets(AbstractStruct struct, int amount)
   {
-    for (final StructEntry structEntry : struct.getList()) {
+    for (final StructEntry structEntry : struct.getFields()) {
       structEntry.setOffset(structEntry.getOffset() + amount);
       if (structEntry instanceof AbstractStruct)
         adjustEntryOffsets((AbstractStruct)structEntry, amount);
@@ -593,7 +593,7 @@ public final class CreResource extends AbstractStruct
     if (path != null) {
       try {
         CreResource crefile = (CreResource)ResourceFactory.getResource(resourceEntry);
-        while (!crefile.getList().get(0).toString().equals("CRE ")) {
+        while (!crefile.getFields().get(0).toString().equals("CRE ")) {
           crefile.removeField(0);
         }
         convertToSemiStandard(crefile);
@@ -612,7 +612,7 @@ public final class CreResource extends AbstractStruct
 
   private static void convertToSemiStandard(CreResource crefile)
   {
-    final List<StructEntry> fields = crefile.getList();
+    final List<StructEntry> fields = crefile.getFields();
     if (!fields.get(1).toString().equals("V1.0")) {
       System.err.println("Conversion to semi-standard aborted: Unsupported CRE version");
       return;
@@ -656,7 +656,7 @@ public final class CreResource extends AbstractStruct
     for (int i = indexStructs; i < fields.size(); i++) {
       StructEntry entry = fields.get(i);
       if (entry instanceof SpellMemorization) {
-        offsetStructs = copyStruct(((SpellMemorization)entry).getList(), trashlist, 0, offsetStructs, MemorizedSpells.class);
+        offsetStructs = copyStruct(((SpellMemorization)entry).getFields(), trashlist, 0, offsetStructs, MemorizedSpells.class);
       }
     }
 
@@ -836,7 +836,7 @@ public final class CreResource extends AbstractStruct
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeFlatList(os);
+    super.writeFlatFields(os);
   }
 
 
@@ -1416,7 +1416,7 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 102, 2, CRE_SELECTED_WEAPON_ABILITY));
 
     int endoffset = offset;
-    for (final StructEntry entry : getList()) {
+    for (final StructEntry entry : getFields()) {
       if (entry.getOffset() + entry.getSize() > endoffset) {
         endoffset = entry.getOffset() + entry.getSize();
       }
@@ -1915,7 +1915,7 @@ public final class CreResource extends AbstractStruct
       }
     }
     int endoffset = offset;
-    for (final StructEntry entry : getList()) {
+    for (final StructEntry entry : getFields()) {
       if (entry.getOffset() + entry.getSize() > endoffset) {
         endoffset = entry.getOffset() + entry.getSize();
       }
@@ -1928,7 +1928,7 @@ public final class CreResource extends AbstractStruct
     // Assumes memorized spells offset is correct
     int offset = ((HexNumber)getAttribute(CRE_OFFSET_MEMORIZED_SPELLS)).getValue() + getExtraOffset();
     int count = 0;
-    for (final StructEntry o : getList()) {
+    for (final StructEntry o : getFields()) {
       if (o instanceof SpellMemorization) {
         SpellMemorization info = (SpellMemorization)o;
         int numSpells = info.updateSpells(offset, count);
@@ -1941,7 +1941,7 @@ public final class CreResource extends AbstractStruct
 
   private void updateOffsets(AddRemovable datatype, int size)
   {
-    if (getList().get(0).toString().equalsIgnoreCase("CHR "))
+    if (getFields().get(0).toString().equalsIgnoreCase("CHR "))
       ((HexNumber)getAttribute(CHR_CRE_SIZE)).incValue(size);
 //    if (!(datatype instanceof MemorizedSpells)) {
 //      HexNumber offsetMemSpells = (HexNumber)getAttribute("Memorized spells offset");

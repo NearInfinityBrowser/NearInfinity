@@ -348,7 +348,7 @@ public abstract class AbstractAbility extends AbstractStruct
   @Override
   public void write(OutputStream os) throws IOException
   {
-    for (final StructEntry w : getList()) {
+    for (final StructEntry w : getFields()) {
       if (w instanceof Effect) {
         return;
       }
@@ -396,7 +396,7 @@ public abstract class AbstractAbility extends AbstractStruct
 
   public void writeEffects(OutputStream os) throws IOException
   {
-    for (final StructEntry w : getList()) {
+    for (final StructEntry w : getFields()) {
       if (w instanceof Effect) {
         w.write(os);
       }

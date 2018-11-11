@@ -215,7 +215,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
 
   private void checkDialog(DlgResource dialog)
   {
-    for (StructEntry entry : dialog.getFlatList()) {
+    for (final StructEntry entry : dialog.getFlatFields()) {
       if (entry instanceof StringRef) {
         checkStringRef((StringRef)entry);
       }
@@ -244,7 +244,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
 
   private void checkStruct(AbstractStruct struct)
   {
-    for (StructEntry entry : struct.getFlatList()) {
+    for (final StructEntry entry : struct.getFlatFields()) {
       if (entry instanceof StringRef) {
         checkStringRef((StringRef)entry);
       }

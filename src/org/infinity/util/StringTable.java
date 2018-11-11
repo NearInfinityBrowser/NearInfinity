@@ -1654,7 +1654,7 @@ public class StringTable
 
     public void clearList()
     {
-      if (!getList().isEmpty()) {
+      if (!getFields().isEmpty()) {
         clearFields();
       }
     }
@@ -1662,7 +1662,7 @@ public class StringTable
     public void fillList(int index)
     {
       try {
-        if (getList().isEmpty()) {
+        if (getFields().isEmpty()) {
           ByteBuffer buffer = StreamUtils.getByteBuffer(26);
           buffer.position(0);
           buffer.putShort(flags);

@@ -48,7 +48,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
     super(new BorderLayout(0, 3));
     final List<Item> items = new ArrayList<>();
     HexNumber slots_offset = (HexNumber)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS);
-    for (final StructEntry entry : cre.getList()) {
+    for (final StructEntry entry : cre.getFields()) {
       if (entry instanceof Item)
         items.add((Item)entry);
       else if (entry.getOffset() >= slots_offset.getValue() + cre.getOffset() &&
@@ -149,10 +149,10 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
   {
     if (event.getType() == TableModelEvent.UPDATE) {
       CreResource cre = (CreResource)event.getSource();
-      final StructEntry changed = cre.getList().get(event.getFirstRow());
+      final StructEntry changed = cre.getFields().get(event.getFirstRow());
       if (slots.contains(changed)) {
         final List<Item> items = new ArrayList<>();
-        for (final StructEntry entry : cre.getList()) {
+        for (final StructEntry entry : cre.getFields()) {
           if (entry instanceof Item)
             items.add((Item)entry);
         }

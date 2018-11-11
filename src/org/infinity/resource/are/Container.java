@@ -154,7 +154,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
   {
     ((DecNumber)getAttribute(ARE_CONTAINER_FIRST_VERTEX_INDEX)).setValue(number);
     int count = 0;
-    for (final StructEntry entry : getList()) {
+    for (final StructEntry entry : getFields()) {
       if (entry instanceof Vertex) {
         entry.setOffset(offset);
         ((Vertex)entry).realignStructOffsets();
@@ -202,7 +202,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
   {
     ((DecNumber)getAttribute(ARE_CONTAINER_FIRST_ITEM_INDEX)).setValue(number);
     int count = 0;
-    for (final StructEntry entry : getList()) {
+    for (final StructEntry entry : getFields()) {
       if (entry instanceof Item) {
         entry.setOffset(offset);
         ((Item)entry).realignStructOffsets();
