@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -175,14 +175,14 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     if (datatype instanceof Vertex) {
       int index = ((DecNumber)getAttribute(ARE_CONTAINER_FIRST_VERTEX_INDEX)).getValue();
       index += ((DecNumber)getAttribute(ARE_CONTAINER_NUM_VERTICES)).getValue();
-      int offset = ((HexNumber)getSuperStruct().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+      final int offset = ((HexNumber)getParent().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
       datatype.setOffset(offset + 4 * index);
       ((AbstractStruct)datatype).realignStructOffsets();
     }
     else if (datatype instanceof Item) {
       int index = ((DecNumber)getAttribute(ARE_CONTAINER_FIRST_ITEM_INDEX)).getValue();
       index += ((DecNumber)getAttribute(ARE_CONTAINER_NUM_ITEMS)).getValue();
-      int offset = ((HexNumber)getSuperStruct().getAttribute(AreResource.ARE_OFFSET_ITEMS)).getValue();
+      final int offset = ((HexNumber)getParent().getAttribute(AreResource.ARE_OFFSET_ITEMS)).getValue();
       datatype.setOffset(offset + 20 * index);
       ((AbstractStruct)datatype).realignStructOffsets();
     }
@@ -249,4 +249,3 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     return offset + 192;
   }
 }
-

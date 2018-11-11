@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.wed;
@@ -81,7 +81,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof RemovableDecNumber) {
-      int offset = ((HexNumber)getSuperStruct().getAttribute(WedResource.WED_OFFSET_DOOR_TILEMAP_LOOKUP)).getValue();
+      final int offset = ((HexNumber)getParent().getAttribute(WedResource.WED_OFFSET_DOOR_TILEMAP_LOOKUP)).getValue();
       int index = getTilemapIndex().getValue();
       datatype.setOffset(offset + index * 2);
     }
@@ -157,8 +157,8 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
       addField(new ClosedPolygon(this, buffer, offsetClosed.getValue() + 18 * i, i));
     }
 
-    if (getSuperStruct() != null) {
-      HexNumber offsetTileCell = (HexNumber)getSuperStruct().getAttribute(WedResource.WED_OFFSET_DOOR_TILEMAP_LOOKUP);
+    if (getParent() != null) {
+      final HexNumber offsetTileCell = (HexNumber)getParent().getAttribute(WedResource.WED_OFFSET_DOOR_TILEMAP_LOOKUP);
       for (int i = 0; i < countTileCell.getValue(); i++) {
         addField(new RemovableDecNumber(buffer, offsetTileCell.getValue() +
                                                 2 * (indexTileCell.getValue() + i), 2,
@@ -168,4 +168,3 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
     return offset + 26;
   }
 }
-

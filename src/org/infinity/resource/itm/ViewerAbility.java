@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.itm;
@@ -20,7 +20,6 @@ import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.AbstractAbility;
-import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Effect;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.StringTable;
@@ -113,10 +112,7 @@ final class ViewerAbility extends JPanel
     Table2da table = Table2daCache.get("tooltip.2da");
     if (table != null) {
       // getting parent item resref
-      String resref = null;
-      if (ability.getParent() instanceof AbstractStruct) {
-        resref = ((AbstractStruct)ability.getParent()).getResourceEntry().getResourceName();
-      }
+      String resref = ability.getParent().getResourceEntry().getResourceName();
       if (resref.lastIndexOf('.') > 0) {
         resref = resref.substring(0, resref.lastIndexOf('.'));
       }
@@ -156,4 +152,3 @@ final class ViewerAbility extends JPanel
     return retVal;
   }
 }
-

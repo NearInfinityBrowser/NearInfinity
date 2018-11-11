@@ -238,9 +238,9 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   }
 
   @Override
-  public StructEntry getParent()
+  public AbstractStruct getParent()
   {
-    return getSuperStruct();
+    return superStruct;
   }
 
   @Override
@@ -289,12 +289,14 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   }
 
   @Override
-  public void setParent(StructEntry parent)
+  public void setParent(AbstractStruct parent)
   {
-    if (parent instanceof AbstractStruct) {
-      setSuperStruct((AbstractStruct)parent);
-    } else {
-      setSuperStruct(null);
+    if (superStruct != null) {
+      removePropertyChangeListener(superStruct);
+    }
+    superStruct = parent;
+    if (parent != null) {
+      addPropertyChangeListener(parent);
     }
   }
   //</editor-fold>
@@ -760,11 +762,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return entry;
   }
 
-  public AbstractStruct getSuperStruct()
-  {
-    return superStruct;
-  }
-
   public AbstractStruct getSuperStruct(StructEntry structEntry)
   {
     for (final StructEntry e : list) {
@@ -786,12 +783,12 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public boolean isChildOf(Class<? extends AbstractStruct> struct)
   {
     if (struct != null) {
-      AbstractStruct parent = getSuperStruct();
+      AbstractStruct parent = superStruct;
       while (parent != null) {
         if (struct.isInstance(parent)) {
           return true;
         }
-        parent = parent.getSuperStruct();
+        parent = parent.superStruct;
       }
     }
     return false;
@@ -1151,17 +1148,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       list = newList;
     } else {
       list.clear();
-    }
-  }
-
-  protected void setSuperStruct(AbstractStruct struct)
-  {
-    if (superStruct != null) {
-      removePropertyChangeListener(struct);
-    }
-    this.superStruct = struct;
-    if (struct != null) {
-      addPropertyChangeListener(struct);
     }
   }
 

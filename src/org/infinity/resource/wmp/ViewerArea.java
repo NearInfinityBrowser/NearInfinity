@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.wmp;
@@ -47,7 +47,7 @@ final class ViewerArea extends JPanel implements ActionListener
     JPanel flagPanel = ViewerUtil.makeCheckPanel((Flag)areaEntry.getAttribute(AreaEntry.WMP_AREA_FLAGS), 1);
     JPanel infoPane = makeInfoPanel(areaEntry);
     JComponent icon = ViewerUtil.makeBamPanel(
-            (ResourceRef)areaEntry.getSuperStruct().getAttribute(MapEntry.WMP_MAP_ICONS),
+            (ResourceRef)areaEntry.getParent().getAttribute(MapEntry.WMP_MAP_ICONS),
             ((DecNumber)areaEntry.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue(),
             0);
     JPanel linkPanelN = ViewerUtil.makeListPanel("North links", areaEntry, AreaLinkNorth.class, AreaLink.WMP_LINK_TARGET_ENTRANCE);
@@ -99,4 +99,3 @@ final class ViewerArea extends JPanel implements ActionListener
 
 // --------------------- End Interface ActionListener ---------------------
 }
-

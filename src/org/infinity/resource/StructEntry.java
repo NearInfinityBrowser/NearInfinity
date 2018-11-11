@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -23,7 +23,7 @@ public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeab
   int getOffset();
 
   /** Returns entry which owns this entry or {@code null} if this entry on top of hierarchy. */
-  StructEntry getParent();
+  AbstractStruct getParent();
 
   /**
    * Returns byte count of serialized value of this object.
@@ -40,6 +40,5 @@ public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeab
 
   void setOffset(int newoffset);
 
-  void setParent(StructEntry parent);
+  void setParent(AbstractStruct parent);
 }
-

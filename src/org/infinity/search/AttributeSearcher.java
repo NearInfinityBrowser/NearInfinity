@@ -60,8 +60,8 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
   {
     super(SEARCH_ONE_TYPE_FORMAT, parent);
     this.structEntry = structEntry;
-    while (struct.getSuperStruct() != null)
-      struct = struct.getSuperStruct();
+    while (struct.getParent() != null)
+      struct = struct.getParent();
     files = ResourceFactory.getResources(struct.getResourceEntry().getExtension());
     inputFrame = new ChildFrame("Find: " + structEntry.getName(), true);
     inputFrame.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
@@ -264,10 +264,10 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
                 // creating a path of structures
                 final ArrayList<String> list = new ArrayList<>();
                 while (superStruct != null) {
-                  if (superStruct.getSuperStruct() != null) {
+                  if (superStruct.getParent() != null) {
                     list.add(0, superStruct.getName());
                   }
-                  superStruct = superStruct.getSuperStruct();
+                  superStruct = superStruct.getParent();
                 }
                 list.add(0, entry.getSearchString());
 

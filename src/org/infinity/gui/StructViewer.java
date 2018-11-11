@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -350,7 +350,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miFindAttribute = new JMenuItem("selected attribute");
       miFindAttribute.setEnabled(false);
       miFindReferences = new JMenuItem("references to this file");
-      miFindReferences.setEnabled(struct instanceof Resource && struct.getSuperStruct() == null);
+      miFindReferences.setEnabled(struct instanceof Resource && struct.getParent() == null);
       miFindStateReferences = new JMenuItem("references to this state");
       miFindStateReferences.setEnabled(false);
       miFindRefToItem = new JMenuItem("references to selected item in this file");
@@ -362,14 +362,14 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miFindAttribute = new JMenuItem("selected attribute");
       miFindAttribute.setEnabled(false);
       miFindReferences = new JMenuItem("references to this file");
-      miFindReferences.setEnabled(struct instanceof Resource && struct.getSuperStruct() == null);
+      miFindReferences.setEnabled(struct instanceof Resource && struct.getParent() == null);
       bpmFind.setMenuItems(new JMenuItem[]{miFindAttribute, miFindReferences});
     }
     JButton bView = (JButton)buttonPanel.addControl(ButtonPanel.Control.VIEW_EDIT);
     bView.setEnabled(false);
     bView.addActionListener(this);
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.PRINT)).addActionListener(this);
-    if (struct instanceof Resource && struct.getFieldCount() > 0 && struct.getSuperStruct() == null) {
+    if (struct instanceof Resource && struct.getFieldCount() > 0 && struct.getParent() == null) {
       ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
       ((JButton)buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
     }
@@ -421,10 +421,10 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       }
 
       add(tabbedPane, BorderLayout.CENTER);
-      if (struct.getSuperStruct() != null && struct.getSuperStruct() instanceof HasViewerTabs) {
-        StructViewer sViewer = struct.getSuperStruct().getViewer();
+      if (struct.getParent() instanceof HasViewerTabs) {
+        StructViewer sViewer = struct.getParent().getViewer();
         if (sViewer == null) {
-          sViewer = struct.getSuperStruct().getSuperStruct().getViewer();
+          sViewer = struct.getParent().getParent().getViewer();
         }
         if (sViewer != null && sViewer.tabbedPane != null) {
           tabbedPane.setSelectedIndex(sViewer.tabbedPane.getSelectedIndex());
@@ -1383,7 +1383,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     final int offset = entry.getValue();
     final StructEntry field = struct.getAttribute(offset, entry.getSection());
     if (field != null) {
-      final AbstractStruct parent = (AbstractStruct)field.getParent();
+      final AbstractStruct parent = field.getParent();
       if (parent != struct) {
         new ViewFrame(this, parent);
       }
