@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
@@ -409,12 +409,12 @@ public final class Viewer extends JPanel
     {
       if (value instanceof AbstractStruct) {
         AbstractStruct struct = (AbstractStruct)value;
-        return struct.getName() + " (" + (struct.getFieldCount() - 2) + ')';
-      } else if (value != null) {
+        return struct.getName() + " (" + (struct.getList().size() - 2) + ')';
+      }
+      if (value != null) {
         return value.toString();
       }
       return "";
     }
   }
 }
-

@@ -245,8 +245,7 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
     return () -> {
       try {
         final DlgResource dialog = new DlgResource(entry);
-        for (int i = 0; i < dialog.getFieldCount(); ++i) {
-          final StructEntry o = dialog.getField(i);
+        for (final StructEntry o : dialog.getList()) {
           if (o instanceof AbstractCode) {
             checkCode(entry, (AbstractCode)o);
           } else

@@ -57,12 +57,11 @@ final class Window extends AbstractStruct // implements AddRemovable
   public void write(OutputStream os) throws IOException
   {
     Collections.sort(getList());
-    for (int i = 0; i < getFieldCount(); i++) {
-      StructEntry entry = getField(i);
-      if (entry instanceof Control)
+    for (final StructEntry entry : getList()) {
+      if (entry instanceof Control) {
         break;
-      else
-        entry.write(os);
+      }
+      entry.write(os);
     }
   }
 
@@ -140,8 +139,7 @@ final class Window extends AbstractStruct // implements AddRemovable
 
   public void writeControls(OutputStream os) throws IOException
   {
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getList()) {
       if (o instanceof Control) {
         ((Control)o).writeControl(os);
       }
@@ -150,8 +148,7 @@ final class Window extends AbstractStruct // implements AddRemovable
 
   public void writeControlsTable(OutputStream os) throws IOException
   {
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getList()) {
       if (o instanceof Control) {
         ((Control)o).write(os);
       }

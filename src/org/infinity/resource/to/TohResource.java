@@ -108,8 +108,7 @@ public final class TohResource extends AbstractStruct implements Resource
     }
 
     int endoffset = offset;
-    for (int i = 0; i < getFieldCount(); i++) {
-      StructEntry entry = getField(i);
+    for (final StructEntry entry : getList()) {
       if (entry.getOffset() + entry.getSize() > endoffset)
         endoffset = entry.getOffset() + entry.getSize();
     }

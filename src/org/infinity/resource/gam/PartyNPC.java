@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.gam;
@@ -184,7 +184,8 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
   @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
-    ((DecNumber)getAttribute(GAM_NPC_CRE_SIZE)).setValue(getField(getFieldCount() - 1).getSize());
+    final StructEntry last = getList().get(getList().size() - 1);
+    ((DecNumber)getAttribute(GAM_NPC_CRE_SIZE)).setValue(last.getSize());
     super.datatypeAddedInChild(child, datatype);
   }
 
@@ -200,13 +201,14 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
   @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
-    ((DecNumber)getAttribute(GAM_NPC_CRE_SIZE)).setValue(getField(getFieldCount() - 1).getSize());
+    final StructEntry last = getList().get(getList().size() - 1);
+    ((DecNumber)getAttribute(GAM_NPC_CRE_SIZE)).setValue(last.getSize());
     super.datatypeRemovedInChild(child, datatype);
   }
 
   void updateCREOffset()
   {
-    StructEntry entry = getField(getFieldCount() - 1);
+    final StructEntry entry = getList().get(getList().size() - 1);
     if (entry instanceof CreResource)
       ((HexNumber)getAttribute(GAM_NPC_OFFSET_CRE)).setValue(entry.getOffset());
   }
@@ -474,4 +476,3 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
     return StreamUtils.getByteBuffer(size);
   }
 }
-

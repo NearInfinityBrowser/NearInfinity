@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -74,8 +74,7 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchDialog(ResourceEntry entry, AbstractStruct dialog)
   {
-    for (int i = 0; i < dialog.getFieldCount(); i++) {
-      final StructEntry o = dialog.getField(i);
+    for (final StructEntry o : dialog.getList()) {
       if (o instanceof StringRef && ((StringRef)o).getValue() == searchvalue) {
         addHit(entry, entry.getSearchString(), o);
       } else if (o instanceof AbstractCode) {
@@ -107,8 +106,7 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchSavStruct(ResourceEntry entry, ResourceEntry saventry, AbstractStruct struct)
   {
-    for (int i = 0; i < struct.getFieldCount(); i++) {
-      StructEntry o = struct.getField(i);
+    for (final StructEntry o : struct.getList()) {
       if (o instanceof StringRef && ((StringRef)o).getValue() == searchvalue)
         addHit(entry, saventry.toString(), o);
       else if (o instanceof AbstractStruct)
@@ -151,8 +149,7 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
    */
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
-    for (int i = 0; i < struct.getFieldCount(); i++) {
-      StructEntry o = struct.getField(i);
+    for (final StructEntry o : struct.getList()) {
       if (o instanceof StringRef && ((StringRef)o).getValue() == searchvalue)
         addHit(entry, entry.getSearchString(), o);
       else if (o instanceof AbstractStruct)
@@ -171,4 +168,3 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
     }
   }
 }
-

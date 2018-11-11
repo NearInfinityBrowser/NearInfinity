@@ -196,8 +196,9 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     newstruct.superStruct = null;
     newstruct.list = new ArrayList<>(list.size());
     newstruct.viewer = null;
-    for (StructEntry e : list)
+    for (final StructEntry e : list) {
       newstruct.list.add(e.clone());
+    }
 //    for (Iterator i = newstruct.list.iterator(); i.hasNext();) {
 //      StructEntry sentry = (StructEntry)i.next();
 //      if (sentry.getOffset() <= 0)
@@ -455,7 +456,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       }
     }
     else {
-      index = getAddedPosition();
+      index = getInsertPosition();
     }
     return index;
   }
@@ -580,7 +581,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
    */
   public void clearFields()
   {
-    Iterator<StructEntry> iter = list.iterator();
+    final Iterator<StructEntry> iter = list.iterator();
     while (iter.hasNext()) {
       StructEntry e = iter.next();
       e.setParent(null);
@@ -719,15 +720,15 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return extraoffset;
   }
 
+  /**
+   * Returns modifiable list of fields of this structure.
+   * Modification of this list do not notify listeners.
+   *
+   * @return Internal list of fields
+   */
   public List<StructEntry> getList()
   {
     return list;
-  }
-
-  /** Returns the number of fields in the current structure. */
-  public int getFieldCount()
-  {
-    return list.size();
   }
 
   /**
@@ -750,11 +751,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     addFlatList(flatList);
     Collections.sort(flatList);
     return flatList;
-  }
-
-  public int getIndexOf(StructEntry structEntry)
-  {
-    return list.indexOf(structEntry);
   }
 
   public ResourceEntry getResourceEntry()
@@ -939,6 +935,14 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return false;
   }
 
+  /**
+   * Replaces value of the specified field to specified value and notify listeners.
+   *
+   * @param index Index of the field to update
+   * @param structEntry New value of the field
+   * @throws IndexOutOfBoundsException If the index is out of range
+   *         ({@code index < 0 || index >= getList().size()})
+   */
   public void setListEntry(int index, StructEntry structEntry)
   {
     list.set(index, structEntry);
@@ -1097,7 +1101,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   }
 
   /** To be overriden by subclasses. */
-  protected int getAddedPosition()
+  protected int getInsertPosition()
   {
     return list.size(); // Default: Add at end
   }
@@ -1138,16 +1142,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   {
     for (final StructEntry e : getFlatList()) {
       e.write(os);
-    }
-  }
-
-  /** Assign a new list of fields. Clears current list if argument is null. */
-  protected void setList(List<StructEntry> newList)
-  {
-    if (newList != null) {
-      list = newList;
-    } else {
-      list.clear();
     }
   }
 

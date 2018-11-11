@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
@@ -98,7 +98,7 @@ public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
   }
 
   @Override
-  protected int getAddedPosition()
+  protected int getInsertPosition()
   {
     return count.getValue();
   }
@@ -109,4 +109,3 @@ public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
     return -1;
   }
 }
-

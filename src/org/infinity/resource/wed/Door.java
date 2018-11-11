@@ -16,6 +16,7 @@ import org.infinity.datatype.TextString;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.StructEntry;
 import org.infinity.util.io.StreamUtils;
 
 public final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
@@ -94,8 +95,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
 
   public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getList()) {
       if (o instanceof Polygon)
         ((Polygon)o).readVertices(buffer, offset);
     }
@@ -104,8 +104,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
   public void updatePolygonsOffset(int offset)
   {
     int polyOffset = Integer.MAX_VALUE;
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getList()) {
       if (o instanceof Polygon) {
         polyOffset = Math.min(polyOffset, ((Polygon)o).getOffset());
       }
@@ -114,14 +113,14 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
       offset = polyOffset;
     }
     ((SectionOffset)getAttribute(WED_DOOR_OFFSET_POLYGONS_OPEN)).setValue(offset);
-    for (int i = 0; i < getFieldCount(); i++) {
-      if (getField(i) instanceof OpenPolygon) {
+    for (final StructEntry o : getList()) {
+      if (o instanceof OpenPolygon) {
         offset += 18;
       }
     }
     ((SectionOffset)getAttribute(WED_DOOR_OFFSET_POLYGONS_CLOSED)).setValue(offset);
-    for (int i = 0; i < getFieldCount(); i++) {
-      if (getField(i) instanceof ClosedPolygon) {
+    for (final StructEntry o : getList()) {
+      if (o instanceof ClosedPolygon) {
         offset += 18;
       }
     }

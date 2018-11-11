@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -751,15 +751,13 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     }
 
     offset = offset_items.getValue();
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getList()) {
       if (o instanceof Container)
         ((Container)o).readItems(buffer, offset);
     }
 
     offset = offset_vertices.getValue();
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getList()) {
       if (o instanceof HasVertices)
         ((HasVertices)o).readVertices(buffer, offset);
     }
@@ -772,12 +770,10 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     }
 
     int endoffset = offset;
-    for (int i = 0; i < getFieldCount(); i++) {
-      StructEntry entry = getField(i);
+    for (final StructEntry entry : getList()) {
       if (entry instanceof HasVertices) {
         // may contain additional elements
-        for (int j = 0, count = ((AbstractStruct)entry).getFieldCount(); j < count; j++) {
-          StructEntry subEntry = ((AbstractStruct)entry).getField(j);
+        for (final StructEntry subEntry : ((AbstractStruct)entry).getList()) {
           endoffset = Math.max(endoffset, subEntry.getOffset() + subEntry.getSize());
         }
       } else {
@@ -791,8 +787,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
   private void updateActorCREOffsets()
   {
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getList()) {
       if (o instanceof Actor) {
         ((Actor)o).updateCREOffset();
       }
@@ -804,8 +799,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     // Assumes items offset is correct
     int offset = ((HexNumber)getAttribute(ARE_OFFSET_ITEMS)).getValue();
     int count = 0;
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getList()) {
       if (o instanceof Container) {
         Container container = (Container)o;
         int itemNum = container.updateItems(offset, count);
@@ -821,8 +815,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     // Assumes vertices offset is correct
     int offset = ((HexNumber)getAttribute(ARE_OFFSET_VERTICES)).getValue();
     int count = 0;
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getList()) {
       if (o instanceof HasVertices) {
         HasVertices vert = (HasVertices)o;
         int vertNum = vert.updateVertices(offset, count);
@@ -998,4 +991,3 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     return false;
   }
 }
-

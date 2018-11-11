@@ -325,7 +325,6 @@ public final class ViewerUtil
     private final JList<Object> list;
     private final SimpleListModel<Object> listModel = new SimpleListModel<Object>();
     private final JButton bOpen = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
-    private Comparator<AbstractStruct> comp;
 
     private StructListPanel(String title, AbstractStruct struct,
                             Class<? extends StructEntry> listClass, String attrName,
@@ -344,8 +343,7 @@ public final class ViewerUtil
         list.setCellRenderer(renderer);
       }
       if (attrName == null) {
-        for (int i = 0; i < struct.getFieldCount(); i++) {
-          StructEntry o = struct.getField(i);
+        for (final StructEntry o : struct.getList()) {
           if (o.getClass() == listClass) {
             listModel.addElement(o);
           }
@@ -355,17 +353,15 @@ public final class ViewerUtil
         if (renderer == null) {
           list.setCellRenderer(new StructListRenderer(attrName));
         }
-        List<AbstractStruct> templist = new ArrayList<AbstractStruct>();
-        for (int i = 0; i < struct.getFieldCount(); i++) {
-          StructEntry o = struct.getField(i);
+        final List<AbstractStruct> templist = new ArrayList<>();
+        for (final StructEntry o : struct.getList()) {
           if (o.getClass() == listClass) {
             templist.add((AbstractStruct)o);
           }
         }
-        comp = new StructListComparator(attrName);
-        Collections.sort(templist, comp);
-        for (int i = 0; i < templist.size(); i++) {
-          listModel.addElement(templist.get(i));
+        Collections.sort(templist, new StructListComparator(attrName));
+        for (AbstractStruct s : templist) {
+          listModel.addElement(s);
         }
       }
 
@@ -384,11 +380,11 @@ public final class ViewerUtil
           }
         }
       });
-      if (listModel.size() > 0) {
+      if (!listModel.isEmpty()) {
         list.setSelectedIndex(0);
       }
       bOpen.addActionListener(this);
-      bOpen.setEnabled(listModel.size() > 0 && listModel.get(0) instanceof Viewable);
+      bOpen.setEnabled(!listModel.isEmpty() && listModel.get(0) instanceof Viewable);
 
       add(new JLabel(title), BorderLayout.NORTH);
       add(new JScrollPane(list), BorderLayout.CENTER);
@@ -411,13 +407,7 @@ public final class ViewerUtil
       if (event.getType() == TableModelEvent.DELETE) {
 
         // go through the list and find what was deleted
-        List<StructEntry> structlist = struct.getList();
-        for (int i = 0; i < listModel.size(); i++) {
-          if (!structlist.contains(listModel.get(i))) {
-            listModel.remove(i);
-            i--;
-          }
-        }
+        listModel.retainAll(struct.getList());
         /*
         // Ineffective - any better solutions?
         if (comp == null) {
@@ -444,16 +434,17 @@ public final class ViewerUtil
         }
         */
 
-        if (listModel.size() > 0)
+        if (!listModel.isEmpty())
           list.setSelectedIndex(0);
-        bOpen.setEnabled(listModel.size() > 0 && listModel.get(0) instanceof Viewable);
+        bOpen.setEnabled(!listModel.isEmpty() && listModel.get(0) instanceof Viewable);
       }
       else if (event.getType() == TableModelEvent.INSERT) {
+        final List<StructEntry> fields = struct.getList();
         for (int i = event.getFirstRow(); i <= event.getLastRow(); i++) {
-          if (i >= struct.getFieldCount()) {
+          if (i >= fields.size()) {
             break;
           }
-          Object o = struct.getField(i);
+          final StructEntry o = fields.get(i);
           if (o.getClass() == listClass) {
             listModel.addElement(o);    // Not sorted properly after this...
             if (!bOpen.isEnabled() && listModel.get(0) instanceof Viewable) {

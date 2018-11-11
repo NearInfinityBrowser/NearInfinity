@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -225,8 +225,7 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
   private Map<StructEntry, StructEntry> makeSearchMap(AbstractStruct struct)
   {
     final SortedMap<StructEntry, StructEntry> map = new TreeMap<>();
-    for (int i = 0; i < struct.getFieldCount(); i++) {
-      final StructEntry entry = struct.getField(i);
+    for (final StructEntry entry : struct.getList()) {
       if (entry instanceof AbstractStruct)
         map.putAll(makeSearchMap((AbstractStruct)entry));
       else if (cbsearchcode.isSelected() && entry instanceof AbstractCode)

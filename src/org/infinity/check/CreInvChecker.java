@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -200,8 +200,7 @@ public final class CreInvChecker extends AbstractSearcher implements Runnable, A
     final List<Item> items = new ArrayList<>();
     final List<DecNumber> slots = new ArrayList<>();
     final DecNumber slots_offset = (DecNumber)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS);
-    for (int i = 0; i < cre.getFieldCount(); i++) {
-      final StructEntry entry = cre.getField(i);
+    for (final StructEntry entry : cre.getList()) {
       if (entry instanceof Item) {
         items.add((Item)entry);
       } else if (entry.getOffset() >= slots_offset.getValue() + cre.getOffset() &&

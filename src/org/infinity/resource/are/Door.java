@@ -173,8 +173,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     ((DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED)).setValue(number + count);
     count += ((DecNumber)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED)).getValue();
 
-    for (int i = 0; i < getFieldCount(); i++) {
-      StructEntry entry = getField(i);
+    for (final StructEntry entry : getList()) {
       if (entry instanceof Vertex) {
         entry.setOffset(offset);
         ((Vertex)entry).realignStructOffsets();

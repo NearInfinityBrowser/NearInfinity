@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.ListIterator;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -300,8 +302,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   public void write(OutputStream os) throws IOException
   {
     super.write(os);
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getList()) {
       if (o instanceof Ability) {
         Ability a = (Ability)o;
         a.writeEffects(os);
@@ -321,16 +322,14 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   protected void datatypeAdded(AddRemovable datatype)
   {
     if (datatype instanceof Effect) {
-      for (int i = 0; i < getFieldCount(); i++) {
-        Object o = getField(i);
+      for (final StructEntry o : getList()) {
         if (o instanceof Ability)
           ((Ability)o).incEffectsIndex(1);
       }
     }
     else if (datatype instanceof Ability) {
       int effect_count = ((SectionCount)getAttribute(ITM_NUM_GLOBAL_EFFECTS)).getValue();
-      for (int i = 0; i < getFieldCount(); i++) {
-        Object o = getField(i);
+      for (final StructEntry o : getList()) {
         if (o instanceof Ability) {
           Ability ability = (Ability)o;
           ability.setEffectsIndex(effect_count);
@@ -347,33 +346,21 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     super.datatypeAddedInChild(child, datatype);
-    if (child instanceof Ability && datatype instanceof Effect) {
-      int index = getIndexOf(child) + 1;
-      while (index < getFieldCount()) {
-        StructEntry se = getField(index++);
-        if (se instanceof Ability)
-          ((Ability)se).incEffectsIndex(1);
-      }
-    }
-    if (hexViewer != null) {
-      hexViewer.dataModified();
-    }
+    incAbilityEffects(child, datatype, 1);
   }
 
   @Override
   protected void datatypeRemoved(AddRemovable datatype)
   {
     if (datatype instanceof Effect) {
-      for (int i = 0; i < getFieldCount(); i++) {
-        Object o = getField(i);
+      for (final StructEntry o : getList()) {
         if (o instanceof Ability)
           ((Ability)o).incEffectsIndex(-1);
       }
     }
     else if (datatype instanceof Ability) {
       int effect_count = ((SectionCount)getAttribute(ITM_NUM_GLOBAL_EFFECTS)).getValue();
-      for (int i = 0; i < getFieldCount(); i++) {
-        Object o = getField(i);
+      for (final StructEntry o : getList()) {
         if (o instanceof Ability) {
           Ability ability = (Ability)o;
           ability.setEffectsIndex(effect_count);
@@ -390,17 +377,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     super.datatypeRemovedInChild(child, datatype);
-    if (child instanceof Ability && datatype instanceof Effect) {
-      int index = getIndexOf(child) + 1;
-      while (index < getFieldCount()) {
-        StructEntry se = getField(index++);
-        if (se instanceof Ability)
-          ((Ability)se).incEffectsIndex(-1);
-      }
-    }
-    if (hexViewer != null) {
-      hexViewer.dataModified();
-    }
+    incAbilityEffects(child, datatype, -1);
   }
 
   @Override
@@ -520,6 +497,22 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     return Math.max(offset, offset2);
   }
 
+  private void incAbilityEffects(StructEntry child, AddRemovable datatype, int value)
+  {
+    if (child instanceof Ability && datatype instanceof Effect) {
+      final List<StructEntry> fields = getList();
+      final ListIterator<StructEntry> it = fields.listIterator(fields.indexOf(child) + 1);
+      while (it.hasNext()) {
+        final StructEntry se = it.next();
+        if (se instanceof Ability) {
+          ((Ability)se).incEffectsIndex(value);
+        }
+      }
+    }
+    if (hexViewer != null) {
+      hexViewer.dataModified();
+    }
+  }
 
   /**
    * Called by "Extended Search"
@@ -769,4 +762,3 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     return false;
   }
 }
-

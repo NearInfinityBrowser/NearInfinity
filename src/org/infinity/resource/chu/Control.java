@@ -9,6 +9,7 @@ import java.awt.Point;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.ColorPicker;
@@ -21,6 +22,7 @@ import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
+import org.infinity.resource.StructEntry;
 
 final class Control extends AbstractStruct // implements AddRemovable
 {
@@ -115,8 +117,8 @@ final class Control extends AbstractStruct // implements AddRemovable
   @Override
   public void write(OutputStream os) throws IOException
   {
-    getField(0).write(os);
-    getField(1).write(os);
+    getList().get(0).write(os);
+    getList().get(1).write(os);
   }
   //</editor-fold>
 
@@ -279,7 +281,9 @@ final class Control extends AbstractStruct // implements AddRemovable
 
   public void writeControl(OutputStream os) throws IOException
   {
-    for (int i = 2; i < getFieldCount(); i++)
-      getField(i).write(os);
+    final List<StructEntry> fields = getList();
+    for (int i = 2; i < fields.size(); i++) {
+      fields.get(i).write(os);
+    }
   }
 }

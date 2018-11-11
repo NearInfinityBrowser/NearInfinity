@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
 
 import javax.swing.JButton;
@@ -198,24 +199,23 @@ public final class DlgResource extends AbstractStruct
   @Override
   public void write(OutputStream os) throws IOException
   {
+    final List<StructEntry> fields = getList();
     offsetState.setValue(0x30);
-    if (getFieldCount() >= 13 && getField(12).getName().equalsIgnoreCase(DLG_THREAT_RESPONSE))
+    if (fields.size() > 12 && fields.get(12).getName().equalsIgnoreCase(DLG_THREAT_RESPONSE))
       offsetState.setValue(0x34);
     offsetTrans.setValue(offsetState.getValue() + 0x10 * countState.getValue());
     offsetStaTri.setValue(offsetTrans.getValue() + 0x20 * countTrans.getValue());
     offsetTranTri.setValue(offsetStaTri.getValue() + 0x8 * countStaTri.getValue());
     offsetAction.setValue(offsetTranTri.getValue() + 0x8 * countTranTri.getValue());
     int stringoff = offsetAction.getValue() + 0x8 * countAction.getValue();
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : fields) {
       if (o instanceof AbstractCode) {
         stringoff += ((AbstractCode)o).updateOffset(stringoff);
       }
     }
     super.write(os);
 
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : fields) {
       if (o instanceof AbstractCode) {
         ((AbstractCode)o).writeString(os);
       }
