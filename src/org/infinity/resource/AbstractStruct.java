@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -152,11 +152,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
   }
 
-// --------------------- Begin Interface Closeable ---------------------
-
-  // end - extends AbstractTableModel
-
-  // begin - implements Closeable
+  //<editor-fold defaultstate="collapsed" desc="Closeable">
   @Override
   public void close() throws Exception
   {
@@ -167,24 +163,17 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       viewer.close();
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface Closeable ---------------------
-
-
-// --------------------- Begin Interface Comparable ---------------------
-
-  // begin - implements StructEntry
+  //<editor-fold defaultstate="collapsed" desc="Comparable">
   @Override
   public int compareTo(StructEntry o)
   {
     return getOffset() - o.getOffset();
   }
+  //</editor-fold>
 
-// --------------------- End Interface Comparable ---------------------
-
-
-// --------------------- Begin Interface StructEntry ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="StructEntry">
   @Override
   public AbstractStruct clone() throws CloneNotSupportedException
   {
@@ -293,13 +282,9 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       setSuperStruct(null);
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface StructEntry ---------------------
-
-
-// --------------------- Begin Interface TableModel ---------------------
-
-  // start - extends AbstractTableModel
+  //<editor-fold defaultstate="collapsed" desc="TableModel">
   @Override
   public int getRowCount()
   {
@@ -313,58 +298,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       return 3;
     return 2;
   }
-
-  @Override
-  public Object getValueAt(int row, int column)
-  {
-    if (getField(row) instanceof StructEntry) {
-      StructEntry data = getField(row);
-      switch (column) {
-        case 0:
-          return data.getName();
-        case 1:
-          return data;
-        case 2:
-          return Integer.toHexString(data.getOffset()) + " h";
-      }
-    }
-    return "Unknown datatype";
-  }
-
-// --------------------- End Interface TableModel ---------------------
-
-
-// --------------------- Begin Interface Viewable ---------------------
-
-  // end - implements Closeable
-
-  // begin - implements Viewable
-  @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
-    if (viewer == null) {
-      viewer = new StructViewer(this, viewerComponents);
-      viewerInitialized(viewer);
-    }
-    return viewer;
-  }
-
-// --------------------- End Interface Viewable ---------------------
-
-
-// --------------------- Begin Interface Writeable ---------------------
-
-  // begin - implements Writeable
-  @Override
-  public void write(OutputStream os) throws IOException
-  {
-    Collections.sort(getList()); // This way we can writeField out in the order in list - sorted by offset
-    for (int i = 0, count = getFieldCount(); i < count; i++) {
-      getField(i).write(os);
-    }
-  }
-
-// --------------------- End Interface Writeable ---------------------
 
   @Override
   public String getColumnName(int columnIndex)
@@ -388,6 +321,23 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   }
 
   @Override
+  public Object getValueAt(int row, int column)
+  {
+    if (getField(row) instanceof StructEntry) {
+      StructEntry data = getField(row);
+      switch (column) {
+        case 0:
+          return data.getName();
+        case 1:
+          return data;
+        case 2:
+          return Integer.toHexString(data.getOffset()) + " h";
+      }
+    }
+    return "Unknown datatype";
+  }
+
+  @Override
   public void setValueAt(Object value, int row, int column)
   {
     Object o = getValueAt(row, column);
@@ -400,6 +350,30 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       }
     }
   }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="Viewable">
+  @Override
+  public JComponent makeViewer(ViewableContainer container)
+  {
+    if (viewer == null) {
+      viewer = new StructViewer(this, viewerComponents);
+      viewerInitialized(viewer);
+    }
+    return viewer;
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="Writable">
+  @Override
+  public void write(OutputStream os) throws IOException
+  {
+    Collections.sort(getList()); // This way we can writeField out in the order in list - sorted by offset
+    for (int i = 0, count = getFieldCount(); i < count; i++) {
+      getField(i).write(os);
+    }
+  }
+  //</editor-fold>
 
   @Override
   public String toString()
@@ -428,7 +402,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return sb.toString();
   }
 
-  // Returns the table row index where the specified AddRemovable structure can be inserted
+  /** Returns the table row index where the specified AddRemovable structure can be inserted. */
   public int getDatatypeIndex(AddRemovable addedEntry)
   {
     int index = 0;
@@ -469,7 +443,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return index;
   }
 
-  // Returns whether structure of currently selected table row is compatible with "addedEntry"
+  /** Returns whether structure of currently selected table row is compatible with "addedEntry". */
   public boolean isCompatibleDatatypeSelection(AddRemovable addedEntry)
   {
     return viewer != null && viewer.getSelectedEntry() != null &&
@@ -809,8 +783,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return false;
   }
 
-  // end - implements Viewable
-
   public StructViewer getViewer()
   {
     return viewer;
@@ -1062,29 +1034,29 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
   }
 
-  // To be overriden by subclasses
+  /** To be overriden by subclasses. */
   protected void viewerInitialized(StructViewer viewer)
   {
   }
 
-  // To be overriden by subclasses
+  /** To be overriden by subclasses. */
   protected void datatypeAdded(AddRemovable datatype)
   {
   }
 
-  // To be overriden by subclasses
+  /** To be overriden by subclasses. */
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
     if (superStruct != null)
       superStruct.datatypeAddedInChild(child, datatype);
   }
 
-  // To be overriden by subclasses
+  /** To be overriden by subclasses. */
   protected void datatypeRemoved(AddRemovable datatype)
   {
   }
 
-  // To be overriden by subclasses
+  /** To be overriden by subclasses. */
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
     if (superStruct != null)
@@ -1116,7 +1088,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
   }
 
-  // To be overriden by subclasses
+  /** To be overriden by subclasses. */
   protected int getAddedPosition()
   {
     return list.size(); // Default: Add at end
@@ -1139,12 +1111,10 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
   }
 
-  // To be overriden by subclasses
+  /** To be overriden by subclasses. */
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
   }
-
-  // end - implements StructEntry
 
   protected void setExtraOffset(int offset)
   {
@@ -1155,8 +1125,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   {
     startoffset = offset;
   }
-
-  // end - implements Writeable
 
   protected void writeFlatList(OutputStream os) throws IOException
   {
