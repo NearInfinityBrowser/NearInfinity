@@ -293,6 +293,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       return sourceText.getText();
     }
     Decompiler decompiler = new Decompiler(text, false);
+    decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
     try {
       return decompiler.getSource();
     } catch (Exception e) {
@@ -513,6 +514,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     ButtonPopupMenu bpmUses = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlUses);
 
     Decompiler decompiler = new Decompiler(codeText.getText(), true);
+    decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
     try {
       sourceText.setText(decompiler.getSource());
     } catch (Exception e) {

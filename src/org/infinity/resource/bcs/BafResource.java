@@ -419,6 +419,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
       bpmWarnings.setEnabled(true);
     }
     Decompiler decompiler = new Decompiler(codeText.getText(), true);
+    decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
     try {
       decompiler.decompile();
       Set<ResourceEntry> uses = decompiler.getResourcesUsed();
@@ -445,6 +446,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     JButton bCompile = (JButton)bpSource.getControlByType(CtrlCompile);
     ButtonPopupMenu bpmUses = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlUses);
     Decompiler decompiler = new Decompiler(codeText.getText(), true);
+    decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
     try {
       sourceText.setText(decompiler.getSource());
     } catch (Exception e) {

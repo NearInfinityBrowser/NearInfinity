@@ -179,6 +179,11 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionAutocheckBCS.isSelected();
   }
 
+  public boolean autogenBCSComments()
+  {
+    return optionsMenu.optionAutogenBCSComments.isSelected();
+  }
+
   public boolean showTreeSearchNames()
   {
     return optionsMenu.optionTreeSearchNames.isSelected();
@@ -1613,6 +1618,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_IGNOREREADERRORS         = "IgnoreReadErrors";
     private static final String OPTION_SHOWUNKNOWNRESOURCES     = "ShowUnknownResources";
     private static final String OPTION_AUTOCHECK_BCS            = "AutocheckBCS";
+    private static final String OPTION_AUTOGEN_BCS_COMMENTS     = "AutogenBCSComments";
     private static final String OPTION_CACHEOVERRIDE            = "CacheOverride";
     private static final String OPTION_MORECOMPILERWARNINGS     = "MoreCompilerWarnings";
     private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
@@ -1686,7 +1692,7 @@ public final class BrowserMenuBar extends JMenuBar
                               optionSQLEnableSyntax, optionTLKEnableSyntax, optionWeiDUEnableSyntax,
                               optionGLSLEnableCodeFolding;
 
-    private JCheckBoxMenuItem optionAutocheckBCS, optionMoreCompileWarnings;
+    private JCheckBoxMenuItem optionAutocheckBCS, optionMoreCompileWarnings, optionAutogenBCSComments;
 
     private JCheckBoxMenuItem optionDlgShowIcons, optionDlgAlwaysShowState0;
 
@@ -1770,6 +1776,9 @@ public final class BrowserMenuBar extends JMenuBar
       optionMoreCompileWarnings.setToolTipText("Script compiler will generate an additional set of less severe " +
                                                "warning messages with this option enabled.");
       compilerMenu.add(optionMoreCompileWarnings);
+      optionAutogenBCSComments =
+          new JCheckBoxMenuItem("Autogenerate BCS comments", getPrefs().getBoolean(OPTION_AUTOGEN_BCS_COMMENTS, true));
+      compilerMenu.add(optionAutogenBCSComments);
 
       // Options->Text Editor
       JMenu textMenu = new JMenu("Text Editor");
@@ -2375,6 +2384,7 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_IGNOREREADERRORS, optionIgnoreReadErrors.isSelected());
       getPrefs().putBoolean(OPTION_SHOWUNKNOWNRESOURCES, optionShowUnknownResources.isSelected());
       getPrefs().putBoolean(OPTION_AUTOCHECK_BCS, optionAutocheckBCS.isSelected());
+      getPrefs().putBoolean(OPTION_AUTOGEN_BCS_COMMENTS, optionAutogenBCSComments.isSelected());
       getPrefs().putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
       getPrefs().putBoolean(OPTION_MORECOMPILERWARNINGS, optionMoreCompileWarnings.isSelected());
       getPrefs().putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());

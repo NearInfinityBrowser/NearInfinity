@@ -649,6 +649,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       try {
         if (compiler.getErrors().size() == 0) {
           Decompiler decompiler = new Decompiler(code, true);
+          decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
           if (trigger instanceof Action) {
             decompiler.setScriptType(ScriptType.ACTION);
           } else {
