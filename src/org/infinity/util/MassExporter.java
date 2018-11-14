@@ -46,6 +46,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
+import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.ViewerUtil;
@@ -395,6 +396,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         bb = StaticSimpleXorDecryptor.decrypt(bb, 2);
       }
       Decompiler decompiler = new Decompiler(StreamUtils.readString(bb, bb.limit()), false);
+      decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
       String script = decompiler.getSource();
       // Keep trying. File may be in use by another thread.
       try (BufferedWriter bw = new BufferedWriter(tryOpenOutputWriter(output, 10, 100))) {

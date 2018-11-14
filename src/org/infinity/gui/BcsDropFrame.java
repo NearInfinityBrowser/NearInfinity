@@ -304,6 +304,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
       output = FileManager.resolve(tfOtherDir.getText(), filename);
     }
     Decompiler decompiler = new Decompiler(code.toString(), ScriptType.BCS, true);
+    decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
     try (BufferedWriter bw = Files.newBufferedWriter(output)) {
       bw.write(decompiler.getSource().replaceAll("\r?\n", Misc.LINE_SEPARATOR));
       bw.newLine();
