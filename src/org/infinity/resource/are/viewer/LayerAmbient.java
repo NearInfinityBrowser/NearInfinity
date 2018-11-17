@@ -23,51 +23,51 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
                                                 "Ambient sounds: %d"};
 
   // stores ambient sound objects with local radius
-  private final List<LayerObjectAmbient> listGlobalSounds = new ArrayList<LayerObjectAmbient>();
-  private final List<LayerObjectAmbient> listLocalSounds = new ArrayList<LayerObjectAmbient>();
+  private final List<LayerObjectAmbient> listGlobalSounds = new ArrayList<>();
+  private final List<LayerObjectAmbient> listLocalSounds = new ArrayList<>();
 
-  private boolean iconEnabled, rangeEnabled;
+  private boolean iconEnabled = true;
+  private boolean rangeEnabled;
 
   public LayerAmbient(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.AMBIENT, viewer);
-    iconEnabled = true;
-    rangeEnabled = false;
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  public void close()
   {
-    if (forced || !isInitialized()) {
-      listGlobalSounds.clear();
-      listLocalSounds.clear();
-      close();
-      List<LayerObjectAmbient> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_AMBIENTS);
-        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_AMBIENTS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          for (final Ambient entry : getStructures(ofs, count, Ambient.class)) {
-            final LayerObjectAmbient obj = new LayerObjectAmbient(are, entry);
-            setListeners(obj);
-            list.add(obj);
-            // putting global/local sounds into separate lists for faster access
-            if (obj.isLocal()) {
-              listLocalSounds.add(obj);
-            } else {
-              listGlobalSounds.add(obj);
-            }
+    super.close();
+    listGlobalSounds.clear();
+    listLocalSounds.clear();
+  }
+
+  @Override
+  protected void loadLayer()
+  {
+    List<LayerObjectAmbient> list = getLayerObjects();
+    if (hasAre()) {
+      AreResource are = getAre();
+      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_AMBIENTS);
+      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_AMBIENTS);
+      if (so != null && sc != null) {
+        int ofs = so.getValue();
+        int count = sc.getValue();
+        for (final Ambient entry : getStructures(ofs, count, Ambient.class)) {
+          final LayerObjectAmbient obj = new LayerObjectAmbient(are, entry);
+          setListeners(obj);
+          list.add(obj);
+          // putting global/local sounds into separate lists for faster access
+          if (obj.isLocal()) {
+            listLocalSounds.add(obj);
+          } else {
+            listGlobalSounds.add(obj);
           }
-          setInitialized(true);
         }
+        setInitialized(true);
       }
-      return list.size();
     }
-    return 0;
   }
 
   /**

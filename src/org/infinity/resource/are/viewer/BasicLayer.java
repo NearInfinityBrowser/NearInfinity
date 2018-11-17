@@ -26,7 +26,9 @@ public abstract class BasicLayer<E extends LayerObject>
 
   private final AbstractStruct parent;
   private int schedule;
-  private boolean visible, initialized, scheduleEnabled;
+  private boolean visible, scheduleEnabled;
+  /** Determines whether this layer has been loaded at least once. */
+  private boolean initialized;
 
   /**
    * Initializes the current layer.
@@ -195,7 +197,18 @@ public abstract class BasicLayer<E extends LayerObject>
    * @param forced If {@code true}, always (re-)loads the current layer, even if it has been loaded already.
    * @return The number of initialized layer objects.
    */
-  public abstract int loadLayer(boolean forced);
+  public final int loadLayer(boolean forced)
+  {
+    if (forced || !initialized) {
+      close();
+      loadLayer();
+      return listObjects.size();
+    }
+    return 0;
+  }
+
+  /** Loads all available objects of this layer. */
+  protected abstract void loadLayer();
 
   /**
    * Removes all objects of the layer from memory. Additionally all associated layer items will be
@@ -294,8 +307,8 @@ public abstract class BasicLayer<E extends LayerObject>
   protected <T extends StructEntry> List<T> getStructures(int baseOfs, int maxCount, Class<? extends T> type)
   {
     final List<T> fields = new ArrayList<>();
-    if (getParent() != null && baseOfs >= 0 && maxCount >= 0 && type != null) {
-      for (final StructEntry field : getParent().getList()) {
+    if (parent != null && baseOfs >= 0 && maxCount >= 0 && type != null) {
+      for (final StructEntry field : parent.getList()) {
         if (field.getOffset() >= baseOfs && type.isAssignableFrom(field.getClass())) {
           if (maxCount-- < 0) { break; }
 
@@ -323,14 +336,6 @@ public abstract class BasicLayer<E extends LayerObject>
   }
 
   /**
-   * [For internal use only] Returns whether this layer has been loaded at least once.
-   */
-  protected boolean isInitialized()
-  {
-    return initialized;
-  }
-
-  /**
    * [For internal use only] Marks the current layer as loaded.
    */
   protected void setInitialized(boolean set)
@@ -345,11 +350,5 @@ public abstract class BasicLayer<E extends LayerObject>
   protected void setVisibilityState(boolean state)
   {
     visible = state;
-  }
-
-  // Returns the parent structure of the layer objects regardless of type.
-  private AbstractStruct getParent()
-  {
-    return parent;
   }
 }

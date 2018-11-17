@@ -23,7 +23,7 @@ public class LayerAutomap extends BasicLayer<LayerObject>
   public LayerAutomap(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.AUTOMAP, viewer);
-    loadLayer(false);
+    loadLayer();
   }
 
   /**
@@ -35,37 +35,32 @@ public class LayerAutomap extends BasicLayer<LayerObject>
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObject> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_AUTOMAP_NOTES);
-        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_AUTOMAP_NOTES);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          if (isTorment()) {
-            for (final AutomapNotePST entry : getStructures(ofs, count, AutomapNotePST.class)) {
-              final LayerObjectAutomapPST obj = new LayerObjectAutomapPST(are, entry);
-              setListeners(obj);
-              list.add(obj);
-            }
-          } else {
-            for (final AutomapNote entry : getStructures(ofs, count, AutomapNote.class)) {
-              final LayerObjectAutomap obj = new LayerObjectAutomap(are, entry);
-              setListeners(obj);
-              list.add(obj);
-            }
+    List<LayerObject> list = getLayerObjects();
+    if (hasAre()) {
+      AreResource are = getAre();
+      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_AUTOMAP_NOTES);
+      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_AUTOMAP_NOTES);
+      if (so != null && sc != null) {
+        int ofs = so.getValue();
+        int count = sc.getValue();
+        if (isTorment()) {
+          for (final AutomapNotePST entry : getStructures(ofs, count, AutomapNotePST.class)) {
+            final LayerObjectAutomapPST obj = new LayerObjectAutomapPST(are, entry);
+            setListeners(obj);
+            list.add(obj);
           }
-          setInitialized(true);
+        } else {
+          for (final AutomapNote entry : getStructures(ofs, count, AutomapNote.class)) {
+            final LayerObjectAutomap obj = new LayerObjectAutomap(are, entry);
+            setListeners(obj);
+            list.add(obj);
+          }
         }
+        setInitialized(true);
       }
-      return list.size();
     }
-    return 0;
   }
 
   @Override

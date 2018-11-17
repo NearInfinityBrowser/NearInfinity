@@ -21,33 +21,28 @@ public class LayerContainer extends BasicLayer<LayerObjectContainer>
   public LayerContainer(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.CONTAINER, viewer);
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectContainer> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_CONTAINERS);
-        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_CONTAINERS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          for (final Container entry : getStructures(ofs, count, Container.class)) {
-            final LayerObjectContainer obj = new LayerObjectContainer(are, entry);
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
+    List<LayerObjectContainer> list = getLayerObjects();
+    if (hasAre()) {
+      AreResource are = getAre();
+      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_CONTAINERS);
+      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_CONTAINERS);
+      if (so != null && sc != null) {
+        int ofs = so.getValue();
+        int count = sc.getValue();
+        for (final Container entry : getStructures(ofs, count, Container.class)) {
+          final LayerObjectContainer obj = new LayerObjectContainer(are, entry);
+          setListeners(obj);
+          list.add(obj);
         }
+        setInitialized(true);
       }
-      return list.size();
     }
-    return 0;
   }
 
   @Override

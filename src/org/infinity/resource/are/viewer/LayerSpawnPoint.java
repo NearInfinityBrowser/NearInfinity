@@ -21,33 +21,28 @@ public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
   public LayerSpawnPoint(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.SPAWN_POINT, viewer);
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectSpawnPoint> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_SPAWN_POINTS);
-        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_SPAWN_POINTS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          for (final SpawnPoint entry : getStructures(ofs, count, SpawnPoint.class)) {
-            final LayerObjectSpawnPoint obj = new LayerObjectSpawnPoint(are, entry);
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
+    List<LayerObjectSpawnPoint> list = getLayerObjects();
+    if (hasAre()) {
+      AreResource are = getAre();
+      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_SPAWN_POINTS);
+      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_SPAWN_POINTS);
+      if (so != null && sc != null) {
+        int ofs = so.getValue();
+        int count = sc.getValue();
+        for (final SpawnPoint entry : getStructures(ofs, count, SpawnPoint.class)) {
+          final LayerObjectSpawnPoint obj = new LayerObjectSpawnPoint(are, entry);
+          setListeners(obj);
+          list.add(obj);
         }
+        setInitialized(true);
       }
-      return list.size();
     }
-    return 0;
   }
 
   @Override

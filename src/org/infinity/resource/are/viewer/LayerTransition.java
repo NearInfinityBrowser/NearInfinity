@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -20,38 +20,33 @@ public class LayerTransition extends BasicLayer<LayerObjectTransition>
   public LayerTransition(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.TRANSITION, viewer);
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectTransition> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        for (int i = 0; i < LayerObjectTransition.FIELD_NAME.length; i++) {
-          ResourceRef ref = (ResourceRef)are.getAttribute(LayerObjectTransition.FIELD_NAME[i]);
-          if (ref != null && !ref.getResourceName().isEmpty() && !"None".equalsIgnoreCase(ref.getResourceName())) {
-            AreResource destAre = null;
-            try {
-              destAre = new AreResource(ResourceFactory.getResourceEntry(ref.getResourceName()));
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
-            if (destAre != null) {
-              LayerObjectTransition obj = new LayerObjectTransition(are, destAre, i, getViewer().getRenderer());
-              setListeners(obj);
-              list.add(obj);
-            }
+    List<LayerObjectTransition> list = getLayerObjects();
+    if (hasAre()) {
+      AreResource are = getAre();
+      for (int i = 0; i < LayerObjectTransition.FIELD_NAME.length; i++) {
+        ResourceRef ref = (ResourceRef)are.getAttribute(LayerObjectTransition.FIELD_NAME[i]);
+        if (ref != null && !ref.getResourceName().isEmpty() && !"None".equalsIgnoreCase(ref.getResourceName())) {
+          AreResource destAre = null;
+          try {
+            destAre = new AreResource(ResourceFactory.getResourceEntry(ref.getResourceName()));
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          if (destAre != null) {
+            LayerObjectTransition obj = new LayerObjectTransition(are, destAre, i, getViewer().getRenderer());
+            setListeners(obj);
+            list.add(obj);
           }
         }
-        setInitialized(true);
       }
-      return list.size();
+      setInitialized(true);
     }
-    return 0;
   }
 
   @Override

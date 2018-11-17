@@ -23,34 +23,28 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
   public LayerDoor(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.DOOR, viewer);
-    doorClosed = false;
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectDoor> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_DOORS);
-        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_DOORS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          for (final Door entry : getStructures(ofs, count, Door.class)) {
-            final LayerObjectDoor obj = new LayerObjectDoor(are, entry);
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
+    List<LayerObjectDoor> list = getLayerObjects();
+    if (hasAre()) {
+      AreResource are = getAre();
+      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_DOORS);
+      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_DOORS);
+      if (so != null && sc != null) {
+        int ofs = so.getValue();
+        int count = sc.getValue();
+        for (final Door entry : getStructures(ofs, count, Door.class)) {
+          final LayerObjectDoor obj = new LayerObjectDoor(are, entry);
+          setListeners(obj);
+          list.add(obj);
         }
+        setInitialized(true);
       }
-      return list.size();
     }
-    return 0;
   }
 
   @Override

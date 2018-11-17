@@ -21,33 +21,28 @@ public class LayerRegion extends BasicLayer<LayerObjectRegion>
   public LayerRegion(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.REGION, viewer);
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectRegion> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_TRIGGERS);
-        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_TRIGGERS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          for (final ITEPoint entry : getStructures(ofs, count, ITEPoint.class)) {
-            final LayerObjectRegion obj = new LayerObjectRegion(are, entry);
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
+    List<LayerObjectRegion> list = getLayerObjects();
+    if (hasAre()) {
+      AreResource are = getAre();
+      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_TRIGGERS);
+      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_TRIGGERS);
+      if (so != null && sc != null) {
+        int ofs = so.getValue();
+        int count = sc.getValue();
+        for (final ITEPoint entry : getStructures(ofs, count, ITEPoint.class)) {
+          final LayerObjectRegion obj = new LayerObjectRegion(are, entry);
+          setListeners(obj);
+          list.add(obj);
         }
+        setInitialized(true);
       }
-      return list.size();
     }
-    return 0;
   }
 
   @Override

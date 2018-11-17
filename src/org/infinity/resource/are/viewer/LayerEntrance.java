@@ -21,33 +21,28 @@ public class LayerEntrance extends BasicLayer<LayerObjectEntrance>
   public LayerEntrance(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.ENTRANCE, viewer);
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectEntrance> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_ENTRANCES);
-        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_ENTRANCES);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          for (final Entrance entry : getStructures(ofs, count, Entrance.class)) {
-            final LayerObjectEntrance obj = new LayerObjectEntrance(are, entry);
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
+    List<LayerObjectEntrance> list = getLayerObjects();
+    if (hasAre()) {
+      AreResource are = getAre();
+      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_ENTRANCES);
+      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_ENTRANCES);
+      if (so != null && sc != null) {
+        int ofs = so.getValue();
+        int count = sc.getValue();
+        for (final Entrance entry : getStructures(ofs, count, Entrance.class)) {
+          final LayerObjectEntrance obj = new LayerObjectEntrance(are, entry);
+          setListeners(obj);
+          list.add(obj);
         }
+        setInitialized(true);
       }
-      return list.size();
     }
-    return 0;
   }
 
   @Override

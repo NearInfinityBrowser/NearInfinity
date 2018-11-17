@@ -21,33 +21,28 @@ public class LayerWallPoly extends BasicLayer<LayerObjectWallPoly>
   public LayerWallPoly(WedResource wed, AreaViewer viewer)
   {
     super(wed, ViewerConstants.LayerType.WALL_POLY, viewer);
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectWallPoly> list = getLayerObjects();
-      if (hasWed()) {
-        WedResource wed = getWed();
-        SectionOffset so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_WALL_POLYGONS);
-        SectionCount sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_WALL_POLYGONS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          for (final WallPolygon entry : getStructures(ofs, count, WallPolygon.class)) {
-            final LayerObjectWallPoly obj = new LayerObjectWallPoly(wed, entry);
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
+    List<LayerObjectWallPoly> list = getLayerObjects();
+    if (hasWed()) {
+      WedResource wed = getWed();
+      SectionOffset so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_WALL_POLYGONS);
+      SectionCount sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_WALL_POLYGONS);
+      if (so != null && sc != null) {
+        int ofs = so.getValue();
+        int count = sc.getValue();
+        for (final WallPolygon entry : getStructures(ofs, count, WallPolygon.class)) {
+          final LayerObjectWallPoly obj = new LayerObjectWallPoly(wed, entry);
+          setListeners(obj);
+          list.add(obj);
         }
+        setInitialized(true);
       }
-      return list.size();
     }
-    return 0;
   }
 
   @Override

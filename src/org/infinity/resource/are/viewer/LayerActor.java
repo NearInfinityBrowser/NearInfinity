@@ -28,58 +28,53 @@ public class LayerActor extends BasicLayer<LayerObjectActor>
   public LayerActor(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.ACTOR, viewer);
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectActor> list = getLayerObjects();
-      if (hasAre()) {
-        // loading actors from ARE
-        AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_ACTORS);
-        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_ACTORS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          for (final Actor entry : getStructures(ofs, count, Actor.class)) {
-            final LayerObjectActor obj = new LayerObjectAreActor(are, entry);
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
+    List<LayerObjectActor> list = getLayerObjects();
+    if (hasAre()) {
+      // loading actors from ARE
+      AreResource are = getAre();
+      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_ACTORS);
+      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_ACTORS);
+      if (so != null && sc != null) {
+        int ofs = so.getValue();
+        int count = sc.getValue();
+        for (final Actor entry : getStructures(ofs, count, Actor.class)) {
+          final LayerObjectActor obj = new LayerObjectAreActor(are, entry);
+          setListeners(obj);
+          list.add(obj);
         }
+        setInitialized(true);
+      }
 
-        // loading actors from associated INI
-        String iniFile = are.getResourceEntry().getResourceName().toUpperCase(Locale.ENGLISH).replace(".ARE", ".INI");
-        IniMap ini = ResourceFactory.resourceExists(iniFile) ? IniMapCache.get(iniFile) : null;
-        if (ini != null) {
-          for (int i = 0, count = ini.getSectionCount(); i < count; i++) {
-            IniMapSection section = ini.getSection(i);
-            IniMapEntry creFile = section.getEntry("cre_file");
-            IniMapEntry spawnPoint = section.getEntry("spawn_point");
-            if (creFile != null && spawnPoint != null) {
-              String[] position = IniMapEntry.splitValues(spawnPoint.getValue(), IniMapEntry.REGEX_POSITION);
-              for (int j = 0; j < position.length; j++) {
-                try {
-                  PlainTextResource iniRes = new PlainTextResource(ResourceFactory.getResourceEntry(iniFile));
-                  LayerObjectActor obj = new LayerObjectIniActor(iniRes, section, j);
-                  setListeners(obj);
-                  list.add(obj);
-                } catch (Exception e) {
-                  e.printStackTrace();
-                }
+      // loading actors from associated INI
+      String iniFile = are.getResourceEntry().getResourceName().toUpperCase(Locale.ENGLISH).replace(".ARE", ".INI");
+      IniMap ini = ResourceFactory.resourceExists(iniFile) ? IniMapCache.get(iniFile) : null;
+      if (ini != null) {
+        for (int i = 0, count = ini.getSectionCount(); i < count; i++) {
+          IniMapSection section = ini.getSection(i);
+          IniMapEntry creFile = section.getEntry("cre_file");
+          IniMapEntry spawnPoint = section.getEntry("spawn_point");
+          if (creFile != null && spawnPoint != null) {
+            String[] position = IniMapEntry.splitValues(spawnPoint.getValue(), IniMapEntry.REGEX_POSITION);
+            for (int j = 0; j < position.length; j++) {
+              try {
+                PlainTextResource iniRes = new PlainTextResource(ResourceFactory.getResourceEntry(iniFile));
+                LayerObjectActor obj = new LayerObjectIniActor(iniRes, section, j);
+                setListeners(obj);
+                list.add(obj);
+              } catch (Exception e) {
+                e.printStackTrace();
               }
             }
           }
         }
       }
-      return list.size();
     }
-    return 0;
   }
 
   @Override

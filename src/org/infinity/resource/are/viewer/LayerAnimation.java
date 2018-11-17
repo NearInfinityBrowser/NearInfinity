@@ -26,66 +26,56 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
 
   private boolean realEnabled, realPlaying, forcedInterpolation, isAnimActiveIgnored;
   private int frameState;
-  private Object interpolationType;
-  private double frameRate;
+  private Object interpolationType = ViewerConstants.TYPE_NEAREST_NEIGHBOR;
+  private double frameRate = ViewerConstants.FRAME_AUTO;
 
   public LayerAnimation(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.ANIMATION, viewer);
-    realEnabled = realPlaying = false;
-    frameState = ViewerConstants.FRAME_AUTO;
-    forcedInterpolation = false;
-    interpolationType = ViewerConstants.TYPE_NEAREST_NEIGHBOR;
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectAnimation> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_ANIMATIONS);
-        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_ANIMATIONS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          for (final Animation entry : getStructures(ofs, count, Animation.class)) {
-            final LayerObjectAnimation obj = new LayerObjectAnimation(are, entry);
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
+    List<LayerObjectAnimation> list = getLayerObjects();
+    if (hasAre()) {
+      AreResource are = getAre();
+      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_ANIMATIONS);
+      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_ANIMATIONS);
+      if (so != null && sc != null) {
+        int ofs = so.getValue();
+        int count = sc.getValue();
+        for (final Animation entry : getStructures(ofs, count, Animation.class)) {
+          final LayerObjectAnimation obj = new LayerObjectAnimation(are, entry);
+          setListeners(obj);
+          list.add(obj);
+        }
+        setInitialized(true);
+      }
+    }
+
+    // sorting entries (animations not flagged as "draw as background" come first)
+    Collections.sort(list, new Comparator<LayerObjectAnimation>() {
+      @Override
+      public int compare(LayerObjectAnimation o1, LayerObjectAnimation o2) {
+        boolean isBackground1, isBackground2;
+        try {
+          isBackground1 = ((Flag)((Animation)o1.getViewable()).getAttribute(Animation.ARE_ANIMATION_APPEARANCE)).isFlagSet(8);
+          isBackground2 = ((Flag)((Animation)o2.getViewable()).getAttribute(Animation.ARE_ANIMATION_APPEARANCE)).isFlagSet(8);
+        } catch (Exception e) {
+          isBackground1 = false;
+          isBackground2 = false;
+        }
+        if (!isBackground1 && isBackground2) {
+          return -1;
+        } else if (isBackground1 && !isBackground2) {
+          return 1;
+        } else {
+          return 0;
         }
       }
-
-      // sorting entries (animations not flagged as "draw as background" come first)
-      Collections.sort(list, new Comparator<LayerObjectAnimation>() {
-        @Override
-        public int compare(LayerObjectAnimation o1, LayerObjectAnimation o2) {
-          boolean isBackground1, isBackground2;
-          try {
-            isBackground1 = ((Flag)((Animation)o1.getViewable()).getAttribute(Animation.ARE_ANIMATION_APPEARANCE)).isFlagSet(8);
-            isBackground2 = ((Flag)((Animation)o2.getViewable()).getAttribute(Animation.ARE_ANIMATION_APPEARANCE)).isFlagSet(8);
-          } catch (Exception e) {
-            isBackground1 = false;
-            isBackground2 = false;
-          }
-          if (!isBackground1 && isBackground2) {
-            return -1;
-          } else if (isBackground1 && !isBackground2) {
-            return 1;
-          } else {
-            return 0;
-          }
-        }
-      });
-
-      return list.size();
-    }
-    return 0;
+    });
   }
 
   @Override

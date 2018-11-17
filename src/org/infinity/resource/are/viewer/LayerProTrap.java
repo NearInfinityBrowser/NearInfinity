@@ -21,33 +21,28 @@ public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
   public LayerProTrap(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.PRO_TRAP, viewer);
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectProTrap> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_PROJECTILE_TRAPS);
-        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_PROJECTILE_TRAPS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          for (final ProTrap entry : getStructures(ofs, count, ProTrap.class)) {
-            final LayerObjectProTrap obj = new LayerObjectProTrap(are, entry);
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
+    List<LayerObjectProTrap> list = getLayerObjects();
+    if (hasAre()) {
+      AreResource are = getAre();
+      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_PROJECTILE_TRAPS);
+      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_PROJECTILE_TRAPS);
+      if (so != null && sc != null) {
+        int ofs = so.getValue();
+        int count = sc.getValue();
+        for (final ProTrap entry : getStructures(ofs, count, ProTrap.class)) {
+          final LayerObjectProTrap obj = new LayerObjectProTrap(are, entry);
+          setListeners(obj);
+          list.add(obj);
         }
+        setInitialized(true);
       }
-      return list.size();
     }
-    return 0;
   }
 
   @Override

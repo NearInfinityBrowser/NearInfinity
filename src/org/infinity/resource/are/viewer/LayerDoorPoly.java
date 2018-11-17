@@ -24,34 +24,28 @@ public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly>
   public LayerDoorPoly(WedResource wed, AreaViewer viewer)
   {
     super(wed, ViewerConstants.LayerType.DOOR_POLY, viewer);
-    doorClosed = false;
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectDoorPoly> list = getLayerObjects();
-      if (hasWed()) {
-        WedResource wed = getWed();
-        SectionOffset so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_DOORS);
-        SectionCount sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_DOORS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          for (final Door entry : getStructures(ofs, count, Door.class)) {
-            final LayerObjectDoorPoly obj = new LayerObjectDoorPoly(wed, entry);
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
+    List<LayerObjectDoorPoly> list = getLayerObjects();
+    if (hasWed()) {
+      WedResource wed = getWed();
+      SectionOffset so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_DOORS);
+      SectionCount sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_DOORS);
+      if (so != null && sc != null) {
+        int ofs = so.getValue();
+        int count = sc.getValue();
+        for (final Door entry : getStructures(ofs, count, Door.class)) {
+          final LayerObjectDoorPoly obj = new LayerObjectDoorPoly(wed, entry);
+          setListeners(obj);
+          list.add(obj);
         }
+        setInitialized(true);
       }
-      return list.size();
     }
-    return 0;
   }
 
   @Override
