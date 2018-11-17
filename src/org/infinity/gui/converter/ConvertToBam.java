@@ -5152,8 +5152,7 @@ public class ConvertToBam extends ChildFrame
     private boolean loadFrameData(IniMapSection frames) throws Exception
     {
       if (frames != null && frames.getName().equalsIgnoreCase(SECTION_FRAMES)) {
-        for (int i = 0; i < frames.getEntryCount(); i++) {
-          IniMapEntry entry = frames.getEntry(i);
+        for (final IniMapEntry entry : frames) {
           if (Misc.toNumber(entry.getKey(), -1) < 0) {
             throw new Exception("Invalid key value found at line " + (entry.getLine() + 1));
           }
@@ -5192,8 +5191,7 @@ public class ConvertToBam extends ChildFrame
     private boolean loadCenterData(IniMapSection centers) throws Exception
     {
       if (centers != null && centers.getName().equalsIgnoreCase(SECTION_CENTER)) {
-        for (int i = 0; i < centers.getEntryCount(); i++) {
-          IniMapEntry entry = centers.getEntry(i);
+        for (final IniMapEntry entry : centers) {
           if (Misc.toNumber(entry.getKey(), -1) < 0) {
             throw new Exception("Invalid key value found at line " + (entry.getLine() + 1));
           }
@@ -5210,8 +5208,7 @@ public class ConvertToBam extends ChildFrame
     private boolean loadCycleData(IniMapSection cycles) throws Exception
     {
       if (cycles != null && cycles.getName().equalsIgnoreCase(SECTION_CYCLES)) {
-        for (int i = 0; i < cycles.getEntryCount(); i++) {
-          IniMapEntry entry = cycles.getEntry(i);
+        for (final IniMapEntry entry : cycles) {
           if (Misc.toNumber(entry.getKey(), -1) < 0) {
             throw new Exception("Invalid key value found at line " + (entry.getLine() + 1));
           }
@@ -5228,8 +5225,7 @@ public class ConvertToBam extends ChildFrame
     private boolean loadFilterData(IniMapSection filters) throws Exception
     {
       if (filters != null && filters.getName().equalsIgnoreCase(SECTION_FILTERS)) {
-        for (int i = 0; i < filters.getEntryCount(); i++) {
-          IniMapEntry entry = filters.getEntry(i);
+        for (final IniMapEntry entry : filters) {
           String key = entry.getKey().trim();
           String value = entry.getValue().trim();
           if (key.matches(KEY_FILTER_NAME + "\\d+")) {
@@ -5249,7 +5245,7 @@ public class ConvertToBam extends ChildFrame
     }
 
 
-    // Applies available data to the converter without user-interaction and optionally without feedback.
+    /** Applies available data to the converter without user-interaction and optionally without feedback. */
     private boolean applyData(boolean silent)
     {
       bam.previewStop();
@@ -5289,7 +5285,7 @@ public class ConvertToBam extends ChildFrame
 
     private boolean applyFramesData(boolean silent) throws Exception
     {
-      // Storage for ResourceEntry and frame index for convenience
+      /** Storage for ResourceEntry and frame index for convenience. */
       class SourceFrame {
         public final ResourceEntry entry;
         public final int index;
@@ -5301,7 +5297,7 @@ public class ConvertToBam extends ChildFrame
         }
       }
 
-      // Primarily used for caching BAM decoder instances
+      /** Primarily used for caching BAM decoder instances. */
       class SourceData {
         public final boolean isBam;
         // bam-specific
@@ -5340,9 +5336,7 @@ public class ConvertToBam extends ChildFrame
         // preparing frames
         int entryCount = sectionFrames.getEntryCount();
         SourceFrame[] frames = new SourceFrame[entryCount];
-        for (int i = 0; i < entryCount; i++) {
-          IniMapEntry entry = sectionFrames.getEntry(i);
-
+        for (final IniMapEntry entry : sectionFrames) {
           // checking list indices
           int listIndex = Misc.toNumber(entry.getKey(), -1);
           if (listIndex < 0 || listIndex >= entryCount) {
@@ -5418,9 +5412,7 @@ public class ConvertToBam extends ChildFrame
     private boolean applyCenterData(boolean silent) throws Exception
     {
       if (sectionCenter != null) {
-        int entryCount = sectionCenter.getEntryCount();
-        for (int i = 0; i < entryCount; i++) {
-          IniMapEntry entry = sectionCenter.getEntry(i);
+        for (final IniMapEntry entry : sectionCenter) {
           int listIndex = Misc.toNumber(entry.getKey(), -1);
           if (listIndex >= 0 && listIndex < bam.modelFrames.getSize()) {
             String[] numbers = entry.getValue().trim().split(Character.toString(SEPARATOR_NUMBER));
@@ -5449,11 +5441,9 @@ public class ConvertToBam extends ChildFrame
         }
 
         // preparing cycle definitions
-        int entryCount = sectionCycles.getEntryCount();
-        HashMap<Integer, int[]> cycles = new HashMap<Integer, int[]>();
+        final HashMap<Integer, int[]> cycles = new HashMap<>();
         int maxCycle = -1;
-        for (int i = 0; i < entryCount; i++) {
-          IniMapEntry entry = sectionCycles.getEntry(i);
+        for (final IniMapEntry entry : sectionCenter) {
           int cycleIndex = Misc.toNumber(entry.getKey(), -1);
           if (cycleIndex >= 0) {
             String value = entry.getValue().trim();
@@ -5475,8 +5465,7 @@ public class ConvertToBam extends ChildFrame
 
         // post-processing
         int[][] cycleArray = new int[maxCycle + 1][];
-        for (Iterator<Integer> iter = cycles.keySet().iterator(); iter.hasNext();) {
-          Integer idx = iter.next();
+        for (Integer idx : cycles.keySet()) {
           cycleArray[idx] = cycles.get(idx);
         }
 
@@ -5485,8 +5474,8 @@ public class ConvertToBam extends ChildFrame
 
         // applying cycle definitions
         final int[] emptyCycle = new int[0];
-        for (int i = 0; i < cycleArray.length; i++) {
-          int[] curCycle = (cycleArray[i] != null) ? cycleArray[i] : emptyCycle;
+        for (int[] cycle : cycleArray) {
+          int[] curCycle = (cycle != null) ? cycle : emptyCycle;
           bam.modelCycles.add(curCycle);
         }
 
@@ -5511,14 +5500,12 @@ public class ConvertToBam extends ChildFrame
         }
 
         // preparing filter list
-        int entryCount = sectionFilters.getEntryCount();
-        HashMap<Integer, Config> filterMap = new HashMap<Integer, Config>();
+        final HashMap<Integer, Config> filterMap = new HashMap<>();
         int maxIndex = -1;
-        for (int i = 0; i < entryCount; i++) {
-          IniMapEntry entry = sectionFilters.getEntry(i);
+        for (final IniMapEntry entry : sectionFilters) {
           String key = entry.getKey();
           if (key.startsWith(KEY_FILTER_NAME)) {
-            Integer idx = Integer.valueOf(Misc.toNumber(key.substring(KEY_FILTER_NAME.length()), -1));
+            final int idx = Misc.toNumber(key.substring(KEY_FILTER_NAME.length()), -1);
             if (idx >= 0) {
               String name = entry.getValue().trim();
               Config config = filterMap.get(idx);
@@ -5530,7 +5517,7 @@ public class ConvertToBam extends ChildFrame
               maxIndex = Math.max(maxIndex, idx);
             }
           } else if (key.startsWith(KEY_FILTER_CONFIG)) {
-            Integer idx = Integer.valueOf(Misc.toNumber(key.substring(KEY_FILTER_CONFIG.length()), -1));
+            final Integer idx = Misc.toNumber(key.substring(KEY_FILTER_CONFIG.length()), -1);
             if (idx >= 0) {
               String param = entry.getValue().trim();
               Config config = filterMap.get(idx);
@@ -5550,8 +5537,7 @@ public class ConvertToBam extends ChildFrame
 
         // post-processing data
         Config[] configArray = new Config[maxIndex + 1];
-        for (Iterator<Integer> iter = filterMap.keySet().iterator(); iter.hasNext();) {
-          Integer idx = iter.next();
+        for (Integer idx : filterMap.keySet()) {
           Config config = filterMap.get(idx);
           if (config.name != null) {
             if (config.param == null) {
@@ -5563,8 +5549,7 @@ public class ConvertToBam extends ChildFrame
 
         // applying filter list
         bam.filterRemoveAll();
-        for (int i = 0; i < configArray.length; i++) {
-          Config config = configArray[i];
+        for (Config config : configArray) {
           if (config != null) {
             BamFilterFactory.FilterInfo info = BamFilterFactory.getFilterInfo(config.name);
             if (info != null) {
@@ -5582,7 +5567,7 @@ public class ConvertToBam extends ChildFrame
       return false;
     }
 
-    // Saves data to specified INI file without user-interaction and optionally without feedback.
+    /** Saves data to specified INI file without user-interaction and optionally without feedback. */
     private boolean saveData(Path outFile, boolean silent)
     {
       boolean retVal = false;
@@ -5667,7 +5652,7 @@ public class ConvertToBam extends ChildFrame
       return retVal;
     }
 
-    // Clears all BAM session data
+    /** Clears all BAM session data. */
     private void resetData()
     {
       sectionFrames = null;
@@ -5676,7 +5661,7 @@ public class ConvertToBam extends ChildFrame
       sectionFilters = null;
     }
 
-    // Shows options dialog and returns whether user selected "Accept" or "Cancel"
+    /** Shows options dialog and returns whether user selected "Accept" or "Cancel". */
     private boolean getSelection(boolean isExport)
     {
       if (isExport) {
@@ -5706,7 +5691,7 @@ public class ConvertToBam extends ChildFrame
       return isAccepted();
     }
 
-    // Attempts to determine a fitting default name for the ini file.
+    /** Attempts to determine a fitting default name for the ini file. */
     private Path getDefaultIniName(String defaultName)
     {
       Path retVal = null;
@@ -5730,51 +5715,51 @@ public class ConvertToBam extends ChildFrame
       return retVal;
     }
 
-    // Returns whether the dialog options have been accepted.
+    /** Returns whether the dialog options have been accepted. */
     private boolean isAccepted()
     {
       return accepted;
     }
 
-    // Returns whether the frames option has been selected.
+    /** Returns whether the frames option has been selected. */
     private boolean isFramesSelected()
     {
       return (cbFrames.isEnabled() && cbFrames.isSelected());
     }
 
-    // Returns whether the center position option has been selected.
+    /** Returns whether the center position option has been selected. */
     private boolean isCenterSelected()
     {
       return (cbCenter.isEnabled() && cbCenter.isSelected());
     }
 
-    // Returns whether the cycle definition option has been selected.
+    /** Returns whether the cycle definition option has been selected. */
     private boolean isCyclesSelected()
     {
       return (cbCycles.isEnabled() && cbCycles.isSelected());
     }
 
-    // Returns whether the filter configuration option has been selected.
+    /** Returns whether the filter configuration option has been selected. */
     private boolean isFiltersSelected()
     {
       return (cbFilters.isEnabled() && cbFilters.isSelected());
     }
 
-    // Disposes the dialog and marks it as accepted
+    /** Disposes the dialog and marks it as accepted. */
     private void acceptDialog()
     {
       setVisible(false);
       accepted = true;
     }
 
-    // Disposes the dialog and marks it as cancelled
+    /** Disposes the dialog and marks it as cancelled. */
     private void cancel()
     {
       setVisible(false);
       accepted = false;
     }
 
-    // Initializes the basic dialog layout
+    /** Initializes the basic dialog layout. */
     private void init()
     {
       setLayout(new BorderLayout());

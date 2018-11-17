@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -157,24 +157,26 @@ public final class CreMapCache
           List<ResourceEntry> files = ResourceFactory.getResources("CRE");
           // Including CHR resources to reduce number of warnings in IWD/IWD2 if NPC mods are installed
           files.addAll(ResourceFactory.getResources("CHR", Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS)));
-          for (int i = 0; i < files.size(); i++) {
+          for (final ResourceEntry entry : files) {
+            if (entry == null) { continue; }
+
             Misc.isQueueReady(executor, true, -1);
-            executor.execute(new CreWorker(files.get(i)));
+            executor.execute(new CreWorker(entry));
           }
 
-          files.clear();
-          files = ResourceFactory.getResources("ARE");
           scriptNamesAre.add("none"); // default script name for many CRE resources
-          for (int i = 0; i < files.size(); i++) {
+          for (final ResourceEntry entry : ResourceFactory.getResources("ARE")) {
+            if (entry == null) { continue; }
+
             Misc.isQueueReady(executor, true, -1);
-            executor.execute(new AreWorker(files.get(i)));
+            executor.execute(new AreWorker(entry));
           }
 
-          files.clear();
-          files = ResourceFactory.getResources("INI");
-          for (int i = 0; i < files.size(); i++) {
+          for (final ResourceEntry entry : ResourceFactory.getResources("INI")) {
+            if (entry == null) { continue; }
+
             Misc.isQueueReady(executor, true, -1);
-            executor.execute(new IniWorker(files.get(i)));
+            executor.execute(new IniWorker(entry));
           }
 
           executor.shutdown();
@@ -197,7 +199,7 @@ public final class CreMapCache
 
 //-------------------------- INNER CLASSES --------------------------
 
-  private static class CreWorker implements Runnable
+  private static final class CreWorker implements Runnable
   {
     final ResourceEntry entry;
 
@@ -209,17 +211,17 @@ public final class CreMapCache
     @Override
     public void run()
     {
-      if (entry != null) {
-        try {
-          CreResource.addScriptName(scriptNamesCre, entry);
-        }
-        catch (Exception e) {
+      try {
+        CreResource.addScriptName(scriptNamesCre, entry);
+      } catch (Exception e) {
+        synchronized (System.err) {
+          e.printStackTrace();
         }
       }
     }
   }
 
-  private static class AreWorker implements Runnable
+  private static final class AreWorker implements Runnable
   {
     final ResourceEntry entry;
 
@@ -231,17 +233,17 @@ public final class CreMapCache
     @Override
     public void run()
     {
-      if (entry != null) {
-        try {
-          AreResource.addScriptNames(scriptNamesAre, entry.getResourceBuffer());
-        }
-        catch (Exception e) {
+      try {
+        AreResource.addScriptNames(scriptNamesAre, entry.getResourceBuffer());
+      } catch (Exception e) {
+        synchronized (System.err) {
+          e.printStackTrace();
         }
       }
     }
   }
 
-  private static class IniWorker implements Runnable
+  private static final class IniWorker implements Runnable
   {
     final ResourceEntry entry;
 
@@ -253,29 +255,27 @@ public final class CreMapCache
     @Override
     public void run()
     {
-      if (entry != null) {
-        try {
-          if (entry.getResourceName().length() >= 10 &&
-              ResourceFactory.resourceExists(entry.getResourceName().replace(".INI", ".ARE"))) {
-            IniMap map = IniMapCache.get(entry);
-            if (map != null) {
-              for (int i = 0, cnt = map.getSectionCount(); i < cnt; i++) {
-                IniMapSection section = map.getSection(i);
-                if (section != null) {
-                  IniMapEntry mapEntry = section.getEntry("script_name");
-                  if (mapEntry != null) {
-                    String s = normalized(mapEntry.getValue());
-                    if (!s.isEmpty() && s.charAt(0) != '[') {
-                      synchronized (scriptNamesAre) {
-                        scriptNamesAre.add(s);
-                      }
-                    }
+      try {
+        final String name = entry.getResourceName();
+        if (name.length() >= 10 && ResourceFactory.resourceExists(name.replace(".INI", ".ARE"))) {
+          final IniMap ini = IniMapCache.get(entry);
+          if (ini != null) {
+            for (final IniMapSection section : ini) {
+              final IniMapEntry mapEntry = section.getEntry("script_name");
+              if (mapEntry != null) {
+                final String s = normalized(mapEntry.getValue());
+                if (!s.isEmpty() && s.charAt(0) != '[') {
+                  synchronized (scriptNamesAre) {
+                    scriptNamesAre.add(s);
                   }
                 }
               }
             }
           }
-        } catch (Exception e) {
+        }
+      } catch (Exception e) {
+        synchronized (System.err) {
+          e.printStackTrace();
         }
       }
     }
