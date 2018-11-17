@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -14,7 +14,6 @@ import org.infinity.datatype.SectionOffset;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.AnimatedLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.Animation;
 import org.infinity.resource.are.AreResource;
 
@@ -53,9 +52,8 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();
-          List<StructEntry> listStruct = getStructures(ofs, count, Animation.class);
-          for (int i = 0, size = listStruct.size(); i < size; i++) {
-            LayerObjectAnimation obj = new LayerObjectAnimation(are, (Animation)listStruct.get(i));
+          for (final Animation entry : getStructures(ofs, count, Animation.class)) {
+            final LayerObjectAnimation obj = new LayerObjectAnimation(are, entry);
             setListeners(obj);
             list.add(obj);
           }
@@ -147,8 +145,8 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
       this.interpolationType = interpolationType;
       List<LayerObjectAnimation> list = getLayerObjects();
       if (list != null) {
-        for (int i = 0, size = list.size(); i < size; i++) {
-          AnimatedLayerItem item = (AnimatedLayerItem)list.get(i).getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+        for (final LayerObjectAnimation layer : list) {
+          final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
           if (item != null) {
             item.setInterpolationType(this.interpolationType);
           }
@@ -176,8 +174,8 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
       forcedInterpolation = forced;
       List<LayerObjectAnimation> list = getLayerObjects();
       if (list != null) {
-        for (int i = 0, size = list.size(); i < size; i++) {
-          AnimatedLayerItem item = (AnimatedLayerItem)list.get(i).getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+        for (final LayerObjectAnimation layer : list) {
+          final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
           if (item != null) {
             item.setForcedInterpolation(forcedInterpolation);
           }
@@ -283,8 +281,8 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
       this.frameRate = frameRate;
       List<LayerObjectAnimation> list = getLayerObjects();
       if (list != null) {
-        for (int i = 0, size = list.size(); i < size; i++) {
-          AnimatedLayerItem item = (AnimatedLayerItem)list.get(i).getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+        for (final LayerObjectAnimation layer : list) {
+          final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
           if (item != null) {
             item.setFrameRate(this.frameRate);
           }
@@ -311,8 +309,8 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
     isAnimActiveIgnored = set;
     List<LayerObjectAnimation> list = getLayerObjects();
     if (list != null) {
-      for (int i = 0, size = list.size(); i < size; i++) {
-        AnimatedLayerItem item = (AnimatedLayerItem)list.get(i).getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+      for (final LayerObjectAnimation layer : list) {
+        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
         if (item != null) {
           if (item.getAnimation() instanceof BackgroundAnimationProvider) {
             ((BackgroundAnimationProvider)item.getAnimation()).setActiveIgnored(isAnimActiveIgnored);
@@ -327,8 +325,8 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
   {
     List<LayerObjectAnimation> list = getLayerObjects();
     if (list != null) {
-      for (int i = 0, size = list.size(); i < size; i++) {
-        AnimatedLayerItem item = (AnimatedLayerItem)list.get(i).getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+      for (final LayerObjectAnimation layer : list) {
+        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
         if (item != null) {
           switch (frameState) {
             case ViewerConstants.FRAME_NEVER:

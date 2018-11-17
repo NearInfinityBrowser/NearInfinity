@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -10,7 +10,6 @@ import java.util.List;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
 import org.infinity.gui.layeritem.AbstractLayerItem;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.Ambient;
 import org.infinity.resource.are.AreResource;
 
@@ -52,9 +51,8 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();
-          List<StructEntry> listStruct = getStructures(ofs, count, Ambient.class);
-          for (int i = 0, size = listStruct.size(); i < size; i++) {
-            LayerObjectAmbient obj = new LayerObjectAmbient(are, (Ambient)listStruct.get(i));
+          for (final Ambient entry : getStructures(ofs, count, Ambient.class)) {
+            final LayerObjectAmbient obj = new LayerObjectAmbient(are, entry);
             setListeners(obj);
             list.add(obj);
             // putting global/local sounds into separate lists for faster access

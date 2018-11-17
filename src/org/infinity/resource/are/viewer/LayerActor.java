@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -10,7 +10,6 @@ import java.util.Locale;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.Actor;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.text.PlainTextResource;
@@ -46,9 +45,8 @@ public class LayerActor extends BasicLayer<LayerObjectActor>
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();
-          List<StructEntry> listStruct = getStructures(ofs, count, Actor.class);
-          for (int i = 0, size = listStruct.size(); i < size; i++) {
-            LayerObjectActor obj = new LayerObjectAreActor(are, (Actor)listStruct.get(i));
+          for (final Actor entry : getStructures(ofs, count, Actor.class)) {
+            final LayerObjectActor obj = new LayerObjectAreActor(are, entry);
             setListeners(obj);
             list.add(obj);
           }

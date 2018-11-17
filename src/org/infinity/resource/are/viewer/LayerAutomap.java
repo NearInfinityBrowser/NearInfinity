@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -9,7 +9,6 @@ import java.util.List;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
 import org.infinity.resource.Profile;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.AutomapNote;
 import org.infinity.resource.are.AutomapNotePST;
@@ -49,16 +48,14 @@ public class LayerAutomap extends BasicLayer<LayerObject>
           int ofs = so.getValue();
           int count = sc.getValue();
           if (isTorment()) {
-            List<StructEntry> listStruct = getStructures(ofs, count, AutomapNotePST.class);
-            for (int i = 0, size = listStruct.size(); i < size; i++) {
-              LayerObjectAutomapPST obj = new LayerObjectAutomapPST(are, (AutomapNotePST)listStruct.get(i));
+            for (final AutomapNotePST entry : getStructures(ofs, count, AutomapNotePST.class)) {
+              final LayerObjectAutomapPST obj = new LayerObjectAutomapPST(are, entry);
               setListeners(obj);
               list.add(obj);
             }
           } else {
-            List<StructEntry> listStruct = getStructures(ofs, count, AutomapNote.class);
-            for (int i = 0, size = listStruct.size(); i < size; i++) {
-              LayerObjectAutomap obj = new LayerObjectAutomap(are, (AutomapNote)listStruct.get(i));
+            for (final AutomapNote entry : getStructures(ofs, count, AutomapNote.class)) {
+              final LayerObjectAutomap obj = new LayerObjectAutomap(are, entry);
               setListeners(obj);
               list.add(obj);
             }

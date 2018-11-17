@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -9,7 +9,6 @@ import java.util.List;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
 import org.infinity.gui.layeritem.AbstractLayerItem;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.wed.Door;
 import org.infinity.resource.wed.WedResource;
 
@@ -42,9 +41,8 @@ public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly>
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();
-          List<StructEntry> listStruct = getStructures(ofs, count, Door.class);
-          for (int i = 0, size = listStruct.size(); i < size; i++) {
-            LayerObjectDoorPoly obj = new LayerObjectDoorPoly(wed, (Door)listStruct.get(i));
+          for (final Door entry : getStructures(ofs, count, Door.class)) {
+            final LayerObjectDoorPoly obj = new LayerObjectDoorPoly(wed, entry);
             setListeners(obj);
             list.add(obj);
           }
@@ -69,20 +67,19 @@ public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly>
     setVisibilityState(visible);
     List<LayerObjectDoorPoly> list = getLayerObjects();
     if (list != null) {
-      for (int i = 0, size = list.size(); i < size; i++) {
-        LayerObjectDoorPoly obj = list.get(i);
+      for (final LayerObjectDoorPoly obj : list) {
         // processing open door items
         AbstractLayerItem[] items = obj.getLayerItems(ViewerConstants.DOOR_OPEN);
         if (items != null) {
-          for (int j = 0; j < items.length; j++) {
-            items[j].setVisible(isLayerVisible() && !doorClosed);
+          for (final AbstractLayerItem item : items) {
+            item.setVisible(isLayerVisible() && !doorClosed);
           }
         }
         // processing open door items
         items = obj.getLayerItems(ViewerConstants.DOOR_CLOSED);
         if (items != null) {
-          for (int j = 0; j < items.length; j++) {
-            items[j].setVisible(isLayerVisible() && doorClosed);
+          for (final AbstractLayerItem item : items) {
+            item.setVisible(isLayerVisible() && doorClosed);
           }
         }
       }

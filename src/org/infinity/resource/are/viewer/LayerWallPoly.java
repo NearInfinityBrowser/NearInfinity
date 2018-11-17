@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.wed.WallPolygon;
 import org.infinity.resource.wed.WedResource;
 
@@ -38,9 +37,8 @@ public class LayerWallPoly extends BasicLayer<LayerObjectWallPoly>
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();
-          List<StructEntry> listStruct = getStructures(ofs, count, WallPolygon.class);
-          for (int i = 0, size = listStruct.size(); i < size; i++) {
-            LayerObjectWallPoly obj = new LayerObjectWallPoly(wed, (WallPolygon)listStruct.get(i));
+          for (final WallPolygon entry : getStructures(ofs, count, WallPolygon.class)) {
+            final LayerObjectWallPoly obj = new LayerObjectWallPoly(wed, entry);
             setListeners(obj);
             list.add(obj);
           }

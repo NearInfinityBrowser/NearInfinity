@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.Door;
 
@@ -41,9 +40,8 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
         if (so != null && sc != null) {
           int ofs = so.getValue();
           int count = sc.getValue();
-          List<StructEntry> listStruct = getStructures(ofs, count, Door.class);
-          for (int i = 0, size = listStruct.size(); i < size; i++) {
-            LayerObjectDoor obj = new LayerObjectDoor(are, (Door)listStruct.get(i));
+          for (final Door entry : getStructures(ofs, count, Door.class)) {
+            final LayerObjectDoor obj = new LayerObjectDoor(are, entry);
             setListeners(obj);
             list.add(obj);
           }
@@ -68,8 +66,7 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
     setVisibilityState(visible);
     List<LayerObjectDoor> list = getLayerObjects();
     if (list != null) {
-      for (int i = 0, size = list.size(); i < size; i++) {
-        LayerObjectDoor obj = list.get(i);
+      for (final LayerObjectDoor obj : list) {
         obj.getLayerItem(ViewerConstants.DOOR_OPEN).setVisible(isLayerVisible() && !doorClosed);
         obj.getLayerItem(ViewerConstants.DOOR_CLOSED).setVisible(isLayerVisible() && doorClosed);
       }

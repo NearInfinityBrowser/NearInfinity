@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -21,10 +21,10 @@ public abstract class BasicLayer<E extends LayerObject>
 {
   private final LayerType layerType;
   private final int layerTypeIndex;
-  private final List<E> listObjects = new ArrayList<E>();
+  private final List<E> listObjects = new ArrayList<>();
   private final AreaViewer viewer;
 
-  private AbstractStruct parent;
+  private final AbstractStruct parent;
   private int schedule;
   private boolean visible, initialized, scheduleEnabled;
 
@@ -165,9 +165,8 @@ public abstract class BasicLayer<E extends LayerObject>
     for (int i = 0, size = listObjects.size(); i < size; i++) {
       boolean state = visible && (!isScheduleEnabled() || (isScheduleEnabled() && isScheduled(i)));
       E obj = listObjects.get(i);
-      AbstractLayerItem[] items = obj.getLayerItems();
-      for (int j = 0; j < items.length; j++) {
-        items[j].setVisible(state);
+      for (final AbstractLayerItem item : obj.getLayerItems()) {
+        item.setVisible(state);
       }
     }
     this.visible = visible;
@@ -180,11 +179,9 @@ public abstract class BasicLayer<E extends LayerObject>
   public E getLayerObjectOf(AbstractLayerItem item)
   {
     if (item != null) {
-      for (int i = 0, size = listObjects.size(); i < size; i++) {
-        E obj = listObjects.get(i);
-        AbstractLayerItem[] items = obj.getLayerItems();
-        for (int j = 0; j < items.length; j++) {
-          if (items[j] == item) {
+      for (final E obj : listObjects) {
+        for (final AbstractLayerItem layerItem : obj.getLayerItems()) {
+          if (layerItem == item) {
             return obj;
           }
         }
@@ -207,8 +204,8 @@ public abstract class BasicLayer<E extends LayerObject>
   public void close()
   {
     if (getViewer() != null) {
-      for (int i = 0, size = listObjects.size(); i < size; i++) {
-        listObjects.get(i).close();
+      for (final E obj : listObjects) {
+        obj.close();
       }
     }
     listObjects.clear();
@@ -281,38 +278,45 @@ public abstract class BasicLayer<E extends LayerObject>
   public abstract String getAvailability();
 
 
-  // Creates a list of structures of the specified type from the parent structure
-  protected List<StructEntry> getStructures(int baseOfs, int count, Class<? extends StructEntry> type)
+  /**
+   * Returns all direct children from parent of this object (i.e. siblings of this
+   * object) with the specified type, which are located after the specified offset.
+   *
+   * @param baseOfs Offset from which take fields
+   * @param maxCount Maximum count of returned objects. Returned list will have
+   *        size not more than this value
+   * @param type Class of fields to get
+   *
+   * @param <T> Expected return type
+   *
+   * @return List of specified fields. Never {@code null}
+   */
+  protected <T extends StructEntry> List<T> getStructures(int baseOfs, int maxCount, Class<? extends T> type)
   {
-    List<StructEntry> listStruct = new ArrayList<StructEntry>();
-    if (getParent() != null && baseOfs >= 0 && count >= 0 && type != null) {
-      List<StructEntry> list = getParent().getList();
-      int cnt = 0;
-      for (int i = 0, size = list.size(); i < size; i++) {
-        if (list.get(i).getOffset() >= baseOfs && type.isAssignableFrom(list.get(i).getClass())) {
-          listStruct.add(list.get(i));
-          cnt++;
-          if (cnt >= count) {
-            break;
-          }
+    final List<T> fields = new ArrayList<>();
+    if (getParent() != null && baseOfs >= 0 && maxCount >= 0 && type != null) {
+      for (final StructEntry field : getParent().getList()) {
+        if (field.getOffset() >= baseOfs && type.isAssignableFrom(field.getClass())) {
+          if (maxCount-- < 0) { break; }
+
+          fields.add(type.cast(field));
         }
       }
     }
 
-    return listStruct;
+    return fields;
   }
 
-  // Convenience method: sets required listeners
+  /** Convenience method: sets required listeners. */
   protected void setListeners(LayerObject obj)
   {
     if (obj != null) {
-      AbstractLayerItem[] items = obj.getLayerItems();
-      for (int i = 0; i < items.length; i++) {
-        if (items[i] != null) {
-          items[i].addActionListener(viewer.getListeners());
-          items[i].addLayerItemListener(viewer.getListeners());
-          items[i].addMouseListener(viewer.getListeners());
-          items[i].addMouseMotionListener(viewer.getListeners());
+      for (final AbstractLayerItem item : obj.getLayerItems()) {
+        if (item != null) {
+          item.addActionListener(viewer.getListeners());
+          item.addLayerItemListener(viewer.getListeners());
+          item.addMouseListener(viewer.getListeners());
+          item.addMouseMotionListener(viewer.getListeners());
         }
       }
     }
