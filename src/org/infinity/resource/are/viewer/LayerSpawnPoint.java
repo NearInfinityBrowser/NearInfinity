@@ -4,17 +4,15 @@
 
 package org.infinity.resource.are.viewer;
 
-import java.util.List;
-
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
 import org.infinity.resource.are.AreResource;
+import static org.infinity.resource.are.AreResource.ARE_NUM_SPAWN_POINTS;
+import static org.infinity.resource.are.AreResource.ARE_OFFSET_SPAWN_POINTS;
 import org.infinity.resource.are.SpawnPoint;
 
 /**
  * Manages spawn point layer objects.
  */
-public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
+public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint, AreResource>
 {
   private static final String AvailableFmt = "Spawn points: %d";
 
@@ -27,22 +25,8 @@ public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
   @Override
   protected void loadLayer()
   {
-    List<LayerObjectSpawnPoint> list = getLayerObjects();
-    if (hasAre()) {
-      AreResource are = getAre();
-      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_SPAWN_POINTS);
-      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_SPAWN_POINTS);
-      if (so != null && sc != null) {
-        int ofs = so.getValue();
-        int count = sc.getValue();
-        for (final SpawnPoint entry : getStructures(ofs, count, SpawnPoint.class)) {
-          final LayerObjectSpawnPoint obj = new LayerObjectSpawnPoint(are, entry);
-          setListeners(obj);
-          list.add(obj);
-        }
-        setInitialized(true);
-      }
-    }
+    loadLayerItems(ARE_OFFSET_SPAWN_POINTS, ARE_NUM_SPAWN_POINTS,
+                   SpawnPoint.class, p -> new LayerObjectSpawnPoint(parent, p));
   }
 
   @Override

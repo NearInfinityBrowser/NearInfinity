@@ -13,7 +13,7 @@ import org.infinity.resource.are.AreResource;
 /**
  * Manages map transition layer objects.
  */
-public class LayerTransition extends BasicLayer<LayerObjectTransition>
+public class LayerTransition extends BasicLayer<LayerObjectTransition, AreResource>
 {
   private static final String AvailableFmt = "Map transitions: %d";
 
@@ -26,27 +26,25 @@ public class LayerTransition extends BasicLayer<LayerObjectTransition>
   @Override
   protected void loadLayer()
   {
-    List<LayerObjectTransition> list = getLayerObjects();
-    if (hasAre()) {
-      AreResource are = getAre();
-      for (int i = 0; i < LayerObjectTransition.FIELD_NAME.length; i++) {
-        ResourceRef ref = (ResourceRef)are.getAttribute(LayerObjectTransition.FIELD_NAME[i]);
-        if (ref != null && !ref.getResourceName().isEmpty() && !"None".equalsIgnoreCase(ref.getResourceName())) {
-          AreResource destAre = null;
-          try {
-            destAre = new AreResource(ResourceFactory.getResourceEntry(ref.getResourceName()));
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-          if (destAre != null) {
-            LayerObjectTransition obj = new LayerObjectTransition(are, destAre, i, getViewer().getRenderer());
-            setListeners(obj);
-            list.add(obj);
-          }
+    final List<LayerObjectTransition> list = getLayerObjects();
+    for (int i = 0; i < LayerObjectTransition.FIELD_NAME.length; i++) {
+      ResourceRef ref = (ResourceRef)parent.getAttribute(LayerObjectTransition.FIELD_NAME[i]);
+      //TODO: replace "None" to null
+      if (ref != null && !ref.getResourceName().isEmpty() && !"None".equalsIgnoreCase(ref.getResourceName())) {
+        AreResource destAre = null;
+        try {
+          destAre = new AreResource(ResourceFactory.getResourceEntry(ref.getResourceName()));
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        if (destAre != null) {
+          LayerObjectTransition obj = new LayerObjectTransition(parent, destAre, i, getViewer().getRenderer());
+          setListeners(obj);
+          list.add(obj);
         }
       }
-      setInitialized(true);
     }
+    setInitialized(true);
   }
 
   @Override

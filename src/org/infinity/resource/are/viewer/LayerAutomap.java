@@ -4,19 +4,17 @@
 
 package org.infinity.resource.are.viewer;
 
-import java.util.List;
-
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
 import org.infinity.resource.Profile;
 import org.infinity.resource.are.AreResource;
+import static org.infinity.resource.are.AreResource.ARE_NUM_AUTOMAP_NOTES;
+import static org.infinity.resource.are.AreResource.ARE_OFFSET_AUTOMAP_NOTES;
 import org.infinity.resource.are.AutomapNote;
 import org.infinity.resource.are.AutomapNotePST;
 
 /**
  * Manages automap notes layer objects (both PST-specific and generic types).
  */
-public class LayerAutomap extends BasicLayer<LayerObject>
+public class LayerAutomap extends BasicLayer<LayerObject, AreResource>
 {
   private static final String AvailableFmt = "Automap notes: %d";
 
@@ -37,29 +35,12 @@ public class LayerAutomap extends BasicLayer<LayerObject>
   @Override
   protected void loadLayer()
   {
-    List<LayerObject> list = getLayerObjects();
-    if (hasAre()) {
-      AreResource are = getAre();
-      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_AUTOMAP_NOTES);
-      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_AUTOMAP_NOTES);
-      if (so != null && sc != null) {
-        int ofs = so.getValue();
-        int count = sc.getValue();
-        if (isTorment()) {
-          for (final AutomapNotePST entry : getStructures(ofs, count, AutomapNotePST.class)) {
-            final LayerObjectAutomapPST obj = new LayerObjectAutomapPST(are, entry);
-            setListeners(obj);
-            list.add(obj);
-          }
-        } else {
-          for (final AutomapNote entry : getStructures(ofs, count, AutomapNote.class)) {
-            final LayerObjectAutomap obj = new LayerObjectAutomap(are, entry);
-            setListeners(obj);
-            list.add(obj);
-          }
-        }
-        setInitialized(true);
-      }
+    if (isTorment()) {
+      loadLayerItems(ARE_OFFSET_AUTOMAP_NOTES, ARE_NUM_AUTOMAP_NOTES,
+                     AutomapNotePST.class, n -> new LayerObjectAutomapPST(parent, n));
+    } else {
+      loadLayerItems(ARE_OFFSET_AUTOMAP_NOTES, ARE_NUM_AUTOMAP_NOTES,
+                     AutomapNote.class, n -> new LayerObjectAutomap(parent, n));
     }
   }
 

@@ -4,17 +4,15 @@
 
 package org.infinity.resource.are.viewer;
 
-import java.util.List;
-
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
 import org.infinity.resource.are.AreResource;
+import static org.infinity.resource.are.AreResource.ARE_NUM_PROJECTILE_TRAPS;
+import static org.infinity.resource.are.AreResource.ARE_OFFSET_PROJECTILE_TRAPS;
 import org.infinity.resource.are.ProTrap;
 
 /**
  * Manages projectile trap layer objects.
  */
-public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
+public class LayerProTrap extends BasicLayer<LayerObjectProTrap, AreResource>
 {
   private static final String AvailableFmt = "Projectile traps: %d";
 
@@ -27,22 +25,8 @@ public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
   @Override
   protected void loadLayer()
   {
-    List<LayerObjectProTrap> list = getLayerObjects();
-    if (hasAre()) {
-      AreResource are = getAre();
-      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_PROJECTILE_TRAPS);
-      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_PROJECTILE_TRAPS);
-      if (so != null && sc != null) {
-        int ofs = so.getValue();
-        int count = sc.getValue();
-        for (final ProTrap entry : getStructures(ofs, count, ProTrap.class)) {
-          final LayerObjectProTrap obj = new LayerObjectProTrap(are, entry);
-          setListeners(obj);
-          list.add(obj);
-        }
-        setInitialized(true);
-      }
-    }
+    loadLayerItems(ARE_OFFSET_PROJECTILE_TRAPS, ARE_NUM_PROJECTILE_TRAPS,
+                   ProTrap.class, p -> new LayerObjectProTrap(parent, p));
   }
 
   @Override

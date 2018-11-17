@@ -4,17 +4,15 @@
 
 package org.infinity.resource.are.viewer;
 
-import java.util.List;
-
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
 import org.infinity.resource.are.AreResource;
+import static org.infinity.resource.are.AreResource.ARE_NUM_ENTRANCES;
+import static org.infinity.resource.are.AreResource.ARE_OFFSET_ENTRANCES;
 import org.infinity.resource.are.Entrance;
 
 /**
  * Manages entrance layer objects.
  */
-public class LayerEntrance extends BasicLayer<LayerObjectEntrance>
+public class LayerEntrance extends BasicLayer<LayerObjectEntrance, AreResource>
 {
   private static final String AvailableFmt = "Entrances: %d";
 
@@ -27,22 +25,8 @@ public class LayerEntrance extends BasicLayer<LayerObjectEntrance>
   @Override
   protected void loadLayer()
   {
-    List<LayerObjectEntrance> list = getLayerObjects();
-    if (hasAre()) {
-      AreResource are = getAre();
-      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_ENTRANCES);
-      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_ENTRANCES);
-      if (so != null && sc != null) {
-        int ofs = so.getValue();
-        int count = sc.getValue();
-        for (final Entrance entry : getStructures(ofs, count, Entrance.class)) {
-          final LayerObjectEntrance obj = new LayerObjectEntrance(are, entry);
-          setListeners(obj);
-          list.add(obj);
-        }
-        setInitialized(true);
-      }
-    }
+    loadLayerItems(ARE_OFFSET_ENTRANCES, ARE_NUM_ENTRANCES,
+                   Entrance.class, e -> new LayerObjectEntrance(parent, e));
   }
 
   @Override

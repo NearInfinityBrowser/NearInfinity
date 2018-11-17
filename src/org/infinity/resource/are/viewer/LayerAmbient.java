@@ -7,16 +7,16 @@ package org.infinity.resource.are.viewer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.resource.are.Ambient;
 import org.infinity.resource.are.AreResource;
+import static org.infinity.resource.are.AreResource.ARE_NUM_AMBIENTS;
+import static org.infinity.resource.are.AreResource.ARE_OFFSET_AMBIENTS;
 
 /**
  * Manages ambient sound layer objects (including global and local ambient sounds).
  */
-public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
+public class LayerAmbient extends BasicLayer<LayerObjectAmbient, AreResource>
 {
   private static final String[] AvailableFmt = {"Global ambient sounds: %d",
                                                 "Local ambient sound: %d",
@@ -46,28 +46,16 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
   @Override
   protected void loadLayer()
   {
-    List<LayerObjectAmbient> list = getLayerObjects();
-    if (hasAre()) {
-      AreResource are = getAre();
-      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_AMBIENTS);
-      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_AMBIENTS);
-      if (so != null && sc != null) {
-        int ofs = so.getValue();
-        int count = sc.getValue();
-        for (final Ambient entry : getStructures(ofs, count, Ambient.class)) {
-          final LayerObjectAmbient obj = new LayerObjectAmbient(are, entry);
-          setListeners(obj);
-          list.add(obj);
-          // putting global/local sounds into separate lists for faster access
-          if (obj.isLocal()) {
-            listLocalSounds.add(obj);
-          } else {
-            listGlobalSounds.add(obj);
-          }
-        }
-        setInitialized(true);
+    loadLayerItems(ARE_OFFSET_AMBIENTS, ARE_NUM_AMBIENTS, Ambient.class, a -> {
+      final LayerObjectAmbient obj = new LayerObjectAmbient(parent, a);
+      // putting global/local sounds into separate lists for faster access
+      if (obj.isLocal()) {
+        listLocalSounds.add(obj);
+      } else {
+        listGlobalSounds.add(obj);
       }
-    }
+      return obj;
+    });
   }
 
   /**
@@ -79,19 +67,17 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient>
     setVisibilityState(visible);
     List<LayerObjectAmbient> list = getLayerObjects();
     boolean state;
-    if (list != null) {
-      for (int i = 0, size = list.size(); i < size; i++) {
-        LayerObjectAmbient obj = list.get(i);
-        state = isLayerVisible(ViewerConstants.AMBIENT_ITEM_ICON) && (!isScheduleEnabled() || (isScheduleEnabled() && isScheduled(i)));
-        AbstractLayerItem item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_ICON);
-        if (item != null) {
-          item.setVisible(state && iconEnabled);
-        }
-        state = isLayerVisible(ViewerConstants.AMBIENT_ITEM_RANGE) && (!isScheduleEnabled() || (isScheduleEnabled() && isScheduled(i)));
-        item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_RANGE);
-        if (item != null) {
-          item.setVisible(state && rangeEnabled);
-        }
+    for (int i = 0, size = list.size(); i < size; i++) {
+      LayerObjectAmbient obj = list.get(i);
+      state = isLayerVisible(ViewerConstants.AMBIENT_ITEM_ICON) && (!isScheduleEnabled() || isScheduled(i));
+      AbstractLayerItem item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_ICON);
+      if (item != null) {
+        item.setVisible(state && iconEnabled);
+      }
+      state = isLayerVisible(ViewerConstants.AMBIENT_ITEM_RANGE) && (!isScheduleEnabled() || isScheduled(i));
+      item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_RANGE);
+      if (item != null) {
+        item.setVisible(state && rangeEnabled);
       }
     }
   }

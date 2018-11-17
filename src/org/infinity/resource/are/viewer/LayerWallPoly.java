@@ -4,17 +4,15 @@
 
 package org.infinity.resource.are.viewer;
 
-import java.util.List;
-
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
 import org.infinity.resource.wed.WallPolygon;
 import org.infinity.resource.wed.WedResource;
+import static org.infinity.resource.wed.WedResource.WED_NUM_WALL_POLYGONS;
+import static org.infinity.resource.wed.WedResource.WED_OFFSET_WALL_POLYGONS;
 
 /**
  * Manages wall polygon layer objects.
  */
-public class LayerWallPoly extends BasicLayer<LayerObjectWallPoly>
+public class LayerWallPoly extends BasicLayer<LayerObjectWallPoly, WedResource>
 {
   private static final String AvailableFmt = "Wall polygons: %d";
 
@@ -27,22 +25,8 @@ public class LayerWallPoly extends BasicLayer<LayerObjectWallPoly>
   @Override
   protected void loadLayer()
   {
-    List<LayerObjectWallPoly> list = getLayerObjects();
-    if (hasWed()) {
-      WedResource wed = getWed();
-      SectionOffset so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_WALL_POLYGONS);
-      SectionCount sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_WALL_POLYGONS);
-      if (so != null && sc != null) {
-        int ofs = so.getValue();
-        int count = sc.getValue();
-        for (final WallPolygon entry : getStructures(ofs, count, WallPolygon.class)) {
-          final LayerObjectWallPoly obj = new LayerObjectWallPoly(wed, entry);
-          setListeners(obj);
-          list.add(obj);
-        }
-        setInitialized(true);
-      }
-    }
+    loadLayerItems(WED_OFFSET_WALL_POLYGONS, WED_NUM_WALL_POLYGONS,
+                   WallPolygon.class, w -> new LayerObjectWallPoly(parent, w));
   }
 
   @Override

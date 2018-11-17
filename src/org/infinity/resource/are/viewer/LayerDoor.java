@@ -4,17 +4,15 @@
 
 package org.infinity.resource.are.viewer;
 
-import java.util.List;
-
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
 import org.infinity.resource.are.AreResource;
+import static org.infinity.resource.are.AreResource.ARE_NUM_DOORS;
+import static org.infinity.resource.are.AreResource.ARE_OFFSET_DOORS;
 import org.infinity.resource.are.Door;
 
 /**
  * Manages door layer objects.
  */
-public class LayerDoor extends BasicLayer<LayerObjectDoor>
+public class LayerDoor extends BasicLayer<LayerObjectDoor, AreResource>
 {
   private static final String AvailableFmt = "Doors: %d";
 
@@ -29,22 +27,8 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
   @Override
   protected void loadLayer()
   {
-    List<LayerObjectDoor> list = getLayerObjects();
-    if (hasAre()) {
-      AreResource are = getAre();
-      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_DOORS);
-      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_DOORS);
-      if (so != null && sc != null) {
-        int ofs = so.getValue();
-        int count = sc.getValue();
-        for (final Door entry : getStructures(ofs, count, Door.class)) {
-          final LayerObjectDoor obj = new LayerObjectDoor(are, entry);
-          setListeners(obj);
-          list.add(obj);
-        }
-        setInitialized(true);
-      }
-    }
+    loadLayerItems(ARE_OFFSET_DOORS, ARE_NUM_DOORS,
+                   Door.class, d -> new LayerObjectDoor(parent, d));
   }
 
   @Override
@@ -58,12 +42,9 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
   public void setLayerVisible(boolean visible)
   {
     setVisibilityState(visible);
-    List<LayerObjectDoor> list = getLayerObjects();
-    if (list != null) {
-      for (final LayerObjectDoor obj : list) {
-        obj.getLayerItem(ViewerConstants.DOOR_OPEN).setVisible(isLayerVisible() && !doorClosed);
-        obj.getLayerItem(ViewerConstants.DOOR_CLOSED).setVisible(isLayerVisible() && doorClosed);
-      }
+    for (final LayerObjectDoor obj : getLayerObjects()) {
+      obj.getLayerItem(ViewerConstants.DOOR_OPEN).setVisible(isLayerVisible() && !doorClosed);
+      obj.getLayerItem(ViewerConstants.DOOR_CLOSED).setVisible(isLayerVisible() && doorClosed);
     }
   }
 

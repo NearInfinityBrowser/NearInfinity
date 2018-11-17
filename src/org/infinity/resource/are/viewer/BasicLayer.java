@@ -6,7 +6,10 @@ package org.infinity.resource.are.viewer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
+import org.infinity.datatype.SectionCount;
+import org.infinity.datatype.SectionOffset;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
@@ -16,15 +19,18 @@ import org.infinity.resource.wed.WedResource;
 
 /**
  * Common base class for layer-specific managers.
+ *
+ * @param <E> Type of the layer item in the manager
+ * @param <R> Type of the resource that contains layer items
  */
-public abstract class BasicLayer<E extends LayerObject>
+public abstract class BasicLayer<E extends LayerObject, R extends AbstractStruct>
 {
   private final LayerType layerType;
   private final int layerTypeIndex;
   private final List<E> listObjects = new ArrayList<>();
   private final AreaViewer viewer;
 
-  private final AbstractStruct parent;
+  protected final R parent;
   private int schedule;
   private boolean visible, scheduleEnabled;
   /** Determines whether this layer has been loaded at least once. */
@@ -32,17 +38,13 @@ public abstract class BasicLayer<E extends LayerObject>
 
   /**
    * Initializes the current layer.
-   * @param parent The parent resource of the layer (either AreResource or WedResource).
+   * @param parent The parent resource of the layer (either {@link AreResource} or {@link WedResource}).
    * @param type The type/identifier of the layer.
    */
-  public BasicLayer(AbstractStruct parent, LayerType type, AreaViewer viewer)
+  public BasicLayer(R parent, LayerType type, AreaViewer viewer)
   {
     // setting parent resource
-    if (parent instanceof AreResource || parent instanceof WedResource) {
-      this.parent = parent;
-    } else {
-      this.parent = null;
-    }
+    this.parent = parent;
 
     // setting layer type
     this.layerType = type;
@@ -66,38 +68,6 @@ public abstract class BasicLayer<E extends LayerObject>
   public AreaViewer getViewer()
   {
     return viewer;
-  }
-
-  /**
-   * Returns whether the parent structure is of type AreResource.
-   */
-  public boolean hasAre()
-  {
-    return (parent instanceof AreResource);
-  }
-
-  /**
-   * Returns the parent as AreResource structure if available.
-   */
-  public AreResource getAre()
-  {
-    return (parent instanceof AreResource) ? (AreResource)parent : null;
-  }
-
-  /**
-   * Returns whether the parent structure is of type WedResource.
-   */
-  public boolean hasWed()
-  {
-    return (parent instanceof WedResource);
-  }
-
-  /**
-   * Returns the parent as WedResource structure if available.
-   */
-  public WedResource getWed()
-  {
-    return (parent instanceof WedResource) ? (WedResource)parent : null;
   }
 
   /**
@@ -165,7 +135,7 @@ public abstract class BasicLayer<E extends LayerObject>
   public void setLayerVisible(boolean visible)
   {
     for (int i = 0, size = listObjects.size(); i < size; i++) {
-      boolean state = visible && (!isScheduleEnabled() || (isScheduleEnabled() && isScheduled(i)));
+      boolean state = visible && (!isScheduleEnabled() || isScheduled(i));
       E obj = listObjects.get(i);
       for (final AbstractLayerItem item : obj.getLayerItems()) {
         item.setVisible(state);
@@ -205,6 +175,36 @@ public abstract class BasicLayer<E extends LayerObject>
       return listObjects.size();
     }
     return 0;
+  }
+
+  /**
+   * Loads all items with specified class from {@link #parent} structure.
+   *
+   * @param offsetAttribute Attribute in the {@link #parent} structure that contains
+   *        offset of the first item to load
+   * @param countAttribute Attribute in the {@link #parent} structure that contains
+   *        count of the items to load
+   * @param itemClass Class ot the item to load
+   * @param newLayerObject Function that creates new layer object from item, extracted
+   *        from resource
+   *
+   * @param <T> Type of the items on the layer
+   */
+  protected final <T extends StructEntry> void loadLayerItems(String offsetAttribute, String countAttribute,
+                                                              Class<T> itemClass, Function<T, E> newLayerObject)
+  {
+    final SectionOffset so = (SectionOffset)parent.getAttribute(offsetAttribute);
+    final SectionCount  sc = (SectionCount )parent.getAttribute(countAttribute);
+    if (so != null && sc != null) {
+      final int ofs = so.getValue();
+      final int cnt = sc.getValue();
+      for (final T entry : getStructures(ofs, cnt, itemClass)) {
+        final E obj = newLayerObject.apply(entry);
+        setListeners(obj);
+        listObjects.add(obj);
+      }
+      setInitialized(true);
+    }
   }
 
   /** Loads all available objects of this layer. */

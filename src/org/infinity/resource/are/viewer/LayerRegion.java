@@ -4,17 +4,15 @@
 
 package org.infinity.resource.are.viewer;
 
-import java.util.List;
-
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
 import org.infinity.resource.are.AreResource;
+import static org.infinity.resource.are.AreResource.ARE_NUM_TRIGGERS;
+import static org.infinity.resource.are.AreResource.ARE_OFFSET_TRIGGERS;
 import org.infinity.resource.are.ITEPoint;
 
 /**
  * Manages region layer objects.
  */
-public class LayerRegion extends BasicLayer<LayerObjectRegion>
+public class LayerRegion extends BasicLayer<LayerObjectRegion, AreResource>
 {
   private static final String AvailableFmt = "Regions: %d";
 
@@ -27,22 +25,8 @@ public class LayerRegion extends BasicLayer<LayerObjectRegion>
   @Override
   protected void loadLayer()
   {
-    List<LayerObjectRegion> list = getLayerObjects();
-    if (hasAre()) {
-      AreResource are = getAre();
-      SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_TRIGGERS);
-      SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_TRIGGERS);
-      if (so != null && sc != null) {
-        int ofs = so.getValue();
-        int count = sc.getValue();
-        for (final ITEPoint entry : getStructures(ofs, count, ITEPoint.class)) {
-          final LayerObjectRegion obj = new LayerObjectRegion(are, entry);
-          setListeners(obj);
-          list.add(obj);
-        }
-        setInitialized(true);
-      }
-    }
+    loadLayerItems(ARE_OFFSET_TRIGGERS, ARE_NUM_TRIGGERS,
+                   ITEPoint.class, p -> new LayerObjectRegion(parent, p));
   }
 
   @Override
