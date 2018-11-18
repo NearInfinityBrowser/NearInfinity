@@ -30,7 +30,7 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   private final HashMap<String, DlgResource> linkedDialogs = new HashMap<>();
   /** Maps dialog entries to main tree items - items wrom which the tree grows. */
   private final HashMap<TreeItemEntry, ItemBase> mainItems = new HashMap<>();
-  /** Maps dialog entries  to tree items that represents it. Used for update tree when entry changes. */
+  /** Maps dialog entries to tree items that represents it. Used for update tree when entry changes. */
   private final HashMap<TreeItemEntry, List<ItemBase>> allItems = new HashMap<>();
 
   private final RootItem root;
@@ -57,12 +57,7 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   {
     if (parent instanceof ItemBase) {
       final ItemBase child = ((ItemBase)parent).getChildAt(index);
-      if (child instanceof StateItem) {
-        initState((StateItem)child);
-      } else
-      if (child instanceof TransitionItem) {
-        initTransition((TransitionItem)child);
-      }
+      initNode(child);
       return child;
     }
     return null;
@@ -72,7 +67,7 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   public int getChildCount(Object parent)
   {
     if (parent instanceof TreeNode) {
-      return ((TreeNode)parent).getChildCount();
+      return initNode((TreeNode)parent).getChildCount();
     }
     return 0;
   }
@@ -81,7 +76,7 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   public boolean isLeaf(Object node)
   {
     if (node instanceof TreeNode) {
-      return ((TreeNode)node).isLeaf();
+      return initNode((TreeNode)node).isLeaf();
     }
     return false;
   }
@@ -96,7 +91,7 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   public int getIndexOfChild(Object parent, Object child)
   {
     if (parent instanceof TreeNode && child instanceof TreeNode) {
-      final TreeNode nodeParent = (TreeNode)parent;
+      final TreeNode nodeParent = initNode((TreeNode)parent);
       for (int i = 0; i < nodeParent.getChildCount(); i++) {
         TreeNode nodeChild = nodeParent.getChildAt(i);
         if (nodeChild == child) {
@@ -388,5 +383,19 @@ final class DlgTreeModel implements TreeModel, TableModelListener
         }
       }
     }
+  }
+
+  /** Adds all available child nodes to the given parent node. */
+  private TreeNode initNode(TreeNode node)
+  {
+    if (node.getAllowsChildren()) {
+      if (node instanceof StateItem) {
+        initState((StateItem)node);
+      } else
+      if (node instanceof TransitionItem) {
+        initTransition((TransitionItem)node);
+      }
+    }
+    return node;
   }
 }
