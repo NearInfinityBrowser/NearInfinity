@@ -75,6 +75,9 @@ final class RootItem extends StateOwnerItem implements Iterable<StateItem>
   @Override
   public Icon getIcon() { return ICON; }
 
+  @Override
+  public boolean removeChild(ItemBase child) { return states.remove(child); }
+
   //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
   public StateItem getChildAt(int childIndex) { return states.get(childIndex); }

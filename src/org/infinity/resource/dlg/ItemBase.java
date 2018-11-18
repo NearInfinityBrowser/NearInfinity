@@ -59,6 +59,15 @@ abstract class ItemBase implements TreeNode
   /** Returns the icon associated with the item type. */
   public abstract Icon getIcon();
 
+  /**
+   * Removes specified child item, returns {@code true} if child removed,
+   * {@code false} otherwize.
+   *
+   * @param child Item to remove. If {@code null} method returns {@code false}
+   * @return {@code true} if item is child of this node and was removed, {@code false} otherwize.
+   */
+  public abstract boolean removeChild(ItemBase child);
+
   //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
   public abstract ItemBase getChildAt(int childIndex);

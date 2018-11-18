@@ -21,7 +21,10 @@ final class TransitionItem extends StateOwnerItem
 
   /** Parent tree item from which this transition is available. */
   private final StateItem parent;
-  /** Item to which need go to in break cycles tree view mode. */
+  /**
+   * Item to which need go to in break cycles tree view mode. This item contains
+   * referense to the same transition as this one (i.e. {@code this.trans == main.trans})
+   */
   private final TransitionItem main;
   /** Tree item to which go this transition or {@code null}, if this transition terminates dialog. */
   StateItem nextState;
@@ -48,6 +51,16 @@ final class TransitionItem extends StateOwnerItem
 
   @Override
   public Icon getIcon() { return ICON; }
+
+  @Override
+  public boolean removeChild(ItemBase child)
+  {
+    if (child != null && child == nextState) {
+      nextState = null;
+      return true;
+    }
+    return false;
+  }
 
   //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override

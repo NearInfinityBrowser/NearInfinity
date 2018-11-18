@@ -22,7 +22,10 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
 
   /** Tree item that represent visual parent of this state in the tree. */
   private final StateOwnerItem parent;
-  /** Item to which need go to in break cycles tree view mode. */
+  /**
+   * Item to which need go to in break cycles tree view mode. This item contains
+   * referense to the same state as this one (i.e. {@code this.state == main.state})
+   */
   private final StateItem main;
   /** Items that represents transition tree nodes from this state. */
   ArrayList<TransitionItem> trans;
@@ -49,6 +52,9 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
 
   @Override
   public Icon getIcon() { return ICON; }
+
+  @Override
+  public boolean removeChild(ItemBase child) { return trans.remove(child); }
 
   //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override

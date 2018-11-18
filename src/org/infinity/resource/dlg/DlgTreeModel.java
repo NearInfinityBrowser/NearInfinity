@@ -20,6 +20,7 @@ import javax.swing.tree.TreePath;
 
 import org.infinity.datatype.ResourceRef;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.resource.StructEntry;
 
 /** Creates and manages the dialog tree structure. */
 final class DlgTreeModel implements TreeModel, TableModelListener
@@ -128,26 +129,69 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   public void tableChanged(TableModelEvent e)
   {
     final Object src = e.getSource();
-    // TODO: Insertion or removal of nodes not yet supported
-    if (e.getType() == TableModelEvent.UPDATE) {
-      if (src instanceof TreeItemEntry) {
-        updateState((TreeItemEntry)src);
-      } else
-      if (src instanceof DlgResource) {
-        nodeChanged(root);
+    // TODO: Insertion or removal of nodes not yet fully supported
+    switch (e.getType()) {
+      case TableModelEvent.UPDATE: {
+        if (src instanceof TreeItemEntry) {
+          updateTreeItemEntry((TreeItemEntry)src);
+        } else
+        if (src instanceof DlgResource) {
+          nodeChanged(root);
+        }
+        break;
+      }
+      case DlgResource.WILL_BE_DELETE: {
+        final DlgResource dlg = (DlgResource)src;
+        for (int i = e.getLastRow(); i >= e.getFirstRow(); --i) {
+          final StructEntry field = dlg.getField(i);
+          if (field instanceof TreeItemEntry) {
+            //TODO: Can optimize algorithm and generate fewer events
+            removeTreeItemEntry((TreeItemEntry)field);
+          }
+          //TODO: update nodes when trigger is deleted
+        }
+        break;
       }
     }
   }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Events">
-  /** Updates tree when specified state entry changed. */
-  private void updateState(TreeItemEntry state)
+  /**
+   * Updates tree when specified state or transition entry changed.
+   *
+   * @param entry Tree entry for which all visual nodes must be updated
+   */
+  private void updateTreeItemEntry(TreeItemEntry entry)
   {
-    final List<ItemBase> items = allItems.get(state);
+    final List<ItemBase> items = allItems.get(entry);
     if (items != null) {
       for (ItemBase item : items) {
         nodeChanged(item);
+      }
+    }
+  }
+
+  /**
+   * Updates tree when specified state or transition is removed.
+   *
+   * @param entry Tree entry for which all visual nodes must be removed from the tree
+   */
+  private void removeTreeItemEntry(TreeItemEntry entry)
+  {
+    mainItems.remove(entry);
+    final List<ItemBase> items = allItems.remove(entry);
+    if (items != null) {
+      for (final ItemBase item : items) {
+        final ItemBase parent = item.getParent();
+        final int index = parent.getIndex(item);
+
+        parent.removeChild(item);
+        if (index >= 0) {
+          // In break cycles mode items that begins cycle is invisible, but exists.
+          // For such items index is < 0
+          fireTreeNodesRemoved(parent.getPath(), new int[]{index}, new Object[]{item});
+        }
       }
     }
   }
@@ -169,8 +213,19 @@ final class DlgTreeModel implements TreeModel, TableModelListener
     if (!listeners.isEmpty()) {
       final TreeModelEvent event = new TreeModelEvent(this, path, childIndices, children);
       for (int i = listeners.size()-1; i >= 0; i--) {
-        TreeModelListener tml = listeners.get(i);
+        final TreeModelListener tml = listeners.get(i);
         tml.treeNodesChanged(event);
+      }
+    }
+  }
+
+  private void fireTreeNodesRemoved(TreePath path, int[] childIndices, Object[] children)
+  {
+    if (!listeners.isEmpty()) {
+      final TreeModelEvent event = new TreeModelEvent(this, path, childIndices, children);
+      for (int i = listeners.size()-1; i >= 0; i--) {
+        final TreeModelListener tml = listeners.get(i);
+        tml.treeNodesRemoved(event);
       }
     }
   }
