@@ -60,6 +60,7 @@ import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.icon.Icons;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
@@ -86,11 +87,12 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     new Color(0xffa3d1),
   };
   private final JPopupMenu pmTree = new JPopupMenu();
-  private final JMenuItem miExpandAll = new JMenuItem("Expand all nodes");
-  private final JMenuItem miExpand = new JMenuItem("Expand selected node");
-  private final JMenuItem miCollapseAll = new JMenuItem("Collapse all nodes");
-  private final JMenuItem miCollapse = new JMenuItem("Collapse selected nodes");
-  private final JMenuItem miEditEntry = new JMenuItem("Edit selected entry");
+
+  private final JMenuItem miExpandAll   = new JMenuItem("Expand all nodes",        Icons.getIcon(Icons.ICON_EXPAND_ALL_24));
+  private final JMenuItem miExpand      = new JMenuItem("Expand selected node",    Icons.getIcon(Icons.ICON_EXPAND_16));
+  private final JMenuItem miCollapseAll = new JMenuItem("Collapse all nodes",      Icons.getIcon(Icons.ICON_COLLAPSE_ALL_24));
+  private final JMenuItem miCollapse    = new JMenuItem("Collapse selected nodes", Icons.getIcon(Icons.ICON_COLLAPSE_16));
+  private final JMenuItem miEditEntry   = new JMenuItem("Edit selected entry",     Icons.getIcon(Icons.ICON_EDIT_16));
 
   /** Caches ViewFrame instances used to display external dialog entries. */
   private final HashMap<DlgResource, ViewFrame> mapViewer = new HashMap<>();
