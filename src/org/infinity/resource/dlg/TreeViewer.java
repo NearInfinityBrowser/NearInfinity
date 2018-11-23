@@ -147,14 +147,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
           final Viewer tab = (Viewer)curDlg.getViewerTab(0);
           if (item instanceof RootItem) {
             viewer.selectEntry(0);
-          } else if (item instanceof StateItem) {
-            final State s = ((StateItem)item).getState();
+          } else {
+            final TreeItemEntry s = item.getEntry();
             viewer.selectEntry(s.getName());
             tab.select(s);
-          } else if (item instanceof TransitionItem) {
-            final Transition t = ((TransitionItem)item).getTransition();
-            viewer.selectEntry(t.getName());
-            tab.select(t);
           }
           curDlg.selectEditTab();
         }
@@ -256,7 +252,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private void updateStateInfo(StateItem si)
   {
     final DlgResource curDlg = si.getDialog();
-    final State state = si.getState();
+    final State state = si.getEntry();
 
     // updating info box title
     final StringBuilder sb = new StringBuilder(state.getName() + ", ");
@@ -302,7 +298,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private void updateTransitionInfo(TransitionItem ti)
   {
     final DlgResource curDlg = ti.getDialog();
-    final Transition trans = ti.getTransition();
+    final Transition trans = ti.getEntry();
 
     // updating info box title
     final StringBuilder sb = new StringBuilder(trans.getName());
@@ -430,7 +426,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
         if (value instanceof StateItem) {
           final StateItem state = (StateItem)value;
-          final State s = state.getState();
+          final State s = state.getEntry();
           if (s.getNumber() == 0 && s.getTriggerIndex() < 0 && options.alwaysShowState0()) {
             setForeground(Color.GRAY);
           }

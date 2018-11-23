@@ -52,6 +52,9 @@ abstract class ItemBase implements TreeNode
     return parent.getPath().pathByAddingChild(this);
   }
 
+  /** Returns the entry of the dialog which this node represents. */
+  public abstract TreeItemEntry getEntry();
+
   /** Returns main item - item from which the tree grows in break cycles mode. */
   public abstract ItemBase getMain();
 

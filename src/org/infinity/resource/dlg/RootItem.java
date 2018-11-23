@@ -67,6 +67,9 @@ final class RootItem extends StateOwnerItem implements Iterable<StateItem>
   }
 
   @Override
+  public TreeItemEntry getEntry() { return null; }
+
+  @Override
   public ItemBase getMain() { return null; }
 
   @Override
@@ -114,7 +117,7 @@ final class RootItem extends StateOwnerItem implements Iterable<StateItem>
    */
   private int getAttribute(String attrName)
   {
-    final StructEntry entry = getDialog().getAttribute(attrName);
+    final StructEntry entry = getDialog().getAttribute(attrName, false);
     if (entry instanceof SectionCount) {
       return ((SectionCount)entry).getValue();
     }

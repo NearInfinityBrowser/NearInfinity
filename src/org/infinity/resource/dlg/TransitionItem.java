@@ -41,10 +41,8 @@ final class TransitionItem extends StateOwnerItem
     this.main   = main;
   }
 
-  public Transition getTransition()
-  {
-    return trans;
-  }
+  @Override
+  public Transition getEntry() { return trans; }
 
   @Override
   public TransitionItem getMain() { return main; }

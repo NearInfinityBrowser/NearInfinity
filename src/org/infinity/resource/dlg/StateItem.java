@@ -42,10 +42,8 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
     this.main   = main;
   }
 
-  public State getState()
-  {
-    return state;
-  }
+  @Override
+  public State getEntry() { return state; }
 
   @Override
   public StateItem getMain() { return main; }

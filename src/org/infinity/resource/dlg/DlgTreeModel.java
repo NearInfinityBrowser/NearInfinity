@@ -42,8 +42,7 @@ final class DlgTreeModel implements TreeModel, TableModelListener
     root = new RootItem(dlg);
     for (StateItem state : root) {
       initState(state);
-      allItems.computeIfAbsent(state.getState(), s -> new ArrayList<>()).add(state);
-      mainItems.put(state.getState(), state);
+      putItem(state, null);
     }
     dlg.addTableModelListener(this);
   }
@@ -248,7 +247,7 @@ final class DlgTreeModel implements TreeModel, TableModelListener
 
   private boolean checkState(ArrayDeque<TransitionItem> queue, StateItem state, State entry)
   {
-    if (state.getState() == entry) {
+    if (state.getEntry() == entry) {
       return true;
     }
     for (TransitionItem trans : state) {
@@ -308,7 +307,7 @@ final class DlgTreeModel implements TreeModel, TableModelListener
       if (state == null) break;
 
       for (TransitionItem trans : state) {
-        if (trans.getTransition() == entry) {
+        if (trans.getEntry() == entry) {
           return trans;
         }
         initTransition(trans);
@@ -347,8 +346,8 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   {
     if (state.trans == null) {
       final DlgResource dlg = state.getDialog();
-      final int start = state.getState().getFirstTrans();
-      final int count = state.getState().getTransCount();
+      final int start = state.getEntry().getFirstTrans();
+      final int count = state.getEntry().getTransCount();
 
       state.trans = new ArrayList<>(count);
       for (int i = start; i < start + count; ++i) {
@@ -359,10 +358,7 @@ final class DlgTreeModel implements TreeModel, TableModelListener
           final TransitionItem item = new TransitionItem(trans, state, main);
 
           state.trans.add(item);
-          allItems.computeIfAbsent(trans, t -> new ArrayList<>()).add(item);
-          if (main == null) {
-            mainItems.put(trans, item);
-          }
+          putItem(item, main);
         }
       }
     }
@@ -372,7 +368,7 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   private void initTransition(TransitionItem trans)
   {
     if (trans.nextState == null) {
-      final Transition t = trans.getTransition();
+      final Transition t = trans.getEntry();
       final DlgResource nextDlg = getDialogResource(t.getNextDialog());
 
       if (nextDlg != null) {
@@ -382,10 +378,7 @@ final class DlgTreeModel implements TreeModel, TableModelListener
           final StateItem main = (StateItem)mainItems.get(state);
 
           trans.nextState = new StateItem(state, trans, main);
-          allItems.computeIfAbsent(state, s -> new ArrayList<>()).add(trans.nextState);
-          if (main == null) {
-            mainItems.put(state, trans.nextState);
-          }
+          putItem(trans.nextState, main);
         }
       }
     }
@@ -403,5 +396,20 @@ final class DlgTreeModel implements TreeModel, TableModelListener
       }
     }
     return node;
+  }
+
+  /**
+   * Registers visual tree node in internal maps.
+   *
+   * @param item The item to register
+   * @param main The reference to an item which can have childrens in the break cycles mode
+   */
+  private <T extends ItemBase> void putItem(T item, T main)
+  {
+    final TreeItemEntry entry = item.getEntry();
+    allItems.computeIfAbsent(entry, i -> new ArrayList<>()).add(item);
+    if (main == null) {
+      mainItems.put(entry, item);
+    }
   }
 }
