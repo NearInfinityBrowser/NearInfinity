@@ -5,9 +5,11 @@
 package org.infinity.resource.dlg;
 
 import java.util.Enumeration;
+
 import javax.swing.Icon;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+
 import org.infinity.datatype.StringRef;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.util.StringTable;

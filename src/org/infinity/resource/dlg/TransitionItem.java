@@ -4,14 +4,16 @@
 
 package org.infinity.resource.dlg;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.enumeration;
 import static java.util.Collections.singletonList;
 import java.util.Enumeration;
+
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.tree.TreeNode;
-import org.infinity.gui.BrowserMenuBar;
 
+import org.infinity.gui.BrowserMenuBar;
 import org.infinity.icon.Icons;
 
 /** Encapsulates a dialog transition entry. */
@@ -83,7 +85,10 @@ final class TransitionItem extends StateOwnerItem
   public boolean isLeaf() { return isMain() ? nextState == null : true; }
 
   @Override
-  public Enumeration<? extends StateItem> children() { return enumeration(singletonList(nextState)); }
+  public Enumeration<? extends StateItem> children()
+  {
+    return enumeration(isLeaf() ?  emptyList(): singletonList(nextState));
+  }
   //</editor-fold>
 
   @Override

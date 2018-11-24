@@ -5,14 +5,16 @@
 package org.infinity.resource.dlg;
 
 import java.util.ArrayList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.enumeration;
 import java.util.Enumeration;
 import java.util.Iterator;
+
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.tree.TreeNode;
-import org.infinity.gui.BrowserMenuBar;
 
+import org.infinity.gui.BrowserMenuBar;
 import org.infinity.icon.Icons;
 
 /** Encapsulates a dialog state entry. */
@@ -85,7 +87,10 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
   public boolean isLeaf() { return getAllowsChildren() ? trans.isEmpty() : true; }
 
   @Override
-  public Enumeration<? extends TransitionItem> children() { return enumeration(trans); }
+  public Enumeration<? extends TransitionItem> children()
+  {
+    return enumeration(getAllowsChildren() ? trans : emptyList());
+  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Iterable">
