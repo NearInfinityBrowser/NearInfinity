@@ -41,8 +41,8 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
   private final List<DlgItem> rootDialogs = new ArrayList<>();
   /** Maps dialog names of dialogs, presented in the tree, to dialog itself. */
   private final HashMap<String, DlgResource> linkedDialogs = new HashMap<>();
-  /** Maps dialog entries to main tree items - items wrom which the tree grows. */
-  private final HashMap<TreeItemEntry, ItemBase> mainItems = new HashMap<>();
+  /** Maps dialog entries to main tree items - items from which the tree grows. */
+  private final HashMap<TreeItemEntry, MainRef<? extends ItemBase>> mainItems = new HashMap<>();
   /** Maps dialog entries to tree items that represents it. Used for update tree when entry changes. */
   private final HashMap<TreeItemEntry, List<ItemBase>> allItems = new HashMap<>();
   private final OrphanStates orphanStates = new OrphanStates(this);
@@ -309,7 +309,7 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
    */
   public ItemBase map(TreeItemEntry entry)
   {
-    final ItemBase item = mainItems.get(entry);
+    final MainRef<? extends ItemBase> item = mainItems.get(entry);
     if (item == null) {
       if (entry instanceof State) {
         for (final DlgItem dlg : rootDialogs) {
@@ -323,7 +323,7 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
         if (trans != null) return trans;
       }
     }
-    return item;
+    return item.ref;
   }
 
   /**
@@ -682,7 +682,8 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
       for (int i = start; i < start + count; ++i) {
         final Transition trans = dlg.getTransition(i);
         if (trans != null) {
-          final TransitionItem main = (TransitionItem)mainItems.get(trans);
+          @SuppressWarnings("unchecked")
+          final MainRef<TransitionItem> main = (MainRef<TransitionItem>)mainItems.get(trans);
           final TransitionItem item = new TransitionItem(trans, state, main);
 
           state.trans.add(item);
@@ -702,7 +703,8 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
       if (nextDlg != null) {
         final State state = nextDlg.getState(t.getNextDialogState());
         if (state != null) {
-          final StateItem main = (StateItem)mainItems.get(state);
+          @SuppressWarnings("unchecked")
+          final MainRef<StateItem> main = (MainRef<StateItem>)mainItems.get(state);
 
           trans.nextState = new StateItem(state, trans, main);
           putItem(trans.nextState, main);
@@ -731,12 +733,12 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
    * @param item The item to register
    * @param main The reference to an item which can have childrens in the break cycles mode
    */
-  private <T extends ItemBase> void putItem(T item, T main)
+  private <T extends ItemBase> void putItem(T item, MainRef<T> main)
   {
     final TreeItemEntry entry = item.getEntry();
     allItems.computeIfAbsent(entry, i -> new ArrayList<>()).add(item);
     if (main == null) {
-      mainItems.put(entry, item);
+      mainItems.put(entry, new MainRef<>(item));
     }
   }
 }
