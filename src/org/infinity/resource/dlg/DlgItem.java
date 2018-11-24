@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import static java.util.Collections.enumeration;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.function.Consumer;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -82,6 +83,9 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
 
   @Override
   public boolean removeChild(ItemBase child) { return states.remove(child); }
+
+  @Override
+  public void traverseChildren(Consumer<ItemBase> action) { states.forEach(action); }
 
   //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
