@@ -194,12 +194,12 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   //<editor-fold defaultstate="collapsed" desc="Event emitting">
   private void nodeChanged(ItemBase node)
   {
-    final TreeNode parent = node.getParent();
+    final ItemBase parent = node.getParent();
     final Object[] children = {node};
     if (parent == null) {
       fireTreeNodesChanged(null, null, children);
     } else {
-      fireTreeNodesChanged(node.getPath(), new int[]{parent.getIndex(node)}, children);
+      fireTreeNodesChanged(parent.getPath(), new int[]{parent.getIndex(node)}, children);
     }
   }
 
