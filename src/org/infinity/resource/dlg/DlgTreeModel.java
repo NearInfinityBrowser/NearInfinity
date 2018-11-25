@@ -353,13 +353,16 @@ final class DlgTreeModel implements TreeModel, TableModelListener
       state.trans = new ArrayList<>(count);
       for (int i = start; i < start + count; ++i) {
         final Transition trans = dlg.getTransition(i);
-        final TransitionItem main = (TransitionItem)mainItems.get(trans);
-        final TransitionItem item = new TransitionItem(state, trans, main);
+        if (trans != null) {
+          @SuppressWarnings("unchecked")
+          final TransitionItem main = (TransitionItem)mainItems.get(trans);
+          final TransitionItem item = new TransitionItem(trans, state, main);
 
-        state.trans.add(item);
-        allItems.computeIfAbsent(trans, t -> new ArrayList<>()).add(item);
-        if (main == null) {
-          mainItems.put(trans, item);
+          state.trans.add(item);
+          allItems.computeIfAbsent(trans, t -> new ArrayList<>()).add(item);
+          if (main == null) {
+            mainItems.put(trans, item);
+          }
         }
       }
     }
@@ -374,12 +377,15 @@ final class DlgTreeModel implements TreeModel, TableModelListener
 
       if (nextDlg != null) {
         final State state = nextDlg.getState(t.getNextDialogState());
-        final StateItem main = (StateItem)mainItems.get(state);
+        if (state != null) {
+          @SuppressWarnings("unchecked")
+          final StateItem main = (StateItem)mainItems.get(state);
 
-        trans.nextState = new StateItem(state, trans, main);
-        allItems.computeIfAbsent(state, s -> new ArrayList<>()).add(trans.nextState);
-        if (main == null) {
-          mainItems.put(state, trans.nextState);
+          trans.nextState = new StateItem(state, trans, main);
+          allItems.computeIfAbsent(state, s -> new ArrayList<>()).add(trans.nextState);
+          if (main == null) {
+            mainItems.put(state, trans.nextState);
+          }
         }
       }
     }

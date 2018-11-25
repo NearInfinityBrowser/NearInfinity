@@ -9,6 +9,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.enumeration;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.Objects;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -22,6 +23,8 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
 {
   private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_STOP_16);
 
+  private final State state;
+
   /** Tree item that represent visual parent of this state in the tree. */
   private final StateOwnerItem parent;
   /**
@@ -32,13 +35,11 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
   /** Items that represents transition tree nodes from this state. */
   ArrayList<TransitionItem> trans;
 
-  private final State state;
-
   public StateItem(State state, StateOwnerItem parent, StateItem main)
   {
-    this.parent = parent;
-    this.main = main;
-    this.state = state;
+    this.state  = Objects.requireNonNull(state,  "State dialog entry must be not null");
+    this.parent = Objects.requireNonNull(parent, "Parent tree of state item must be not null");
+    this.main   = main;
   }
 
   public State getState()

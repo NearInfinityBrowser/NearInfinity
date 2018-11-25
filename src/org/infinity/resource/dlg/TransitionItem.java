@@ -8,6 +8,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.enumeration;
 import static java.util.Collections.singletonList;
 import java.util.Enumeration;
+import java.util.Objects;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -21,6 +22,8 @@ final class TransitionItem extends StateOwnerItem
 {
   private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_PLAY_16);
 
+  private final Transition trans;
+
   /** Parent tree item from which this transition is available. */
   private final StateItem parent;
   /**
@@ -31,13 +34,11 @@ final class TransitionItem extends StateOwnerItem
   /** Tree item to which go this transition or {@code null}, if this transition terminates dialog. */
   StateItem nextState;
 
-  private final Transition trans;
-
-  public TransitionItem(StateItem parent, Transition trans, TransitionItem main)
+  public TransitionItem(Transition trans, StateItem parent, TransitionItem main)
   {
-    this.parent = parent;
-    this.main = main;
-    this.trans = trans;
+    this.trans  = Objects.requireNonNull(trans,  "Transition dialog entry must be not null");
+    this.parent = Objects.requireNonNull(parent, "Parent tree of transition item must be not null");
+    this.main   = main;
   }
 
   public Transition getTransition()
