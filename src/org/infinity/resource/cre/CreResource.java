@@ -1215,7 +1215,7 @@ public final class CreResource extends AbstractStruct
     // Bard spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 946 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_BARD_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_BARD_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1198 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_BARD_FMT, i+1));
       addField(s_off);
@@ -1228,7 +1228,7 @@ public final class CreResource extends AbstractStruct
     // Cleric spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 982 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_CLERIC_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_CLERIC_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1234 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_CLERIC_FMT, i+1));
       addField(s_off);
@@ -1241,7 +1241,7 @@ public final class CreResource extends AbstractStruct
     // Druid spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1018 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_DRUID_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_DRUID_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1270 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_DRUID_FMT, i+1));
       addField(s_off);
@@ -1254,7 +1254,7 @@ public final class CreResource extends AbstractStruct
     // Paladin spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1054 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_PALADIN_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_PALADIN_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1306 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_PALADIN_FMT, i+1));
       addField(s_off);
@@ -1267,7 +1267,7 @@ public final class CreResource extends AbstractStruct
     // Ranger spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1090 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_RANGER_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_RANGER_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1342 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_RANGER_FMT, i+1));
       addField(s_off);
@@ -1280,7 +1280,7 @@ public final class CreResource extends AbstractStruct
     // Sorcerer spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1126 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_SORCERER_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_SORCERER_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1378 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_SORCERER_FMT, i+1));
       addField(s_off);
@@ -1293,7 +1293,7 @@ public final class CreResource extends AbstractStruct
     // Wizard spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1162 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_WIZARD_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_WIZARD_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1414 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_WIZARD_FMT, i+1));
       addField(s_off);
@@ -1306,7 +1306,7 @@ public final class CreResource extends AbstractStruct
     // Domain spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1450 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_DOMAIN_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_DOMAIN_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1486 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_DOMAIN_FMT, i+1));
       addField(s_off);
@@ -1317,7 +1317,7 @@ public final class CreResource extends AbstractStruct
     }
 
     // Innate abilities
-    SectionOffset inn_off = new SectionOffset(buffer, offset + 1522, CRE_OFFSET_ABILITIES, null);
+    SectionOffset inn_off = new SectionOffset(buffer, offset + 1522, CRE_OFFSET_ABILITIES, Iwd2Ability.class);
     DecNumber inn_num = new DecNumber(buffer, offset + 1526, 4, CRE_NUM_ABILITIES);
     addField(inn_off);
     addField(inn_num);
@@ -1326,7 +1326,7 @@ public final class CreResource extends AbstractStruct
     addField(inn_str);
 
     // Songs
-    SectionOffset song_off = new SectionOffset(buffer, offset + 1530, CRE_OFFSET_SONGS, null);
+    SectionOffset song_off = new SectionOffset(buffer, offset + 1530, CRE_OFFSET_SONGS, Iwd2Song.class);
     DecNumber song_num = new DecNumber(buffer, offset + 1534, 4, CRE_NUM_SONGS);
     addField(song_off);
     addField(song_num);
@@ -1335,7 +1335,7 @@ public final class CreResource extends AbstractStruct
     addField(song_str);
 
     // Shapes
-    SectionOffset shape_off = new SectionOffset(buffer, offset + 1538, CRE_OFFSET_SHAPES, null);
+    SectionOffset shape_off = new SectionOffset(buffer, offset + 1538, CRE_OFFSET_SHAPES, Iwd2Shape.class);
     DecNumber shape_num = new DecNumber(buffer, offset + 1542, 4, CRE_NUM_SHAPES);
     addField(shape_off);
     addField(shape_num);
@@ -1343,7 +1343,7 @@ public final class CreResource extends AbstractStruct
                                               shape_num, CRE_SHAPES, Iwd2Struct.TYPE_SHAPE);
     addField(shape_str);
 
-    SectionOffset itemslots_offset = new SectionOffset(buffer, offset + 1546, CRE_OFFSET_ITEM_SLOTS, null);
+    SectionOffset itemslots_offset = new SectionOffset(buffer, offset + 1546, CRE_OFFSET_ITEM_SLOTS, DecNumber.class);
     addField(itemslots_offset);
     SectionOffset items_offset = new SectionOffset(buffer, offset + 1550, CRE_OFFSET_ITEMS,
                                                    Item.class);
@@ -1738,7 +1738,7 @@ public final class CreResource extends AbstractStruct
     SectionCount countMemSpells = new SectionCount(buffer, offset + 684, 4, CRE_NUM_MEMORIZED_SPELLS,
                                                    MemorizedSpells.class);
     addField(countMemSpells);
-    SectionOffset offsetItemslots = new SectionOffset(buffer, offset + 688, CRE_OFFSET_ITEM_SLOTS, null);
+    SectionOffset offsetItemslots = new SectionOffset(buffer, offset + 688, CRE_OFFSET_ITEM_SLOTS, DecNumber.class);
     addField(offsetItemslots);
     SectionOffset offsetItems = new SectionOffset(buffer, offset + 692, CRE_OFFSET_ITEMS, Item.class);
     addField(offsetItems);
