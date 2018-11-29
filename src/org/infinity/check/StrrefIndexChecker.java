@@ -9,17 +9,11 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -37,7 +31,6 @@ import org.infinity.gui.TableItem;
 import org.infinity.gui.ViewFrame;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -66,6 +59,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
 
   /** List of the {@link StrrefEntry} objects. */
   private SortableTable table;
+  /** Count of strings in the {@link StringTable talk table}. */
   private int strrefCount;
 
   public StrrefIndexChecker()
@@ -95,32 +89,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
         new ViewFrame(resultFrame, ResourceFactory.getResource(entry));
       }
     } else if (event.getSource() == bsave) {
-      JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
-      chooser.setDialogTitle("Save result");
-      chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "result.txt"));
-      if (chooser.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
-        Path output = chooser.getSelectedFile().toPath();
-        if (Files.exists(output)) {
-          String[] options = {"Overwrite", "Cancel"};
-          if (JOptionPane.showOptionDialog(resultFrame, output + " exists. Overwrite?",
-                                           "Save result", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
-            return;
-        }
-        try (BufferedWriter bw = Files.newBufferedWriter(output)) {
-          bw.write("Illegal strref search"); bw.newLine();
-          bw.write("Number of errors: " + table.getRowCount()); bw.newLine();
-          for (int i = 0; i < table.getRowCount(); i++) {
-            bw.write(table.getTableItemAt(i).toString()); bw.newLine();
-          }
-          JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output, "Save complete",
-                                        JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException e) {
-          JOptionPane.showMessageDialog(resultFrame, "Error while saving " + output, "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-          e.printStackTrace();
-        }
-      }
+      table.saveCheckResult(resultFrame, "Unknown string references (maximum " + strrefCount + ")");
     } else {
       super.actionPerformed(event);
     }
@@ -389,14 +358,14 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     public String toString()
     {
       StringBuilder sb = new StringBuilder("File: ");
-      sb.append(entry.toString());
+      sb.append(entry.getResourceName());
       if (isText) {
-        sb.append("  Line: ").append(line);
-        sb.append("  Position: ").append(pos);
+        sb.append(", Line: ").append(line);
+        sb.append(", Position: ").append(pos);
       } else {
-        sb.append("  Offset: ").append(Integer.toHexString(offset)).append('h');
+        sb.append(", Offset: ").append(Integer.toHexString(offset)).append('h');
       }
-      sb.append("  Strref: ").append(strref);
+      sb.append(", Strref: ").append(strref).append(" (").append(Integer.toHexString(strref)).append("h)");
       return sb.toString();
     }
   }

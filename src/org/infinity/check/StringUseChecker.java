@@ -8,15 +8,10 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 
 import javax.swing.BorderFactory;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -38,7 +33,6 @@ import org.infinity.gui.TableItem;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -78,11 +72,12 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
   @Override
   public void valueChanged(ListSelectionEvent event)
   {
-    if (table.getSelectedRow() == -1)
+    final int row = table.getSelectedRow();
+    if (row == -1) {
       textArea.setText(null);
-    else {
-      TableItem item = table.getTableItemAt(table.getSelectedRow());
-      textArea.setText(item.toString());
+    } else {
+      final UnusedStringTableItem item = (UnusedStringTableItem)table.getTableItemAt(row);
+      textArea.setText(item.string);
     }
     textArea.setCaretPosition(0);
   }
@@ -103,7 +98,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
         files.addAll(ResourceFactory.getResources(fileType));
       }
 
-      strUsed = new boolean[StringTable.getNumEntries() + 1];
+      strUsed = new boolean[StringTable.getNumEntries()];
       if (runSearch("Searching", files)) {
         return;
       }
@@ -188,35 +183,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
   public void actionPerformed(ActionEvent e)
   {
     if (e.getSource() == save) {
-      JFileChooser c = new JFileChooser(Profile.getGameRoot().toFile());
-      c.setDialogTitle("Save result");
-      if (c.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
-        Path output = c.getSelectedFile().toPath();
-        if (Files.exists(output)) {
-          String[] options = {"Overwrite", "Cancel"};
-          if (JOptionPane.showOptionDialog(resultFrame, output + "exists. Overwrite?",
-                                           "Save result",JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
-            return;
-        }
-        try (BufferedWriter bw = Files.newBufferedWriter(output)) {
-          bw.write("Searched for unused strings"); bw.newLine();
-          bw.write("Number of hits: "  + table.getRowCount()); bw.newLine();
-          bw.newLine();
-          for (int i = 0; i < table.getRowCount(); i++) {
-            bw.write("StringRef: " + table.getTableItemAt(i).getObjectAt(1) + " /* " +
-                     table.getTableItemAt(i).toString().replaceAll("\r\n", Misc.LINE_SEPARATOR) +
-                " */");
-            bw.newLine();
-          }
-          JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output, "Save complete",
-                                        JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException ex) {
-          JOptionPane.showMessageDialog(resultFrame, "Error while saving " + output,
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-          ex.printStackTrace();
-        }
-      }
+      table.saveCheckResult(resultFrame, "Unused strings (maximum " + strUsed.length + ")");
     }
   }
 
@@ -342,7 +309,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
   private static final class UnusedStringTableItem implements TableItem
   {
     private final Integer strRef;
-    private final String string;
+    final String string;
 
     private UnusedStringTableItem(Integer strRef)
     {
@@ -361,7 +328,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
     @Override
     public String toString()
     {
-      return string;
+      return "StringRef: " + strRef + " /* " + string.replaceAll("\r\n", Misc.LINE_SEPARATOR) + " */";
     }
   }
 }
