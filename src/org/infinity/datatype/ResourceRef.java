@@ -147,12 +147,15 @@ public class ResourceRef extends Datatype
     values.add(NONE);
     for (List<ResourceEntry> resources : resourceList) {
       for (ResourceEntry entry : resources) {
-        //FIXME: instead of toString call use specialized method
-        if (entry.toString().lastIndexOf('.') <= 8 && isLegalEntry(entry))
+        //FIXME: ResRefChecker check only that point is exist, so this must be
+        // the same check or this check must be inside isLegalEntry(...)
+        // There only 2 places where isLegalEntry is called: this and ResRefChecker
+        if (isLegalEntry(entry) && entry.toString().lastIndexOf('.') <= 8) {
           values.add(new ResourceRefEntry(entry));
+        }
       }
-      addExtraEntries(values);//FIXME: It seems that this must be outside of cycle
     }
+    addExtraEntries(values);
     Collections.sort(values, IGNORE_CASE_EXT_COMPARATOR);
     list = new TextListPanel<>(values, false);
     list.addMouseListener(new MouseAdapter()
@@ -380,11 +383,26 @@ public class ResourceRef extends Datatype
     return curtype;
   }
 
+  /**
+   * Check that this object can hold reference to the specified resource.
+   *
+   * @param entry Pointer to resource for check. If {@code null}, method returns
+   *        {@code false}
+   *
+   * @return {@code false} if {@code entry} can not be target for this resource
+   *         reference, {@code true} otherwise
+   */
   public boolean isLegalEntry(ResourceEntry entry)
   {
-    return entry.toString().lastIndexOf('.') != 0;
+    return entry != null && entry.getResourceName().lastIndexOf('.') != 0;
   }
 
+  /**
+   * Appends additional resources to the list of selectable resources for this reference.
+   *
+   * @param entries List with selectable resources. Implementers must add additional
+   *        resources to it. Never {@code null}
+   */
   void addExtraEntries(List<ResourceRefEntry> entries)
   {
   }

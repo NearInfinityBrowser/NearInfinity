@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.var;
@@ -18,6 +18,17 @@ import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
 import org.infinity.resource.key.ResourceEntry;
 
+/**
+ * This resource is used to declare variables for use in scripting - it is the
+ * only way new variables can be added. Variables should be alphabetically ordered
+ * (within their appropriate scope section). Globals and Locals work as with other
+ * engines, the {@code KAPUTZ} scope acts as the {@code SPRITE_ID_DEAD} scope of
+ * the BG series. The {@code var.var} file is located the root folder of the game
+ * directory.
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/var.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/var.htm</a>
+ */
 public final class VarResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
   private StructHexViewer hexViewer;
@@ -131,4 +142,3 @@ public final class VarResource extends AbstractStruct implements Resource, HasAd
     }
   }
 }
-

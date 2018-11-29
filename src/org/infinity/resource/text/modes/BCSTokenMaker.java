@@ -4,9 +4,6 @@
 
 package org.infinity.resource.text.modes;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
 import java.util.TreeSet;
 
@@ -68,64 +65,22 @@ public class BCSTokenMaker extends AbstractTokenMaker
   public TokenMap getWordsToHighlight()
   {
     TokenMap tokenMap = new TokenMap();
-    IdsMap map;
 
     // symbolic names
-    List<String> idsFile = createIdsList();
-    for (String ids: idsFile) {
+    for (String ids : usedIds()) {
       int type = ("SPELL.IDS".equalsIgnoreCase(ids)) ? TOKEN_SYMBOL_SPELL : TOKEN_SYMBOL;
-      if (ResourceFactory.resourceExists(ids)) {
-        map = IdsMapCache.get(ids);
-        if (map != null) {
-          for (final IdsMapEntry e: map.getAllValues()) {
-            Iterator<String> iter = e.getSymbols();
-            while (iter.hasNext()) {
-              String name = iter.next();
-              if (name != null && !name.isEmpty()) {
-                tokenMap.put(name, type);
-              }
-            }
-          }
-        }
-      }
+      fillFunctions(tokenMap, ids, type);
     }
     tokenMap.put("ANYONE", TOKEN_SYMBOL);
 
     // objects
-    map = IdsMapCache.get("OBJECT.IDS");
-    for (final IdsMapEntry e: map.getAllValues()) {
-      Iterator<String> iter = e.getSymbols();
-      while (iter.hasNext()) {
-        String name = extractFunctionName(iter.next());
-        if (name != null && !name.isEmpty()) {
-          tokenMap.put(name, TOKEN_OBJECT);
-        }
-      }
-    }
+    fillFunctions(tokenMap, "OBJECT.IDS", TOKEN_OBJECT);
 
     // actions
-    map = IdsMapCache.get("ACTION.IDS");
-    for (final IdsMapEntry e: map.getAllValues()) {
-      Iterator<String> iter = e.getSymbols();
-      while (iter.hasNext()) {
-        String name = extractFunctionName(iter.next());
-        if (name != null && !name.isEmpty()) {
-          tokenMap.put(name, TOKEN_ACTION);
-        }
-      }
-    }
+    fillFunctions(tokenMap, "ACTION.IDS", TOKEN_ACTION);
 
     // triggers
-    map = IdsMapCache.get("TRIGGER.IDS");
-    for (final IdsMapEntry e: map.getAllValues()) {
-      Iterator<String> iter = e.getSymbols();
-      while (iter.hasNext()) {
-        String name = extractFunctionName(iter.next());
-        if (name != null && !name.isEmpty()) {
-          tokenMap.put(name, TOKEN_TRIGGER);
-        }
-      }
-    }
+    fillFunctions(tokenMap, "TRIGGER.IDS", TOKEN_TRIGGER);
 
     // keywords
     tokenMap.put("IF", TOKEN_KEYWORD);
@@ -627,8 +582,28 @@ public class BCSTokenMaker extends AbstractTokenMaker
     return firstToken;
   }
 
+  /**
+   * Fills map of tokens from the IDS resource.
+   *
+   * @param tokenMap Object to which tokens are added
+   * @param resource Name of the IDS resourse that used for extract tokens
+   * @param tokenType Type of all tokens that method puts to the {@code tokenMap}
+   */
+  private void fillFunctions(TokenMap tokenMap, String resource, int tokenType)
+  {
+    final IdsMap map = IdsMapCache.get(resource);
+    if (map == null) return;
 
-  // Extracts the function name of the action/trigger definition
+    for (final IdsMapEntry e : map.getAllValues()) {
+      for (String fullName : e) {
+        String name = extractFunctionName(fullName);
+        if (name != null && !name.isEmpty()) {
+          tokenMap.put(name, tokenType);
+        }
+      }
+    }
+  }
+  /** Extracts the function name of the action/trigger definition. */
   private String extractFunctionName(String function)
   {
     if (function != null && !function.isEmpty()) {
@@ -643,8 +618,8 @@ public class BCSTokenMaker extends AbstractTokenMaker
     return null;
   }
 
-  // Scans action and trigger definitions for referenced IDS files and returns them as a sorted list
-  private List<String> createIdsList()
+  /** Scans action and trigger definitions for referenced IDS files and returns them as a sorted set. */
+  private TreeSet<String> usedIds()
   {
     // adding IDS files referenced in function signatures
     Signatures actions = Signatures.getActions();
@@ -679,11 +654,6 @@ public class BCSTokenMaker extends AbstractTokenMaker
       }
     }
 
-    List<String> retVal = new ArrayList<>();
-    for (final String s: idsSet) {
-      retVal.add(s);
-    }
-
-    return retVal;
+    return idsSet;
   }
 }

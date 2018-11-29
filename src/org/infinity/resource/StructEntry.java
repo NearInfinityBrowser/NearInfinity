@@ -19,8 +19,10 @@ public interface StructEntry extends Comparable<StructEntry>, Cloneable, Writeab
 
   void setName(String newName);
 
+  /** Get offset in bytes of this entry from start of the file. */
   int getOffset();
 
+  /** Returns entry which owns this entry or {@code null} if this entry on top of hierarchy. */
   StructEntry getParent();
 
   /**

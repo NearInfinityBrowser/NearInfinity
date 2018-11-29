@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.pro;
@@ -36,6 +36,19 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
 import org.infinity.util.LongIntegerHashMap;
 
+/**
+ * This resource describes projectiles, and the files are referenced spells and
+ * projectile weapons. Projectile files can control:
+ * <ul>
+ * <li>Projectile graphics</li>
+ * <li>Projectile speed</li>
+ * <li>Projectile area of effect</li>
+ * <li>Projectile sound</li>
+ * </ul>
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pro_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pro_v1.htm</a>
+ */
 public final class ProResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs, UpdateListener
 {
   // PRO-specific field labels
@@ -357,7 +370,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     return false;
   }
 
-  // Updates current IDS targeting to old BG style and returns true if changes have been made
+  /** Updates current IDS targeting to old BG style and returns true if changes have been made. */
   private boolean setOldStyleIdsType(AbstractStruct struct, int offset, int nr)
   {
     if (struct != null && offset >= 0) {
@@ -379,8 +392,10 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     return false;
   }
 
-  // Called by "Extended Search"
-  // Checks whether the specified resource entry matches all available search options.
+  /**
+   * Checks whether the specified resource entry matches all available search options.
+   * Called by "Extended Search"
+   */
   public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
   {
     if (entry != null && searchOptions != null) {

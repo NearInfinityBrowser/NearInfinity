@@ -6,7 +6,6 @@ package org.infinity.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.SortedSet;
@@ -72,9 +71,7 @@ public class IdsMap
 
     for (final IdsMapEntry e: idsMap.values()) {
       long id = e.getID();
-      Iterator<String> iter = e.getSymbols();
-      while (iter.hasNext()) {
-        String symbol = iter.next();
+      for (String symbol : e) {
         retVal.add(IdsMapEntry.toString(id, symbol));
       }
     }
@@ -92,13 +89,6 @@ public class IdsMap
   public IdsMapEntry get(long value)
   {
     return idsMap.get(Long.valueOf(normalizedKey(value)));
-  }
-
-  private void put(long key, IdsMapEntry value)
-  {
-    if (value != null) {
-      idsMap.put(Long.valueOf(normalizedKey(key)), value);
-    }
   }
 
   /**
@@ -120,26 +110,24 @@ public class IdsMap
    */
   public IdsMapEntry lookup(String symbol, boolean exact)
   {
-    IdsMapEntry retVal = null;
-    String symbolNorm = normalizedString(symbol);
-    if (!symbolNorm.isEmpty() && !symbolNorm.equals("0")) {
-      Long key = symbolMap.get(normalizedString(symbolNorm));
-      if (key != null) {
-        IdsMapEntry e = idsMap.get(key);
-        if (exact && e != null) {
-          Iterator<String> iter = e.getSymbols();
-          while (iter.hasNext() && retVal == null) {
-            String s = iter.next();
-            if (s.equals(symbol)) {
-              retVal = e;
-            }
-          }
-        } else {
-          retVal = e;
+    final String symbolNorm = normalizedString(symbol);
+    if (symbolNorm.isEmpty() || symbolNorm.equals("0")) {
+      return null;
+    }
+    final Long key = symbolMap.get(symbolNorm);
+    if (key == null) {
+      return null;
+    }
+    final IdsMapEntry e = idsMap.get(key);
+    if (exact && e != null) {
+      for (String s : e) {
+        if (s.equals(symbol)) {
+          return e;
         }
       }
+      return null;
     }
-    return retVal;
+    return e;
   }
 
   /** Returns whether symbols from this IDS resource are matched case-sensitive. */
@@ -202,15 +190,14 @@ public class IdsMap
   private void extract2DA(String line)
   {
     StringTokenizer st = new StringTokenizer(line);
-    long id = normalizedKey(Long.parseLong(st.nextToken()));
+    final long key = normalizedKey(Long.parseLong(st.nextToken()));
     String resource = st.nextToken();
     while (st.hasMoreTokens()) {
       resource = st.nextToken();
     }
-    IdsMapEntry value = get(id);
+    final IdsMapEntry value = idsMap.get(key);
     if (value == null) {
-      value = new IdsMapEntry(id, resource);
-      put(id, value);
+      idsMap.put(key, new IdsMapEntry(key, resource));
     }
   }
 
@@ -237,7 +224,6 @@ public class IdsMap
         istr = istr.substring(2);
         radix = 16;
       }
-      long key = normalizedKey(Long.parseLong(istr, radix));
 
       String vstr = line.substring(p).trim();
       p = vstr.indexOf("//");
@@ -245,12 +231,12 @@ public class IdsMap
         vstr = vstr.substring(0, p).trim();
       }
       if (!vstr.isEmpty()) {
-        IdsMapEntry value = get(key);
-        if (value != null) {
-          value.addSymbol(vstr);
+        final long key = normalizedKey(Long.parseLong(istr, radix));
+        final IdsMapEntry value = idsMap.get(key);
+        if (value == null) {
+          idsMap.put(key, new IdsMapEntry(key, vstr));
         } else {
-          value = new IdsMapEntry(key, vstr);
-          put(key, value);
+          value.addSymbol(vstr);
         }
 
         symbolMap.put(normalizedString(vstr), Long.valueOf(key));

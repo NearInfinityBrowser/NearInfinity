@@ -258,7 +258,8 @@ public final class ScriptChecker extends AbstractSearcher implements Runnable, A
 // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry) {
+  protected Runnable newWorker(ResourceEntry entry)
+  {
     return () -> {
       try {
         final BcsResource script = new BcsResource(entry);
@@ -266,7 +267,7 @@ public final class ScriptChecker extends AbstractSearcher implements Runnable, A
         decompiler.setGenerateComments(false);
         decompiler.setGenerateResourcesUsed(false);
 
-        final Compiler compiler = new Compiler(decompiler.getSource());
+        final Compiler compiler = new Compiler(decompiler.decompile());
         compiler.compile();
         for (final ScriptMessage sm : compiler.getErrors()) {
           synchronized (errorTable) {

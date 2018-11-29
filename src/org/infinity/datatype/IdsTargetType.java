@@ -164,7 +164,7 @@ public class IdsTargetType extends Bitmap
 
   /**
    * Creates a fully initialized StructEntry object for IDS value, based on the currently selected
-   * IDS type. Returns a DecNumber object for unsupported IDS types.
+   * IDS type. Returns a {@link DecNumber} object for unsupported IDS types.
    */
   public StructEntry createIdsValueFromType(ByteBuffer buffer, int offset)
   {
@@ -173,7 +173,7 @@ public class IdsTargetType extends Bitmap
 
   /**
    * Creates a fully initialized StructEntry object for IDS value, based on the currently selected
-   * IDS type. Returns a DecNumber object for unsupported IDS types.
+   * IDS type. Returns a {@link DecNumber} object for unsupported IDS types.
    */
   public StructEntry createIdsValueFromType(ByteBuffer buffer, int offset, int size, String name)
   {

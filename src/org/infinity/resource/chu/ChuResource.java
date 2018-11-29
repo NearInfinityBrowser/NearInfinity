@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.chu;
@@ -23,9 +23,18 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
+import org.infinity.resource.graphics.BamResource;
+import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Pair;
 
+/**
+ * This resource describes the layout of the GUI screens (the graphics for the
+ * screens are held in {@link MosResource MOS} and {@link BamResource BAM} files).
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/chu_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/chu_v1.htm</a>
+ */
 public final class ChuResource extends AbstractStruct implements Resource, HasViewerTabs //, HasAddRemovable
 {
   // CHU-specific field labels

@@ -274,7 +274,8 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
 // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry) {
+  protected Runnable newWorker(ResourceEntry entry)
+  {
     return () -> {
       try {
         final DlgResource dialog = new DlgResource(entry);
@@ -303,7 +304,7 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
    */
   private void checkCode(ResourceEntry entry, AbstractCode code) {
     final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
-    final Compiler compiler = new Compiler(code.toString(), type);
+    final Compiler compiler = new Compiler(code.getText(), type);
     compiler.getCode();
     for (final ScriptMessage sm : compiler.getErrors()) {
       synchronized (errorTable) {

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.gam;
@@ -32,8 +32,20 @@ import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
+import org.infinity.resource.are.AreResource;
+import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
 
+/**
+ * This resource is used to hold game information in save games. The GAM file does
+ * not store {@link AreResource area}, {@link CreResource creature} or {@link ItmResource item}
+ * information, instead, it stores information on the {@link PartyNPC party members}
+ * and the global variables which affect party members.
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/gam_v1.1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/gam_v1.1.htm</a>
+ */
 public final class GamResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
   // GAM-specific field labels

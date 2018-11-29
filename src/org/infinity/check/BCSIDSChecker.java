@@ -214,7 +214,8 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
 // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry) {
+  protected Runnable newWorker(ResourceEntry entry)
+  {
     return () -> {
       try {
         checkScript(new BcsResource(entry));

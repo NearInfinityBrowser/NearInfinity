@@ -165,7 +165,8 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
 // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry) {
+  protected Runnable newWorker(ResourceEntry entry)
+  {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof DlgResource) {
@@ -174,7 +175,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
         checkScript((BcsResource)resource);
       } else if (resource instanceof PlainTextResource) {
         checkTextfile((PlainTextResource)resource);
-      } else if (resource != null) {
+      } else if (resource instanceof AbstractStruct) {
         checkStruct((AbstractStruct)resource);
       }
       advanceProgress();
@@ -263,7 +264,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
   private void checkScript(BcsResource script)
   {
     try {
-      checkCode(script.getCode(), null);
+      checkCode(script.getCode(), ScriptType.BCS);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -291,26 +292,41 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
     }
   }
 
+  /**
+   * Mark all strings from {@link StringTable string table} to which the script
+   * code refers, as used.
+   * <p>
+   * This method can be called from several threads
+   *
+   * @param compiledCode Compiled code from BCS, dialog action or trigger.
+   *        Must not be {@code null}
+   *
+   * @throws Exception If {@code compiledCode} contains invalid code
+   */
   private void checkCode(String compiledCode, ScriptType type) throws Exception
   {
-    final Decompiler decompiler = new Decompiler(compiledCode, true);
+    final Decompiler decompiler = new Decompiler(compiledCode, type, true);
     decompiler.setGenerateComments(false);
     decompiler.setGenerateResourcesUsed(true);
-    if (type != null) {
-      decompiler.setScriptType(type);
-    }
     decompiler.decompile();
 
-    for (final Integer stringRef : decompiler.getStringRefsUsed()) {
-      final int u = stringRef.intValue();
-      if (u >= 0 && u < strUsed.length) {
-        synchronized (strUsed) {
-          strUsed[u] = true;
+    synchronized (strUsed) {
+      for (final Integer stringRef : decompiler.getStringRefsUsed()) {
+        final int index = stringRef.intValue();
+        if (index >= 0 && index < strUsed.length) {
+          strUsed[index] = true;
         }
       }
     }
   }
 
+  /**
+   * Mark specified string as used.
+   * <p>
+   * This method can be called from several threads
+   *
+   * @param ref Rererence to string in the {@link StringTable string table}
+   */
   private void checkStringRef(StringRef ref)
   {
     final int index = ref.getValue();
