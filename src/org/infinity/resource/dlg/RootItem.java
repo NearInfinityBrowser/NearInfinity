@@ -20,6 +20,7 @@ final class RootItem extends ItemBase
 {
   private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16);
 
+  /** States from which dialog can start. */
   private final ArrayList<StateItem> states = new ArrayList<>();
   private final ImageIcon icon;
 
