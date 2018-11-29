@@ -44,6 +44,15 @@ import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * The ARE resource describes the content of an area (rather than its visual representation).
+ * ARE files contain the list of {@link Actor actors}, {@link Item items}, {@link Entrance
+ * entrances and exits}, {@link SpawnPoint spawn points} and other area-associated info.
+ * <p>
+ * The ARE resource may contain references to other files, e.g. the list of items in a
+ * {@link Container container} is stored in the ARE file, however the files themselves are
+ * not embedded in the ARE file.
+ */
 public final class AreResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
   // ARE-specific field labels

@@ -76,8 +76,26 @@ import org.infinity.util.IniMapSection;
 import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
+import org.infinity.util.Table2da;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * This resource describes a "creature". Creatures have several stats (some visible
+ * through the game UI) which are generally mapped to {@link IdsMap IDS} or
+ * {@link Table2da 2DA} files.
+ * <p>
+ * Planescape: Torment engine specific notes:
+ * <ul>
+ * <li>PST creature disguises are not stored as a field in the creature file, they
+ * are held as a GLOBAL variable, named {@code 'appearance'}. A value of 1 equates
+ * to zombie disguise, a value of 2 equates to dustman disguise.</li>
+ * <li>Several fields for The Nameless One are generated dynamically, and as a result
+ * changing fields in the relevant CRE file will have no effect.</li>
+ * </ul>
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/cre_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/cre_v1.htm</a>
+ */
 public final class CreResource extends AbstractStruct
   implements Resource, HasAddRemovable, AddRemovable, HasViewerTabs, ItemListener, UpdateListener
 {

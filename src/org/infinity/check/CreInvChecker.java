@@ -213,7 +213,8 @@ public final class CreInvChecker extends AbstractSearcher implements Runnable, A
 // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry) {
+  protected Runnable newWorker(ResourceEntry entry)
+  {
     return () -> {
       try {
         checkCreature(new CreResource(entry));

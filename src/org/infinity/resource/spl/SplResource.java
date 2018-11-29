@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.spl;
@@ -39,11 +39,27 @@ import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * This resource describes a "spell". Spells include mage spells, priest spells,
+ * innate abilities, special abilities and effects used for game advancement
+ * (e.g. animation effects, custom spells). SPL files have a similar structure
+ * to {@link ItmResource ITM} files.
+ * <p>
+ * SPL files consist of a main header, zero or more extended headers (each
+ * containing zero or more feature blocks) and zero or more casting feature blocks.
+ * All the feature blocks are stored as a continuous data segment, with each extended
+ * header containing an offset into this data, and the main header containing an
+ * offset into this data for the casting feature blocks.
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/spl_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/spl_v1.htm</a>
+ */
 public final class SplResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs,
                                                                  UpdateListener
 {
@@ -419,8 +435,10 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
   }
 
 
-  // Called by "Extended Search"
-  // Checks whether the specified resource entry matches all available search options.
+  /**
+   * Checks whether the specified resource entry matches all available search options.
+   * Called by "Extended Search"
+   */
   public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
   {
     if (entry != null && searchOptions != null) {
@@ -643,4 +661,3 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
     return false;
   }
 }
-

@@ -38,6 +38,9 @@ public final class DialogStateReferenceSearcher extends AbstractReferenceSearche
   @Override
   void search(ResourceEntry entry, Resource resource)
   {
+    // If resource has DLG extension but not DLG resource
+    if (!(resource instanceof DlgResource)) return;
+
     final DlgResource dlg = (DlgResource)resource;
     final String name = targetEntry.getResourceName();
     for (int i = 0; i < dlg.getFieldCount(); i++) {
@@ -51,4 +54,3 @@ public final class DialogStateReferenceSearcher extends AbstractReferenceSearche
     }
   }
 }
-

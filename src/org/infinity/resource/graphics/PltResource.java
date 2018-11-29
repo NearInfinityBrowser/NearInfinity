@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -67,10 +67,35 @@ import org.infinity.util.io.StreamUtils;
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.IDataChangedListener;
 
+/**
+ * This resource describes the appearance of paperdolls displayed on the inventory
+ * screen. A paperdoll can display several "materials" (e.g. skin, hair, leather,
+ * metal) each of which is represented by a different colour set. The colours for
+ * each material are set in the {@link CreResource CRE} file (major and minor colour
+ * can be set within the game) which correspond to a colour gradient.
+ * <p>
+ * Each pixel is mapped to a colour by the colour byte which is then given an
+ * intensity by the intensity byte. The colours are listed below:
+ * <ul>
+ * <li>0 - Skin</li>
+ * <li>1 - Hair</li>
+ * <li>2 - Metal</li>
+ * <li>3 - Leather</li>
+ * <li>4 - Metal</li>
+ * <li>5 - Minor colour (<i>settable within the game</i>)</li>
+ * <li>6 - Major colour (<i>settable within the game</i>)</li>
+ * <li>7 - 127 Shadow</li>
+ * </ul>
+ *
+ * Colour maps 128 - 255 repeat this pattern.
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/plt_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/plt_v1.htm</a>
+ */
 public class PltResource implements Resource, Closeable, Writeable, ItemListener, ActionListener,
                                      ChangeListener, IDataChangedListener
 {
-  // available random colors for initial coloring
+  /** Available random colors for initial coloring. */
   private static final int[][] CreColorRandomIndices = {
       { 8, 9, 12, 12, 12, 13, 13, 87, 90, 114 },    // Skin
       { 0, 0, 0, 1, 2, 2, 3, 4, 5, 6 },             // Hair
@@ -80,7 +105,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
       { 39, 46, 48, 50, 54, 60, 63, 64, 66, 66 },   // Minor
       { 38, 40, 41, 47, 51, 52, 57, 60, 61, 63 },   // Major
   };
-  // color types based on CRE field names
+  /** Color types based on CRE field names. */
   private static final String[] ColorIndexNames = {
       CreResource.CRE_COLOR_SKIN, CreResource.CRE_COLOR_HAIR, CreResource.CRE_COLOR_METAL,
       CreResource.CRE_COLOR_ARMOR, CreResource.CRE_COLOR_LEATHER, CreResource.CRE_COLOR_MINOR,
@@ -128,7 +153,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
     cbColors = new JComboBox[ColorIndexNames.length];
     Random rnd = new Random();
     for (int i = 0; i < ColorIndexNames.length; ++i) {
-      cbColors[i] = new JComboBox<ColorItem>(new ColorModel());
+      cbColors[i] = new JComboBox<>(new ColorModel());
       cbColors[i].setRenderer(new ColorRenderer());
       if (randomizeColors) {
         cbColors[i].setSelectedIndex(CreColorRandomIndices[i][rnd.nextInt(CreColorRandomIndices[i].length)]);
@@ -428,15 +453,19 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
 
 //--------------------------- INNER CLASSES ---------------------------
 
-  // Stores color index and value
+  /** Stores color index and value. */
   private static class ColorItem
   {
-    private final int index;  // color index
+    /** Color index. */
+    private final int index;
     private final Random rand = new Random();
 
-    private int[] range;      // full range of color entries as ARGB values (0xaarrggbb)
-    private int[] squareDist; // lookup for squared distances
-    private ColorItem[] randItems;  // initialized if item refers to a random color
+    /** Full range of color entries as ARGB values ({@code 0xaarrggbb}). */
+    private int[] range;
+    /** Lookup for squared distances. */
+    private int[] squareDist;
+    /** Initialized if item refers to a random color. */
+    private ColorItem[] randItems;
     private int randIndex;
 
     public ColorItem(int index, int[] range)

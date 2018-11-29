@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.maze;
@@ -17,11 +17,21 @@ import org.infinity.gui.hexview.StructHexViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
+import org.infinity.resource.gam.GamResource;
 import org.infinity.resource.gam.ModronMaze;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.sav.SavResource;
 
 /**
- * The PST:EE MAZE resource type.
+ * This resource is used to randomise the layout of the Modron Maze. It is very
+ * similar to the maze structure found within {@link GamResource GAM V1.1} for
+ * classic PST. A resource of this type can usually only be found inside {@link
+ * SavResource SAV} files after the Modron Maze has been initialized by the game.
+ * <p>
+ * This resource is used only in Planescape: Torment Extended Edition
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/maze_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/maze_v1.htm</a>
  */
 public class MazeResource extends AbstractStruct implements Resource, HasViewerTabs
 {

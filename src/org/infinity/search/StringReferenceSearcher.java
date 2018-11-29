@@ -59,16 +59,17 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
   @Override
   protected void search(ResourceEntry entry, Resource resource)
   {
-    if (resource instanceof BcsResource)
+    if (resource instanceof BcsResource) {
       searchScript(entry, (BcsResource)resource);
-    else if (resource instanceof DlgResource)
+    } else if (resource instanceof DlgResource) {
       searchDialog(entry, (AbstractStruct)resource);
-    else if (resource instanceof SavResource)
+    } else if (resource instanceof SavResource) {
       searchSave(entry, (SavResource)resource);
-    else if (resource instanceof PlainTextResource)
+    } else if (resource instanceof PlainTextResource) {
       searchText(entry, (PlainTextResource)resource);
-    else
+    } else if (resource instanceof AbstractStruct) {
       searchStruct(entry, (AbstractStruct)resource);
+    }
   }
 
   private void searchDialog(ResourceEntry entry, AbstractStruct dialog)
@@ -81,13 +82,11 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
         final AbstractCode sourceCode = (AbstractCode)o;
         try {
           final ScriptType type = sourceCode instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
-          final Compiler compiler = new Compiler(sourceCode.toString(), type);
-          final String code = compiler.getCode();
+          final Compiler compiler = new Compiler(sourceCode.getText(), type);
           if (compiler.getErrors().isEmpty()) {
-            final Decompiler decompiler = new Decompiler(code, true);
+            final Decompiler decompiler = new Decompiler(compiler.getCode(), type, true);
             decompiler.setGenerateComments(false);
             decompiler.setGenerateResourcesUsed(true);
-            decompiler.setScriptType(type);
             decompiler.decompile();
             for (final Integer stringRef : decompiler.getStringRefsUsed()) {
               if (stringRef.intValue() == searchvalue) {
@@ -143,6 +142,13 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
     }
   }
 
+  /**
+   * Recursively searches references to string {@link #searchvalue} in all fields
+   * of specified structure and it's substructures.
+   *
+   * @param entry Pointer to resource in which search performed
+   * @param struct Structure from that entry
+   */
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
     for (int i = 0; i < struct.getFieldCount(); i++) {

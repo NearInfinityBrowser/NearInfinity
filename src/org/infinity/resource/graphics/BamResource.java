@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -73,13 +73,39 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
+import org.infinity.resource.chu.ChuResource;
+import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.spl.SplResource;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IntegerHashMap;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * This resource describes animated graphics. Such files are used for animations
+ * (both {@link CreResource creature} animations, {@link ItmResource item} and
+ * {@link SplResource spell} animations) and {@link ChuResource interactive GUI
+ * elements} (e.g. buttons) and for logical collections of images (e.g. fonts).
+ * BAM files can contain multiple sequences of animations, up to a limit of 255.
+ * <p>
+ * While the BAM format allows the dimensions of a frame to be very large, the
+ * engine will only show frames up to a certain size. This maximum size varies
+ * with the {@link Profile.Engine version of the engine}:
+ * <ul>
+ * <li>BG1: Unknown</li>
+ * <li>BG2: 256*256</li>
+ * <li>PST: Unknown (greater than 256*256)</li>
+ * <li>IWD1: Unknown</li>
+ * <li>IWD2: Unknown</li>
+ * <li>BGEE: Unknown (1024*1024 or greater)</li>
+ * </ul>
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/bam_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/bam_v1.htm</a>
+ */
 public class BamResource implements Resource, Closeable, Writeable, ActionListener,
                                     PropertyChangeListener, ChangeListener, IDataChangedListener
 {

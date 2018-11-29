@@ -28,7 +28,7 @@ import org.infinity.resource.text.PlainTextResource;
 /**
  * Performs search usages of the specified script in the {@link AreResource area},
  * {@link BcsResource script}, {@link CreResource characters and creatures},
- * {@link DlgResource dialogues} ant the ini files.
+ * {@link DlgResource dialogues} and the ini files.
  */
 public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
 {
@@ -45,7 +45,7 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
       searchScript(entry, ((BcsResource)resource).getCode(), null);
     } else if (resource instanceof PlainTextResource) {
       searchText(entry, ((PlainTextResource)resource).getText());
-    } else {
+    } else if (resource instanceof AbstractStruct) {
       searchStruct(entry, (AbstractStruct)resource);
     }
   }

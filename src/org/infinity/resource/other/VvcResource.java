@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.other;
@@ -21,9 +21,38 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.graphics.BamResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.sound.SoundResource;
 import org.infinity.search.SearchOptions;
 
+/**
+ * This resource describes visual "spell casting" effects ({@link BamResource BAM}
+ * files) with optional sounds ({@link SoundResource WAVC} files). VVCs can be
+ * invoked by some script actions (e.g. {@code CreateVisualEffect},
+ * {@code CreateVisualEffectObject}) and by some effects (e.g. "Play 3D effect").
+ *
+ * VVC Files use a 3D co-ordinates system when playing the exact location of VVC
+ * animations. Infinity Engine Games are rendered from an isometric angle; this
+ * means that the X-Y-Z axis need to be percieved within this isometric frame to
+ * properly understand how VVC files will play:
+ * <code><pre>
+ *     Z   Y
+ *  O  |  /
+ * /|\ | /
+ * _+_ |/
+ *      \
+ *       \X
+ * </pre></code>
+ * <ul>
+ * <li>X is up or down</li>
+ * <li>Y is the distance between the feet of the character and the animation</li>
+ * <li>Z is the distance between the head of the character and the animation</li>
+ * </ul>
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/vvc_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/vvc_v1.htm</a>
+ */
 public final class VvcResource extends AbstractStruct implements Resource, HasViewerTabs
 {
   // VVC-specific field labels
@@ -154,8 +183,10 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
     viewer.addTabChangeListener(hexViewer);
   }
 
-  // Called by "Extended Search"
-  // Checks whether the specified resource entry matches all available search options.
+  /**
+   * Called by "Extended Search"
+   * Checks whether the specified resource entry matches all available search options.
+   */
   public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
   {
     if (entry != null && searchOptions != null) {
@@ -204,4 +235,3 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
     return false;
   }
 }
-

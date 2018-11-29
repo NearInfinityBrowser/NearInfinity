@@ -59,11 +59,13 @@ public final class AreResourceRef extends ResourceRef
   @Override
   public boolean isLegalEntry(ResourceEntry entry)
   {
+    if (entry == null)
+      return false;
     if (!(entry instanceof BIFFResourceEntry))
       return true;
     if (entry.hasOverride())
       return true;
-    String bifName = ((BIFFResourceEntry)entry).getBIFFEntry().toString();
+    final String bifName = ((BIFFResourceEntry)entry).getBIFFEntry().getFileName();
 //    if (bifName.length() > 8 && bifName.substring(0, 9).equalsIgnoreCase("data/AREA"))
 //      return true;
     for (final String legalBIF : legalBIFs) {

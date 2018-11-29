@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -12,6 +12,11 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * Actor response in the {@link DlgResource dialog}. Each state contains NPC text,
+ * list of {@link Transition responces} and may have associated {@link StateTrigger trigger}
+ * with a condition, defining whether it is possible to use this state.
+ */
 public final class State extends AbstractStruct implements AddRemovable
 {
   // DLG/State-specific field labels
@@ -21,6 +26,7 @@ public final class State extends AbstractStruct implements AddRemovable
   public static final String DLG_STATE_NUM_RESPONSES        = "# responses";
   public static final String DLG_STATE_TRIGGER_INDEX        = "Trigger index";
 
+  /** State number which is unique defining it in a dialog. */
   private int nr;
 
   State() throws Exception
@@ -79,4 +85,3 @@ public final class State extends AbstractStruct implements AddRemovable
     return offset + 16;
   }
 }
-

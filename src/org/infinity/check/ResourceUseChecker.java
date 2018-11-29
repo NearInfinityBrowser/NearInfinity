@@ -288,7 +288,8 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
 // --------------------- End Interface Runnable ---------------------
 
   @Override
-  protected Runnable newWorker(ResourceEntry entry) {
+  protected Runnable newWorker(ResourceEntry entry)
+  {
     return () -> {
       final Resource resource = ResourceFactory.getResource(entry);
       if (resource instanceof DlgResource) {
@@ -297,7 +298,7 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
         checkScript((BcsResource)resource);
       } else if (resource instanceof PlainTextResource) {
         checkTextfile((PlainTextResource)resource);
-      } else if (resource != null) {
+      } else if (resource instanceof AbstractStruct) {
         checkStruct((AbstractStruct)resource);
       }
       advanceProgress();
@@ -312,7 +313,11 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
       }
       else if (entry instanceof AbstractCode) {
         try {
-          checkCode((AbstractCode)entry);
+          final AbstractCode code = (AbstractCode)entry;
+          final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
+          final Compiler compiler = new Compiler(code.getText(), type);
+
+          checkCode(compiler.getCode(), type);
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -330,16 +335,8 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
 
   private void checkScript(BcsResource script)
   {
-    final Decompiler decompiler = new Decompiler(script.getCode(), true);
-    decompiler.setGenerateComments(false);
-    decompiler.setGenerateResourcesUsed(true);
     try {
-      decompiler.decompile();
-      for (final ResourceEntry entry : decompiler.getResourcesUsed()) {
-        synchronized (unusedResources) {
-          unusedResources.remove(entry);
-        }
-      }
+      checkCode(script.getCode(), ScriptType.BCS);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -366,37 +363,55 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
   }
 
   /**
-   * Performs code checking. This method can be called from several threads
+   * Removes from {@link #unusedResources} all resources to which the script code refers.
+   * <p>
+   * This method can be called from several threads
    *
-   * @param code Code to action or trigger in dialog. Never {@code null}
+   * @param compiledCode Compiled code from BCS, dialog action or trigger.
+   *        Must not be {@code null}
    *
-   * @throws Exception If {@code script} contains invalid code
+   * @throws Exception If {@code compiledCode} contains invalid code
    */
-  private void checkCode(AbstractCode code) throws Exception {
-    final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
-    final Compiler compiler = new Compiler(code.toString(), type);
-    final String compiled = compiler.getCode();
-    final Decompiler decompiler = new Decompiler(compiled, ScriptType.BCS, true);
-
+  private void checkCode(String compiledCode, ScriptType type) throws Exception
+  {
+    final Decompiler decompiler = new Decompiler(compiledCode, type, true);
     decompiler.setGenerateComments(false);
     decompiler.setGenerateResourcesUsed(true);
-    decompiler.setScriptType(type);
     decompiler.decompile();
 
-    for (final ResourceEntry entry : decompiler.getResourcesUsed()) {
-      synchronized (unusedResources) {
+    synchronized (unusedResources) {
+      for (final ResourceEntry entry : decompiler.getResourcesUsed()) {
         unusedResources.remove(entry);
       }
     }
   }
 
-  private void checkResourceRef(ResourceRef ref) {
+  /**
+   * If type (a.k.a. extension) of the resource equals to the {@link #checkType
+   * type of checking resources}, removes specified resource name from
+   * {@link #unusedResources}, otherwise do nothing.
+   * <p>
+   * This method can be called from several threads
+   *
+   * @param ref Reference to the resource for checking
+   */
+  private void checkResourceRef(ResourceRef ref)
+  {
     if (checkType.equalsIgnoreCase(ref.getType())) {
       removeEntries(ref.getResourceName());
     }
   }
 
-  private void checkSound(StringRef ref) {
+  /**
+   * If string reference has the associated sound, removes this sound from
+   * {@link #unusedResources}, otherwise do nothing.
+   * <p>
+   * This method can be called from several threads
+   *
+   * @param ref Reference to entry in string table that contains sound file name
+   */
+  private void checkSound(StringRef ref)
+  {
     final int index = ref.getValue();
     if (index >= 0) {
       final String wav = StringTable.getSoundResource(index);
@@ -408,13 +423,16 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
 
   /**
    * Removes from {@link #unusedResources} all entries that name equals {@code name}.
+   * <p>
+   * This method can be called from several threads
    *
    * @param name Resource name that must be erased from unused list
    */
-  private void removeEntries(String name) {
+  private void removeEntries(String name)
+  {
     synchronized (unusedResources) {
       for (final Iterator<ResourceEntry> it = unusedResources.iterator(); it.hasNext();) {
-        if (it.next().toString().equalsIgnoreCase(name)) {
+        if (it.next().getResourceName().equalsIgnoreCase(name)) {
           it.remove();
           break;
         }
