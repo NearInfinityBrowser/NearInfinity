@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -7,10 +7,17 @@ package org.infinity.gui;
 import java.awt.Component;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -22,6 +29,7 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableModel;
 
 import org.infinity.icon.Icons;
+import org.infinity.resource.Profile;
 
 public final class SortableTable extends JTable implements MouseListener
 {
@@ -65,6 +73,43 @@ public final class SortableTable extends JTable implements MouseListener
   {
     this.sortByColumn = sortByColumn;
     tableModel.sort();
+  }
+
+
+  public void saveCheckResult(Component parent, String header) {
+    saveResult(parent, "Save check result", header);
+  }
+  public void saveSearchResult(Component parent, String query) {
+    saveResult(parent, "Save search result", "Searched for: " + query);
+  }
+  private void saveResult(Component parent, String dialogTitle, String header) {
+    final JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
+    chooser.setDialogTitle(dialogTitle);
+    chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "result.txt"));
+    if (chooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
+      final Path output = chooser.getSelectedFile().toPath();
+      if (Files.exists(output)) {
+        final String[] options = {"Overwrite", "Cancel"};
+        if (JOptionPane.showOptionDialog(parent, output + " exists. Overwrite?",
+                                         dialogTitle, JOptionPane.YES_NO_OPTION,
+                                         JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0) {
+          return;
+        }
+      }
+      try (final BufferedWriter bw = Files.newBufferedWriter(output)) {
+        bw.write(header); bw.newLine();
+        bw.write("Number of hits: " + getRowCount()); bw.newLine();
+        for (int i = 0; i < getRowCount(); i++) {
+          bw.write(getTableItemAt(i).toString()); bw.newLine();
+        }
+        JOptionPane.showMessageDialog(parent, "Result saved to " + output,
+                                      "Save complete", JOptionPane.INFORMATION_MESSAGE);
+      } catch (IOException ex) {
+        JOptionPane.showMessageDialog(parent, "Error while saving " + output + " (details in the trace)",
+                                      "Error", JOptionPane.ERROR_MESSAGE);
+        ex.printStackTrace();
+      }
+    }
   }
 
   @Override

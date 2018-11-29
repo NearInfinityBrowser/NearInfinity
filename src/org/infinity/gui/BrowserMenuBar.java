@@ -1369,7 +1369,7 @@ public final class BrowserMenuBar extends JMenuBar
       checkMenu.add(toolCheckFileUse);
 
       toolCheckEffectsIndex =
-          makeMenuItem("For Mis-indexed Effects", -1, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+          makeMenuItem("For Mis-indexed Effects...", -1, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
       checkMenu.add(toolCheckEffectsIndex);
       // *** End Check submenu ***
 

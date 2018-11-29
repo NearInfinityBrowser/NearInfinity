@@ -11,17 +11,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -38,7 +32,6 @@ import org.infinity.gui.TableItem;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
-import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.bcs.BcsResource;
@@ -87,33 +80,7 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
-      fc.setDialogTitle("Save search result");
-      fc.setSelectedFile(new File(fc.getCurrentDirectory(), "result.txt"));
-      if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
-        Path output = fc.getSelectedFile().toPath();
-        if (Files.exists(output)) {
-          String[] options = {"Overwrite", "Cancel"};
-          if (JOptionPane.showOptionDialog(resultFrame, output + " exists. Overwrite?",
-                                           "Save result", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
-            return;
-        }
-        try (BufferedWriter bw = Files.newBufferedWriter(output)) {
-          bw.write("Result of unknown IDS references in BCS & BS files"); bw.newLine();
-          bw.write("Number of hits: " + table.getRowCount()); bw.newLine();
-          bw.write("Number of hits: " + table.getRowCount()); bw.newLine();
-          for (int i = 0; i < table.getRowCount(); i++) {
-            bw.write(table.getTableItemAt(i).toString()); bw.newLine();
-          }
-          JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output, "Save complete",
-                                        JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException e) {
-          JOptionPane.showMessageDialog(resultFrame, "Error while saving " + output,
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-          e.printStackTrace();
-        }
-      }
+      table.saveCheckResult(resultFrame, "Unknown IDS references in BCS & BS files");
     }
   }
 
@@ -284,8 +251,8 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
     @Override
     public String toString()
     {
-      return String.format("File: %s  Error: %s  Line: %d",
-                           resourceEntry.toString(), error, lineNr);
+      return String.format("File: %s, Line: %d, Error: %s",
+                           resourceEntry.getResourceName(), lineNr, error);
     }
   }
 }
