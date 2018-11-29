@@ -29,7 +29,6 @@ import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.StructEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
@@ -69,22 +68,12 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
 
   public TextEdit(ByteBuffer buffer, int offset, int length, String name)
   {
-    this(null, buffer, offset, length, name, Align.RIGHT);
+    this(buffer, offset, length, name, Align.RIGHT);
   }
 
   public TextEdit(ByteBuffer buffer, int offset, int length, String name, Align buttonAlignment)
   {
-    this(null, buffer, offset, length, name, buttonAlignment);
-  }
-
-  public TextEdit(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
-  {
-    this(parent, buffer, offset, length, name, Align.RIGHT);
-  }
-
-  public TextEdit(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, Align buttonAlignment)
-  {
-    super(parent, offset, length, name);
+    super(offset, length, name);
     this.buffer = StreamUtils.getByteBuffer(getSize());
     read(buffer, offset);
     this.eolType = EOLType.UNIX;

@@ -31,7 +31,6 @@ import org.infinity.gui.ViewFrame;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 
@@ -81,22 +80,22 @@ public class ResourceBitmap extends Datatype
   private TextListPanel<RefEntry> list;
   private long value;
 
-  public ResourceBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
+  public ResourceBitmap(ByteBuffer buffer, int offset, int length, String name,
       List<RefEntry> resources)
   {
-    this(parent, buffer, offset, length, name, resources, null, null);
+    this(buffer, offset, length, name, resources, null, null);
   }
 
-  public ResourceBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
+  public ResourceBitmap(ByteBuffer buffer, int offset, int length, String name,
       List<RefEntry> resources, String defLabel)
   {
-    this(parent, buffer, offset, length, name, resources, defLabel, null);
+    this(buffer, offset, length, name, resources, defLabel, null);
   }
 
-  public ResourceBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
+  public ResourceBitmap(ByteBuffer buffer, int offset, int length, String name,
                         List<RefEntry> resources, String defLabel, String fmt)
   {
-    super(parent, offset, length, name);
+    super(offset, length, name);
     this.formatString = (fmt != null) ? fmt : FMT_REF_VALUE;
     this.defaultLabel = (defLabel != null) ? defLabel : "Unknown";
 

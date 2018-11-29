@@ -28,7 +28,6 @@ import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.StructEntry;
 import org.infinity.util.Misc;
 
 /**
@@ -52,6 +51,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
 
   /**
    * Constructs a Number object consisting of multiple unsigned values of a given number of bits.
+   *
    * @param buffer The buffer containing resource data for this type.
    * @param offset Resource offset
    * @param length Resource length in bytes. Supported lengths: 1, 2, 3, 4
@@ -63,28 +63,12 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
   public MultiNumber(ByteBuffer buffer, int offset, int length, String name,
                      int numBits, int numValues, String[] valueNames)
   {
-    this(null, buffer, offset, length, name, numBits, numValues, valueNames, false);
-  }
-
-  /**
-   * Constructs a Number object consisting of multiple unsigned values of a given number of bits.
-   * @param parent A parent structure containing to this datatype object.
-   * @param buffer The buffer containing resource data for this type.
-   * @param offset Resource offset
-   * @param length Resource length in bytes. Supported lengths: 1, 2, 3, 4
-   * @param name Field name
-   * @param numBits Number of bits for each value being part of the Number object.
-   * @param numValues Number of values to consider. Supported range: [1, length*8/numBits]
-   * @param valueNames List of individual field names for each contained value.
-   */
-  public MultiNumber(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
-                     int numBits, int numValues, String[] valueNames)
-  {
-    this(parent, buffer, offset, length, name, numBits, numValues, valueNames, false);
+    this(buffer, offset, length, name, numBits, numValues, valueNames, false);
   }
 
   /**
    * Constructs a Number object consisting of multiple values of a given number of bits.
+   *
    * @param buffer The buffer containing resource data for this type.
    * @param offset Resource offset
    * @param length Resource length in bytes. Supported lengths: 1, 2, 3, 4
@@ -95,24 +79,6 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
    * @param signed Whether values are signed.
    */
   public MultiNumber(ByteBuffer buffer, int offset, int length, String name,
-                     int numBits, int numValues, String[] valueNames, boolean signed)
-  {
-    this(null, buffer, offset, length, name, numBits, numValues, valueNames, signed);
-  }
-
-  /**
-   * Constructs a Number object consisting of multiple values of a given number of bits.
-   * @param parent A parent structure containing to this datatype object.
-   * @param buffer The buffer containing resource data for this type.
-   * @param offset Resource offset
-   * @param length Resource length in bytes. Supported lengths: 1, 2, 3, 4
-   * @param name Field name
-   * @param numBits Number of bits for each value being part of the Number object.
-   * @param numValues Number of values to consider. Supported range: [1, length*8/numBits]
-   * @param valueNames List of individual field names for each contained value.
-   * @param signed Whether values are signed.
-   */
-  public MultiNumber(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
                      int numBits, int numValues, String[] valueNames, boolean signed)
   {
     super(offset, length, name);

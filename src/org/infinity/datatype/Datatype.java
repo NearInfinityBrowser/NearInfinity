@@ -49,12 +49,6 @@ public abstract class Datatype implements StructEntry
 
   protected Datatype(int offset, int length, String name)
   {
-    this(null, offset, length, name);
-  }
-
-  protected Datatype(StructEntry parent, int offset, int length, String name)
-  {
-    this.parent = parent;
     this.offset = offset;
     this.length = length;
     this.name = name;

@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
-import org.infinity.resource.StructEntry;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -31,12 +30,7 @@ public class FloatNumber extends Datatype implements InlineEditable
 
   public FloatNumber(ByteBuffer buffer, int offset, int length, String name)
   {
-    this(null, buffer, offset, length, name);
-  }
-
-  public FloatNumber(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
-  {
-    super(parent, offset, length, name);
+    super(offset, length, name);
     read(buffer, offset);
   }
 

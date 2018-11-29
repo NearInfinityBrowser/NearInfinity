@@ -7,7 +7,6 @@ package org.infinity.datatype;
 import java.nio.ByteBuffer;
 
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.StructEntry;
 
 /**
  * Field that represents binary data in binary format in their editor.
@@ -26,12 +25,7 @@ public final class UnknownBinary extends Unknown
 {
   public UnknownBinary(ByteBuffer buffer, int offset, int length, String name)
   {
-    this(null, buffer, offset, length, name);
-  }
-
-  public UnknownBinary(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
-  {
-    super(parent, buffer, offset, length, name);
+    super(buffer, offset, length, name);
   }
 
 // --------------------- Begin Interface Editable ---------------------

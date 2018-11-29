@@ -24,7 +24,6 @@ import org.infinity.gui.StructViewer;
 import org.infinity.gui.TextListPanel;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.StructEntry;
 import org.infinity.util.Misc;
 
 /**
@@ -49,12 +48,7 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
 
   public Bitmap(ByteBuffer buffer, int offset, int length, String name, String[] table)
   {
-    this(null, buffer, offset, length, name, table);
-  }
-
-  public Bitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, String[] table)
-  {
-    super(parent, offset, length, name);
+    super(offset, length, name);
     this.table = table;
     read(buffer, offset);
   }
