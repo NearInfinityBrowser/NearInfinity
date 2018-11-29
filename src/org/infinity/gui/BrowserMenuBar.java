@@ -201,12 +201,17 @@ public final class BrowserMenuBar extends JMenuBar
 
   public boolean showDlgTreeIcons()
   {
-    return optionsMenu.optionDlgShowIcons.isSelected();
+    return optionsMenu.dialogViewerMenu.showIcons.isSelected();
   }
 
   public boolean alwaysShowState0()
   {
-    return optionsMenu.optionDlgAlwaysShowState0.isSelected();
+    return optionsMenu.dialogViewerMenu.alwaysShowState0.isSelected();
+  }
+
+  public boolean colorizeOtherDialogs()
+  {
+    return optionsMenu.dialogViewerMenu.colorizeOtherDialogs.isSelected();
   }
 
   public boolean getHexColorMapEnabled()
@@ -1622,8 +1627,6 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_CACHEOVERRIDE            = "CacheOverride";
     private static final String OPTION_MORECOMPILERWARNINGS     = "MoreCompilerWarnings";
     private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
-    private static final String OPTION_DLG_SHOWICONS            = "DlgShowIcons";
-    private static final String OPTION_DLG_ALWAYS_SHOW_STATE_0  = "DlgAlwaysShowState0";
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
     private static final String OPTION_KEEPVIEWONCOPY           = "UpdateTreeOnCopy";
     private static final String OPTION_SHOWTREESEARCHNAMES      = "ShowTreeSearchNames";
@@ -1694,7 +1697,7 @@ public final class BrowserMenuBar extends JMenuBar
 
     private JCheckBoxMenuItem optionAutocheckBCS, optionMoreCompileWarnings, optionAutogenBCSComments;
 
-    private JCheckBoxMenuItem optionDlgShowIcons, optionDlgAlwaysShowState0;
+    private DialogViewerMenu dialogViewerMenu;
 
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride,
                               optionIgnoreReadErrors, optionCacheOverride, optionShowStrrefs,
@@ -1952,15 +1955,7 @@ public final class BrowserMenuBar extends JMenuBar
       textMenu.add(optionTextLineNumbers);
 
       // Options->Dialog Viewer
-      final JMenu dialogMenu = new JMenu("Dialog Viewer");
-      add(dialogMenu);
-      optionDlgShowIcons =
-          new JCheckBoxMenuItem("Show icons in DLG tree viewer", getPrefs().getBoolean(OPTION_DLG_SHOWICONS, true));
-      dialogMenu.add(optionDlgShowIcons);
-      optionDlgAlwaysShowState0 =
-          new JCheckBoxMenuItem("Always show State 0 in DLG tree viewer", getPrefs().getBoolean(OPTION_DLG_ALWAYS_SHOW_STATE_0, false));
-      dialogMenu.add(optionDlgAlwaysShowState0);
-
+      add(dialogViewerMenu = new DialogViewerMenu(getPrefs()));
       addSeparator();
 
       // Options->Show ResourceRefs As
@@ -2388,8 +2383,7 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_CACHEOVERRIDE, optionCacheOverride.isSelected());
       getPrefs().putBoolean(OPTION_MORECOMPILERWARNINGS, optionMoreCompileWarnings.isSelected());
       getPrefs().putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
-      getPrefs().putBoolean(OPTION_DLG_SHOWICONS, optionDlgShowIcons.isSelected());
-      getPrefs().putBoolean(OPTION_DLG_ALWAYS_SHOW_STATE_0, optionDlgAlwaysShowState0.isSelected());
+      dialogViewerMenu.storePreferences(getPrefs());
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
       getPrefs().putBoolean(OPTION_KEEPVIEWONCOPY, optionKeepViewOnCopy.isSelected());
       getPrefs().putBoolean(OPTION_SHOWTREESEARCHNAMES, optionTreeSearchNames.isSelected());
@@ -2840,6 +2834,52 @@ public final class BrowserMenuBar extends JMenuBar
           gameLanguage.containsKey(event.getSource())) {
         switchGameLanguage(gameLanguage.get(event.getSource()));
       }
+    }
+  }
+
+  private static final class DialogViewerMenu extends JMenu
+  {
+    private static final String OPTION_SHOWICONS              = "DlgShowIcons";
+    private static final String OPTION_ALWAYS_SHOW_STATE_0    = "DlgAlwaysShowState0";
+    private static final String OPTION_COLORIZE_OTHER_DIALOGS = "DlgColorizeOtherDialogs";
+
+    /**
+     * If checked, the tree will show icons on which it is possible to distinguish
+     * nodes with NPC replies from nodes of the player responses. It is unknown for
+     * what reasons be necessary it to switch off. By default this option is on.
+     */
+    final JCheckBoxMenuItem showIcons;
+    /**
+     * If checked, state 0 in dialogs will be always visible under root. This is
+     * useful for exploring dialogs, that in game started only from other dialogs,
+     * and never as independent entity. By default this option is off.
+     */
+    final JCheckBoxMenuItem alwaysShowState0;
+    /**
+     * If checked, background of states and transitions from other dialogs will
+     * be drawn in other colors. By default this option is on.
+     */
+    final JCheckBoxMenuItem colorizeOtherDialogs;
+
+    public DialogViewerMenu(Preferences prefs)
+    {
+      super("Dialog Tree Viewer");
+      showIcons = new JCheckBoxMenuItem("Show icons",
+                                        prefs.getBoolean(OPTION_SHOWICONS, true));
+      add(showIcons);
+      alwaysShowState0 = new JCheckBoxMenuItem("Always show State 0",
+                                        prefs.getBoolean(OPTION_ALWAYS_SHOW_STATE_0, false));
+      add(alwaysShowState0);
+      colorizeOtherDialogs = new JCheckBoxMenuItem("Show colored entries from other dialogs",
+                                        prefs.getBoolean(OPTION_COLORIZE_OTHER_DIALOGS, true));
+      add(colorizeOtherDialogs);
+    }
+
+    void storePreferences(Preferences prefs)
+    {
+      prefs.putBoolean(OPTION_SHOWICONS, showIcons.isSelected());
+      prefs.putBoolean(OPTION_ALWAYS_SHOW_STATE_0, alwaysShowState0.isSelected());
+      prefs.putBoolean(OPTION_COLORIZE_OTHER_DIALOGS, colorizeOtherDialogs.isSelected());
     }
   }
 

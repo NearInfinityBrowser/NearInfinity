@@ -148,23 +148,7 @@ final class DlgTreeModel implements TreeModel
   /** Removes any old content and re-initializes the model with the data from the given dialog resource. */
   public void reset(DlgResource dlg)
   {
-    // clearing maps
-    Iterator<String> iter = mapState.keySet().iterator();
-    while (iter.hasNext()) {
-      HashMap<Integer, StateItem> map = mapState.get(iter.next());
-      if (map != null) {
-        map.clear();
-      }
-    }
     mapState.clear();
-
-    iter = mapTransition.keySet().iterator();
-    while (iter.hasNext()) {
-      HashMap<Integer, TransitionItem> map = mapTransition.get(iter.next());
-      if (map != null) {
-        map.clear();
-      }
-    }
     mapTransition.clear();
 
     root = null;
@@ -430,66 +414,60 @@ final class DlgTreeModel implements TreeModel
   private DefaultMutableTreeNode updateNodeChildren(DefaultMutableTreeNode parent)
   {
     if (parent != null) {
-      if (parent.getUserObject() instanceof StateItem) {
-        return updateStateNodeChildren(parent);
-      } else if (parent.getUserObject() instanceof TransitionItem) {
-        return updateTransitionNodeChildren(parent);
-      } else if (parent.getUserObject() instanceof RootItem) {
-        return updateRootNodeChildren(parent);
+      final Object obj = parent.getUserObject();
+      if (obj instanceof StateItem) {
+        return updateStateNodeChildren(parent, (StateItem)obj);
+      } else if (obj instanceof TransitionItem) {
+        return updateTransitionNodeChildren(parent, (TransitionItem)obj);
+      } else if (obj instanceof RootItem) {
+        return updateRootNodeChildren(parent, (RootItem)obj);
       }
     }
     return parent;
   }
 
   /** Adds all available transition child nodes to the given parent state node. */
-  private DefaultMutableTreeNode updateStateNodeChildren(DefaultMutableTreeNode parent)
+  private DefaultMutableTreeNode updateStateNodeChildren(DefaultMutableTreeNode parent, StateItem state)
   {
-    if (parent != null && parent.getUserObject() instanceof StateItem) {
-      StateItem state = (StateItem)parent.getUserObject();
-      String dlgName = state.getDialog().getResourceEntry().getResourceName();
-      int count = state.getState().getTransCount();
-      while (parent.getChildCount() < count) {
-        int transIdx = state.getState().getFirstTrans() + parent.getChildCount();
-        TransitionItem child = getTransitionTable(dlgName).get(Integer.valueOf(transIdx));
-        boolean allowChildren = !child.getTransition().getFlag().isFlagSet(3);
-        DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, allowChildren);
-        parent.add(nodeChild);
-      }
+    final String dlgName = state.getDialog().getResourceEntry().getResourceName();
+    final HashMap<Integer, TransitionItem> transitions = getTransitionTable(dlgName);
+    final int start = state.getState().getFirstTrans();
+    final int count = state.getState().getTransCount();
+
+    for (int i = parent.getChildCount(); i < count; ++i) {
+      final TransitionItem child = transitions.get(start + i);
+      // Flag 3: Terminates dialogue
+      final boolean allowChildren = !child.getTransition().getFlag().isFlagSet(3);
+
+      parent.add(new DefaultMutableTreeNode(child, allowChildren));
     }
     return parent;
   }
 
   /** Adds all available state child nodes to the given parent transition node. */
-  private DefaultMutableTreeNode updateTransitionNodeChildren(DefaultMutableTreeNode parent)
+  private DefaultMutableTreeNode updateTransitionNodeChildren(DefaultMutableTreeNode parent, TransitionItem trans)
   {
-    if (parent != null && parent.getUserObject() instanceof TransitionItem) {
-      // transitions only allow a single state as child
-      if (parent.getChildCount() < 1) {
-        TransitionItem trans = (TransitionItem)parent.getUserObject();
-        ResourceRef dlgRef = trans.getTransition().getNextDialog();
-        if (!dlgRef.isEmpty()) {
-          String dlgName = dlgRef.getResourceName();
-          int stateIdx = trans.getTransition().getNextDialogState();
-          StateItem child = getStateTable(dlgName).get(Integer.valueOf(stateIdx));
-          DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, true);
-          parent.add(nodeChild);
-        }
+    // transitions only allow a single state as child
+    if (parent.getChildCount() < 1) {
+      final ResourceRef dlgRef = trans.getTransition().getNextDialog();
+      if (!dlgRef.isEmpty()) {
+        final String dlgName = dlgRef.getResourceName();
+        final int stateIdx = trans.getTransition().getNextDialogState();
+        final StateItem child = getStateTable(dlgName).get(stateIdx);
+
+        parent.add(new DefaultMutableTreeNode(child, true));
       }
     }
     return parent;
   }
 
   /** Adds all available initial state child nodes to the given parent root node. */
-  private DefaultMutableTreeNode updateRootNodeChildren(DefaultMutableTreeNode parent)
+  private DefaultMutableTreeNode updateRootNodeChildren(DefaultMutableTreeNode parent, RootItem root)
   {
-    if (parent != null && parent.getUserObject() instanceof RootItem) {
-      RootItem root = (RootItem)parent.getUserObject();
-      while (parent.getChildCount() < root.getInitialStateCount()) {
-        int stateIdx = parent.getChildCount();
-        StateItem child = root.getInitialState(stateIdx);
-        DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, true);
-        parent.add(nodeChild);
-      }
+    for (int i = parent.getChildCount(); i < root.getInitialStateCount(); ++i) {
+      final StateItem child = root.getInitialState(i);
+
+      parent.add(new DefaultMutableTreeNode(child, true));
     }
     return parent;
   }
