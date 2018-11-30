@@ -1,7 +1,7 @@
 JHexView component by Sebastian Porst (sp@porst.tv), modified by Argent77
 
 Official website: https://github.com/sporst/JHexView
-Modified source: https://github.com/Argent77/NearInfinity/tree/devel/lib/jhexview
+JHexView for Near Infinity: https://github.com/NearInfinityBrowser/JHexView
 License: GPL 2.0
 
 JHexView is a Java component for displaying binary data in Java applications
@@ -26,7 +26,9 @@ Features:
   external source
 - Full control over the display colors
 
-Added by argent77:
+Changes by Argent77:
+- Included dependencies (splib)
+- Added Apache Ant build script
 - Find bytes/text support
 - Copy/paste support
 - Undo/redo support
