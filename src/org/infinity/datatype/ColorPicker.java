@@ -61,7 +61,7 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
     RGBX,
     /** Byte order: {blue, green red, unused} */
     BGRX,
-    /** Byte order: {unused blue, green red} */
+    /** Byte order: {unused, blue, green, red} */
     XBGR,
   }
 
