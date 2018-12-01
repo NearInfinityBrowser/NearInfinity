@@ -19,7 +19,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 
 import javax.swing.BorderFactory;
@@ -32,15 +31,11 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.JViewport;
-import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -157,7 +152,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     } else if (e.getSource() == miExpandAll) {
       if (worker == null) {
-        worker = new TreeWorker(this, TreeWorker.Type.EXPAND, new TreePath(dlgModel.getRoot()));
+        worker = new TreeWorker(dlgTree, new TreePath(dlgModel.getRoot()), true);
         worker.addPropertyChangeListener(this);
         blocker = new WindowBlocker(NearInfinity.getInstance());
         blocker.setBlocked(true);
@@ -165,7 +160,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     } else if (e.getSource() == miCollapseAll) {
       if (worker == null) {
-        worker = new TreeWorker(this, TreeWorker.Type.COLLAPSE, new TreePath(dlgModel.getRoot()));
+        worker = new TreeWorker(dlgTree, new TreePath(dlgModel.getRoot()), false);
         worker.addPropertyChangeListener(this);
         blocker = new WindowBlocker(NearInfinity.getInstance());
         blocker.setBlocked(true);
@@ -173,7 +168,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     } else if (e.getSource() == miExpand) {
       if (worker == null) {
-        worker = new TreeWorker(this, TreeWorker.Type.EXPAND, dlgTree.getSelectionPath());
+        worker = new TreeWorker(dlgTree, dlgTree.getSelectionPath(), true);
         worker.addPropertyChangeListener(this);
         blocker = new WindowBlocker(NearInfinity.getInstance());
         blocker.setBlocked(true);
@@ -181,7 +176,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     } else if (e.getSource() == miCollapse) {
       if (worker == null) {
-        worker = new TreeWorker(this, TreeWorker.Type.COLLAPSE, dlgTree.getSelectionPath());
+        worker = new TreeWorker(dlgTree, dlgTree.getSelectionPath(), false);
         worker.addPropertyChangeListener(this);
         blocker = new WindowBlocker(NearInfinity.getInstance());
         blocker.setBlocked(true);
@@ -525,114 +520,40 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     add(splitv, BorderLayout.CENTER);
   }
 
-  /** Checks whether given path contains a node with the specified item object. */
-  private boolean nodeExists(TreePath path, Object item)
-  {
-    while (path != null) {
-      if (item.equals(path.getLastPathComponent())) {
-        return true;
-      }
-      path = path.getParentPath();
-    }
-    return false;
-  }
-
-  /** Expands all children and their children of the given path. */
-  private void expandNode(TreePath path)
-  {
-    final TreePath curPath = path;
-    if (worker != null && worker.userCancelled()) return;
-    if (path != null) {
-      final TreeNode item = (TreeNode)path.getLastPathComponent();
-
-      if (item instanceof StateItem) {
-        if (nodeExists(path.getParentPath(), item)) {
-          return;
-        }
-      }
-
-      if (worker != null) { worker.advanceProgress(); }
-      if (!dlgTree.isExpanded(path)) {
-        try {
-          SwingUtilities.invokeAndWait(() -> dlgTree.expandPath(curPath));
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        } catch (InvocationTargetException e) {
-          e.printStackTrace();
-        }
-      }
-
-      for (int i = 0, count = item.getChildCount(); i < count; i++) {
-        expandNode(curPath.pathByAddingChild(item.getChildAt(i)));
-        if (worker != null && worker.userCancelled()) return;
-      }
-    }
-  }
-
-  /** Collapses all children and their children of the given path. */
-  private void collapseNode(TreePath path)
-  {
-    final TreePath curPath = path;
-    if (worker != null && worker.userCancelled()) return;
-    if (path != null) {
-      TreeNode node = (TreeNode)path.getLastPathComponent();
-
-      for (int i = 0; i < node.getChildCount(); i++) {
-        collapseNode(curPath.pathByAddingChild(node.getChildAt(i)));
-        if (worker != null && worker.userCancelled()) return;
-      }
-
-      if (worker != null) { worker.advanceProgress(); }
-      if (!dlgTree.isCollapsed(path)) {
-        try {
-          SwingUtilities.invokeAndWait(() -> dlgTree.collapsePath(curPath));
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        } catch (InvocationTargetException e) {
-          e.printStackTrace();
-        }
-      }
-    }
-  }
-
   /** Returns true if the given path contains expanded nodes. */
   private boolean isNodeExpanded(TreePath path)
   {
-    boolean retVal = true;
-    if (path != null) {
-      // evaluating current node
-      TreeNode node = (TreeNode)path.getLastPathComponent();
-      if (!node.isLeaf()) {
-        retVal = dlgTree.isExpanded(path);
+    final ItemBase node = (ItemBase)path.getLastPathComponent();
+    // Use access via model because it properly initializes items
+    final TreeModel model = dlgTree.getModel();
+    // Treat non-main nodes as leafs - check of their childs can lead to infinity recursion
+    if (node.getMain() != null || model.isLeaf(node)) return true;
+    if (!dlgTree.isExpanded(path)) return false;
 
-        // traversing child nodes
-        if (retVal) {
-          for (int i = 0; i < node.getChildCount(); i++) {
-            retVal = isNodeExpanded(path.pathByAddingChild(node.getChildAt(i)));
-            if (!retVal) break;
-          }
-        }
+    for (int i = 0, count = model.getChildCount(node); i < count; ++i) {
+      final TreePath childPath = path.pathByAddingChild(model.getChild(node, i));
+      if (!isNodeExpanded(childPath)) {
+        return false;
       }
     }
-    return retVal;
+    return true;
   }
 
   /** Returns true if the given path contains collapsed nodes. */
   private boolean isNodeCollapsed(TreePath path)
   {
-    boolean retVal = true;
-    if (path != null) {
-      // evaluating current node
-      TreeNode node = (TreeNode)path.getLastPathComponent();
-      if (!node.isLeaf()) {
-        retVal = dlgTree.isCollapsed(path);
+    final ItemBase node = (ItemBase)path.getLastPathComponent();
+    // Use access via model because it properly initializes items
+    final TreeModel model = dlgTree.getModel();
+    if (model.isLeaf(node)) return true;
 
-        // traversing child nodes
-        if (retVal) {
-          for (int i = 0; i < node.getChildCount(); i++) {
-            retVal = isNodeCollapsed(path.pathByAddingChild(node.getChildAt(i)));
-            if (retVal) break;
-          }
+    final boolean retVal = dlgTree.isCollapsed(path);
+    // Do not traverse child nodes of non-main items because this can lead to infinity recursion
+    if (retVal && node.getMain() == null) {
+      for (int i = 0, count = model.getChildCount(node); i < count; ++i) {
+        final TreePath childPath = path.pathByAddingChild(model.getChild(node, i));
+        if (!isNodeCollapsed(childPath)) {
+          return false;
         }
       }
     }
@@ -640,97 +561,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   }
 
 //-------------------------- INNER CLASSES --------------------------
-
-  /** Applies expand or collapse operations on a set of dialog tree nodes in a background task. */
-  private static class TreeWorker extends SwingWorker<Void, Void>
-  {
-    /** Supported operations. */
-    public enum Type { EXPAND, COLLAPSE }
-
-    private final TreeViewer instance;
-    private final Type type;
-    private final TreePath path;
-
-    private ProgressMonitor progress;
-
-    public TreeWorker(TreeViewer instance, Type type, TreePath path)
-    {
-      this.instance = instance;
-      this.type = type;
-      this.path = path;
-
-      String msg;
-      switch (getType()) {
-        case EXPAND:
-          msg = "Expanding nodes";
-          break;
-        case COLLAPSE:
-          msg = "Collapsing nodes";
-          break;
-        default:
-          msg = "";
-      }
-      progress = new ProgressMonitor(this.instance, msg, "This may take a while...", 0, 1);
-      progress.setMillisToDecideToPopup(250);
-      progress.setMillisToPopup(1000);
-      progress.setProgress(0);
-    }
-
-    @Override
-    protected Void doInBackground() throws Exception
-    {
-      try {
-        switch (getType()) {
-          case EXPAND:
-            instance.expandNode(path);
-            break;
-          case COLLAPSE:
-            instance.collapseNode(path);
-            break;
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      return null;
-    }
-
-    @Override
-    protected void done()
-    {
-      if (progress != null) {
-        progress.close();
-        progress = null;
-      }
-    }
-
-    /** Current operation type. */
-    public Type getType()
-    {
-      return type;
-    }
-
-    /** Advances the progress bar by one unit. May display a short notice after a while. */
-    public void advanceProgress()
-    {
-      if (progress != null) {
-        progress.setMaximum(progress.getMaximum() + 1);
-        if ((progress.getMaximum() - 1) % 100 == 0) {
-          progress.setNote(String.format("Processing node %d", progress.getMaximum() - 1));
-        }
-        progress.setProgress(progress.getMaximum() - 1);
-      }
-    }
-
-    /** Returns true if the user cancelled the operation. */
-    public boolean userCancelled()
-    {
-      if (progress != null) {
-        return progress.isCanceled();
-      }
-      return false;
-    }
-  }
-
   /** Panel for displaying information about the current dialog state or trigger. */
   private static final class ItemInfo extends JPanel
   {
