@@ -501,13 +501,13 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       private void maybeShowPopup(MouseEvent e)
       {
         if (e.getSource() == dlgTree && e.isPopupTrigger()) {
-          miEditEntry.setEnabled(!dlgTree.isSelectionEmpty());
-          miExpand.setEnabled(!dlgTree.isSelectionEmpty() &&
-                              !isNodeExpanded(dlgTree.getSelectionPath()) &&
-                              dlgTree.getSelectionPath().getPathCount() > 1);
-          miCollapse.setEnabled(!dlgTree.isSelectionEmpty() &&
-                                !isNodeCollapsed(dlgTree.getSelectionPath()) &&
-                                dlgTree.getSelectionPath().getPathCount() > 1);
+          final TreePath path = dlgTree.getClosestPathForLocation(e.getX(), e.getY());
+          dlgTree.setSelectionPath(path);
+          final boolean isNonRoot = path != null && path.getPathCount() > 1;
+
+          miEditEntry.setEnabled(path != null);
+          miExpand.setEnabled(isNonRoot && !isNodeExpanded(path));
+          miCollapse.setEnabled(isNonRoot && !isNodeCollapsed(path));
 
           pmTree.show(dlgTree, e.getX(), e.getY());
         }
