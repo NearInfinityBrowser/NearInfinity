@@ -92,7 +92,9 @@ abstract class ItemBase implements TreeNode
    */
   protected final String getText(TreeItemEntry entry)
   {
-    final String text = getText(entry.getAssociatedText());
+    final String text = entry.hasAssociatedText()
+            ? getText(entry.getAssociatedText())
+            : "(No text)";
     return showTechInfo ? entry.getName() + ": " + text : text;
   }
 

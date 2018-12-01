@@ -93,11 +93,7 @@ final class TransitionItem extends StateOwnerItem
   @Override
   public String toString()
   {
-    String text = "(No text)";
-    if (trans.getFlag().isFlagSet(0)) {
-      // Flag 0: Transition contains text
-      text = getText(trans);
-    }
+    final String text = getText(trans);
     final String nextDlg = trans.getNextDialog().getResourceName();
     //TODO: When getResourceName() will return null, replace check `.isEmpty()` to `nextDlg == null`
     if (trans.getNextDialog().isEmpty() || nextDlg.equalsIgnoreCase(getDialogName())) {

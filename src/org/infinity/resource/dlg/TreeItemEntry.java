@@ -12,7 +12,16 @@ import org.infinity.resource.StructEntry;
  *
  * @author Mingun
  */
-public interface TreeItemEntry extends StructEntry {
+public interface TreeItemEntry extends StructEntry
+{
+  /**
+   * Determines has this entry text or not, even if it contains some string reference.
+   *
+   * @return {@code true}, if {@link #getAssociatedText()} returns used reference,
+   *         {@code false} otherwise
+   */
+  boolean hasAssociatedText();
+
   /**
    * Returns attribute that represents text for show in the tree.
    *
