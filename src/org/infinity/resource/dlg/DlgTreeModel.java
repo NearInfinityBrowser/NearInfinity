@@ -245,13 +245,31 @@ final class DlgTreeModel implements TreeModel, TableModelListener
     return item;
   }
 
+  /**
+   * Checks that specified GUI item corresponds searched state entry. This method
+   * returns {@code true} only for {@link StateItem#getMain main} GUI items.
+   *
+   * @param queue The queue of transitions containing references to states for check.
+   *        If specified {@code state} does not correspond to searched {@code entry}
+   *        it will be filled with next candidates for check
+   * @param state Checked GUI item
+   * @param entry Searched entry
+   *
+   * @return {@code true} if specified GUI item contains reference to searchd entry,
+   *         {@code false} otherwise
+   */
   private boolean checkState(ArrayDeque<TransitionItem> queue, StateItem state, State entry)
   {
+    if (state.getMain() != null) return false;
+    initState(state);
+
     if (state.getEntry() == entry) {
       return true;
     }
     for (TransitionItem trans : state) {
-      queue.add(trans);
+      if (trans.getMain() == null) {
+        queue.add(trans);
+      }
     }
     return false;
   }
@@ -298,7 +316,9 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   {
     final ArrayDeque<StateItem> queue = new ArrayDeque<>();
     for (StateItem state : root) {
-      queue.add(state);
+      if (state.getMain() == null) {
+        queue.add(state);
+      }
     }
 
     StateItem state;
@@ -307,11 +327,13 @@ final class DlgTreeModel implements TreeModel, TableModelListener
       if (state == null) break;
 
       for (TransitionItem trans : state) {
+        if (trans.getMain() != null) continue;
+        initTransition(trans);
+
         if (trans.getEntry() == entry) {
           return trans;
         }
-        initTransition(trans);
-        if (trans.nextState != null) {
+        if (trans.nextState != null && trans.nextState.getMain() == null) {
           queue.add(trans.nextState);
         }
       }
