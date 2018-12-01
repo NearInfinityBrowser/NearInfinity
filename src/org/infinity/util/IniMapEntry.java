@@ -32,6 +32,7 @@ public class IniMapEntry
 
   public boolean hasValue() { return value != null; }
   public String getValue() { return value; }
+  public Integer getIntValue() { return value == null ? null : Integer.valueOf(value); }
 
   public int getLine() { return line; }
 
