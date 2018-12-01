@@ -396,11 +396,18 @@ public final class DlgResource extends AbstractStruct
   public void selectInTree(TreeItemEntry entry)
   {
     final TreeViewer view = ((TreeViewer)getViewerTab(1));
-    view.select(entry);
-    final Container parent = view.getParent();
-    if (parent instanceof JTabbedPane) {
-      final JTabbedPane panned = (JTabbedPane)parent;
-      panned.setSelectedIndex(panned.indexOfComponent(view));
+    if (view.select(entry)) {
+      final Container parent = view.getParent();
+      if (parent instanceof JTabbedPane) {
+        final JTabbedPane panned = (JTabbedPane)parent;
+        panned.setSelectedIndex(panned.indexOfComponent(view));
+      }
+    } else {
+      JOptionPane.showMessageDialog(view,
+              entry.getName() + " is unattainable from a dialogue root.\n"
+                              + "Possibly, it is continuation from other dialogue",
+              entry.getName() + " not found in the tree",
+              JOptionPane.INFORMATION_MESSAGE);
     }
   }
 

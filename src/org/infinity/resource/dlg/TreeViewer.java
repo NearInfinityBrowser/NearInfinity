@@ -235,18 +235,25 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
   /**
    * Selects specified dialog state or transition in the tree. If such entry not
-   * exist in the dialog, do nothing. For {@link State states} selects main state.
+   * exist in the dialog, returns {@code false}. Such situation say that specified
+   * entry not unattainable from a dialogue root. Possibly, it is continuation
+   * from other dialogue.
+   * <p>
+   * Always selects selects main state/transition.
    *
    * @param entry Child struct of the dialog for search
+   * @return {@code true} If dialog item found in the tree, {@code false} otherwise
    */
-  public void select(TreeItemEntry entry)
+  public boolean select(TreeItemEntry entry)
   {
     final ItemBase item = dlgModel.map(entry);
     if (item != null) {
       final TreePath path = item.getPath();
       dlgTree.addSelectionPath(path);
       dlgTree.scrollPathToVisible(path);
+      return true;
     }
+    return false;
   }
 
   private void updateStateInfo(StateItem si)
