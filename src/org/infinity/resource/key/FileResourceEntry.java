@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 
 import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.BrowserMenuBar.OverrideMode;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.io.ByteBufferInputStream;
@@ -106,12 +107,14 @@ public final class FileResourceEntry extends ResourceEntry
   public String getTreeFolderName()
   {
     if (BrowserMenuBar.getInstance() != null) {
-      int mode = BrowserMenuBar.getInstance().getOverrideMode();
-      if (ResourceFactory.getKeyfile().getExtensionType(getExtension()) != -1) {
-        if (mode == BrowserMenuBar.OVERRIDE_IN_THREE) {
+      final OverrideMode mode = BrowserMenuBar.getInstance().getOverrideMode();
+      final Keyfile keyfile = ResourceFactory.getKeyfile();
+
+      if (keyfile.getExtensionType(getExtension()) != -1) {
+        if (mode == OverrideMode.InTree) {
           return getExtension();
-        } else if (mode == BrowserMenuBar.OVERRIDE_SPLIT &&
-                   ResourceFactory.getKeyfile().getResourceEntry(getResourceName()) != null) {
+        } else if (mode == OverrideMode.Split &&
+                   keyfile.getResourceEntry(getResourceName()) != null) {
           return getExtension();
         }
       }
@@ -137,7 +140,7 @@ public final class FileResourceEntry extends ResourceEntry
         int endIndex = file.getNameCount() - 1; // exlude filename
         Path subPath = file.subpath(startIndex, endIndex);
 
-        retVal = (ResourceTreeFolder)ResourceFactory.getResourceTreeModel().getRoot();
+        retVal = ResourceFactory.getResourceTreeModel().getRoot();
         for (int idx = 0, cnt = subPath.getNameCount(); idx < cnt && retVal != null; idx++) {
           String name = subPath.getName(idx).toString();
           List<ResourceTreeFolder> folders = retVal.getFolders();

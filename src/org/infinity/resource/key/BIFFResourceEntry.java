@@ -243,8 +243,9 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
   @Override
   public String getTreeFolderName()
   {
-    if ((BrowserMenuBar.getInstance() != null) &&
-        (BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE) &&
+    final BrowserMenuBar options = BrowserMenuBar.getInstance();
+    if ((options != null) &&
+        (options.getOverrideMode() == BrowserMenuBar.OverrideMode.InOverride) &&
         hasOverride()) {
       return Profile.getOverrideFolderName();
     }
