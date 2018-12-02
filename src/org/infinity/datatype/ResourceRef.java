@@ -392,32 +392,30 @@ public class ResourceRef extends Datatype
   /** Class that represents resource reference in the list of choice. */
   static final class ResourceRefEntry
   {
-    private final ResourceEntry entry;
-    private final String name;
+    final ResourceEntry entry;
+    /**
+     * If {@link #entry} is not {@code null}, contains full resource name (i.e.
+     * name and extension), otherwise contains arbitrary value with reference to
+     * the resource.
+     */
+    final String name;
 
     private ResourceRefEntry(ResourceEntry entry)
     {
       this.entry = entry;
-      String string = entry.getResourceName();
-      String search = entry.getSearchString();
-      if (search == null || BrowserMenuBar.getInstance().getResRefMode() == BrowserMenuBar.RESREF_ONLY)
-        name = string;
-      else if (BrowserMenuBar.getInstance().getResRefMode() == BrowserMenuBar.RESREF_REF_NAME)
-        name = string + " (" + search + ')';
-      else
-        name = search + " (" + string + ')';
+      this.name  = entry.getResourceName();
     }
 
     ResourceRefEntry(String name)
     {
-      this.name = name;
-      entry = null;
+      this.entry = null;
+      this.name  = name;
     }
 
     @Override
     public String toString()
     {
-      return name;
+      return entry == null ? name : BrowserMenuBar.getInstance().getResRefMode().format(entry);
     }
   }
 

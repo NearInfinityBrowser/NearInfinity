@@ -107,7 +107,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   public static final String VERSION = "v2.1-20180615";
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
-  public static final int RESREF_ONLY = 0, RESREF_REF_NAME = 1, RESREF_NAME_REF = 2;
   public static final int DEFAULT_VIEW = 0, DEFAULT_EDIT = 1;
 
   /** Defines platform-specific shortcut key (e.g. Ctrl on Win/Linux, Meta on Mac). */
@@ -149,6 +148,45 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     final String title;
 
     private OverrideMode(String title) { this.title = title; }
+  }
+
+  /** Determines how show resource reference value and title. */
+  public enum ResRefMode
+  {
+    OnlyRef(KeyEvent.VK_1, "Filename") {
+      @Override
+      public String format(ResourceEntry entry) { return entry.getResourceName(); }
+    },
+    RefName(KeyEvent.VK_2, "Filename (Name)") {
+      @Override
+      public String format(ResourceEntry entry)
+      {
+        final String search = entry.getSearchString();
+        final String resname= entry.getResourceName();
+        return search == null ? resname : resname + " (" + search + ')';
+      }
+    },
+    NameRef(KeyEvent.VK_3, "Name (Filename)") {
+      @Override
+      public String format(ResourceEntry entry)
+      {
+        final String search = entry.getSearchString();
+        final String resname= entry.getResourceName();
+        return search == null ? resname : search + " (" + resname + ')';
+      }
+    };
+
+    final int keyKode;
+    /** Title of the menu item in Options menu. */
+    final String title;
+
+    private ResRefMode(int keyKode, String title)
+    {
+      this.keyKode = keyKode;
+      this.title = title;
+    }
+
+    public abstract String format(ResourceEntry entry);
   }
   //</editor-fold>
 
@@ -476,7 +514,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     return optionsMenu.getOverrideMode();
   }
 
-  public int getResRefMode()
+  public ResRefMode getResRefMode()
   {
     return optionsMenu.getResRefMode();
   }
@@ -1724,7 +1762,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private final List<DataRadioButtonMenuItem> lookAndFeel = new ArrayList<>();
 
     private final JRadioButtonMenuItem[] showOverrides = new JRadioButtonMenuItem[OverrideMode.values().length];
-    private final JRadioButtonMenuItem[] showResRef = new JRadioButtonMenuItem[3];
+    private final JRadioButtonMenuItem[] showResRef = new JRadioButtonMenuItem[ResRefMode.values().length];
     private final JRadioButtonMenuItem[] viewOrEditShown = new JRadioButtonMenuItem[3];
     private final JRadioButtonMenuItem[] selectFont = new JRadioButtonMenuItem[FONTS.length];
     private final JRadioButtonMenuItem[] selectTextTabSize = new JRadioButtonMenuItem[3];
@@ -2021,19 +2059,17 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       // Options->Show ResourceRefs As
       JMenu showresrefmenu = new JMenu("Show ResourceRefs As");
       add(showresrefmenu);
-      int selectedresref = getPrefs().getInt(OPTION_SHOWRESREF, RESREF_REF_NAME);
-      showResRef[RESREF_ONLY] = new JRadioButtonMenuItem("Filename", selectedresref == RESREF_ONLY);
-      showResRef[RESREF_ONLY].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, CTRL_MASK));
-      showResRef[RESREF_REF_NAME] =
-      new JRadioButtonMenuItem("Filename (Name)", selectedresref == RESREF_REF_NAME);
-      showResRef[RESREF_REF_NAME].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, CTRL_MASK));
-      showResRef[RESREF_NAME_REF] =
-      new JRadioButtonMenuItem("Name (Filename)", selectedresref == RESREF_NAME_REF);
-      showResRef[RESREF_NAME_REF].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, CTRL_MASK));
+      int selectedresref = getPrefs().getInt(OPTION_SHOWRESREF, ResRefMode.RefName.ordinal());
+
       bg = new ButtonGroup();
-      for (int i = RESREF_ONLY; i <= RESREF_NAME_REF; i++) {
-        showresrefmenu.add(showResRef[i]);
-        bg.add(showResRef[i]);
+      for (final ResRefMode mode : ResRefMode.values()) {
+        final int i = mode.ordinal();
+        final JRadioButtonMenuItem menu = new JRadioButtonMenuItem(mode.title, i == selectedresref);
+        menu.setAccelerator(KeyStroke.getKeyStroke(mode.keyKode, CTRL_MASK));
+
+        bg.add(menu);
+        showresrefmenu.add(menu);
+        showResRef[i] = menu;
       }
 
       // Options->Show Override Files
@@ -2449,7 +2485,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       getPrefs().putBoolean(OPTION_SHOWTREESEARCHNAMES, optionTreeSearchNames.isSelected());
       getPrefs().putBoolean(OPTION_HIGHLIGHT_OVERRIDDEN, optionHighlightOverridden.isSelected());
 //      getPrefs().putBoolean(OPTION_MONITORFILECHANGES, optionMonitorFileChanges.isSelected());
-      getPrefs().putInt(OPTION_SHOWRESREF, getResRefMode());
+      getPrefs().putInt(OPTION_SHOWRESREF, getResRefMode().ordinal());
       getPrefs().putInt(OPTION_SHOWOVERRIDES, getOverrideMode().ordinal());
       getPrefs().put(OPTION_LOOKANDFEELCLASS, getLookAndFeel().getClassName());
       getPrefs().putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView());
@@ -2771,13 +2807,14 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     }
 
 
-    public int getResRefMode()
+    public ResRefMode getResRefMode()
     {
-      if (showResRef[RESREF_ONLY].isSelected())
-        return RESREF_ONLY;
-      else if (showResRef[RESREF_NAME_REF].isSelected())
-        return RESREF_NAME_REF;
-      return RESREF_REF_NAME;
+      for (ResRefMode mode : ResRefMode.values()) {
+        if (showResRef[mode.ordinal()].isSelected()) {
+          return mode;
+        }
+      }
+      return ResRefMode.RefName;
     }
 
     public OverrideMode getOverrideMode()
