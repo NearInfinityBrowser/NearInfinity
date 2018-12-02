@@ -375,7 +375,6 @@ final class DlgTreeModel implements TreeModel, TableModelListener
       for (int i = start; i < start + count; ++i) {
         final Transition trans = dlg.getTransition(i);
         if (trans != null) {
-          @SuppressWarnings("unchecked")
           final TransitionItem main = (TransitionItem)mainItems.get(trans);
           final TransitionItem item = new TransitionItem(trans, state, main);
 
@@ -396,7 +395,6 @@ final class DlgTreeModel implements TreeModel, TableModelListener
       if (nextDlg != null) {
         final State state = nextDlg.getState(t.getNextDialogState());
         if (state != null) {
-          @SuppressWarnings("unchecked")
           final StateItem main = (StateItem)mainItems.get(state);
 
           trans.nextState = new StateItem(state, trans, main);

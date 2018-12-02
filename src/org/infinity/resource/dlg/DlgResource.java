@@ -404,9 +404,9 @@ public final class DlgResource extends AbstractStruct
       }
     } else {
       JOptionPane.showMessageDialog(view,
-              entry.getName() + " is unattainable from a dialogue root.\n"
-                              + "Possibly, it is continuation from other dialogue",
-              entry.getName() + " not found in the tree",
+              entry.getName() + " is unattainable from the dialogue root.\n"
+                              + "It may be referenced by an external dialogue.",
+              entry.getName() + " not found in dialogue tree",
               JOptionPane.INFORMATION_MESSAGE);
     }
   }
