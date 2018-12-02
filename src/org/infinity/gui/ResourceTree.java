@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -755,9 +755,12 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
                                                   boolean leaf, int row, boolean hasFocus)
     {
       super.getTreeCellRendererComponent(tree, o, sel, expanded, leaf, row, hasFocus);
+      Font font = tree.getFont();
       if (leaf && o instanceof ResourceEntry) {
         final ResourceEntry e = (ResourceEntry)o;
-        if (BrowserMenuBar.getInstance().showTreeSearchNames()) {
+
+        final BrowserMenuBar options = BrowserMenuBar.getInstance();
+        if (options.showTreeSearchNames()) {
           final String name  = e.getResourceName();
           final String title = e.getSearchString();
           //TODO: refactor code and remove "No such index" comparison
@@ -767,9 +770,14 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           setText(hasTitle ? name + " - " + title : name);
         }
         setIcon(e.getIcon());
+        // Do not use bold in Override mode othrewise almost all entries will be in bold, which looks not so good
+        final boolean inOverrideMode = options.getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE;
+        if (e.hasOverride() && !inOverrideMode) {
+          font = font.deriveFont(Font.BOLD);
+        }
       }
+      setFont(font);
       return this;
     }
   }
 }
-
