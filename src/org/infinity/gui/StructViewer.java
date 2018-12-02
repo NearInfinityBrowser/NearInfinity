@@ -73,6 +73,7 @@ import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnknownBinary;
 import org.infinity.datatype.UnknownDecimal;
+import org.infinity.gui.BrowserMenuBar.ViewMode;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
@@ -431,7 +432,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         }
       } else if (lastIndexStruct == struct.getClass()) {
         tabbedPane.setSelectedIndex(lastIndex);
-      } else if (BrowserMenuBar.getInstance().getDefaultStructView() == BrowserMenuBar.DEFAULT_EDIT) {
+      } else if (BrowserMenuBar.getInstance().getDefaultStructView() == ViewMode.Edit) {
         tabbedPane.setSelectedIndex(getEditTabIndex());
       }
       if (isEditTabSelected()) {

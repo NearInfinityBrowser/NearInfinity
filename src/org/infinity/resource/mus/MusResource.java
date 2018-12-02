@@ -30,6 +30,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 
 import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.BrowserMenuBar.ViewMode;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.InfinityScrollPane;
@@ -315,7 +316,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
       panel.add(tabbedPane, BorderLayout.CENTER);
       if (lastIndex != -1) {
         tabbedPane.setSelectedIndex(lastIndex);
-      } else if (BrowserMenuBar.getInstance().getDefaultStructView() == BrowserMenuBar.DEFAULT_EDIT) {
+      } else if (BrowserMenuBar.getInstance().getDefaultStructView() == ViewMode.Edit) {
         tabbedPane.setSelectedIndex(1);
       }
       WindowBlocker.blockWindow(false);

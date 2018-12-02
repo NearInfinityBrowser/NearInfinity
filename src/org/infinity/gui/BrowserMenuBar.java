@@ -107,7 +107,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   public static final String VERSION = "v2.1-20180615";
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
-  public static final int DEFAULT_VIEW = 0, DEFAULT_EDIT = 1;
 
   /** Defines platform-specific shortcut key (e.g. Ctrl on Win/Linux, Meta on Mac). */
   private static final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
@@ -187,6 +186,18 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     }
 
     public abstract String format(ResourceEntry entry);
+  }
+
+  /** Determines default tab for viewing structures. */
+  public enum ViewMode
+  {
+    View("View"),
+    Edit("Edit");
+
+    /** Title of the menu item in Options menu. */
+    final String title;
+
+    private ViewMode(String title) { this.title = title; }
   }
   //</editor-fold>
 
@@ -494,7 +505,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     return optionsMenu.getBcsIndent();
   }
 
-  public int getDefaultStructView()
+  public ViewMode getDefaultStructView()
   {
     return optionsMenu.getDefaultStructView();
   }
@@ -1763,7 +1774,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
     private final JRadioButtonMenuItem[] showOverrides = new JRadioButtonMenuItem[OverrideMode.values().length];
     private final JRadioButtonMenuItem[] showResRef = new JRadioButtonMenuItem[ResRefMode.values().length];
-    private final JRadioButtonMenuItem[] viewOrEditShown = new JRadioButtonMenuItem[3];
+    private final JRadioButtonMenuItem[] viewOrEditShown = new JRadioButtonMenuItem[ViewMode.values().length];
     private final JRadioButtonMenuItem[] selectFont = new JRadioButtonMenuItem[FONTS.length];
     private final JRadioButtonMenuItem[] selectTextTabSize = new JRadioButtonMenuItem[3];
     private final JRadioButtonMenuItem[] selectBcsIndent = new JRadioButtonMenuItem[BCSINDENT.length];
@@ -2094,16 +2105,16 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       // Options->Default Structure Display
       JMenu vieworeditmenu = new JMenu("Default Structure Display");
       add(vieworeditmenu);
-      int selectedview = getPrefs().getInt(OPTION_VIEWOREDITSHOWN, DEFAULT_VIEW);
-      viewOrEditShown[DEFAULT_VIEW] =
-      new JRadioButtonMenuItem("View", selectedview == DEFAULT_VIEW);
-      viewOrEditShown[DEFAULT_EDIT] =
-      new JRadioButtonMenuItem("Edit", selectedview == DEFAULT_EDIT);
+      final int selectedview = getPrefs().getInt(OPTION_VIEWOREDITSHOWN, ViewMode.Edit.ordinal());
       bg = new ButtonGroup();
-      bg.add(viewOrEditShown[DEFAULT_VIEW]);
-      bg.add(viewOrEditShown[DEFAULT_EDIT]);
-      vieworeditmenu.add(viewOrEditShown[DEFAULT_VIEW]);
-      vieworeditmenu.add(viewOrEditShown[DEFAULT_EDIT]);
+      for (final ViewMode mode : ViewMode.values()) {
+        final int i = mode.ordinal();
+        final JRadioButtonMenuItem menu = new JRadioButtonMenuItem(mode.title, i == selectedview);
+
+        bg.add(menu);
+        vieworeditmenu.add(menu);
+        viewOrEditShown[i] = menu;
+      }
 
       // Options->Global Font Size
       JMenu fontSizeMenu = new JMenu("Change Global Font Size");
@@ -2488,7 +2499,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       getPrefs().putInt(OPTION_SHOWRESREF, getResRefMode().ordinal());
       getPrefs().putInt(OPTION_SHOWOVERRIDES, getOverrideMode().ordinal());
       getPrefs().put(OPTION_LOOKANDFEELCLASS, getLookAndFeel().getClassName());
-      getPrefs().putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView());
+      getPrefs().putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView().ordinal());
       int selectedFont = getSelectedButtonIndex(selectFont, 0);
       getPrefs().putInt(OPTION_FONT, selectedFont);
       Font font = FONTS[FONTS.length - 1];
@@ -2842,11 +2853,14 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       return ((Integer)globalFontSize[getSelectedButtonIndex(globalFontSize, 2)].getData()).intValue();
     }
 
-    public int getDefaultStructView()
+    public ViewMode getDefaultStructView()
     {
-      if (viewOrEditShown[DEFAULT_VIEW].isSelected())
-        return DEFAULT_VIEW;
-      return DEFAULT_EDIT;
+      for (ViewMode mode : ViewMode.values()) {
+        if (viewOrEditShown[mode.ordinal()].isSelected()) {
+          return mode;
+        }
+      }
+      return ViewMode.Edit;
     }
 
     @Override
