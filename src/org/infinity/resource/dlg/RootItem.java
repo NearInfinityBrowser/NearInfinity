@@ -5,9 +5,13 @@
 package org.infinity.resource.dlg;
 
 import java.util.ArrayList;
+import static java.util.Collections.enumeration;
+import java.util.Enumeration;
+import java.util.Iterator;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.tree.TreeNode;
 
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.SectionCount;
@@ -16,13 +20,14 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.StructEntry;
 
 /** Meta class for identifying root node. */
-final class RootItem extends ItemBase
+final class RootItem extends StateOwnerItem implements Iterable<StateItem>
 {
   private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16);
 
+  /** Dialog which represents this tree. */
+  private final DlgResource dlg;
   /** States from which dialog can start. */
   private final ArrayList<StateItem> states = new ArrayList<>();
-  private final ImageIcon icon;
 
   private final int numStates;
   private final int numTransitions;
@@ -33,10 +38,7 @@ final class RootItem extends ItemBase
 
   public RootItem(DlgResource dlg)
   {
-    super(dlg);
-
-    this.icon = showIcons() ? ICON : null;
-
+    this.dlg = dlg;
     numStates           = getAttribute(DlgResource.DLG_NUM_STATES);
     numTransitions      = getAttribute(DlgResource.DLG_NUM_RESPONSES);
     numStateTriggers    = getAttribute(DlgResource.DLG_NUM_STATE_TRIGGERS);
@@ -54,7 +56,7 @@ final class RootItem extends ItemBase
         final State s = (State)e;
         // First state always under root, if setting is checked
         if (alwaysShow && count == 0 || s.getTriggerIndex() >= 0) {
-          states.add(new StateItem(dlg, s));
+          states.add(new StateItem(s, this, null));
         }
         if (++count >= numStates) {
           // All states readed, so break cycle
@@ -64,26 +66,48 @@ final class RootItem extends ItemBase
     }
   }
 
-  /** Returns number of available initial states. */
-  public int getInitialStateCount()
-  {
-    return states.size();
-  }
-
-  /** Returns the StateItem at the given index or null on error. */
-  public StateItem getInitialState(int index)
-  {
-    if (index >= 0 && index < states.size()) {
-      return states.get(index);
-    }
-    return null;
-  }
+  @Override
+  public TreeItemEntry getEntry() { return null; }
 
   @Override
-  public Icon getIcon()
-  {
-    return icon;
-  }
+  public ItemBase getMain() { return null; }
+
+  @Override
+  public DlgResource getDialog() { return dlg; }
+
+  @Override
+  public Icon getIcon() { return ICON; }
+
+  @Override
+  public boolean removeChild(ItemBase child) { return states.remove(child); }
+
+  //<editor-fold defaultstate="collapsed" desc="TreeNode">
+  @Override
+  public StateItem getChildAt(int childIndex) { return states.get(childIndex); }
+
+  @Override
+  public int getChildCount() { return states.size(); }
+
+  @Override
+  public ItemBase getParent() { return null; }
+
+  @Override
+  public int getIndex(TreeNode node) { return states.indexOf(node); }
+
+  @Override
+  public boolean getAllowsChildren() { return true; }
+
+  @Override
+  public boolean isLeaf() { return states.isEmpty(); }
+
+  @Override
+  public Enumeration<? extends StateItem> children() { return enumeration(states); }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="Iterable">
+  @Override
+  public Iterator<StateItem> iterator() { return states.iterator(); }
+  //</editor-fold>
 
   /**
    * Extracts specified {@link SectionCount} attribute from dialog.
@@ -93,7 +117,7 @@ final class RootItem extends ItemBase
    */
   private int getAttribute(String attrName)
   {
-    final StructEntry entry = getDialog().getAttribute(attrName);
+    final StructEntry entry = getDialog().getAttribute(attrName, false);
     if (entry instanceof SectionCount) {
       return ((SectionCount)entry).getValue();
     }
@@ -104,11 +128,7 @@ final class RootItem extends ItemBase
   public String toString()
   {
     StringBuilder sb = new StringBuilder();
-    if (!getDialogName().isEmpty()) {
-      sb.append(getDialogName());
-    } else {
-      sb.append("(Invalid DLG resource)");
-    }
+    sb.append(getDialogName());
     sb.append(" (states: ").append(Integer.toString(numStates));
     sb.append(", responses: ").append(Integer.toString(numTransitions));
     sb.append(", state triggers: ").append(Integer.toString(numStateTriggers));

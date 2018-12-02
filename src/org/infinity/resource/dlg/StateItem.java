@@ -4,49 +4,99 @@
 
 package org.infinity.resource.dlg;
 
+import java.util.ArrayList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.enumeration;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Objects;
+
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.tree.TreeNode;
 
+import org.infinity.gui.BrowserMenuBar;
 import org.infinity.icon.Icons;
 
 /** Encapsulates a dialog state entry. */
-final class StateItem extends ItemBase
+final class StateItem extends ItemBase implements Iterable<TransitionItem>
 {
   private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_STOP_16);
 
-  private final ImageIcon icon;
+  private final State state;
 
-  private State state;
+  /** Tree item that represent visual parent of this state in the tree. */
+  private final StateOwnerItem parent;
+  /**
+   * Item to which need go to in break cycles tree view mode. This item contains
+   * referense to the same state as this one (i.e. {@code this.state == main.state})
+   */
+  private final StateItem main;
+  /** Items that represents transition tree nodes from this state. */
+  ArrayList<TransitionItem> trans;
 
-  public StateItem(DlgResource dlg, State state)
+  public StateItem(State state, StateOwnerItem parent, StateItem main)
   {
-    super(dlg);
-    this.icon = showIcons() ? ICON : null;
-    this.state = state;
-  }
-
-  public State getState()
-  {
-    return state;
-  }
-
-  public void setState(State state)
-  {
-    if (state != null) {
-      this.state = state;
-    }
+    this.state  = Objects.requireNonNull(state,  "State dialog entry must be not null");
+    this.parent = Objects.requireNonNull(parent, "Parent tree of state item must be not null");
+    this.main   = main;
   }
 
   @Override
-  public Icon getIcon()
+  public State getEntry() { return state; }
+
+  @Override
+  public StateItem getMain() { return main; }
+
+  @Override
+  public DlgResource getDialog() { return (DlgResource)state.getParent(); }
+
+  @Override
+  public Icon getIcon() { return ICON; }
+
+  @Override
+  public boolean removeChild(ItemBase child) { return trans.remove(child); }
+
+  //<editor-fold defaultstate="collapsed" desc="TreeNode">
+  @Override
+  public TransitionItem getChildAt(int childIndex)
   {
-    return icon;
+    return getAllowsChildren() ? trans.get(childIndex) : null;
   }
 
   @Override
-  public String toString()
+  public int getChildCount() { return getAllowsChildren() ? trans.size() : 0; }
+
+  @Override
+  public ItemBase getParent() { return parent; }
+
+  @Override
+  public int getIndex(TreeNode node)
   {
-    final String text = getText(state.getResponse());
-    return String.format("%s: %s", state.getName(), text);
+    return getAllowsChildren() ? trans.indexOf(node) : -1;
   }
+
+  @Override
+  public boolean getAllowsChildren()
+  {
+    return main == null || !BrowserMenuBar.getInstance().breakCyclesInDialogs();
+  }
+
+  @Override
+  public boolean isLeaf() { return getAllowsChildren() ? trans.isEmpty() : true; }
+
+  @Override
+  public Enumeration<? extends TransitionItem> children()
+  {
+    return enumeration(getAllowsChildren() ? trans : emptyList());
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="Iterable">
+  @Override
+  public Iterator<TransitionItem> iterator() { return trans.iterator(); }
+  //</editor-fold>
+
+  @Override
+  public String toString() { return getText(state); }
 }

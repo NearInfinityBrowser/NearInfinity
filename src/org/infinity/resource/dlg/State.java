@@ -17,7 +17,7 @@ import org.infinity.util.io.StreamUtils;
  * list of {@link Transition responces} and may have associated {@link StateTrigger trigger}
  * with a condition, defining whether it is possible to use this state.
  */
-public final class State extends AbstractStruct implements AddRemovable
+public final class State extends AbstractStruct implements AddRemovable, TreeItemEntry
 {
   // DLG/State-specific field labels
   public static final String DLG_STATE                      = "State";
@@ -40,9 +40,20 @@ public final class State extends AbstractStruct implements AddRemovable
     nr = count;
   }
 
+  //<editor-fold defaultstate="collapsed" desc="TreeItemEntry">
+  @Override
+  public boolean hasAssociatedText() { return true; }
+
+  @Override
+  public StringRef getAssociatedText()
+  {
+    return (StringRef)getAttribute(DLG_STATE_RESPONSE, false);
+  }
+  //</editor-fold>
+
   public int getFirstTrans()
   {
-    return ((DecNumber)getAttribute(DLG_STATE_FIRST_RESPONSE_INDEX)).getValue();
+    return ((DecNumber)getAttribute(DLG_STATE_FIRST_RESPONSE_INDEX, false)).getValue();
   }
 
   public int getNumber()
@@ -50,19 +61,14 @@ public final class State extends AbstractStruct implements AddRemovable
     return nr;
   }
 
-  public StringRef getResponse()
-  {
-    return (StringRef)getAttribute(DLG_STATE_RESPONSE);
-  }
-
   public int getTransCount()
   {
-    return ((DecNumber)getAttribute(DLG_STATE_NUM_RESPONSES)).getValue();
+    return ((DecNumber)getAttribute(DLG_STATE_NUM_RESPONSES, false)).getValue();
   }
 
   public int getTriggerIndex()
   {
-    return ((DecNumber)getAttribute(DLG_STATE_TRIGGER_INDEX)).getValue();
+    return ((DecNumber)getAttribute(DLG_STATE_TRIGGER_INDEX, false)).getValue();
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

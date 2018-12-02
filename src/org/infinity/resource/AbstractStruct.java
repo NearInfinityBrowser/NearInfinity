@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -18,6 +18,8 @@ import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import javax.swing.event.EventListenerList;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 
 import org.infinity.datatype.Editable;
@@ -42,6 +44,9 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public static final String COMMON_UNKNOWN       = "Unknown";
   public static final String COMMON_UNUSED        = "Unused";
   public static final String COMMON_UNUSED_BYTES  = "Unused bytes?";
+
+  /** Identifies the intention to removal of rows or columns. */
+  public static final int WILL_BE_DELETE = -2;
 
   private List<StructEntry> list;
   private AbstractStruct superStruct;
@@ -817,6 +822,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       }
     }
     int index = list.indexOf(removedEntry);
+    fireTableRowsWillBeDeleted(index, index);
     list.remove(index);
     // decrease count
     if (countmap != null && countmap.containsKey(removedEntry.getClass()))
@@ -1140,5 +1146,20 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   {
     this.superStruct = struct;
   }
-}
 
+  /**
+   * Notifies all listeners that rows in the range {@code [firstRow, lastRow]},
+   * inclusive, will be deleted. this is the last chance to get values of the
+   * deleted rows.
+   *
+   * @param firstRow  the first row
+   * @param lastRow   the last row
+   *
+   * @see TableModelEvent
+   * @see EventListenerList
+   */
+  public void fireTableRowsWillBeDeleted(int firstRow, int lastRow) {
+    fireTableChanged(new TableModelEvent(this, firstRow, lastRow,
+                         TableModelEvent.ALL_COLUMNS, WILL_BE_DELETE));
+  }
+}

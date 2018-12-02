@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -15,7 +15,7 @@ import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
 
 /** Player {@link DlgResource dialog} option. */
-public final class Transition extends AbstractStruct implements AddRemovable
+public final class Transition extends AbstractStruct implements AddRemovable, TreeItemEntry
 {
   // DLG/Transition-specific field labels
   public static final String DLG_TRANS = "Response";
@@ -46,38 +46,45 @@ public final class Transition extends AbstractStruct implements AddRemovable
     this.nr = nr;
   }
 
+  //<editor-fold defaultstate="collapsed" desc="TreeItemEntry">
+  // Flag 0: Transition contains text
+  @Override
+  public boolean hasAssociatedText() { return getFlag().isFlagSet(0); }
+
+  @Override
+  public StringRef getAssociatedText()
+  {
+    return (StringRef)getAttribute(DLG_TRANS_TEXT, false);
+  }
+//</editor-fold>
+
   public int getActionIndex()
   {
     if (getFlag().isFlagSet(2)) {
-      return ((DecNumber)getAttribute(DLG_TRANS_ACTION_INDEX)).getValue();
+      return ((DecNumber)getAttribute(DLG_TRANS_ACTION_INDEX, false)).getValue();
     } else {
       return -1;
     }
   }
 
-  public StringRef getAssociatedText()
-  {
-    return (StringRef)getAttribute(DLG_TRANS_TEXT);
-  }
-
   public Flag getFlag()
   {
-    return (Flag)getAttribute(DLG_TRANS_FLAGS);
+    return (Flag)getAttribute(DLG_TRANS_FLAGS, false);
   }
 
   public StringRef getJournalEntry()
   {
-    return (StringRef)getAttribute(DLG_TRANS_JOURNAL_ENTRY);
+    return (StringRef)getAttribute(DLG_TRANS_JOURNAL_ENTRY, false);
   }
 
   public ResourceRef getNextDialog()
   {
-    return (ResourceRef)getAttribute(DLG_TRANS_NEXT_DIALOG);
+    return (ResourceRef)getAttribute(DLG_TRANS_NEXT_DIALOG, false);
   }
 
   public int getNextDialogState()
   {
-    return ((DecNumber)getAttribute(DLG_TRANS_NEXT_DIALOG_STATE)).getValue();
+    return ((DecNumber)getAttribute(DLG_TRANS_NEXT_DIALOG_STATE, false)).getValue();
   }
 
   public int getNumber()
@@ -88,7 +95,7 @@ public final class Transition extends AbstractStruct implements AddRemovable
   public int getTriggerIndex()
   {
     if (getFlag().isFlagSet(1)) {
-      return ((DecNumber)getAttribute(DLG_TRANS_TRIGGER_INDEX)).getValue();
+      return ((DecNumber)getAttribute(DLG_TRANS_TRIGGER_INDEX, false)).getValue();
     } else {
       return -1;
     }
@@ -117,4 +124,3 @@ public final class Transition extends AbstractStruct implements AddRemovable
     return offset + 32;
   }
 }
-

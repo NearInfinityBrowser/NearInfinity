@@ -156,7 +156,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
       DlgResource dlgRes = (DlgResource) viewable;
       JComponent detailViewer = dlgRes.getViewerTab(0);
       JTabbedPane parent = (JTabbedPane) detailViewer.getParent();
-      dlgRes.showStateWithStructEntry(
+      dlgRes.selectInEdit(
           ((ReferenceHit)table.getTableItemAt(row)).getStructEntry());
       // make sure we see the detail viewer
       parent.getModel().setSelectedIndex(parent.indexOfComponent(detailViewer));

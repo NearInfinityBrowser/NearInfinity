@@ -66,6 +66,7 @@ public class Icons
   public static final String ICON_REMOVE_16           = "Remove16.gif";
   public static final String ICON_ROW_INSERT_AFTER_16 = "RowInsertAfter16.gif";
   public static final String ICON_SAVE_16             = "Save16.gif";
+  public static final String ICON_SELECT_IN_TREE_16   = "SelectInTree16.png";
   public static final String ICON_STEP_BACK_16        = "StepBack16.gif";
   public static final String ICON_STEP_FORWARD_16     = "StepForward16.gif";
   public static final String ICON_STOP_16             = "Stop16.gif";
@@ -159,4 +160,3 @@ public class Icons
 
   protected Icons(){}
 }
-
