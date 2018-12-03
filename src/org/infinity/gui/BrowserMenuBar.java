@@ -197,6 +197,11 @@ public final class BrowserMenuBar extends JMenuBar
     return optionsMenu.optionTreeSearchNames.isSelected();
   }
 
+  public boolean highlightOverrided()
+  {
+    return optionsMenu.optionHighlightOverrided.isSelected();
+  }
+
   public boolean showMoreCompileWarnings()
   {
     return optionsMenu.optionMoreCompileWarnings.isSelected();
@@ -1638,6 +1643,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
     private static final String OPTION_KEEPVIEWONCOPY           = "UpdateTreeOnCopy";
     private static final String OPTION_SHOWTREESEARCHNAMES      = "ShowTreeSearchNames";
+    private static final String OPTION_HIGHLIGHT_OVERRIDED      = "HighlightOverrided";
 //    private static final String OPTION_MONITORFILECHANGES       = "MonitorFileChanges";
     private static final String OPTION_SHOWOVERRIDES            = "ShowOverridesIn";
     private static final String OPTION_SHOWRESREF               = "ShowResRef";
@@ -1710,7 +1716,8 @@ public final class BrowserMenuBar extends JMenuBar
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride,
                               optionIgnoreReadErrors, optionCacheOverride, optionShowStrrefs,
                               optionShowHexColored, optionShowUnknownResources,
-                              optionKeepViewOnCopy, optionTreeSearchNames;
+                              optionKeepViewOnCopy, optionTreeSearchNames,
+                              optionHighlightOverrided;
 //                              optionMonitorFileChanges;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
@@ -1752,6 +1759,13 @@ public final class BrowserMenuBar extends JMenuBar
       optionTreeSearchNames.setActionCommand("RefreshTree");
       optionTreeSearchNames.addActionListener(NearInfinity.getInstance());
       add(optionTreeSearchNames);
+      optionHighlightOverrided = new JCheckBoxMenuItem("Show Overrided files in bold in Resource Tree", getPrefs().getBoolean(OPTION_HIGHLIGHT_OVERRIDED, true));
+      optionHighlightOverrided.setActionCommand("RefreshTree");
+      optionHighlightOverrided.addActionListener(NearInfinity.getInstance());
+      optionHighlightOverrided.setToolTipText("If checked, files, that contains in game index (.key file) and located "
+              + "in the Override folder, will be shown in bold in the Resource Tree. "
+              + "This setting has no effect if override files shown only in the Override folder");
+      add(optionHighlightOverrided);
 //      optionMonitorFileChanges =
 //          new JCheckBoxMenuItem("Autoupdate resource tree", getPrefs().getBoolean(OPTION_MONITORFILECHANGES, true));
 //      optionMonitorFileChanges.addActionListener(this);
@@ -2395,6 +2409,7 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
       getPrefs().putBoolean(OPTION_KEEPVIEWONCOPY, optionKeepViewOnCopy.isSelected());
       getPrefs().putBoolean(OPTION_SHOWTREESEARCHNAMES, optionTreeSearchNames.isSelected());
+      getPrefs().putBoolean(OPTION_HIGHLIGHT_OVERRIDED, optionHighlightOverrided.isSelected());
 //      getPrefs().putBoolean(OPTION_MONITORFILECHANGES, optionMonitorFileChanges.isSelected());
       getPrefs().putInt(OPTION_SHOWRESREF, getResRefMode());
       getPrefs().putInt(OPTION_SHOWOVERRIDES, getOverrideMode());

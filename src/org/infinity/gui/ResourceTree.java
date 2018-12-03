@@ -58,8 +58,8 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   private final JButton bnext = new JButton("Forward", Icons.getIcon(Icons.ICON_FORWARD_16));
   private final JButton bprev = new JButton("Back", Icons.getIcon(Icons.ICON_BACK_16));
   private final JTree tree = new JTree();
-  private final Stack<ResourceEntry> nextstack = new Stack<ResourceEntry>();
-  private final Stack<ResourceEntry> prevstack = new Stack<ResourceEntry>();
+  private final Stack<ResourceEntry> nextstack = new Stack<>();
+  private final Stack<ResourceEntry> prevstack = new Stack<>();
   private ResourceEntry prevnextnode, shownresource;
   private boolean showresource = true;
 
@@ -208,7 +208,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   {
     ResourceTreeModel model = (ResourceTreeModel)tree.getModel();
     if (model != null) {
-      ResourceTreeFolder root = (ResourceTreeFolder)model.getRoot();
+      ResourceTreeFolder root = model.getRoot();
       processAllNodes(tree, new TreePath(root), true);
     }
   }
@@ -217,7 +217,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   {
     ResourceTreeModel model = (ResourceTreeModel)tree.getModel();
     if (model != null) {
-      ResourceTreeFolder root = (ResourceTreeFolder)model.getRoot();
+      ResourceTreeFolder root = model.getRoot();
       processAllNodes(tree, new TreePath(root), false);
       tree.expandPath(new TreePath(root));  // virtual root node is always expanded
     }
@@ -772,7 +772,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         setIcon(e.getIcon());
         // Do not use bold in Override mode othrewise almost all entries will be in bold, which looks not so good
         final boolean inOverrideMode = options.getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE;
-        if (e.hasOverride() && !inOverrideMode) {
+        if (e.hasOverride() && !inOverrideMode && options.highlightOverrided()) {
           font = font.deriveFont(Font.BOLD);
         }
       }
