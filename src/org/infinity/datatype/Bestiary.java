@@ -11,6 +11,8 @@ import java.awt.Image;
 import java.awt.event.ActionEvent;
 import static java.awt.event.ActionEvent.ACTION_PERFORMED;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -18,6 +20,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.ListIterator;
 
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
@@ -37,14 +40,18 @@ import javax.swing.table.TableModel;
 import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
 import org.infinity.gui.RenderCanvas;
+import org.infinity.gui.StructViewer;
 import static org.infinity.gui.StructViewer.UPDATE_VALUE;
+import org.infinity.gui.ViewFrame;
 import org.infinity.gui.hexview.GenericHexViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.gam.GamResource;
+import org.infinity.resource.gam.KillVariable;
 import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
@@ -198,6 +205,38 @@ public final class Bestiary extends Datatype implements Editable, TableModel
     }
 
     /**
+     * Performs search kill variable, associated with this creature. This variable
+     * increments each time as player party kill such creature.
+     *
+     * @param game Game structure that stores kill variables
+     * @return Structure that contains kill counter for this creature category
+     *         or {code null}, if not found or creature not contains reference
+     *         to variable
+     */
+    public KillVariable findVariable(GamResource game)
+    {
+      if (killVarName == null) return null;
+
+      final SectionOffset offset = game.getSectionOffset(KillVariable.class);
+      KillVariable var = (KillVariable)game.getAttribute(offset.getValue(), KillVariable.class, false);
+      if (var == null) return null;
+
+      final List<StructEntry> fields = game.getList();
+      final ListIterator<StructEntry> it = fields.listIterator(fields.indexOf(var));
+      while (it.hasNext()) {
+        final StructEntry entry = it.next();
+        if (!(entry instanceof KillVariable)) break;
+
+        var = (KillVariable)entry;
+        final IsTextual name = (IsTextual)var.getAttribute(KillVariable.VAR_NAME);
+        if (name != null && killVarName.equalsIgnoreCase(name.getText())) {
+          return var;
+        }
+      }
+      return null;
+    }
+
+    /**
      * Mark name and description strings that describe creatures in a bestiary,
      * as used (set {@code true} at appropriate indexes in the {@code used} parameter).
      * <p>
@@ -234,6 +273,7 @@ public final class Bestiary extends Datatype implements Editable, TableModel
    */
   private final class Viewer extends JSplitPane implements ListSelectionListener,
                                                            TableModelListener,
+                                                           MouseListener,
                                                            IDataChangedListener,
                                                            IHexViewListener,
                                                            IColormap
@@ -293,8 +333,13 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       col.setMinWidth(0);
       col.setPreferredWidth(50);
 
+      col = model.getColumn(5);// kills
+      col.setMinWidth(0);
+      col.setPreferredWidth(25);
+
       table.getSelectionModel().addListSelectionListener(this);
       table.getModel().addTableModelListener(this);
+      table.addMouseListener(this);
 
       final DefaultTableCellRenderer renderer = new DefaultTableCellRenderer()
       {
@@ -355,6 +400,33 @@ public final class Bestiary extends Datatype implements Editable, TableModel
     {
       container.actionPerformed(new ActionEvent(e.getSource(), ACTION_PERFORMED, UPDATE_VALUE));
     }
+    //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="MouseListener">
+    @Override
+    public void mouseClicked(MouseEvent e)
+    {
+      if (e.getClickCount() == 2) {
+        final int row = table.rowAtPoint(e.getPoint());
+        final GamResource game = (GamResource)Bestiary.this.getParent();
+        final KillVariable var = creatures.get(row).findVariable(game);
+        if (var != null) {
+          new ViewFrame(this, var);
+        }
+      }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {}
+
+    @Override
+    public void mouseReleased(MouseEvent e) {}
+
+    @Override
+    public void mouseEntered(MouseEvent e) {}
+
+    @Override
+    public void mouseExited(MouseEvent e) {}
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="IDataChangedListener">
@@ -446,7 +518,7 @@ public final class Bestiary extends Datatype implements Editable, TableModel
   @Override
   public int getRowCount() { return creatures.size(); }
   @Override
-  public int getColumnCount() { return 5; }
+  public int getColumnCount() { return 6; }
   @Override
   public String getColumnName(int columnIndex)
   {
@@ -456,6 +528,7 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       case 2: return "Name";
       case 3: return "Description";
       case 4: return "Kill variable";
+      case 5: return "Kills";
       default: return null;
     }
   }
@@ -468,6 +541,7 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       case 2: return String.class;
       case 3: return String.class;
       case 4: return String.class;
+      case 5: return Integer.class;
       default: return null;
     }
   }
@@ -483,6 +557,7 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       case 2: return cre.getName();
       case 3: return cre.getDesc();
       case 4: return cre.killVarName;
+      case 5: return getKills(cre);
       default: return null;
     }
   }
@@ -515,6 +590,19 @@ public final class Bestiary extends Datatype implements Editable, TableModel
    * @return {@code true} if player already see this creature in a game, {@code false} otherwise
    */
   public boolean isKnown(int creatureIndex) { return known[creatureIndex] != 0; }
+
+  private Integer getKills(Creature cre)
+  {
+    final GamResource parent = (GamResource)getParent();
+    final KillVariable var = cre.findVariable(parent);
+    if (var == null) return null;
+
+    final StructEntry entry = var.getAttribute(KillVariable.VAR_INT);
+    if (entry instanceof IsNumeric) {
+      return ((IsNumeric)entry).getValue();
+    }
+    return null;
+  }
 
   /**
    * Mark all strings that describe creatures in a bestiary, as used (set {@code true}
