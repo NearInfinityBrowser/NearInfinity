@@ -1033,7 +1033,7 @@ public final class CreResource extends AbstractStruct
     addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER));
     addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR));
     addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
-    Bitmap effect_version = (Bitmap)addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
+    Bitmap effect_version = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BMP"));
     addField(new DecNumber(buffer, offset + 60, 1, CRE_REPUTATION));
@@ -1457,7 +1457,7 @@ public final class CreResource extends AbstractStruct
       addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR));
       addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
     }
-    Bitmap effect_version = (Bitmap)addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
+    Bitmap effect_version = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
       addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BAM"));

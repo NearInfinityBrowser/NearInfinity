@@ -57,12 +57,24 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   private AbstractStruct superStruct;
   private Map<Class<? extends StructEntry>, SectionCount> countmap;
   private Map<Class<? extends StructEntry>, SectionOffset> offsetmap;
-  private ResourceEntry entry;
+  /**
+   * If this structure represents top-level structure of the resource, contains
+   * pointer to the resource, otherwize {@code null}.
+   */
+  private final ResourceEntry entry;
+  /**
+   * Name of the field or resource name if this struct represents top-level
+   * structure of the resource.
+   */
   private String name;
   private StructViewer viewer;
   private boolean structChanged;
-  private int startoffset, endoffset, extraoffset;
-  private Collection<Component> viewerComponents = null;
+  /** Offset of the first byte in serialized format of this struct. */
+  private int startoffset;
+  /** Offset of the last byte in serialized format of this struct. */
+  private int endoffset;
+  private int extraoffset;
+  private Collection<Component> viewerComponents;
   /**
    * If any {@link PropertyChangeListener}s have been registered,
    * the {@code changeSupport} field describes them.
@@ -106,15 +118,18 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
   }
 
-  protected AbstractStruct()
-  {
-  }
-
+  /**
+   * Creates top-level struct, that represents specified resource. Reads specified
+   * resource and creates it structured representation.
+   *
+   * @param entry Pointer to resource for read
+   * @throws Exception If resource can not be readed
+   */
   protected AbstractStruct(ResourceEntry entry) throws Exception
   {
     this.entry = entry;
     list = new ArrayList<>();
-    name = entry.toString();
+    name = entry.getResourceName();
     ByteBuffer bb = entry.getResourceBuffer();
     endoffset = read(bb, 0);
     if (this instanceof HasAddRemovable && !list.isEmpty()) {// Is this enough?
@@ -126,6 +141,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   protected AbstractStruct(AbstractStruct superStruct, String name, int startoffset, int listSize)
   {
+    this.entry = null;
     this.superStruct = superStruct;
     this.name = name;
     this.startoffset = startoffset;
@@ -514,7 +530,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
    * @param entry The new field to add.
    * @return The added field.
    */
-  public StructEntry addField(StructEntry entry)
+  public <T extends StructEntry> T addField(T entry)
   {
     return addField(entry, list.size());
   }
@@ -525,7 +541,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
    * @param index The desired position of the new field.
    * @return The inserted field.
    */
-  public StructEntry addField(StructEntry entry, int index)
+  public <T extends StructEntry> T addField(T entry, int index)
   {
     if (entry != null) {
       if (index < 0) index = 0; else if (index > list.size()) index = list.size();
