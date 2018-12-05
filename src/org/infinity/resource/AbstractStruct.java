@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import javax.swing.JComponent;
@@ -74,33 +75,31 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   private static void adjustEntryOffsets(AbstractStruct superStruct, AbstractStruct modifiedStruct,
                                          AddRemovable datatype, int amount)
   {
-    for (int i = 0; i < superStruct.getFieldCount(); i++) {
-      StructEntry structEntry = superStruct.getField(i);
-      if (structEntry.getOffset() > datatype.getOffset() ||
-          structEntry.getOffset() == datatype.getOffset() && structEntry != datatype &&
-          structEntry != modifiedStruct) {
-        structEntry.setOffset(structEntry.getOffset() + amount);
+    for (final StructEntry e : superStruct.list) {
+      if (e.getOffset() > datatype.getOffset() ||
+          e.getOffset() == datatype.getOffset() && e != datatype &&
+          e != modifiedStruct) {
+        e.setOffset(e.getOffset() + amount);
       }
-      if (structEntry instanceof AbstractStruct)
-        adjustEntryOffsets((AbstractStruct)structEntry, modifiedStruct, datatype, amount);
+      if (e instanceof AbstractStruct)
+        adjustEntryOffsets((AbstractStruct)e, modifiedStruct, datatype, amount);
     }
   }
 
   private static void adjustSectionOffsets(AbstractStruct superStruct, AddRemovable datatype, int amount)
   {
-    for (int i = 0; i < superStruct.getFieldCount(); i++) {
-      Object o = superStruct.getField(i);
-      if (o instanceof SectionOffset) {
-        SectionOffset sOffset = (SectionOffset)o;
-        if (sOffset.getValue() + superStruct.getExtraOffset() > datatype.getOffset()) {
-          sOffset.incValue(amount);
+    for (final StructEntry e : superStruct.list) {
+      if (e instanceof SectionOffset) {
+        final SectionOffset so = (SectionOffset)e;
+        if (so.getValue() + superStruct.getExtraOffset() > datatype.getOffset()) {
+          so.incValue(amount);
         }
-        else if (sOffset.getValue() + superStruct.getExtraOffset() == datatype.getOffset()) {
+        else if (so.getValue() + superStruct.getExtraOffset() == datatype.getOffset()) {
           if (amount > 0 &&
-              !(sOffset.getSection() == datatype.getClass() ||
+              !(so.getSection() == datatype.getClass() ||
                 Profile.getEngine() == Profile.Engine.IWD2 &&
                 superStruct instanceof CreResource)) {
-            sOffset.incValue(amount);
+            so.incValue(amount);
           }
         }
       }
@@ -368,9 +367,9 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   @Override
   public void write(OutputStream os) throws IOException
   {
-    Collections.sort(getList()); // This way we can writeField out in the order in list - sorted by offset
-    for (int i = 0, count = getFieldCount(); i < count; i++) {
-      getField(i).write(os);
+    Collections.sort(list); // This way we can writeField out in the order in list - sorted by offset
+    for (final StructEntry e : list) {
+      e.write(os);
     }
   }
   //</editor-fold>
@@ -540,9 +539,9 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public void addToList(int startIndex, List<StructEntry> toBeAdded)
   {
     if (toBeAdded != null) {
-      startIndex = Math.max(-1, Math.min(list.size() - 1, startIndex));
-      for (int i = 0; i < toBeAdded.size(); i++) {
-        addField(toBeAdded.get(i), startIndex+i+1);
+      int i = Math.max(-1, Math.min(list.size() - 1, startIndex));
+      for (final StructEntry e : toBeAdded) {
+        addField(e, ++i);
       }
     }
   }
@@ -551,9 +550,9 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public void addToList(StructEntry startFromEntry, List<StructEntry> toBeAdded)
   {
     if (toBeAdded != null) {
-      int startIndex = list.indexOf(startFromEntry) + 1;
-      for (int i = 0; i < toBeAdded.size(); i++) {
-        addField(toBeAdded.get(i), startIndex+i);
+      int i = list.indexOf(startFromEntry);
+      for (final StructEntry e : toBeAdded) {
+        addField(e, ++i);
       }
     }
   }
@@ -648,7 +647,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   private static <T extends StructEntry> T getAttribute(AbstractStruct parent, int offset,
                                                         Class<T> type, boolean recursive)
   {
-    for (final StructEntry field : parent.getList()) {
+    for (final StructEntry field : parent.list) {
       final int off = field.getOffset();
       T result = null;
       if (offset >= off && offset < off + field.getSize() && type.isInstance(field)) {
@@ -672,7 +671,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   private static StructEntry getAttribute(AbstractStruct parent, String name, boolean recursive)
   {
     if (name != null && !name.isEmpty()) {
-      for (StructEntry field : parent.getList()) {
+      for (StructEntry field : parent.list) {
         StructEntry result = null;
         if (field.getName().equals(name)) {
           // Do not return immidiatly - first try to find the same class lower on hierarchy
@@ -729,7 +728,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   public List<StructEntry> getFlatList()
   {
-    List<StructEntry> flatList = new ArrayList<StructEntry>(2 * getFieldCount());
+    final List<StructEntry> flatList = new ArrayList<>(2 * getFieldCount());
     addFlatList(flatList);
     Collections.sort(flatList);
     return flatList;
@@ -752,12 +751,11 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   public AbstractStruct getSuperStruct(StructEntry structEntry)
   {
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
-      if (o == structEntry)
+    for (final StructEntry e : list) {
+      if (e == structEntry)
         return this;
-      if (o instanceof AbstractStruct) {
-        AbstractStruct result = ((AbstractStruct)o).getSuperStruct(structEntry);
+      if (e instanceof AbstractStruct) {
+        final AbstractStruct result = ((AbstractStruct)e).getSuperStruct(structEntry);
         if (result != null)
           return result;
       }
@@ -791,18 +789,17 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public void realignStructOffsets()
   {
     int offset = startoffset;
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry structEntry = list.get(i);
-      structEntry.setOffset(offset);
-      offset += structEntry.getSize();
-      if (structEntry instanceof AbstractStruct)
-        ((AbstractStruct)structEntry).realignStructOffsets();
+    for (final StructEntry e : list) {
+      e.setOffset(offset);
+      offset += e.getSize();
+      if (e instanceof AbstractStruct)
+        ((AbstractStruct)e).realignStructOffsets();
     }
   }
 
   public List<AddRemovable> removeAllRemoveables()
   {
-    List<AddRemovable> removed = new ArrayList<AddRemovable>();
+    final List<AddRemovable> removed = new ArrayList<>();
     for (int i = 0; i < list.size(); i++) {
       StructEntry o = list.get(i);
       if (o instanceof AddRemovable) {
@@ -819,7 +816,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     if (removeRecurse && removedEntry instanceof HasAddRemovable) { // Recusivly removeTableLine substructures first
       AbstractStruct removedStruct = (AbstractStruct)removedEntry;
       for (int i = 0; i < removedStruct.list.size(); i++) {
-        Object o = removedStruct.list.get(i);
+        final StructEntry o = removedStruct.list.get(i);
         if (o instanceof AddRemovable) {
           removedStruct.removeDatatype((AddRemovable)o, removeRecurse);
           i--;
@@ -916,12 +913,12 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public boolean replaceEntry(StructEntry newEntry)
   {
     if (newEntry != null) {
-      List<StructEntry> list = getList();
-      for (int i = 0, size = list.size(); i < size; i++) {
-        StructEntry oldEntry = list.get(i);
+      final ListIterator<StructEntry> it = list.listIterator();
+      while (it.hasNext()) {
+        final StructEntry oldEntry = it.next();
         if (oldEntry.getOffset() == newEntry.getOffset() &&
             oldEntry.getSize() == newEntry.getSize()) {
-          list.set(i, newEntry);
+          it.set(newEntry);
           return true;
         }
       }
@@ -950,9 +947,8 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public String toMultiLineString()
   {
     StringBuilder sb = new StringBuilder(30 * list.size());
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry datatype = list.get(i);
-      sb.append(datatype.getName()).append(": ").append(datatype.toString()).append('\n');
+    for (final StructEntry e : list) {
+      sb.append(e.getName()).append(": ").append(e).append('\n');
     }
     return sb.toString();
   }
@@ -977,14 +973,13 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   private void addFlatList(List<StructEntry> flatList)
   {
-    for (int i = 0; i < list.size(); i++) {
-      StructEntry o = list.get(i);
-      if (o instanceof AbstractStruct)
-        ((AbstractStruct)o).addFlatList(flatList);
-      else if (o instanceof AbstractCode)
-        ((AbstractCode)o).addFlatList(flatList);
+    for (final StructEntry e : list) {
+      if (e instanceof AbstractStruct)
+        ((AbstractStruct)e).addFlatList(flatList);
+      else if (e instanceof AbstractCode)
+        ((AbstractCode)e).addFlatList(flatList);
       else
-        flatList.add(o);
+        flatList.add(e);
     }
   }
 
@@ -1096,18 +1091,18 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   private void initAddStructMaps()
   {
-    countmap = new HashMap<Class<? extends StructEntry>, SectionCount>();
-    offsetmap = new HashMap<Class<? extends StructEntry>, SectionOffset>();
-    for (int i = 0; i < list.size(); i++) {
-      Object o = list.get(i);
-      if (o instanceof SectionOffset) {
-        SectionOffset so = (SectionOffset)o;
+    countmap = new HashMap<>();
+    offsetmap = new HashMap<>();
+    for (final StructEntry e : list) {
+      if (e instanceof SectionOffset) {
+        final SectionOffset so = (SectionOffset)e;
         if (so.getSection() != null) {
           offsetmap.put(so.getSection(), so);
         }
       }
-      else if (o instanceof SectionCount)
-        countmap.put(((SectionCount)o).getSection(), (SectionCount)o);
+      else if (e instanceof SectionCount) {
+        countmap.put(((SectionCount)e).getSection(), (SectionCount)e);
+      }
     }
   }
 
@@ -1128,9 +1123,9 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   protected void writeFlatList(OutputStream os) throws IOException
   {
-    List<StructEntry> flatList = getFlatList();
-    for (int i = 0; i < flatList.size(); i++)
-      flatList.get(i).write(os);
+    for (final StructEntry e : getFlatList()) {
+      e.write(os);
+    }
   }
 
   /** Assign a new list of fields. Clears current list if argument is null. */
