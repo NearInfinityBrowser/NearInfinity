@@ -43,6 +43,8 @@ import org.infinity.util.Misc;
 
 public final class ReferenceHitFrame extends ChildFrame implements ActionListener, ListSelectionListener
 {
+  private static final String QUERY_STRING = "string reference";
+
   private final Component parent;
   private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
   private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
@@ -56,7 +58,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
   {
     super("Result", true);
     if (query == null) {
-      throw new IllegalArgumentException("'query' must not be null");
+      query = QUERY_STRING;
     }
     this.query = query;
     this.parent = parent;
