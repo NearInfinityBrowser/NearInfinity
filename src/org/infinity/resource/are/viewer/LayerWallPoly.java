@@ -1,55 +1,32 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
 
-import java.util.List;
-
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.wed.WallPolygon;
 import org.infinity.resource.wed.WedResource;
+import static org.infinity.resource.wed.WedResource.WED_NUM_WALL_POLYGONS;
+import static org.infinity.resource.wed.WedResource.WED_OFFSET_WALL_POLYGONS;
 
 /**
  * Manages wall polygon layer objects.
  */
-public class LayerWallPoly extends BasicLayer<LayerObjectWallPoly>
+public class LayerWallPoly extends BasicLayer<LayerObjectWallPoly, WedResource>
 {
   private static final String AvailableFmt = "Wall polygons: %d";
 
   public LayerWallPoly(WedResource wed, AreaViewer viewer)
   {
     super(wed, ViewerConstants.LayerType.WALL_POLY, viewer);
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectWallPoly> list = getLayerObjects();
-      if (hasWed()) {
-        WedResource wed = getWed();
-        SectionOffset so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_WALL_POLYGONS);
-        SectionCount sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_WALL_POLYGONS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          List<StructEntry> listStruct = getStructures(ofs, count, WallPolygon.class);
-          for (int i = 0, size = listStruct.size(); i < size; i++) {
-            LayerObjectWallPoly obj = new LayerObjectWallPoly(wed, (WallPolygon)listStruct.get(i));
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
-        }
-      }
-      return list.size();
-    }
-    return 0;
+    loadLayerItems(WED_OFFSET_WALL_POLYGONS, WED_NUM_WALL_POLYGONS,
+                   WallPolygon.class, w -> new LayerObjectWallPoly(parent, w));
   }
 
   @Override

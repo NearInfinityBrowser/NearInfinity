@@ -1,55 +1,32 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
 
-import java.util.List;
-
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.AreResource;
+import static org.infinity.resource.are.AreResource.ARE_NUM_PROJECTILE_TRAPS;
+import static org.infinity.resource.are.AreResource.ARE_OFFSET_PROJECTILE_TRAPS;
 import org.infinity.resource.are.ProTrap;
 
 /**
  * Manages projectile trap layer objects.
  */
-public class LayerProTrap extends BasicLayer<LayerObjectProTrap>
+public class LayerProTrap extends BasicLayer<LayerObjectProTrap, AreResource>
 {
   private static final String AvailableFmt = "Projectile traps: %d";
 
   public LayerProTrap(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.PRO_TRAP, viewer);
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectProTrap> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_PROJECTILE_TRAPS);
-        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_PROJECTILE_TRAPS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          List<StructEntry> listStruct = getStructures(ofs, count, ProTrap.class);
-          for (int i = 0, size = listStruct.size(); i < size; i++) {
-            LayerObjectProTrap obj = new LayerObjectProTrap(are, (ProTrap)listStruct.get(i));
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
-        }
-      }
-      return list.size();
-    }
-    return 0;
+    loadLayerItems(ARE_OFFSET_PROJECTILE_TRAPS, ARE_NUM_PROJECTILE_TRAPS,
+                   ProTrap.class, p -> new LayerObjectProTrap(parent, p));
   }
 
   @Override
