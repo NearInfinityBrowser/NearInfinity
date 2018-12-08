@@ -51,7 +51,7 @@ public final class LayerManager
     LayerLabels.put(LayerType.WALL_POLY, "Wall Polygons");
   }
 
-  private final EnumMap<LayerType, BasicLayer<? extends LayerObject>> layers = new EnumMap<LayerType, BasicLayer<? extends LayerObject>>(LayerType.class);
+  private final EnumMap<LayerType, BasicLayer<?, ?>> layers = new EnumMap<>(LayerType.class);
   private final AreaViewer viewer;
 
   private AreResource are;
@@ -233,7 +233,7 @@ public final class LayerManager
     if (enable != scheduleEnabled) {
       scheduleEnabled = enable;
       for (int i = 0, ltCount = getLayerTypeCount(); i < ltCount; i++) {
-        BasicLayer<?> bl = getLayer(getLayerType(i));
+          BasicLayer<?, ?> bl = getLayer(getLayerType(i));
         if (bl != null) {
           bl.setScheduleEnabled(scheduleEnabled);
         }
@@ -260,7 +260,7 @@ public final class LayerManager
     if (schedule != this.schedule) {
       this.schedule = schedule;
       for (int i = 0, ltCount = getLayerTypeCount(); i < ltCount; i++) {
-        BasicLayer<?> bl = getLayer(getLayerType(i));
+        BasicLayer<?, ?> bl = getLayer(getLayerType(i));
         if (bl != null) {
           bl.setSchedule(this.schedule);
         }
@@ -307,7 +307,7 @@ public final class LayerManager
   public void close()
   {
     for (LayerType layer: LayerType.values()) {
-      BasicLayer<?> bl = layers.get(layer);
+      BasicLayer<?, ?> bl = layers.get(layer);
       if (bl != null) {
         bl.close();
       }
@@ -323,7 +323,7 @@ public final class LayerManager
   public void close(LayerType layer)
   {
     if (layer != null) {
-      BasicLayer<?> bl = layers.get(layer);
+      BasicLayer<?, ?> bl = layers.get(layer);
       if (bl != null) {
         bl.close();
       }
@@ -335,7 +335,7 @@ public final class LayerManager
    * @param layer
    * @return
    */
-  public BasicLayer<?> getLayer(LayerType layer)
+  public BasicLayer<?, ?> getLayer(LayerType layer)
   {
     if (layer != null) {
       return layers.get(layer);
@@ -351,7 +351,7 @@ public final class LayerManager
    */
   public int getLayerObjectCount(LayerType layer)
   {
-    BasicLayer<?> bl = layers.get(layer);
+    BasicLayer<?, ?> bl = layers.get(layer);
     if (bl != null) {
       return bl.getLayerObjectCount();
     }
@@ -366,7 +366,7 @@ public final class LayerManager
    */
   public LayerObject getLayerObject(LayerType layer, int index)
   {
-    BasicLayer<?> bl = layers.get(layer);
+    BasicLayer<?, ?> bl = layers.get(layer);
     if (bl != null) {
       return bl.getLayerObject(index);
     }
@@ -380,7 +380,7 @@ public final class LayerManager
    */
   public List<? extends LayerObject> getLayerObjects(LayerType layer)
   {
-    BasicLayer<? extends LayerObject> bl = layers.get(layer);
+    BasicLayer<?, ?> bl = layers.get(layer);
     if (bl != null) {
       return bl.getLayerObjects();
     }
@@ -537,7 +537,7 @@ public final class LayerManager
   public boolean isLayerVisible(LayerType layer)
   {
     if (layer != null) {
-      BasicLayer<?> bl = layers.get(layer);
+      BasicLayer<?, ?> bl = layers.get(layer);
       if (bl != null) {
         return bl.isLayerVisible();
       }
@@ -554,7 +554,7 @@ public final class LayerManager
   public void setLayerVisible(LayerType layer, boolean visible)
   {
     if (layer != null) {
-      BasicLayer<?> bl = layers.get(layer);
+      BasicLayer<?, ?> bl = layers.get(layer);
       if (bl != null) {
         bl.setLayerVisible(visible);
       }
@@ -571,7 +571,7 @@ public final class LayerManager
     if (item != null) {
       for (final LayerType type: LayerType.values())
       {
-        BasicLayer<?> bl = layers.get(type);
+        BasicLayer<?, ?> bl = layers.get(type);
         if (bl != null) {
           LayerObject obj = bl.getLayerObjectOf(item);
           if (obj != null) {

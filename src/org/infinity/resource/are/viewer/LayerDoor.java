@@ -1,21 +1,18 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
 
-import java.util.List;
-
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.AreResource;
+import static org.infinity.resource.are.AreResource.ARE_NUM_DOORS;
+import static org.infinity.resource.are.AreResource.ARE_OFFSET_DOORS;
 import org.infinity.resource.are.Door;
 
 /**
  * Manages door layer objects.
  */
-public class LayerDoor extends BasicLayer<LayerObjectDoor>
+public class LayerDoor extends BasicLayer<LayerObjectDoor, AreResource>
 {
   private static final String AvailableFmt = "Doors: %d";
 
@@ -24,35 +21,14 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
   public LayerDoor(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.DOOR, viewer);
-    doorClosed = false;
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectDoor> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_DOORS);
-        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_DOORS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          List<StructEntry> listStruct = getStructures(ofs, count, Door.class);
-          for (int i = 0, size = listStruct.size(); i < size; i++) {
-            LayerObjectDoor obj = new LayerObjectDoor(are, (Door)listStruct.get(i));
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
-        }
-      }
-      return list.size();
-    }
-    return 0;
+    loadLayerItems(ARE_OFFSET_DOORS, ARE_NUM_DOORS,
+                   Door.class, d -> new LayerObjectDoor(parent, d));
   }
 
   @Override
@@ -66,13 +42,9 @@ public class LayerDoor extends BasicLayer<LayerObjectDoor>
   public void setLayerVisible(boolean visible)
   {
     setVisibilityState(visible);
-    List<LayerObjectDoor> list = getLayerObjects();
-    if (list != null) {
-      for (int i = 0, size = list.size(); i < size; i++) {
-        LayerObjectDoor obj = list.get(i);
-        obj.getLayerItem(ViewerConstants.DOOR_OPEN).setVisible(isLayerVisible() && !doorClosed);
-        obj.getLayerItem(ViewerConstants.DOOR_CLOSED).setVisible(isLayerVisible() && doorClosed);
-      }
+    for (final LayerObjectDoor obj : getLayerObjects()) {
+      obj.getLayerItem(ViewerConstants.DOOR_OPEN).setVisible(isLayerVisible() && !doorClosed);
+      obj.getLayerItem(ViewerConstants.DOOR_CLOSED).setVisible(isLayerVisible() && doorClosed);
     }
   }
 

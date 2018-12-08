@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -13,45 +13,38 @@ import org.infinity.resource.are.AreResource;
 /**
  * Manages map transition layer objects.
  */
-public class LayerTransition extends BasicLayer<LayerObjectTransition>
+public class LayerTransition extends BasicLayer<LayerObjectTransition, AreResource>
 {
   private static final String AvailableFmt = "Map transitions: %d";
 
   public LayerTransition(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.TRANSITION, viewer);
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectTransition> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        for (int i = 0; i < LayerObjectTransition.FIELD_NAME.length; i++) {
-          ResourceRef ref = (ResourceRef)are.getAttribute(LayerObjectTransition.FIELD_NAME[i]);
-          if (ref != null && !ref.getResourceName().isEmpty() && !"None".equalsIgnoreCase(ref.getResourceName())) {
-            AreResource destAre = null;
-            try {
-              destAre = new AreResource(ResourceFactory.getResourceEntry(ref.getResourceName()));
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
-            if (destAre != null) {
-              LayerObjectTransition obj = new LayerObjectTransition(are, destAre, i, getViewer().getRenderer());
-              setListeners(obj);
-              list.add(obj);
-            }
-          }
+    final List<LayerObjectTransition> list = getLayerObjects();
+    for (int i = 0; i < LayerObjectTransition.FIELD_NAME.length; i++) {
+      ResourceRef ref = (ResourceRef)parent.getAttribute(LayerObjectTransition.FIELD_NAME[i]);
+      //TODO: replace "None" to null
+      if (ref != null && !ref.getResourceName().isEmpty() && !"None".equalsIgnoreCase(ref.getResourceName())) {
+        AreResource destAre = null;
+        try {
+          destAre = new AreResource(ResourceFactory.getResourceEntry(ref.getResourceName()));
+        } catch (Exception e) {
+          e.printStackTrace();
         }
-        setInitialized(true);
+        if (destAre != null) {
+          LayerObjectTransition obj = new LayerObjectTransition(parent, destAre, i, getViewer().getRenderer());
+          setListeners(obj);
+          list.add(obj);
+        }
       }
-      return list.size();
     }
-    return 0;
+    setInitialized(true);
   }
 
   @Override

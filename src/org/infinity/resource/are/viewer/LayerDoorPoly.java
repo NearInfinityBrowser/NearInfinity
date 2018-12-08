@@ -1,22 +1,19 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
 
-import java.util.List;
-
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
 import org.infinity.gui.layeritem.AbstractLayerItem;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.wed.Door;
 import org.infinity.resource.wed.WedResource;
+import static org.infinity.resource.wed.WedResource.WED_NUM_DOORS;
+import static org.infinity.resource.wed.WedResource.WED_OFFSET_DOORS;
 
 /**
  * Manages door polygon layer objects.
  */
-public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly>
+public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly, WedResource>
 {
   private static final String AvailableFmt = "Door polygons: %d";
 
@@ -25,35 +22,14 @@ public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly>
   public LayerDoorPoly(WedResource wed, AreaViewer viewer)
   {
     super(wed, ViewerConstants.LayerType.DOOR_POLY, viewer);
-    doorClosed = false;
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectDoorPoly> list = getLayerObjects();
-      if (hasWed()) {
-        WedResource wed = getWed();
-        SectionOffset so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_DOORS);
-        SectionCount sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_DOORS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          List<StructEntry> listStruct = getStructures(ofs, count, Door.class);
-          for (int i = 0, size = listStruct.size(); i < size; i++) {
-            LayerObjectDoorPoly obj = new LayerObjectDoorPoly(wed, (Door)listStruct.get(i));
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
-        }
-      }
-      return list.size();
-    }
-    return 0;
+    loadLayerItems(WED_OFFSET_DOORS, WED_NUM_DOORS,
+                   Door.class, d -> new LayerObjectDoorPoly(parent, d));
   }
 
   @Override
@@ -67,23 +43,19 @@ public class LayerDoorPoly extends BasicLayer<LayerObjectDoorPoly>
   public void setLayerVisible(boolean visible)
   {
     setVisibilityState(visible);
-    List<LayerObjectDoorPoly> list = getLayerObjects();
-    if (list != null) {
-      for (int i = 0, size = list.size(); i < size; i++) {
-        LayerObjectDoorPoly obj = list.get(i);
-        // processing open door items
-        AbstractLayerItem[] items = obj.getLayerItems(ViewerConstants.DOOR_OPEN);
-        if (items != null) {
-          for (int j = 0; j < items.length; j++) {
-            items[j].setVisible(isLayerVisible() && !doorClosed);
-          }
+    for (final LayerObjectDoorPoly obj : getLayerObjects()) {
+      // processing open door items
+      AbstractLayerItem[] items = obj.getLayerItems(ViewerConstants.DOOR_OPEN);
+      if (items != null) {
+        for (final AbstractLayerItem item : items) {
+          item.setVisible(isLayerVisible() && !doorClosed);
         }
-        // processing open door items
-        items = obj.getLayerItems(ViewerConstants.DOOR_CLOSED);
-        if (items != null) {
-          for (int j = 0; j < items.length; j++) {
-            items[j].setVisible(isLayerVisible() && doorClosed);
-          }
+      }
+      // processing open door items
+      items = obj.getLayerItems(ViewerConstants.DOOR_CLOSED);
+      if (items != null) {
+        for (final AbstractLayerItem item : items) {
+          item.setVisible(isLayerVisible() && doorClosed);
         }
       }
     }
