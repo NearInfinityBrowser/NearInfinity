@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity;
@@ -12,6 +12,7 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.KeyboardFocusManager;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
@@ -289,10 +290,12 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     globalFontSize = Math.max(50, Math.min(400, prefs.getInt(OPTION_GLOBAL_FONT_SIZE, 100)));
     resizeUIFont(globalFontSize);
 
-    new BrowserMenuBar();
-    setJMenuBar(BrowserMenuBar.getInstance());
+    final BrowserMenuBar menu = new BrowserMenuBar();
+    // Registers menu as key event dispatcher to intercept Ctrl+Shift+D from any window
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(menu);
+    setJMenuBar(menu);
 
-    String lastDir = null;
+    final String lastDir;
     if (gameOverride != null && Files.isDirectory(gameOverride)) {
       lastDir = gameOverride.toString();
     } else {
@@ -1117,4 +1120,3 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     }
   }
 }
-
