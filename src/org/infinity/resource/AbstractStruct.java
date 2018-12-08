@@ -601,24 +601,30 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   /**
    * Returns the lowest-level structure of the given type, located at the specified offset.
+   *
    * @param offset The offset of the structure to find.
    * @param type The type of structure to find.
+   * @param <T> The static type of structure to find.
+   *
    * @return The matching structure, or null if not found.
    */
-  public StructEntry getAttribute(int offset, Class<? extends StructEntry> type)
+  public <T extends StructEntry> T getAttribute(int offset, Class<T> type)
   {
     return getAttribute(this, offset, type, true);
   }
 
   /**
    * Returns the structure of the given type, located at the specified offset.
+   *
    * @param offset The offset of the structure to find.
    * @param type The type of structure to find.
    * @param recursive If true, returns the lowest-level structure at the specified offset.
    *                  If false, returns the first-level structure at the specified offset.
+   * @param <T> The static type of structure to find.
+   *
    * @return The matching structure, or null if not found.
    */
-  public StructEntry getAttribute(int offset, Class<? extends StructEntry> type, boolean recursive)
+  public <T extends StructEntry> T getAttribute(int offset, Class<T> type, boolean recursive)
   {
     return getAttribute(this, offset, type, recursive);
   }
@@ -645,40 +651,47 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return getAttribute(this, ename, recursive);
   }
 
-  private StructEntry getAttribute(AbstractStruct parent, int offset, Class<? extends StructEntry> type,
-                                   boolean recursive)
+  private static <T extends StructEntry> T getAttribute(AbstractStruct parent, int offset,
+                                                        Class<T> type, boolean recursive)
   {
-    if (parent == null) parent = this;
-    if (type == null) type = StructEntry.class;
+    for (final StructEntry field : parent.getList()) {
+      final int off = field.getOffset();
+      T result = null;
+      if (offset >= off && offset < off + field.getSize() && type.isInstance(field)) {
+        // Do not return immidiatly - first try to find the same class lower on hierarchy
+        result = type.cast(field);
+      }
 
-    for (int i = 0, count = parent.getFieldCount(); i < count; i++) {
-      StructEntry structEntry = parent.getField(i);
-      if (offset >= structEntry.getOffset() &&
-          offset < structEntry.getOffset() + structEntry.getSize()) {
-        if (recursive && structEntry instanceof AbstractStruct) {
-          return getAttribute((AbstractStruct)structEntry, offset, type, recursive);
-        } else if (type.isInstance(structEntry)) {
-          return structEntry;
+      if (recursive && field instanceof AbstractStruct) {
+        final T result2 = getAttribute((AbstractStruct)field, offset, type, recursive);
+        if (result2 != null) {
+          return result2;
         }
+      }
+      if (result != null) {
+        return result;
       }
     }
     return null;
   }
 
-  private StructEntry getAttribute(AbstractStruct parent, String name, boolean recursive)
+  private static StructEntry getAttribute(AbstractStruct parent, String name, boolean recursive)
   {
     if (name != null && !name.isEmpty()) {
-      if (parent == null) parent = this;
-
-      for (int i = 0, count = parent.getFieldCount(); i < count; i++) {
-        StructEntry structEntry = parent.getField(i);
-        if (structEntry.getName().equals(name)) {
-          return structEntry;
-        } else if (recursive && structEntry instanceof AbstractStruct) {
-          structEntry = getAttribute((AbstractStruct)structEntry, name, recursive);
-          if (structEntry != null) {
-            return structEntry;
+      for (StructEntry field : parent.getList()) {
+        StructEntry result = null;
+        if (field.getName().equals(name)) {
+          // Do not return immidiatly - first try to find the same class lower on hierarchy
+          result = field;
+        }
+        if (recursive && field instanceof AbstractStruct) {
+          field = getAttribute((AbstractStruct)field, name, recursive);
+          if (field != null) {
+            return field;
           }
+        }
+        if (result != null) {
+          return result;
         }
       }
     }
