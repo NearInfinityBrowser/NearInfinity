@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -12,6 +12,7 @@ import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Supplier;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -26,7 +27,7 @@ import org.infinity.resource.Closeable;
 
 public class ChildFrame extends JFrame
 {
-  private static final List<ChildFrame> windows = new ArrayList<ChildFrame>();
+  private static final List<ChildFrame> windows = new ArrayList<>();
   private final boolean closeOnInvisible;
 
   public static void closeWindow(Class<ChildFrame> frameClass)
@@ -57,10 +58,9 @@ public class ChildFrame extends JFrame
   public static void closeWindows()
   {
     WindowEvent event = new WindowEvent(NearInfinity.getInstance(), WindowEvent.WINDOW_CLOSING);
-    List<ChildFrame> copy = new ArrayList<ChildFrame>(windows);
+    final List<ChildFrame> copy = new ArrayList<>(windows);
     windows.clear();
-    for (int i = 0; i < copy.size(); i++) {
-      ChildFrame frame = copy.get(i);
+    for (final ChildFrame frame : copy) {
       try {
         frame.windowClosing(true);
         frame.setVisible(false);
@@ -78,31 +78,73 @@ public class ChildFrame extends JFrame
     }
   }
 
-  public static ChildFrame getFirstFrame(Class<? extends ChildFrame> frameClass)
+  /**
+   * Returns first window with specified class or {@code null} if such window do not exist.
+   *
+   * @param frameClass Runtime class of window to find
+   * @param <T> Class of window to find
+   *
+   * @return Finded window or {@code null}
+   */
+  public static <T extends ChildFrame> T getFirstFrame(Class<T> frameClass)
   {
-    for (int i = 0; i < windows.size(); i++) {
-      ChildFrame frame = windows.get(i);
-      if (frame.getClass() == frameClass)
-        return frame;
+    for (final ChildFrame frame : windows) {
+      if (frame.getClass() == frameClass) {
+        return frameClass.cast(frame);
+      }
     }
     return null;
   }
 
-  public static List<ChildFrame> getFrames(Class<? extends ChildFrame> frameClass)
+  /**
+   * Shows first window of specified class. If window do not yet exists, create
+   * it with {@code init} function and then shows.
+   *
+   * @param frameClass Runtime class of window to show
+   * @param init Function that will be called, if window with specified class no not exist
+   * @param <T> Class of window to show
+   *
+   * @return Finded or created window
+   *
+   * @see #setVisible(Class, boolean, Supplier)
+   */
+  public static <T extends ChildFrame> T show(Class<T> frameClass, Supplier<T> init)
   {
-    List<ChildFrame> frames = new ArrayList<ChildFrame>();
-    for (int i = 0; i < windows.size(); i++) {
-      ChildFrame frame = windows.get(i);
-      if (frame.getClass() == frameClass)
-        frames.add(frame);
+    return setVisible(frameClass, true, init);
+  }
+
+  /**
+   * Sets visibility to first window with specified class. If such window do not yet
+   * exist and it need to be show ({@code isVisible == true}) then it created with
+   * {@code init} function. Otherwise nothing is do
+   *
+   * @param frameClass Runtime class of window to show
+   * @param isVisible New visibility of specified window
+   * @param init Function that will be called, if window with specified class no not exist
+   * @param <T> Class of window to show
+   *
+   * @return Finded of created window. May be {@code null} if window do not exist
+   *         and it must be hidden
+   *
+   * @see #show(Class, Supplier)
+   */
+  public static <T extends ChildFrame> T setVisible(Class<T> frameClass, boolean isVisible, Supplier<T> init)
+  {
+    T frame = getFirstFrame(frameClass);
+    if (frame == null && isVisible) {
+      frame = init.get();
     }
-    return frames;
+    if (frame != null) {
+      frame.setVisible(isVisible);
+    }
+    return frame;
   }
 
   public static void updateWindowGUIs()
   {
-    for (int i = 0; i < windows.size(); i++)
-      SwingUtilities.updateComponentTreeUI(windows.get(i));
+    for (final ChildFrame frame : windows) {
+      SwingUtilities.updateComponentTreeUI(frame);
+    }
   }
 
   protected ChildFrame(String title)
@@ -178,4 +220,3 @@ public class ChildFrame extends JFrame
     return true;
   }
 }
-

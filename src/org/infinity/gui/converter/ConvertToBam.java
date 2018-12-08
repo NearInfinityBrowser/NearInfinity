@@ -397,14 +397,8 @@ public class ConvertToBam extends ChildFrame
 
   public ConvertToBam()
   {
-    this(null);
-  }
-
-  public ConvertToBam(ResourceEntry entry)
-  {
     super("Convert image sequence to BAM", true);
     init();
-    framesImportBam(entry);
   }
 
   /**
