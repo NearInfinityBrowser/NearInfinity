@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -26,7 +26,15 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractButton;
@@ -97,10 +105,10 @@ public final class BrowserMenuBar extends JMenuBar
   public static final int RESREF_ONLY = 0, RESREF_REF_NAME = 1, RESREF_NAME_REF = 2;
   public static final int DEFAULT_VIEW = 0, DEFAULT_EDIT = 1;
 
-  // Defines platform-specific shortcut key (e.g. Ctrl on Win/Linux, Meta on Mac)
+  /** Defines platform-specific shortcut key (e.g. Ctrl on Win/Linux, Meta on Mac). */
   private static final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
-  // Name of the child node in the GUI preferences path
+  /** Name of the child node in the GUI preferences path. */
   private static final String PREFS_PROFILES_NODE = "Profiles";
 
   private static BrowserMenuBar menuBar;
@@ -134,7 +142,7 @@ public final class BrowserMenuBar extends JMenuBar
     return item;
   }
 
-  // Returns the main Preferences instance
+  /** Returns the main Preferences instance. */
   private static Preferences getPrefs()
   {
     if (getInstance() != null) {
@@ -144,7 +152,7 @@ public final class BrowserMenuBar extends JMenuBar
     }
   }
 
-  // Returns the Preferences instance for profile-specific settings
+  /** Returns the Preferences instance for profile-specific settings. */
   private static Preferences getPrefsProfiles()
   {
     if (getInstance() != null) {
@@ -188,6 +196,11 @@ public final class BrowserMenuBar extends JMenuBar
   public boolean showTreeSearchNames()
   {
     return optionsMenu.optionTreeSearchNames.isSelected();
+  }
+
+  public boolean highlightOverrided()
+  {
+    return optionsMenu.optionHighlightOverrided.isSelected();
   }
 
   public boolean showMoreCompileWarnings()
@@ -628,7 +641,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
-    // Updates list of bookmark menu items
+    /** Updates list of bookmark menu items. */
     private void updateBookmarkedGames()
     {
       // 1. remove old bookmark items from menu
@@ -655,7 +668,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
-    // Removes the bookmark specified by item index from the list and associated menu
+    /** Removes the bookmark specified by item index from the list and associated menu. */
     private void removeBookmarkedGame(int idx)
     {
       if (idx >= 0 && idx < bookmarkList.size()) {
@@ -678,7 +691,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
-    // Adds the specified bookmark to the list and associated menu
+    /** Adds the specified bookmark to the list and associated menu. */
     private void addBookmarkedGame(int idx, Bookmark bookmark)
     {
       if (idx < 0) {
@@ -703,7 +716,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
-    // Adds or replaces the current game to the bookmark section
+    /** Adds or replaces the current game to the bookmark section. */
     private void addNewBookmark(String name)
     {
       if (name != null) {
@@ -732,7 +745,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
-    // Adds the specified last game entry to the list
+    /** Adds the specified last game entry to the list. */
     private void addLastGame(int idx, RecentGame rg)
     {
       if (rg != null) {
@@ -751,7 +764,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
-    // Removes the specified last game entry from the list
+    /** Removes the specified last game entry from the list. */
     private void removeLastGame(int idx)
     {
       if (idx >= 0 && idx < recentList.size()) {
@@ -1180,7 +1193,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
-    // Opens given file in text editor if file is found in the game's root folder
+    /** Opens given file in text editor if file is found in the game's root folder. */
     private void showTextFile(Component parent, String fileName)
     {
       Path logFile = FileManager.query(Profile.getRootFolders(), fileName);
@@ -1597,11 +1610,11 @@ public final class BrowserMenuBar extends JMenuBar
       new Font(Font.SANS_SERIF, Font.PLAIN, 12), new Font(Font.DIALOG, Font.PLAIN, 12), null};
     private static final String DefaultCharset = "Auto";
     private static final List<String[]> CharsetsUsed = new ArrayList<String[]>();
-    // BCS indentations to use when decompiling (indent, title)
+    /** BCS indentations to use when decompiling (indent, title). */
     private static final String[][] BCSINDENT = { {"  ", "2 Spaces"},
                                                   {"    ", "4 Spaces"},
                                                   {"\t", "Tab"} };
-    // Available color schemes for highlighted BCS format (scheme, title, description)
+    /** Available color schemes for highlighted BCS format (scheme, title, description). */
     private static final String[][] BCSCOLORSCHEME = {
       {InfinityTextArea.SchemeDefault, "Default", "A general-purpose default color scheme"},
       {InfinityTextArea.SchemeDark, "Dark", "A dark scheme based off of Notepad++'s Obsidian theme"},
@@ -1611,7 +1624,7 @@ public final class BrowserMenuBar extends JMenuBar
       {InfinityTextArea.SchemeVs, "Visual Studio", "Mimics Microsoft's Visual Studio color scheme"},
       {InfinityTextArea.SchemeBCS, "BCS Light", "A color scheme which is loosely based on the WeiDU Syntax Highlighter for Notepad++"},
     };
-    // Available color schemes for remaining highlighted formats (scheme, title, description)
+    /** Available color schemes for remaining highlighted formats (scheme, title, description). */
     private static final String[][] COLORSCHEME = {
       {InfinityTextArea.SchemeDefault, "Default", "A general-purpose default color scheme"},
       {InfinityTextArea.SchemeDark, "Dark", "A dark scheme based off of Notepad++'s Obsidian theme"},
@@ -1646,6 +1659,7 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
     private static final String OPTION_KEEPVIEWONCOPY           = "UpdateTreeOnCopy";
     private static final String OPTION_SHOWTREESEARCHNAMES      = "ShowTreeSearchNames";
+    private static final String OPTION_HIGHLIGHT_OVERRIDED      = "HighlightOverrided";
 //    private static final String OPTION_MONITORFILECHANGES       = "MonitorFileChanges";
     private static final String OPTION_SHOWOVERRIDES            = "ShowOverridesIn";
     private static final String OPTION_SHOWRESREF               = "ShowResRef";
@@ -1679,16 +1693,16 @@ public final class BrowserMenuBar extends JMenuBar
     private static final String OPTION_TLK_COLORSCHEME          = "TlkColorScheme";
     private static final String OPTION_WEIDU_SYNTAXHIGHLIGHTING = "WeiDUSyntaxHighlighting";
     private static final String OPTION_WEIDU_COLORSCHEME        = "WeiDUColorScheme";
-    // this preferences key can be used internally to reset incorrectly set default values after a public release
+    /** This preferences key can be used internally to reset incorrectly set default values after a public release. */
     private static final String OPTION_OPTION_FIXED             = "OptionFixedInternal";
 
-    // Mask used for one-time resets of options (kept track of in OPTION_OPTION_FIXED)
+    /** Mask used for one-time resets of options (kept track of in OPTION_OPTION_FIXED). */
     private static final int MASK_OPTION_FIXED_AUTO_INDENT      = 0x00000001;
 
-    // Identifier for autodetected game language
+    /** Identifier for autodetected game language. */
     private static final String LANGUAGE_AUTODETECT             = "Auto";
 
-    private final List<DataRadioButtonMenuItem> lookAndFeel = new ArrayList<DataRadioButtonMenuItem>();
+    private final List<DataRadioButtonMenuItem> lookAndFeel = new ArrayList<>();
 
     private final JRadioButtonMenuItem[] showOverrides = new JRadioButtonMenuItem[3];
     private final JRadioButtonMenuItem[] showResRef = new JRadioButtonMenuItem[3];
@@ -1718,14 +1732,15 @@ public final class BrowserMenuBar extends JMenuBar
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride,
                               optionIgnoreReadErrors, optionCacheOverride, optionShowStrrefs,
                               optionShowHexColored, optionShowUnknownResources,
-                              optionKeepViewOnCopy, optionTreeSearchNames;
+                              optionKeepViewOnCopy, optionTreeSearchNames,
+                              optionHighlightOverrided;
 //                              optionMonitorFileChanges;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
     private String languageDefinition;
     private int optionFixedInternal;
 
-    // Stores available languages in BG(2)EE
+    /** Stores available languages in BG(2)EE. */
     private final HashMap<JRadioButtonMenuItem, String> gameLanguage = new HashMap<JRadioButtonMenuItem, String>();
 
     private OptionsMenu()
@@ -1760,6 +1775,13 @@ public final class BrowserMenuBar extends JMenuBar
       optionTreeSearchNames.setActionCommand("RefreshTree");
       optionTreeSearchNames.addActionListener(NearInfinity.getInstance());
       add(optionTreeSearchNames);
+      optionHighlightOverrided = new JCheckBoxMenuItem("Show Overrided files in bold in Resource Tree", getPrefs().getBoolean(OPTION_HIGHLIGHT_OVERRIDED, true));
+      optionHighlightOverrided.setActionCommand("RefreshTree");
+      optionHighlightOverrided.addActionListener(NearInfinity.getInstance());
+      optionHighlightOverrided.setToolTipText("If checked, files, that contains in game index (.key file) and located "
+              + "in the Override folder, will be shown in bold in the Resource Tree. "
+              + "This setting has no effect if override files shown only in the Override folder");
+      add(optionHighlightOverrided);
 //      optionMonitorFileChanges =
 //          new JCheckBoxMenuItem("Autoupdate resource tree", getPrefs().getBoolean(OPTION_MONITORFILECHANGES, true));
 //      optionMonitorFileChanges.addActionListener(this);
@@ -2134,7 +2156,7 @@ public final class BrowserMenuBar extends JMenuBar
       languageDefinition = getPrefs().get(OPTION_LANGUAGE_GAMES, "");
     }
 
-    // (Re-)creates a list of available TLK languages
+    /** (Re-)creates a list of available TLK languages. */
     private void resetGameLanguage()
     {
       // removing old list of available game languages
@@ -2175,7 +2197,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
-    // Returns the name of the language specified by the given language code
+    /** Returns the name of the language specified by the given language code. */
     private String getDisplayLanguage(String langCode)
     {
       String retVal = langCode;
@@ -2189,7 +2211,7 @@ public final class BrowserMenuBar extends JMenuBar
       return retVal;
     }
 
-    // Initializes and returns a radio button menuitem
+    /** Initializes and returns a radio button menuitem. */
     private JRadioButtonMenuItem createLanguageMenuItem(String code, String name, String tooltip,
                                                         ButtonGroup bg, boolean selected)
     {
@@ -2315,7 +2337,7 @@ public final class BrowserMenuBar extends JMenuBar
       return menu;
     }
 
-    // Returns the menuitem that is associated with the specified string
+    /** Returns the menuitem that is associated with the specified string. */
     private DataRadioButtonMenuItem findCharsetButton(String charset)
     {
       if (bgCharsetButtons != null && charset != null && !charset.isEmpty()) {
@@ -2335,7 +2357,7 @@ public final class BrowserMenuBar extends JMenuBar
       return null;
     }
 
-    // Returns the charset string associated with the currently selected charset menuitem
+    /** Returns the charset string associated with the currently selected charset menuitem. */
     private String getSelectedButtonData()
     {
       Enumeration<AbstractButton> buttonSet = bgCharsetButtons.getElements();
@@ -2353,7 +2375,7 @@ public final class BrowserMenuBar extends JMenuBar
       return DefaultCharset;
     }
 
-    // Attempts to determine the correct charset for the current game
+    /** Attempts to determine the correct charset for the current game. */
     private String charsetName(String charset, boolean detect)
     {
       if (DefaultCharset.equalsIgnoreCase(charset)) {
@@ -2403,6 +2425,7 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
       getPrefs().putBoolean(OPTION_KEEPVIEWONCOPY, optionKeepViewOnCopy.isSelected());
       getPrefs().putBoolean(OPTION_SHOWTREESEARCHNAMES, optionTreeSearchNames.isSelected());
+      getPrefs().putBoolean(OPTION_HIGHLIGHT_OVERRIDED, optionHighlightOverrided.isSelected());
 //      getPrefs().putBoolean(OPTION_MONITORFILECHANGES, optionMonitorFileChanges.isSelected());
       getPrefs().putInt(OPTION_SHOWRESREF, getResRefMode());
       getPrefs().putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
@@ -2454,7 +2477,7 @@ public final class BrowserMenuBar extends JMenuBar
       getPrefs().put(OPTION_LANGUAGE_GAMES, languageDefinition);
     }
 
-    // Returns the (first) index of the selected AbstractButton array
+    /** Returns the (first) index of the selected AbstractButton array. */
     private int getSelectedButtonIndex(AbstractButton[] items, int defaultIndex)
     {
       int retVal = defaultIndex;
@@ -2469,7 +2492,7 @@ public final class BrowserMenuBar extends JMenuBar
       return retVal;
     }
 
-    // Extracts entries of Game/Language pairs from the given argument
+    /** Extracts entries of Game/Language pairs from the given argument. */
     private List<Pair<String>> extractGameLanguages(String definition)
     {
       List<Pair<String>> list = new ArrayList<Pair<String>>();
@@ -2515,7 +2538,7 @@ public final class BrowserMenuBar extends JMenuBar
       return list;
     }
 
-    // Creates a formatted string out of the Game/Language pairs included in the given list
+    /** Creates a formatted string out of the Game/Language pairs included in the given list. */
     private String createGameLanguages(List<Pair<String>> list)
     {
       StringBuilder sb = new StringBuilder();
@@ -2531,7 +2554,7 @@ public final class BrowserMenuBar extends JMenuBar
       return sb.toString();
     }
 
-    // Adds or updates the Game/Language pair in the formatted "definition" string
+    /** Adds or updates the Game/Language pair in the formatted "definition" string. */
     private String updateGameLanguages(String definition, Pair<String> pair)
     {
       List<Pair<String>> list = extractGameLanguages(definition);
@@ -2555,7 +2578,7 @@ public final class BrowserMenuBar extends JMenuBar
       return "";
     }
 
-    // Returns the language definition stored in "definition" for the specified game
+    /** Returns the language definition stored in "definition" for the specified game. */
     private String getGameLanguage(String definition, Profile.Game game)
     {
       if (game != null && game != Profile.Game.Unknown) {
@@ -2571,7 +2594,7 @@ public final class BrowserMenuBar extends JMenuBar
       return LANGUAGE_AUTODETECT;
     }
 
-    // Returns the currently selected game language. Returns empty string on autodetect.
+    /** Returns the currently selected game language. Returns empty string on autodetect. */
     private String getSelectedGameLanguage()
     {
       String lang = getGameLanguage(languageDefinition, Profile.getGame());
@@ -2579,7 +2602,7 @@ public final class BrowserMenuBar extends JMenuBar
     }
 
 
-    // Attempts to switch the game language in Enhanced Edition games
+    /** Attempts to switch the game language in Enhanced Edition games. */
     private void switchGameLanguage(String newLanguage)
     {
       if (newLanguage != null) {
@@ -2640,7 +2663,7 @@ public final class BrowserMenuBar extends JMenuBar
       selectFont[index].setFont(FONTS[index].deriveFont(Misc.getScaledValue(12.0f)));
     }
 
-    // Returns defValue if masked bit is clear or value if masked bit is already set
+    /** Returns defValue if masked bit is clear or value if masked bit is already set. */
     private boolean fixOption(int mask, boolean defValue, boolean value)
     {
       boolean retVal = value;
@@ -2651,7 +2674,7 @@ public final class BrowserMenuBar extends JMenuBar
       return retVal;
     }
 
-    // Returns defValue if masked bit is clear or value if masked bit is already set
+    /** Returns defValue if masked bit is clear or value if masked bit is already set. */
 //    private int fixOption(int mask, int defValue, int value)
 //    {
 //      int retVal = value;
@@ -2662,7 +2685,7 @@ public final class BrowserMenuBar extends JMenuBar
 //      return retVal;
 //    }
 
-    // Returns defValue if masked bit is clear or value if masked bit is already set
+    /** Returns defValue if masked bit is clear or value if masked bit is already set. */
 //    private String fixOption(int mask, String defValue, String value)
 //    {
 //      String retVal = value;
@@ -3284,10 +3307,10 @@ public final class BrowserMenuBar extends JMenuBar
     }
   }
 
-  // Manages bookmarked game entries
+  /** Manages bookmarked game entries. */
   static final class Bookmark implements Cloneable
   {
-    // "Bookmarks" preferences entries (numbers are 1-based)
+    /** "Bookmarks" preferences entries (numbers are 1-based). */
     private static final String BOOKMARK_NUM_ENTRIES  = "BookmarkEntries";
     private static final String FMT_BOOKMARK_NAME     = "BookmarkName%d";
     private static final String FMT_BOOKMARK_ID       = "BookmarkID%d";
@@ -3371,7 +3394,7 @@ public final class BrowserMenuBar extends JMenuBar
       }
     }
 
-    // Creates or updates associated menu item
+    /** Creates or updates associated menu item. */
     private void updateMenuItem()
     {
       if (item == null) {
@@ -3430,10 +3453,10 @@ public final class BrowserMenuBar extends JMenuBar
     }
   }
 
-  // Manages individual "Recently used games" entries
+  /** Manages individual "Recently used games" entries. */
   static final class RecentGame implements Cloneable
   {
-    // "Recently opened games" preferences entries (numbers are 1-based)
+    /** "Recently opened games" preferences entries (numbers are 1-based). */
     private static final int MAX_LASTGAME_ENTRIES = 10;
     private static final String FMT_LASTGAME_IDS  = "LastGameID%d";
     private static final String FMT_LASTGAME_PATH = "LastGamePath%d";
