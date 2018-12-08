@@ -736,18 +736,15 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                            selected instanceof AbstractCode));
       miToInt.setEnabled(isDataType && isReadable &&
                          (selected instanceof Datatype && ((Datatype)selected).getSize() <= 4) &&
-                         !(selected instanceof DecNumber ||
+                         !(selected instanceof SectionCount ||
+                           selected instanceof SectionOffset ||
                            selected instanceof AbstractCode));
-      if (!miToInt.isEnabled() && !className.endsWith(".DecNumber")) {
-        miToInt.setEnabled(true);
-      }
       miToHexInt.setEnabled(isDataType && isReadable &&
                             (selected instanceof Datatype && ((Datatype)selected).getSize() <= 4) &&
-                            !(selected instanceof DecNumber ||
+                            !(selected instanceof HexNumber ||
+                              selected instanceof SectionCount ||
+                              selected instanceof SectionOffset ||
                               selected instanceof AbstractCode));
-      if (!miToHexInt.isEnabled() && !className.endsWith(".HexNumber")) {
-        miToHexInt.setEnabled(true);
-      }
       miToFlags.setEnabled(isDataType && isReadable &&
                            (selected instanceof Datatype && ((Datatype)selected).getSize() <= 4) &&
                            !(selected instanceof Flag ||
