@@ -7,6 +7,7 @@ package org.infinity.datatype;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import static java.awt.event.ActionEvent.ACTION_PERFORMED;
@@ -23,6 +24,8 @@ import java.util.List;
 import java.util.ListIterator;
 
 import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -37,13 +40,16 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
+import org.infinity.NearInfinity;
 import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
 import org.infinity.gui.RenderCanvas;
-import org.infinity.gui.StructViewer;
+import org.infinity.gui.StringEditor;
 import static org.infinity.gui.StructViewer.UPDATE_VALUE;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.hexview.GenericHexViewer;
+import org.infinity.gui.hexview.MenuCreator;
+import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -89,6 +95,8 @@ import tv.porst.jhexview.SimpleDataProvider;
  */
 public final class Bestiary extends Datatype implements Editable, TableModel
 {
+  /** Name of file with description of creatures. */
+  private static final String BEAST_INI = "beast.ini";
   /**
    * This string reference used as category title when bestiary not contains any
    * NPC creatures (at start of game).
@@ -124,15 +132,15 @@ public final class Bestiary extends Datatype implements Editable, TableModel
   private static final class Creature
   {
     /** String reference to talk table with brief name of the creature. */
-    private final int nameStrRef;
+    final int nameStrRef;
     /** String reference to talk table with description of the creature. */
-    private final int descStrRef;
+    final int descStrRef;
     /** Category of creature that determines, at which section in the Bestiary creature will appears. */
     private final Category category;
     /** Resource reference with name like {@code JR...KN.BMP} with image of the creature. */
-    private final String imageResRef;
+    final String imageResRef;
     /** Variable that used to count killed creatures of this type. */
-    private final String killVarName;
+    final String killVarName;
 
     enum Category
     {
@@ -192,9 +200,13 @@ public final class Bestiary extends Datatype implements Editable, TableModel
     /** Translates string reference of detail description to string with description. */
     public String getDesc() { return StringTable.getStringRef(descStrRef); }
     public boolean isParty() { return category == Category.PARTY; }
+    public ResourceEntry getImageEntry()
+    {
+      return ResourceFactory.getResourceEntry(imageResRef + ".bmp");
+    }
     public Image getImage()
     {
-      final ResourceEntry entry = ResourceFactory.getResourceEntry(imageResRef + ".bmp");
+      final ResourceEntry entry = getImageEntry();
       if (entry == null) { return null; }
 
       final Resource resource = ResourceFactory.getResource(entry);
@@ -274,10 +286,18 @@ public final class Bestiary extends Datatype implements Editable, TableModel
   private final class Viewer extends JSplitPane implements ListSelectionListener,
                                                            TableModelListener,
                                                            MouseListener,
+                                                           ActionListener,
                                                            IDataChangedListener,
                                                            IHexViewListener,
                                                            IColormap
   {
+    private static final String OPEN_VAR = "Edit Kill variable%s";
+    private static final String GOTO_VAR = "Go to Kill variable%s";
+    private static final String OPEN_IMG = "Edit Image%s";
+    private static final String GOTO_IMG = "Go to Image%s";
+    private static final String EDIT_NAME = "Edit creature name%s";
+    private static final String EDIT_DESC = "Edit creature description%s";
+
     /** Canvas used to draw creature image in editor. */
     private final RenderCanvas image = new RenderCanvas();
     /** Text area that contains description of the creature. */
@@ -286,6 +306,23 @@ public final class Bestiary extends Datatype implements Editable, TableModel
     private final JTable table;
     /** Object which requested the editor and is interested in events about its updating. */
     private final ActionListener container;
+    /** Context menu for table element or byte in HEX view tab. */
+    private final JPopupMenu contextMenu = new JPopupMenu();
+    /** Context menu item used to open new window with Kill Variable structure. */
+    private final JMenuItem openVar = new JMenuItem();
+    /** Context menu item used to select Kill Variable in the parent structure. */
+    private final JMenuItem gotoVar = new JMenuItem();
+    /** Context menu item used to open new window with image editor. */
+    private final JMenuItem openImg = new JMenuItem();
+    /** Context menu item used to select image in the resource tree. */
+    private final JMenuItem gotoImg = new JMenuItem();
+    /** Context menu item used to open editor for name TLK entry. */
+    private final JMenuItem editName = new JMenuItem();
+    /** Context menu item used to open editor for description TLK entry. */
+    private final JMenuItem editDesc = new JMenuItem();
+    /** Context menu item used to open {@code "beast.ini"} file. */
+    private final JMenuItem beastIni = new JMenuItem(String.format("Open \"%s\"", BEAST_INI),
+                                                     Icons.getIcon(Icons.ICON_EDIT_16));
 
     public Viewer(ActionListener container)
     {
@@ -359,6 +396,23 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       table.setDefaultRenderer(Object.class, renderer);
       table.setDefaultRenderer(Integer.class, renderer);
 
+      openVar.addActionListener(this);
+      gotoVar.addActionListener(this);
+      openImg.addActionListener(this);
+      gotoImg.addActionListener(this);
+      editName.addActionListener(this);
+      editDesc.addActionListener(this);
+      beastIni.addActionListener(this);
+
+      // Leave bold only first item - that is activated by double click on row
+      final Font plain = gotoVar.getFont().deriveFont(Font.PLAIN);
+      gotoVar.setFont(plain);
+      openImg.setFont(plain);
+      gotoImg.setFont(plain);
+      editName.setFont(plain);
+      editDesc.setFont(plain);
+      beastIni.setFont(plain);
+
       final SimpleDataProvider provider = new SimpleDataProvider(known);
       provider.addListener(this);
       GenericHexViewer.configureHexView(hex, true);
@@ -366,6 +420,16 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       hex.setData(provider);
       hex.setColormap(this);
       hex.addHexListener(this);
+      hex.setMenuCreator(new MenuCreator(hex) {
+        @Override
+        public JPopupMenu createMenu(long offset)
+        {
+          final JPopupMenu menu = super.createMenu(offset);
+          setupPopup(menu, (int)offset);
+          menu.add(new JPopupMenu.Separator(), 7);
+          return menu;
+        }
+      });
       // Because StructViewer not stretch his components, set infinity preferred size
       setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     }
@@ -417,16 +481,66 @@ public final class Bestiary extends Datatype implements Editable, TableModel
     }
 
     @Override
-    public void mousePressed(MouseEvent e) {}
+    public void mousePressed(MouseEvent e) { handlePopup(e); }
 
     @Override
-    public void mouseReleased(MouseEvent e) {}
+    public void mouseReleased(MouseEvent e) { handlePopup(e); }
 
     @Override
     public void mouseEntered(MouseEvent e) {}
 
     @Override
     public void mouseExited(MouseEvent e) {}
+    //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+      final JMenuItem src = (JMenuItem)e.getSource();
+      final int row = table.getSelectedRow();
+      if (src == beastIni) {
+        final Resource resource = ResourceFactory.getResource(getBeastsEntry());
+        if (resource != null) {
+          new ViewFrame(this, resource);
+        }
+      } else
+      if (row >= 0 && row < creatures.size()) {
+        final GamResource game = (GamResource)Bestiary.this.getParent();
+        final Creature creature = creatures.get(row);
+        if (src == openVar) {
+          final KillVariable var = creature.findVariable(game);
+          if (var != null) {
+            new ViewFrame(this, var);
+          }
+        } else
+        if (src == gotoVar) {
+          final KillVariable var = creature.findVariable(game);
+          if (var != null) {
+            game.getViewer().selectEntry(var.getName());
+          }
+        } else
+        if (src == openImg) {
+          final ResourceEntry entry = creature.getImageEntry();
+          final Resource resource = entry == null ? null : ResourceFactory.getResource(entry);
+          if (resource != null) {
+            new ViewFrame(this, resource);
+          }
+        } else
+        if (src == gotoImg) {
+          final ResourceEntry entry = creature.getImageEntry();
+          if (entry != null) {
+            NearInfinity.getInstance().showResourceEntry(entry);
+          }
+        } else
+        if (src == editName) {
+          StringEditor.edit(creature.nameStrRef);
+        } else
+        if (src == editDesc) {
+          StringEditor.edit(creature.descStrRef);
+        }
+      }
+    }
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="IDataChangedListener">
@@ -469,6 +583,65 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       return value == 0 ? Color.GRAY : null;
     }
     //</editor-fold>
+
+    /**
+     * Setup context menu and show it for table.
+     *
+     * @param e Event that probably generates context menu
+     */
+    private void handlePopup(MouseEvent e)
+    {
+      if (e.isPopupTrigger()) {
+        final int row = table.rowAtPoint(e.getPoint());
+        if (row >= 0) {
+          table.getSelectionModel().setSelectionInterval(row, row);
+          setupPopup(contextMenu, row);
+          contextMenu.show(table, e.getX(), e.getY());
+        }
+      }
+    }
+
+    /**
+     * Setup availability and names of the context menu items for specified creature.
+     *
+     * @param menu Context menu under which place items
+     * @param index Index of the creature for which menu is shown
+     */
+    private void setupPopup(JPopupMenu menu, int index)
+    {
+      menu.add(openVar, 0);
+      menu.add(gotoVar, 1);
+      menu.add(openImg, 2);
+      menu.add(gotoImg, 3);
+      menu.add(editName, 4);
+      menu.add(editDesc, 5);
+      menu.add(beastIni, 6);
+
+      final Creature cre = index >= 0 && index < creatures.size() ? creatures.get(index) : null;
+      final boolean hasVar = cre != null && cre.killVarName != null;
+      final boolean hasImg = cre != null && cre.imageResRef != null;
+      final boolean hasName = cre != null && cre.nameStrRef >= 0;
+      final boolean hasDesc = cre != null && cre.descStrRef >= 0;
+
+      openVar.setEnabled(hasVar);
+      gotoVar.setEnabled(hasVar);
+      openImg.setEnabled(hasImg);
+      gotoImg.setEnabled(hasImg);
+      editName.setEnabled(hasName);
+      editDesc.setEnabled(hasDesc);
+
+      final String varName = hasVar ? " \"" + cre.killVarName + '"' : "";
+      final String imgName = hasImg ? " \"" + cre.imageResRef + '"' : "";
+      final String nameRef = hasName ? " (" + cre.nameStrRef  + ')' : "";
+      final String descRef = hasDesc ? " (" + cre.descStrRef  + ')' : "";
+
+      openVar.setText(String.format(OPEN_VAR, varName));
+      gotoVar.setText(String.format(GOTO_VAR, varName));
+      openImg.setText(String.format(OPEN_IMG, imgName));
+      gotoImg.setText(String.format(GOTO_IMG, imgName));
+      editName.setText(String.format(EDIT_NAME, nameRef));
+      editDesc.setText(String.format(EDIT_DESC, descRef));
+    }
   }
 
   public Bestiary(ByteBuffer buffer, int offset, String name)
@@ -659,7 +832,17 @@ public final class Bestiary extends Datatype implements Editable, TableModel
   }
 
   /**
-   * Read all creatures from {@code "beast.ini"} file in game root. File can contain
+   * Returns resource entry from which creatures will be read.
+   * @return Pointer to resource with creatures in the bestiary. Never {@code null}
+   */
+  private static ResourceEntry getBeastsEntry()
+  {
+    final Path beast = Profile.getGameRoot().resolve(BEAST_INI);
+    return new FileResourceEntry(beast);
+  }
+
+  /**
+   * Read all creatures from {@link #BEAST_INI} file in game root. File can contain
    * creatures with numbers in range {@code [0; 256]}, all creatures with other
    * numbers will be skipped and log message will be writed to the {@link System#err
    * standard error stream}.
@@ -669,9 +852,8 @@ public final class Bestiary extends Datatype implements Editable, TableModel
    */
   private static List<Creature> readCreatures()
   {
-    final String filename = "beast.ini";
-    final Path beast = Profile.getGameRoot().resolve(filename);
-    return readCreatures(filename, IniMapCache.get(new FileResourceEntry(beast)));
+    final ResourceEntry entry = getBeastsEntry();
+    return readCreatures(entry.getResourceName(), IniMapCache.get(entry));
   }
 
   /**
