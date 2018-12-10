@@ -786,7 +786,10 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
           // processing tiles
           final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BOTTOM_LEFT_RULE;
           final int pageDim = 16;   // 16 tiles a 64x64 pixels
-          int tisWidth = tileGrid.getTileColumns();
+          int tisWidth = 1;
+          if (ovl != null) {
+            tisWidth = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
+          }
           int tisHeight = (numTiles+tisWidth-1) / tisWidth;
           int numTilesPrimary = numTiles;
           if (ovl != null) {

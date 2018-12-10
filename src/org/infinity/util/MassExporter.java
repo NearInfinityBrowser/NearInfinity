@@ -79,9 +79,9 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private static final String TYPES[] = {"2DA", "ARE", "BAM", "BCS", "BS", "BIO", "BMP",
                                          "CHU", "CHR", "CRE", "DLG", "EFF", "FNT", "GAM",
                                          "GLSL", "GUI", "IDS", "INI", "ITM", "LUA", "MENU",
-                                         "MOS", "MVE", "PLT", "PNG", "PRO", "PVRZ", "SPL",
-                                         "SQL", "SRC", "STO", "TIS", "TOH", "TOT", "TTF",
-                                         "VEF", "VVC", "WAV", "WBM", "WED", "WFX", "WMP"};
+                                         "MOS", "MVE", "PLT", "PNG", "PRO", "PVRZ", "RES",
+                                         "SPL", "SQL", "SRC", "STO", "TIS", "TOH", "TOT",
+                                         "TTF", "VEF", "VVC", "WAV", "WBM", "WED", "WFX", "WMP"};
   private final JButton bExport = new JButton("Export", Icons.getIcon(Icons.ICON_EXPORT_16));
   private final JButton bCancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
   private final JButton bDirectory = new JButton(Icons.getIcon(Icons.ICON_OPEN_16));
@@ -578,24 +578,25 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private void exportResource(ResourceEntry entry, Path output) throws Exception
   {
     if (entry != null && output != null) {
-      try (InputStream is = entry.getResourceDataAsStream()) {
-        int[] info = entry.getResourceInfo();
-        int size = info[0];
-        if (info.length > 1) {
-          size = size*info[1] + 0x18;
-        }
-        boolean isTis = (info.length > 1);
-        boolean isTisV2 = isTis && (info[1] == 0x0c);
+      System.err.println("Converting " + entry.toString());
+      int[] info = entry.getResourceInfo();
+      int size = info[0];
+      if (info.length > 1) {
+        size = size*info[1] + 0x18;
+      }
+      boolean isTis = (info.length > 1);
+      boolean isTisV2 = isTis && (info[1] == 0x0c);
 
-        if (isTis && cbConvertTisVersion.isSelected() &&
-            isTisV2 == false && cbConvertTisList.getSelectedIndex() == 1) {
-          TisResource tis = new TisResource(entry);
-          tis.convertToPvrzTis(TisResource.makeTisFileNameValid(output), false);
-        } else if (isTis && cbConvertTisVersion.isSelected() &&
-                   isTisV2 == true && cbConvertTisList.getSelectedIndex() == 0) {
-          TisResource tis = new TisResource(entry);
-          tis.convertToPaletteTis(output, false);
-        } else if (size >= 0) {
+      if (isTis && cbConvertTisVersion.isSelected() &&
+          isTisV2 == false && cbConvertTisList.getSelectedIndex() == 1) {
+        TisResource tis = new TisResource(entry);
+        tis.convertToPvrzTis(TisResource.makeTisFileNameValid(output), false);
+      } else if (isTis && cbConvertTisVersion.isSelected() &&
+                 isTisV2 == true && cbConvertTisList.getSelectedIndex() == 0) {
+        TisResource tis = new TisResource(entry);
+        tis.convertToPaletteTis(output, false);
+      } else if (size >= 0) {
+        try (InputStream is = entry.getResourceDataAsStream()) {
           // Keep trying. File may be in use by another thread.
           try (OutputStream os = tryOpenOutputStream(output, 10, 100)) {
             int bytesWritten = (int)StreamUtils.writeBytes(os, is, size);
@@ -621,12 +622,6 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
            entry.getExtension().equalsIgnoreCase("BIO") ||
            entry.getExtension().equalsIgnoreCase("RES") ||
            entry.getExtension().equalsIgnoreCase("INI") ||
-           entry.getExtension().equalsIgnoreCase("SET") ||
-           entry.getExtension().equalsIgnoreCase("WOK") ||
-           entry.getExtension().equalsIgnoreCase("TXI") ||
-           entry.getExtension().equalsIgnoreCase("DWK") ||
-           entry.getExtension().equalsIgnoreCase("PWK") ||
-           entry.getExtension().equalsIgnoreCase("NSS") ||
            entry.getExtension().equalsIgnoreCase("TXT") ||
            (Profile.isEnhancedEdition() &&
                (entry.getExtension().equalsIgnoreCase("GLSL") ||
