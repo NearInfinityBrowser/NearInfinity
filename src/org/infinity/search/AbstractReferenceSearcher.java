@@ -30,8 +30,8 @@ import org.infinity.resource.key.ResourceEntry;
 abstract class AbstractReferenceSearcher extends AbstractSearcher implements Runnable, ActionListener
 {
   protected static final String[] FILE_TYPES = {"2DA", "ARE", "BCS", "CHR", "CHU", "CRE", "DLG",
-                                                "EFF", "GAM", "INI", "ITM", "PRO", "SAV", "SPL",
-                                                "STO", "VEF", "VVC", "WED", "WMP"};
+                                                "EFF", "GAM", "INI", "ITM", "MENU", "PRO", "SAV",
+                                                "SPL", "STO", "VEF", "VVC", "WED", "WMP"};
 
   /** Searched entry. */
   protected final ResourceEntry targetEntry;
@@ -207,8 +207,8 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
     } else if ("ARE".equalsIgnoreCase(ext)) {
       selectedExt = new String[]{"2DA", "BCS", "DLG", "GAM", "WMP"};
     } else if ("BAM".equalsIgnoreCase(ext)) {
-      selectedExt = new String[]{"2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF",
-                                 "GAM", "INI", "ITM", "PRO", "SPL", "VEF", "VVC", "WMP"};
+      selectedExt = new String[]{"2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF", "GAM",
+                                 "INI", "ITM", "MENU", "PRO", "SPL", "VEF", "VVC", "WMP"};
     } else if ("BMP".equalsIgnoreCase(ext)) {
       selectedExt = new String[]{"2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF", "GAM",
                                  "INI", "ITM", "PRO", "SPL", "VEF", "VVC"};
@@ -224,13 +224,13 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
       selectedExt = new String[]{"2DA", "ARE", "BCS", "CRE", "DLG", "EFF", "GAM", "ITM",
                                  "SPL", "STO"};
     } else if ("MOS".equalsIgnoreCase(ext)) {
-      selectedExt = new String[]{"2DA", "ARE", "BCS", "CHU", "DLG", "WMP"};
+      selectedExt = new String[]{"2DA", "ARE", "BCS", "CHU", "DLG", "MENU", "WMP"};
     } else if ("MVE".equalsIgnoreCase(ext) || "WBM".equalsIgnoreCase(ext)) {
       selectedExt = new String[]{"ARE", "BCS", "CRE", "DLG", "EFF", "GAM", "ITM", "SPL"};
     } else if ("PNG".equalsIgnoreCase(ext)) {
       // TODO: confirm!
       selectedExt = new String[]{"2DA", "ARE", "BCS", "CHU", "CRE", "DLG", "EFF", "GAM",
-                                 "INI", "ITM", "PRO", "SPL", "VEF", "VVC"};
+                                 "INI", "ITM", "MENU", "PRO", "SPL", "VEF", "VVC"};
     } else if ("PRO".equalsIgnoreCase(ext)) {
       selectedExt = new String[]{"ARE", "CRE", "EFF", "GAM", "ITM", "SPL"};
     } else if ("PVRZ".equalsIgnoreCase(ext)) {
