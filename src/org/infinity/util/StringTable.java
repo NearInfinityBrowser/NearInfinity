@@ -15,6 +15,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.DecNumber;
@@ -63,6 +64,9 @@ public class StringTable
   public static final short FLAGS_HAS_TOKEN = 0x04;
   /** The default flags value includes all supported bits */
   public static final short FLAGS_DEFAULT   = 0x07;
+
+  /** Strref start index for virtual strings referenced by ENGINEST.2DA (EE only) */
+  public static final int STRREF_VIRTUAL = 0xf00000;
 
   private static final EnumMap<Type, StringTable> TLK_TABLE = new EnumMap<>(Type.class);
   private static final EnumMap<Format, String> FORMAT = new EnumMap<>(Format.class);
@@ -254,6 +258,16 @@ public class StringTable
     return instance(type)._getLanguageId();
   }
 
+  /**
+   * Returns whether the specified string reference points to a valid string entry.
+   * @param index The string reference to check.
+   * @return {@code true} if valid, {@code false} otherwise.
+   */
+  public static boolean isValidStringRef(int index)
+  {
+    return (getStringEntry(Type.MALE, index) != StringEntry.INVALID);
+  }
+
   /** Returns number of string entries in male string table. */
   public static int getNumEntries()
   {
@@ -305,6 +319,18 @@ public class StringTable
   public static String getStringRef(Type type, int index, Format fmt) throws IndexOutOfBoundsException
   {
     return instance(type)._getStringRef(index, fmt);
+  }
+
+  /**
+   * Translates virtual string references into real string references.
+   * Returns <pre>index</pre> as is, otherwise.
+   */
+  public static int getTranslatedIndex(int index)
+  {
+    if (index >= STRREF_VIRTUAL) {
+      index = instance(Type.MALE)._getTranslatedIndex(index);
+    }
+    return index;
   }
 
   /**
@@ -950,6 +976,7 @@ public class StringTable
 
 
   private final ArrayList<StringEntry> entries = new ArrayList<>();
+  private final HashMap<Integer, Integer> entriesVirtual = new HashMap<>();
   private final Path tlkPath;
   private final StringTable.Type tlkType;
 
@@ -994,60 +1021,84 @@ public class StringTable
     return entries.size();
   }
 
+  private int _getTranslatedIndex(int index)
+  {
+    if (Profile.isEnhancedEdition() && index >= STRREF_VIRTUAL) {
+      if (entriesVirtual.containsKey(Integer.valueOf(index))) {
+        index = entriesVirtual.get(Integer.valueOf(index)).intValue();
+      } else {
+        final Table2da engineTable = Table2daCache.get("ENGINEST.2DA");
+        int row = index - STRREF_VIRTUAL;
+        if (engineTable != null && row < engineTable.getRowCount()) {
+          try {
+            int strref = Integer.parseInt(engineTable.get(row, 1));
+            entriesVirtual.put(Integer.valueOf(index), Integer.valueOf(strref));
+            index = strref;
+          } catch (NumberFormatException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }
+    return index;
+  }
+
   private String _getStringRef(int index, Format fmt) throws IndexOutOfBoundsException
   {
+    index = _getTranslatedIndex(index);
     StringEntry entry = _getEntry(index);
     return String.format(getFormatString(fmt), entry.getText(), index);
   }
 
   private void _setStringRef(int index, String text) throws IndexOutOfBoundsException
   {
-    _getEntry(index).setText(text);
+    _getEntry(_getTranslatedIndex(index)).setText(text);
   }
 
   private String _getSoundResource(int index) throws IndexOutOfBoundsException
   {
-    return _getEntry(index).getSoundRef();
+    return _getEntry(_getTranslatedIndex(index)).getSoundRef();
   }
 
   private void _setSoundResource(int index, String resRef) throws IndexOutOfBoundsException
   {
-    _getEntry(index).setSoundRef(resRef);
+    _getEntry(_getTranslatedIndex(index)).setSoundRef(resRef);
   }
 
   private short _getFlags(int index) throws IndexOutOfBoundsException
   {
-    return _getEntry(index).getFlags();
+    return _getEntry(_getTranslatedIndex(index)).getFlags();
   }
 
   private void _setFlags(int index, short value) throws IndexOutOfBoundsException
   {
-    _getEntry(index).setFlags(value);
+    _getEntry(_getTranslatedIndex(index)).setFlags(value);
   }
 
   private int _getVolume(int index) throws IndexOutOfBoundsException
   {
-    return _getEntry(index).getVolume();
+    return _getEntry(_getTranslatedIndex(index)).getVolume();
   }
 
   private void _setVolume(int index, int value) throws IndexOutOfBoundsException
   {
-    _getEntry(index).setVolume(value);
+    _getEntry(_getTranslatedIndex(index)).setVolume(value);
   }
 
   private int _getPitch(int index) throws IndexOutOfBoundsException
   {
-    return _getEntry(index).getPitch();
+    return _getEntry(_getTranslatedIndex(index)).getPitch();
   }
 
   private void _setPitch(int index, int value) throws IndexOutOfBoundsException
   {
-    _getEntry(index).setPitch(value);
+    _getEntry(_getTranslatedIndex(index)).setPitch(value);
   }
 
   // Always returns a non-null StringEntry instance
   private StringEntry _getEntry(int index) throws IndexOutOfBoundsException
   {
+    index = _getTranslatedIndex(index);
     _ensureIndexIsLoaded(index);
     StringEntry entry;
     if (index >= 0 && index < entries.size()) {
@@ -1219,6 +1270,7 @@ public class StringTable
   // Makes sure the specified string entry is loaded into memory
   private void _ensureIndexIsLoaded(int index)
   {
+    index = _getTranslatedIndex(index);
     if (entriesPending > 0 && index >= 0 && index < _getNumEntries() && entries.get(index) == null) {
       synchronized (entries) {
         try (FileChannel ch = _open()) {

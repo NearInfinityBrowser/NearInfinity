@@ -1070,7 +1070,6 @@ public final class Decompiler
         if (type.equals("TLK")) {
           int intValue = (int)value;
           if (isGenerateComments()) {
-//            sb.append(getNormalizedString(StringResource.getStringRef(intValue)));
             sb.append(getNormalizedString(StringTable.getStringRef(intValue)));
           }
           if (isGenerateResourcesUsed()) {

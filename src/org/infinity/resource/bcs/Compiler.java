@@ -830,8 +830,7 @@ public class Compiler
 
   private void checkStrref(long value, ScriptNode node)
   {
-//    if (value < -1 || value >= StringResource.getMaxIndex()) {
-    if (value < -1 || value >= StringTable.getNumEntries()) {
+    if (value != -1 && !StringTable.isValidStringRef((int)value)) {
       warnings.add(new ScriptMessage("String reference is out of range: " + value, node.token));
     }
   }

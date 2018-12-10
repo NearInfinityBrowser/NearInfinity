@@ -134,11 +134,12 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
       if (!frames.isEmpty()) {
         editor = (StringEditor)frames.get(0);
       }
+      int newvalue2 = StringTable.getTranslatedIndex(newvalue);
       if (editor == null) {
-        new StringEditor(newvalue);
+        new StringEditor(newvalue2);
       } else {
         editor.setVisible(true);
-        editor.showEntry(StringTable.Type.MALE, newvalue);
+        editor.showEntry(StringTable.Type.MALE, newvalue2);
       }
     }
     else if (event.getSource() == bPlay) {
