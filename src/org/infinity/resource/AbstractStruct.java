@@ -426,17 +426,25 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     } else if (offsetmap.containsKey(addedEntry.getClass())) {
       int offset = offsetmap.get(addedEntry.getClass()).getValue() + extraoffset;
       int fieldCount = getFieldCount();
+      int extraIndex = 0;
+      while (extraIndex < fieldCount && getField(extraIndex).getOffset() < extraoffset) {
+        extraIndex++;
+      }
       while (index < fieldCount && getField(index).getOffset() < offset) {
         index++;
       }
       while (index < fieldCount && addedEntry.getClass() == (getField(index)).getClass()) {
         index++;
       }
-      if (index == 0) {
+      if (index == extraIndex) {
         SectionOffset soffset = offsetmap.get(addedEntry.getClass());
         if (soffset.getValue() == 0) {
           index = fieldCount;
-          soffset.setValue(getSize());
+          int newOffset = getSize();
+          if (extraIndex > 0) {
+            newOffset -= getField(extraIndex).getOffset();
+          }
+          soffset.setValue(newOffset);
         }
         else
           throw new IllegalArgumentException(
