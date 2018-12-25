@@ -28,7 +28,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
@@ -47,8 +46,6 @@ import org.infinity.gui.RenderCanvas;
 import org.infinity.gui.StringEditor;
 import static org.infinity.gui.StructViewer.UPDATE_VALUE;
 import org.infinity.gui.ViewFrame;
-import org.infinity.gui.hexview.GenericHexViewer;
-import org.infinity.gui.hexview.MenuCreator;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
@@ -67,13 +64,6 @@ import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
 import org.infinity.util.StringTable;
 
-import tv.porst.jhexview.DataChangedEvent;
-import tv.porst.jhexview.HexViewEvent;
-import tv.porst.jhexview.IColormap;
-import tv.porst.jhexview.IDataChangedListener;
-import tv.porst.jhexview.IHexViewListener;
-import tv.porst.jhexview.JHexView;
-import tv.porst.jhexview.SimpleDataProvider;
 
 /**
  * Datatype for {@link GamResource#GAM_BESTIARY Bestiary} field of the
@@ -286,10 +276,7 @@ public final class Bestiary extends Datatype implements Editable, TableModel
   private final class Viewer extends JSplitPane implements ListSelectionListener,
                                                            TableModelListener,
                                                            MouseListener,
-                                                           ActionListener,
-                                                           IDataChangedListener,
-                                                           IHexViewListener,
-                                                           IColormap
+                                                           ActionListener
   {
     private static final String OPEN_VAR = "Edit Kill variable%s";
     private static final String GOTO_VAR = "Go to Kill variable%s";
@@ -329,14 +316,9 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       super();
       this.container = container;
       table = new JTable(Bestiary.this);
-      final JHexView hex = new JHexView();
-
-      final JTabbedPane pane = new JTabbedPane();
-      pane.addTab("Table", new JScrollPane(table));
-      pane.addTab("Raw", hex);
 
       final JSplitPane editor = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-      editor.add(pane, JSplitPane.TOP);
+      editor.add(new JScrollPane(table), JSplitPane.TOP);
       editor.add(new InfinityScrollPane(desc, true), JSplitPane.BOTTOM);
       editor.setResizeWeight(0.8);// 80% - to table, 20% - to description
 
@@ -413,23 +395,14 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       editDesc.setFont(plain);
       beastIni.setFont(plain);
 
-      final SimpleDataProvider provider = new SimpleDataProvider(known);
-      provider.addListener(this);
-      GenericHexViewer.configureHexView(hex, true);
-      hex.setDefinitionStatus(JHexView.DefinitionStatus.DEFINED);
-      hex.setData(provider);
-      hex.setColormap(this);
-      hex.addHexListener(this);
-      hex.setMenuCreator(new MenuCreator(hex) {
-        @Override
-        public JPopupMenu createMenu(long offset)
-        {
-          final JPopupMenu menu = super.createMenu(offset);
-          setupPopup(menu, (int)offset);
-          menu.add(new JPopupMenu.Separator(), 7);
-          return menu;
-        }
-      });
+      contextMenu.add(openVar);
+      contextMenu.add(gotoVar);
+      contextMenu.add(openImg);
+      contextMenu.add(gotoImg);
+      contextMenu.add(editName);
+      contextMenu.add(editDesc);
+      contextMenu.add(beastIni);
+
       // Because StructViewer not stretch his components, set infinity preferred size
       setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     }
@@ -543,47 +516,6 @@ public final class Bestiary extends Datatype implements Editable, TableModel
     }
     //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="IDataChangedListener">
-    @Override
-    public void dataChanged(DataChangedEvent e)
-    {
-      container.actionPerformed(new ActionEvent(e.getSource(), ACTION_PERFORMED, UPDATE_VALUE));
-    }
-    //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc="IHexViewListener">
-    @Override
-    public void stateChanged(HexViewEvent e)
-    {
-      final int offset = (int)(e.getSelectionStart() / 2);
-      final int length = (int)(e.getSelectionLength()/ 2);
-      table.getSelectionModel().setSelectionInterval(offset, offset + length);
-    }
-    //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc="IColormap">
-    @Override
-    public boolean colorize(byte value, long currentOffset) { return true; }
-
-    @Override
-    public Color getBackgroundColor(byte value, long currentOffset)
-    {
-      if (currentOffset >= creatures.size()) {
-        return UNUSED_COLOR;
-      }
-      if (creatures.get((int)currentOffset).isParty()) {
-        return PARTY_COLOR;
-      }
-      return null;
-    }
-
-    @Override
-    public Color getForegroundColor(byte value, long currentOffset)
-    {
-      return value == 0 ? Color.GRAY : null;
-    }
-    //</editor-fold>
-
     /**
      * Setup context menu and show it for table.
      *
@@ -609,14 +541,6 @@ public final class Bestiary extends Datatype implements Editable, TableModel
      */
     private void setupPopup(JPopupMenu menu, int index)
     {
-      menu.add(openVar, 0);
-      menu.add(gotoVar, 1);
-      menu.add(openImg, 2);
-      menu.add(gotoImg, 3);
-      menu.add(editName, 4);
-      menu.add(editDesc, 5);
-      menu.add(beastIni, 6);
-
       final Creature cre = index >= 0 && index < creatures.size() ? creatures.get(index) : null;
       final boolean hasVar = cre != null && cre.killVarName != null;
       final boolean hasImg = cre != null && cre.imageResRef != null;
