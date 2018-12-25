@@ -6,7 +6,6 @@ package org.infinity.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -79,7 +78,6 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructureFactory;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.resource.text.PlainTextResource;
 import org.infinity.search.DialogSearcher;
 import org.infinity.search.SearchFrame;
 import org.infinity.search.SearchResource;
@@ -268,7 +266,6 @@ public final class BrowserMenuBar extends JMenuBar
   {
     gameMenu.gameLoaded(oldGame, oldFile);
     fileMenu.gameLoaded();
-    editMenu.gameLoaded();
     searchMenu.gameLoaded();
     optionsMenu.gameLoaded();
   }
@@ -1104,7 +1101,7 @@ public final class BrowserMenuBar extends JMenuBar
 
   private static final class EditMenu extends JMenu implements ActionListener
   {
-    private final JMenuItem editString, editBIFF, editVarVar, editIni, editWeiDU, editWeiDUBGEE;
+    private final JMenuItem editString, editBIFF;
 
     private EditMenu()
     {
@@ -1114,51 +1111,11 @@ public final class BrowserMenuBar extends JMenuBar
       editString =
           makeMenuItem("String table", KeyEvent.VK_S, Icons.getIcon(Icons.ICON_EDIT_16), KeyEvent.VK_S, this);
       add(editString);
-      editIni = makeMenuItem("baldur.ini", KeyEvent.VK_I, Icons.getIcon(Icons.ICON_EDIT_16), -1, NearInfinity.getInstance());
-      editIni.setActionCommand("GameIni");
-      add(editIni);
-      editWeiDU = makeMenuItem("WeiDU.log", KeyEvent.VK_W, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
-      add(editWeiDU);
-      editWeiDUBGEE = makeMenuItem("WeiDU-BGEE.log", -1, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
-      editWeiDUBGEE.setVisible(false);
-      add(editWeiDUBGEE);
-      editVarVar = makeMenuItem("Var.var", KeyEvent.VK_V, Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16), -1, this);
-      add(editVarVar);
       // TODO: reactive when fixed
       editBIFF = makeMenuItem("BIFF", KeyEvent.VK_B, Icons.getIcon(Icons.ICON_EDIT_16), KeyEvent.VK_E, this);
       editBIFF.setToolTipText("Temporarily disabled");
       editBIFF.setEnabled(false);
       add(editBIFF);
-    }
-
-    private void gameLoaded()
-    {
-      Path iniFile = Profile.getProperty(Profile.Key.GET_GAME_INI_FILE);
-      if (iniFile != null && Files.isRegularFile(iniFile)) {
-        editIni.setText(iniFile.getFileName().toString());
-        editIni.setEnabled(true);
-        editIni.setToolTipText("Edit " + iniFile.toString());
-      } else {
-        editIni.setText("baldur.ini");
-        editIni.setEnabled(false);
-        editIni.setToolTipText("Ini file not available");
-      }
-
-      Path weiduFile = FileManager.query(Profile.getRootFolders(), "WeiDU.log");
-      editWeiDU.setEnabled(weiduFile != null && Files.isRegularFile(weiduFile));
-      editWeiDUBGEE.setVisible(Profile.getGame() == Profile.Game.EET);
-      if (editWeiDUBGEE.isVisible()) {
-        weiduFile = FileManager.query(Profile.getRootFolders(), "WeiDU-BGEE.log");
-        editWeiDUBGEE.setEnabled(weiduFile != null && Files.isRegularFile(weiduFile));
-      }
-
-      Path varFile = FileManager.query(Profile.getRootFolders(), "VAR.VAR");
-      editVarVar.setEnabled(varFile != null && Files.isRegularFile(varFile));
-      if (editVarVar.isEnabled()) {
-        editVarVar.setToolTipText("");
-      } else {
-        editVarVar.setToolTipText("Only available for Planescape: Torment");
-      }
     }
 
     @Override
@@ -1176,36 +1133,8 @@ public final class BrowserMenuBar extends JMenuBar
           editor.setVisible(true);
         }
       }
-      else if (event.getSource() == editWeiDU) {
-        showTextFile(NearInfinity.getInstance(), "WeiDU.log");
-      }
-      else if (event.getSource() == editWeiDUBGEE) {
-        showTextFile(NearInfinity.getInstance(), "WeiDU-BGEE.log");
-      }
-      else if (event.getSource() == editVarVar) {
-        new ViewFrame(NearInfinity.getInstance(),
-                      ResourceFactory.getResource(
-                              new FileResourceEntry(
-                                  FileManager.queryExisting(Profile.getRootFolders(), "VAR.VAR"))));
-      }
       else if (event.getSource() == editBIFF) {
 //        new BIFFEditor();
-      }
-    }
-
-    /** Opens given file in text editor if file is found in the game's root folder. */
-    private void showTextFile(Component parent, String fileName)
-    {
-      Path logFile = FileManager.query(Profile.getRootFolders(), fileName);
-      try {
-        if (logFile != null && Files.isRegularFile(logFile)) {
-          new ViewFrame(parent, new PlainTextResource(new FileResourceEntry(logFile)));
-        } else {
-          throw new Exception();
-        }
-      } catch (Exception e) {
-        JOptionPane.showMessageDialog(parent, "Cannot open " + fileName + ".",
-                                      "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
   }

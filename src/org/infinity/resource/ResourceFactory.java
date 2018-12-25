@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -98,6 +98,11 @@ import org.infinity.util.io.StreamUtils;
  */
 public final class ResourceFactory implements FileWatchListener
 {
+  /**
+   * Name of tree node that contains important game files that not stored in
+   * the BIF archives or override folders.
+   */
+  private static final String SPECIAL_CATEGORY = "Special";
   private static ResourceFactory instance;
 
   private JFileChooser fc;
@@ -160,6 +165,7 @@ public final class ResourceFactory implements FileWatchListener
       } else if (ext.equalsIgnoreCase("IDS") || ext.equalsIgnoreCase("2DA") ||
                  ext.equalsIgnoreCase("BIO") || ext.equalsIgnoreCase("RES") ||
                  ext.equalsIgnoreCase("INI") || ext.equalsIgnoreCase("TXT") ||
+                 ext.equalsIgnoreCase("LOG") ||// WeiDU log files
                  (ext.equalsIgnoreCase("SRC") && Profile.getEngine() == Profile.Engine.IWD2) ||
                  (Profile.isEnhancedEdition() && (ext.equalsIgnoreCase("SQL") ||
                                                   ext.equalsIgnoreCase("GUI") ||
@@ -1267,7 +1273,7 @@ public final class ResourceFactory implements FileWatchListener
     List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
     extraPaths.forEach((path) -> {
       if (Files.isDirectory(path)) {
-        treeModel.addDirectory((ResourceTreeFolder)treeModel.getRoot(), path, false);
+        treeModel.addDirectory(treeModel.getRoot(), path, false);
       }
     });
 
@@ -1296,7 +1302,54 @@ public final class ResourceFactory implements FileWatchListener
         }
       }
     }
+    loadSpecialResources();
     treeModel.sort();
+  }
+
+  /**
+   * Registers in the resourse tree all special game resources that are not stored
+   * in the override folders or BIF archives
+   *
+   * @param folderName Folder in the resource tree under which register files
+   */
+  private void loadSpecialResources()
+  {
+    final List<Path> roots = Profile.getRootFolders();
+    final Profile.Game game = Profile.getGame();
+    addFileResource(Profile.getProperty(Profile.Key.GET_GAME_INI_FILE));
+    addFileResource(FileManager.query(roots, "Keymap.ini"));// Key shortcuts
+    addFileResource(FileManager.query(roots, "WeiDU.log")); // Installed WeiDU mods
+
+    if (game == Profile.Game.EET) {
+      addFileResource(FileManager.query(roots, "WeiDU-BGEE.log"));
+    } else
+    if (game == Profile.Game.BG2SoA || game == Profile.Game.BG2ToB) {
+      addFileResource(FileManager.query(roots, "Autorun.ini"));
+    } else
+    if (game == Profile.Game.IWD2) {
+      addFileResource(FileManager.query(roots, "Language.ini"));
+      addFileResource(FileManager.query(roots, "Party.ini"));
+    } else
+    if (game == Profile.Game.IWDEE) {
+      addFileResource(FileManager.query(roots, "engine.lua"));
+    } else
+    if (game == Profile.Game.PST || game == Profile.Game.PSTEE) {
+      addFileResource(FileManager.query(roots, "autonote.ini"));
+      addFileResource(FileManager.query(roots, "beast.ini"));// Bestiary
+      addFileResource(FileManager.query(roots, "quests.ini"));
+      addFileResource(FileManager.query(roots, "VAR.VAR"));
+    }
+  }
+  /**
+   * Register specified path as file resource is such path points to regular file
+   *
+   * @param path Path to register
+   */
+  private void addFileResource(Path path)
+  {
+    if (path != null && Files.isRegularFile(path)) {
+      treeModel.addResourceEntry(new FileResourceEntry(path), SPECIAL_CATEGORY, false);
+    }
   }
 
   private List<ResourceEntry> getResourcesInternal(String type, List<Path> extraDirs)
@@ -1304,9 +1357,9 @@ public final class ResourceFactory implements FileWatchListener
     List<ResourceEntry> list;
     ResourceTreeFolder bifNode = treeModel.getFolder(type);
     if (bifNode != null) {
-      list = new ArrayList<ResourceEntry>(bifNode.getResourceEntries());
+      list = new ArrayList<>(bifNode.getResourceEntries());
     } else {
-      list = new ArrayList<ResourceEntry>();
+      list = new ArrayList<>();
     }
     int initsize = list.size();
 
@@ -1320,6 +1373,11 @@ public final class ResourceFactory implements FileWatchListener
         list.addAll(extraNode.getResourceEntries(type));
       }
     });
+    // Include special files
+    final ResourceTreeFolder specialNode = treeModel.getFolder(SPECIAL_CATEGORY);
+    if (specialNode != null) {
+      list.addAll(specialNode.getResourceEntries(type));
+    }
 
     // include override folders
     if (BrowserMenuBar.getInstance() != null && !BrowserMenuBar.getInstance().ignoreOverrides()) {
