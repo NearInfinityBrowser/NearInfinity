@@ -76,6 +76,7 @@ import org.infinity.gui.converter.ConvertToPvrz;
 import org.infinity.gui.converter.ConvertToTis;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.IconCache;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
@@ -436,6 +437,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     return optionsMenu.getDefaultStructView();
   }
 
+  public ShowItemIcons getShowItemIcons()
+  {
+    return optionsMenu.getShowItemIcons();
+  }
+
   public LookAndFeelInfo getLookAndFeel()
   {
     return optionsMenu.getLookAndFeel();
@@ -592,6 +598,44 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     return null;
   }
   //</editor-fold>
+  /**
+   * Creates menu with variants from specified enumeration.
+   *
+   * @param <T> Type of enum from which get available variants
+   * @param parent Parent menu in which new menu group will be created
+   * @param title Title for menu group
+   * @param optionName Name of option and also {@link AbstractButton#setActionCommand
+   *        ActionCommand} for items
+   * @param def Default value for setting used, if value of setting missing in the
+   *        preferences. Must not be {@code null}
+   * @param listener If not {@code null}, all menu items add this as listener
+   *
+   * @return Array with created items. Size of array is equal to count of enumeration items
+   */
+  static <T extends Enum<T>> DataRadioButtonMenuItem[] createMenu(JMenu parent,
+          String title, String optionName, T def, ActionListener listener)
+  {
+    final JMenu menu = new JMenu(title);
+    final int selected = getPrefs().getInt(optionName, def.ordinal());
+    final ButtonGroup bg = new ButtonGroup();
+
+    final T[] values = def.getDeclaringClass().getEnumConstants();
+    final DataRadioButtonMenuItem[] result = new DataRadioButtonMenuItem[values.length];
+    int i = 0;
+    for (final T e : values) {
+      final DataRadioButtonMenuItem item = new DataRadioButtonMenuItem(e.toString(), e.ordinal() == selected, e);
+      item.setActionCommand(optionName);
+      if (listener != null) {
+        item.addActionListener(listener);
+      }
+
+      bg.add(item);
+      menu.add(item);
+      result[i++] = item;
+    }
+    parent.add(menu);
+    return result;
+  }
 
 // -------------------------- INNER CLASSES --------------------------
 
@@ -1689,6 +1733,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private static final String OPTION_WEIDU_COLORSCHEME        = "WeiDUColorScheme";
     /** This preferences key can be used internally to reset incorrectly set default values after a public release. */
     private static final String OPTION_OPTION_FIXED             = "OptionFixedInternal";
+    private static final String OPTION_SHOW_ITEM_ICONS          = "ShowItemIcons";
 
     /** Mask used for one-time resets of options (kept track of in OPTION_OPTION_FIXED). */
     private static final int MASK_OPTION_FIXED_AUTO_INDENT      = 0x00000001;
@@ -1711,6 +1756,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private final JRadioButtonMenuItem[] selectTlkColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
     private final JRadioButtonMenuItem[] selectWeiDUColorScheme = new JRadioButtonMenuItem[COLORSCHEME.length];
     private final DataRadioButtonMenuItem[] globalFontSize = new DataRadioButtonMenuItem[FONTSIZES.length];
+    private final DataRadioButtonMenuItem[] showItemIcons;
 
     private JCheckBoxMenuItem optionTextHightlightCurrent, optionTextLineNumbers,
                               optionTextShowWhiteSpace, optionTextShowEOL, optionTextTabEmulate,
@@ -2030,6 +2076,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         showOverrides[i].setActionCommand("Refresh");
         showOverrides[i].addActionListener(NearInfinity.getInstance());
       }
+
+      // Options->Show Item Icons As
+      showItemIcons = createMenu(this, "Show Item Icons As", OPTION_SHOW_ITEM_ICONS, ShowItemIcons.Large, this);
 
       // Options->Default Structure Display
       JMenu vieworeditmenu = new JMenu("Default Structure Display");
@@ -2427,6 +2476,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 //      getPrefs().putBoolean(OPTION_MONITORFILECHANGES, optionMonitorFileChanges.isSelected());
       getPrefs().putInt(OPTION_SHOWRESREF, getResRefMode());
       getPrefs().putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
+      getPrefs().putInt(OPTION_SHOW_ITEM_ICONS, getShowItemIcons().ordinal());
       getPrefs().put(OPTION_LOOKANDFEELCLASS, getLookAndFeel().getClassName());
       getPrefs().putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView());
       int selectedFont = getSelectedButtonIndex(selectFont, 0);
@@ -2787,9 +2837,26 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       return DEFAULT_EDIT;
     }
 
+    public ShowItemIcons getShowItemIcons()
+    {
+      for (final DataRadioButtonMenuItem item : showItemIcons) {
+        if (item.isSelected()) {
+          return (ShowItemIcons)item.getData();
+        }
+      }
+      return ShowItemIcons.None;
+    }
+
     @Override
     public void actionPerformed(ActionEvent event)
     {
+      final Object src = event.getSource();
+      if (src instanceof DataRadioButtonMenuItem) {
+        final Object data = ((DataRadioButtonMenuItem)src).getData();
+        if (data instanceof ShowItemIcons) {
+          IconCache.clearCache();
+        }
+      }
 //      if (event.getSource() == optionMonitorFileChanges) {
 //        if (optionMonitorFileChanges.isSelected()) {
 //          FileWatcher.getInstance().start();
@@ -3589,5 +3656,19 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         return null;
       }
     }
+  }
+
+  public enum ShowItemIcons
+  {
+    None("No icons"),
+    Small("Small icons (16x16, half size)"),
+    Large("Large icons (32x32, ingame size)");
+
+    final String title;
+
+    private ShowItemIcons(String title) { this.title = title; }
+
+    @Override
+    public String toString() { return title; }
   }
 }

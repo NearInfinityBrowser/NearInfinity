@@ -14,6 +14,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import org.infinity.datatype.ResourceRef;
+import org.infinity.gui.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.ColorConvert;
@@ -41,7 +42,12 @@ public class IconCache
    */
   public static Icon getIcon(HasIcon object)
   {
-    final boolean is32 = true;
+    final BrowserMenuBar.ShowItemIcons option = BrowserMenuBar.getInstance().getShowItemIcons();
+    if (option == BrowserMenuBar.ShowItemIcons.None) {
+      return null;
+    }
+
+    final boolean is32 = option == BrowserMenuBar.ShowItemIcons.Large;
     final ResourceRef ref = object.getIcon();
     if (ref != null) {
       return CACHE.computeIfAbsent(ref.getResourceName(), (key) -> {
