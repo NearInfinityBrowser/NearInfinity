@@ -31,7 +31,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
 import org.infinity.NearInfinity;
-import org.infinity.datatype.ResourceRef;
+import org.infinity.datatype.Flag;
 import org.infinity.datatype.StringRef;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ButtonPanel;
@@ -211,7 +211,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
     updateViewerLists();
 
-    if (stateList.size() > 0) {
+    if (!stateList.isEmpty()) {
       showState(0);
       showTransition(currentstate.getFirstTrans());
     } else {
@@ -287,15 +287,15 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
           tfResponse.setText(String.valueOf(currenttransition.getNumber() - currentstate.getFirstTrans()));
         }
       } else if (buttonPanel.getControlByType(CtrlSelect) == event.getSource()) {
-        ResourceRef next_dlg = currenttransition.getNextDialog();
-        if (dlg.getResourceEntry().toString().equalsIgnoreCase(next_dlg.toString())) {
+        final String nextDlgName = currenttransition.getNextDialog().getResourceName();
+        if (dlg.getResourceEntry().getResourceName().equalsIgnoreCase(nextDlgName)) {
           lastStates.push(currentstate);
           lastTransitions.push(currenttransition);
           buttonPanel.getControlByType(CtrlReturn).setEnabled(true);
           newstate = currenttransition.getNextDialogState();
         } else {
           DlgResource newdlg =
-              (DlgResource)ResourceFactory.getResource(ResourceFactory.getResourceEntry(next_dlg.toString()));
+              (DlgResource)ResourceFactory.getResource(ResourceFactory.getResourceEntry(nextDlgName));
           showExternState(newdlg, currenttransition.getNextDialogState(), false);
         }
       }
@@ -346,7 +346,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
 // --------------------- End Interface TableModelListener ---------------------
 
-  // for quickly jump to the corresponding state while only having a StructEntry
+  /** For quickly jump to the corresponding state while only having a StructEntry. */
   public void select(StructEntry entry)
   {
     int stateNrToShow = 0;
@@ -363,7 +363,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       transNrToShow = transnr;
     }
     else if (entry instanceof StateTrigger) {
-      int triggerOffset = ((StateTrigger) entry).getOffset();
+      int triggerOffset = entry.getOffset();
       int nr = 0;
       for (StateTrigger trig : staTriList) {
         if (trig.getOffset() == triggerOffset) {
@@ -381,7 +381,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       }
     }
     else if (entry instanceof ResponseTrigger) {
-      int triggerOffset = ((ResponseTrigger) entry).getOffset();
+      int triggerOffset = entry.getOffset();
       int nr = 0;
       for (ResponseTrigger trig : transTriList) {
         if (trig.getOffset() == triggerOffset) {
@@ -398,7 +398,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       }
     }
     else if (entry instanceof Action) {
-      int actionOffset = ((Action) entry).getOffset();
+      int actionOffset = entry.getOffset();
       int nr = 0;
       for (Action action : actionList) {
         if (action.getOffset() == actionOffset) {
@@ -459,6 +459,11 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     return 0;
   }
 
+  /**
+   * Shows information about specified state of this dialog
+   *
+   * @param nr Number of state within {@link #dlg}
+   */
   private void showState(int nr)
   {
     if (currentstate != null) {
@@ -466,20 +471,28 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     }
     currentstate = stateList.get(nr);
     currentstate.addTableModelListener(this);
-    bostate.setTitle("State " + nr + '/' + (stateList.size() - 1));
+
+    final int cnt = stateList.size() - 1;
+    bostate.setTitle("State " + nr + '/' + cnt);
     stateTextPanel.display(currentstate, nr);
     tfState.setText(String.valueOf(nr));
     outerpanel.repaint();
-    if (currentstate.getTriggerIndex() != 0xffffffff) {
-      stateTriggerPanel.display(staTriList.get(currentstate.getTriggerIndex()),
-                                currentstate.getTriggerIndex());
+
+    final int trigger = currentstate.getTriggerIndex();
+    if (trigger != 0xffffffff) {
+      stateTriggerPanel.display(staTriList.get(trigger), trigger);
     } else {
       stateTriggerPanel.clearDisplay();
     }
     buttonPanel.getControlByType(CtrlPrevState).setEnabled(nr > 0);
-    buttonPanel.getControlByType(CtrlNextState).setEnabled(nr + 1 < stateList.size());
+    buttonPanel.getControlByType(CtrlNextState).setEnabled(nr < cnt);
   }
 
+  /**
+   * Shows information about specified transition of this dialog
+   *
+   * @param nr Global number of transition within {@link #dlg}
+   */
   private void showTransition(int nr)
   {
     if (currenttransition != null) {
@@ -487,29 +500,37 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     }
     currenttransition = transList.get(nr);
     currenttransition.addTableModelListener(this);
-    botrans.setTitle("Response " + (nr - currentstate.getFirstTrans()) +
-                     '/' + (currentstate.getTransCount() - 1));
-    tfResponse.setText(String.valueOf(nr - currentstate.getFirstTrans()));
+
+    // Relative number of transition in the state
+    final int num = nr - currentstate.getFirstTrans();
+    final int cnt = currentstate.getTransCount() - 1;
+    botrans.setTitle("Response " + num + '/' + cnt);
+    tfResponse.setText(String.valueOf(num));
     outerpanel.repaint();
     transTextPanel.display(currenttransition, nr);
-    if (currenttransition.getFlag().isFlagSet(1)) {
-      transTriggerPanel.display(transTriList.get(currenttransition.getTriggerIndex()),
-                                currenttransition.getTriggerIndex());
+
+    final Flag flags = currenttransition.getFlag();
+    if (flags.isFlagSet(1)) {// Bit 1: has trigger
+      final int trigger = currenttransition.getTriggerIndex();
+      transTriggerPanel.display(transTriList.get(trigger), trigger);
     } else {
       transTriggerPanel.clearDisplay();
     }
-    if (currenttransition.getFlag().isFlagSet(2)) {
-      transActionPanel.display(actionList.get(currenttransition.getActionIndex()),
-                               currenttransition.getActionIndex());
+    if (flags.isFlagSet(2)) {// Bit 2: has action
+      final int action = currenttransition.getActionIndex();
+      transActionPanel.display(actionList.get(action), action);
     } else {
       transActionPanel.clearDisplay();
     }
-    buttonPanel.getControlByType(CtrlSelect).setEnabled(!currenttransition.getFlag().isFlagSet(3));
-    buttonPanel.getControlByType(CtrlPrevTrans).setEnabled(nr > currentstate.getFirstTrans());
-    buttonPanel.getControlByType(CtrlNextTrans)
-      .setEnabled(nr - currentstate.getFirstTrans() + 1 < currentstate.getTransCount());
+    buttonPanel.getControlByType(CtrlSelect).setEnabled(!flags.isFlagSet(3));// Bit 3: terminate dialog
+    buttonPanel.getControlByType(CtrlPrevTrans).setEnabled(num > 0);
+    buttonPanel.getControlByType(CtrlNextTrans).setEnabled(num < cnt);
   }
 
+  /**
+   * Retrieves all kinds of its child structures from dialog and places them to
+   * separate lists for fast access.
+   */
   private void updateViewerLists()
   {
     stateList.clear();
@@ -517,8 +538,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     staTriList.clear();
     transTriList.clear();
     actionList.clear();
-    for (int i = 0; i < dlg.getFieldCount(); i++) {
-      StructEntry entry = dlg.getField(i);
+    for (final StructEntry entry : dlg.getList()) {
       if (entry instanceof State) {
         stateList.add((State)entry);
       } else if (entry instanceof Transition) {
