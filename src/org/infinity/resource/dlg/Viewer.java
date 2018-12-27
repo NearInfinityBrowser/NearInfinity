@@ -68,27 +68,62 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   private static final ButtonPanel.Control CtrlStateField     = ButtonPanel.Control.CUSTOM_7;
   private static final ButtonPanel.Control CtrlResponseField  = ButtonPanel.Control.CUSTOM_8;
 
+  //<editor-fold defaultstate="collapsed" desc="Dialog content">
+  private final DlgResource dlg;
+  /** List of all states, found in {@link #dlg}. */
+  private final List<State> stateList = new ArrayList<>();
+  /** List of all transitions, found in {@link #dlg}. */
+  private final List<Transition> transList = new ArrayList<>();
+  /**
+   * List of all state triggers, found in {@link #dlg}. Trigger determines conditions
+   * when state will be visible in the dialogue.
+   */
+  private final List<StateTrigger> staTriList = new ArrayList<>();
+  /**
+   * List of all transition triggers, found in {@link #dlg}. Trigger determines
+   * conditions when transition will be available for selection in the dialogue.
+   */
+  private final List<ResponseTrigger> transTriList = new ArrayList<>();
+  /**
+   * List of all state actions, found in {@link #dlg}. Action determines what
+   * will be do when game process entering to related state.
+   */
+  private final List<Action> actionList = new ArrayList<>();
+  //</editor-fold>
+
+  /** State that editor shows right now. */
+  private State currentstate;
+  /** Transition that editor shows right now. */
+  private Transition currenttransition;
+
+  //<editor-fold defaultstate="collapsed" desc="Select/Return">
+  /**
+   * Stack of states, that were selected by the {@link #CtrlSelect} button. The
+   * {@link #CtrlReturn} button allows return to one of this states together with
+   * transition from {@link #lastTransitions}
+   */
+  private final Stack<State> lastStates = new Stack<>();
+  /**
+   * Stack of transitions, that were current at moment when next state selected
+   * by the {@link #CtrlSelect} button. The {@link #CtrlReturn} button allows return
+   * to one of this transitions together with state from {@link #lastStates}
+   */
+  private final Stack<Transition> lastTransitions = new Stack<>();
+  private DlgResource undoDlg;
+  private boolean alive = true;
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="GUI">
   private final ButtonPanel buttonPanel = new ButtonPanel();
   private final DlgPanel stateTextPanel, stateTriggerPanel, transTextPanel, transTriggerPanel, transActionPanel;
-  private final DlgResource dlg;
   private final JMenuItem ifindall = new JMenuItem("in all DLG files");
   private final JMenuItem ifindthis = new JMenuItem("in this file only");
   private final JPanel outerpanel;
   private final JTextField tfState = new JTextField(4);
   private final JTextField tfResponse = new JTextField(4);
-  private final List<Action> actionList = new ArrayList<Action>();
-  private final List<ResponseTrigger> transTriList = new ArrayList<ResponseTrigger>();
-  private final List<State> stateList = new ArrayList<State>();
-  private final List<StateTrigger> staTriList = new ArrayList<StateTrigger>();
-  private final List<Transition> transList = new ArrayList<Transition>();
-  private final Stack<State> lastStates = new Stack<State>();
-  private final Stack<Transition> lastTransitions = new Stack<Transition>();
   private final TitledBorder bostate = new TitledBorder("State");
   private final TitledBorder botrans = new TitledBorder("Response");
-  private State currentstate;
-  private Transition currenttransition;
-  private boolean alive = true;
-  private DlgResource undoDlg;
+  //</editor-fold>
 
   Viewer(DlgResource dlg)
   {
