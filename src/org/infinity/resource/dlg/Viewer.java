@@ -58,8 +58,13 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   private static final ButtonPanel.Control CtrlPrevState      = ButtonPanel.Control.CUSTOM_2;
   private static final ButtonPanel.Control CtrlNextTrans      = ButtonPanel.Control.CUSTOM_3;
   private static final ButtonPanel.Control CtrlPrevTrans      = ButtonPanel.Control.CUSTOM_4;
+  /** Button that allow move to next state, specified for the response. */
   private static final ButtonPanel.Control CtrlSelect         = ButtonPanel.Control.CUSTOM_5;
-  private static final ButtonPanel.Control CtrlUndo           = ButtonPanel.Control.CUSTOM_6;
+  /**
+   * Button that allow return to previous state, before current was selected by
+   * the {@link #CtrlSelect} button.
+   */
+  private static final ButtonPanel.Control CtrlReturn         = ButtonPanel.Control.CUSTOM_6;
   private static final ButtonPanel.Control CtrlStateField     = ButtonPanel.Control.CUSTOM_7;
   private static final ButtonPanel.Control CtrlResponseField  = ButtonPanel.Control.CUSTOM_8;
 
@@ -114,8 +119,8 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     JButton bSelect = new JButton("Select", Icons.getIcon(Icons.ICON_REDO_16));
     bSelect.addActionListener(this);
 
-    JButton bUndo = new JButton("Undo", Icons.getIcon(Icons.ICON_UNDO_16));
-    bUndo.addActionListener(this);
+    JButton bReturn = new JButton("Return", Icons.getIcon(Icons.ICON_UNDO_16));
+    bReturn.addActionListener(this);
 
     int width = (int)tfState.getPreferredSize().getWidth();
     int height = (int)bNextState.getPreferredSize().getHeight();
@@ -161,7 +166,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     buttonPanel.addControl(bPrevTrans, CtrlPrevTrans);
     buttonPanel.addControl(bNextTrans, CtrlNextTrans);
     buttonPanel.addControl(bSelect, CtrlSelect);
-    buttonPanel.addControl(bUndo, CtrlUndo);
+    buttonPanel.addControl(bReturn, CtrlReturn);
     buttonPanel.addControl(bpmFind, ButtonPanel.Control.FIND_MENU);
 
     setLayout(new BorderLayout());
@@ -181,13 +186,13 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       bNextTrans.setEnabled(false);
       bSelect.setEnabled(false);
     }
-    bUndo.setEnabled(false);
+    bReturn.setEnabled(false);
   }
 
   public void setUndoDlg(DlgResource dlg)
   {
     this.undoDlg = dlg;
-    buttonPanel.getControlByType(CtrlUndo).setEnabled(true);
+    buttonPanel.getControlByType(CtrlReturn).setEnabled(true);
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -196,7 +201,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   public void actionPerformed(ActionEvent event)
   {
     if (!alive) return;
-    if (buttonPanel.getControlByType(CtrlUndo) == event.getSource()) {
+    if (buttonPanel.getControlByType(CtrlReturn) == event.getSource()) {
       JButton bUndo = (JButton)event.getSource();
       if(lastStates.empty() && (undoDlg != null)) {
         showExternState(undoDlg, -1, true);
@@ -251,7 +256,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         if (dlg.getResourceEntry().toString().equalsIgnoreCase(next_dlg.toString())) {
           lastStates.push(currentstate);
           lastTransitions.push(currenttransition);
-          buttonPanel.getControlByType(CtrlUndo).setEnabled(true);
+          buttonPanel.getControlByType(CtrlReturn).setEnabled(true);
           newstate = currenttransition.getNextDialogState();
         } else {
           DlgResource newdlg =
