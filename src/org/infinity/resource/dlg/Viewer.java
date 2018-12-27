@@ -92,9 +92,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   //</editor-fold>
 
   /** State that editor shows right now. */
-  private State currentstate;
+  private State currentState;
   /** Transition that editor shows right now. */
-  private Transition currenttransition;
+  private Transition currentTrans;
 
   //<editor-fold defaultstate="collapsed" desc="Select/Return">
   /**
@@ -213,7 +213,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
     if (!stateList.isEmpty()) {
       showState(0);
-      showTransition(currentstate.getFirstTrans());
+      showTransition(currentState.getFirstTrans());
     } else {
       bPrevState.setEnabled(false);
       bNextState.setEnabled(false);
@@ -247,15 +247,15 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       if (lastStates.empty() && (undoDlg == null)) {
         bUndo.setEnabled(false);
       }
-      if (oldstate != currentstate) {
+      if (oldstate != currentState) {
         showState(oldstate.getNumber());
       }
-      if (oldtrans != currenttransition) {
+      if (oldtrans != currentTrans) {
         showTransition(oldtrans.getNumber());
       }
     } else {
-      int newstate = currentstate.getNumber();
-      int newtrans = currenttransition.getNumber();
+      int newstate = currentState.getNumber();
+      int newtrans = currentTrans.getNumber();
       if (buttonPanel.getControlByType(CtrlNextState) == event.getSource()) {
         newstate++;
       } else if (buttonPanel.getControlByType(CtrlPrevState) == event.getSource()) {
@@ -270,42 +270,40 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
           if (number >= 0 && number <= stateList.size()) {
             newstate = number;
           } else {
-            tfState.setText(String.valueOf(currentstate.getNumber()));
+            tfState.setText(String.valueOf(currentState.getNumber()));
           }
         } catch (Exception e) {
-          tfState.setText(String.valueOf(currentstate.getNumber()));
+          tfState.setText(String.valueOf(currentState.getNumber()));
         }
       } else if (event.getSource() == tfResponse) {
         try {
           int number = Integer.parseInt(tfResponse.getText());
-          if (number >= 0 && number <= currentstate.getTransCount()) {
-            newtrans = currentstate.getFirstTrans() + number;
+          if (number >= 0 && number <= currentState.getTransCount()) {
+            newtrans = currentState.getFirstTrans() + number;
           } else {
-            tfResponse.setText(String.valueOf(currenttransition.getNumber() - currentstate.getFirstTrans()));
+            tfResponse.setText(String.valueOf(currentTrans.getNumber() - currentState.getFirstTrans()));
           }
         } catch (Exception e) {
-          tfResponse.setText(String.valueOf(currenttransition.getNumber() - currentstate.getFirstTrans()));
+          tfResponse.setText(String.valueOf(currentTrans.getNumber() - currentState.getFirstTrans()));
         }
       } else if (buttonPanel.getControlByType(CtrlSelect) == event.getSource()) {
-        final String nextDlgName = currenttransition.getNextDialog().getResourceName();
+        final String nextDlgName = currentTrans.getNextDialog().getResourceName();
         if (dlg.getResourceEntry().getResourceName().equalsIgnoreCase(nextDlgName)) {
-          lastStates.push(currentstate);
-          lastTransitions.push(currenttransition);
+          lastStates.push(currentState);
+          lastTransitions.push(currentTrans);
           buttonPanel.getControlByType(CtrlReturn).setEnabled(true);
-          newstate = currenttransition.getNextDialogState();
+          newstate = currentTrans.getNextDialogState();
         } else {
           DlgResource newdlg =
               (DlgResource)ResourceFactory.getResource(ResourceFactory.getResourceEntry(nextDlgName));
-          showExternState(newdlg, currenttransition.getNextDialogState(), false);
+          showExternState(newdlg, currentTrans.getNextDialogState(), false);
         }
       }
-      if (alive) {
-        if (newstate != currentstate.getNumber()) {
-          showState(newstate);
-          showTransition(stateList.get(newstate).getFirstTrans());
-        } else if (newtrans != currenttransition.getNumber()) {
-          showTransition(newtrans);
-        }
+      if (newstate != currentState.getNumber()) {
+        showState(newstate);
+        showTransition(stateList.get(newstate).getFirstTrans());
+      } else if (newtrans != currentTrans.getNumber()) {
+        showTransition(newtrans);
       }
     }
   }
@@ -340,8 +338,8 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   public void tableChanged(TableModelEvent e)
   {
     updateViewerLists();
-    showState(currentstate.getNumber());
-    showTransition(currenttransition.getNumber());
+    showState(currentState.getNumber());
+    showTransition(currentTrans.getNumber());
   }
 
 // --------------------- End Interface TableModelListener ---------------------
@@ -466,19 +464,19 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
    */
   private void showState(int nr)
   {
-    if (currentstate != null) {
-      currentstate.removeTableModelListener(this);
+    if (currentState != null) {
+      currentState.removeTableModelListener(this);
     }
-    currentstate = stateList.get(nr);
-    currentstate.addTableModelListener(this);
+    currentState = stateList.get(nr);
+    currentState.addTableModelListener(this);
 
     final int cnt = stateList.size() - 1;
     bostate.setTitle("State " + nr + '/' + cnt);
-    stateTextPanel.display(currentstate, nr);
+    stateTextPanel.display(currentState, nr);
     tfState.setText(String.valueOf(nr));
     outerpanel.repaint();
 
-    final int trigger = currentstate.getTriggerIndex();
+    final int trigger = currentState.getTriggerIndex();
     if (trigger != 0xffffffff) {
       stateTriggerPanel.display(staTriList.get(trigger), trigger);
     } else {
@@ -495,29 +493,29 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
    */
   private void showTransition(int nr)
   {
-    if (currenttransition != null) {
-      currenttransition.removeTableModelListener(this);
+    if (currentTrans != null) {
+      currentTrans.removeTableModelListener(this);
     }
-    currenttransition = transList.get(nr);
-    currenttransition.addTableModelListener(this);
+    currentTrans = transList.get(nr);
+    currentTrans.addTableModelListener(this);
 
     // Relative number of transition in the state
-    final int num = nr - currentstate.getFirstTrans();
-    final int cnt = currentstate.getTransCount() - 1;
+    final int num = nr - currentState.getFirstTrans();
+    final int cnt = currentState.getTransCount() - 1;
     botrans.setTitle("Response " + num + '/' + cnt);
     tfResponse.setText(String.valueOf(num));
     outerpanel.repaint();
-    transTextPanel.display(currenttransition, nr);
+    transTextPanel.display(currentTrans, nr);
 
-    final Flag flags = currenttransition.getFlag();
+    final Flag flags = currentTrans.getFlag();
     if (flags.isFlagSet(1)) {// Bit 1: has trigger
-      final int trigger = currenttransition.getTriggerIndex();
+      final int trigger = currentTrans.getTriggerIndex();
       transTriggerPanel.display(transTriList.get(trigger), trigger);
     } else {
       transTriggerPanel.clearDisplay();
     }
     if (flags.isFlagSet(2)) {// Bit 2: has action
-      final int action = currenttransition.getActionIndex();
+      final int action = currentTrans.getActionIndex();
       transActionPanel.display(actionList.get(action), action);
     } else {
       transActionPanel.clearDisplay();
@@ -570,7 +568,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     } else {
       newdlg_viewer.setUndoDlg(this.dlg);
       newdlg_viewer.showState(state);
-      newdlg_viewer.showTransition(newdlg_viewer.currentstate.getFirstTrans());
+      newdlg_viewer.showTransition(newdlg_viewer.currentState.getFirstTrans());
     }
 
     // make sure the viewer tab is selected
