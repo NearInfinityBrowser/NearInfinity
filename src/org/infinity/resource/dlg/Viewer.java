@@ -5,6 +5,7 @@
 package org.infinity.resource.dlg;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -67,6 +68,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   private static final ButtonPanel.Control CtrlReturn         = ButtonPanel.Control.CUSTOM_6;
   private static final ButtonPanel.Control CtrlStateField     = ButtonPanel.Control.CUSTOM_7;
   private static final ButtonPanel.Control CtrlResponseField  = ButtonPanel.Control.CUSTOM_8;
+
+  private static final Color NORMAL_COLOR = Color.BLACK;
+  private static final Color ERROR_COLOR  = Color.RED;
 
   //<editor-fold defaultstate="collapsed" desc="Dialog content">
   private final DlgResource dlg;
@@ -210,17 +214,8 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     outerpanel.setBorder(BorderFactory.createLoweredBevelBorder());
 
     updateViewerLists();
-
-    if (!stateList.isEmpty()) {
-      showState(0);
-      showTransition(currentState.getFirstTrans());
-    } else {
-      bPrevState.setEnabled(false);
-      bNextState.setEnabled(false);
-      bPrevTrans.setEnabled(false);
-      bNextTrans.setEnabled(false);
-      bSelect.setEnabled(false);
-    }
+    showState(stateList.isEmpty() ? -1 : 0);
+    showTransition(currentState == null ? -1 : currentState.getFirstTrans());
     bReturn.setEnabled(false);
   }
 
@@ -254,8 +249,8 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         showTransition(oldtrans.getNumber());
       }
     } else {
-      int newstate = currentState.getNumber();
-      int newtrans = currentTrans.getNumber();
+      int newstate = currentState == null ? -1 : currentState.getNumber();
+      int newtrans = currentTrans == null ? -1 : currentTrans.getNumber();
       if (buttonPanel.getControlByType(CtrlNextState) == event.getSource()) {
         newstate++;
       } else if (buttonPanel.getControlByType(CtrlPrevState) == event.getSource()) {
@@ -299,10 +294,11 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
           showExternState(newdlg, currentTrans.getNextDialogState(), false);
         }
       }
-      if (newstate != currentState.getNumber()) {
+      if (currentState != null && newstate != currentState.getNumber()) {
         showState(newstate);
-        showTransition(stateList.get(newstate).getFirstTrans());
-      } else if (newtrans != currentTrans.getNumber()) {
+        showTransition(currentState.getFirstTrans());
+      } else
+      if (currentTrans != null && newtrans != currentTrans.getNumber()) {
         showTransition(newtrans);
       }
     }
@@ -337,9 +333,11 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   @Override
   public void tableChanged(TableModelEvent e)
   {
-    updateViewerLists();
-    showState(currentState.getNumber());
-    showTransition(currentTrans.getNumber());
+    if (e.getType() == TableModelEvent.INSERT || e.getType() == TableModelEvent.DELETE) {
+      updateViewerLists();
+    }
+    showState(currentState == null ? -1 : currentState.getNumber());
+    showTransition(currentTrans == null ? -1 : currentTrans.getNumber());
   }
 
 // --------------------- End Interface TableModelListener ---------------------
@@ -347,8 +345,8 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   /** For quickly jump to the corresponding state while only having a StructEntry. */
   public void select(StructEntry entry)
   {
-    int stateNrToShow = 0;
-    int transNrToShow = 0;
+    int stateNrToShow = -1;
+    int transNrToShow = -1;
 
     // we can have states, triggers, transitions and actions
     if (entry instanceof State) {
@@ -454,7 +452,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       }
     }
     // default
-    return 0;
+    return -1;
   }
 
   /**
@@ -466,15 +464,35 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   {
     if (currentState != null) {
       currentState.removeTableModelListener(this);
+      currentState = null;
     }
+    final int cnt = stateList.size() - 1;
+
+    final boolean isBroken = nr > cnt;
+    final String cur = toString(nr);
+    bostate.setTitle("State " + cur + '/' + toString(cnt) + (isBroken ? " (broken reference to state " + nr + ")" : ""));
+    bostate.setTitleColor(isBroken ? ERROR_COLOR : NORMAL_COLOR);
+    outerpanel.repaint();// Force repaint border
+    tfState.setText(cur);
+    buttonPanel.getControlByType(CtrlPrevState).setEnabled(nr > 0);
+    buttonPanel.getControlByType(CtrlNextState).setEnabled(nr < cnt);
+
+    final boolean isValid = nr >= 0 && nr <= cnt;
+    tfState.setEnabled(isValid);
+    if (!isValid) {
+      if (nr >= 0) {
+        // Print warning about not correct resource
+        System.err.println(dlg.getName() + ": state " + nr + " is not exist");
+      }
+      stateTextPanel.clearDisplay();
+      stateTriggerPanel.clearDisplay();
+      return;
+    }
+
     currentState = stateList.get(nr);
     currentState.addTableModelListener(this);
 
-    final int cnt = stateList.size() - 1;
-    bostate.setTitle("State " + nr + '/' + cnt);
     stateTextPanel.display(currentState, nr);
-    tfState.setText(String.valueOf(nr));
-    outerpanel.repaint();
 
     final int trigger = currentState.getTriggerIndex();
     if (trigger != 0xffffffff) {
@@ -482,8 +500,6 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     } else {
       stateTriggerPanel.clearDisplay();
     }
-    buttonPanel.getControlByType(CtrlPrevState).setEnabled(nr > 0);
-    buttonPanel.getControlByType(CtrlNextState).setEnabled(nr < cnt);
   }
 
   /**
@@ -495,16 +511,44 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   {
     if (currentTrans != null) {
       currentTrans.removeTableModelListener(this);
+      currentTrans = null;
     }
+    // Relative number of transition in the state
+    final int num = currentState == null ? -1 : nr - currentState.getFirstTrans();
+    final int cnt = currentState == null ? -1 : currentState.getTransCount() - 1;
+
+    final boolean isBroken = nr >= transList.size() && currentState.getTransCount() > 0;
+    final String cur = toString(num);
+    botrans.setTitle("Response " + cur + '/' + toString(cnt) + (isBroken ? " (broken reference to response " + nr + ")" : ""));
+    botrans.setTitleColor(isBroken ? ERROR_COLOR : NORMAL_COLOR);
+    outerpanel.repaint();// Force repaint border
+    tfResponse.setText(cur);
+    buttonPanel.getControlByType(CtrlPrevTrans).setEnabled(num > 0);
+    buttonPanel.getControlByType(CtrlNextTrans).setEnabled(num < cnt);
+
+    final boolean isValid = nr >= 0 && nr < transList.size();
+    final boolean isCorrect = isValid && num >= 0 && num <= cnt;
+    tfResponse.setEnabled(isCorrect);
+    if (!isCorrect) {
+      if (nr >= 0 && currentState != null) {
+        // Print warning about not correct resource
+        if (isValid) {
+          System.err.println(dlg.getName() + ": transition " + nr + " is not transition from state " + currentState.getNumber());
+        } else
+        if (isBroken) {
+          System.err.println(dlg.getName() + ": transition " + nr + " is not exist");
+        }
+      }
+      transTextPanel.clearDisplay();
+      transTriggerPanel.clearDisplay();
+      transActionPanel.clearDisplay();
+      buttonPanel.getControlByType(CtrlSelect).setEnabled(false);
+      return;
+    }
+
     currentTrans = transList.get(nr);
     currentTrans.addTableModelListener(this);
 
-    // Relative number of transition in the state
-    final int num = nr - currentState.getFirstTrans();
-    final int cnt = currentState.getTransCount() - 1;
-    botrans.setTitle("Response " + num + '/' + cnt);
-    tfResponse.setText(String.valueOf(num));
-    outerpanel.repaint();
     transTextPanel.display(currentTrans, nr);
 
     final Flag flags = currentTrans.getFlag();
@@ -521,8 +565,6 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       transActionPanel.clearDisplay();
     }
     buttonPanel.getControlByType(CtrlSelect).setEnabled(!flags.isFlagSet(3));// Bit 3: terminate dialog
-    buttonPanel.getControlByType(CtrlPrevTrans).setEnabled(num > 0);
-    buttonPanel.getControlByType(CtrlNextTrans).setEnabled(num < cnt);
   }
 
   /**
@@ -549,6 +591,14 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         actionList.add((Action)entry);
       }
     }
+    if (currentState != null && !stateList.contains(currentState)) {
+      currentState.removeTableModelListener(this);
+      currentState = null;
+    }
+    if (currentTrans != null && !transList.contains(currentTrans)) {
+      currentTrans.removeTableModelListener(this);
+      currentTrans = null;
+    }
   }
 
   private void showExternState(DlgResource newdlg, int state, boolean isUndo) {
@@ -568,12 +618,18 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     } else {
       newdlg_viewer.setUndoDlg(this.dlg);
       newdlg_viewer.showState(state);
-      newdlg_viewer.showTransition(newdlg_viewer.currentState.getFirstTrans());
+      newdlg_viewer.showTransition(newdlg_viewer.currentState == null ? -1 : newdlg_viewer.currentState.getFirstTrans());
     }
 
     // make sure the viewer tab is selected
     JTabbedPane parent = (JTabbedPane) newdlg_viewer.getParent();
     parent.getModel().setSelectedIndex(parent.indexOfComponent(newdlg_viewer));
+  }
+
+  /** Renders negative numbers as dash ({@code "-"}). */
+  private static String toString(int value)
+  {
+    return value < 0 ? "-" : Integer.toString(value);
   }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -734,6 +790,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       bView.setEnabled(false);
       bGoto.setEnabled(false);
       bTree.setEnabled(false);
+      bPlay.setEnabled(false);
       struct = null;
       structEntry = null;
     }
