@@ -496,7 +496,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
     final int trigger = currentState.getTriggerIndex();
     if (trigger != 0xffffffff) {
-      stateTriggerPanel.display(staTriList.get(trigger), trigger);
+      stateTriggerPanel.display(staTriList, trigger);
     } else {
       stateTriggerPanel.clearDisplay();
     }
@@ -555,13 +555,13 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     final Flag flags = currentTrans.getFlag();
     if (flags.isFlagSet(1)) {// Bit 1: has trigger
       final int trigger = currentTrans.getTriggerIndex();
-      transTriggerPanel.display(transTriList.get(trigger), trigger);
+      transTriggerPanel.display(transTriList, trigger);
     } else {
       transTriggerPanel.clearDisplay();
     }
     if (flags.isFlagSet(2)) {// Bit 2: has action
       final int action = currentTrans.getActionIndex();
-      transActionPanel.display(actionList.get(action), action);
+      transActionPanel.display(actionList, action);
     } else {
       transActionPanel.clearDisplay();
     }
@@ -765,34 +765,45 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
       textArea.setCaretPosition(0);
     }
 
-    private void display(AbstractCode trigger, int number)
+    private void display(List<? extends AbstractCode> codes, int number)
     {
-      label.setText(title + " (" + number + ')');
+      final boolean isValid = number >= 0 && number < codes.size();
+
+      label.setText(title + " (" + number + ')' + (isValid ? "" : " (broken reference)"));
       bView.setEnabled(false);
       bPlay.setEnabled(false);
       bGoto.setEnabled(true);
       bTree.setVisible(false);
-      structEntry = trigger;
-      final ScriptType type = trigger instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
-      final String text = trigger.getText();
-      final Compiler compiler = new Compiler(text, type);
-      final String code = compiler.getCode();
-      try {
-        if (compiler.getErrors().isEmpty()) {
-          Decompiler decompiler = new Decompiler(code, type, true);
-          textArea.setText(decompiler.getSource());
-        } else {
+
+      if (isValid) {// For example, Dialog DILQUIX.DLG in PST has broken format
+        label.setForeground(NORMAL_COLOR);
+        final AbstractCode code = codes.get(number);
+        structEntry = code;
+        final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
+        final String text = code.getText();
+        final Compiler compiler = new Compiler(text, type);
+        final String compiled = compiler.getCode();
+        try {
+          if (compiler.getErrors().isEmpty()) {
+            Decompiler decompiler = new Decompiler(compiled, type, true);
+            textArea.setText(decompiler.getSource());
+          } else {
+            textArea.setText(text);
+          }
+        } catch (Exception e) {
           textArea.setText(text);
         }
-      } catch (Exception e) {
-        textArea.setText(text);
+        textArea.setCaretPosition(0);
+      } else {
+        label.setForeground(ERROR_COLOR);
+        textArea.setText("");
       }
-      textArea.setCaretPosition(0);
     }
 
     private void clearDisplay()
     {
       label.setText(title + " (-)");
+      label.setForeground(NORMAL_COLOR);
       textArea.setText("");
       bView.setEnabled(false);
       bGoto.setEnabled(false);
