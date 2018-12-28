@@ -16,9 +16,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -106,13 +106,13 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
    * {@link #CtrlReturn} button allows return to one of this states together with
    * transition from {@link #lastTransitions}
    */
-  private final Stack<State> lastStates = new Stack<>();
+  private final ArrayDeque<State> lastStates = new ArrayDeque<>();
   /**
    * Stack of transitions, that were current at moment when next state selected
    * by the {@link #CtrlSelect} button. The {@link #CtrlReturn} button allows return
    * to one of this transitions together with state from {@link #lastStates}
    */
-  private final Stack<Transition> lastTransitions = new Stack<>();
+  private final ArrayDeque<Transition> lastTransitions = new ArrayDeque<>();
   private DlgResource undoDlg;
   private boolean alive = true;
   //</editor-fold>
@@ -216,7 +216,6 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     updateViewerLists();
     showState(stateList.isEmpty() ? -1 : 0);
     showTransition(currentState == null ? -1 : currentState.getFirstTrans());
-    bReturn.setEnabled(false);
   }
 
   public void setUndoDlg(DlgResource dlg)
@@ -233,13 +232,13 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     if (!alive) return;
     if (buttonPanel.getControlByType(CtrlReturn) == event.getSource()) {
       JButton bUndo = (JButton)event.getSource();
-      if(lastStates.empty() && (undoDlg != null)) {
+      if(lastStates.isEmpty() && (undoDlg != null)) {
         showExternState(undoDlg, -1, true);
         return;
       }
       State oldstate = lastStates.pop();
       Transition oldtrans = lastTransitions.pop();
-      if (lastStates.empty() && (undoDlg == null)) {
+      if (lastStates.isEmpty() && (undoDlg == null)) {
         bUndo.setEnabled(false);
       }
       if (oldstate != currentState) {
@@ -474,8 +473,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     bostate.setTitleColor(isBroken ? ERROR_COLOR : NORMAL_COLOR);
     outerpanel.repaint();// Force repaint border
     tfState.setText(cur);
-    buttonPanel.getControlByType(CtrlPrevState).setEnabled(nr > 0);
-    buttonPanel.getControlByType(CtrlNextState).setEnabled(nr < cnt);
+    // Do both range checks, just in case...
+    buttonPanel.getControlByType(CtrlPrevState).setEnabled(nr > 0 && nr <= cnt);
+    buttonPanel.getControlByType(CtrlNextState).setEnabled(nr >= 0 && nr < cnt);
 
     final boolean isValid = nr >= 0 && nr <= cnt;
     tfState.setEnabled(isValid);
@@ -523,8 +523,9 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     botrans.setTitleColor(isBroken ? ERROR_COLOR : NORMAL_COLOR);
     outerpanel.repaint();// Force repaint border
     tfResponse.setText(cur);
-    buttonPanel.getControlByType(CtrlPrevTrans).setEnabled(num > 0);
-    buttonPanel.getControlByType(CtrlNextTrans).setEnabled(num < cnt);
+    // Do both range checks, just in case...
+    buttonPanel.getControlByType(CtrlPrevTrans).setEnabled(num > 0 && num <= cnt);
+    buttonPanel.getControlByType(CtrlNextTrans).setEnabled(num >= 0 && num < cnt);
 
     final boolean isValid = nr >= 0 && nr < transList.size();
     final boolean isCorrect = isValid && num >= 0 && num <= cnt;
@@ -598,6 +599,12 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     if (currentTrans != null && !transList.contains(currentTrans)) {
       currentTrans.removeTableModelListener(this);
       currentTrans = null;
+    }
+
+    lastStates.retainAll(stateList);
+    lastTransitions.retainAll(transList);
+    if (lastStates.isEmpty() && (undoDlg == null)) {
+      buttonPanel.getControlByType(CtrlReturn).setEnabled(false);
     }
   }
 
