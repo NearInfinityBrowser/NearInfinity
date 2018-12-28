@@ -1077,7 +1077,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
     if (endoffset < buffer.limit()) { // Does this break anything?
       list.add(new Unknown(buffer, endoffset, buffer.limit() - endoffset, COMMON_UNUSED_BYTES));
-      System.out.println("Hole: " + name + " off: " + Integer.toHexString(offset) + "h len: " +
+      System.out.println("Hole: " + name + " off: " + Integer.toHexString(endoffset) + "h len: " +
                          (buffer.limit() - endoffset));
       endoffset = buffer.limit();
     }

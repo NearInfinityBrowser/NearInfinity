@@ -34,6 +34,8 @@ import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.StructViewer;
+import org.infinity.gui.hexview.BasicColorMap;
+import org.infinity.gui.hexview.StructHexViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasAddRemovable;
@@ -110,6 +112,7 @@ public final class DlgResource extends AbstractStruct
   private JMenuItem miExport, miExportWeiDUDialog;
   private Viewer detailViewer;
   private TreeViewer treeViewer;
+  private StructHexViewer hexViewer;
 
   public DlgResource(ResourceEntry entry) throws Exception
   {
@@ -145,7 +148,7 @@ public final class DlgResource extends AbstractStruct
   @Override
   public int getViewerTabCount()
   {
-    return 2;
+    return 3;
   }
 
   @Override
@@ -154,6 +157,7 @@ public final class DlgResource extends AbstractStruct
     switch (index) {
       case 0: return StructViewer.TAB_VIEW;
       case 1: return TAB_TREE;
+      case 2: return StructViewer.TAB_RAW;
     }
     return null;
   }
@@ -170,6 +174,11 @@ public final class DlgResource extends AbstractStruct
         if (treeViewer == null)
           treeViewer = new TreeViewer(this);
         return treeViewer;
+      case 2:
+        if (hexViewer == null) {
+          hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
+        }
+        return hexViewer;
     }
     return null;
   }
