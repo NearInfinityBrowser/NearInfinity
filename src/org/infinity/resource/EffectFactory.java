@@ -691,6 +691,8 @@ public final class EffectFactory
         switch (opcode) {
           case 1: // Modify attacks per round
             return updateOpcode1(struct);
+          case 23:  // Reset morale
+            return updateOpcode23(struct);
           case 25:  // Poison
           case 98:  // Regeneration
             return updateOpcode25(struct);
@@ -724,6 +726,34 @@ public final class EffectFactory
           } else {
             replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
                          new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value", s_attacks));
+          }
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // Effect type "Reset morale" (23)
+  private static boolean updateOpcode23(AbstractStruct struct) throws Exception
+  {
+    if (struct != null) {
+      if (Profile.isEnhancedEdition()) {
+        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        if (opcode == 23) {
+          int special = ((Bitmap)getEntry(struct, EffectEntry.IDX_SPECIAL)).getValue();
+          if (special == 0 ) {
+            // Activate BG2 mode
+            replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
+                new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, AbstractStruct.COMMON_UNUSED));
+            replaceEntry(struct, EffectEntry.IDX_PARAM2, EffectEntry.OFS_PARAM2,
+                new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM2), 0, 4, AbstractStruct.COMMON_UNUSED));
+          } else {
+            // Activate BG1 mode
+            replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
+                new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value"));
+            replaceEntry(struct, EffectEntry.IDX_PARAM2, EffectEntry.OFS_PARAM2,
+                new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM2), 0, 4, "Modifier type", s_inctype));
           }
           return true;
         }
@@ -799,7 +829,7 @@ public final class EffectFactory
     if (struct != null) {
       if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
-        if (opcode == 232) {   // effect type "Cast spell on condition" (232)
+        if (opcode == 232) {
           int param2 = ((Bitmap)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
           switch (param2) {
             case 13: // Time of day
@@ -855,7 +885,7 @@ public final class EffectFactory
     if (struct != null) {
       if (Profile.isEnhancedEdition()) {
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
-        if (opcode == 328) {   // effect type "Set State" (328)
+        if (opcode == 328) {
           int special = ((Bitmap)getEntry(struct, EffectEntry.IDX_SPECIAL)).getValue();
           if (special == 1 && ResourceFactory.resourceExists("SPLSTATE.IDS")) {
             // Activate IWD2 mode
@@ -879,7 +909,7 @@ public final class EffectFactory
     if (struct != null) {
       if (Profile.isEnhancedEdition()) {
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
-        if (opcode == 342) {   // effect type "Override creature data" (342)
+        if (opcode == 342) {
           int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
           StructEntry newEntry = null;
           switch (param2) {
@@ -2072,8 +2102,13 @@ public final class EffectFactory
         break;
 
       case 23: // Reset morale
-        if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition() ||
-            Profile.getEngine() == Profile.Engine.PST) {
+      {
+        int bg1mode = (Profile.getEngine() == Profile.Engine.BG2 || Profile.getEngine() == Profile.Engine.PST) ? 0 : 1;
+        if (Profile.isEnhancedEdition()) {
+          int ofsSpecial = offset + (isV1 ? 0x28 : 0x2c);
+          bg1mode = buffer.getInt(ofsSpecial);
+        }
+        if (bg1mode == 0) {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
@@ -2081,6 +2116,7 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
         }
         break;
+      }
 
       case 24: // Panic
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
@@ -5128,6 +5164,16 @@ public final class EffectFactory
                                       "Made save", "Does not wake sleepers"}));
           break;
 
+        case 23: // Reset morale
+        {
+          final Bitmap bmp = new Bitmap(buffer, offset, 4, "Mode", new String[] {"BG2 mode", "BG1 mode"});
+          s.add(bmp);
+          if (parent != null && parent instanceof UpdateListener) {
+            bmp.addUpdateListener((UpdateListener)parent);
+          }
+          break;
+        }
+
         case 25:  // Poison
         case 98:  // Regeneration
           switch (param2) {
@@ -5211,12 +5257,14 @@ public final class EffectFactory
           break;
 
         case 328: // Set spell state (BGEE/IWDEE)
-          Bitmap bmp = new Bitmap(buffer, offset, 4, "Mode", new String[]{"IWD mode", "IWD2 mode"});
+        {
+          final Bitmap bmp = new Bitmap(buffer, offset, 4, "Mode", new String[]{"IWD mode", "IWD2 mode"});
           s.add(bmp);
           if (parent != null && parent instanceof UpdateListener) {
             bmp.addUpdateListener((UpdateListener)parent);
           }
           break;
+        }
 
         case 331: // Summon creatures 2
           s.add(new Bitmap(buffer, offset, 4, "Mode",
