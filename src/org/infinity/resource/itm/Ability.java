@@ -54,7 +54,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
     "No flags set", "Add strength bonus", "Breakable", "EE: Damage strength bonus",
     "EE: THAC0 strength bonus", "", "", "", "", "", "",
     "Hostile", "Recharge after resting", "", "", "", "", "Bypass armor", "Keen edge", "",
-    "", "", "", "", "", "", "Ex: Toggle backstab", "Ex: Cannot target invisible"};
+    "", "", "", "", "", "", "Ex: Toggle backstab", "EE/Ex: Cannot target invisible"};
 
   Ability() throws Exception
   {
