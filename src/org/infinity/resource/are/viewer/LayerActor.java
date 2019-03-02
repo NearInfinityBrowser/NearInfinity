@@ -43,8 +43,7 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource>
     final String iniFile = parent.getResourceEntry().getResourceName().toUpperCase(Locale.ENGLISH).replace(".ARE", ".INI");
     IniMap ini = ResourceFactory.resourceExists(iniFile) ? IniMapCache.get(iniFile) : null;
     if (ini != null) {
-      for (int i = 0, count = ini.getSectionCount(); i < count; i++) {
-        IniMapSection section = ini.getSection(i);
+      for (final IniMapSection section : ini) {
         IniMapEntry creFile = section.getEntry("cre_file");
         IniMapEntry spawnPoint = section.getEntry("spawn_point");
         if (creFile != null && spawnPoint != null) {

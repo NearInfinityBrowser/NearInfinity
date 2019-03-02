@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -849,7 +849,7 @@ public final class ResourceFactory implements FileWatchListener
     return dirList;
   }
 
-  // Returns the currently used language of an Enhanced Edition game.
+  /** Returns the currently used language of an Enhanced Edition game. */
   static String fetchGameLanguage(Path iniFile)
   {
     final String langDefault = "en_US";   // using default language, if no language entry found
@@ -927,7 +927,7 @@ public final class ResourceFactory implements FileWatchListener
     }
   }
 
-  // Cleans up resources
+  /** Cleans up resources. */
   private void close()
   {
     FileWatcher.getInstance().removeFileWatchListener(this);
@@ -1542,7 +1542,7 @@ public final class ResourceFactory implements FileWatchListener
                                   "Save complete", JOptionPane.INFORMATION_MESSAGE);
     if (resource.getResourceEntry().getExtension().equals("IDS")) {
       IdsMapCache.remove(resource.getResourceEntry());
-      IdsBrowser idsbrowser = (IdsBrowser)ChildFrame.getFirstFrame(IdsBrowser.class);
+      final IdsBrowser idsbrowser = ChildFrame.getFirstFrame(IdsBrowser.class);
       if (idsbrowser != null) {
         idsbrowser.refreshList();
       }

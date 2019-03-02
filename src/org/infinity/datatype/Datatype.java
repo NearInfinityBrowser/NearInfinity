@@ -11,6 +11,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.event.EventListenerList;
+
 import org.infinity.resource.StructEntry;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
@@ -21,7 +23,7 @@ public abstract class Datatype implements StructEntry
   protected static final Dimension DIM_BROAD = new Dimension(650, 100);
   protected static final Dimension DIM_MEDIUM = new Dimension(450, 100);
 
-  private final List<UpdateListener> listeners = new ArrayList<>();
+  protected final EventListenerList listenerList = new EventListenerList();
   private final int length;
 
   private String name;
@@ -151,22 +153,7 @@ public abstract class Datatype implements StructEntry
    */
   public void addUpdateListener(UpdateListener l)
   {
-    if (l != null) {
-      listeners.add(l);
-    }
-  }
-
-  /**
-   * Returns an array of all update listeners registered on this object.
-   * @return All of this object's update listener or an empty array if no listener is registered.
-   */
-  public UpdateListener[] getUpdateListeners()
-  {
-    UpdateListener[] ar = new UpdateListener[listeners.size()];
-    for (int i = 0; i < listeners.size(); i++) {
-      ar[i] = listeners.get(i);
-    }
-    return ar;
+    listenerList.add(UpdateListener.class, l);
   }
 
   /**
@@ -176,9 +163,7 @@ public abstract class Datatype implements StructEntry
    */
   public void removeUpdateListener(UpdateListener l)
   {
-    if (l != null) {
-      listeners.remove(l);
-    }
+    listenerList.remove(UpdateListener.class, l);
   }
 
   /**
@@ -192,8 +177,14 @@ public abstract class Datatype implements StructEntry
         event.getStructure().getViewer().storeCurrentSelection();
       }
       boolean retVal = false;
-      for (final UpdateListener l: listeners) {
-        retVal |= l.valueUpdated(event);
+      // Guaranteed to return a non-null array
+      final Object[] listeners = listenerList.getListenerList();
+      // Process the listeners last to first, notifying
+      // those that are interested in this event
+      for (int i = listeners.length-2; i >= 0; i -= 2) {
+        if (listeners[i] == UpdateListener.class) {
+          retVal |= ((UpdateListener)listeners[i+1]).valueUpdated(event);
+        }
       }
       if (retVal) {
         event.getStructure().fireTableDataChanged();

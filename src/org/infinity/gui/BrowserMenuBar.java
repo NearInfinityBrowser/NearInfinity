@@ -832,11 +832,7 @@ public final class BrowserMenuBar extends JMenuBar
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == gameOpenFile) {
-        OpenFileFrame openframe = (OpenFileFrame)ChildFrame.getFirstFrame(OpenFileFrame.class);
-        if (openframe == null) {
-          openframe = new OpenFileFrame();
-        }
-        openframe.setVisible(true);
+        ChildFrame.show(OpenFileFrame.class, () -> new OpenFileFrame());
       } else if (event.getActionCommand().equals(Bookmark.getCommand())) {
         // Bookmark item selected
         int selected = -1;
@@ -1165,16 +1161,7 @@ public final class BrowserMenuBar extends JMenuBar
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == editString) {
-        StringEditor editor = null;
-        List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
-        for (int i = 0; i < frames.size(); i++) {
-          editor = (StringEditor)frames.get(i);
-        }
-        if (editor == null) {
-          new StringEditor();
-        } else {
-          editor.setVisible(true);
-        }
+        ChildFrame.show(StringEditor.class, () -> new StringEditor());
       }
       else if (event.getSource() == editWeiDU) {
         showTextFile(NearInfinity.getInstance(), "WeiDU.log");
@@ -1267,23 +1254,13 @@ public final class BrowserMenuBar extends JMenuBar
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == searchString) {
-        StringLookup lookup = (StringLookup)ChildFrame.getFirstFrame(StringLookup.class);
-        if (lookup == null)
-          lookup = new StringLookup();
-        lookup.setVisible(true);
+        ChildFrame.show(StringLookup.class, () -> new StringLookup());
       }
       else if (event.getSource() == searchFile) {
-        SearchFrame search = (SearchFrame)ChildFrame.getFirstFrame(SearchFrame.class);
-        if (search == null)
-          search = new SearchFrame();
-        search.setVisible(true);
+        ChildFrame.show(SearchFrame.class, () -> new SearchFrame());
       }
       else if (event.getSource() == searchResource) {
-        SearchResource resource = (SearchResource)ChildFrame.getFirstFrame(SearchResource.class);
-        if (resource == null) {
-          resource = new SearchResource();
-        }
-        resource.setVisible(true);
+        ChildFrame.show(SearchResource.class, () -> new SearchResource());
       }
       else {
         for (final String type : TEXTSEARCH) {
@@ -1487,23 +1464,15 @@ public final class BrowserMenuBar extends JMenuBar
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == toolInfinityAmp) {
-        InfinityAmp infAmp = (InfinityAmp)ChildFrame.getFirstFrame(InfinityAmp.class);
-        if (infAmp == null)
-          infAmp = new InfinityAmp();
-        infAmp.setVisible(true);
+        ChildFrame.show(InfinityAmp.class, () -> new InfinityAmp());
       }
       else if (event.getSource() == toolIDSBrowser) {
-        IdsBrowser browser = (IdsBrowser)ChildFrame.getFirstFrame(IdsBrowser.class);
-        if (browser == null)
-          browser = new IdsBrowser();
-        browser.setVisible(true);
+        ChildFrame.show(IdsBrowser.class, () -> new IdsBrowser());
       }
       else if (event.getSource() == toolClipBoard) {
-        ClipboardViewer viewer = (ClipboardViewer)ChildFrame.getFirstFrame(
-                ClipboardViewer.class);
-        if (viewer == null) {
-          viewer = new ClipboardViewer();
-          viewer.addWindowListener(new WindowAdapter()
+        ChildFrame.setVisible(ClipboardViewer.class, toolClipBoard.isSelected(), () -> {
+          final ClipboardViewer view = new ClipboardViewer();
+          view.addWindowListener(new WindowAdapter()
           {
             @Override
             public void windowClosing(WindowEvent e)
@@ -1511,14 +1480,13 @@ public final class BrowserMenuBar extends JMenuBar
               toolClipBoard.setSelected(false);
             }
           });
-        }
-        viewer.setVisible(toolClipBoard.isSelected());
+          return view;
+        });
       }
       else if (event.getSource() == toolConsole) {
-        DebugConsole console = (DebugConsole)ChildFrame.getFirstFrame(DebugConsole.class);
-        if (console == null) {
-          console = new DebugConsole();
-          console.addWindowListener(new WindowAdapter()
+        ChildFrame.setVisible(DebugConsole.class, toolConsole.isSelected(), () -> {
+          final DebugConsole con = new DebugConsole();
+          con.addWindowListener(new WindowAdapter()
           {
             @Override
             public void windowClosing(WindowEvent e)
@@ -1526,17 +1494,14 @@ public final class BrowserMenuBar extends JMenuBar
               toolConsole.setSelected(false);
             }
           });
-        }
-        console.setVisible(toolConsole.isSelected());
+          return con;
+        });
       }
       else if (event.getSource() == toolCleanKeyfile)
 //        cleanKeyfile();
         ;
       else if (event.getSource() == toolDropZone) {
-        BcsDropFrame bcsframe = (BcsDropFrame)ChildFrame.getFirstFrame(BcsDropFrame.class);
-        if (bcsframe == null)
-          bcsframe = new BcsDropFrame();
-        bcsframe.setVisible(true);
+        ChildFrame.show(BcsDropFrame.class, () -> new BcsDropFrame());
       }
       else if (event.getSource() == toolCheckAllDialog)
         new DialogChecker(false, NearInfinity.getInstance());
@@ -1565,35 +1530,15 @@ public final class BrowserMenuBar extends JMenuBar
       else if (event.getSource() == toolCheckEffectsIndex)
         new EffectsIndexChecker();
       else if (event.getSource() == toolConvImageToPvrz) {
-        ConvertToPvrz dlg = (ConvertToPvrz)ChildFrame.getFirstFrame(ConvertToPvrz.class);
-        if (dlg == null) {
-          dlg = new ConvertToPvrz();
-        }
-        dlg.setVisible(true);
+        ChildFrame.show(ConvertToPvrz.class, () -> new ConvertToPvrz());
       } else if (event.getSource() == toolConvImageToTis) {
-        ConvertToTis dlg = (ConvertToTis)ChildFrame.getFirstFrame(ConvertToTis.class);
-        if (dlg == null) {
-          dlg = new ConvertToTis();
-        }
-        dlg.setVisible(true);
+        ChildFrame.show(ConvertToTis.class, () -> new ConvertToTis());
       } else if (event.getSource() == toolConvImageToMos) {
-        ConvertToMos dlg = (ConvertToMos)ChildFrame.getFirstFrame(ConvertToMos.class);
-        if (dlg == null) {
-          dlg = new ConvertToMos();
-        }
-        dlg.setVisible(true);
+        ChildFrame.show(ConvertToMos.class, () -> new ConvertToMos());
       } else if (event.getSource() == toolConvImageToBmp) {
-        ConvertToBmp dlg = (ConvertToBmp)ChildFrame.getFirstFrame(ConvertToBmp.class);
-        if (dlg == null) {
-          dlg = new ConvertToBmp();
-        }
-        dlg.setVisible(true);
+        ChildFrame.show(ConvertToBmp.class, () -> new ConvertToBmp());
       } else if (event.getSource() == toolConvImageToBam) {
-        ConvertToBam dlg = (ConvertToBam)ChildFrame.getFirstFrame(ConvertToBam.class);
-        if (dlg == null) {
-          dlg = new ConvertToBam();
-        }
-        dlg.setVisible(true);
+        ChildFrame.show(ConvertToBam.class, () -> new ConvertToBam());
       }
     }
   }

@@ -318,13 +318,8 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     } else if (buttonPanel.getControlByType(Properties) == event.getSource()) {
       showProperties();
     } else if (buttonPanel.getControlByType(BamEdit) == event.getSource()) {
-      ConvertToBam dlg = (ConvertToBam)ChildFrame.getFirstFrame(ConvertToBam.class);
-      if (dlg == null) {
-        dlg = new ConvertToBam(entry);
-      } else {
-        dlg.setVisible(true);
-        dlg.framesImportBam(entry);
-      }
+      final ConvertToBam converter = ChildFrame.show(ConvertToBam.class, () -> new ConvertToBam());
+      converter.framesImportBam(entry);
     }
   }
 
@@ -714,7 +709,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     }
   }
 
-  // Shows message box about basic resource properties
+  /** Shows message box about basic resource properties. */
   private void showProperties()
   {
     BamDecoder.BamControl control = decoder.createControl();
@@ -886,7 +881,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     return msg;
   }
 
-  // Returns a BufferedImage object in the most appropriate format for the current BAM resource
+  /** Returns a BufferedImage object in the most appropriate format for the current BAM resource. */
   private static BufferedImage prepareFrameImage(BamDecoder decoder, int frameIdx)
   {
     BufferedImage image = null;
@@ -913,7 +908,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     return image;
   }
 
-  // Exports frames as graphics, specified by "format"
+  /** Exports frames as graphics, specified by "format". */
   private void exportFrames(Path filePath, String fileBase, String fileExt, String format)
   {
     String msg = null;
@@ -931,7 +926,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     }
   }
 
-  // Checks current BAM (V2 only) for compatibility and shows an appropriate warning or error message
+  /** Checks current BAM (V2 only) for compatibility and shows an appropriate warning or error message. */
   private boolean checkCompatibility(Component parent)
   {
     if (parent == null)
@@ -1019,7 +1014,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     return false;
   }
 
-  // Creates a new BAM V1 or BAMC V1 resource from scratch. DO NOT call directly!
+  /** Creates a new BAM V1 or BAMC V1 resource from scratch. DO NOT call directly!. */
   private byte[] convertToBamV1(boolean compressed) throws Exception
   {
     if (decoder != null) {
@@ -1236,7 +1231,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
     return null;
   }
 
-  // Starts the worker thread for BAM conversion
+  /** Starts the worker thread for BAM conversion. */
   private void startConversion(boolean compressed)
   {
     exportCompressed = compressed;

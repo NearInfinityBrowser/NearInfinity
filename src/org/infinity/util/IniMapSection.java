@@ -1,27 +1,31 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-public class IniMapSection
+public class IniMapSection implements Iterable<IniMapEntry>
 {
-  private final List<IniMapEntry> entries = new ArrayList<IniMapEntry>();
+  private final List<IniMapEntry> entries = new ArrayList<>();
 
-  private String name;
-  private int line;   // line number of section header
+  /**
+   * Name of section (string between square brackets) or empty string, if this
+   * section contains entries of ini file, that not included in any section.
+   */
+  private final String name;
+  /** Line number of section header. */
+  private final int line;
 
   public IniMapSection(String name, int line, List<IniMapEntry> entries)
   {
     this.name = (name != null) ? name : "";
     this.line = line;
     if (entries != null) {
-      for (final IniMapEntry e: entries) {
-        this.entries.add(e);
-      }
+      this.entries.addAll(entries);
     }
   }
 
@@ -49,15 +53,6 @@ public class IniMapSection
     return entries.size();
   }
 
-  /** Returns the specified section entry. */
-  public IniMapEntry getEntry(int index)
-  {
-    if (index >= 0 && index < getEntryCount()) {
-      return entries.get(index);
-    }
-    return null;
-  }
-
   /** Returns the first instance with "key" matching the key value of the entry. */
   public IniMapEntry getEntry(String key)
   {
@@ -70,6 +65,9 @@ public class IniMapSection
     }
     return null;
   }
+
+  @Override
+  public Iterator<IniMapEntry> iterator() { return entries.iterator(); }
 
   @Override
   public String toString()

@@ -12,6 +12,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
+import org.infinity.datatype.Bestiary;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
@@ -450,7 +451,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     if (offBestiary != null) { // Torment
       offset = offBestiary.getValue();
       if (offset > 0) {
-        addField(new Unknown(buffer, offset, 260, GAM_BESTIARY));
+        addField(new Bestiary(buffer, offset, GAM_BESTIARY));
         offset += 260;
       }
     }
