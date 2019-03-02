@@ -323,7 +323,10 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       editor.setResizeWeight(0.8);// 80% - to table, 20% - to description
 
       add(editor, JSplitPane.LEFT);
-      add(new JScrollPane(image), JSplitPane.RIGHT);
+      JScrollPane spImage = new JScrollPane(image);
+      spImage.getVerticalScrollBar().setUnitIncrement(16);
+      spImage.getHorizontalScrollBar().setUnitIncrement(16);
+      add(spImage, JSplitPane.RIGHT);
       // PST images for bestiary has 281 x 441 resolution. Reserve 19 pixels for scrollbar
       image.setPreferredSize(new Dimension(300, 441));
       setResizeWeight(1);// 100% - to table, image always has the same size so do not need resize
