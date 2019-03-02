@@ -24,6 +24,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
+import org.infinity.datatype.Bestiary;
 import org.infinity.datatype.StringRef;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
@@ -33,6 +34,7 @@ import org.infinity.gui.TableItem;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -99,6 +101,9 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
       }
 
       strUsed = new boolean[StringTable.getNumEntries()];
+      if (Profile.getGame() == Profile.Game.PST || Profile.getGame() == Profile.Game.PSTEE) {
+        Bestiary.markUsedStrings(strUsed);
+      }
       if (runSearch("Searching", files)) {
         return;
       }

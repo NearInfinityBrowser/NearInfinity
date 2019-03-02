@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -14,7 +14,6 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -26,7 +25,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.infinity.gui.BrowserMenuBar;
-import org.infinity.gui.ChildFrame;
 import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
 import org.infinity.gui.StringEditor;
@@ -129,18 +127,7 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
       enablePlay(newvalue);
     }
     else if (event.getSource() == bEdit) {
-      StringEditor editor = null;
-      final List<ChildFrame> frames = ChildFrame.getFrames(StringEditor.class);
-      if (!frames.isEmpty()) {
-        editor = (StringEditor)frames.get(0);
-      }
-      int newvalue2 = StringTable.getTranslatedIndex(newvalue);
-      if (editor == null) {
-        new StringEditor(newvalue2);
-      } else {
-        editor.setVisible(true);
-        editor.showEntry(StringTable.Type.MALE, newvalue2);
-      }
+      StringEditor.edit(value);
     }
     else if (event.getSource() == bPlay) {
       final ResourceEntry entry = ResourceFactory.getResourceEntry(StringTable.getSoundResource(newvalue) + ".WAV");

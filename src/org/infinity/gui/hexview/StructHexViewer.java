@@ -433,33 +433,10 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
     setLayout(new BorderLayout());
 
     // configuring hexview
-    Color textColor = dataProvider.isEditable() ? Color.BLACK: Color.GRAY;
-    hexView.setEnabled(false);
-    hexView.setDefinitionStatus(JHexView.DefinitionStatus.UNDEFINED);
-    hexView.setAddressMode(JHexView.AddressMode.BIT32);
-    hexView.setSeparatorsVisible(false);
-    hexView.setBytesPerColumn(1);
-    hexView.setBytesPerRow(16);
-    hexView.setColumnSpacing(8);
-    hexView.setMouseOverHighlighted(false);
-    hexView.setShowModified(true);
-    hexView.setCaretColor(Color.BLACK);
-    hexView.setFontSize(Misc.getScaledValue(13));
-    hexView.setHeaderFontStyle(Font.BOLD);
-    hexView.setFontColorHeader(new Color(0x0000c0));
-    hexView.setBackgroundColorOffsetView(hexView.getBackground());
-    hexView.setFontColorOffsetView(new Color(0x0000c0));
-    hexView.setBackgroundColorHexView(hexView.getBackground());
-    hexView.setFontColorHexView1(textColor);
-    hexView.setFontColorHexView2(textColor);
-    hexView.setBackgroundColorAsciiView(hexView.getBackground());
-    hexView.setFontColorAsciiView(textColor);
-    hexView.setFontColorModified(Color.RED);
-    hexView.setSelectionColor(new Color(0xc0c0c0));
+    GenericHexViewer.configureHexView(hexView, dataProvider.isEditable());
+
     hexView.setColormap(colorMap);
-    hexView.setColorMapEnabled(BrowserMenuBar.getInstance().getHexColorMapEnabled());
     hexView.setMenuCreator(menuCreator);
-    hexView.setEnabled(true);
     hexView.addHexListener(this);
     hexView.setData(dataProvider);
     hexView.setDefinitionStatus(hexView.getData().getDataLength() > 0 ?
