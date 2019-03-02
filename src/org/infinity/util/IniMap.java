@@ -100,7 +100,6 @@ public class IniMap implements Iterable<IniMapSection>
 
     // parsing lines
     String curSection = null;
-    String curSectionComment = null;
     int curSectionLine = 0;
     final List<IniMapEntry> section = new ArrayList<>();
     for (int i = 0, count = lines.length; i < count; i++) {

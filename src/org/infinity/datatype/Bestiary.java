@@ -97,8 +97,6 @@ public final class Bestiary extends Datatype implements Editable, TableModel
    * NPC creatures (at start of game).
    */
   private static final int EMPTY_BESTIARY_DESC = 3595;
-  /** Color, used to highligth background of unused bytes. */
-  private static final Color UNUSED_COLOR = new Color(0xffffa0);
   /** Color, used to highligth background of party members. */
   private static final Color PARTY_COLOR = Color.CYAN;
 
