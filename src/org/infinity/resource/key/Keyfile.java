@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -214,6 +214,8 @@ public class Keyfile
     resourceIcons.put("TXT", ICON_TEXT);
     resourceIcons.put("RES", ICON_TEXT);
     resourceIcons.put("BAF", ICON_SCRIPT);
+    resourceIcons.put("VAR", ICON_STRUCT);// PST VAR.VAR file - from Special category in the resource tree
+    resourceIcons.put("LOG", ICON_TEXT);// WeiDU log files - from Special category in the resource tree
   }
 
   @Override
@@ -440,7 +442,7 @@ public class Keyfile
     }
   }
 
-  // caches all BIFF files referenced in the current KEY file
+  /** Caches all BIFF files referenced in the current KEY file. */
   private void cacheBIFFs()
   {
     SwingUtilities.invokeLater(new Runnable() {
@@ -499,7 +501,7 @@ public class Keyfile
 //  }
 
 
-  // Creates or updates cached biff maps and entry tables
+  /** Creates or updates cached biff maps and entry tables. */
   private void init() throws IOException
   {
     if (getKeyfile() == null) {
@@ -562,7 +564,7 @@ public class Keyfile
     }
   }
 
-  // Returns the list of BIFFEntry objects for the specified key file, optionally removes it
+  /** Returns the list of BIFFEntry objects for the specified key file, optionally removes it. */
   private List<BIFFEntry> getBIFFList(Path keyFile, boolean remove)
   {
     if (keyFile != null) {
@@ -575,7 +577,7 @@ public class Keyfile
     return null;
   }
 
-  // Adds the specified resource entry to the list, overwrites existing entries of same name.
+  /** Adds the specified resource entry to the list, overwrites existing entries of same name. */
   private BIFFResourceEntry addResourceEntry(BIFFResourceEntry entry)
   {
     BIFFResourceEntry retVal = null;
