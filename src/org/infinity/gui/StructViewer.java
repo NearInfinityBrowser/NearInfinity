@@ -245,7 +245,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                                                      int column)
       {
         final StructEntry field = (StructEntry)table.getModel().getValueAt(row, 1);
-        setBackground(field instanceof SectionOffset ? Color.cyan : null);
+        final boolean isColored = BrowserMenuBar.getInstance().getColoredOffsetsEnabled() &&
+                                  field instanceof SectionOffset;
+        setBackground(isColored ? Color.cyan : null);
 
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         if (column == 2)
