@@ -13,6 +13,7 @@ import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -122,6 +123,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public static final String CMD_TOFLAGS        = "ToFlags";
   public static final String CMD_TORESLIST      = "ToResList";
   public static final String CMD_RESET          = "ResetType";
+  public static final String CMD_GOTO_OFFSET    = "GotoOffset";
   public static final String CMD_SHOW_IN_TREE   = "ShowInTree";
   public static final String CMD_SHOWVIEWER     = "ShowView";
   public static final String CMD_SHOWNEWVIEWER  = "ShowNewView";
@@ -151,10 +153,11 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem miToHexInt = createMenuItem(CMD_TOHEXINT, "Edit as hex number", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miToFlags = createMenuItem(CMD_TOFLAGS, "Edit as bit field", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miReset = createMenuItem(CMD_RESET, "Reset field type", Icons.getIcon(Icons.ICON_REFRESH_16), this);
+  private final JMenuItem miGotoOffset = createMenuItem(CMD_GOTO_OFFSET, "Go to offset", null, this);
   private final JMenuItem miShowInTree = createMenuItem(CMD_SHOW_IN_TREE, "Show in tree", Icons.getIcon(Icons.ICON_SELECT_IN_TREE_16), this);
   private final JMenuItem miShowViewer = createMenuItem(CMD_SHOWVIEWER, "Show in viewer", Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16), this);
   private final JMenuItem miShowNewViewer = createMenuItem(CMD_COPYVALUE, "Show in new viewer", null, this);
-  private final JMenu menuToResref = createResrefMenu(CMD_TORESLIST, "Edit as resref", Profile.getAvailableResourceTypes(),
+  private final JMenu miToResref = createResrefMenu(CMD_TORESLIST, "Edit as resref", Profile.getAvailableResourceTypes(),
                                                       Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JPanel lowerpanel = new JPanel(cards);
   private final JPanel editpanel = new JPanel();
@@ -162,8 +165,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JPopupMenu popupmenu = new JPopupMenu();
   private final InfinityTextArea tatext = new InfinityTextArea(true);
   private final StructTable table = new StructTable();
-  private final HashMap<Integer, StructEntry> entryMap = new HashMap<Integer, StructEntry>();
-  private final HashMap<Viewable, ViewFrame> viewMap = new HashMap<Viewable, ViewFrame>();
+  private final HashMap<Integer, StructEntry> entryMap = new HashMap<>();
+  private final HashMap<Viewable, ViewFrame> viewMap = new HashMap<>();
   private AddRemovable emptyTypes[];
   private JMenuItem miFindAttribute, miFindReferences, miFindStateReferences, miFindRefToItem;
   private Editable editable;
@@ -227,6 +230,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           Object selected = table.getModel().getValueAt(table.getSelectedRow(), 1);
           if (selected instanceof Viewable) {
             createViewFrame(table.getTopLevelAncestor(), (Viewable)selected);
+          } else
+          if (selected instanceof SectionOffset) {
+            selectOffset((SectionOffset)selected);
           }
         }
       }
@@ -238,6 +244,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                                                      boolean isSelected, boolean hasFocus, int row,
                                                      int column)
       {
+        final StructEntry field = (StructEntry)table.getModel().getValueAt(row, 1);
+        setBackground(field instanceof SectionOffset ? Color.cyan : null);
+
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         if (column == 2)
           setHorizontalAlignment(JLabel.TRAILING);
@@ -258,9 +267,10 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     popupmenu.add(miToInt);
     popupmenu.add(miToHexInt);
     popupmenu.add(miToFlags);
-    popupmenu.add(menuToResref);
+    popupmenu.add(miToResref);
     popupmenu.add(miToString);
     popupmenu.add(miReset);
+    popupmenu.add(miGotoOffset);
     if (struct instanceof DlgResource) {
       popupmenu.add(miShowInTree);
       popupmenu.add(miShowViewer);
@@ -279,9 +289,10 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     miToInt.setEnabled(false);
     miToHexInt.setEnabled(false);
     miToFlags.setEnabled(false);
-    menuToResref.setEnabled(false);
+    miToResref.setEnabled(false);
     miToString.setEnabled(false);
     miReset.setEnabled(false);
+    miGotoOffset.setEnabled(false);
     miShowInTree.setEnabled(false);
     miShowViewer.setEnabled(false);
     miShowNewViewer.setEnabled(false);
@@ -562,6 +573,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       convertAttribute(min, miToString);
     } else if (CMD_RESET.equals(cmd)) {
       convertAttribute(min, miReset);
+    } else if (CMD_GOTO_OFFSET.equals(cmd)) {
+      selectOffset((SectionOffset)table.getValueAt(min, 1));
     } else if (CMD_SHOW_IN_TREE.equals(cmd)) {
       // this should only be available for DlgResources
       final DlgResource dlgRes = (DlgResource) struct;
@@ -677,14 +690,13 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miToInt.setEnabled(false);
       miToHexInt.setEnabled(false);
       miToFlags.setEnabled(false);
-      menuToResref.setEnabled(false);
+      miToResref.setEnabled(false);
       miToString.setEnabled(false);
       miReset.setEnabled(false);
+      miGotoOffset.setEnabled(false);
       miShowInTree.setEnabled(false);
       miShowViewer.setEnabled(false);
-      if (miShowNewViewer != null) {
-        miShowNewViewer.setEnabled(false);
-      }
+      miShowNewViewer.setEnabled(false);
       if (miFindAttribute != null) {
         miFindAttribute.setEnabled(false);
       }
@@ -717,8 +729,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       if (miFindStateReferences != null) {
         miFindStateReferences.setEnabled(selected instanceof State);
       }
-      boolean isDataType = (selected instanceof Datatype);
-      boolean isReadable = (selected instanceof Readable);
+      final boolean isDataType = (selected instanceof Datatype);
+      final boolean isReadable = (selected instanceof Readable);
       miToHex.setEnabled(isDataType && isReadable && !(selected instanceof Unknown ||
                                                        selected instanceof SectionCount ||
                                                        selected instanceof AbstractCode));
@@ -735,34 +747,34 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                            selected instanceof SectionCount ||
                            selected instanceof AbstractCode));
       miToInt.setEnabled(isDataType && isReadable &&
-                         (selected instanceof Datatype && ((Datatype)selected).getSize() <= 4) &&
+                         ((Datatype)selected).getSize() <= 4 &&
                          !(selected instanceof SectionCount ||
                            selected instanceof SectionOffset ||
                            selected instanceof AbstractCode));
       miToHexInt.setEnabled(isDataType && isReadable &&
-                            (selected instanceof Datatype && ((Datatype)selected).getSize() <= 4) &&
+                            ((Datatype)selected).getSize() <= 4 &&
                             !(selected instanceof HexNumber ||
                               selected instanceof SectionCount ||
                               selected instanceof SectionOffset ||
                               selected instanceof AbstractCode));
       miToFlags.setEnabled(isDataType && isReadable &&
-                           (selected instanceof Datatype && ((Datatype)selected).getSize() <= 4) &&
+                           ((Datatype)selected).getSize() <= 4 &&
                            !(selected instanceof Flag ||
                              selected instanceof SectionCount ||
                              selected instanceof SectionOffset ||
                              selected instanceof AbstractCode));
-      menuToResref.setEnabled(isDataType && isReadable &&
-                              selected instanceof IsTextual &&
-                              ((Datatype)selected).getSize() == 8);
+      miToResref.setEnabled(isDataType && isReadable &&
+                            selected instanceof IsTextual &&
+                            ((Datatype)selected).getSize() == 8);
       miToString.setEnabled(isDataType && isReadable &&
                             (selected instanceof Unknown ||
                              selected instanceof ResourceRef ||
                              selected instanceof TextBitmap) &&
                             !(selected instanceof AbstractCode));
       miReset.setEnabled(isDataType && isReadable &&
-                         isCachedStructEntry(((Datatype)selected).getOffset()) &&
                          getCachedStructEntry(((Datatype)selected).getOffset()) instanceof Readable &&
                          !(selected instanceof AbstractCode));
+      miGotoOffset.setEnabled(selected instanceof SectionOffset);
       final boolean isSpecialDlgTreeItem = (selected instanceof State
                                          || selected instanceof Transition);
       final boolean isSpecialDlgStruct = isSpecialDlgTreeItem
@@ -1257,7 +1269,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     }
   }
 
-  // Caches the given StructEntry object
+  /** Caches the given StructEntry object. */
   private void setCachedStructEntry(StructEntry struct)
   {
     if (struct != null) {
@@ -1272,20 +1284,20 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     return entryMap.get(Integer.valueOf(offset));
   }
 
-  // Removes the StructEntry object at the given offset and returns it
+  /** Removes the StructEntry object at the given offset and returns it. */
   private StructEntry removeCachedStructEntry(int offset)
   {
     return entryMap.remove(Integer.valueOf(offset));
   }
 
-  // Indicates whether the given StructEntry object is equal to the cached object
+  /** Indicates whether the given StructEntry object is equal to the cached object. */
   private boolean isCachedStructEntry(int offset)
   {
     return entryMap.containsKey(Integer.valueOf(offset));
   }
 
 
-  // Recycles existing ViewFrame constructs if possible
+  /** Recycles existing ViewFrame constructs if possible. */
   private ViewFrame createViewFrame(Component parent, Viewable view)
   {
     ViewFrame frame = null;
@@ -1333,6 +1345,48 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     editpanel.repaint();
     cards.show(lowerpanel, CARD_EDIT);
     editable.select();
+  }
+
+  /**
+   * Move viewport for this table in such way that specified entry becomes visible
+   * and selects it.
+   *
+   * @param field Field for selection. If this field not in this table or {@code null},
+   *        do nothing
+   */
+  private void select(StructEntry field)
+  {
+    final int index = struct.getList().indexOf(field);
+    if (index >= 0) {
+      table.getSelectionModel().setSelectionInterval(index, index);
+
+      SwingUtilities.invokeLater(() -> {
+        final JComponent viewport = (JComponent)table.getParent();
+        final Rectangle r = table.getCellRect(index, 0, true);
+        final Rectangle v = viewport.getVisibleRect();
+        table.scrollRectToVisible(new Rectangle(r.x, r.y, (int) v.getWidth(), (int) v.getHeight()));
+      });
+    }
+  }
+
+  /**
+   * Selects in the table field that corresponds to the specified offset entry
+   * or opens new child structure viewer, if corresponding field not in this table
+   *
+   * @param entry Offset to show
+   */
+  private void selectOffset(SectionOffset entry)
+  {
+    // Select entry at offset
+    final int offset = entry.getValue();
+    final StructEntry field = struct.getAttribute(offset, entry.getSection());
+    if (field != null) {
+      final AbstractStruct parent = (AbstractStruct)field.getParent();
+      if (parent != struct) {
+        new ViewFrame(this, parent);
+      }
+      parent.getViewer().select(field);
+    }
   }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -1422,4 +1476,3 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     }
   }
 }
-

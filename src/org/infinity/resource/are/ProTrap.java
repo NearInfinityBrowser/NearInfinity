@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -55,7 +55,7 @@ public final class ProTrap extends AbstractStruct implements AddRemovable
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new ResourceRef(buffer, offset, ARE_PROTRAP_TRAP, "PRO"));
-    SectionOffset ofsEffects = new SectionOffset(buffer, offset + 8, ARE_PROTRAP_OFFSET_EFFECTS, null);
+    SectionOffset ofsEffects = new SectionOffset(buffer, offset + 8, ARE_PROTRAP_OFFSET_EFFECTS, ProEffect.class);
     addField(ofsEffects);
     // Mac ToB doesn't save these right, so EFFs not handled
     DecNumber sizeEffects = new DecNumber(buffer, offset + 12, 2, ARE_PROTRAP_EFFECTS_SIZE);
@@ -83,4 +83,3 @@ public final class ProTrap extends AbstractStruct implements AddRemovable
     return offset + 28;
   }
 }
-
