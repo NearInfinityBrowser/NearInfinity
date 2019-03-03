@@ -10,11 +10,14 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.KeyEventDispatcher;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import static java.awt.event.ActionEvent.SHIFT_MASK;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
@@ -73,10 +76,14 @@ import org.infinity.gui.converter.ConvertToMos;
 import org.infinity.gui.converter.ConvertToPvrz;
 import org.infinity.gui.converter.ConvertToTis;
 import org.infinity.icon.Icons;
+import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.resource.StructEntry;
 import org.infinity.resource.StructureFactory;
+import org.infinity.resource.Viewable;
+import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
@@ -96,7 +103,7 @@ import org.infinity.util.Pair;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileManager;
 
-public final class BrowserMenuBar extends JMenuBar
+public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 {
   public static final String VERSION = "v2.1-20180615";
   public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
@@ -504,6 +511,65 @@ public final class BrowserMenuBar extends JMenuBar
     gameMenu.storePreferences();
   }
 
+  //<editor-fold defaultstate="collapsed" desc="Debug helpers">
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent e)
+  {
+    final KeyStroke acc = toolsMenu.dumpDebugInfo.getAccelerator();
+    if (!e.isConsumed() && acc.equals(KeyStroke.getKeyStrokeForEvent(e))) {
+      e.consume();
+      dumpDebugInfo();
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Performs dumping to {@link System#out standard output} some useful debug information
+   * about currect active objects in the editor:
+   * <ol>
+   * <li>Class and title of top-level window</li>
+   * <li>Class and name of current {@link Viewable}, if such exist</li>
+   * <li>Name of current resource, if viewable is {@link Resource}</li>
+   * <li>Class and name of current field if viewable has opened editor</li>
+   * </ol>
+   */
+  public static void dumpDebugInfo()
+  {
+    final Frame frame = findActiveFrame();
+    if (frame == null) {
+      return;
+    }
+    System.out.println("Current Window  : " + frame.getClass() + ", title: " + frame.getTitle());
+    if (!(frame instanceof ViewableContainer)) {
+      return;
+    }
+    final Viewable v = ((ViewableContainer)frame).getViewable();
+    final String name = v instanceof StructEntry ? ", name: " + ((StructEntry)v).getName() : "";
+    System.out.println("        Viewable: " + (v == null ? null : (v.getClass() + name)));
+    if (v instanceof Resource) {
+      System.out.println("        Resource: " + ((Resource)v).getResourceEntry());
+    }
+    if (v instanceof AbstractStruct) {
+      final StructViewer viewer = ((AbstractStruct)v).getViewer();
+      if (viewer != null) {
+        final StructEntry entry = viewer.getSelectedEntry();
+        final String info = entry == null ? null : (entry.getClass() + ", name: " + entry.getName());
+        System.out.println("        Field   : " + info);
+      }
+    }
+  }
+
+  private static Frame findActiveFrame()
+  {
+    for (Frame frame : Frame.getFrames()) {
+      if (frame.isActive()) {
+        return frame;
+      }
+    }
+    return null;
+  }
+  //</editor-fold>
 
 // -------------------------- INNER CLASSES --------------------------
 
@@ -1293,6 +1359,7 @@ public final class BrowserMenuBar extends JMenuBar
     private final JMenuItem toolConvImageToBam, toolConvImageToBmp, toolConvImageToMos, toolConvImageToTis,
                             toolConvImageToPvrz;
     private final JCheckBoxMenuItem toolConsole, toolClipBoard;
+    private final JMenuItem dumpDebugInfo;
 
     private ToolsMenu()
     {
@@ -1430,6 +1497,11 @@ public final class BrowserMenuBar extends JMenuBar
       toolConsole.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_MASK));
       toolConsole.addActionListener(this);
       add(toolConsole);
+      dumpDebugInfo = new JMenuItem("Print debug info to Console");
+      dumpDebugInfo.setToolTipText("Output to console class of current top-level window, resource and selected field in the structure viewer");
+      dumpDebugInfo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_MASK | SHIFT_MASK));
+      dumpDebugInfo.addActionListener(this);
+      add(dumpDebugInfo);
     }
 
 //    private static void cleanKeyfile()
@@ -1496,6 +1568,9 @@ public final class BrowserMenuBar extends JMenuBar
           });
           return con;
         });
+      }
+      else if (event.getSource() == dumpDebugInfo) {
+        dumpDebugInfo();
       }
       else if (event.getSource() == toolCleanKeyfile)
 //        cleanKeyfile();
