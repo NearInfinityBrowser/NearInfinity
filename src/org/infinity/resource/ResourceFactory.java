@@ -1462,11 +1462,12 @@ public final class ResourceFactory implements FileWatchListener
   {
     String fileName;
     do {
-      fileName = JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter new filename",
-                                             "Add copy of " + entry.toString(),
-                                             JOptionPane.QUESTION_MESSAGE);
+      fileName = (String)JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter new filename",
+                                                     "Add copy of " + entry.getResourceName(),
+                                                     JOptionPane.QUESTION_MESSAGE,
+                                                     null, null, entry.getResourceName());
       if (fileName != null) {
-        if (fileName.indexOf(".") == -1) {
+        if (!fileName.contains(".")) {
           fileName += '.' + entry.getExtension();
         }
         if (fileName.lastIndexOf('.') > 8) {
@@ -1475,19 +1476,26 @@ public final class ResourceFactory implements FileWatchListener
                                         "Error", JOptionPane.ERROR_MESSAGE);
           fileName = null;
         }
-        if (resourceExists(fileName)) {
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File already exists!",
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-          fileName = null;
-        }
       } else {
         return;
       }
     } while (fileName == null);
 
-    // creating override folder in game directory if it doesn't exist
+    final Path outPath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName().toLowerCase(Locale.ENGLISH));
+    Path outFile = outPath.resolve(fileName);
+    if (entry.getExtension().equalsIgnoreCase("bs")) {
+      outFile = FileManager.query(Profile.getGameRoot(), "Scripts", fileName);
+    }
 
-    Path outPath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName().toLowerCase(Locale.ENGLISH));
+    if (Files.exists(outFile)) {
+      String options[] = {"Overwrite", "Cancel"};
+      if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), outFile + " exists. Overwrite?",
+                                       "Confirm overwrite " + outFile, JOptionPane.YES_NO_OPTION,
+                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
+        return;
+    }
+
+    // creating override folder in game directory if it doesn't exist
     if (!Files.isDirectory(outPath)) {
       try {
         Files.createDirectory(outPath);
@@ -1499,18 +1507,6 @@ public final class ResourceFactory implements FileWatchListener
       }
     }
 
-    Path outFile = outPath.resolve(fileName);
-    if (entry.getExtension().equalsIgnoreCase("bs")) {
-      outFile = FileManager.query(Profile.getGameRoot(), "Scripts", fileName);
-    }
-
-    if (Files.exists(outFile)) {
-      String options[] = {"Overwrite", "Cancel"};
-      if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), outFile + " exists. Overwrite?",
-                                       "Save resource", JOptionPane.YES_NO_OPTION,
-                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
-        return;
-    }
     try {
       setPendingSelection(outFile);
       ByteBuffer bb = entry.getResourceBuffer();
