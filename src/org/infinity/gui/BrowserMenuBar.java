@@ -17,7 +17,7 @@ import java.awt.Insets;
 import java.awt.KeyEventDispatcher;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import static java.awt.event.ActionEvent.SHIFT_MASK;
+import static java.awt.event.ActionEvent.ALT_MASK;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
@@ -188,6 +188,23 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     add(toolsMenu);
     add(optionsMenu);
     add(helpMenu);
+  }
+
+  /**
+   * Returns whether menu item "Tools > Print debug info" is shown.
+   */
+  public boolean getShowDebugExtraInfo()
+  {
+    return toolsMenu.getShowDebugExtraInfo();
+  }
+
+  /**
+   * Activates or deactivates the "Tools > Print debug info" menu item.
+   * @param show Whether to enable/show the menu item.
+   */
+  public void setShowDebugExtraInfo(boolean show)
+  {
+    toolsMenu.setShowDebugExtraInfo(show);
   }
 
   public boolean autocheckBCS()
@@ -507,6 +524,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
   public void storePreferences()
   {
+    toolsMenu.storePreferences();
     optionsMenu.storePreferences();
     gameMenu.storePreferences();
   }
@@ -518,7 +536,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     final KeyStroke acc = toolsMenu.dumpDebugInfo.getAccelerator();
     if (!e.isConsumed() && acc.equals(KeyStroke.getKeyStrokeForEvent(e))) {
       e.consume();
-      dumpDebugInfo();
+      if (toolsMenu.dumpDebugInfo.isEnabled()) {
+        dumpDebugInfo();
+      }
       return true;
     }
     return false;
@@ -1286,8 +1306,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       add(searchFile);
       searchResource =
           makeMenuItem("Extended search...", KeyEvent.VK_X, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
-      searchResource.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X,
-          Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | ActionEvent.ALT_MASK));
+      searchResource.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, CTRL_MASK | ALT_MASK));
       add(searchResource);
 
       textSearchMenu = new JMenu("Text Search");
@@ -1351,6 +1370,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
   private static final class ToolsMenu extends JMenu implements ActionListener
   {
+    private static final String TOOLS_DEBUG_EXTRA_INFO  = "DebugShowExtraInfo";
+
     private final JMenuItem toolInfinityAmp, toolCleanKeyfile, toolCheckAllDialog, toolCheckOverrideDialog;
     private final JMenuItem toolCheckResRef, toolIDSBrowser, toolDropZone, toolCheckCREInv;
     private final JMenuItem toolCheckIDSRef, toolCheckIDSBCSRef, toolCheckScripts, toolCheckStructs;
@@ -1497,10 +1518,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       toolConsole.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_MASK));
       toolConsole.addActionListener(this);
       add(toolConsole);
-      dumpDebugInfo = new JMenuItem("Print debug info to Console");
+      dumpDebugInfo = new JMenuItem("Print debug info to Console", Icons.getIcon(Icons.ICON_PROPERTIES_16));
       dumpDebugInfo.setToolTipText("Output to console class of current top-level window, resource and selected field in the structure viewer");
-      dumpDebugInfo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_MASK | SHIFT_MASK));
+      dumpDebugInfo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_MASK | ALT_MASK));
       dumpDebugInfo.addActionListener(this);
+      dumpDebugInfo.setEnabled(getPrefs().getBoolean(TOOLS_DEBUG_EXTRA_INFO, false));
+      dumpDebugInfo.setVisible(dumpDebugInfo.isEnabled());
       add(dumpDebugInfo);
     }
 
@@ -1531,6 +1554,22 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 //        }
 //      }
 //    }
+
+    private boolean getShowDebugExtraInfo()
+    {
+      return dumpDebugInfo.isEnabled();
+    }
+
+    private void setShowDebugExtraInfo(boolean show)
+    {
+      dumpDebugInfo.setEnabled(show);
+      dumpDebugInfo.setVisible(show);
+    }
+
+    private void storePreferences()
+    {
+      getPrefs().putBoolean(TOOLS_DEBUG_EXTRA_INFO, dumpDebugInfo.isEnabled());
+    }
 
     @Override
     public void actionPerformed(ActionEvent event)
