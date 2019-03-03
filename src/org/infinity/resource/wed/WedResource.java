@@ -234,7 +234,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     SectionOffset offsetOverlays = new SectionOffset(buffer, offset + 16, WED_OFFSET_OVERLAYS,
                                                      Overlay.class);
     addField(offsetOverlays);
-    SectionOffset offsetHeader2 = new SectionOffset(buffer, offset + 20, WED_OFFSET_SECOND_HEADER, null);
+    SectionOffset offsetHeader2 = new SectionOffset(buffer, offset + 20, WED_OFFSET_SECOND_HEADER, HexNumber.class);
     addField(offsetHeader2);
     SectionOffset offsetDoors = new SectionOffset(buffer, offset + 24, WED_OFFSET_DOORS,
                                                   Door.class);

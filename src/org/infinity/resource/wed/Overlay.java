@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.wed;
@@ -61,9 +61,9 @@ public final class Overlay extends AbstractStruct // implements AddRemovable, Ha
     } else {
       addField(new Unknown(buffer, offset + 12, 4));
     }
-    SectionOffset offset_tilemap = new SectionOffset(buffer, offset + 16, WED_OVERLAY_OFFSET_TILEMAP, null);
+    final SectionOffset offset_tilemap = new SectionOffset(buffer, offset + 16, WED_OVERLAY_OFFSET_TILEMAP, Tilemap.class);
     addField(offset_tilemap);
-    SectionOffset offset_tilelookup = new SectionOffset(buffer, offset + 20, WED_OVERLAY_OFFSET_TILEMAP_LOOKUP, null);
+    final SectionOffset offset_tilelookup = new SectionOffset(buffer, offset + 20, WED_OVERLAY_OFFSET_TILEMAP_LOOKUP, DecNumber.class);
     addField(offset_tilelookup);
     int retoff = offset + 24;
 
@@ -87,4 +87,3 @@ public final class Overlay extends AbstractStruct // implements AddRemovable, Ha
     return retoff;
   }
 }
-
