@@ -250,22 +250,26 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   /** Attempts to rename the specified file resource entry. */
   static void renameResource(FileResourceEntry entry)
   {
-    String filename = JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter new filename",
-                                                  "Rename " + entry.toString(),
-                                                  JOptionPane.QUESTION_MESSAGE);
+    String filename = (String)JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter new filename",
+                                                          "Rename " + entry.getResourceName(),
+                                                          JOptionPane.QUESTION_MESSAGE,
+                                                          null, null, entry.getResourceName());
     if (filename == null) {
       return;
     }
-    if (!filename.toUpperCase(Locale.ENGLISH).endsWith(entry.getExtension())) {
+    if (!filename.contains(".")) {
       filename = filename + '.' + entry.getExtension();
     }
-    if (Files.exists(entry.getActualPath().getParent().resolve(filename))) {
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File already exists!", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
+    if (Files.exists(entry.getActualPath().getParent().resolve(filename))
+     && JOptionPane.showConfirmDialog(NearInfinity.getInstance(),
+                                      "File with name \"" + filename + "\" already exists! Overwrite?",
+                                      "Confirm overwrite " + filename, JOptionPane.OK_CANCEL_OPTION,
+                                      JOptionPane.QUESTION_MESSAGE) != JOptionPane.OK_OPTION
+    ) {
       return;
     }
     try {
-      entry.renameFile(filename, false);
+      entry.renameFile(filename, true);
     } catch (IOException e) {
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error renaming file \"" + filename + "\"!",
                                     "Error", JOptionPane.ERROR_MESSAGE);
