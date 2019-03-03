@@ -308,6 +308,8 @@ public final class Profile implements FileWatcher.FileWatchListener
     IS_SUPPORTED_ITM_V20,
     /** Property: ({@code Boolean}) Are {@code KEY} resources supported? */
     IS_SUPPORTED_KEY,
+    /** Property: ({@code Boolean}) Are {@code LOG} resources supported? */
+    IS_SUPPORTED_LOG,
     /** Property: ({@code Boolean}) Are {@code LUA} resources supported? */
     IS_SUPPORTED_LUA,
     /** Property: ({@code Boolean}) Are {@code MAZE} resources supported? */
@@ -987,6 +989,8 @@ public final class Profile implements FileWatcher.FileWatchListener
         (Boolean)getProperty(Key.IS_SUPPORTED_ITM_V10) ||
         (Boolean)getProperty(Key.IS_SUPPORTED_ITM_V11) ||
         (Boolean)getProperty(Key.IS_SUPPORTED_ITM_V20)) { list.add("ITM"); }
+    if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_LOG))     { list.add("LOG"); }
     if (ignoreGame ||
         (Boolean)getProperty(Key.IS_SUPPORTED_LUA))     { list.add("LUA"); }
     if (ignoreGame ||
@@ -1804,6 +1808,8 @@ public final class Profile implements FileWatcher.FileWatchListener
     addEntry(Key.IS_SUPPORTED_ITM_V20, Type.BOOLEAN, (engine == Engine.IWD2));
 
     addEntry(Key.IS_SUPPORTED_KEY, Type.BOOLEAN, Boolean.valueOf(true));
+
+    addEntry(Key.IS_SUPPORTED_LOG, Type.BOOLEAN, Boolean.valueOf(true));
 
     addEntry(Key.IS_SUPPORTED_LUA, Type.BOOLEAN, isEnhancedEdition());
 

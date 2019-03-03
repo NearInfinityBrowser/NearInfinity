@@ -1316,28 +1316,40 @@ public final class ResourceFactory implements FileWatchListener
   {
     final List<Path> roots = Profile.getRootFolders();
     final Profile.Game game = Profile.getGame();
+    final Profile.Engine engine = Profile.getEngine();
+
     addFileResource(Profile.getProperty(Profile.Key.GET_GAME_INI_FILE));
-    addFileResource(FileManager.query(roots, "Keymap.ini"));// Key shortcuts
     addFileResource(FileManager.query(roots, "WeiDU.log")); // Installed WeiDU mods
+
+    switch (engine) {
+      case EE:
+        addFileResource(FileManager.query(roots, "engine.lua"));
+        break;
+      case BG2:
+        addFileResource(FileManager.query(roots, "Autorun.ini"));
+        break;
+      case IWD:
+        addFileResource(FileManager.query(roots, "Language.ini"));
+        break;
+      case IWD2:
+        addFileResource(FileManager.query(roots, "Language.ini"));
+        addFileResource(FileManager.query(roots, "Party.ini"));
+        break;
+      case PST:
+        addFileResource(FileManager.query(roots, "autonote.ini"));
+        addFileResource(FileManager.query(roots, "beast.ini"));// Bestiary
+        addFileResource(FileManager.query(roots, "quests.ini"));
+        addFileResource(FileManager.query(roots, "VAR.VAR"));
+        break;
+      default:
+    }
+
+    if (engine != Profile.Engine.EE) {
+      addFileResource(FileManager.query(roots, "Keymap.ini"));// Key shortcuts
+    }
 
     if (game == Profile.Game.EET) {
       addFileResource(FileManager.query(roots, "WeiDU-BGEE.log"));
-    } else
-    if (game == Profile.Game.BG2SoA || game == Profile.Game.BG2ToB) {
-      addFileResource(FileManager.query(roots, "Autorun.ini"));
-    } else
-    if (game == Profile.Game.IWD2) {
-      addFileResource(FileManager.query(roots, "Language.ini"));
-      addFileResource(FileManager.query(roots, "Party.ini"));
-    } else
-    if (game == Profile.Game.IWDEE) {
-      addFileResource(FileManager.query(roots, "engine.lua"));
-    } else
-    if (game == Profile.Game.PST || game == Profile.Game.PSTEE) {
-      addFileResource(FileManager.query(roots, "autonote.ini"));
-      addFileResource(FileManager.query(roots, "beast.ini"));// Bestiary
-      addFileResource(FileManager.query(roots, "quests.ini"));
-      addFileResource(FileManager.query(roots, "VAR.VAR"));
     }
   }
   /**
