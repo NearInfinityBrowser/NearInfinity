@@ -80,7 +80,11 @@ public final class EffectFactory
     IDX_TARGET,               OFS_TARGET,
     IDX_POWER,                OFS_POWER,
     IDX_PARAM1,               OFS_PARAM1,
+    IDX_PARAM1A,              OFS_PARAM1A,
+    IDX_PARAM1B,              OFS_PARAM1B,
     IDX_PARAM2,               OFS_PARAM2,
+    IDX_PARAM2A,              OFS_PARAM2A,
+    IDX_PARAM2B,              OFS_PARAM2B,
     IDX_TIMING,               OFS_TIMING,
     IDX_RESISTANCE,           OFS_RESISTANCE,
     IDX_DURATION,             OFS_DURATION,
@@ -457,8 +461,16 @@ public final class EffectFactory
           map.put(EffectEntry.OFS_POWER, ofsOpcode + 0x03);
           map.put(EffectEntry.IDX_PARAM1, idxOpcode + 3);
           map.put(EffectEntry.OFS_PARAM1, ofsOpcode + 0x04);
+          map.put(EffectEntry.IDX_PARAM1A, idxOpcode + 3);
+          map.put(EffectEntry.OFS_PARAM1A, ofsOpcode + 0x04);
+          map.put(EffectEntry.IDX_PARAM1B, idxOpcode + 4);
+          map.put(EffectEntry.OFS_PARAM1B, ofsOpcode + 0x06);
           map.put(EffectEntry.IDX_PARAM2, idxOpcode + 4);
           map.put(EffectEntry.OFS_PARAM2, ofsOpcode + 0x08);
+          map.put(EffectEntry.IDX_PARAM2A, idxOpcode + 4);
+          map.put(EffectEntry.OFS_PARAM2A, ofsOpcode + 0x08);
+          map.put(EffectEntry.IDX_PARAM2B, idxOpcode + 5);
+          map.put(EffectEntry.OFS_PARAM2B, ofsOpcode + 0x0a);
           map.put(EffectEntry.IDX_TIMING, idxOpcode + 5);
           map.put(EffectEntry.OFS_TIMING, ofsOpcode + 0x0C);
           map.put(EffectEntry.IDX_RESISTANCE, idxOpcode + 6);
@@ -697,6 +709,8 @@ public final class EffectFactory
               return updateOpcode78(struct);
           case 232:     // Cast spell on condition
             return updateOpcode232(struct);
+          case 233:     // Modify proficiencies
+            return updateOpcode233(struct);
           case 319:     // Item Usability
             return updateOpcode319(struct);
           case 328:     // Set spell state
@@ -816,6 +830,27 @@ public final class EffectFactory
                            new DecNumber(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4, EFFECT_SPECIAL));
           }
           return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // Effect type "Modify proficiencies" (233).
+  private static boolean updateOpcode233(AbstractStruct struct) throws Exception
+  {
+    if (struct != null) {
+      if (Profile.isEnhancedEdition()) {
+        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        if (opcode == 233) {
+          boolean signed = ((MultiNumber)getEntry(struct, EffectEntry.IDX_PARAM1)).isSigned();
+          int mode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2B)).getValue();
+          if (signed ^ (mode == 1)) {
+            replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
+                         new MultiNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "# stars",
+                                         3, 2, new String[]{"Active class", "Original class"}, mode == 1));
+            return true;
+          }
         }
       }
     }
@@ -3341,16 +3376,23 @@ public final class EffectFactory
       }
 
       case 233: // Modify proficiencies
-        s.add(new MultiNumber(buffer, offset, 4, "# stars", 3, 2,
-                              new String[]{"Active class", "Original class"}));
+      {
+        int mode = buffer.getShort(offset + 6);
+        s.add(new MultiNumber(buffer, offset, 4, "# stars", 3, 2, new String[]{"Active class", "Original class"},
+                              (mode == 1) && Profile.isEnhancedEdition()));
         if (isTobEx || Profile.isEnhancedEdition()) {
           final String idsFile = (Profile.getGame() == Profile.Game.PSTEE) ? "WPROF.IDS" : "STATS.IDS";
           s.add(new IdsBitmap(buffer, offset + 4, 2, "Proficiency", idsFile));
-          s.add(new Bitmap(buffer, offset + 6, 2, "Behavior", new String[]{"Set if higher", "Increment"}));
+          Bitmap param2b = new Bitmap(buffer, offset + 6, 2, "Behavior", new String[]{"Set if higher", "Increment"});
+          if (Profile.isEnhancedEdition()) {
+            param2b.addUpdateListener((UpdateListener)parent);
+          }
+          s.add(param2b);
         } else {
           s.add(new IdsBitmap(buffer, offset + 4, 4, "Proficiency", "STATS.IDS"));
         }
         break;
+      }
 
       case 234: // Create contingency
         s.add(new DecNumber(buffer, offset, 4, "Maximum spell level"));

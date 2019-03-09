@@ -41,7 +41,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
   private JTable tValues;
 
   /**
-   * Constructs a Number object consisting of multiple values of a given number of bits.
+   * Constructs a Number object consisting of multiple unsigned values of a given number of bits.
    * @param buffer The buffer containing resource data for this type.
    * @param offset Resource offset
    * @param length Resource length in bytes. Supported lengths: 1, 2, 3, 4
@@ -53,7 +53,41 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
   public MultiNumber(ByteBuffer buffer, int offset, int length, String name,
                      int numBits, int numValues, String[] valueNames)
   {
-    this(null, buffer, offset, length, name, numBits, numValues, valueNames);
+    this(null, buffer, offset, length, name, numBits, numValues, valueNames, false);
+  }
+
+  /**
+   * Constructs a Number object consisting of multiple unsigned values of a given number of bits.
+   * @param parent A parent structure containing to this datatype object.
+   * @param buffer The buffer containing resource data for this type.
+   * @param offset Resource offset
+   * @param length Resource length in bytes. Supported lengths: 1, 2, 3, 4
+   * @param name Field name
+   * @param numBits Number of bits for each value being part of the Number object.
+   * @param numValues Number of values to consider. Supported range: [1, length*8/numBits]
+   * @param valueNames List of individual field names for each contained value.
+   */
+  public MultiNumber(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
+                     int numBits, int numValues, String[] valueNames)
+  {
+    this(parent, buffer, offset, length, name, numBits, numValues, valueNames, false);
+  }
+
+  /**
+   * Constructs a Number object consisting of multiple values of a given number of bits.
+   * @param buffer The buffer containing resource data for this type.
+   * @param offset Resource offset
+   * @param length Resource length in bytes. Supported lengths: 1, 2, 3, 4
+   * @param name Field name
+   * @param numBits Number of bits for each value being part of the Number object.
+   * @param numValues Number of values to consider. Supported range: [1, length*8/numBits]
+   * @param valueNames List of individual field names for each contained value.
+   * @param signed Whether values are signed.
+   */
+  public MultiNumber(ByteBuffer buffer, int offset, int length, String name,
+                     int numBits, int numValues, String[] valueNames, boolean signed)
+  {
+    this(null, buffer, offset, length, name, numBits, numValues, valueNames, signed);
   }
 
   /**
@@ -66,9 +100,10 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
    * @param numBits Number of bits for each value being part of the Number object.
    * @param numValues Number of values to consider. Supported range: [1, length*8/numBits]
    * @param valueNames List of individual field names for each contained value.
+   * @param signed Whether values are signed.
    */
   public MultiNumber(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
-                     int numBits, int numValues, String[] valueNames)
+                     int numBits, int numValues, String[] valueNames, boolean signed)
   {
     super(offset, length, name);
 
@@ -82,7 +117,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
       numValues = length*8/numBits;
     }
 
-    mValues = new ValueTableModel(value, numBits, numValues, valueNames);
+    mValues = new ValueTableModel(value, numBits, numValues, valueNames, signed);
   }
 
 //--------------------- Begin Interface Editable ---------------------
@@ -216,6 +251,12 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     return mValues.getValueName(idx);
   }
 
+  /** Returns whether numbers are treated as signed values. */
+  public boolean isSigned()
+  {
+    return mValues.isSigned();
+  }
+
 //--------------------- Begin Interface IsNumeric ---------------------
 
   @Override
@@ -237,7 +278,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
   {
     if (idx >= 0 && idx < mValues.getValueCount()) {
       if (getBits() < 32) {
-        return (value >>> (idx*getBits())) & ((1 << getBits()) - 1);
+        return bitRangeAsNumber(getValue(), getBits(), idx * getBits(), isSigned());
       } else {
         return getValue();
       }
@@ -259,6 +300,22 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     this.value = mValues.getValue();
   }
 
+  /**
+   * Helper function: Returns the bit range defined by the parameters as an individual number.
+   * @param data The source value to extract a bit range from.
+   * @param bits Number of bits to extract.
+   * @param pos Starting bit position of the new value.
+   * @param signed Whether the returned number is signed.
+   */
+  public static int bitRangeAsNumber(int data, int bits, int pos, boolean signed)
+  {
+    if (pos < 0) pos = 0;
+    int retVal = (data >> pos) & ((1 << bits) - 1);
+    if (signed && (retVal & (1 << (bits - 1))) != 0) {
+      retVal |= -1 & ~((1 << bits) - 1);
+    }
+    return retVal;
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 
@@ -272,14 +329,16 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
 
     private int bits;
     private int numValues;
+    private boolean signed;
 
-    public ValueTableModel(Integer value, int bits, int numValues, String[] labels)
+    public ValueTableModel(Integer value, int bits, int numValues, String[] labels, boolean signed)
     {
       if (bits < 1) bits = 1; else if (bits > 32) bits = 32;
       if (numValues < 1 || numValues > (32 / bits)) numValues = 32 / bits;
 
       this.bits = bits;
       this.numValues = numValues;
+      this.signed = signed;
       data = new Object[2][numValues];
       for (int i = 0; i < numValues; i++) {
         if (labels != null && i < labels.length && labels[i] != null) {
@@ -287,7 +346,7 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
         } else {
           data[ATTRIBUTE][i] = "Value " + Integer.toString(i+1);
         }
-        data[VALUE][i] = Integer.valueOf((value >>> (i*bits)) & ((1 << bits) - 1));
+        data[VALUE][i] = bitRangeAsNumber(value, bits, i * bits, this.signed);
       }
     }
 
@@ -321,8 +380,11 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
         if (rowIndex >= 0 && rowIndex < numValues) {
           try {
             int newVal = Integer.parseInt(aValue.toString());
-            if (newVal < 0) newVal = 0;
-            if (newVal >= (1 << bits)) newVal = (1 << bits) - 1;
+            if (signed) {
+              newVal = Math.min((1 << (bits - 1)) - 1, Math.max(-(1 << (bits - 1)), newVal));
+            } else {
+              newVal = Math.min((1 << bits) - 1, Math.max(0, newVal));
+            }
             data[VALUE][rowIndex] = Integer.valueOf(newVal);
             fireTableCellUpdated(rowIndex, columnIndex);
           } catch (NumberFormatException e) {
@@ -395,14 +457,14 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     public void setValue(int v)
     {
       for (int i = 0; i < numValues; i++, v >>>= bits) {
-        data[VALUE][i] = Integer.valueOf(v & ((1 << bits) - 1));
+        data[VALUE][i] = bitRangeAsNumber(v, bits, 0, signed);
       }
     }
 
     public void setValue(int rowIndex, int v)
     {
       if (rowIndex >= 0 && rowIndex < numValues) {
-        data[VALUE][rowIndex] = Integer.valueOf(v & ((1 << bits) - 1));
+        data[VALUE][rowIndex] = bitRangeAsNumber(v, bits, 0, signed);
       }
     }
 
@@ -422,6 +484,11 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
         return (String)data[ATTRIBUTE][rowIndex];
       }
       return "";
+    }
+
+    public boolean isSigned()
+    {
+      return signed;
     }
   }
 }
