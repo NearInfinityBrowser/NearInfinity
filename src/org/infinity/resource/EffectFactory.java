@@ -693,9 +693,6 @@ public final class EffectFactory
             return updateOpcode1(struct);
           case 23:  // Reset morale
             return updateOpcode23(struct);
-          case 25:  // Poison
-          case 98:  // Regeneration
-            return updateOpcode25(struct);
           case 78:  // Disease
               return updateOpcode78(struct);
           case 232:     // Cast spell on condition
@@ -762,33 +759,6 @@ public final class EffectFactory
     return false;
   }
 
-  // Effect types "Poison" (25) and "Regeneration" (98)
-  private static boolean updateOpcode25(AbstractStruct struct) throws Exception
-  {
-    if (struct != null) {
-      if (Profile.isEnhancedEdition()) {
-        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
-        if (opcode == 25 || opcode == 98) {
-          int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
-          String label = EFFECT_SPECIAL;
-          switch (param2) {
-            case 2:
-              label = "Frequency";
-              break;
-            case 3:
-            case 4:
-              label = "Frequency multiplier";
-              break;
-          }
-          replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
-                       new DecNumber(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4, label));
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   // Effect type "Disease" (78)
   private static boolean updateOpcode78(AbstractStruct struct) throws Exception
   {
@@ -803,17 +773,11 @@ public final class EffectFactory
               replaceEntry(struct, EffectEntry.IDX_RESOURCE, EffectEntry.OFS_RESOURCE,
                            new ResourceRef(getEntryData(struct, EffectEntry.IDX_RESOURCE), 0, 8,
                                            EFFECT_RESOURCE, "SPL"));
-              replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
-                           new MultiNumber(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4,
-                                           "Behavior", 16, 2, new String[]{"Apply per amount rounds",
-                                                                           "Use Parameter1 damage?"}));
               break;
             default:
               replaceEntry(struct, EffectEntry.IDX_RESOURCE, EffectEntry.OFS_RESOURCE,
                            new Unknown(getEntryData(struct, EffectEntry.IDX_RESOURCE), 0, 8,
                                        AbstractStruct.COMMON_UNUSED));
-              replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
-                           new DecNumber(getEntryData(struct, EffectEntry.IDX_SPECIAL), 0, 4, EFFECT_SPECIAL));
               break;
           }
           return true;
@@ -1696,6 +1660,13 @@ public final class EffectFactory
   // Returns portrait icon description array (used by opcodes 142, 149 and 240)
   public String[] getIconDescArray()
   {
+    return getIconDescArray(false);
+  }
+
+  // Returns portrait icon description array.
+  // Specify "setDefault" to indicate whether entry 0 should be overridden by "Default" string.
+  public String[] getIconDescArray(boolean setDefault)
+  {
     if (s_poricon == null) {
       Table2da table = Table2daCache.get("STATDESC.2DA");
       if (table != null) {
@@ -1728,6 +1699,11 @@ public final class EffectFactory
         s_poricon = new String[0];
       }
     }
+
+    if (setDefault && s_poricon.length > 0) {
+      s_poricon[0] = "Default";
+    }
+
     return s_poricon;
   }
 
@@ -5189,19 +5165,12 @@ public final class EffectFactory
           break;
         }
 
+//      REMEMBER: Previous functionality moved to EFF V2, Parameter4
         case 25:  // Poison
+        case 78:  // Disease
         case 98:  // Regeneration
-          switch (param2) {
-            case 2:
-              s.add(new DecNumber(buffer, offset, 4, "Frequency"));
-              break;
-            case 3:
-            case 4:
-              s.add(new DecNumber(buffer, offset, 4, "Frequency multiplier"));
-              break;
-            default:
-              s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
-          }
+        case 272:  // Use EFF file on condition
+          s.add(new Bitmap(buffer, offset, 4, "Icon", getIconDescArray(true)));
           break;
 
         case 39:  // Sleep
@@ -5214,18 +5183,6 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset, 4, "Icon", array));
           break;
         }
-
-        case 78:
-          switch (param2) {
-            case 11:  // Mold touch/Single
-            case 12:  // Mold touch/Decrement
-              s.add(new MultiNumber(buffer, offset, 4, "Behavior", 16, 2,
-                                    new String[]{"Apply per amount rounds", "Use Parameter1 damage?"}));
-              break;
-            default:
-              s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
-          }
-          break;
 
         case 145: // Disable spellcasting
           s.add(new Bitmap(buffer, offset, 4, "Display message?", s_yesno));
