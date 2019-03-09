@@ -1946,7 +1946,6 @@ public final class EffectFactory
       case 104: // XP bonus
       case 105: // Remove gold
       case 106: // Morale break
-      case 108: // Reputation bonus
       case 126: // Movement rate bonus
       case 167: // Missile THAC0 bonus / Missile attack bonus
         s.add(new DecNumber(buffer, offset, 4, "Value"));
@@ -2010,7 +2009,10 @@ public final class EffectFactory
         } else {
           s_type = new String[]{"Acid", "Burning", "Crushed", "Normal", "Exploding", "Stoned",
                                 "Freezing", "Exploding stoned", "Exploding freezing", "Electrified",
-                                "Disintegration"};
+                                "Disintegration", ""};
+          if (Profile.isEnhancedEdition()) {
+            s_type[11] = "Exploding (no drop);Exploding death, inventory is not dropped";
+          }
         }
         s.add(new Flag(buffer, offset + 4, 4, "Death type", s_type));
         break;
@@ -2543,6 +2545,19 @@ public final class EffectFactory
         s.add(new Bitmap(buffer, offset + 4, 4, "Which portrait?", new String[]{"Small", "Large"}));
         restype = "BMP";
         break;
+
+      case 108: // Reputation bonus
+      {
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        if (Profile.isEnhancedEdition()) {
+          final String[] incType = {s_inctype[0], s_inctype[1], s_inctype[2],
+                                    "Increment (party)", "Reset (party)"};
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", incType));
+        } else {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        }
+        break;
+      }
 
       case 111: // Create weapon
         s.add(new DecNumber(buffer, offset, 4, "# to create"));
