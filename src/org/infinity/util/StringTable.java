@@ -45,15 +45,31 @@ public class StringTable
   /** Defines available string formats. */
   public enum Format {
     /** String is returned without further modifications. */
-    NONE,
+    NONE("%1$s"),
     /** Strref value is added in front of the returned string. */
-    STRREF_PREFIX,
+    STRREF_PREFIX("(Strref: %2$d) %1$s"),
     /** Strref value is added behind the returned string. */
-    STRREF_SUFFIX,
+    STRREF_SUFFIX("%1$s (Strref: %2$d)"),
     /** Strref value is added in front of the returned string (without additional text). */
-    STRREF_PREFIX_SHORT,
+    STRREF_PREFIX_SHORT("%2$d : %1$s"),
     /** Strref value is added behind the returned string (without additional text). */
-    STRREF_SUFFIX_SHORT,
+    STRREF_SUFFIX_SHORT("%1$s : %2$d");
+
+    /**
+     * Format string for {@link String#format} method. Can have up to 2 arguments:
+     * first - localized text, second - integer, representing StrRef.
+     */
+    final String format;
+
+    private Format(String format)
+    {
+      this.format = format;
+    }
+
+    public String format(String text, int strRef)
+    {
+      return String.format(format, text, strRef);
+    }
   }
 
   /** String entry flag: Text is used if available */
@@ -69,20 +85,10 @@ public class StringTable
   public static final int STRREF_VIRTUAL = 0xf00000;
 
   private static final EnumMap<Type, StringTable> TLK_TABLE = new EnumMap<>(Type.class);
-  private static final EnumMap<Format, String> FORMAT = new EnumMap<>(Format.class);
 
   private static Charset charset = null;
   private static Format format = Format.NONE;
   private static Boolean hasFemaleTable = null;
-
-  static {
-    FORMAT.put(Format.NONE, "%1$s");
-    FORMAT.put(Format.STRREF_PREFIX, "(Strref: %2$d) %1$s");
-    FORMAT.put(Format.STRREF_SUFFIX, "%1$s (Strref: %2$d)");
-    FORMAT.put(Format.STRREF_PREFIX_SHORT, "%2$d : %1$s");
-    FORMAT.put(Format.STRREF_SUFFIX_SHORT, "%1$s : %2$d");
-  }
-
 
   /**
    * Returns whether the current language provides a separate string table for female text.
@@ -965,16 +971,6 @@ public class StringTable
     return retVal;
   }
 
-  // Returns the specified format string that can be used by String.format() and similar methods
-  private static String getFormatString(Format format)
-  {
-    if (format == null) {
-      format = StringTable.format;
-    }
-    return FORMAT.get(format);
-  }
-
-
   private final ArrayList<StringEntry> entries = new ArrayList<>();
   private final HashMap<Integer, Integer> entriesVirtual = new HashMap<>();
   private final Path tlkPath;
@@ -1047,7 +1043,7 @@ public class StringTable
   {
     index = _getTranslatedIndex(index);
     StringEntry entry = _getEntry(index);
-    return String.format(getFormatString(fmt), entry.getText(), index);
+    return (fmt == null ? format : fmt).format(entry.getText(), index);
   }
 
   private void _setStringRef(int index, String text) throws IndexOutOfBoundsException

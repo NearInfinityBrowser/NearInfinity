@@ -269,7 +269,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     final int strRef = state.getAssociatedText().getValue();
     // updating state text
     dlgInfo.showControl(ItemInfo.Type.STATE_TEXT, true);
-    dlgInfo.updateControlText(ItemInfo.Type.STATE_TEXT, StringTable.getStringRef(strRef));
+    dlgInfo.updateControlText(ItemInfo.Type.STATE_TEXT,
+                              StringTable.getStringRef(strRef, StringTable.Format.NONE));
+    dlgInfo.updateControlBorder(ItemInfo.Type.STATE_TEXT,
+                                StringTable.Format.STRREF_SUFFIX.format("Associated text", strRef));
 
     // updating state WAV Res
     final String responseText = StringTable.getSoundResource(strRef);
@@ -283,9 +286,11 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     // updating state triggers
     if (state.getTriggerIndex() >= 0) {
       dlgInfo.showControl(ItemInfo.Type.STATE_TRIGGER, true);
-      final StructEntry entry = curDlg.getAttribute(StateTrigger.DLG_STATETRIGGER + " " + state.getTriggerIndex());
+      final String attrName = StateTrigger.DLG_STATETRIGGER + " " + state.getTriggerIndex();
+      final StructEntry entry = curDlg.getAttribute(attrName);
       final String text = entry instanceof StateTrigger ? ((StateTrigger)entry).getText() : "";
       dlgInfo.updateControlText(ItemInfo.Type.STATE_TRIGGER, text);
+      dlgInfo.updateControlBorder(ItemInfo.Type.STATE_TRIGGER, attrName);
     } else {
       dlgInfo.showControl(ItemInfo.Type.STATE_TRIGGER, false);
     }
@@ -314,18 +319,24 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
     // updating response text
     if (trans.getFlag().isFlagSet(0)) {
+      final int strRef = trans.getAssociatedText().getValue();
       dlgInfo.showControl(ItemInfo.Type.RESPONSE_TEXT, true);
       dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TEXT,
-                                StringTable.getStringRef(trans.getAssociatedText().getValue()));
+                                StringTable.getStringRef(strRef, StringTable.Format.NONE));
+      dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE_TEXT,
+                                  StringTable.Format.STRREF_SUFFIX.format(Transition.DLG_TRANS_TEXT, strRef));
     } else {
       dlgInfo.showControl(ItemInfo.Type.RESPONSE_TEXT, false);
     }
 
     // updating journal entry
     if (trans.getFlag().isFlagSet(4)) {
+      final int strRef = trans.getJournalEntry().getValue();
       dlgInfo.showControl(ItemInfo.Type.RESPONSE_JOURNAL, true);
       dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_JOURNAL,
-                                StringTable.getStringRef(trans.getJournalEntry().getValue()));
+                                StringTable.getStringRef(strRef, StringTable.Format.NONE));
+      dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE_JOURNAL,
+                                  StringTable.Format.STRREF_SUFFIX.format(Transition.DLG_TRANS_JOURNAL_ENTRY, strRef));
     } else {
       dlgInfo.showControl(ItemInfo.Type.RESPONSE_JOURNAL, false);
     }
@@ -333,9 +344,11 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     // updating response trigger
     if (trans.getFlag().isFlagSet(1)) {
       dlgInfo.showControl(ItemInfo.Type.RESPONSE_TRIGGER, true);
-      final StructEntry entry = curDlg.getAttribute(ResponseTrigger.DLG_RESPONSETRIGGER + " " + trans.getTriggerIndex());
+      final String attrName = ResponseTrigger.DLG_RESPONSETRIGGER + " " + trans.getTriggerIndex();
+      final StructEntry entry = curDlg.getAttribute(attrName);
       final String text = entry instanceof ResponseTrigger ? ((ResponseTrigger)entry).getText() : "";
       dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TRIGGER, text);
+      dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE_TRIGGER, attrName);
     } else {
       dlgInfo.showControl(ItemInfo.Type.RESPONSE_TRIGGER, false);
     }
@@ -343,9 +356,11 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     // updating action
     if (trans.getFlag().isFlagSet(2)) {
       dlgInfo.showControl(ItemInfo.Type.RESPONSE_ACTION, true);
-      final StructEntry entry = curDlg.getAttribute(Action.DLG_ACTION + " " + trans.getActionIndex());
+      final String attrName = Action.DLG_ACTION + " " + trans.getActionIndex();
+      final StructEntry entry = curDlg.getAttribute(attrName);
       final String text = entry instanceof Action ? ((Action)entry).getText() : "";
       dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_ACTION, text);
+      dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE_ACTION, attrName);
     } else {
       dlgInfo.showControl(ItemInfo.Type.RESPONSE_ACTION, false);
     }
@@ -623,7 +638,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       taStateTrigger.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       taStateTrigger.setMargin(new Insets(0, 4, 0, 4));
       pStateTrigger = new JPanel(new BorderLayout());
-      pStateTrigger.setBorder(createTitledBorder("State trigger", Font.BOLD, false));
+      pStateTrigger.setBorder(createTitledBorder(StateTrigger.DLG_STATETRIGGER, Font.BOLD, false));
       pStateTrigger.add(taStateTrigger, BorderLayout.CENTER);
 
       gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
@@ -648,33 +663,33 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       tfResponseFlags = createReadOnlyTextField();
       tfResponseFlags.setMargin(new Insets(0, 4, 0, 4));
       pResponseFlags = new JPanel(new BorderLayout());
-      pResponseFlags.setBorder(createTitledBorder("Flags", Font.BOLD, false));
+      pResponseFlags.setBorder(createTitledBorder(Transition.DLG_TRANS_FLAGS, Font.BOLD, false));
       pResponseFlags.add(tfResponseFlags, BorderLayout.CENTER);
 
       taResponseText = createReadOnlyTextArea();
       taResponseText.setMargin(new Insets(0, 4, 0, 4));
       pResponseText = new JPanel(new BorderLayout());
-      pResponseText.setBorder(createTitledBorder("Associated text", Font.BOLD, false));
+      pResponseText.setBorder(createTitledBorder(Transition.DLG_TRANS_TEXT, Font.BOLD, false));
       pResponseText.add(taResponseText, BorderLayout.CENTER);
 
       taResponseJournal = createReadOnlyTextArea();
       taResponseJournal.setMargin(new Insets(0, 4, 0, 4));
       pResponseJournal = new JPanel(new BorderLayout());
-      pResponseJournal.setBorder(createTitledBorder("Journal entry", Font.BOLD, false));
+      pResponseJournal.setBorder(createTitledBorder(Transition.DLG_TRANS_JOURNAL_ENTRY, Font.BOLD, false));
       pResponseJournal.add(taResponseJournal, BorderLayout.CENTER);
 
       taResponseTrigger = createScriptTextArea(true);
       taResponseTrigger.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       taResponseTrigger.setMargin(new Insets(0, 4, 0, 4));
       pResponseTrigger = new JPanel(new BorderLayout());
-      pResponseTrigger.setBorder(createTitledBorder("Response trigger", Font.BOLD, false));
+      pResponseTrigger.setBorder(createTitledBorder(ResponseTrigger.DLG_RESPONSETRIGGER, Font.BOLD, false));
       pResponseTrigger.add(taResponseTrigger, BorderLayout.CENTER);
 
       taResponseAction = createScriptTextArea(true);
       taResponseAction.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       taResponseAction.setMargin(new Insets(0, 4, 0, 4));
       pResponseAction = new JPanel(new BorderLayout());
-      pResponseAction.setBorder(createTitledBorder("Action", Font.BOLD, false));
+      pResponseAction.setBorder(createTitledBorder(Action.DLG_ACTION, Font.BOLD, false));
       pResponseAction.add(taResponseAction, BorderLayout.CENTER);
 
       gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
