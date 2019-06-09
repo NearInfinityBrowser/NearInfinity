@@ -13,12 +13,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Pattern;
+
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
@@ -33,6 +35,22 @@ import org.infinity.resource.Profile;
 
 public final class SortableTable extends JTable implements MouseListener
 {
+  private static final String WITH_DELIMITERS = "(?<=%1$s)(?!%1$s)|(?<!%1$s)(?=%1$s)";
+  private static final Pattern SPLIT_BY_NUMBER = Pattern.compile(String.format(WITH_DELIMITERS, "\\d+"));
+  /**
+   * Comparator, that sorts strings as numbers if it looks like numbers and
+   * lexicographically with ignore case otherwise.
+   */
+  private static final Comparator<String> SORTER = (String s1, String s2) -> {
+    try {
+      final int i1 = Integer.parseInt(s1);
+      final int i2 = Integer.parseInt(s2);
+      return Integer.compare(i1, i2);
+    } catch (NumberFormatException ex) {
+      return s1.compareToIgnoreCase(s2);
+    }
+  };
+
   private final SortableTableModel tableModel;
   private boolean sortAscending;
   private int sortByColumn;
@@ -280,7 +298,11 @@ public final class SortableTable extends JTable implements MouseListener
         Object item2 = o2.getObjectAt(sortByColumn);
         String string1 = (item1 != null) ? item1.toString() : "";
         String string2 = (item2 != null) ? item2.toString() : "";
-        res = string1.compareToIgnoreCase(string2);
+
+        // Extract numbers from strings and compare it as numbers
+        final String[] arr1 = SPLIT_BY_NUMBER.split(string1);
+        final String[] arr2 = SPLIT_BY_NUMBER.split(string2);
+        res = Arrays.compare(arr1, arr2, SORTER);
       }
       if (sortAscending) {
         res = -res;
