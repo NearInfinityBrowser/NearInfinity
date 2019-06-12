@@ -7,9 +7,8 @@ package org.infinity.search;
 import java.awt.Component;
 
 import org.infinity.resource.Resource;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.dlg.DlgResource;
-import org.infinity.resource.dlg.Transition;
+import org.infinity.resource.dlg.State;
 import org.infinity.resource.key.ResourceEntry;
 
 /**
@@ -19,7 +18,7 @@ import org.infinity.resource.key.ResourceEntry;
 public final class DialogStateReferenceSearcher extends AbstractReferenceSearcher
 {
   /** Searched state. Together with {@link #targetEntry} makes subject to search. */
-  private final int targetStateNr;
+  private final State targetState;
 
   /**
    * Creates finder that searches dialogue state (NPC reply) in the other dialogues.
@@ -29,10 +28,10 @@ public final class DialogStateReferenceSearcher extends AbstractReferenceSearche
    * @param searchedState Searched state number -- the NPC reply
    * @param parent GUI component that will be parent for results window
    */
-  public DialogStateReferenceSearcher(ResourceEntry searchedDialog, int searchedState, Component parent)
+  public DialogStateReferenceSearcher(ResourceEntry searchedDialog, State searchedState, Component parent)
   {
     super(searchedDialog, new String[]{"DLG"}, parent);
-    targetStateNr = searchedState;
+    targetState = searchedState;
   }
 
   @Override
@@ -42,15 +41,6 @@ public final class DialogStateReferenceSearcher extends AbstractReferenceSearche
     if (!(resource instanceof DlgResource)) return;
 
     final DlgResource dlg = (DlgResource)resource;
-    final String name = targetEntry.getResourceName();
-    for (int i = 0; i < dlg.getFieldCount(); i++) {
-      StructEntry structEntry = dlg.getField(i);
-      if (structEntry instanceof Transition) {
-        Transition transition = (Transition)structEntry;
-        if (transition.getNextDialog().getResourceName().equalsIgnoreCase(name) &&
-            transition.getNextDialogState() == targetStateNr)
-          addHit(entry, null, transition);
-      }
-    }
+    dlg.findUsages(targetState, t -> addHit(entry, null, t));
   }
 }

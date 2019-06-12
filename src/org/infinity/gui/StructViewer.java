@@ -649,7 +649,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           new ReferenceSearcher(struct.getResourceEntry(), getTopLevelAncestor());
         } else if (item == miFindStateReferences) {
           State state = (State)table.getValueAt(table.getSelectedRow(), 1);
-          new DialogStateReferenceSearcher(struct.getResourceEntry(), state.getNumber(), getTopLevelAncestor());
+          new DialogStateReferenceSearcher(struct.getResourceEntry(), state, getTopLevelAncestor());
         } else if (item == miFindRefToItem) {
           new DialogItemRefSearcher((DlgResource) struct, table.getValueAt(table.getSelectedRow(), 1),
                                     getTopLevelAncestor());

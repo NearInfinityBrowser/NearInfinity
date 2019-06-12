@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -418,6 +419,62 @@ public final class DlgResource extends AbstractStruct
               entry.getName() + " not found in dialogue tree",
               JOptionPane.INFORMATION_MESSAGE);
     }
+  }
+
+  /**
+   * Searches the specified {@code state} among transitions of this dialog.
+   *
+   * @param state State for search. Must not be {@code null}
+   * @param action Action for execution if match is found. Must not be {@code null}
+   *
+   * @return {@code true} if at least one match if found, {@code false} otherwise
+   */
+  public boolean findUsages(State state, Consumer<? super Transition> action)
+  {
+    final int number = state.getNumber();
+    final DlgResource dlg = state.getParent();
+    final String name = dlg.getResourceEntry().getResourceName();
+
+    boolean found = false;
+    for (final StructEntry e : getList()) {
+      if (!(e instanceof Transition)) continue;
+
+      final Transition t = (Transition)e;
+      if (t.getNextDialogState() == number
+       && t.getNextDialog().getResourceName().equalsIgnoreCase(name)
+      ) {
+        action.accept(t);
+        found = true;
+      }
+    }
+    return found;
+  }
+
+  /**
+   * Searches the specified transition among states of this dialog.
+   *
+   * @param trans Transition for search. Must not be {@code null}
+   * @param action Action for execution if match is found. Must not be {@code null}
+   *
+   * @return {@code true} if at least one match if found, {@code false} otherwise
+   */
+  public boolean findUsages(Transition trans, Consumer<? super State> action)
+  {
+    final int number = trans.getNumber();
+
+    boolean found = false;
+    for (final StructEntry e : getList()) {
+      if (!(e instanceof State)) continue;
+
+      final State s = (State)e;
+      final int start = s.getFirstTrans();
+      final int count = s.getTransCount();
+      if (start <= number && number < start + count) {
+        action.accept(s);
+        found = true;
+      }
+    }
+    return found;
   }
 
   /** Updates trigger/action references in states and responses. */
