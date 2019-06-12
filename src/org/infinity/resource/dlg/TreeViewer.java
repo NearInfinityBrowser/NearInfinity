@@ -139,7 +139,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         if (viewer != null) {
           // selecting table entry
           final Viewer tab = (Viewer)curDlg.getViewerTab(0);
-          if (item instanceof RootItem) {
+          if (item instanceof DlgItem) {
             viewer.selectEntry(0);
           } else {
             final TreeItemEntry s = item.getEntry();

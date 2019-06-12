@@ -19,8 +19,8 @@ import org.infinity.gui.BrowserMenuBar;
 import org.infinity.icon.Icons;
 import org.infinity.resource.StructEntry;
 
-/** Meta class for identifying root node. */
-final class RootItem extends StateOwnerItem implements Iterable<StateItem>
+/** Meta class for identifying dialogue node. */
+final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
 {
   private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16);
 
@@ -36,7 +36,7 @@ final class RootItem extends StateOwnerItem implements Iterable<StateItem>
   private final int numActions;
   private final String flags;
 
-  public RootItem(DlgResource dlg)
+  public DlgItem(DlgResource dlg)
   {
     this.dlg = dlg;
     numStates           = getAttribute(DlgResource.DLG_NUM_STATES);

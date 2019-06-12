@@ -33,13 +33,13 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   /** Maps dialog entries to tree items that represents it. Used for update tree when entry changes. */
   private final HashMap<TreeItemEntry, List<ItemBase>> allItems = new HashMap<>();
 
-  private final RootItem root;
+  private final DlgItem root;
 
   public DlgTreeModel(DlgResource dlg)
   {
     linkedDialogs.put(key(dlg.getName()), dlg);
 
-    root = new RootItem(dlg);
+    root = new DlgItem(dlg);
     for (StateItem state : root) {
       initState(state);
       putItem(state, null);
@@ -49,7 +49,7 @@ final class DlgTreeModel implements TreeModel, TableModelListener
 
   //<editor-fold defaultstate="collapsed" desc="TreeModel">
   @Override
-  public RootItem getRoot() { return root; }
+  public DlgItem getRoot() { return root; }
 
   @Override
   public ItemBase getChild(Object parent, int index)
