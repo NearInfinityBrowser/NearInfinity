@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -45,11 +45,14 @@ abstract class ItemBase implements TreeNode
    */
   public TreePath getPath()
   {
-    final ItemBase parent = getParent();
+    final TreeNode parent = getParent();
+    if (parent instanceof ItemBase) {
+      return ((ItemBase)parent).getPath().pathByAddingChild(this);
+    }
     if (parent == null) {
       return new TreePath(this);
     }
-    return parent.getPath().pathByAddingChild(this);
+    return new TreePath(parent).pathByAddingChild(this);
   }
 
   /** Returns the entry of the dialog which this node represents. */
@@ -76,9 +79,6 @@ abstract class ItemBase implements TreeNode
   //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
   public abstract ItemBase getChildAt(int childIndex);
-
-  @Override
-  public abstract ItemBase getParent();
 
   @Override
   public abstract Enumeration<? extends ItemBase> children();

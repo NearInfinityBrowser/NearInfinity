@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -24,6 +24,7 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
 {
   private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16);
 
+  private final DlgTreeModel parent;
   /** Dialog which represents this tree. */
   private final DlgResource dlg;
   /** States from which dialog can start. */
@@ -36,8 +37,9 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
   private final int numActions;
   private final String flags;
 
-  public DlgItem(DlgResource dlg)
+  public DlgItem(DlgTreeModel parent, DlgResource dlg)
   {
+    this.parent = parent;
     this.dlg = dlg;
     numStates           = getAttribute(DlgResource.DLG_NUM_STATES);
     numTransitions      = getAttribute(DlgResource.DLG_NUM_RESPONSES);
@@ -89,7 +91,7 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
   public int getChildCount() { return states.size(); }
 
   @Override
-  public ItemBase getParent() { return null; }
+  public TreeNode getParent() { return parent; }
 
   @Override
   public int getIndex(TreeNode node) { return states.indexOf(node); }

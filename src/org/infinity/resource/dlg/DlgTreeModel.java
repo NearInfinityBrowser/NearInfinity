@@ -1,11 +1,13 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import static java.util.Collections.enumeration;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -23,37 +25,36 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 
 /** Creates and manages the dialog tree structure. */
-final class DlgTreeModel implements TreeModel, TableModelListener
+final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
 {
   private final ArrayList<TreeModelListener> listeners = new ArrayList<>();
-  /** Maps used dialog names to dialog resources. */
+  /**
+   * List of all dialogs, that contains at tree root. Each of these dialogs also
+   * stored in the {@link #linkedDialogs} map, but the opposite is incorrect
+   */
+  private final List<DlgItem> rootDialogs = new ArrayList<>();
+  /** Maps dialog names of dialogs, presented in the tree, to dialog itself. */
   private final HashMap<String, DlgResource> linkedDialogs = new HashMap<>();
   /** Maps dialog entries to main tree items - items wrom which the tree grows. */
   private final HashMap<TreeItemEntry, ItemBase> mainItems = new HashMap<>();
   /** Maps dialog entries to tree items that represents it. Used for update tree when entry changes. */
   private final HashMap<TreeItemEntry, List<ItemBase>> allItems = new HashMap<>();
 
-  private final DlgItem root;
+  public DlgTreeModel(DlgResource dlg) { addToRoot(dlg); }
 
-  public DlgTreeModel(DlgResource dlg)
-  {
-    linkedDialogs.put(key(dlg.getName()), dlg);
-
-    root = new DlgItem(dlg);
-    for (StateItem state : root) {
-      initState(state);
-      putItem(state, null);
-    }
-    dlg.addTableModelListener(this);
-  }
+  @Override
+  public String toString() { return "Dialogues"; }
 
   //<editor-fold defaultstate="collapsed" desc="TreeModel">
   @Override
-  public DlgItem getRoot() { return root; }
+  public DlgTreeModel getRoot() { return this; }
 
   @Override
   public ItemBase getChild(Object parent, int index)
   {
+    if (parent == this) {
+      return getChildAt(index);
+    }
     if (parent instanceof ItemBase) {
       final ItemBase child = ((ItemBase)parent).getChildAt(index);
       initNode(child);
@@ -118,6 +119,29 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   }
   //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="TreeNode">
+  @Override
+  public DlgItem getChildAt(int childIndex) { return rootDialogs.get(childIndex); }
+
+  @Override
+  public int getChildCount() { return rootDialogs.size(); }
+
+  @Override
+  public TreeNode getParent() { return null; }
+
+  @Override
+  public int getIndex(TreeNode node) { return rootDialogs.indexOf(node); }
+
+  @Override
+  public boolean getAllowsChildren() { return true; }
+
+  @Override
+  public boolean isLeaf() { return false; }
+
+  @Override
+  public Enumeration<? extends DlgItem> children() { return enumeration(rootDialogs); }
+  //</editor-fold>
+
   //<editor-fold defaultstate="collapsed" desc="TableModelListener">
   @Override
   public void tableChanged(TableModelEvent e)
@@ -130,7 +154,7 @@ final class DlgTreeModel implements TreeModel, TableModelListener
           updateTreeItemEntry((TreeItemEntry)src);
         } else
         if (src instanceof DlgResource) {
-          nodeChanged(root);
+          nodeChanged(map((DlgResource)src));
         }
         break;
       }
@@ -177,7 +201,10 @@ final class DlgTreeModel implements TreeModel, TableModelListener
     final List<ItemBase> items = allItems.remove(entry);
     if (items != null) {
       for (final ItemBase item : items) {
-        final ItemBase parent = item.getParent();
+        final TreeNode node = item.getParent();
+        if (!(node instanceof ItemBase)) continue;
+
+        final ItemBase parent = (ItemBase)node;
         final int index = parent.getIndex(item);
 
         parent.removeChild(item);
@@ -193,22 +220,32 @@ final class DlgTreeModel implements TreeModel, TableModelListener
   //<editor-fold defaultstate="collapsed" desc="Event emitting">
   private void nodeChanged(ItemBase node)
   {
-    final ItemBase parent = node.getParent();
+    final TreeNode parent = node.getParent();
+    final int[] childIndices = {parent.getIndex(node)};
     final Object[] children = {node};
-    if (parent == null) {
-      fireTreeNodesChanged(null, null, children);
-    } else {
-      fireTreeNodesChanged(parent.getPath(), new int[]{parent.getIndex(node)}, children);
-    }
+    final TreePath path = parent instanceof ItemBase
+                        ? ((ItemBase)parent).getPath()
+                        : new TreePath(this);
+
+    fireTreeNodesChanged(path, childIndices, children);
   }
 
   private void fireTreeNodesChanged(TreePath path, int[] childIndices, Object[] children)
   {
     if (!listeners.isEmpty()) {
       final TreeModelEvent event = new TreeModelEvent(this, path, childIndices, children);
-      for (int i = listeners.size()-1; i >= 0; i--) {
-        final TreeModelListener tml = listeners.get(i);
+      for (final TreeModelListener tml : listeners) {
         tml.treeNodesChanged(event);
+      }
+    }
+  }
+
+  private void fireTreeNodesInserted(TreePath path, int[] childIndices, Object[] children)
+  {
+    if (!listeners.isEmpty()) {
+      final TreeModelEvent event = new TreeModelEvent(this, path, childIndices, children);
+      for (final TreeModelListener tml : listeners) {
+        tml.treeNodesInserted(event);
       }
     }
   }
@@ -238,11 +275,67 @@ final class DlgTreeModel implements TreeModel, TableModelListener
     final ItemBase item = mainItems.get(entry);
     if (item == null) {
       if (entry instanceof State) {
-        return slowFindState((State)entry);
+        for (final DlgItem dlg : rootDialogs) {
+          final StateItem state = slowFindState(dlg, (State)entry);
+          if (state != null) return state;
+        }
+        return null;
       }
-      return slowFindTransition((Transition)entry);
+      for (final DlgItem dlg : rootDialogs) {
+        final TransitionItem trans = slowFindTransition(dlg, (Transition)entry);
+        if (trans != null) return trans;
+      }
     }
     return item;
+  }
+
+  /**
+   * @return Path the identifying first (main) dialog in model. Never {@code null}
+   */
+  public TreePath getMainDlgPath()
+  {
+    return new TreePath(this).pathByAddingChild(rootDialogs.get(0));
+  }
+
+  /**
+   * Add specified dialog to the tree, if it not yet present there.
+   *
+   * @param dlg Dialog to add. Can not be {@code null}
+   */
+  private void addToRoot(DlgResource dlg)
+  {
+    // If dialog already added as root, return
+    if (map(dlg) != null) return;
+
+    final DlgItem item       = new DlgItem(this, dlg);
+    final int[] childIndices = {rootDialogs.size()};
+    final Object[] children  = {item};
+
+    rootDialogs.add(item);
+    linkedDialogs.put(key(dlg.getName()), dlg);
+    for (final StateItem state : item) {
+      initState(state);
+      putItem(state, null);
+    }
+    dlg.addTableModelListener(this);
+
+    fireTreeNodesInserted(new TreePath(this), childIndices, children);
+  }
+
+  /**
+   * Translates dialog to GUI item, that presents at tree root.
+   *
+   * @param dlg Dialog to find in the tree
+   * @return GUI item or {@code null} if dialog not exists in the tree
+   */
+  private DlgItem map(DlgResource dlg)
+  {
+    for (final DlgItem item : rootDialogs) {
+      if (item.getDialog() == dlg) {
+        return item;
+      }
+    }
+    return null;
   }
 
   /**
@@ -278,14 +371,15 @@ final class DlgTreeModel implements TreeModel, TableModelListener
    * Finds GUI item that corresponds specified state. Creates non-existent
    * tree items when necessary.
    *
+   * @param dlg Dialogue in which to perform search
    * @param entry Child struct of the dialog for search
    * @return Tree item that represents state or {@code null} if such state
    *         did not exist in the dialog
    */
-  private StateItem slowFindState(State entry)
+  private StateItem slowFindState(DlgItem dlg, State entry)
   {
     final ArrayDeque<TransitionItem> queue = new ArrayDeque<>();
-    for (StateItem state : root) {
+    for (final StateItem state : dlg) {
       if (checkState(queue, state, entry)) {
         return state;
       }
@@ -308,14 +402,15 @@ final class DlgTreeModel implements TreeModel, TableModelListener
    * Finds GUI item that corresponds specified transition. Creates non-existent
    * tree items when necessary.
    *
+   * @param dlg Dialogue in which to perform search
    * @param entry Child struct of the dialog for search
    * @return Tree item that represents transition or {@code null} if such transition
    *         did not exist in the dialog
    */
-  private TransitionItem slowFindTransition(Transition entry)
+  private TransitionItem slowFindTransition(DlgItem dlg, Transition entry)
   {
     final ArrayDeque<StateItem> queue = new ArrayDeque<>();
-    for (StateItem state : root) {
+    for (final StateItem state : dlg) {
       if (state.getMain() == null) {
         queue.add(state);
       }
