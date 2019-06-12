@@ -393,10 +393,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     dlgTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     dlgTree.setRootVisible(true);
     dlgTree.setEditable(false);
-    DefaultTreeCellRenderer tcr = (DefaultTreeCellRenderer)dlgTree.getCellRenderer();
-    tcr.setLeafIcon(null);
-    tcr.setOpenIcon(null);
-    tcr.setClosedIcon(null);
 
     // drawing custom icons for each node type
     dlgTree.setCellRenderer(new DefaultTreeCellRenderer() {
