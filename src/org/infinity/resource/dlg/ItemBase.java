@@ -125,3 +125,15 @@ abstract class StateOwnerItem extends ItemBase
   public abstract Enumeration<? extends StateItem> children();
   //</editor-fold>
 }
+
+/** Auxiliary class, being the parent for transitions, for a type safety. */
+abstract class TransitionOwnerItem extends ItemBase implements Iterable<TransitionItem>
+{
+  //<editor-fold defaultstate="collapsed" desc="TreeNode">
+  @Override
+  public abstract TransitionItem getChildAt(int childIndex);
+
+  @Override
+  public abstract Enumeration<? extends TransitionItem> children();
+  //</editor-fold>
+}

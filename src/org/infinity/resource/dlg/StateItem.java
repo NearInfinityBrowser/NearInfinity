@@ -19,7 +19,7 @@ import org.infinity.gui.BrowserMenuBar;
 import org.infinity.icon.Icons;
 
 /** Encapsulates a dialog state entry. */
-final class StateItem extends ItemBase implements Iterable<TransitionItem>
+final class StateItem extends TransitionOwnerItem
 {
   private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_STOP_16);
 

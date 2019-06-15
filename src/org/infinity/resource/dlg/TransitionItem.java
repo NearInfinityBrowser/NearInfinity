@@ -25,7 +25,7 @@ final class TransitionItem extends StateOwnerItem
   private final Transition trans;
 
   /** Parent tree item from which this transition is available. */
-  private final StateItem parent;
+  private final TransitionOwnerItem parent;
   /**
    * Item to which need go to in break cycles tree view mode. This item contains
    * referense to the same transition as this one (i.e. {@code this.trans == main.trans})
@@ -34,7 +34,7 @@ final class TransitionItem extends StateOwnerItem
   /** Tree item to which go this transition or {@code null}, if this transition terminates dialog. */
   StateItem nextState;
 
-  public TransitionItem(Transition trans, StateItem parent, TransitionItem main)
+  public TransitionItem(Transition trans, TransitionOwnerItem parent, TransitionItem main)
   {
     this.trans  = Objects.requireNonNull(trans,  "Transition dialog entry must be not null");
     this.parent = Objects.requireNonNull(parent, "Parent tree of transition item must be not null");
@@ -71,7 +71,7 @@ final class TransitionItem extends StateOwnerItem
   public int getChildCount() { return isMain() && nextState != null ? 1 : 0; }
 
   @Override
-  public StateItem getParent() { return parent; }
+  public TransitionOwnerItem getParent() { return parent; }
 
   @Override
   public int getIndex(TreeNode node) { return isMain() && node != null && node == nextState ? 0 : -1; }

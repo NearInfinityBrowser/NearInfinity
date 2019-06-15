@@ -6,10 +6,11 @@ package org.infinity.resource.dlg;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import static java.util.Collections.enumeration;
+import static java.util.Arrays.asList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -44,6 +45,8 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
   private final HashMap<TreeItemEntry, ItemBase> mainItems = new HashMap<>();
   /** Maps dialog entries to tree items that represents it. Used for update tree when entry changes. */
   private final HashMap<TreeItemEntry, List<ItemBase>> allItems = new HashMap<>();
+  private final OrphanStates orphanStates = new OrphanStates(this);
+  private final OrphanTransitions orphanTrans = new OrphanTransitions(this);
 
   public DlgTreeModel(DlgResource dlg) { addToRoot(dlg); }
 
@@ -126,16 +129,26 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
 
   //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
-  public DlgItem getChildAt(int childIndex) { return rootDialogs.get(childIndex); }
+  public ItemBase getChildAt(int childIndex)
+  {
+    if (childIndex == rootDialogs.size()) return orphanStates;
+    if (childIndex == rootDialogs.size() + 1) return orphanTrans;
+    return rootDialogs.get(childIndex);
+  }
 
   @Override
-  public int getChildCount() { return rootDialogs.size(); }
+  public int getChildCount() { return rootDialogs.size() + 2; }
 
   @Override
   public TreeNode getParent() { return null; }
 
   @Override
-  public int getIndex(TreeNode node) { return rootDialogs.indexOf(node); }
+  public int getIndex(TreeNode node)
+  {
+    if (orphanStates == node) return rootDialogs.size();
+    if (orphanTrans == node) return rootDialogs.size() + 1;
+    return rootDialogs.indexOf(node);
+  }
 
   @Override
   public boolean getAllowsChildren() { return true; }
@@ -144,7 +157,26 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
   public boolean isLeaf() { return false; }
 
   @Override
-  public Enumeration<? extends DlgItem> children() { return enumeration(rootDialogs); }
+  public Enumeration<? extends ItemBase> children()
+  {
+    return new Enumeration<ItemBase>()
+    {
+      private final Iterator<? extends ItemBase> it1 = rootDialogs.iterator();
+      private final Iterator<? extends ItemBase> it2 = asList(orphanStates, orphanTrans).iterator();
+
+      @Override
+      public boolean hasMoreElements()
+      {
+        return it1.hasNext() || it2.hasNext();
+      }
+
+      @Override
+      public ItemBase nextElement()
+      {
+        return it1.hasNext() ? it1.next() : it2.next();
+      }
+    };
+  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="TableModelListener">
@@ -302,6 +334,8 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
     return new TreePath(this).pathByAddingChild(rootDialogs.get(0));
   }
 
+  public DlgResource getDialog() { return rootDialogs.get(0).getDialog(); }
+
   /**
    * Add specified entry to visual tree together with dialog(s), from which it accessible.
    *
@@ -323,6 +357,9 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
         addToRoot(queue.pop());
         return map(trans);
       }
+      // If transition is not accessible from any dialogue and has not parents,
+      // add it under orphaned responses node
+      return addOrphaned(trans);
     }
     return null;
   }
@@ -363,6 +400,50 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
   {
     final DlgResource dlg = state.getParent();
     final StateItem item = addState(dlg, findParents(state));
+    // If state is not accessible from any dialogue, item is null, so add
+    // state under orphaned states node
+    return item == null ? addOrphaned(state) : item;
+  }
+
+  /**
+   * Add new state node under {@link #orphanStates "Orphaned states"} node.
+   *
+   * @param state Reference to the state, that is not accessible from the root of
+   *        any dialogue. Can not be {@code null}
+   * @return GUI item representing state in the tree
+   */
+  private StateItem addOrphaned(State state)
+  {
+    final StateItem item     = new StateItem(state, orphanStates, null);
+    final int[] childIndices = {orphanStates.getChildCount()};
+    final Object[] children  = {item};
+
+    orphanStates.states.add(item);
+    putItem(item, null);
+    initState(item);
+
+    fireTreeNodesInserted(orphanStates.getPath(), childIndices, children);
+    return item;
+  }
+
+  /**
+   * Add new response node under {@link #orphanTrans "Orphaned responses"} node.
+   *
+   * @param trans Reference to the transition, that is not accessible from the
+   *        root of any dialogue. Can not be {@code null}
+   * @return GUI item representing transition in the tree
+   */
+  private TransitionItem addOrphaned(Transition trans)
+  {
+    final TransitionItem item= new TransitionItem(trans, orphanTrans, null);
+    final int[] childIndices = {orphanTrans.getChildCount()};
+    final Object[] children  = {item};
+
+    orphanTrans.trans.add(item);
+    putItem(item, null);
+    initTransition(item);
+
+    fireTreeNodesInserted(orphanTrans.getPath(), childIndices, children);
     return item;
   }
 
