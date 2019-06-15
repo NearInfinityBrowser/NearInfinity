@@ -326,6 +326,7 @@ final class DlgTreeModel implements TreeModel, TableModelListener
       state = queue.poll();
       if (state == null) break;
 
+      initState(state);
       for (TransitionItem trans : state) {
         if (trans.getMain() != null) continue;
         initTransition(trans);
