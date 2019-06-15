@@ -242,7 +242,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
    */
   public boolean select(TreeItemEntry entry)
   {
-    final ItemBase item = dlgModel.map(entry);
+    ItemBase item = dlgModel.map(entry);
+    if (item == null) {
+      item = dlgModel.addToRoot(entry);
+    }
     if (item != null) {
       final TreePath path = item.getPath();
       dlgTree.addSelectionPath(path);

@@ -9,8 +9,11 @@ import java.util.ArrayList;
 import static java.util.Collections.enumeration;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -21,8 +24,10 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import org.infinity.datatype.ResourceRef;
+import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.key.ResourceEntry;
 
 /** Creates and manages the dialog tree structure. */
 final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
@@ -298,6 +303,31 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
   }
 
   /**
+   * Add specified entry to visual tree together with dialog(s), from which it accessible.
+   *
+   * @param entry Child struct of the dialog to add
+   * @return GUI item of new added node. This is always main item
+   */
+  public ItemBase addToRoot(TreeItemEntry entry)
+  {
+    final DlgResource dlg = entry.getParent();
+    if (entry instanceof State) {
+      return addToRoot((State)entry);
+    }
+    if (entry instanceof Transition) {
+      final Transition trans = (Transition)entry;
+      final ArrayDeque<State> queue = new ArrayDeque<>();
+      if (dlg.findUsages(trans, queue::add)) {
+        // First add to the tree first state, that refers to this
+        // transition, and then allow map do their work
+        addToRoot(queue.pop());
+        return map(trans);
+      }
+    }
+    return null;
+  }
+
+  /**
    * Add specified dialog to the tree, if it not yet present there.
    *
    * @param dlg Dialog to add. Can not be {@code null}
@@ -320,6 +350,106 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener
     dlg.addTableModelListener(this);
 
     fireTreeNodesInserted(new TreePath(this), childIndices, children);
+  }
+
+  /**
+   * Add new state to the tree.
+   *
+   * @param state Reference to the state, that is not accessible from the root of
+   *        any dialogue. Can not be {@code null}
+   * @return GUI item representing state in the tree
+   */
+  private StateItem addToRoot(State state)
+  {
+    final DlgResource dlg = state.getParent();
+    final StateItem item = addState(dlg, findParents(state));
+    return item;
+  }
+
+  /**
+   * Returns all states from the {@code state} dialog from which specified state
+   * is accessible and the state itself.
+   *
+   * @param state Status for which parent statuses are looked for
+   * @return Collection of unique states, which forms queue of parent states
+   */
+  private Set<State> findParents(State state)
+  {
+    final DlgResource dlg = state.getParent();
+    // Use LinkedHashSet to return states in child-parent order
+    final LinkedHashSet<State> result = new LinkedHashSet<>();
+    final ArrayDeque<State> queue = new ArrayDeque<>();
+    result.add(state);
+    queue.add(state);
+    do {
+      dlg.findUsages(queue.pop(), t -> dlg.findUsages(t, queue::add));
+      // Stop when no changes was made in result. If result changed, `queue`
+      // contains at least one value, so `pop()` on next iteration will not throw
+    } while (result.addAll(queue));
+
+    return result;
+  }
+
+  /**
+   * Looks for all specified states in all dialogs and adds all dialogs in which
+   * the reference to a state is found to a tree. The method looks for all specified
+   * state for one pass. It allows to process a situation when directly from other
+   * dialogs nobody refers to a required state, but refer to one of its parents
+   * (for example, a state 32 and 33 in DMorte1.dlg in PS:T).
+   *
+   * @param dialog Dialog, that owns of all {@code states}. Must not be {@code null}
+   * @param states List of states to search. Must not be {@code null}
+   * @return GUI item representing state in first dialog or {@code null}, if state
+   *         is not found in any dialogue
+   */
+  private StateItem addState(DlgResource dialog, Set<State> states)
+  {
+    final HashSet<String> checked = new HashSet<>();
+    // First look at linked dialogs, for optimization
+    for (int i = 0; ; ++i) {
+      final Transition t = dialog.getTransition(i);
+      if (t == null) break;
+
+      final DlgResource dlg = getDialogResource(t.getNextDialog());
+      // Transition target within this dialog
+      if (dlg == null) continue;
+
+      final StateItem item = map(dlg, states);
+      if (item != null) return item;
+      // This dialog not contains references to any state
+      checked.add(key(dlg.getName()));
+    }
+
+    // If not found in linked dialogs, search in all dialogs
+    for (final ResourceEntry e : ResourceFactory.getResources("DLG")) {
+      final String name = key(e.getResourceName());
+      // If this dialog in linkedDialogs, it already checked
+      if (checked.contains(name)) continue;
+
+      final Resource resource = ResourceFactory.getResource(e);
+      // If resource has DLG extension but not DLG resource
+      if (!(resource instanceof DlgResource)) continue;
+
+      final StateItem item = map((DlgResource)resource, states);
+      if (item != null) return item;
+    }
+    return null;
+  }
+
+  private StateItem map(DlgResource dlg, Set<State> states)
+  {
+    for (final State state : states) {
+      if (dlg.findUsages(state, __ -> addToRoot(dlg))) {
+        // For some reason just
+        // return map(state);
+        // not works, but this code work as expected
+        for (final State s : states) {
+          final StateItem item = (StateItem)map(s);
+          if (item != null) return item;
+        }
+      }
+    }
+    return null;
   }
 
   /**
