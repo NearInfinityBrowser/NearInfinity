@@ -14,6 +14,9 @@ import org.infinity.resource.StructEntry;
  */
 public interface TreeItemEntry extends StructEntry
 {
+  @Override
+  DlgResource getParent();
+
   /**
    * Determines has this entry text or not, even if it contains some string reference.
    *

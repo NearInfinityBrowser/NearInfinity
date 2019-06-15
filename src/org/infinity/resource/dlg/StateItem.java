@@ -49,7 +49,7 @@ final class StateItem extends ItemBase implements Iterable<TransitionItem>
   public StateItem getMain() { return main; }
 
   @Override
-  public DlgResource getDialog() { return (DlgResource)state.getParent(); }
+  public DlgResource getDialog() { return state.getParent(); }
 
   @Override
   public Icon getIcon() { return ICON; }

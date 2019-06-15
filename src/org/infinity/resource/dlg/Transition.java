@@ -47,6 +47,9 @@ public final class Transition extends AbstractStruct implements AddRemovable, Tr
   }
 
   //<editor-fold defaultstate="collapsed" desc="TreeItemEntry">
+  @Override
+  public DlgResource getParent() { return (DlgResource)super.getParent(); }
+
   // Flag 0: Transition contains text
   @Override
   public boolean hasAssociatedText() { return getFlag().isFlagSet(0); }
@@ -56,7 +59,7 @@ public final class Transition extends AbstractStruct implements AddRemovable, Tr
   {
     return (StringRef)getAttribute(DLG_TRANS_TEXT, false);
   }
-//</editor-fold>
+  //</editor-fold>
 
   public int getActionIndex()
   {
