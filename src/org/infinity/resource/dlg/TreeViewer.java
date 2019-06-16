@@ -7,7 +7,6 @@ package org.infinity.resource.dlg;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -35,12 +34,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
-import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
@@ -64,22 +61,6 @@ import org.infinity.util.StringTable;
 final class TreeViewer extends JPanel implements ActionListener, TreeSelectionListener,
                                                  PropertyChangeListener
 {
-  /**
-   * This array contains background colors for other dialogs to which viewed dialog
-   * refers. Colors are assigned to other resources from this array on rotation basis.
-   */
-  private static final Color[] OTHER_DIALOG_COLORS = {
-    new Color(0xd8d8ff),
-    new Color(0xb8ffb8),
-    new Color(0xffd0d0),
-    new Color(0xffc8ff),
-    new Color(0xffffa0),
-    new Color(0xe0e0e0),
-    new Color(0x85ffc2),
-    new Color(0xffd3a6),
-    new Color(0x99ccff),
-    new Color(0xffa3d1),
-  };
   private final JPopupMenu pmTree = new JPopupMenu();
 
   private final JMenuItem miExpandAll   = new JMenuItem("Expand all nodes",        Icons.getIcon(Icons.ICON_EXPAND_ALL_24));
@@ -100,9 +81,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private TreeWorker worker;
   private WindowBlocker blocker;
 
-  /** Background colors for text in dialogs to that can refer main dialog. */
-  private final HashMap<DlgResource, Color> dialogColors = new HashMap<>();
-
   TreeViewer(DlgResource dlg)
   {
     super(new BorderLayout());
@@ -116,8 +94,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     initControls();
   }
 
-//--------------------- Begin Interface ActionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent e)
   {
@@ -186,11 +163,9 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     }
   }
+  //</editor-fold>
 
-//--------------------- End Interface ActionListener ---------------------
-
-//--------------------- Begin Interface TreeSelectionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="TreeSelectionListener">
   @Override
   public void valueChanged(TreeSelectionEvent e)
   {
@@ -208,11 +183,9 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     }
   }
+  //</editor-fold>
 
-//--------------------- End Interface TreeSelectionListener ---------------------
-
-//--------------------- Begin Interface PropertyChangeListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="PropertyChangeListener">
   @Override
   public void propertyChange(PropertyChangeEvent event)
   {
@@ -227,8 +200,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     }
   }
-
-//--------------------- End Interface PropertyChangeListener ---------------------
+  //</editor-fold>
 
   /**
    * Selects specified dialog state or transition in the tree. If such entry not
@@ -388,18 +360,14 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     // initializing info component
     spInfo = new JScrollPane(dlgInfo, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                              JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    spInfo.getViewport().addChangeListener(new ChangeListener() {
-      @Override
-      public void stateChanged(ChangeEvent e)
-      {
-        // never scroll horizontally
-        JViewport vp = (JViewport)e.getSource();
-        if (vp != null) {
-          Dimension d = vp.getExtentSize();
-          if (d.width != vp.getView().getWidth()) {
-            d.height = vp.getView().getHeight();
-            vp.getView().setSize(d);
-          }
+    spInfo.getViewport().addChangeListener((ChangeEvent e) -> {
+      // never scroll horizontally
+      JViewport vp = (JViewport)e.getSource();
+      if (vp != null) {
+        Dimension d = vp.getExtentSize();
+        if (d.width != vp.getView().getWidth()) {
+          d.height = vp.getView().getHeight();
+          vp.getView().setSize(d);
         }
       }
     });
@@ -421,53 +389,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     dlgTree.setRootVisible(true);
     dlgTree.setEditable(false);
 
-    // drawing custom icons for each node type
-    dlgTree.setCellRenderer(new DefaultTreeCellRenderer() {
-      private Color getColor(DlgResource dialog)
-      {
-        if (dlg == dialog) {
-          return null;
-        }
-        return dialogColors.computeIfAbsent(dialog,
-            d -> OTHER_DIALOG_COLORS[dialogColors.size() % OTHER_DIALOG_COLORS.length]
-        );
-      }
-      @Override
-      public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
-                                                    boolean expanded, boolean leaf, int row,
-                                                    boolean focused)
-      {
-        final Component c = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, focused);
-        // Tree reuse component, so we need to clear background
-        setBackgroundNonSelectionColor(null);
-        if (!(value instanceof ItemBase)) return c;
-
-        final ItemBase data = (ItemBase)value;
-
-        final BrowserMenuBar options = BrowserMenuBar.getInstance();
-        setIcon(options.showDlgTreeIcons() ? data.getIcon() : null);
-        setBackgroundNonSelectionColor(options.colorizeOtherDialogs() ? getColor(data.getDialog()) : null);
-
-        if (options.useDifferentColorForResponses() && value instanceof TransitionItem) {
-          setForeground(Color.BLUE);
-        }
-
-        if (value instanceof BrokenReference) {
-          setForeground(Color.RED);// Broken reference
-        } else
-        if (value instanceof StateItem) {
-          final StateItem state = (StateItem)value;
-          final State s = state.getEntry();
-          if (s.getNumber() == 0 && s.getTriggerIndex() < 0 && options.alwaysShowState0()) {
-            setForeground(Color.GRAY);
-          }
-        }
-        if (data.getMain() != null) {
-          setForeground(Color.GRAY);
-        }
-        return c;
-      }
-    });
+    dlgTree.setCellRenderer(new DlgTreeCellRenderer(dlg));
 
     // preventing root node from collapsing
     dlgTree.addTreeWillExpandListener(new TreeWillExpandListener() {
@@ -484,9 +406,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         }
       }
     });
-
-    // setting model AFTER customizing visual appearance of the tree control
-//    dlgTree.setModel(dlgModel);
 
     // initializing popup menu
     miEditEntry.addActionListener(this);
