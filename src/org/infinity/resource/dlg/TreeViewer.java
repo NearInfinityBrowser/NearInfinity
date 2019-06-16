@@ -131,7 +131,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     } else if (e.getSource() == miExpandAll) {
       if (worker == null) {
-        worker = new TreeWorker(dlgTree, new TreePath(dlgModel.getRoot()), true);
+        worker = new TreeWorker(dlgTree, new TreePath(dlgTree.getModel().getRoot()), true);
         worker.addPropertyChangeListener(this);
         blocker = new WindowBlocker(NearInfinity.getInstance());
         blocker.setBlocked(true);
@@ -139,7 +139,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     } else if (e.getSource() == miCollapseAll) {
       if (worker == null) {
-        worker = new TreeWorker(dlgTree, new TreePath(dlgModel.getRoot()), false);
+        worker = new TreeWorker(dlgTree, new TreePath(dlgTree.getModel().getRoot()), false);
         worker.addPropertyChangeListener(this);
         blocker = new WindowBlocker(NearInfinity.getInstance());
         blocker.setBlocked(true);
@@ -170,7 +170,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   public void valueChanged(TreeSelectionEvent e)
   {
     if (e.getSource() == dlgTree) {
-      final Object data = dlgTree.getLastSelectedPathComponent();
+      final Object data = e.getPath().getLastPathComponent();
       if (data instanceof StateItem) {
         // dialog state found
         updateStateInfo((StateItem)data);
@@ -220,6 +220,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       item = dlgModel.addToRoot(entry);
     }
     if (item != null) {
+      //TODO: After introducing proxy filtered tree this will require path item mapping
       final TreePath path = item.getPath();
       dlgTree.addSelectionPath(path);
       dlgTree.scrollPathToVisible(path);
@@ -401,7 +402,8 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       @Override
       public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException
       {
-        if (event.getPath().getLastPathComponent() == dlgModel.getRoot()) {
+        final JTree tree = (JTree)event.getSource();
+        if (event.getPath().getLastPathComponent() == tree.getModel().getRoot()) {
           throw new ExpandVetoException(event);
         }
       }
@@ -427,20 +429,23 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       @Override
       public void mouseClicked(MouseEvent e)
       {
-        if (e.getSource() == dlgTree && e.getClickCount() == 2) {
-          final TreePath path = dlgTree.getPathForLocation(e.getX(), e.getY());
-          if (path == null) { return; }
+        if (e.getClickCount() != 2) { return; }
 
-          final Object last = path.getLastPathComponent();
-          if (!(last instanceof ItemBase)) { return; }
+        final JTree tree = (JTree)e.getSource();
+        final TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+        if (path == null) { return; }
 
-          final ItemBase item = (ItemBase)last;
-          if (!item.getAllowsChildren() && item.getMain() != null) {
-            final TreePath target = item.getMain().getPath();
-            dlgTree.setSelectionPath(target);
-            dlgTree.scrollPathToVisible(target);
-          }
-        }
+        final Object last = path.getLastPathComponent();
+        if (!(last instanceof ItemBase)) { return; }
+
+        // If item can have children (if infinity tree option is on) or clicked
+        // item is main element, then do nothing, otherwise go to main item
+        final ItemBase item = (ItemBase)last;
+        if (item.getAllowsChildren() || item.getMain() == null) { return; }
+
+        final TreePath target = item.getMain().getPath();
+        tree.setSelectionPath(target);
+        tree.scrollPathToVisible(target);
       }
 
       @Override
@@ -451,16 +456,17 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
       private void maybeShowPopup(MouseEvent e)
       {
-        if (e.getSource() == dlgTree && e.isPopupTrigger()) {
-          final TreePath path = dlgTree.getClosestPathForLocation(e.getX(), e.getY());
-          dlgTree.setSelectionPath(path);
+        if (e.isPopupTrigger()) {
+          final JTree tree = (JTree)e.getSource();
+          final TreePath path = tree.getClosestPathForLocation(e.getX(), e.getY());
+          tree.setSelectionPath(path);
           final boolean isNonRoot = path != null && path.getLastPathComponent() instanceof ItemBase;
 
           miEditEntry.setEnabled(isNonRoot && !(path.getLastPathComponent() instanceof BrokenReference));
           miExpand.setEnabled(isNonRoot && !isNodeExpanded(path));
           miCollapse.setEnabled(isNonRoot && !isNodeCollapsed(path));
 
-          pmTree.show(dlgTree, e.getX(), e.getY());
+          pmTree.show(tree, e.getX(), e.getY());
         }
       }
     });
