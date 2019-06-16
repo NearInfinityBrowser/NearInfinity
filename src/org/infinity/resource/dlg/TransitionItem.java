@@ -31,28 +31,33 @@ class TransitionItem extends StateOwnerItem
    * Item to which need go to in break cycles tree view mode. This item contains
    * referense to the same transition as this one (i.e. {@code this.trans == main.ref.trans})
    */
-  private final MainRef<TransitionItem> main;
+  private final DlgElement elem;
   /** Tree item to which go this transition or {@code null}, if this transition terminates dialog. */
   StateItem nextState;
 
+  /**
+   * Constructor for broken references to transitions.
+   *
+   * @param parent State which contains broken reference
+   */
   protected TransitionItem(StateItem parent)
   {
     this.trans  = null;
     this.parent = Objects.requireNonNull(parent, "Parent state of broken transition item must be not null");
-    this.main   = null;
+    this.elem   = null;
   }
-  public TransitionItem(Transition trans, TransitionOwnerItem parent, MainRef<TransitionItem> main)
+  public TransitionItem(Transition trans, TransitionOwnerItem parent, DlgElement elem)
   {
     this.trans  = Objects.requireNonNull(trans,  "Transition dialog entry must be not null");
     this.parent = Objects.requireNonNull(parent, "Parent state of transition item must be not null");
-    this.main   = main;
+    this.elem   = elem;
   }
 
   @Override
   public Transition getEntry() { return trans; }
 
   @Override
-  public TransitionItem getMain() { return main == null || main.ref == this ? null : main.ref; }
+  public ItemBase getMain() { return elem == null || elem.main == this ? null : elem.main; }
 
   @Override
   public DlgResource getDialog() { return trans.getParent(); }
@@ -122,6 +127,6 @@ class TransitionItem extends StateOwnerItem
 
   private boolean isMain()
   {
-    return main == null || !BrowserMenuBar.getInstance().breakCyclesInDialogs();
+    return getMain() == null || !BrowserMenuBar.getInstance().breakCyclesInDialogs();
   }
 }

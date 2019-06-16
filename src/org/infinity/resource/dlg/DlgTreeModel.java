@@ -45,11 +45,11 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
   private final List<DlgItem> rootDialogs = new ArrayList<>();
   /** Maps dialog names of dialogs, presented in the tree, to dialog itself. */
   private final HashMap<String, DlgResource> linkedDialogs = new HashMap<>();
-  /** Maps dialog entries to main tree items - items from which the tree grows. */
-  private final HashMap<TreeItemEntry, MainRef<? extends ItemBase>> mainItems = new HashMap<>();
-  /** Maps dialog entries to tree items that represents it. Used for update tree when entry changes. */
-  private final HashMap<TreeItemEntry, List<ItemBase>> allItems = new HashMap<>();
+  /** Maps dialog entries to tree items that represents it. */
+  private final HashMap<TreeItemEntry, DlgElement> items = new HashMap<>();
+  /** States, that not accessible from any other dialogue. */
   private final OrphanStates orphanStates = new OrphanStates(this);
+  /** Transitions, that not accessible from any other dialogue. */
   private final OrphanTransitions orphanTrans = new OrphanTransitions(this);
 
   public DlgTreeModel(DlgResource dlg) { addToRoot(dlg); }
@@ -222,25 +222,25 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
     final Object src  = e.getSource();
     final String prop = e.getPropertyName();
     if (src instanceof TreeItemEntry) {
-      final List<ItemBase> items = allItems.get(src);
-      if (items == null) { return; }
+      final DlgElement elem = items.get(src);
+      if (elem == null) { return; }
 
       // Count of responses changed
       if (State.DLG_STATE_NUM_RESPONSES.equals(prop)) {
         // Copy list since it can change during iteration
-        changeStateTransCount((State)src, new ArrayList<>(items), e.getOldValue(), e.getNewValue());
+        changeStateTransCount((State)src, new ArrayList<>(elem.all), e.getOldValue(), e.getNewValue());
       } else
       // First response transition changed
       if (State.DLG_STATE_FIRST_RESPONSE_INDEX.equals(prop)) {
         // Copy list since it can change during iteration
-        changeStateFirstTrans((State)src, new ArrayList<>(items), e.getOldValue(), e.getNewValue());
+        changeStateFirstTrans((State)src, new ArrayList<>(elem.all), e.getOldValue(), e.getNewValue());
       } else
       // Next dialog or next dialog state changed
       if (Transition.DLG_TRANS_NEXT_DIALOG.equals(prop)
        || Transition.DLG_TRANS_NEXT_DIALOG_STATE.equals(prop)
       ) {
         // Copy list since it can change during iteration
-        changeTransition(new ArrayList<>(items));
+        changeTransition(new ArrayList<>(elem.all));
       } else
       // Transition flags changed
       if (Transition.DLG_TRANS_FLAGS.equals(prop)) {
@@ -251,17 +251,17 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
         // Flag 3: Terminates dialogue - if changed, rebuild tree
         if ((diff & (1 << 3)) != 0) {
           // Copy list since it can change during iteration
-          changeTransition(new ArrayList<>(items));
+          changeTransition(new ArrayList<>(elem.all));
         } else
         // Flag 0: Text associated - if changed, repaint nodes
         // No need to repaint if flag 3 changed - it already repainted
         if ((diff & (1 << 0)) != 0) {
-          items.forEach(this::nodeChanged);
+          elem.all.forEach(this::nodeChanged);
         }
       } else
       // Response text or Associated text changed
       if (State.DLG_STATE_RESPONSE.equals(prop) || Transition.DLG_TRANS_TEXT.equals(prop)) {
-        items.forEach(this::nodeChanged);
+        elem.all.forEach(this::nodeChanged);
       }
     }
   }
@@ -275,11 +275,9 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
    */
   private void updateTreeItemEntry(TreeItemEntry entry)
   {
-    final List<ItemBase> items = allItems.get(entry);
-    if (items != null) {
-      for (ItemBase item : items) {
-        nodeChanged(item);
-      }
+    final DlgElement elem = items.get(entry);
+    if (elem != null) {
+      elem.all.forEach(this::nodeChanged);
     }
   }
 
@@ -290,10 +288,9 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
    */
   private void removeTreeItemEntry(TreeItemEntry entry)
   {
-    mainItems.remove(entry);
-    final List<ItemBase> items = allItems.remove(entry);
-    if (items != null) {
-      for (final ItemBase item : items) {
+    final DlgElement elem = items.remove(entry);
+    if (elem != null) {
+      for (final ItemBase item : elem.all) {
         final TreeNode node = item.getParent();
         if (!(node instanceof ItemBase)) continue;
 
@@ -322,18 +319,18 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
   private void removeItem(ItemBase item)
   {
     final TreeItemEntry entry = item.getEntry();
-    final List<ItemBase> items = allItems.get(entry);
-    if (items.remove(item)) {
+    final DlgElement elem = items.get(entry);
+    if (elem.all.remove(item)) {
       // If element not exists in all items list it already deleted, so skip.
       // This occurs when dialog has cycle and `item` is some item inside it
-      @SuppressWarnings("unchecked")
-      final MainRef<ItemBase> main = (MainRef<ItemBase>)mainItems.get(entry);
-      if (main != null && main.ref == item) {
-        if (items.isEmpty()) {
-          mainItems.remove(entry);
+      if (elem.main == item) {
+        // If we remove last GUI element for `entry`, then remove reference to the
+        // main item itself, otherwise make first remaining node as main node
+        if (elem.all.isEmpty()) {
+          elem.main = null;
         } else {
-          main.ref = items.get(0);
-          nodeChanged(main.ref);
+          elem.main = elem.all.get(0);
+          nodeChanged(elem.main);
         }
       }
       item.traverseChildren(this::removeItem);
@@ -576,8 +573,8 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
    */
   public ItemBase map(TreeItemEntry entry)
   {
-    final MainRef<? extends ItemBase> item = mainItems.get(entry);
-    if (item == null) {
+    final DlgElement elem = items.get(entry);
+    if (elem == null) {
       if (entry instanceof State) {
         for (final DlgItem dlg : rootDialogs) {
           final StateItem state = slowFindState(dlg, (State)entry);
@@ -590,7 +587,7 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
         if (trans != null) return trans;
       }
     }
-    return item.ref;
+    return elem.main;
   }
 
   /**
@@ -648,8 +645,8 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
     rootDialogs.add(item);
     linkedDialogs.put(key(dlg.getName()), dlg);
     for (final StateItem state : item) {
+      items.computeIfAbsent(state.getEntry(), e -> new DlgElement()).add(state);
       initState(state);
-      putItem(state, null);
     }
     dlg.addTableModelListener(this);
     dlg.addPropertyChangeListener(this);
@@ -687,7 +684,7 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
     final Object[] children  = {item};
 
     orphanStates.states.add(item);
-    putItem(item, null);
+    items.computeIfAbsent(state, e -> new DlgElement()).add(item);
     initState(item);
 
     fireTreeNodesInserted(orphanStates.getPath(), childIndices, children);
@@ -708,7 +705,7 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
     final Object[] children  = {item};
 
     orphanTrans.trans.add(item);
-    putItem(item, null);
+    items.computeIfAbsent(trans, e -> new DlgElement()).add(item);
     initTransition(item);
 
     fireTreeNodesInserted(orphanTrans.getPath(), childIndices, children);
@@ -961,27 +958,25 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
    * @param prepend If {@code true}, then insert child transitions before existing,
    *        otherwise after existing
    */
-  @SuppressWarnings("unchecked")
   private void addTransitions(StateItem state, int firstTransition, int lastTransition, boolean prepend)
   {
     final DlgResource dlg = state.getDialog();
     for (int i = firstTransition; i < lastTransition; ++i) {
       final Transition trans = dlg.getTransition(i);
-      final MainRef<TransitionItem> main;
       final TransitionItem item;
       if (trans == null) {
-        main = null;
         item = new BrokenTransitionItem(i, state);
       } else {
-        main = (MainRef<TransitionItem>)mainItems.get(trans);
-        item = new TransitionItem(trans, state, main);
+        final DlgElement elem = items.computeIfAbsent(trans, e -> new DlgElement());
+
+        item = new TransitionItem(trans, state, elem);
+        elem.add(item);
       }
       if (prepend) {
         state.trans.add(i - firstTransition, item);
       } else {
         state.trans.add(item);
       }
-      putItem(item, main);
     }
   }
 
@@ -997,13 +992,11 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
         final State state = nextDlg.getState(nextIndex);
         if (state == null) {
           trans.nextState = new BrokenStateItem(nextDlg, nextIndex, trans);
-          putItem(trans.nextState, null);
         } else {
-          @SuppressWarnings("unchecked")
-          final MainRef<StateItem> main = (MainRef<StateItem>)mainItems.get(state);
+          final DlgElement elem = items.computeIfAbsent(state, e -> new DlgElement());
 
-          trans.nextState = new StateItem(state, trans, main);
-          putItem(trans.nextState, main);
+          trans.nextState = new StateItem(state, trans, elem);
+          elem.add(trans.nextState);
         }
       }
     }
@@ -1021,20 +1014,5 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
       }
     }
     return node;
-  }
-
-  /**
-   * Registers visual tree node in internal maps.
-   *
-   * @param item The item to register
-   * @param main The reference to an item which can have childrens in the break cycles mode
-   */
-  private <T extends ItemBase> void putItem(T item, MainRef<T> main)
-  {
-    final TreeItemEntry entry = item.getEntry();
-    allItems.computeIfAbsent(entry, i -> new ArrayList<>()).add(item);
-    if (main == null) {
-      mainItems.put(entry, new MainRef<>(item));
-    }
   }
 }

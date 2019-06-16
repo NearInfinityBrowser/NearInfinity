@@ -32,28 +32,33 @@ class StateItem extends TransitionOwnerItem
    * Item to which need go to in break cycles tree view mode. This item contains
    * referense to the same state as this one (i.e. {@code this.state == main.ref.state})
    */
-  private final MainRef<StateItem> main;
+  private final DlgElement elem;
   /** Items that represents transition tree nodes from this state. */
   ArrayList<TransitionItem> trans;
 
-  protected StateItem(StateOwnerItem parent)
+  /**
+   * Constructor for broken references to states.
+   *
+   * @param parent Transition which contains broken reference
+   */
+  protected StateItem(TransitionItem parent)
   {
     this.state  = null;
-    this.parent = Objects.requireNonNull(parent, "Parent tree of broken state item must be not null");
-    this.main   = null;
+    this.parent = Objects.requireNonNull(parent, "Parent transition of broken state item must be not null");
+    this.elem   = null;
   }
-  public StateItem(State state, StateOwnerItem parent, MainRef<StateItem> main)
+  public StateItem(State state, StateOwnerItem parent, DlgElement elem)
   {
     this.state  = Objects.requireNonNull(state,  "State dialog entry must be not null");
-    this.parent = Objects.requireNonNull(parent, "Parent tree of state item must be not null");
-    this.main   = main;
+    this.parent = Objects.requireNonNull(parent, "Parent item of state item must be not null");
+    this.elem   = elem;
   }
 
   @Override
   public State getEntry() { return state; }
 
   @Override
-  public StateItem getMain() { return main == null || main.ref == this ? null : main.ref; }
+  public ItemBase getMain() { return elem == null || elem.main == this ? null : elem.main; }
 
   @Override
   public DlgResource getDialog() { return state.getParent(); }
@@ -97,7 +102,7 @@ class StateItem extends TransitionOwnerItem
   @Override
   public boolean getAllowsChildren()
   {
-    return main == null || !BrowserMenuBar.getInstance().breakCyclesInDialogs();
+    return getMain() == null || !BrowserMenuBar.getInstance().breakCyclesInDialogs();
   }
 
   @Override

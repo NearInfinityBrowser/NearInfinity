@@ -23,7 +23,7 @@ class BrokenStateItem extends StateItem implements BrokenReference
   private final DlgResource dlg;
   /** Number of non-existent state. */
   private final int number;
-  public BrokenStateItem(DlgResource dlg, int number, StateOwnerItem parent)
+  public BrokenStateItem(DlgResource dlg, int number, TransitionItem parent)
   {
     super(parent);
     this.dlg = dlg;
