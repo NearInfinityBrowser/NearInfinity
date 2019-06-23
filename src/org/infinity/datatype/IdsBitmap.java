@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -47,34 +47,22 @@ public class IdsBitmap extends HashBitmap
     super(parent, buffer, offset, length, name, createResourceList(resource, idsStart, idsSize), true);
   }
 
-  public int getIdsMapEntryCount()
+  @Override
+  @SuppressWarnings("unchecked")
+  public LongIntegerHashMap<IdsMapEntry> getHashBitmap()
   {
-    return getHashBitmap().size();
+    return (LongIntegerHashMap<IdsMapEntry>)super.getHashBitmap();
   }
 
-  public IdsMapEntry getIdsMapEntryByIndex(int index)
-  {
-    if (index >= 0 && index < getHashBitmap().size()) {
-      return (IdsMapEntry)getHashBitmap().get(getHashBitmap().keys()[index]);
-    } else {
-      return null;
-    }
-  }
-
-  public IdsMapEntry getIdsMapEntryById(long id)
-  {
-    return (IdsMapEntry)getHashBitmap().get(Long.valueOf(id));
-  }
-
+  /**
+   * Add to bitmap specified entry, id entry with such key not yet registered,
+   * otherwise do nothing.
+   *
+   * @param entry Entry to add. Must not be {@code null}
+   */
   public void addIdsMapEntry(IdsMapEntry entry)
   {
-    if (entry != null) {
-      @SuppressWarnings("unchecked")
-      LongIntegerHashMap<IdsMapEntry>map = (LongIntegerHashMap<IdsMapEntry>)getHashBitmap();
-      if (!map.containsKey(Long.valueOf(entry.getID()))) {
-        map.put(Long.valueOf(entry.getID()), entry);
-      }
-    }
+    getHashBitmap().putIfAbsent(entry.getID(), entry);
   }
 
   private static LongIntegerHashMap<IdsMapEntry> createResourceList(String resource, int idsStart, int idsSize)
@@ -82,12 +70,12 @@ public class IdsBitmap extends HashBitmap
     LongIntegerHashMap<IdsMapEntry> retVal = null;
     IdsMap idsMap = IdsMapCache.get(resource);
     if (idsMap != null) {
-      retVal = new LongIntegerHashMap<IdsMapEntry>();
+      retVal = new LongIntegerHashMap<>();
       for (final IdsMapEntry e: idsMap.getAllValues()) {
         long id = e.getID();
         if (idsSize < 0 || (id >= idsStart && id < idsStart + idsSize)) {
           id -= idsStart;
-          retVal.put(Long.valueOf(id), new IdsMapEntry(id, e.getSymbol()));
+          retVal.put(id, new IdsMapEntry(id, e.getSymbol()));
         }
       }
 
@@ -103,4 +91,3 @@ public class IdsBitmap extends HashBitmap
     return retVal;
   }
 }
-
