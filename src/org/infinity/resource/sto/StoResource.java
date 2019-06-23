@@ -81,8 +81,8 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
 //                                          "Can buy drinks", "", "", "Quality Bit 0 (BAM)", "Quality Bit 1 (BAM)"};
   public static final String[] s_flag_bg2 = {"Can only rest", "Can buy", "Can sell", "Can identify",
                                               "Can steal", "Can donate;Unused in Enhanced Editions", "Can buy cures",
-                                              "Can buy drinks", "", "EE: Disable donation screen;Disables donation screen in temple stores",
-                                              "Tavern quality 1", "Tavern quality 2", "", "Fence", "EE: Ignore reputation",
+                                              "Can buy drinks", null, "EE: Disable donation screen;Disables donation screen in temple stores",
+                                              "Tavern quality 1", "Tavern quality 2", null, "Fence", "EE: Ignore reputation",
                                               "Ex: Toggle recharge", "EE: Can sell critical"};
   public static final String[] s_rooms = {"No rooms available", "Peasant", "Merchant", "Noble", "Royal"};
 

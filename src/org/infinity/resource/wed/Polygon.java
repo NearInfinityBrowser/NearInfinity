@@ -29,8 +29,8 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
   public static final String WED_POLY_MAX_COORD_Y   = "Maximum coordinate: Y";
 
   public static final String[] s_flags = { "No flags set", "Shade wall", "Semi transparent",
-                                            "Hovering wall", "Cover animations", "Unknown",
-                                            "Unknown", "Unknown", "Is door" };
+                                            "Hovering wall", "Cover animations", null,
+                                            null, null, "Is door" };
 
   public Polygon(AbstractStruct superStruct, String name, ByteBuffer buffer, int offset) throws Exception
   {

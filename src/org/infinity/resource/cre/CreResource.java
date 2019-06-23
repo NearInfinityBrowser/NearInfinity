@@ -430,7 +430,7 @@ public final class CreResource extends AbstractStruct
     "Original class: Fighter", "Original class: Mage", "Original class: Cleric", "Original class: Thief",
     "Original class: Druid", "Original class: Ranger", "Fallen paladin", "Fallen ranger",
     "Export allowed", "Hide status", "Large creature", "Moving between areas", "Been in party",
-    "Holding item", "Reset bit 16", "", "", "EE: No exploding death", "", "EE: Ignore nightmare mode",
+    "Holding item", "Reset bit 16", null, null, "EE: No exploding death", null, "EE: Ignore nightmare mode",
     "EE: No tooltip", "Allegiance tracking", "General tracking", "Race tracking", "Class tracking",
     "Specifics tracking", "Gender tracking", "Alignment tracking", "Uninterruptible"};
   public static final String[] s_feats1 = {
@@ -458,10 +458,10 @@ public final class CreResource extends AbstractStruct
       "Aamimar/Drow/Gold dwarf/Strongheart halfling/Deep gnome",
       "Tiefling/Wild elf/Gray dwarf/Ghostwise halfling"};
   public static final String[] s_attributes_pst = {
-    "No flags set", "Auto-calc marker rect", "Translucent", "", "", "Track script name", "Increment kill count",
+    "No flags set", "Auto-calc marker rect", "Translucent", null, null, "Track script name", "Increment kill count",
     "Script name only", "Track faction death", "Track team death", "Invulnerable",
     "Modify good on death", "Modify law on death", "Modify lady on death", "Modify murder on death",
-    "No dialogue turn", "Call for help", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Death globals set (internal)", "Area supplemental"};
+    "No dialogue turn", "Call for help", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Death globals set (internal)", "Area supplemental"};
   public static final String[] s_attributes_iwd2 = {"No flags set", "Mental fortitude", "Critical hit immunity",
                                                     "Cannot be paladin", "Cannot be monk"};
   public static final String[] s_attacks = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};

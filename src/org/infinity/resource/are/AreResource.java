@@ -131,7 +131,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   public static final String[] s_atype_torment = {"Normal", "Save not allowed",
                                                   "\"You cannot rest here.\";Combined with bit 2: \"You must obtain permission to rest here.\"",
                                                   "\"Too dangerous to rest.\";Combined with bit 1: \"You must obtain permission to rest here.\""};
-  public static final String[] s_atype_pstee = {"Normal", "Save not allowed", "", "Dead magic zone",
+  public static final String[] s_atype_pstee = {"Normal", "Save not allowed", null, "Dead magic zone",
                                                 "Dream area", "Player1 can die;The Nameless One can die without ending the game",
                                                 "Rest not allowed", "Travel not allowed",
                                                 "\"You cannot rest here.\";Combined with bit 8: \"You must obtain permission to rest here.\"",

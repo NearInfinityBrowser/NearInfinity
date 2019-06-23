@@ -57,8 +57,8 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
                                               "Skip first condition", "Single target"};
   public static final String[] s_areaflagsEx = {
     "No flags set", "Paletted ring", "Random speed", "Start scattered", "Paletted center",
-    "Repeat scattering", "Paletted animation", "", "", "", "Oriented fireball puffs",
-    "Use hit dice lookup", "", "", "Blend are/ring anim", "Glow area/ring anim", "Hit point limit",
+    "Repeat scattering", "Paletted animation", null, null, null, "Oriented fireball puffs",
+    "Use hit dice lookup", null, null, "Blend are/ring anim", "Glow area/ring anim", "Hit point limit",
   };
 
   static {

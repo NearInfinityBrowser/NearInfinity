@@ -184,7 +184,8 @@ public class IdsMapCache
   /**
    * Returns a String array for Flag datatypes, that has been updated or overwritten with entries
    * from the specified IDS resource.
-   * @param flags A static String array used as basis for Flag labels.
+   * @param flags A static String array used as basis for Flag labels. {@code null} elements threat
+   *        as unknown flags
    * @param idsFile IDS resource to take entries from.
    * @param size Size of flags field in bytes. (Range: 1..4)
    * @param overwrite If {@code true}, then static flag label will be overwritten with entries
@@ -199,7 +200,7 @@ public class IdsMapCache
    */
   public static String[] getUpdatedIdsFlags(String[] flags, String idsFile, int size, boolean overwrite, boolean prettify)
   {
-    ArrayList<String> list = new ArrayList<String>(32);
+    final ArrayList<String> list = new ArrayList<>(32);
     size = Math.max(1, Math.min(4, size));
 
     // adding static labels
@@ -213,9 +214,9 @@ public class IdsMapCache
     if (ResourceFactory.resourceExists(idsFile)) {
       IdsMap map = IdsMapCache.get(idsFile);
       if (map != null) {
-        int numBits = size * 8;
+        final int numBits = size * 8;
         for (int i = 0; i < numBits; i++) {
-          IdsMapEntry entry = map.get((long)(1 << i));
+          final IdsMapEntry entry = map.get((1 << i));
           String s = (entry != null) ? entry.getSymbol() : null;
           if (s != null && !s.isEmpty()) {
             if (prettify) {
@@ -240,16 +241,13 @@ public class IdsMapCache
     }
 
     // converting list into array
-    String[] retVal = new String[list.size()];
-    for (int i = 0; i < retVal.length; i++) {
-      retVal[i] = list.get(i);
-    }
-
-    return retVal;
+    return list.toArray(new String[list.size()]);
   }
 
-  // Improves readability of given string by capitalizing first letter, lowercasing remaining characters
-  // and replacing underscores by space.
+  /**
+   * Improves readability of given string by capitalizing first letter, lowercasing
+   * remaining characters and replacing underscores by space.
+   */
   private static String prettifyName(String name)
   {
     if (name == null || name.trim().isEmpty()) {

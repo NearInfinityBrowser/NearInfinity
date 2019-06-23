@@ -52,11 +52,11 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
   public static final String EFFECT_SECONDARY_TYPE    = "Secondary type";
 
   public static final String[] s_itmflag = {"No flags set", "Add strength bonus", "Breakable",
-                                             "", "", "", "", "", "", "", "", "Hostile",
-                                             "Recharge after resting", "", "", "", "",
-                                             "Bypass armor", "Keen edge"};
-  public static final String[] s_splflag = {"No flags set", "", "", "", "", "", "", "", "", "",
-                                            "", "Hostile", "No LOS required", "Allow spotting", "Outdoors only",
+                                            null, null, null, null, null, null, null, null, "Hostile",
+                                            "Recharge after resting", null, null, null, null,
+                                            "Bypass armor", "Keen edge"};
+  public static final String[] s_splflag = {"No flags set", null, null, null, null, null, null, null, null, null,
+                                            null, "Hostile", "No LOS required", "Allow spotting", "Outdoors only",
                                             "Non-magical ability", "Trigger/Contingency", "Non-combat ability"};
   public static final String[] s_restype = {"None", "Spell", "Item"};
   public static final String[] s_dispel = {"Natural/Nonmagical", "Dispel/Not bypass resistance",
