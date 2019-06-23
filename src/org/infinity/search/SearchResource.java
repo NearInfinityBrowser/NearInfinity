@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -4542,11 +4543,15 @@ public class SearchResource extends ChildFrame
           kitList[i] = new ObjectString(ids[i].getSymbol(), (int)ids[i].getID());
         }
       } else if (hasKit) {
-        KitIdsBitmap kit = new KitIdsBitmap(StreamUtils.getByteBuffer(4), 0, "");
-        kitList = new StorageString[kit.getIdsMapEntryCount()];
-        for (int i = 0; i < kitList.length; i++) {
-          IdsMapEntry e = kit.getIdsMapEntryByIndex(i);
-          kitList[i] = new ObjectString(e.getSymbol(), (int)e.getID());
+        final KitIdsBitmap kit = new KitIdsBitmap(StreamUtils.getByteBuffer(4), 0, "");
+        final SortedMap<Long, IdsMapEntry> map = kit.getHashBitmap();
+
+        kitList = new StorageString[map.size()];
+        int i = 0;
+        for (final Map.Entry<Long, IdsMapEntry> e : map.entrySet()) {
+          final IdsMapEntry value = e.getValue();
+          kitList[i] = new ObjectString(value.getSymbol(), (int)value.getID());
+          ++i;
         }
       } else {
         kitList = new StorageString[]{};
@@ -6534,7 +6539,7 @@ public class SearchResource extends ChildFrame
           return (int)((IdsMapEntry)value).getID();
         } else {
           try {
-            return Integer.parseInt(value.toString());
+            return Integer.parseInt(value.toString());//FIXME: Smell code
           } catch (NumberFormatException e) {
           }
         }
@@ -6544,18 +6549,13 @@ public class SearchResource extends ChildFrame
 
     public static IdsMapEntry[] getIdsMapEntryList(IdsBitmap ids)
     {
-      IdsMapEntry[] list = null;
       if (ids != null) {
-        list = new IdsMapEntry[ids.getIdsMapEntryCount()];
-        for (int i = 0; i < list.length; i++) {
-          list[i] = ids.getIdsMapEntryByIndex(i);
-        }
-      } else {
-        list = new IdsMapEntry[]{};
+        final SortedMap<Long, IdsMapEntry> map = ids.getHashBitmap();
+        final IdsMapEntry[] list = map.values().toArray(new IdsMapEntry[map.size()]);
+        Arrays.sort(list);
+        return list;
       }
-      Arrays.sort(list);
-
-      return list;
+      return new IdsMapEntry[0];
     }
 
     /** Returns list's index of o */

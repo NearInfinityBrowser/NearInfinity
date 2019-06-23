@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -14,23 +14,6 @@ public final class LongIntegerHashMap<V> extends TreeMap<Long, V>
   public LongIntegerHashMap()
   {
     super();
-  }
-
-  public LongIntegerHashMap(Map<Long, ? extends V> m)
-  {
-    super(m);
-  }
-
-  public long[] keys()
-  {
-    Set<Long> set = keySet();
-    long[] result = new long[set.size()];
-    Iterator<Long> iter = set.iterator();
-    int i = 0;
-    while (iter.hasNext() && i < result.length) {
-      result[i++] = iter.next().longValue();
-    }
-    return result;
   }
 
   @Override
