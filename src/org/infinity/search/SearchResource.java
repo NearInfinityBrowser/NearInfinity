@@ -3725,11 +3725,6 @@ public class SearchResource extends ChildFrame
       return Utils.getRangeValues(cbLabel[id].isSelected(), sEffects[id]);
     }
 
-//    public int getOptionEffectCount()
-//    {
-//      return entryCount;
-//    }
-
     private void init()
     {
       // initializing components
@@ -3769,7 +3764,6 @@ public class SearchResource extends ChildFrame
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
-
   }
 
 
@@ -3918,11 +3912,6 @@ public class SearchResource extends ChildFrame
       }
       return null;
     }
-
-//    public int getOptionFilterCount()
-//    {
-//      return entryCount;
-//    }
 
     private JPanel createFilterPanel(int entry, int type)
     {
@@ -4082,7 +4071,6 @@ public class SearchResource extends ChildFrame
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
-
   }
 
 
@@ -4299,7 +4287,6 @@ public class SearchResource extends ChildFrame
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
-
   }
 
 
@@ -4417,7 +4404,6 @@ public class SearchResource extends ChildFrame
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
-
   }
 
 
@@ -4583,7 +4569,6 @@ public class SearchResource extends ChildFrame
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
-
   }
 
 
@@ -4708,7 +4693,6 @@ public class SearchResource extends ChildFrame
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
-
   }
 
 
@@ -4772,11 +4756,6 @@ public class SearchResource extends ChildFrame
       return Utils.getResourceName(cbItems[id].isEnabled(),
           (ResourceEntry)((NamedResourceEntry)cbItems[id].getSelectedItem()).getResourceEntry());
     }
-
-//    public int getOptionItemCount()
-//    {
-//      return entryCount;
-//    }
 
     private void init()
     {
@@ -4881,11 +4860,6 @@ public class SearchResource extends ChildFrame
           (ResourceEntry)((NamedResourceEntry)cbSpells[id].getSelectedItem()).getResourceEntry());
     }
 
-//    public int getOptionSpellCount()
-//    {
-//      return entryCount;
-//    }
-
     private void init()
     {
       // initializing components
@@ -4989,11 +4963,6 @@ public class SearchResource extends ChildFrame
       return Utils.getResourceName(cbScripts[id].isEnabled(),
           (ResourceEntry)((NamedResourceEntry)cbScripts[id].getSelectedItem()).getResourceEntry());
     }
-
-//    public int getOptionScriptCount()
-//    {
-//      return entryCount;
-//    }
 
     private void init()
     {
@@ -5165,7 +5134,6 @@ public class SearchResource extends ChildFrame
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
-
   }
 
 
@@ -6028,11 +5996,6 @@ public class SearchResource extends ChildFrame
       return 0;
     }
 
-//    public int getOptionPurchasedCount()
-//    {
-//      return entryCount;
-//    }
-
     private void init()
     {
       for (int i = 0; i < entryCount; i++) {
@@ -6138,11 +6101,6 @@ public class SearchResource extends ChildFrame
           (ResourceEntry)((NamedResourceEntry)cbItems[index].getSelectedItem()).getResourceEntry());
     }
 
-//    public int getOptionItemCount()
-//    {
-//      return entryCount;
-//    }
-
     private void init()
     {
       for (int i = 0; i < entryCount; i++) {
@@ -6181,7 +6139,6 @@ public class SearchResource extends ChildFrame
       pMain.add(panel, c);
       add(pMain, BorderLayout.CENTER);
     }
-
   }
 
 
@@ -6316,11 +6273,6 @@ public class SearchResource extends ChildFrame
       return entry;
     }
 
-//    public String getResourceName()
-//    {
-//      return (resName != null) ? resName : "";
-//    }
-
     @Override
     public String toString()
     {
@@ -6371,18 +6323,6 @@ public class SearchResource extends ChildFrame
       this.maxLength = (maxLength > 0) ? maxLength : Integer.MAX_VALUE;
       this.upperCase = upperCase;
     }
-
-//    /** Returns max. number of characters of content allowed for the document. */
-//    public int getMaxLength()
-//    {
-//      return maxLength;
-//    }
-
-//    /** Returns whether the document converts all characters into uppercase versions */
-//    public boolean isUpperCase()
-//    {
-//      return upperCase;
-//    }
 
     @Override
     public void insertString(int off, String str, AttributeSet a) throws BadLocationException
@@ -6480,18 +6420,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // Returns whether auto update has been enabled
-//    private static boolean setSpinnerAutoUpdate(JSpinner spinner)
-//    {
-//      if (spinner != null) {
-//        JFormattedTextField ftf = (JFormattedTextField)spinner.getEditor().getComponent(0);
-//        if (ftf != null) {
-//          return ((DefaultFormatter)ftf.getFormatter()).getCommitsOnValidEdit();
-//        }
-//      }
-//      return false;
-//    }
 
     /** Сreates a "min" to "max" panel. */
     public static JPanel createNumberRangePanel(JSpinner min, JSpinner max)
@@ -6612,32 +6540,9 @@ public class SearchResource extends ChildFrame
   /** Adds "auto-select item" feature to JComboBox. */
   public static class AutoComboBox<E> extends JComboBox<E>
   {
-    public AutoComboBox()
-    {
-      super();
-      init();
-    }
-
-    public AutoComboBox(ComboBoxModel<E> aModel)
-    {
-      super(aModel);
-      init();
-    }
-
     public AutoComboBox(E[] items)
     {
       super(items);
-      init();
-    }
-
-    public AutoComboBox(Vector<E> items)
-    {
-      super(items);
-      init();
-    }
-
-    private void init()
-    {
       setEditable(true);
       new AutoDocument<>(this);
     }
