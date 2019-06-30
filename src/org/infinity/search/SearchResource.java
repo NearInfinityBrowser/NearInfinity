@@ -1235,7 +1235,7 @@ public class SearchResource extends ChildFrame
 
     public int getOptionAnimation()
     {
-      return Utils.getIdsValue(cbOptions[ID_Animation].isSelected(), cbAnimation.getSelectedItem());
+      return Utils.getIdsValue(cbOptions[ID_Animation], cbAnimation);
     }
 
 
@@ -1300,8 +1300,7 @@ public class SearchResource extends ChildFrame
       pScripts = new CreScriptsPanel(3);
       bpwScripts = new ButtonPopupWindow(setOptionsText, pScripts);
 
-      cbAnimation = new AutoComboBox<>(Utils.getIdsMapEntryList(
-          new IdsBitmap(StreamUtils.getByteBuffer(4), 0, 4, "Animation", "ANIMATE.IDS")));
+      cbAnimation = Utils.getIdsMapEntryList(4, "Animation", "ANIMATE.IDS");
       cbAnimation.setPreferredSize(Utils.getPrototypeSize(cbAnimation));
 
       pGameSpecific = new CreGameSpecificPanel();
@@ -4426,6 +4425,7 @@ public class SearchResource extends ChildFrame
                                                        "Allegiance:", "Kit:", "Sex:"};
 
     private final JCheckBox[] cbLabel = new JCheckBox[EntryCount];
+    /** Each combobox contains list of {@link IdsMapEntry}. */
     private final JComboBox<?>[] cbType = new JComboBox[EntryCount];
 
     public CreTypePanel()
@@ -4472,12 +4472,7 @@ public class SearchResource extends ChildFrame
     public int getOptionType(int id)
     {
       if (id < 0) id = 0; else if (id >= EntryCount) id = EntryCount - 1;
-      if (cbType[id].getSelectedItem() instanceof StorageString) {
-        return cbLabel[id].isSelected() ?
-            (Integer)((StorageString)cbType[id].getSelectedItem()).getObject() : 0;
-      } else {
-        return Utils.getIdsValue(cbLabel[id].isSelected(), cbType[id].getSelectedItem());
-      }
+      return Utils.getIdsValue(cbLabel[id], cbType[id]);
     }
 
 
@@ -4496,53 +4491,24 @@ public class SearchResource extends ChildFrame
       }
       cbLabel[TYPE_KIT].setEnabled(hasKit);
 
-      final int defaultSize = 160;
-      cbType[TYPE_GENERAL] = Utils.defaultWidth(
-          new AutoComboBox<>(Utils.getIdsMapEntryList(
-              new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "General", "GENERAL.IDS"))), defaultSize);
-      cbType[TYPE_CLASS] = Utils.defaultWidth(
-          new AutoComboBox<>(Utils.getIdsMapEntryList(
-              new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Class", "CLASS.IDS"))), defaultSize);
-      cbType[TYPE_SPECIFICS] = Utils.defaultWidth(
-          new AutoComboBox<>(Utils.getIdsMapEntryList(
-              new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Specifics", "SPECIFIC.IDS"))), defaultSize);
-      String idsFile = Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT);
-      cbType[TYPE_ALIGNMENT] = Utils.defaultWidth(
-          new AutoComboBox<>(Utils.getIdsMapEntryList(
-              new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Alignment", idsFile))), defaultSize);
-      cbType[TYPE_GENDER] = Utils.defaultWidth(
-          new AutoComboBox<>(Utils.getIdsMapEntryList(
-              new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Gender", "GENDER.IDS"))), defaultSize);
-      cbType[TYPE_RACE] = Utils.defaultWidth(
-          new AutoComboBox<>(Utils.getIdsMapEntryList(
-              new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Race", "RACE.IDS"))), defaultSize);
-      cbType[TYPE_ALLEGIANCE] = Utils.defaultWidth(
-          new AutoComboBox<>(Utils.getIdsMapEntryList(
-              new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Allegiance", "EA.IDS"))), defaultSize);
+      final String alignmentIDS = Profile.getProperty(Profile.Key.GET_IDS_ALIGNMENT);
+      cbType[TYPE_GENERAL]    = Utils.getIdsMapEntryList(1, "General",    "GENERAL.IDS");
+      cbType[TYPE_CLASS]      = Utils.getIdsMapEntryList(1, "Class",      "CLASS.IDS");
+      cbType[TYPE_SPECIFICS]  = Utils.getIdsMapEntryList(1, "Specifics",  "SPECIFIC.IDS");
+      cbType[TYPE_ALIGNMENT]  = Utils.getIdsMapEntryList(1, "Alignment",  alignmentIDS);
+      cbType[TYPE_GENDER]     = Utils.getIdsMapEntryList(1, "Gender",     "GENDER.IDS");
+      cbType[TYPE_RACE]       = Utils.getIdsMapEntryList(1, "Race",       "RACE.IDS");
+      cbType[TYPE_ALLEGIANCE] = Utils.getIdsMapEntryList(1, "Allegiance", "EA.IDS");
 
-      final StorageString[] kitList;
       if (Profile.getEngine() == Profile.Engine.IWD2) {
-        IdsMapEntry[] ids = Utils.getIdsMapEntryList(
-            new IdsBitmap(StreamUtils.getByteBuffer(1), 0, 1, "Allegiance", "KIT.IDS"));
-        kitList = new StorageString[ids.length];
-        for (int i = 0; i < kitList.length; i++) {
-          kitList[i] = new ObjectString(ids[i].getSymbol(), (int)ids[i].getID());
-        }
-      } else if (hasKit) {
-        final KitIdsBitmap kit = new KitIdsBitmap(StreamUtils.getByteBuffer(4), 0, "");
-        final SortedMap<Long, IdsMapEntry> map = kit.getHashBitmap();
-
-        kitList = new StorageString[map.size()];
-        int i = 0;
-        for (final Map.Entry<Long, IdsMapEntry> e : map.entrySet()) {
-          final IdsMapEntry value = e.getValue();
-          kitList[i] = new ObjectString(value.getSymbol(), (int)value.getID());
-          ++i;
-        }
+        cbType[TYPE_KIT] = Utils.getIdsMapEntryList(1, "Kit", "KIT.IDS");
+      } else
+      if (hasKit) {
+        final KitIdsBitmap kit = new KitIdsBitmap(StreamUtils.getByteBuffer(4), 0, "Kit");
+        cbType[TYPE_KIT] = Utils.getIdsMapEntryList(kit);
       } else {
-        kitList = new StorageString[]{};
+        cbType[TYPE_KIT] = new AutoComboBox<>(new IdsMapEntry[0]);
       }
-      cbType[TYPE_KIT] = Utils.defaultWidth(new AutoComboBox<>(kitList), defaultSize);
       cbType[TYPE_KIT].setEnabled(hasKit);
 
       // placing components
@@ -6459,31 +6425,33 @@ public class SearchResource extends ChildFrame
       return spinner;
     }
 
-    /** Returns the ID of the IDS value specified by "value". */
-    public static int getIdsValue(boolean enabled, Object value)
+    /**
+     * Returns the ID of the IDS value specified by current selected item in {@code value}.
+     *
+     * @param enabled If not checked, method returns 0
+     * @param value Combobox with selectable values. If none selected, method returns 0
+     */
+    public static int getIdsValue(JCheckBox enabled, JComboBox<?> value)
     {
-      if (enabled && value != null) {
-        if (value instanceof IdsMapEntry) {
-          return (int)((IdsMapEntry)value).getID();
-        } else {
-          try {
-            return Integer.parseInt(value.toString());//FIXME: Smell code
-          } catch (NumberFormatException e) {
-          }
-        }
+      if (enabled.isSelected()) {
+        final IdsMapEntry selected = (IdsMapEntry)value.getSelectedItem();
+        return (int)selected.getID();
       }
       return 0;
     }
 
-    public static IdsMapEntry[] getIdsMapEntryList(IdsBitmap ids)
+    public static JComboBox<IdsMapEntry> getIdsMapEntryList(int bufSize, String name, String idsResourceName)
     {
-      if (ids != null) {
-        final SortedMap<Long, IdsMapEntry> map = ids.getHashBitmap();
-        final IdsMapEntry[] list = map.values().toArray(new IdsMapEntry[map.size()]);
-        Arrays.sort(list);
-        return list;
-      }
-      return new IdsMapEntry[0];
+      final IdsBitmap ids = new IdsBitmap(StreamUtils.getByteBuffer(bufSize), 0, bufSize, name, idsResourceName);
+      return getIdsMapEntryList(ids);
+    }
+
+    public static JComboBox<IdsMapEntry> getIdsMapEntryList(IdsBitmap ids)
+    {
+      final SortedMap<Long, IdsMapEntry> map = ids.getHashBitmap();
+      final IdsMapEntry[] list = map.values().toArray(new IdsMapEntry[map.size()]);
+      Arrays.sort(list);
+      return defaultWidth(new AutoComboBox<>(list), 160);
     }
 
     /** Returns list's index of o */
