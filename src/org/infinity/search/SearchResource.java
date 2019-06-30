@@ -291,7 +291,7 @@ public class SearchResource extends ChildFrame
 
   // --------------------- End Interface Runnable ---------------------
 
-  // initialize dialog
+  /** Initialize dialog. */
   private void init() throws Exception
   {
     int progress = 1;
@@ -528,7 +528,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // returns whether any option has been selected in the current options panel
+  /** Returns whether any option has been selected in the current options panel. */
   private boolean isOptionsEmpty()
   {
     String type = getCurrentResourceType();
@@ -539,7 +539,7 @@ public class SearchResource extends ChildFrame
     return true;
   }
 
-  // Returns the resource type (as file extension) of the current selection
+  /** Returns the resource type (as file extension) of the current selection. */
   private String getCurrentResourceType()
   {
     ObjectString os = (ObjectString)cbResourceType.getSelectedItem();
@@ -552,7 +552,7 @@ public class SearchResource extends ChildFrame
 
 //-------------------------- INNER CLASSES --------------------------
 
-  // Worker class for threaded searching resources
+  /** Worker class for threaded searching resources. */
   private class SearchWorker implements Runnable
   {
     private final List<NamedResourceEntry> list;
@@ -3488,7 +3488,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // common base class for popup windows
+  /** Common base class for popup windows. */
   private static abstract class BasePanel extends JPanel implements ActionListener
   {
     /** Returns true if no option has been selected. */
@@ -3511,7 +3511,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify flags
+  /** Creates a dialog that allows to specify flags. */
   private static final class FlagsPanel extends BasePanel implements ActionListener
   {
     private final int size;
@@ -3662,7 +3662,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify effect opcodes for CRE resources
+  /** Creates a dialog that allows to specify effect opcodes for CRE resources. */
   private static final class EffectsPanel extends BasePanel implements ActionListener
   {
     private static final int MaxEntryCount     = 16;
@@ -3773,7 +3773,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify custom filters for the selected resource type
+  /** Creates a dialog that allows to specify custom filters for the selected resource type. */
   private static final class CustomFilterPanel extends BasePanel implements ActionListener
   {
     private static final int FILTER_STRING    = 0;
@@ -4086,7 +4086,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify spell effect timing modes
+  /** Creates a dialog that allows to specify spell effect timing modes. */
   private static final class TimingModePanel extends BasePanel implements ActionListener
   {
     public static final int TIMING_MODE     = 0;
@@ -4200,7 +4200,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify creature level ranges
+  /** Creates a dialog that allows to specify creature level ranges. */
   private static final class CreLevelPanel extends BasePanel implements ActionListener
   {
     private static final String[] label =
@@ -4303,7 +4303,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify creature level ranges (IWD2-specific)
+  /** Creates a dialog that allows to specify creature level ranges (IWD2-specific). */
   private static final class CreLevelIWD2Panel extends BasePanel implements ActionListener
   {
     public static final int LEVEL_TOTAL     = 0;
@@ -4421,7 +4421,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify creature types
+  /** Creates a dialog that allows to specify creature types. */
   private static final class CreTypePanel extends BasePanel implements ActionListener
   {
     public static final int TYPE_GENERAL    = 0;
@@ -4587,7 +4587,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify game-specific settings for CRE resources
+  /** Creates a dialog that allows to specify game-specific settings for CRE resources. */
   private static final class CreGameSpecificPanel extends BasePanel implements ActionListener
   {
     public static final int TYPE_FEATS1     = 0;
@@ -4712,7 +4712,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify inventory items for CRE resources
+  /** Creates a dialog that allows to specify inventory items for CRE resources. */
   private static final class CreItemsPanel extends BasePanel implements ActionListener
   {
     private static final int MaxEntryCount     = 16;
@@ -4820,7 +4820,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify spells for CRE resources
+  /** Creates a dialog that allows to specify spells for CRE resources. */
   private static final class CreSpellsPanel extends BasePanel implements ActionListener
   {
     private static final int MaxEntryCount     = 16;
@@ -4929,7 +4929,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify spells for CRE resources
+  /** Creates a dialog that allows to specify spells for CRE resources. */
   private static final class CreScriptsPanel extends BasePanel implements ActionListener
   {
     private static final int MaxEntryCount     = 8;
@@ -5038,7 +5038,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify usability flags
+  /** Creates a dialog that allows to specify usability flags. */
   private static final class ItmUsabilityPanel extends BasePanel implements ActionListener
   {
     public static final int ITEM_UNUSABLE       = 0;
@@ -5169,7 +5169,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify minimum stats ranges
+  /** Creates a dialog that allows to specify minimum stats ranges. */
   private static final class ItmStatsPanel extends BasePanel implements ActionListener
   {
     // supported stats
@@ -5296,7 +5296,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify item ability properties
+  /** Creates a dialog that allows to specify item ability properties. */
   private static final class ItmAbilityPanel extends BasePanel implements ActionListener
   {
     private static final  int ITEM_TYPE       = 0;
@@ -5683,7 +5683,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify spell ability properties
+  /** Creates a dialog that allows to specify spell ability properties. */
   private static final class SplAbilityPanel extends BasePanel implements ActionListener
   {
     private static final int SPELL_TYPE       = 0;
@@ -5962,7 +5962,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify item categories allowed in STO resources
+  /** Creates a dialog that allows to specify item categories allowed in STO resources. */
   private static final class StoCategoriesPanel extends BasePanel implements ActionListener
   {
     private static final int MaxEntryCount = 16;
@@ -6077,7 +6077,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // creates a dialog that allows to specify items provided by stores
+  /** Creates a dialog that allows to specify items provided by stores. */
   private static final class StoForSalePanel extends BasePanel implements ActionListener
   {
     private static final int MaxEntryCount = 16;
@@ -6185,7 +6185,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // common base for IndexedString and ObjectString
+  /** Common base for {@link IndexedString} and {@link ObjectString}. */
   private interface StorageString
   {
     public String getString();
@@ -6297,7 +6297,7 @@ public class SearchResource extends ChildFrame
     }
   }
 
-  // Simple wrapper for ResourceEntry structures to provide a more informative description
+  /** Simple wrapper for ResourceEntry structures to provide a more informative description. */
   private static final class NamedResourceEntry implements Comparable<NamedResourceEntry>
   {
     private static final String NONE = "None";
@@ -6359,7 +6359,7 @@ public class SearchResource extends ChildFrame
   }
 
 
-  // Controls the maximum string length of text input components
+  /** Controls the maximum string length of text input components. */
   private static final class FormattedDocument extends PlainDocument
   {
     private final int maxLength;
@@ -6402,10 +6402,10 @@ public class SearchResource extends ChildFrame
 
   private static final class Utils
   {
-    // can be used to determine the preferred size of a combobox
+    /** Can be used to determine the preferred size of a combobox. */
     public static final String ProtoTypeString = "XXXXXXXX.XXXX (XXXXXXXXXXXX)";
 
-    // use for sorting by resource filename
+    /** Use for sorting by resource filename. */
     public static final Comparator<NamedResourceEntry> NamedResourceComparator = new Comparator<NamedResourceEntry>() {
       @Override
       public int compare(NamedResourceEntry e1, NamedResourceEntry e2) {
@@ -6413,7 +6413,7 @@ public class SearchResource extends ChildFrame
       }
     };
 
-    // returns a (sorted or unsorted) list of resource names, first entry is the special "None" entry
+    /** Returns a (sorted or unsorted) list of resource names, first entry is the special "None" entry. */
     public static Vector<NamedResourceEntry> createNamedResourceList(String[] extensions, boolean sort)
     {
       Vector<NamedResourceEntry> list = new Vector<NamedResourceEntry>();
@@ -6437,7 +6437,7 @@ public class SearchResource extends ChildFrame
       return list;
     }
 
-    // returns a combobox containing all available resource of specified extensions
+    /** Returns a combobox containing all available resource of specified extensions. */
     public static JComboBox<NamedResourceEntry> createNamedResourceComboBox(String[] extensions, boolean usePrototype)
     {
       Vector<NamedResourceEntry> names = createNamedResourceList(extensions, false);
@@ -6470,7 +6470,7 @@ public class SearchResource extends ChildFrame
       return component;
     }
 
-    // Enable or disable whether to automatically update the spinner value while typing
+    /** Enable or disable whether to automatically update the spinner value while typing. */
     private static void setSpinnerAutoUpdate(JSpinner spinner, boolean enable)
     {
       if (spinner != null) {
@@ -6493,7 +6493,7 @@ public class SearchResource extends ChildFrame
 //      return false;
 //    }
 
-    // creates a "min" to "max" panel
+    /** Сreates a "min" to "max" panel. */
     public static JPanel createNumberRangePanel(JSpinner min, JSpinner max)
     {
       GridBagConstraints c = new GridBagConstraints();
@@ -6643,7 +6643,7 @@ public class SearchResource extends ChildFrame
     }
   }
 
-  /** Implements the auto-selection of items for {@link #AutoComboBox}. */
+  /** Implements the auto-selection of items for {@link AutoComboBox}. */
   private static class AutoDocument<E> extends PlainDocument
   {
     private final FocusListener editorFocusListener;
@@ -6752,7 +6752,7 @@ public class SearchResource extends ChildFrame
       }
     }
 
-    // Attempts to find a matching item from the list
+    /** Attempts to find a matching item from the list. */
     private Object lookupItem(String pattern)
     {
       if (pattern != null && !pattern.isEmpty()) {
@@ -6772,7 +6772,7 @@ public class SearchResource extends ChildFrame
       return null;
     }
 
-    // Compares the item with the pattern, returns true if a (partial) match has been found
+    /** Compares the item with the pattern, returns true if a (partial) match has been found. */
     private boolean compareItem(Object item, String pattern)
     {
       if (item != null && pattern != null && !pattern.isEmpty()) {
@@ -6813,7 +6813,7 @@ public class SearchResource extends ChildFrame
       return false;
     }
 
-    // sets the editor text to the given string
+    /** Sets the editor text to the given string. */
     private void setText(String text)
     {
       try {
@@ -6825,14 +6825,14 @@ public class SearchResource extends ChildFrame
       }
     }
 
-    // highlights the editor text, starting at the given offset
+    /** Highlights the editor text, starting at the given offset. */
     private void highlightCompletedText(int start)
     {
       editor.setCaretPosition(getLength());
       editor.moveCaretPosition(start);
     }
 
-    // selects the specified item without triggering certain events
+    /** Selects the specified item without triggering certain events. */
     private void setSelectedItem(Object item)
     {
       selecting = true;
@@ -6843,7 +6843,7 @@ public class SearchResource extends ChildFrame
       }
     }
 
-    // prevent certain GUI themes to select the whole text automatically
+    /** Prevent certain GUI themes to select the whole text automatically. */
     private void updateCursor()
     {
       int offs = editor.getCaretPosition();
