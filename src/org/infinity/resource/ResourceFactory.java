@@ -1407,19 +1407,11 @@ public final class ResourceFactory implements FileWatchListener
 
   private List<ResourceEntry> getResourcesInternal(Pattern pattern, List<Path> extraDirs)
   {
-    List<ResourceEntry> retList = new ArrayList<>();
+    final ArrayList<ResourceEntry> retList = new ArrayList<>();
 
     String[] resTypes = Profile.getAvailableResourceTypes();
-    for (final String type: resTypes) {
-      ResourceTreeFolder bifNode = treeModel.getFolder(type);
-      if (bifNode != null) {
-        List<ResourceEntry> list = bifNode.getResourceEntries();
-        list.forEach(entry -> {
-          if (pattern == null || pattern.matcher(entry.getResourceName()).matches()) {
-            retList.add(entry);
-          }
-        });
-      }
+    for (final String type : resTypes) {
+      fillResources(retList, type, pattern);
     }
 
     // include extra folders
@@ -1427,35 +1419,43 @@ public final class ResourceFactory implements FileWatchListener
       extraDirs = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
     }
     extraDirs.forEach(path -> {
-      ResourceTreeFolder extraNode = treeModel.getFolder(path.getFileName().toString());
-      if (extraNode != null) {
-        List<ResourceEntry> list = extraNode.getResourceEntries();
-        list.forEach(entry -> {
-          if (pattern == null || pattern.matcher(entry.getResourceName()).matches()) {
-            retList.add(entry);
-          }
-        });
-      }
+      fillResources(retList, path.getFileName().toString(), pattern);
     });
 
     // include override folders
     if (BrowserMenuBar.getInstance() != null && !BrowserMenuBar.getInstance().ignoreOverrides()) {
-      ResourceTreeFolder overrideNode = treeModel.getFolder(Profile.getOverrideFolderName());
-      if (overrideNode != null) {
-        List<ResourceEntry> list = overrideNode.getResourceEntries();
-        list.forEach(entry -> {
-          if (pattern == null || pattern.matcher(entry.getResourceName()).matches()) {
-            retList.add(entry);
-          }
-        });
-      }
+      fillResources(retList, Profile.getOverrideFolderName(), pattern);
     }
 
-    if (retList.size() > 1) {
-      Collections.sort(retList);
-    }
+    retList.sort(null);
 
     return retList;
+  }
+
+  /**
+   * Adds to {@code retList} all resources from specified {@code folderName}, that
+   * match specified {@code pattern}. If such folder not exists, do nothing.
+   *
+   * @param retList List to be filled. Must not be {@code null}
+   * @param folderName Folder from which all direct resources must be added
+   * @param pattern Pattern to which resource name must match to be added to the list.
+   *        If {@code null}, then all folder resources will be added
+   */
+  private void fillResources(List<ResourceEntry> retList, String folderName, Pattern pattern)
+  {
+    final ResourceTreeFolder folder = treeModel.getFolder(folderName);
+    if (folder != null) {
+      final List<ResourceEntry> entries = folder.getResourceEntries();
+      if (pattern == null) {
+        retList.addAll(entries);
+      } else {
+        for (final ResourceEntry entry : entries) {
+          if (pattern.matcher(entry.getResourceName()).matches()) {
+            retList.add(entry);
+          }
+        }
+      }
+    }
   }
 
   private void saveCopyOfResourceInternal(ResourceEntry entry)
