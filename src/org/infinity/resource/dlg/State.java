@@ -42,6 +42,9 @@ public final class State extends AbstractStruct implements AddRemovable, TreeIte
 
   //<editor-fold defaultstate="collapsed" desc="TreeItemEntry">
   @Override
+  public DlgResource getParent() { return (DlgResource)super.getParent(); }
+
+  @Override
   public boolean hasAssociatedText() { return true; }
 
   @Override

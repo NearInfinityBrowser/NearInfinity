@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -108,8 +108,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     super(new BorderLayout());
     this.dlg = dlg;
     dlgModel = new DlgTreeModel(dlg);
-    dlgTree = new JTree(dlgModel);
+    dlgTree = new JTree((TreeModel)dlgModel);
     dlgTree.addTreeSelectionListener(this);
+    // Expand first dialog first level
+    dlgTree.expandPath(dlgModel.getMainDlgPath());
     dlgInfo = new ItemInfo();
     initControls();
   }
@@ -139,7 +141,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         if (viewer != null) {
           // selecting table entry
           final Viewer tab = (Viewer)curDlg.getViewerTab(0);
-          if (item instanceof RootItem) {
+          if (item instanceof DlgItem) {
             viewer.selectEntry(0);
           } else {
             final TreeItemEntry s = item.getEntry();
@@ -240,7 +242,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
    */
   public boolean select(TreeItemEntry entry)
   {
-    final ItemBase item = dlgModel.map(entry);
+    ItemBase item = dlgModel.map(entry);
+    if (item == null) {
+      item = dlgModel.addToRoot(entry);
+    }
     if (item != null) {
       final TreePath path = item.getPath();
       dlgTree.addSelectionPath(path);
@@ -393,10 +398,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     dlgTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     dlgTree.setRootVisible(true);
     dlgTree.setEditable(false);
-    DefaultTreeCellRenderer tcr = (DefaultTreeCellRenderer)dlgTree.getCellRenderer();
-    tcr.setLeafIcon(null);
-    tcr.setOpenIcon(null);
-    tcr.setClosedIcon(null);
 
     // drawing custom icons for each node type
     dlgTree.setCellRenderer(new DefaultTreeCellRenderer() {
@@ -414,7 +415,11 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
                                                     boolean expanded, boolean leaf, int row,
                                                     boolean focused)
       {
-        Component c = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, focused);
+        final Component c = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, focused);
+        // Tree reuse component, so we need to clear background
+        setBackgroundNonSelectionColor(null);
+        if (!(value instanceof ItemBase)) return c;
+
         final ItemBase data = (ItemBase)value;
 
         final BrowserMenuBar options = BrowserMenuBar.getInstance();
@@ -482,7 +487,10 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
           final TreePath path = dlgTree.getPathForLocation(e.getX(), e.getY());
           if (path == null) { return; }
 
-          final ItemBase item = (ItemBase)path.getLastPathComponent();
+          final Object last = path.getLastPathComponent();
+          if (!(last instanceof ItemBase)) { return; }
+
+          final ItemBase item = (ItemBase)last;
           if (!item.getAllowsChildren() && item.getMain() != null) {
             final TreePath target = item.getMain().getPath();
             dlgTree.setSelectionPath(target);
@@ -502,9 +510,9 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         if (e.getSource() == dlgTree && e.isPopupTrigger()) {
           final TreePath path = dlgTree.getClosestPathForLocation(e.getX(), e.getY());
           dlgTree.setSelectionPath(path);
-          final boolean isNonRoot = path != null && path.getPathCount() > 1;
+          final boolean isNonRoot = path != null && path.getLastPathComponent() instanceof ItemBase;
 
-          miEditEntry.setEnabled(path != null);
+          miEditEntry.setEnabled(isNonRoot);
           miExpand.setEnabled(isNonRoot && !isNodeExpanded(path));
           miCollapse.setEnabled(isNonRoot && !isNodeCollapsed(path));
 
