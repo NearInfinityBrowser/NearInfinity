@@ -1341,12 +1341,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       checkMenu.setMnemonic('c');
       add(checkMenu);
 
-      JMenu checkSubMenu = new JMenu("Triggers & Actions For");
+      final JMenu checkSubMenu = new JMenu("Dialogues");
       checkSubMenu.setIcon(Icons.getIcon(Icons.ICON_REFRESH_16));
-      toolCheckAllDialog = new JMenuItem("All Dialogues");
+      toolCheckAllDialog = new JMenuItem("All");
       toolCheckAllDialog.addActionListener(this);
       checkSubMenu.add(toolCheckAllDialog);
-      toolCheckOverrideDialog = new JMenuItem("Override Dialogues Only");
+      toolCheckOverrideDialog = new JMenuItem("Override Only");
       toolCheckOverrideDialog.addActionListener(this);
       checkSubMenu.add(toolCheckOverrideDialog);
       checkMenu.add(checkSubMenu);

@@ -45,6 +45,8 @@ import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
+import org.infinity.resource.dlg.State;
+import org.infinity.resource.dlg.Transition;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
@@ -56,9 +58,9 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
   private JTabbedPane tabbedPane;
-  /** List of the {@link ActionErrorsTableLine} objects with compiler errors in dialog actions. */
+  /** List of the {@link Problem} objects with compiler errors in dialog actions. */
   private SortableTable errorTable;
-  /** List of the {@link ActionErrorsTableLine} objects with compiler warnings in dialog actions. */
+  /** List of the {@link Problem} objects with compiler warnings in dialog actions. */
   private SortableTable warningTable;
 
   public DialogChecker(boolean checkOnlyOverride, Component parent)
@@ -96,7 +98,7 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
     }
     else if (event.getSource() == bsave) {
       final String type = table == errorTable ? "Errors" : "Warnings";
-      table.saveCheckResult(resultFrame, type + " in triggers & actions of dialogs");
+      table.saveCheckResult(resultFrame, type + " in dialogues");
     }
   }
 
@@ -152,15 +154,15 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
 
       final Class<?>[] colClasses = {ResourceEntry.class, String.class, String.class, Integer.class};
       errorTable = new SortableTable(
-          new String[]{"Dialogue", "Trigger/Action", "Error message", "Line"},
+          new String[]{"Dialogue", "Field", "Error message", "Line"},
           colClasses,
           new Integer[]{50, 100, 350, 10});
       warningTable = new SortableTable(
-          new String[]{"Dialogue", "Trigger/Action", "Warning", "Line"},
+          new String[]{"Dialogue", "Field", "Warning", "Line"},
           colClasses,
           new Integer[]{50, 100, 350, 10});
 
-      if (runSearch("Checking dialogue triggers & actions", dlgFiles)) {
+      if (runSearch("Checking dialogues", dlgFiles)) {
         return;
       }
 
@@ -170,7 +172,7 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
       } else {
         errorTable.tableComplete();
         warningTable.tableComplete();
-        resultFrame = new ChildFrame("Result of triggers & actions check", true);
+        resultFrame = new ChildFrame("Result of dialogues check", true);
         resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
         bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
         bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
@@ -247,6 +249,9 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
           final StructEntry o = dialog.getField(i);
           if (o instanceof AbstractCode) {
             checkCode(entry, (AbstractCode)o);
+          } else
+          if (o instanceof State) {
+            checkState(dialog, (State)o);
           }
         }
       } catch (Exception e) {
@@ -263,70 +268,127 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
    *
    * @param entry Pointer to dialog resource for check. Never {@code null}
    * @param code Code of action or trigger in dialog. Never {@code null}
-   *
-   * @throws Exception If {@code code} contains invalid code
    */
   private void checkCode(ResourceEntry entry, AbstractCode code) {
     final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
-    final Compiler compiler = new Compiler(code.toString(), type);
+    final Compiler compiler = new Compiler(code.getText(), type);
     compiler.compile();
-    for (final ScriptMessage sm : compiler.getErrors()) {
-      synchronized (errorTable) {
-        errorTable.addTableItem(new ActionErrorsTableLine(entry, code, sm.getLine(), sm.getMessage(),
-                                                          ActionErrorsTableLine.Type.ERROR));
+    synchronized (errorTable) {
+      for (final ScriptMessage sm : compiler.getErrors()) {
+        errorTable.addTableItem(new Problem(
+          entry, code, sm.getLine(), sm.getMessage(), Problem.Type.ERROR
+        ));
       }
     }
-    for (final ScriptMessage sm : compiler.getWarnings()) {
-      synchronized (warningTable) {
-        warningTable.addTableItem(new ActionErrorsTableLine(entry, code, sm.getLine(), sm.getMessage(),
-                                                            ActionErrorsTableLine.Type.WARNING));
+    synchronized (warningTable) {
+      for (final ScriptMessage sm : compiler.getWarnings()) {
+        warningTable.addTableItem(new Problem(
+          entry, code, sm.getLine(), sm.getMessage(), Problem.Type.WARNING
+        ));
+      }
+    }
+  }
+
+  /**
+   * Performs checking of the dialogue state. Reports error, if state:
+   * <ol>
+   * <li>has more that one response</li>
+   * <li>has response without associated text</li>
+   * <li>has another response without trigger</li>
+   * </ol>
+   * Error reported because responses without text not shown in the dialogue and
+   * not available to select by PC from one hand, and from another hand if more
+   * that 2 responses not filtered by triggers, dialogue stops and requires PC
+   * to select one... even if all of them without text (in that case there just
+   * no options to select).
+   * <p>
+   * Original PS:T files contains at least 4 errors of this type
+   *
+   * @param dlg Dialogue that owns {@code state}
+   * @param state State for checking. Never {@code null}
+   */
+  private void checkState(DlgResource dlg, State state)
+  {
+    final int count = state.getTransCount();
+    if (count < 2) return;
+
+    final int start = state.getFirstTrans();
+    for (int i = start; i < start + count; ++i) {
+      final Transition trans = dlg.getTransition(i);
+      if (trans.hasAssociatedText()) continue;
+
+      final String message = String.format(
+        "Response has no trigger, but parent state %d has response %d without text - this response won't be accessible to the player",
+        state.getNumber(),
+        trans.getNumber()
+      );
+
+      // If state has response without associated text, trigger error on all responses
+      // without triggers (excludes response without text)
+      for (int j = start; j < start + count; ++j) {
+        if (i == j) continue;
+
+        final Transition t = dlg.getTransition(j);
+        if (t.getTriggerIndex() >= 0) continue;
+
+        synchronized (errorTable) {
+          errorTable.addTableItem(new Problem(dlg.getResourceEntry(), t, null, message, Problem.Type.ERROR));
+        }
       }
     }
   }
 
 // -------------------------- INNER CLASSES --------------------------
 
-  private static final class ActionErrorsTableLine implements TableItem
+  private static final class Problem implements TableItem
   {
     public enum Type {
       ERROR,
       WARNING,
     }
 
+    /** Resource in which problem is found. */
     private final ResourceEntry resourceEntry;
-    private final AbstractCode codeEntry;
+    /** Entry in resource, in which problem is found. */
+    private final StructEntry problemEntry;
+    /** If problem in code block, then this is line with problem, otherwize {@code null}. */
     private final Integer lineNr;
-    private final String error;
+    /** Description of a problem. */
+    private final String message;
+    /** Problem severity. */
     private final Type type;
 
-    private ActionErrorsTableLine(ResourceEntry resourceEntry, AbstractCode codeEntry, Integer lineNr,
-                                  String error, Type type)
+    private Problem(ResourceEntry resourceEntry, StructEntry problemEntry, Integer lineNr,
+                                  String message, Type type)
     {
       this.resourceEntry = resourceEntry;
-      this.codeEntry = codeEntry;
+      this.problemEntry = problemEntry;
       this.lineNr = lineNr;
-      this.error = error;
+      this.message = message;
       this.type = type;
     }
 
     @Override
     public Object getObjectAt(int columnIndex)
     {
-      if (columnIndex == 0)
-        return resourceEntry;
-      else if (columnIndex == 1)
-        return codeEntry.getName();
-      else if (columnIndex == 2)
-        return error;
-      return lineNr;
+      switch (columnIndex) {
+        case 0: return resourceEntry;
+        case 1: return problemEntry.getName();
+        case 2: return message;
+        default: return lineNr;
+      }
     }
 
     @Override
     public String toString()
     {
       final String type = (this.type == Type.ERROR) ? "Error" : "Warning";
+      if (lineNr == null) {
+        return String.format("File: %s, Owner: %s, %s: %s",
+                             resourceEntry.getResourceName(), problemEntry.getName(), type, message);
+      }
       return String.format("File: %s, Line: %d, Owner: %s, %s: %s",
-                           resourceEntry.getResourceName(), lineNr, codeEntry.getName(), type, error);
+                           resourceEntry.getResourceName(), lineNr, problemEntry.getName(), type, message);
     }
   }
 }
