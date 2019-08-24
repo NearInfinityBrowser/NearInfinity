@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -30,7 +30,7 @@ public class IdsMap
   public IdsMap(ResourceEntry entry)
   {
     this.entry = entry;
-    this.caseSensitive = IdsMapCache.isCaseSensitiveMatch(entry.toString());
+    this.caseSensitive = IdsMapCache.isCaseSensitiveMatch(entry.getResourceName());
     try {
       if (entry.getExtension().equalsIgnoreCase("IDS")) {
         parseIDS();
@@ -62,21 +62,6 @@ public class IdsMap
   public List<IdsMapEntry> getAllValues()
   {
     return new ArrayList<IdsMapEntry>(idsMap.values());
-  }
-
-  /** Returns a formatted string list of all available symbols and their associated key values. */
-  public List<String> getAllStringValues()
-  {
-    ArrayList<String> retVal = new ArrayList<>(idsMap.size() * 3 / 2);
-
-    for (final IdsMapEntry e: idsMap.values()) {
-      long id = e.getID();
-      for (String symbol : e) {
-        retVal.add(IdsMapEntry.toString(id, symbol));
-      }
-    }
-
-    return retVal;
   }
 
   /** Returns a copy of the keys contained in the IDS map as a sorted set. */
@@ -130,12 +115,6 @@ public class IdsMap
     return e;
   }
 
-  /** Returns whether symbols from this IDS resource are matched case-sensitive. */
-  public boolean isCaseSensitiveMatch()
-  {
-    return caseSensitive;
-  }
-
   private void parse2DA() throws Exception
   {
     StringTokenizer st = new StringTokenizer(new PlainTextResource(entry).getText(), "\r\n");
@@ -170,9 +149,9 @@ public class IdsMap
 
     // parsing hardcoded entries
     List<String> list = null;
-    if (entry.toString().equalsIgnoreCase("TRIGGER.IDS")) {
+    if (entry.getResourceName().equalsIgnoreCase("TRIGGER.IDS")) {
       list = ScriptInfo.getInfo().getFunctionDefinitions(Signatures.Function.FunctionType.TRIGGER);
-    } else if (entry.toString().equalsIgnoreCase("ACTION.IDS")) {
+    } else if (entry.getResourceName().equalsIgnoreCase("ACTION.IDS")) {
       list = ScriptInfo.getInfo().getFunctionDefinitions(Signatures.Function.FunctionType.ACTION);
     }
     if (list != null) {

@@ -104,15 +104,15 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
                                             "Protect", "2 by 3", "Rank", "V", "Wedge", "S",
                                             "Line", "None"};
   public static final String[] s_configuration = {
-      "Normal windows", "Party AI disabled", "Larger text window", "Largest text window", "",
+      "Normal windows", "Party AI disabled", "Larger text window", "Largest text window", null,
       "Fullscreen mode", "Left pane hidden", "Right pane hidden", "Automap notes hidden"};
   public static final String[] s_configuration_bg1 = {
       "Normal windows", "Party AI disabled", "Larger text window", "Largest text window"};
   public static final String[] s_configuration_iwd = {
-      "Normal windows", "Party AI disabled", "Larger text window", "Largest text window", "",
+      "Normal windows", "Party AI disabled", "Larger text window", "Largest text window", null,
       "Fullscreen mode", "Left pane hidden", "Right pane hidden", "Unsupported"};
   public static final String[] s_configuration_iwd2 = {
-      "Normal windows", "Party AI disabled", "", "", "", "Fullscreen mode", "",
+      "Normal windows", "Party AI disabled", null, null, null, "Fullscreen mode", null,
       "Console hidden", "Automap notes hidden"};
   public static final String[] s_version_bg1 = {"Restrict XP to BG1 limit", "Restrict XP to TotSC limit"};
   public static final String[] s_familiar_owner = {

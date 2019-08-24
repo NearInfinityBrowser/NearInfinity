@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -14,7 +14,6 @@ import org.infinity.gui.ViewFrame;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
@@ -29,26 +28,9 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
   private IdsMap idsMap;
   private boolean useIni;
 
-  public AnimateBitmap(ByteBuffer buffer, int offset, int length, String name, String resource)
+  public AnimateBitmap(ByteBuffer buffer, int offset, int length, String name)
   {
-    this(null, buffer, offset, length, name, resource, 0);
-  }
-
-  public AnimateBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
-                       String resource)
-  {
-    this(parent, buffer, offset, length, name, resource, 0);
-  }
-
-  public AnimateBitmap(ByteBuffer buffer, int offset, int length, String name, String resource, int idsStart)
-  {
-    this(null, buffer, offset, length, name, resource, idsStart);
-  }
-
-  public AnimateBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
-                       String resource, int idsStart)
-  {
-    super(parent, buffer, offset, length, name, resource, idsStart);
+    super(buffer, offset, length, name, "ANIMATE.IDS");
 
     if (Profile.isEnhancedEdition() || ResourceFactory.resourceExists("ANISND.IDS")) {
       showIni = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
@@ -74,7 +56,8 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
   public void actionPerformed(ActionEvent e)
   {
     if (e.getSource() == showIni) {
-      String animRes = getAnimResource(getValueOfItem(getListPanel().getSelectedValue()));
+      final Long value = getCurrentValue();
+      String animRes = value == null ? null : getAnimResource(value.longValue());
       if (animRes != null) {
         ResourceEntry entry = ResourceFactory.getResourceEntry(animRes);
         if (entry != null) {
@@ -89,7 +72,7 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
   {
     if (showIni != null) {
       boolean b = false;
-      Long value = getValueOfItem(getListPanel().getSelectedValue());
+      final Long value = getCurrentValue();
       if (value != null) {
         b = (getAnimResource(value) != null);
       }

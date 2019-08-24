@@ -31,7 +31,6 @@ import org.infinity.gui.ViewFrame;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 
@@ -81,26 +80,14 @@ public class ResourceBitmap extends Datatype
   private TextListPanel<RefEntry> list;
   private long value;
 
-  public ResourceBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
-      List<RefEntry> resources)
-  {
-    this(parent, buffer, offset, length, name, resources, null, null);
-  }
-
-  public ResourceBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
-      List<RefEntry> resources, String defLabel)
-  {
-    this(parent, buffer, offset, length, name, resources, defLabel, null);
-  }
-
-  public ResourceBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
+  public ResourceBitmap(ByteBuffer buffer, int offset, int length, String name,
                         List<RefEntry> resources, String defLabel, String fmt)
   {
-    super(parent, offset, length, name);
+    super(offset, length, name);
     this.formatString = (fmt != null) ? fmt : FMT_REF_VALUE;
     this.defaultLabel = (defLabel != null) ? defLabel : "Unknown";
 
-    this.resources = new ArrayList<RefEntry>((resources != null) ? resources.size() : 10);
+    this.resources = new ArrayList<>((resources != null) ? resources.size() : 10);
     if (resources != null) {
       for (final RefEntry entry: resources) {
         entry.setFormatString(this.formatString);
@@ -320,8 +307,7 @@ public class ResourceBitmap extends Datatype
 
   private RefEntry getRefEntry(long value)
   {
-    for (int i = 0, size = resources.size(); i < size; i++) {
-      RefEntry entry = resources.get(i);
+    for (final RefEntry entry : resources) {
       if (entry.getValue() == value) {
         return entry;
       }
@@ -340,14 +326,20 @@ public class ResourceBitmap extends Datatype
 
 //-------------------------- INNER CLASSES --------------------------
 
-  public static class RefEntry implements Comparable<RefEntry>
+  public static final class RefEntry implements Comparable<RefEntry>
   {
-    private final long value;           // associated ID
-    private final String name;          // alternate label if ResourceEntry is empty
-    private final ResourceEntry entry;  // contains resource if available
-    private final String searchString;  // resource-dependent search string
-    private String fmt;                 // format string for textual representation
-    private String desc;                // cached textual output for toString() method
+    /** Associated ID. */
+    private final long value;
+    /** Alternate label if ResourceEntry is empty. */
+    private final String name;
+    /** Contains resource if available. */
+    private final ResourceEntry entry;
+    /** Resource-dependent search string. */
+    private final String searchString;
+    /** Format string for textual representation. */
+    private String fmt;
+    /** Cached textual output for {@link #toString()} method. */
+    private String desc;
 
     public RefEntry(long value, String ref)
     {
@@ -383,13 +375,13 @@ public class ResourceBitmap extends Datatype
     @Override
     public boolean equals(Object o)
     {
-      return toString().equalsIgnoreCase(o.toString());
+      return desc.equalsIgnoreCase(o.toString());
     }
 
     @Override
     public int compareTo(RefEntry o)
     {
-      return toString().compareToIgnoreCase(o.toString());
+      return desc.compareToIgnoreCase(o.toString());
     }
 
     public boolean isResource() { return (entry != null); }

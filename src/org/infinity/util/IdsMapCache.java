@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -16,18 +16,19 @@ import org.infinity.resource.key.ResourceEntry;
 
 public class IdsMapCache
 {
-  private static final Map<String, IdsMap> common = new HashMap<>();
+  /** Maps upper-cased name of IDS resource to parsed resource. */
+  private static final Map<String, IdsMap> CACHE = new HashMap<>();
 
   public static void remove(ResourceEntry entry)
   {
     if (entry != null) {
-      common.remove(entry.toString().toUpperCase(Locale.ENGLISH));
+      CACHE.remove(entry.getResourceName().toUpperCase(Locale.ENGLISH));
     }
   }
 
   public static void clearCache()
   {
-    common.clear();
+    CACHE.clear();
   }
 
   public static synchronized IdsMap get(String name)
@@ -35,7 +36,7 @@ public class IdsMapCache
     IdsMap retVal = null;
     if (name != null) {
       name = name.trim().toUpperCase(Locale.ENGLISH);
-      retVal = common.get(name);
+      retVal = CACHE.get(name);
       if (retVal == null) {
         ResourceEntry entry = ResourceFactory.getResourceEntry(name);
         if (entry == null ) {
@@ -47,7 +48,7 @@ public class IdsMapCache
         }
         if (entry != null) {
           retVal = new IdsMap(entry);
-          common.put(name, retVal);
+          CACHE.put(name, retVal);
         }
       }
     }
@@ -184,7 +185,8 @@ public class IdsMapCache
   /**
    * Returns a String array for Flag datatypes, that has been updated or overwritten with entries
    * from the specified IDS resource.
-   * @param flags A static String array used as basis for Flag labels.
+   * @param flags A static String array used as basis for Flag labels. {@code null} elements threat
+   *        as unknown flags
    * @param idsFile IDS resource to take entries from.
    * @param size Size of flags field in bytes. (Range: 1..4)
    * @param overwrite If {@code true}, then static flag label will be overwritten with entries
@@ -199,7 +201,7 @@ public class IdsMapCache
    */
   public static String[] getUpdatedIdsFlags(String[] flags, String idsFile, int size, boolean overwrite, boolean prettify)
   {
-    ArrayList<String> list = new ArrayList<String>(32);
+    final ArrayList<String> list = new ArrayList<>(32);
     size = Math.max(1, Math.min(4, size));
 
     // adding static labels
@@ -213,9 +215,9 @@ public class IdsMapCache
     if (ResourceFactory.resourceExists(idsFile)) {
       IdsMap map = IdsMapCache.get(idsFile);
       if (map != null) {
-        int numBits = size * 8;
+        final int numBits = size * 8;
         for (int i = 0; i < numBits; i++) {
-          IdsMapEntry entry = map.get((long)(1 << i));
+          final IdsMapEntry entry = map.get((1 << i));
           String s = (entry != null) ? entry.getSymbol() : null;
           if (s != null && !s.isEmpty()) {
             if (prettify) {
@@ -240,16 +242,13 @@ public class IdsMapCache
     }
 
     // converting list into array
-    String[] retVal = new String[list.size()];
-    for (int i = 0; i < retVal.length; i++) {
-      retVal[i] = list.get(i);
-    }
-
-    return retVal;
+    return list.toArray(new String[list.size()]);
   }
 
-  // Improves readability of given string by capitalizing first letter, lowercasing remaining characters
-  // and replacing underscores by space.
+  /**
+   * Improves readability of given string by capitalizing first letter, lowercasing
+   * remaining characters and replacing underscores by space.
+   */
   private static String prettifyName(String name)
   {
     if (name == null || name.trim().isEmpty()) {

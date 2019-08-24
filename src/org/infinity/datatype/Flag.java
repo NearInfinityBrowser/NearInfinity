@@ -13,7 +13,6 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.regex.PatternSyntaxException;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -23,7 +22,6 @@ import javax.swing.JPanel;
 
 import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.StructEntry;
 import org.infinity.util.Misc;
 
 /**
@@ -43,8 +41,12 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
 {
   public static final String DESC_NONE = "No flags set";
 
-  protected String nodesc;
-  protected String[] table, toolTable;
+  /** The description of sense when any of flags is not set. */
+  private String nodesc;
+  /** Labels of each flag. */
+  private String[] table;
+  /** Tooltips of each flag. */
+  private String[] toolTable;
   private ActionListener container;
   private JButton bAll, bNone;
   private JCheckBox[] checkBoxes;
@@ -52,62 +54,23 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
 
   Flag(ByteBuffer buffer, int offset, int length, String name)
   {
-    this(null, buffer, offset, length, name);
-  }
-
-  Flag(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
-  {
-    super(parent, offset, length, name);
+    super(offset, length, name);
     read(buffer, offset);
   }
 
   /**
    * @param stable Contains default value when no flag is selected and a list of flag descriptions.
-   *               Optionally you can combine flag descriptions with tool tips, using the defaul
+   *               Optionally you can combine flag descriptions with tool tips, using the
    *               separator char ';'.
    */
   public Flag(ByteBuffer buffer, int offset, int length, String name, String[] stable)
   {
-    this(null, buffer, offset, length, name, stable);
-  }
-
-  /**
-   * @param stable Contains default value when no flag is selected and a list of flag descriptions.
-   *               Optionally you can combine flag descriptions with tool tips, using the specified
-   *               separator char.
-   * @param separator Character that can be used to split flag description and tool tip.
-   */
-  public Flag(ByteBuffer buffer, int offset, int length, String name, String[] stable, char separator)
-  {
-    this(null, buffer, offset, length, name, stable, separator);
-  }
-
-  /**
-   * @param stable Contains default value when no flag is selected and a list of flag descriptions.
-   *               Optionally you can combine flag descriptions with tool tips, using the defaul
-   *               separator char ';'.
-   */
-  public Flag(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, String[] stable)
-  {
-    this(parent, buffer, offset, length, name, stable, ';');
-  }
-
-  /**
-   * @param stable Contains default value when no flag is selected and a list of flag descriptions.
-   *               Optionally you can combine flag descriptions with tool tips, using the specified
-   *               separator char.
-   * @param separator Character that can be used to split flag description and tool tip.
-   */
-  public Flag(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, String[] stable,
-              char separator)
-  {
-    this(parent, buffer, offset, length, name);
+    this(buffer, offset, length, name);
     setEmptyDesc((stable == null || stable.length == 0) ? null : stable[0]);
-    setFlagDescriptions(length, stable, 1, separator);
+    setFlagDescriptions(length, stable, 1);
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -121,12 +84,9 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     }
     container.actionPerformed(new ActionEvent(this, 0, StructViewer.UPDATE_VALUE));
   }
+  //</editor-fold>
 
-// --------------------- End Interface ActionListener ---------------------
-
-
-// --------------------- Begin Interface Editable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Editable">
   @Override
   public JComponent edit(ActionListener container)
   {
@@ -198,21 +158,15 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     return true;
   }
 
-// --------------------- End Interface Editable ---------------------
-
-
-// --------------------- Begin Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Writeable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     writeLong(os, value);
   }
+  //</editor-fold>
 
-// --------------------- End Interface Writeable ---------------------
-
-//--------------------- Begin Interface Readable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -233,8 +187,8 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
 
     return offset + getSize();
   }
-
-//--------------------- End Interface Readable ---------------------
+  //</editor-fold>
+  //</editor-fold>
 
   @Override
   public String toString()
@@ -245,19 +199,24 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     else {
       for (int i = 0; i < 8 * getSize(); i++)
         if (isFlagSet(i)) {
-          if (i < table.length && table[i] != null && !table[i].equals(""))
-            sb.append(table[i]).append('(').append(i).append(") ");
-          else
-            sb.append("Unknown(").append(i).append(") ");
+          final String label = getString(i);
+          sb.append(label == null ? "Unknown" : label)
+            .append('(').append(i).append(") ");
         }
     }
     sb.append(')');
     return sb.toString();
   }
 
+  /**
+   * Returns label of flag {@code i} or {@code null}, if such flag does not exist.
+   *
+   * @param i Number of flag (counting from 0)
+   * @return Label of flag or {@code null}, if no such flag.
+   */
   public String getString(int i)
   {
-    return table[i];
+    return i < 0 || i > table.length ? null : table[i];
   }
 
   public boolean isFlagSet(int i)
@@ -266,8 +225,7 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     return (value & bitnr) == bitnr;
   }
 
-//--------------------- Begin Interface IsNumeric ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="IsNumeric">
   @Override
   public long getLongValue()
   {
@@ -279,8 +237,7 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
   {
     return (int)value;
   }
-
-//--------------------- End Interface IsNumeric ---------------------
+  //</editor-fold>
 
   public void setValue(long newValue)
   {
@@ -302,34 +259,42 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     return val;
   }
 
-  /** Sets description for empty flags. */
-  protected void setEmptyDesc(String desc)
+  /**
+   * Sets description for empty flags.
+   *
+   * @param desc If {@code null}, then {@link #DESC_NONE} will be used as description
+   */
+  protected final void setEmptyDesc(String desc)
   {
     nodesc = (desc != null) ? desc : DESC_NONE;
   }
 
-  /** Sets labels and optional tooltips for each flag. */
-  protected void setFlagDescriptions(int size, String[] stable, int startOfs, char separator)
+  /**
+   * Sets labels and optional tooltips for each flag. Label and tooltip separated
+   * by {@code ';'}
+   *
+   * @param size Size of flag field in bytes. Count of flags equals {@code size * 8}
+   * @param stable Table with labels and optional tooltips of each flag. If table
+   *        size if less then count of flags, then remaining flags will be without
+   *        labels and tooltips
+   * @param startOfs Offset to {@code stable} from which data begins
+   */
+  protected final void setFlagDescriptions(int size, String[] stable, int startOfs)
   {
     table = new String[8*size];
     toolTable = new String[8*size];
     if (stable != null) {
-      for (int i = startOfs; i < stable.length; i++) {
-        if (stable[i] == null) {
-          stable[i] = "";
-        }
-        String[] s = null;
-        try {
-          s = stable[i].split(String.valueOf(separator));
-        } catch (PatternSyntaxException pse) {
-          pse.printStackTrace();
-        }
-        if (s == null || s.length == 0) {
-          table[i - startOfs] = stable[i];
-          toolTable[i - startOfs] = null;
+      for (int i = startOfs, j = 0; i < stable.length; ++i, ++j) {
+        final String desc = stable[i];
+        if (desc == null) continue;
+
+        final int sep = desc.indexOf(';');
+        if (sep < 0) {
+          table[j] = desc;
+          toolTable[j] = null;
         } else {
-          table[i - startOfs] = s[0];
-          toolTable[i - startOfs] = (s.length > 1) ? s[1] : null;
+          table[j] = desc.substring(0, sep);
+          toolTable[j] = desc.substring(sep + 1);
         }
       }
     }

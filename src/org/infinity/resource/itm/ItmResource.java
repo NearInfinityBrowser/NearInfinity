@@ -137,7 +137,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
           {"None", "Critical item", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Off-handed",
            "Conversable", "EE: Fake two-handed", "EE: Forbid off-hand weapon", "", "EE: Adamantine",
-           "", "", "", "", "", "", "", "", "EE/Ex: Undispellable", "EE/Ex: Toggle critical hits"};
+           null, null, null, null, null, null, null, null, "EE/Ex: Undispellable", "EE/Ex: Toggle critical hits"};
   public static final String[] s_flags11 =
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Steel", "Conversable",
@@ -146,12 +146,12 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
           {"None", "Unsellable", "Two-handed", "Droppable", "Displayable",
            "Cursed", "Not copyable", "Magical", "Left-handed", "Silver", "Cold iron", "Steel", "Conversable",
            "EE: Fake two-handed", "EE: Forbid off-hand weapon", "Usable in inventory", "EE: Adamantine",
-           "", "", "", "", "", "", "", "", "EE/Ex: Undispellable", "EE/Ex: Toggle critical hits"};
+           null, null, null, null, null, null, null, null, "EE/Ex: Undispellable", "EE/Ex: Toggle critical hits"};
   public static final String[] s_usability =
           {"None",
            "Chaotic;Includes Chaotic Good, Chaotic Neutral and Chaotic Evil",
            "Evil;Includes Lawful Evil, Neutral Evil and Chaotic Evil",
-            "Good;Includes Lawful Good, Neutral Good and Chaotic Good",
+           "Good;Includes Lawful Good, Neutral Good and Chaotic Good",
            "... Neutral;Includes Lawful Neutral, True Neutral and Chaotic Neutral",
            "Lawful;Includes Lawful Good, Lawful Neutral and Lawful Evil",
            "Neutral ...;Includes Neutral Good, True Neutral and Neutral Evil",
@@ -179,14 +179,14 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
   public static final String[] s_usability20 =
           {"None", "Barbarian", "Bard", "Cleric", "Druid",
            "Fighter", "Monk", "Paladin", "Ranger",
-           "Rogue", "Sorcerer", "Wizard", "",
+           "Rogue", "Sorcerer", "Wizard", null,
            "Chaotic;Includes Chaotic Good, Chaotic Neutral and Chaotic Evil",
            "Evil;Includes Lawful Evil, Neutral Evil and Chaotic Evil",
            "Good;Includes Lawful Good, Neutral Good and Chaotic Good",
            "... Neutral;Includes Lawful Neutral, True Neutral and Chaotic Neutral",
            "Lawful;Includes Lawful Good, Lawful Neutral and Lawful Evil",
            "Neutral ...;Includes Neutral Good, True Neutral and Neutral Evil",
-           "", "", "", "", "", "Elf",
+           null, null, null, null, null, "Elf",
            "Dwarf", "Half-elf", "Halfling", "Human", "Gnome"
           };
   public static final String[] s_kituse1 =

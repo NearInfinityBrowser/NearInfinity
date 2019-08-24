@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
@@ -430,7 +430,7 @@ public final class CreResource extends AbstractStruct
     "Original class: Fighter", "Original class: Mage", "Original class: Cleric", "Original class: Thief",
     "Original class: Druid", "Original class: Ranger", "Fallen paladin", "Fallen ranger",
     "Export allowed", "Hide status", "Large creature", "Moving between areas", "Been in party",
-    "Holding item", "Reset bit 16", "", "", "EE: No exploding death", "", "EE: Ignore nightmare mode",
+    "Holding item", "Reset bit 16", null, null, "EE: No exploding death", null, "EE: Ignore nightmare mode",
     "EE: No tooltip", "Allegiance tracking", "General tracking", "Race tracking", "Class tracking",
     "Specifics tracking", "Gender tracking", "Alignment tracking", "Uninterruptible"};
   public static final String[] s_feats1 = {
@@ -458,10 +458,10 @@ public final class CreResource extends AbstractStruct
       "Aamimar/Drow/Gold dwarf/Strongheart halfling/Deep gnome",
       "Tiefling/Wild elf/Gray dwarf/Ghostwise halfling"};
   public static final String[] s_attributes_pst = {
-    "No flags set", "Auto-calc marker rect", "Translucent", "", "", "Track script name", "Increment kill count",
+    "No flags set", "Auto-calc marker rect", "Translucent", null, null, "Track script name", "Increment kill count",
     "Script name only", "Track faction death", "Track team death", "Invulnerable",
     "Modify good on death", "Modify law on death", "Modify lady on death", "Modify murder on death",
-    "No dialogue turn", "Call for help", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Death globals set (internal)", "Area supplemental"};
+    "No dialogue turn", "Call for help", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Death globals set (internal)", "Area supplemental"};
   public static final String[] s_attributes_iwd2 = {"No flags set", "Mental fortitude", "Critical hit immunity",
                                                     "Cannot be paladin", "Cannot be monk"};
   public static final String[] s_attacks = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};
@@ -589,9 +589,8 @@ public final class CreResource extends AbstractStruct
     if (!resourceEntry.getExtension().equalsIgnoreCase("CHR")) {
       return;
     }
-    Path path = ResourceFactory.getExportFileDialog(NearInfinity.getInstance(),
-                                                    resourceEntry.toString().replace(".CHR", ".CRE"),
-                                                    false);
+    final String fileName = StreamUtils.replaceFileExtension(resourceEntry.getResourceName(), "CRE");
+    final Path path = ResourceFactory.getExportFileDialog(NearInfinity.getInstance(), fileName, false);
     if (path != null) {
       try {
         CreResource crefile = (CreResource)ResourceFactory.getResource(resourceEntry);
@@ -1171,7 +1170,7 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 614, 2, CRE_MORALE_RECOVERY));
     addField(new KitIdsBitmap(buffer, offset + 616, CRE_KIT));
     addField(new ResourceRef(buffer, offset + 620, CRE_SCRIPT_OVERRIDE, "BCS"));
-    addField(new ResourceRef(buffer, offset + 628, CRE_SCRIPT_SPECIAL_2, new String[]{"BCS", "BS"}));
+    addField(new ResourceRef(buffer, offset + 628, CRE_SCRIPT_SPECIAL_2, "BCS", "BS"));
     addField(new ResourceRef(buffer, offset + 636, CRE_SCRIPT_COMBAT, "BCS"));
     addField(new ResourceRef(buffer, offset + 644, CRE_SCRIPT_SPECIAL_3, "BCS"));
     addField(new ResourceRef(buffer, offset + 652, CRE_SCRIPT_MOVEMENT, "BCS"));
@@ -1441,7 +1440,7 @@ public final class CreResource extends AbstractStruct
     addField(new IdsFlag(buffer, offset + 24, 4, CRE_STATUS, "STATE.IDS"));
     addField(new DecNumber(buffer, offset + 28, 2, CRE_HP_CURRENT));
     addField(new DecNumber(buffer, offset + 30, 2, CRE_HP_MAX));
-    AnimateBitmap animate = new AnimateBitmap(buffer, offset + 32, 4, CRE_ANIMATION, "ANIMATE.IDS");
+    final AnimateBitmap animate = new AnimateBitmap(buffer, offset + 32, 4, CRE_ANIMATION);
     if (Profile.getGame() == Profile.Game.PSTEE && version.equals("V1.0")) {
       // TODO: resolve issues with Listener queue filled with duplicate entries on each "Update" button click
 //      animate.addUpdateListener(this);
@@ -1641,7 +1640,7 @@ public final class CreResource extends AbstractStruct
       }
     }
     addField(new ResourceRef(buffer, offset + 576, CRE_SCRIPT_OVERRIDE, "BCS"));
-    addField(new ResourceRef(buffer, offset + 584, CRE_SCRIPT_CLASS, new String[]{"BCS", "BS"}));
+    addField(new ResourceRef(buffer, offset + 584, CRE_SCRIPT_CLASS, "BCS", "BS"));
     addField(new ResourceRef(buffer, offset + 592, CRE_SCRIPT_RACE, "BCS"));
     addField(new ResourceRef(buffer, offset + 600, CRE_SCRIPT_GENERAL, "BCS"));
     addField(new ResourceRef(buffer, offset + 608, CRE_SCRIPT_DEFAULT, "BCS"));
@@ -2300,4 +2299,3 @@ public final class CreResource extends AbstractStruct
     return false;
   }
 }
-

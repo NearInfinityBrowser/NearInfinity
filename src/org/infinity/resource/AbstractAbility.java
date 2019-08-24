@@ -37,7 +37,7 @@ public abstract class AbstractAbility extends AbstractStruct
 
   public static final String[] s_type = {"None", "Melee", "Ranged", "Magical", "Launcher"};
   public static final String[] s_type_flags = {"None", "Usable after ID;Only relevant for item abilities",
-                                               "Usable before ID;;Only relevant for item abilities",
+                                               "Usable before ID;Only relevant for item abilities",
                                                "Exclusive effects"};
   public static final String[] s_targettype = {"", "Living actor", "Inventory", "Dead actor",
                                                "Any point within range", "Caster", "",

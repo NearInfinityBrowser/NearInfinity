@@ -9,8 +9,6 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
-import org.infinity.resource.StructEntry;
-
 /**
  * Field that represents numerical value which is usually edited in a decimal mode.
  *
@@ -31,22 +29,12 @@ public class DecNumber extends Datatype implements InlineEditable, IsNumeric
 
   public DecNumber(ByteBuffer buffer, int offset, int length, String name)
   {
-    this(null, buffer, offset, length, name, true);
+    this(buffer, offset, length, name, true);
   }
 
-  public DecNumber(ByteBuffer buffer, int offset, int length, String name, boolean signed)
+  protected DecNumber(ByteBuffer buffer, int offset, int length, String name, boolean signed)
   {
-    this(null, buffer, offset, length, name, signed);
-  }
-
-  public DecNumber(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
-  {
-    this(parent, buffer, offset, length, name, true);
-  }
-
-  public DecNumber(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, boolean signed)
-  {
-    super(parent, offset, length, name);
+    super(offset, length, name);
     this.signed = signed;
     read(buffer, offset);
   }

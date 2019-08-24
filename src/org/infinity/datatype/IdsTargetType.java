@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -35,33 +35,9 @@ public class IdsTargetType extends Bitmap
   /**
    * Constructs an IDS type field with the default list of IDS entries.
    */
-  public IdsTargetType(ByteBuffer buffer, int offset, int size)
+  public IdsTargetType(ByteBuffer buffer, int offset)
   {
-    this(null, buffer, offset, size, null, -1, null, false);
-  }
-
-  /**
-   * Constructs an IDS type field with the default list of IDS entries.
-   */
-  public IdsTargetType(StructEntry parent, ByteBuffer buffer, int offset, int size)
-  {
-    this(parent, buffer, offset, size, null, -1, null, false);
-  }
-
-  /**
-   * Constructs an IDS type field with the default list of IDS entries.
-   */
-  public IdsTargetType(ByteBuffer buffer, int offset, int size, String name)
-  {
-    this(null, buffer, offset, size, name, -1, null, false);
-  }
-
-  /**
-   * Constructs an IDS type field with the default list of IDS entries.
-   */
-  public IdsTargetType(StructEntry parent, ByteBuffer buffer, int offset, int size, String name)
-  {
-    this(parent, buffer, offset, size, name, -1, null, false);
+    this(buffer, offset, null, null, false);
   }
 
   /**
@@ -70,22 +46,10 @@ public class IdsTargetType extends Bitmap
    * @param targetActor If {@code true}, Enhanced Editions will use index 10 for
    *                    Actor's name strrefs and index 11 for Actor's script name.
    */
-  public IdsTargetType(ByteBuffer buffer, int offset, int size, String name, String secondIds,
-                       boolean targetActor)
-  {
-    this(null, buffer, offset, size, name, -1, secondIds, targetActor);
-  }
-
-  /**
-   * Constructs an IDS type field with the default list of IDS entries and optional modifications.
-   * @param secondIds   Replace IDS resource at index = 2 by the specified resource. (Default: EA.IDS)
-   * @param targetActor If {@code true}, Enhanced Editions will use index 10 for
-   *                    Actor's name strrefs and index 11 for Actor's script name.
-   */
-  public IdsTargetType(StructEntry parent, ByteBuffer buffer, int offset, int size, String name,
+  public IdsTargetType(ByteBuffer buffer, int offset, String name,
                        String secondIds, boolean targetActor)
   {
-    this(parent, buffer, offset, size, name, -1, secondIds, targetActor);
+    this(buffer, offset, 4, name, -1, secondIds, targetActor);
   }
 
   /**
@@ -95,32 +59,19 @@ public class IdsTargetType extends Bitmap
    * @param targetActor If {@code true}, Enhanced Editions will use index 10 for
    *                    Actor's name strrefs and index 11 for Actor's script name.
    */
-  public IdsTargetType(ByteBuffer buffer, int offset, int size, String name, int idx, String secondIds,
-                       boolean targetActor)
-  {
-    this(null, buffer, offset, size, name, idx, secondIds, targetActor);
-  }
-
-  /**
-   * Constructs an IDS type field with the default list of IDS entries and optional modifications.
-   * @param idx         An optional number added to the field name. (Default: -1 for none)
-   * @param secondIds   Replace IDS resource at index = 2 by the specified resource. (Default: EA.IDS)
-   * @param targetActor If {@code true}, Enhanced Editions will use index 10 for
-   *                    Actor's name strrefs and index 11 for Actor's script name.
-   */
-  public IdsTargetType(StructEntry parent, ByteBuffer buffer, int offset, int size, String name, int idx,
+  public IdsTargetType(ByteBuffer buffer, int offset, int size, String name, int idx,
                        String secondIds, boolean targetActor)
   {
-    super(parent, buffer, offset, size, createFieldName(name, idx, DEFAULT_NAME_TYPE),
+    super(buffer, offset, size, createFieldName(name, idx, DEFAULT_NAME_TYPE),
           createIdsTypeTable(secondIds, targetActor));
     this.index = idx;
     this.updateIdsValues = true;
   }
 
   /** Constructs an IDS type field with the specified list of IDS resource names. */
-  public IdsTargetType(ByteBuffer buffer, int offset, int size, String name, String[] ids)
+  public IdsTargetType(ByteBuffer buffer, int offset, String name, String[] ids)
   {
-    super(buffer, offset, size, createFieldName(name, -1, DEFAULT_NAME_TYPE),
+    super(buffer, offset, 4, createFieldName(name, -1, DEFAULT_NAME_TYPE),
           (ids != null) ? ids : createIdsTypeTable(null, false));
     this.index = -1;
     this.updateIdsValues = true;

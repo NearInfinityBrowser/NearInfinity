@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.mus;
@@ -14,7 +14,7 @@ import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -183,8 +183,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     resourceChanged = false;
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -198,12 +197,9 @@ public final class MusResource implements Closeable, TextResource, ActionListene
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface ActionListener ---------------------
-
-
-// --------------------- Begin Interface Closeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Closeable">
   @Override
   public void close() throws Exception
   {
@@ -215,12 +211,9 @@ public final class MusResource implements Closeable, TextResource, ActionListene
       viewer.close();
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface Closeable ---------------------
-
-
-// --------------------- Begin Interface DocumentListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="DocumentListener">
   @Override
   public void insertUpdate(DocumentEvent event)
   {
@@ -238,47 +231,35 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   {
     setDocumentModified(true);
   }
+  //</editor-fold>
 
-// --------------------- End Interface DocumentListener ---------------------
-
-
-// --------------------- Begin Interface ItemListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ItemListener">
   @Override
   public void itemStateChanged(ItemEvent event)
   {
     if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU) == event.getSource()) {
       ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
       if (bpmFind.getSelectedItem() == ifindall) {
-        String type = entry.toString().substring(entry.toString().indexOf(".") + 1);
-        List<ResourceEntry> files = ResourceFactory.getResources(type);
+        final List<ResourceEntry> files = ResourceFactory.getResources(entry.getExtension());
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
-        List<ResourceEntry> files = new ArrayList<ResourceEntry>();
-        files.add(entry);
-        new TextResourceSearcher(files, panel.getTopLevelAncestor());
+        new TextResourceSearcher(Arrays.asList(entry), panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindreference) {
         new SongReferenceSearcher(entry, panel.getTopLevelAncestor());
       }
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface ItemListener ---------------------
-
-
-// --------------------- Begin Interface Resource ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Resource">
   @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
   }
+  //</editor-fold>
 
-// --------------------- End Interface Resource ---------------------
-
-
-// --------------------- Begin Interface TextResource ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="TextResource">
   @Override
   public String getText()
   {
@@ -318,12 +299,9 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     } catch (IllegalArgumentException e) {
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface TextResource ---------------------
-
-
-// --------------------- Begin Interface Viewable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Viewable">
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
@@ -346,12 +324,9 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     }
     return panel;
   }
+  //</editor-fold>
 
-// --------------------- End Interface Viewable ---------------------
-
-
-// --------------------- Begin Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
@@ -361,8 +336,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
       StreamUtils.writeString(os, editor.getText(), editor.getText().length());
     }
   }
-
-// --------------------- End Interface Writeable ---------------------
+  //</editor-fold>
 
   public Viewer getViewer()
   {
@@ -371,8 +345,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
 
   private JComponent getEditor(CaretListener caretListener)
   {
-    ifindall =
-        new JMenuItem("in all " + entry.toString().substring(entry.toString().indexOf(".") + 1) + " files");
+    ifindall  = new JMenuItem("in all " + entry.getExtension() + " files");
     ifindthis = new JMenuItem("in this file only");
     ifindreference = new JMenuItem("references to this file");
     ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FIND_MENU);

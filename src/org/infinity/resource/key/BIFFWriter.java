@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
-import org.infinity.gui.BIFFEditor;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.io.FileManager;
@@ -27,9 +26,9 @@ import org.infinity.util.io.StreamUtils;
 public final class BIFFWriter
 {
   private final BIFFEntry bifEntry;
-  private final Map<ResourceEntry, Boolean> resources = new HashMap<ResourceEntry, Boolean>();
-  private final Map<ResourceEntry, Boolean> tileResources = new HashMap<ResourceEntry, Boolean>();
-  private final int format;
+  private final Map<ResourceEntry, Boolean> resources = new HashMap<>();
+  private final Map<ResourceEntry, Boolean> tileResources = new HashMap<>();
+  private final AbstractBIFFReader.Type format;
 
   private static byte[] compress(byte data[])
   {
@@ -101,7 +100,7 @@ public final class BIFFWriter
     return Arrays.copyOfRange(buffer, 0, bytesread);
   }
 
-  public BIFFWriter(BIFFEntry bifEntry, int format)
+  public BIFFWriter(BIFFEntry bifEntry, AbstractBIFFReader.Type format)
   {
     this.bifEntry = bifEntry;
     this.format = format;
@@ -131,37 +130,37 @@ public final class BIFFWriter
       writeBIFF(dummyFile);
       ResourceFactory.getKeyfile().closeBIFFFiles();
       bifEntry.setFileSize((int)Files.size(dummyFile)); // Uncompressed length
-      if (format == BIFFEditor.BIFF) {
+      if (format == AbstractBIFFReader.Type.BIFF) {
         // Delete old BIFF, rename this to real name
         Path realFile = bifEntry.getPath();
         if (realFile == null) {
-          realFile = FileManager.query(Profile.getGameRoot(), bifEntry.toString());
+          realFile = FileManager.query(Profile.getGameRoot(), bifEntry.getFileName());
         }
         if (Files.isRegularFile(realFile)) {
           Files.delete(realFile);
         }
         Files.move(dummyFile, realFile);
-      } else if (format == BIFFEditor.BIF) {
+      } else if (format == AbstractBIFFReader.Type.BIF) {
         compressedFile = Files.createTempFile(biffPath, "_dummy", ".cbf");
-        compressBIF(dummyFile, compressedFile, bifEntry.toString());
+        compressBIF(dummyFile, compressedFile, bifEntry.getFileName());
         Files.delete(dummyFile);
         // Delete old BIFF, rename this to real name
         Path realFile = bifEntry.getPath();
         if (realFile == null) {
-          realFile = FileManager.query(Profile.getGameRoot(), bifEntry.toString());
+          realFile = FileManager.query(Profile.getGameRoot(), bifEntry.getFileName());
         }
         if (Files.isRegularFile(realFile)) {
           Files.delete(realFile);
         }
         Files.move(compressedFile, realFile);
-      } else if (format == BIFFEditor.BIFC) {
+      } else if (format == AbstractBIFFReader.Type.BIFC) {
         compressedFile = Files.createTempFile(biffPath, "_dummy", ".bif");
         compressBIFC(dummyFile, compressedFile);
         Files.delete(dummyFile);
         // Delete old BIFF, rename this to real name
         Path realFile = bifEntry.getPath();
         if (realFile == null) {
-          realFile = FileManager.query(Profile.getRootFolders(), bifEntry.toString());
+          realFile = FileManager.query(Profile.getRootFolders(), bifEntry.getFileName());
         }
         if (Files.isRegularFile(realFile)) {
           Files.delete(realFile);
@@ -187,7 +186,7 @@ public final class BIFFWriter
   private BIFFResourceEntry reloadNode(ResourceEntry entry, int newOffset)
   {
     ResourceFactory.getResourceTreeModel().removeResourceEntry(entry);
-    BIFFResourceEntry newEntry = new BIFFResourceEntry(bifEntry, entry.toString(), newOffset);
+    final BIFFResourceEntry newEntry = new BIFFResourceEntry(bifEntry, entry.getResourceName(), newOffset);
     ResourceFactory.getResourceTreeModel().addResourceEntry(newEntry, newEntry.getTreeFolderName(), true);
     return newEntry;
   }
@@ -242,4 +241,3 @@ public final class BIFFWriter
     }
   }
 }
-

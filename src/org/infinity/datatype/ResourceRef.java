@@ -34,7 +34,6 @@ import org.infinity.gui.ViewFrame;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
@@ -62,11 +61,11 @@ public class ResourceRef extends Datatype
   /** Special constant that represents absense of resource in the field. */
   private static final ResourceRefEntry NONE = new ResourceRefEntry("None");
   /** Possible file extensions that can have this resource. */
-  private final String[] type;
+  private final String[] types;
   /** Raw bytes of the resource reference, read from stream. */
   private final ByteBuffer buffer;
-  private String curtype;
-  /** Name of the resource, called {@code ResRef}, 8 bytes usually. */
+  private String type;
+  /** Name of the resource, called {@code ResRef}, 8 bytes usually, as stored in the resource. */
   private String resname;
   /** Button that used to open editor of current selected element in the list. */
   private JButton bView;
@@ -77,58 +76,25 @@ public class ResourceRef extends Datatype
    */
   private TextListPanel<ResourceRefEntry> list;
 
-  public ResourceRef(ByteBuffer h_buffer, int offset, String name, String type)
+  public ResourceRef(ByteBuffer h_buffer, int offset, String name, String... types)
   {
-    this(null, h_buffer, offset, 8, name, type);
+    this(h_buffer, offset, 8, name, types);
   }
 
-  public ResourceRef(StructEntry parent, ByteBuffer h_buffer, int offset, String name, String type)
+  private ResourceRef(ByteBuffer h_buffer, int offset, int length, String name, String... types)
   {
-    this(parent, h_buffer, offset, 8, name, type);
-  }
-
-  public ResourceRef(ByteBuffer h_buffer, int offset, int length, String name, String type)
-  {
-    this(null, h_buffer, offset, length, name, new String[]{type});
-  }
-
-  public ResourceRef(StructEntry parent, ByteBuffer h_buffer, int offset, int length, String name,
-                     String type)
-  {
-    this(parent, h_buffer, offset, length, name, new String[]{type});
-  }
-
-  public ResourceRef(ByteBuffer h_buffer, int offset, String name, String[] type)
-  {
-    this(null, h_buffer, offset, 8, name, type);
-  }
-
-  public ResourceRef(StructEntry parent, ByteBuffer h_buffer, int offset, String name, String[] type)
-  {
-    this(parent, h_buffer, offset, 8, name, type);
-  }
-
-  public ResourceRef(ByteBuffer h_buffer, int offset, int length, String name, String[] type)
-  {
-    this(null, h_buffer, offset, length, name, type);
-  }
-
-  public ResourceRef(StructEntry parent, ByteBuffer h_buffer, int offset, int length, String name,
-                     String[] type)
-  {
-    super(parent, offset, length, name);
+    super(offset, length, name);
     this.buffer = StreamUtils.getByteBuffer(length);
-    if (type == null || type.length == 0) {
-      this.type = new String[]{""};
+    if (types == null || types.length == 0) {
+      this.types = new String[]{""};
     } else {
-      this.type = type;
+      this.types = types;
     }
-    this.curtype = this.type[0];
+    this.type = this.types[0];
     read(h_buffer, offset);
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -139,30 +105,28 @@ public class ResourceRef extends Datatype
       }
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface ActionListener ---------------------
-
-// --------------------- Begin Interface Editable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Editable">
   @Override
   public JComponent edit(final ActionListener container)
   {
-    final List<List<ResourceEntry>> resourceList = new ArrayList<>(type.length);
-    int entrynum = 0;
-    for (String ext : type) {
-      final List<ResourceEntry> entries = ResourceFactory.getResources(ext);
+    final List<List<ResourceEntry>> resourceList = new ArrayList<>(types.length);
+    int count = 0;
+    for (final String type : types) {
+      final List<ResourceEntry> entries = ResourceFactory.getResources(type);
       resourceList.add(entries);
-      entrynum += entries.size();
+      count += entries.size();
     }
 
-    final List<ResourceRefEntry> values = new ArrayList<>(1 + entrynum);
+    final List<ResourceRefEntry> values = new ArrayList<>(1 + count);
     values.add(NONE);
     for (List<ResourceEntry> resources : resourceList) {
       for (ResourceEntry entry : resources) {
         //FIXME: ResRefChecker check only that point is exist, so this must be
         // the same check or this check must be inside isLegalEntry(...)
         // There only 2 places where isLegalEntry is called: this and ResRefChecker
-        if (isLegalEntry(entry) && entry.toString().lastIndexOf('.') <= 8) {
+        if (isLegalEntry(entry) && entry.getResourceName().lastIndexOf('.') <= 8) {
           values.add(new ResourceRefEntry(entry));
         }
       }
@@ -181,8 +145,8 @@ public class ResourceRef extends Datatype
     });
 
     ResourceEntry entry = null;
-    for (int i = 0; i < type.length && entry == null; i++) {
-      entry = ResourceFactory.getResourceEntry(resname + '.' + type[i], true);
+    for (int i = 0; i < types.length && entry == null; i++) {
+      entry = ResourceFactory.getResourceEntry(resname + '.' + types[i], true);
     }
     if (entry != null) {
       for (ResourceRefEntry e : values) {
@@ -263,12 +227,12 @@ public class ResourceRef extends Datatype
       setValue(selected.name);
     } else {
       int i = -1;
-      for (String ext : type) {
+      for (final String type : types) {
         //TODO: It seems that instead of toString getExtension must be used
-        i = entry.toString().indexOf('.' + ext.toUpperCase(Locale.ENGLISH));
+        i = entry.getResourceName().indexOf('.' + type.toUpperCase(Locale.ENGLISH));
         if (i != -1) {
-          curtype = ext;
-          setValue(entry.toString().substring(0, i));
+          this.type = type;
+          setValue(entry.getResourceName().substring(0, i));
           break;
         }
       }
@@ -282,23 +246,17 @@ public class ResourceRef extends Datatype
 
     return true;
   }
+  //</editor-fold>
 
-// --------------------- End Interface Editable ---------------------
-
-
-// --------------------- Begin Interface ListSelectionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ListSelectionListener">
   @Override
   public void valueChanged(ListSelectionEvent e)
   {
     bView.setEnabled(isEditable(list.getSelectedValue()));
   }
+  //</editor-fold>
 
-// --------------------- End Interface ListSelectionListener ---------------------
-
-
-// --------------------- Begin Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
@@ -315,11 +273,9 @@ public class ResourceRef extends Datatype
       StreamUtils.writeString(os, resname, getSize());
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface Writeable ---------------------
-
-//--------------------- Begin Interface Readable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -330,9 +286,9 @@ public class ResourceRef extends Datatype
 
     // determine the correct file extension
     if (!resname.equals(NONE.name)) { //FIXME: use null instead of NONE.name
-      for (String ext : type) {
-        if (null != ResourceFactory.getResourceEntry(resname + "." + ext, true)) {
-          curtype = ext;
+      for (final String type : types) {
+        if (null != ResourceFactory.getResourceEntry(resname + '.' + type, true)) {
+          this.type = type;
           break;
         }
       }
@@ -340,8 +296,7 @@ public class ResourceRef extends Datatype
 
     return offset + getSize();
   }
-
-//--------------------- End Interface Readable ---------------------
+  //</editor-fold>
 
   @Override
   public String toString()
@@ -354,28 +309,24 @@ public class ResourceRef extends Datatype
     return getResourceName();
   }
 
-//--------------------- Begin Interface IsTextual ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="IsTextual">
   @Override
   public String getText()
   {
     return resname;
   }
+  //</editor-fold>
 
-//--------------------- End Interface IsTextual ---------------------
-
-//--------------------- Begin Interface IsReference ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="IsReference">
   @Override
   public String getResourceName()
   {
     if (!resname.equals(NONE.name)) {//FIXME: use null instead of NONE.name
-      return resname + '.' + curtype;
+      return resname + '.' + type;
     }
     return resname;
   }
-
-//--------------------- End Interface IsReference ---------------------
+  //</editor-fold>
 
   public boolean isEmpty()
   {
@@ -392,7 +343,7 @@ public class ResourceRef extends Datatype
 
   public String getType()
   {
-    return curtype;
+    return type;
   }
 
   /**
@@ -447,7 +398,7 @@ public class ResourceRef extends Datatype
     private ResourceRefEntry(ResourceEntry entry)
     {
       this.entry = entry;
-      String string = entry.toString();
+      String string = entry.getResourceName();
       String search = entry.getSearchString();
       if (search == null || BrowserMenuBar.getInstance().getResRefMode() == BrowserMenuBar.RESREF_ONLY)
         name = string;

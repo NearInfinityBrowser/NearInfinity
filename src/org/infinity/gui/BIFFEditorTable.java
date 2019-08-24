@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -42,12 +42,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener
   private static final ImageIcon updatedicon20 = Icons.getIcon(Icons.ICON_BLUE_CIRCLE_20);
   private static final ImageIcon newicon20 = Icons.getIcon(Icons.ICON_YELLOW_CIRCLE_20);
   private static final ImageIcon bificon20 = Icons.getIcon(Icons.ICON_CIRCLE_20);
-  private static final ImageIcon updatedicon16 = Icons.getIcon(Icons.ICON_BLUE_CIRCLE_16);
-  private static final ImageIcon newicon16 = Icons.getIcon(Icons.ICON_YELLOW_CIRCLE_16);
-  private static final ImageIcon bificon16 = Icons.getIcon(Icons.ICON_GREEN_CIRCLE_16);
-  static final int TYPE_BIF = 0;
-  static final int TYPE_NEW = 1;
-  static final int TYPE_UPD = 2;
+
   private final BifEditorTableModel tablemodel;
   private final JTable table;
   private final JToggleButton bbif;
@@ -55,6 +50,19 @@ final class BIFFEditorTable extends JPanel implements ActionListener
   private final JToggleButton bnew;
   private boolean sortreverse;
   private int sortbycolumn = 2;
+
+  enum State {
+    BIF(Icons.ICON_GREEN_CIRCLE_16),
+    NEW(Icons.ICON_YELLOW_CIRCLE_16),
+    UPD(Icons.ICON_BLUE_CIRCLE_16);
+
+    private final ImageIcon icon;
+
+    private State(String icon)
+    {
+      this.icon = Icons.getIcon(icon);
+    }
+  }
 
   BIFFEditorTable()
   {
@@ -134,8 +142,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener
     add(new JScrollPane(table), BorderLayout.CENTER);
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -146,12 +153,11 @@ final class BIFFEditorTable extends JPanel implements ActionListener
     else if (event.getSource() == bnew)
       tablemodel.fireTableDataChanged();
   }
+  //</editor-fold>
 
-// --------------------- End Interface ActionListener ---------------------
-
-  public void addEntry(ResourceEntry entry, int type)
+  public void addEntry(ResourceEntry entry, State state)
   {
-    tablemodel.add(new BifEditorTableLine(entry, type));
+    tablemodel.add(new BifEditorTableLine(entry, state));
   }
 
   public void addListSelectionListener(ListSelectionListener listener)
@@ -159,32 +165,33 @@ final class BIFFEditorTable extends JPanel implements ActionListener
     table.getSelectionModel().addListSelectionListener(listener);
   }
 
-  public boolean addTableLine(Object o)
+  public void moveSelectedTo(BIFFEditorTable other)
   {
-    boolean b = tablemodel.add((BifEditorTableLine)o);
-    tablemodel.sort();
-    table.clearSelection();
-    tablemodel.fireTableDataChanged();
-    return b;
+    for (final BifEditorTableLine value : getSelectedValues()) {
+      if (other.tablemodel.add(value)) {
+        tablemodel.remove(value);
+      }
+    }
+    fireChanges();
+    other.fireChanges();
   }
 
-  public Object[] getSelectedValues()
+  public BifEditorTableLine[] getSelectedValues()
   {
-    Object[] selected = new Object[table.getSelectedRowCount()];
+    final BifEditorTableLine[] selected = new BifEditorTableLine[table.getSelectedRowCount()];
     int isel[] = table.getSelectedRows();
     for (int i = 0; i < isel.length; i++)
       selected[i] = tablemodel.get(isel[i]);
     return selected;
   }
 
-  public List<ResourceEntry> getValueList(int type)
+  public List<ResourceEntry> getValueList(State state)
   {
-    List<ResourceEntry> list = new ArrayList<ResourceEntry>();
-    List<BifEditorTableLine> entries = tablemodel.getEntries();
-    for (int i = 0; i < entries.size(); i++) {
-      BifEditorTableLine line = entries.get(i);
-      if (line.type == type)
+    final List<ResourceEntry> list = new ArrayList<>();
+    for (final BifEditorTableLine line : tablemodel.getEntries()) {
+      if (line.state == state) {
         list.add(line.entry);
+      }
     }
     return list;
   }
@@ -194,37 +201,36 @@ final class BIFFEditorTable extends JPanel implements ActionListener
     return tablemodel.getEntries().isEmpty();
   }
 
-  public void removeTableLine(Object o)
-  {
-    tablemodel.remove((BifEditorTableLine)o);
-    table.clearSelection();
-    tablemodel.sort();
-    tablemodel.fireTableDataChanged();
-  }
-
   public void sortTable()
   {
     tablemodel.sort();
   }
 
+  private void fireChanges()
+  {
+    table.clearSelection();
+    tablemodel.sort();
+    tablemodel.fireTableDataChanged();
+  }
+
 // -------------------------- INNER CLASSES --------------------------
 
-  private static final class BifEditorTableLine
+  static final class BifEditorTableLine
   {
-    private final int type;
+    private final State state;
     private final ResourceEntry entry;
 
-    private BifEditorTableLine(ResourceEntry entry, int type)
+    private BifEditorTableLine(ResourceEntry entry, State state)
     {
       this.entry = entry;
-      this.type = type;
+      this.state = state;
     }
   }
 
   private final class BifEditorTableModel extends AbstractTableModel implements Comparator<BifEditorTableLine>
   {
-    private final List<BifEditorTableLine> entries = new ArrayList<BifEditorTableLine>();
-    private final List<BifEditorTableLine> hiddenentries = new ArrayList<BifEditorTableLine>();
+    private final List<BifEditorTableLine> entries = new ArrayList<>();
+    private final List<BifEditorTableLine> hiddenentries = new ArrayList<>();
     private final Component parent;
 
     private BifEditorTableModel(Component parent)
@@ -234,20 +240,20 @@ final class BIFFEditorTable extends JPanel implements ActionListener
 
     private boolean add(BifEditorTableLine line)
     {
-      if (line.type == TYPE_NEW) {
+      if (line.state == State.NEW) {
         entries.add(line);
         return true;
       }
       for (Iterator<BifEditorTableLine> i = entries.iterator(); i.hasNext();) {
         BifEditorTableLine oldline = i.next();
-        if (oldline.entry.toString().equalsIgnoreCase(line.entry.toString())) {
-          if (line.type == TYPE_UPD) {
+        if (oldline.entry.getResourceName().equalsIgnoreCase(line.entry.getResourceName())) {
+          if (line.state == State.UPD) {
             i.remove();
             hiddenentries.add(oldline);
             entries.add(line);
             return true;
           }
-          else if (line.type == TYPE_BIF) {
+          else if (line.state == State.BIF) {
             String options[] = {"Keep updated", "Overwrite updated", "Cancel"};
             int choice = JOptionPane.showOptionDialog(parent,
                                                       "An updated version of this file already exists.",
@@ -271,10 +277,10 @@ final class BIFFEditorTable extends JPanel implements ActionListener
 
     private void remove(BifEditorTableLine line)
     {
-      if (line.type == TYPE_UPD) {
+      if (line.state == State.UPD) {
         for (Iterator<BifEditorTableLine> i = hiddenentries.iterator(); i.hasNext();) {
           BifEditorTableLine hidden = i.next();
-          if (line.entry.toString().equalsIgnoreCase(hidden.entry.toString())) {
+          if (line.entry.getResourceName().equalsIgnoreCase(hidden.entry.getResourceName())) {
             entries.remove(line);
             entries.add(hidden);
             i.remove();
@@ -289,13 +295,12 @@ final class BIFFEditorTable extends JPanel implements ActionListener
     public int getRowCount()
     {
       int count = 0;
-      for (int i = 0; i < entries.size(); i++) {
-        BifEditorTableLine line = entries.get(i);
-        if (line.type == TYPE_BIF && bbif.isSelected())
+      for (final BifEditorTableLine line : entries) {
+        if (line.state == State.BIF && bbif.isSelected())
           count++;
-        else if (line.type == TYPE_NEW && bnew.isSelected())
+        else if (line.state == State.NEW && bnew.isSelected())
           count++;
-        else if (line.type == TYPE_UPD && bupdated.isSelected())
+        else if (line.state == State.UPD && bupdated.isSelected())
           count++;
       }
       return count;
@@ -309,23 +314,18 @@ final class BIFFEditorTable extends JPanel implements ActionListener
         return line.entry;
       if (column == 1)
         return line.entry.getIcon();
-      if (line.type == TYPE_NEW)
-        return newicon16;
-      if (line.type == TYPE_UPD)
-        return updatedicon16;
-      return bificon16;
+      return line.state.icon;
     }
 
     public BifEditorTableLine get(int row)
     {
-      List<BifEditorTableLine> newlist = new ArrayList<BifEditorTableLine>();
-      for (int i = 0; i < entries.size(); i++) {
-        BifEditorTableLine line = entries.get(i);
-        if (line.type == TYPE_BIF && bbif.isSelected())
+      final List<BifEditorTableLine> newlist = new ArrayList<>();
+      for (final BifEditorTableLine line : entries) {
+        if (line.state == State.BIF && bbif.isSelected())
           newlist.add(line);
-        else if (line.type == TYPE_NEW && bnew.isSelected())
+        else if (line.state == State.NEW && bnew.isSelected())
           newlist.add(line);
-        else if (line.type == TYPE_UPD && bupdated.isSelected())
+        else if (line.state == State.UPD && bupdated.isSelected())
           newlist.add(line);
         if (row < newlist.size())
           return newlist.get(row);
@@ -362,15 +362,14 @@ final class BIFFEditorTable extends JPanel implements ActionListener
     {
       int result = 0;
       if (sortbycolumn == 0)
-        result = Integer.compare(line1.type, line2.type);
+        result = Integer.compare(line1.state.ordinal(), line2.state.ordinal());
       else if (sortbycolumn == 1)
         result = line1.entry.getExtension().compareTo(line2.entry.getExtension());
       else if (sortbycolumn == 2)
-        result = line1.entry.toString().compareTo(line2.entry.toString());
+        result = line1.entry.getResourceName().compareTo(line2.entry.getResourceName());
       if (sortreverse)
         result = -result;
       return result;
     }
   }
 }
-
