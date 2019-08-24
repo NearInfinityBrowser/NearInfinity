@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -9,6 +9,7 @@ import static java.util.Collections.enumeration;
 import static java.util.Collections.singletonList;
 import java.util.Enumeration;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -18,26 +19,32 @@ import org.infinity.gui.BrowserMenuBar;
 import org.infinity.icon.Icons;
 
 /** Encapsulates a dialog transition entry. */
-final class TransitionItem extends StateOwnerItem
+class TransitionItem extends StateOwnerItem
 {
   private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_PLAY_16);
 
   private final Transition trans;
 
   /** Parent tree item from which this transition is available. */
-  private final TransitionOwnerItem parent;
+  protected final TransitionOwnerItem parent;
   /**
    * Item to which need go to in break cycles tree view mode. This item contains
-   * referense to the same transition as this one (i.e. {@code this.trans == main.trans})
+   * referense to the same transition as this one (i.e. {@code this.trans == main.ref.trans})
    */
-  private final TransitionItem main;
+  private final MainRef<TransitionItem> main;
   /** Tree item to which go this transition or {@code null}, if this transition terminates dialog. */
   StateItem nextState;
 
-  public TransitionItem(Transition trans, TransitionOwnerItem parent, TransitionItem main)
+  protected TransitionItem(StateItem parent)
+  {
+    this.trans  = null;
+    this.parent = Objects.requireNonNull(parent, "Parent state of broken transition item must be not null");
+    this.main   = null;
+  }
+  public TransitionItem(Transition trans, TransitionOwnerItem parent, MainRef<TransitionItem> main)
   {
     this.trans  = Objects.requireNonNull(trans,  "Transition dialog entry must be not null");
-    this.parent = Objects.requireNonNull(parent, "Parent tree of transition item must be not null");
+    this.parent = Objects.requireNonNull(parent, "Parent state of transition item must be not null");
     this.main   = main;
   }
 
@@ -45,7 +52,7 @@ final class TransitionItem extends StateOwnerItem
   public Transition getEntry() { return trans; }
 
   @Override
-  public TransitionItem getMain() { return main; }
+  public TransitionItem getMain() { return main == null || main.ref == this ? null : main.ref; }
 
   @Override
   public DlgResource getDialog() { return trans.getParent(); }
@@ -62,6 +69,17 @@ final class TransitionItem extends StateOwnerItem
     }
     return false;
   }
+
+  @Override
+  public void traverseChildren(Consumer<ItemBase> action)
+  {
+    if (nextState != null) {
+      action.accept(nextState);
+    }
+  }
+
+  /** Returns technical name of transition item which uniquely identifying it within dialog. */
+  public String getName() { return trans.getName(); }
 
   //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
@@ -86,7 +104,7 @@ final class TransitionItem extends StateOwnerItem
   @Override
   public Enumeration<? extends StateItem> children()
   {
-    return enumeration(isLeaf() ?  emptyList(): singletonList(nextState));
+    return enumeration(isLeaf() ? emptyList() : singletonList(nextState));
   }
   //</editor-fold>
 
