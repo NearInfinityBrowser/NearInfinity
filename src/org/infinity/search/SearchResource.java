@@ -86,6 +86,7 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.itm.Ability;
 import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
@@ -1960,7 +1961,7 @@ public class SearchResource extends ChildFrame
     public int getOptionCategory()
     {
       return cbOptions[ID_Category].isSelected() ?
-          (Integer)((IndexedString)cbCategory.getSelectedItem()).getObject() : 0;
+          ((IndexedString)cbCategory.getSelectedItem()).index : 0;
     }
 
     public String getOptionAppearance()
@@ -2171,7 +2172,7 @@ public class SearchResource extends ChildFrame
     private ButtonPopupWindow bpwFlags, bpwBehavior, bpwAreaFlags, bpwCustomFilter;
     private JComboBox<NamedResourceEntry> cbAnimation;
     private JComboBox<IndexedString> cbType;
-    private JComboBox<ObjectString> cbExplosionEffect;
+    private JComboBox<IndexedString> cbExplosionEffect;
 
 
     public OptionsPROPanel(SearchResource searchResource)
@@ -2365,13 +2366,7 @@ public class SearchResource extends ChildFrame
       cbType = new AutoComboBox<>(IndexedString.createArray(new String[]{"No BAM", "Single target",
                                                                          "Area of effect"}, 0, 1));
 
-      final ObjectString[] items = new ObjectString[ProAreaType.m_proj.size()];
-      int i = 0;
-      for (Map.Entry<Long, String> e : ProAreaType.m_proj.entrySet()) {
-        items[i] = new ObjectString(e.getValue(), Integer.valueOf(e.getKey().intValue()));
-        ++i;
-      }
-      cbExplosionEffect = new AutoComboBox<>(items);
+      cbExplosionEffect = new AutoComboBox<>(IndexedString.createArray(ProAreaType.m_proj));
 
       pBehavior = new FlagsPanel(4, ProResource.s_behave);
       bpwBehavior = new ButtonPopupWindow(setOptionsText, pBehavior);
@@ -2495,7 +2490,7 @@ public class SearchResource extends ChildFrame
     private JTextField tfName;
     private ButtonPopupWindow bpwFlags, bpwExclusion, bpwAbility, bpwEffects, bpwCustomFilter;
     private JComboBox<IndexedString> cbSpellType, cbCastingAnim, cbSecondary;
-    private JComboBox<ObjectString> cbPrimary;
+    private JComboBox<IndexedString> cbPrimary;
 
 
     public OptionsSPLPanel(SearchResource searchResource)
@@ -2753,12 +2748,7 @@ public class SearchResource extends ChildFrame
         cbCastingAnim = new AutoComboBox<>(IndexedString.createArray(SplResource.s_anim, 0, 0));
       }
 
-      String[] priType = PriTypeBitmap.getTypeArray();
-      ObjectString[] prim = new ObjectString[priType.length];
-      for (int i = 0; i < priType.length; i++) {
-        prim[i] = new ObjectString(priType[i], Integer.valueOf(i));
-      }
-      cbPrimary = new AutoComboBox<>(prim);
+      cbPrimary = new AutoComboBox<>(IndexedString.createArray(PriTypeBitmap.getTypeArray(), 0, 0));
 
       cbSecondary = new AutoComboBox<>(IndexedString.createArray(SecTypeBitmap.getTypeArray(), 0, 0));
 
@@ -2886,7 +2876,7 @@ public class SearchResource extends ChildFrame
     private CustomFilterPanel pCustomFilter;
     private JTextField tfName;
     private ButtonPopupWindow bpwFlags, bpwPurchased, bpwRoomsAvailable, bpwItemsForSale, bpwCustomFilter;
-    private JComboBox<StorageString> cbType;
+    private JComboBox<IndexedString> cbType;
 
 
     public OptionsSTOPanel(SearchResource searchResource)
@@ -3130,7 +3120,7 @@ public class SearchResource extends ChildFrame
 
       tfName = Utils.defaultWidth(new JTextField());
 
-      StorageString[] types;
+      final IndexedString[] types;
       if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
         types = IndexedString.createArray(StoResource.s_type_bg2, 0, 0);
       } else {
@@ -4096,7 +4086,8 @@ public class SearchResource extends ChildFrame
 
     public int getOptionMode()
     {
-      return isActive(TIMING_MODE) ? (Integer)((StorageString)cbMode.getSelectedItem()).getObject() : 0;
+      return cbTiming[TIMING_MODE].isSelected() ?
+          ((IndexedString)cbMode.getSelectedItem()).index : 0;
     }
 
     public Pair<Integer> getOptionDuration()
@@ -4963,7 +4954,7 @@ public class SearchResource extends ChildFrame
 
     private EffectsPanel pEffects;
     private JComboBox<IndexedString> cbType, cbTarget, cbLauncher, cbDamageType;
-    private JComboBox<StorageString> cbProjectile;
+    private JComboBox<IndexedString> cbProjectile;
     private ButtonPopupWindow bpwFlags, bpwEffects;
     private JCheckBox cbOneAbilityExclusive;
 
@@ -5070,47 +5061,32 @@ public class SearchResource extends ChildFrame
 
     public int getOptionType()
     {
-      if (cbItems[ITEM_TYPE].isSelected()) {
-        return (Integer)((StorageString)cbType.getSelectedItem()).getObject();
-      } else {
-        return 0;
-      }
+      return cbItems[ITEM_TYPE].isSelected() ?
+          ((IndexedString)cbType.getSelectedItem()).index : 0;
     }
 
     public int getOptionTarget()
     {
-      if (cbItems[ITEM_TARGET].isSelected()) {
-        return (Integer)((StorageString)cbTarget.getSelectedItem()).getObject();
-      } else {
-        return 0;
-      }
+      return cbItems[ITEM_TARGET].isSelected() ?
+          ((IndexedString)cbTarget.getSelectedItem()).index : 0;
     }
 
     public int getOptionLauncher()
     {
-      if (cbItems[ITEM_LAUNCHER].isSelected()) {
-        return (Integer)((StorageString)cbLauncher.getSelectedItem()).getObject();
-      } else {
-        return 0;
-      }
+      return cbItems[ITEM_LAUNCHER].isSelected() ?
+          ((IndexedString)cbLauncher.getSelectedItem()).index : 0;
     }
 
     public int getOptionProjectile()
     {
-      if (cbItems[ITEM_PROJECTILE].isSelected()) {
-        return (Integer)((StorageString)cbProjectile.getSelectedItem()).getObject();
-      } else {
-        return 0;
-      }
+      return cbItems[ITEM_PROJECTILE].isSelected() ?
+          ((IndexedString)cbProjectile.getSelectedItem()).index : 0;
     }
 
     public int getOptionDamageType()
     {
-      if (cbItems[ITEM_DAMAGETYPE].isSelected()) {
-        return (Integer)((StorageString)cbDamageType.getSelectedItem()).getObject();
-      } else {
-        return 0;
-      }
+      return cbItems[ITEM_DAMAGETYPE].isSelected() ?
+          ((IndexedString)cbDamageType.getSelectedItem()).index : 0;
     }
 
     public Pair<Integer> getOptionRange()
@@ -5157,10 +5133,10 @@ public class SearchResource extends ChildFrame
 
       cbType = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(AbstractAbility.s_type, 0, 0)));
       cbTarget = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(AbstractAbility.s_targettype, 0, 0)));
-      cbLauncher = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(org.infinity.resource.itm.Ability.s_launcher, 0, 0)));
-      cbDamageType = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(org.infinity.resource.AbstractAbility.s_dmgtype, 0, 0)));
+      cbLauncher = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(Ability.s_launcher, 0, 0)));
+      cbDamageType = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(AbstractAbility.s_dmgtype, 0, 0)));
 
-      StorageString[] pro;
+      final IndexedString[] pro;
       if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
         ProRef proRef = new ProRef(StreamUtils.getByteBuffer(2), 0, "Projectile");
         pro = new IndexedString[proRef.getResourceList().size()];
@@ -5320,7 +5296,7 @@ public class SearchResource extends ChildFrame
     private final JSpinner[] sSpeed = new JSpinner[2];
     private EffectsPanel pEffects;
     private JComboBox<IndexedString> cbType, cbLocation, cbTarget;
-    private JComboBox<StorageString> cbProjectile;
+    private JComboBox<IndexedString> cbProjectile;
     private JCheckBox cbOneAbilityExclusive;
     private ButtonPopupWindow bpwEffects;
 
@@ -5410,19 +5386,19 @@ public class SearchResource extends ChildFrame
     public int getOptionType()
     {
       return cbSpells[SPELL_TYPE].isSelected() ?
-          (Integer)((StorageString)cbType.getSelectedItem()).getObject() : 0;
+          ((IndexedString)cbType.getSelectedItem()).index : 0;
     }
 
     public int getOptionLocation()
     {
       return cbSpells[SPELL_LOCATION].isSelected() ?
-          (Integer)((StorageString)cbLocation.getSelectedItem()).getObject() : 0;
+          ((IndexedString)cbLocation.getSelectedItem()).index : 0;
     }
 
     public int getOptionTarget()
     {
       return cbSpells[SPELL_TARGET].isSelected() ?
-          (Integer)((StorageString)cbTarget.getSelectedItem()).getObject() : 0;
+          ((IndexedString)cbTarget.getSelectedItem()).index : 0;
     }
 
     public Pair<Integer> getOptionRange()
@@ -5443,7 +5419,7 @@ public class SearchResource extends ChildFrame
     public int getOptionProjectile()
     {
       return cbSpells[SPELL_PROJECTILE].isSelected() ?
-          (Integer)((StorageString)cbProjectile.getSelectedItem()).getObject() : 0;
+          ((IndexedString)cbProjectile.getSelectedItem()).index : 0;
     }
 
     public Pair<Integer> getOptionEffects(int effectIdx)
@@ -5460,10 +5436,10 @@ public class SearchResource extends ChildFrame
       }
 
       cbType = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(AbstractAbility.s_type, 0, 0)));
-      cbLocation = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(org.infinity.resource.itm.Ability.s_abilityuse, 0, 0)));
+      cbLocation = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(Ability.s_abilityuse, 0, 0)));
       cbTarget = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(AbstractAbility.s_targettype, 0, 0)));
 
-      StorageString[] pro;
+      final IndexedString[] pro;
       if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
         ProRef proRef = new ProRef(StreamUtils.getByteBuffer(2), 0, "Projectile");
         pro = new IndexedString[proRef.getResourceList().size()];
@@ -5575,7 +5551,7 @@ public class SearchResource extends ChildFrame
 
     private final int entryCount;
     private final JCheckBox[] cbLabel;
-    private final JComboBox<?>[] cbCategory;
+    private final JComboBox<IndexedString>[] cbCategory;
 
     public StoCategoriesPanel(int purchasedCount)
     {
@@ -5623,13 +5599,10 @@ public class SearchResource extends ChildFrame
       }
     }
 
-    public int getOptionPurchased(int entryIdx)
+    public int getOptionPurchased(int index)
     {
-      if (entryIdx < 0) entryIdx = 0; else if (entryIdx >= entryCount) entryIdx = entryCount - 1;
-      if (cbLabel[entryIdx].isSelected()) {
-        return (Integer)((StorageString)cbCategory[entryIdx].getSelectedItem()).getObject();
-      }
-      return 0;
+      return cbLabel[index].isSelected() ?
+          ((IndexedString)cbCategory[index].getSelectedItem()).index : 0;
     }
 
     private void init()
@@ -5688,7 +5661,7 @@ public class SearchResource extends ChildFrame
   private static final class IndexedString implements StorageString
   {
     private final String s;
-    private final int index;
+    final int index;
 
     /** Automatically create string/index pairs from string array. */
     public static IndexedString[] createArray(String[] strings, int startIndex, int ofsIndex)
