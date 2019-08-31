@@ -4101,13 +4101,7 @@ public class SearchResource extends ChildFrame
 
     public Pair<Integer> getOptionDuration()
     {
-      if (isActive(TIMING_DURATION)) {
-        int min = (Integer)sDuration[0].getValue();
-        int max = (Integer)sDuration[1].getValue();
-        return (min < max) ? new Pair<Integer>(min, max) : new Pair<Integer>(max, min);
-      } else {
-        return new Pair<Integer>(0, 0);
-      }
+      return Utils.getRangeValues(cbTiming[TIMING_DURATION], sDuration);
     }
 
 
@@ -4200,13 +4194,7 @@ public class SearchResource extends ChildFrame
 
     public Pair<Integer> getOptionLevel(int classIdx)
     {
-      if (classIdx < 0) classIdx = 0; else if (classIdx >= sLevel.length) classIdx = sLevel.length - 1;
-      if (cbLevel[classIdx].isSelected()) {
-        int min = (Integer)sLevel[classIdx][0].getValue();
-        int max = (Integer)sLevel[classIdx][1].getValue();
-        return (min < max) ? new Pair<Integer>(min, max) : new Pair<Integer>(max, min);
-      }
-      return new Pair<Integer>(0, 0);
+      return Utils.getRangeValues(cbLevel[classIdx], sLevel[classIdx]);
     }
 
 
@@ -4318,13 +4306,7 @@ public class SearchResource extends ChildFrame
 
     public Pair<Integer> getOptionLevel(int id)
     {
-      if (id < 0) id = 0; else if (id >= EntryCount) id = EntryCount - 1;
-      if (cbLevel[id].isSelected()) {
-        int min = (Integer)sLevel[id][0].getValue();
-        int max = (Integer)sLevel[id][1].getValue();
-        return (min < max) ? new Pair<Integer>(min, max) : new Pair<Integer>(max, min);
-      }
-      return new Pair<Integer>(0, 0);
+      return Utils.getRangeValues(cbLevel[id], sLevel[id]);
     }
 
 
@@ -4763,8 +4745,7 @@ public class SearchResource extends ChildFrame
 
     public Pair<Object> getOptionFlags(int id)
     {
-      if (id < 0) id = 0; else if (id >= EntryCount) id = EntryCount - 1;
-      return cbLabel[id].isSelected() ? pFlags[id].getOptionFlags() : new Pair<Object>(0, false);
+      return cbLabel[id].isSelected() ? pFlags[id].getOptionFlags() : new Pair<>(0, false);
     }
 
 
@@ -4898,13 +4879,7 @@ public class SearchResource extends ChildFrame
 
     public Pair<Integer> getOptionValue(int statID)
     {
-      if (statID < 0) statID = 0; else if (statID >= EntryCount) statID = EntryCount - 1;
-      if (cbStats[statID].isSelected()) {
-        int min = (Integer)sStats[statID][0].getValue();
-        int max = (Integer)sStats[statID][1].getValue();
-        return (min < max) ? new Pair<Integer>(min, max) : new Pair<Integer>(max, min);
-      }
-      return new Pair<Integer>(0, 0);
+      return Utils.getRangeValues(cbStats[statID], sStats[statID]);
     }
 
     private void init()
@@ -5140,57 +5115,37 @@ public class SearchResource extends ChildFrame
 
     public Pair<Integer> getOptionRange()
     {
-      if (cbItems[ITEM_RANGE].isSelected()) {
-        return new Pair<Integer>((Integer)sRange[0].getValue(), (Integer)sRange[1].getValue());
-      } else {
-        return new Pair<Integer>(0, 0);
-      }
+      return Utils.getRangeValues(cbItems[ITEM_RANGE], sRange);
     }
 
     public Pair<Integer> getOptionSpeed()
     {
-      if (cbItems[ITEM_SPEED].isSelected()) {
-        return new Pair<Integer>((Integer)sSpeed[0].getValue(), (Integer)sSpeed[1].getValue());
-      } else {
-        return new Pair<Integer>(0, 0);
-      }
+      return Utils.getRangeValues(cbItems[ITEM_SPEED], sSpeed);
     }
 
     public Pair<Integer> getOptionDiceCount()
     {
-      if (cbItems[ITEM_DICECOUNT].isSelected()) {
-        return new Pair<Integer>((Integer)sDiceCount[0].getValue(), (Integer)sDiceCount[1].getValue());
-      } else {
-        return new Pair<Integer>(0, 0);
-      }
+      return Utils.getRangeValues(cbItems[ITEM_DICECOUNT], sDiceCount);
     }
 
     public Pair<Integer> getOptionDiceSize()
     {
-      if (cbItems[ITEM_DICESIZE].isSelected()) {
-        return new Pair<Integer>((Integer)sDiceSize[0].getValue(), (Integer)sDiceSize[1].getValue());
-      } else {
-        return new Pair<Integer>(0, 0);
-      }
+      return Utils.getRangeValues(cbItems[ITEM_DICESIZE], sDiceSize);
     }
 
     public Pair<Integer> getOptionCharges()
     {
-      if (cbItems[ITEM_CHARGES].isSelected()) {
-        return new Pair<Integer>((Integer)sCharges[0].getValue(), (Integer)sCharges[1].getValue());
-      } else {
-        return new Pair<Integer>(0, 0);
-      }
+      return Utils.getRangeValues(cbItems[ITEM_CHARGES], sCharges);
     }
 
     public Pair<Integer> getOptionEffects(int idx)
     {
-      return cbItems[ITEM_EFFECTS].isSelected() ? pEffects.getOptionEffect(idx) : new Pair<Integer>(0, 0);
+      return cbItems[ITEM_EFFECTS].isSelected() ? pEffects.getOptionEffect(idx) : new Pair<>(0, 0);
     }
 
     public Pair<Object> getOptionFlags()
     {
-      return (cbItems[ITEM_FLAGS].isSelected()) ? flagsPanel.getOptionFlags() : new Pair<Object>(0, false);
+      return cbItems[ITEM_FLAGS].isSelected() ? flagsPanel.getOptionFlags() : new Pair<>(0, false);
     }
 
     private void init()
@@ -5472,23 +5427,17 @@ public class SearchResource extends ChildFrame
 
     public Pair<Integer> getOptionRange()
     {
-      return cbSpells[SPELL_RANGE].isSelected() ?
-          new Pair<Integer>((Integer)sRange[0].getValue(), (Integer)sRange[1].getValue()) :
-          new Pair<Integer>(0, 0);
+      return Utils.getRangeValues(cbSpells[SPELL_RANGE], sRange);
     }
 
     public Pair<Integer> getOptionLevel()
     {
-      return cbSpells[SPELL_LEVEL].isSelected() ?
-          new Pair<Integer>((Integer)sLevel[0].getValue(), (Integer)sLevel[1].getValue()) :
-          new Pair<Integer>(0, 0);
+      return Utils.getRangeValues(cbSpells[SPELL_LEVEL], sLevel);
     }
 
     public Pair<Integer> getOptionSpeed()
     {
-      return cbSpells[SPELL_SPEED].isSelected() ?
-          new Pair<Integer>((Integer)sSpeed[0].getValue(), (Integer)sSpeed[1].getValue()) :
-          new Pair<Integer>(0, 0);
+      return Utils.getRangeValues(cbSpells[SPELL_SPEED], sSpeed);
     }
 
     public int getOptionProjectile()
@@ -5499,7 +5448,7 @@ public class SearchResource extends ChildFrame
 
     public Pair<Integer> getOptionEffects(int effectIdx)
     {
-      return cbSpells[SPELL_EFFECTS].isSelected() ? pEffects.getOptionEffect(effectIdx) : new Pair<Integer>(0, 0);
+      return cbSpells[SPELL_EFFECTS].isSelected() ? pEffects.getOptionEffect(effectIdx) : new Pair<>(0, 0);
     }
 
 
