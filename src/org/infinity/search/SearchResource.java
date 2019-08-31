@@ -138,8 +138,7 @@ public class SearchResource extends ChildFrame
     }).execute();
   }
 
-  // --------------------- Begin Interface ActionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -198,11 +197,9 @@ public class SearchResource extends ChildFrame
       }
     }
   }
+  //</editor-fold>
 
-  // --------------------- End Interface ActionListener ---------------------
-
-  // --------------------- Begin Interface PropertyChangeListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="PropertyChangeListener">
   @Override
   public void propertyChange(PropertyChangeEvent event)
   {
@@ -214,11 +211,9 @@ public class SearchResource extends ChildFrame
       }
     }
   }
+  //</editor-fold>
 
-  // --------------------- End Interface PropertyChangeListener ---------------------
-
-  // --------------------- Begin Interface Runnable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Runnable">
   @Override
   public void run()
   {
@@ -288,8 +283,7 @@ public class SearchResource extends ChildFrame
       }
     }
   }
-
-  // --------------------- End Interface Runnable ---------------------
+  //</editor-fold>
 
   /** Initialize dialog. */
   private void init() throws Exception
@@ -669,8 +663,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -711,8 +704,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -945,8 +937,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -1007,8 +998,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -1437,8 +1427,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -1490,8 +1479,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -1744,8 +1732,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -1804,8 +1791,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -2196,8 +2182,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -2253,8 +2238,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -2524,8 +2508,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -2583,8 +2566,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -2920,8 +2902,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -2987,8 +2968,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -3306,8 +3286,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -3344,8 +3323,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -3528,8 +3506,7 @@ public class SearchResource extends ChildFrame
       init(table);
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -3547,8 +3524,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -3682,8 +3658,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -3698,8 +3673,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -3834,8 +3808,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -3871,8 +3844,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -4092,8 +4064,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4117,8 +4088,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -4202,8 +4172,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4218,8 +4187,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -4322,8 +4290,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4338,8 +4305,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -4434,8 +4400,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4449,8 +4414,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -4566,8 +4530,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4581,8 +4544,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -4681,8 +4643,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4696,8 +4657,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -4784,8 +4744,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4799,8 +4758,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -4888,8 +4846,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4903,8 +4860,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -4997,8 +4953,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -5012,8 +4967,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -5131,8 +5085,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -5147,8 +5100,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -5271,8 +5223,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -5340,8 +5291,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -5650,8 +5600,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -5701,8 +5650,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -5915,8 +5863,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -5930,8 +5877,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
@@ -6025,8 +5971,7 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -6040,8 +5985,7 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ActionListener ---------------------
+    //</editor-fold>
 
     @Override
     public boolean isEmpty()
