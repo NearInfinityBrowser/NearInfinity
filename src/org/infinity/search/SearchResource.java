@@ -915,11 +915,14 @@ public class SearchResource extends ChildFrame
     private CreLevelPanel pLevel;
     private CreLevelIWD2Panel pLevelIWD2;
     private CreTypePanel pType;
-    private CreScriptsPanel pScripts;
+    /** Allows to specify filter for scripts. */
+    private ResourcesFilterPanel pScripts;
     private CreGameSpecificPanel pGameSpecific;
     private EffectsPanel pEffects;
-    private CreItemsPanel pItems;
-    private CreSpellsPanel pSpells;
+    /** Allows to specify filter for inventory items. */
+    private ResourcesFilterPanel pItems;
+    /** Allows to specify filter for spells. */
+    private ResourcesFilterPanel pSpells;
     private CustomFilterPanel pCustomFilter;
     private JTextField tfName, tfScriptName;
     private ButtonPopupWindow bpwFlags, bpwTypes, bpwLevel, bpwScripts, bpwGameSpecific, bpwEffects,
@@ -1117,13 +1120,13 @@ public class SearchResource extends ChildFrame
               break;
             case ID_Scripts:
               if (pScripts.isActive(0)) {
-                retVal.setOption(SearchOptions.CRE_Script1, pScripts.getOptionScript(0));
+                retVal.setOption(SearchOptions.CRE_Script1, pScripts.getResourceName(0));
               }
               if (pScripts.isActive(1)) {
-                retVal.setOption(SearchOptions.CRE_Script2, pScripts.getOptionScript(1));
+                retVal.setOption(SearchOptions.CRE_Script2, pScripts.getResourceName(1));
               }
               if (pScripts.isActive(2)) {
-                retVal.setOption(SearchOptions.CRE_Script3, pScripts.getOptionScript(2));
+                retVal.setOption(SearchOptions.CRE_Script3, pScripts.getResourceName(2));
               }
               break;
             case ID_Animation:
@@ -1163,30 +1166,30 @@ public class SearchResource extends ChildFrame
               break;
             case ID_Items:
               if (pItems.isActive(0)) {
-                retVal.setOption(SearchOptions.CRE_Item_Item1, pItems.getOptionItem(0));
+                retVal.setOption(SearchOptions.CRE_Item_Item1, pItems.getResourceName(0));
               }
               if (pItems.isActive(1)) {
-                retVal.setOption(SearchOptions.CRE_Item_Item2, pItems.getOptionItem(1));
+                retVal.setOption(SearchOptions.CRE_Item_Item2, pItems.getResourceName(1));
               }
               if (pItems.isActive(2)) {
-                retVal.setOption(SearchOptions.CRE_Item_Item3, pItems.getOptionItem(2));
+                retVal.setOption(SearchOptions.CRE_Item_Item3, pItems.getResourceName(2));
               }
               if (pItems.isActive(3)) {
-                retVal.setOption(SearchOptions.CRE_Item_Item4, pItems.getOptionItem(3));
+                retVal.setOption(SearchOptions.CRE_Item_Item4, pItems.getResourceName(3));
               }
               break;
             case ID_Spells:
               if (pSpells.isActive(0)) {
-                retVal.setOption(SearchOptions.CRE_Spell_Spell1, pSpells.getOptionSpell(0));
+                retVal.setOption(SearchOptions.CRE_Spell_Spell1, pSpells.getResourceName(0));
               }
               if (pSpells.isActive(1)) {
-                retVal.setOption(SearchOptions.CRE_Spell_Spell2, pSpells.getOptionSpell(1));
+                retVal.setOption(SearchOptions.CRE_Spell_Spell2, pSpells.getResourceName(1));
               }
               if (pSpells.isActive(2)) {
-                retVal.setOption(SearchOptions.CRE_Spell_Spell3, pSpells.getOptionSpell(2));
+                retVal.setOption(SearchOptions.CRE_Spell_Spell3, pSpells.getResourceName(2));
               }
               if (pSpells.isActive(3)) {
-                retVal.setOption(SearchOptions.CRE_Spell_Spell4, pSpells.getOptionSpell(3));
+                retVal.setOption(SearchOptions.CRE_Spell_Spell4, pSpells.getResourceName(3));
               }
               break;
             case ID_Custom:
@@ -1283,7 +1286,7 @@ public class SearchResource extends ChildFrame
         bpwLevel = new ButtonPopupWindow(setOptionsText, pLevel);
       }
 
-      pScripts = new CreScriptsPanel(3);
+      pScripts = new ResourcesFilterPanel(3, "Script %d:", "BCS", false);
       bpwScripts = new ButtonPopupWindow(setOptionsText, pScripts);
 
       cbAnimation = Utils.getIdsMapEntryList(4, "Animation", "ANIMATE.IDS");
@@ -1292,10 +1295,10 @@ public class SearchResource extends ChildFrame
       pGameSpecific = new CreGameSpecificPanel();
       bpwGameSpecific = new ButtonPopupWindow(setOptionsText, pGameSpecific);
 
-      pSpells = new CreSpellsPanel(4);
+      pSpells = new ResourcesFilterPanel(4, "Spell resource %d:", "SPL", true);
       bpwSpells = new ButtonPopupWindow(setOptionsText, pSpells);
 
-      pItems = new CreItemsPanel(4);
+      pItems = new ResourcesFilterPanel(4, "Item resource %d:", "ITM", true);
       bpwItems = new ButtonPopupWindow(setOptionsText, pItems);
 
       pEffects = new EffectsPanel(4, "Effect");
@@ -2878,7 +2881,8 @@ public class SearchResource extends ChildFrame
 
     private FlagsPanel pFlags, pRoomsAvailable;
     private StoCategoriesPanel pPurchased;
-    private StoForSalePanel pItemsForSale;
+    /** Allows to specify filter for items provided by stores. */
+    private ResourcesFilterPanel pItemsForSale;
     private CustomFilterPanel pCustomFilter;
     private JTextField tfName;
     private ButtonPopupWindow bpwFlags, bpwPurchased, bpwRoomsAvailable, bpwItemsForSale, bpwCustomFilter;
@@ -3012,19 +3016,19 @@ public class SearchResource extends ChildFrame
               break;
             case ID_Items:
               if (pItemsForSale.isActive(0)) {
-                retVal.setOption(SearchOptions.STO_Item_Item1, pItemsForSale.getOptionItem(0));
+                retVal.setOption(SearchOptions.STO_Item_Item1, pItemsForSale.getResourceName(0));
               }
               if (pItemsForSale.isActive(1)) {
-                retVal.setOption(SearchOptions.STO_Item_Item2, pItemsForSale.getOptionItem(1));
+                retVal.setOption(SearchOptions.STO_Item_Item2, pItemsForSale.getResourceName(1));
               }
               if (pItemsForSale.isActive(2)) {
-                retVal.setOption(SearchOptions.STO_Item_Item3, pItemsForSale.getOptionItem(2));
+                retVal.setOption(SearchOptions.STO_Item_Item3, pItemsForSale.getResourceName(2));
               }
               if (pItemsForSale.isActive(3)) {
-                retVal.setOption(SearchOptions.STO_Item_Item4, pItemsForSale.getOptionItem(3));
+                retVal.setOption(SearchOptions.STO_Item_Item4, pItemsForSale.getResourceName(3));
               }
               if (pItemsForSale.isActive(4)) {
-                retVal.setOption(SearchOptions.STO_Item_Item5, pItemsForSale.getOptionItem(4));
+                retVal.setOption(SearchOptions.STO_Item_Item5, pItemsForSale.getResourceName(4));
               }
               break;
             case ID_Custom:
@@ -3143,7 +3147,7 @@ public class SearchResource extends ChildFrame
       pPurchased = new StoCategoriesPanel(5);
       bpwPurchased = new ButtonPopupWindow(setOptionsText, pPurchased);
 
-      pItemsForSale = new StoForSalePanel(5);
+      pItemsForSale = new ResourcesFilterPanel(5, "Item for sale %d:", "ITM", true);
       bpwItemsForSale = new ButtonPopupWindow(setOptionsText, pItemsForSale);
 
       sDepreciation[0] = Utils.createNumberSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, -32768, 32767, 0, 1);
@@ -4611,25 +4615,52 @@ public class SearchResource extends ChildFrame
     }
   }
 
-
-  /** Creates a dialog that allows to specify inventory items for CRE resources. */
-  private static final class CreItemsPanel extends BasePanel implements ActionListener
+  /** Panel with several filters by resource reference. */
+  private static class ResourcesFilterPanel extends BasePanel implements ActionListener
   {
-    private static final int MaxEntryCount     = 16;
-
-    private final int entryCount;
     private final JCheckBox[] cbLabel;
     private final JComboBox<NamedResourceEntry>[] cbItems;
 
-    @SuppressWarnings("unchecked")
-    public CreItemsPanel(int itemCount)
+    /**
+     *
+     * @param filterCount Count of filters on panel
+     * @param nameTemplate Template of the filter names in {@link String#format}
+     *        format. Supplied with one integer argument
+     * @param ext Extension, used to fill comboboxes with resources
+     * @param usePrototype Use prototype string to determine size of combobox
+     */
+    public ResourcesFilterPanel(int filterCount, String nameTemplate, String ext, boolean usePrototype)
     {
-      super();
-      if (itemCount < 1) itemCount = 1; else if (itemCount > MaxEntryCount) itemCount = MaxEntryCount;
-      entryCount = itemCount;
-      cbLabel = new JCheckBox[entryCount];
-      cbItems = new JComboBox[entryCount];
-      init();
+      cbLabel = new JCheckBox[filterCount];
+      cbItems = new JComboBox[filterCount];
+
+      final GridBagConstraints c = new GridBagConstraints();
+      c.anchor = GridBagConstraints.LINE_START;
+      final JPanel panel = new JPanel(new GridBagLayout());
+      for (int i = 0; i < filterCount; i++) {
+        cbLabel[i] = new JCheckBox(String.format(nameTemplate, i+1));
+        cbLabel[i].addActionListener(this);
+
+        cbItems[i] = Utils.createNamedResourceComboBox(new String[]{ext}, usePrototype);
+
+        final int top    = i > 0 ? 4 : 8;
+        final int bottom = i == filterCount-1 ? 8 : 0;
+        // Each pair of label and selector on single line
+        c.gridy = i;
+
+        c.gridx = 0;
+        c.fill = GridBagConstraints.NONE;
+        c.insets = new Insets(top, 8, bottom, 0);
+        panel.add(cbLabel[i], c);
+
+        c.gridx = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.insets = new Insets(top, 0, bottom, 8);
+        panel.add(cbItems[i], c);
+      }
+
+      triggerActions(cbLabel);
+      add(panel, BorderLayout.CENTER);
     }
 
     //<editor-fold defaultstate="collapsed" desc="ActionListener">
@@ -4637,7 +4668,7 @@ public class SearchResource extends ChildFrame
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() instanceof JCheckBox) {
-        for (int i = 0; i < entryCount; i++) {
+        for (int i = 0; i < cbLabel.length; i++) {
           if (event.getSource() == cbLabel[i]) {
             cbItems[i].setEnabled(cbLabel[i].isSelected());
             if (cbLabel[i].isSelected()) { cbItems[i].requestFocusInWindow(); }
@@ -4648,268 +4679,27 @@ public class SearchResource extends ChildFrame
     }
     //</editor-fold>
 
+    //<editor-fold defaultstate="collapsed" desc="BasePanel">
     @Override
     public boolean isEmpty()
     {
-      for (int i = 0; i < entryCount; i++) {
-        if (cbLabel[i].isSelected()) {
+      for (final JCheckBox label : cbLabel) {
+        if (label.isSelected()) {
           return false;
         }
       }
       return true;
     }
+    //</editor-fold>
 
     public boolean isActive(int id)
     {
-      if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
       return cbLabel[id].isSelected();
     }
 
-    public String getOptionItem(int id)
+    public String getResourceName(int id)
     {
       return Utils.getResourceName(cbLabel[id], cbItems[id]);
-    }
-
-    private void init()
-    {
-      // initializing components
-      for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("Item resource %d:", i+1));
-        cbLabel[i].addActionListener(this);
-
-        cbItems[i] = Utils.createNamedResourceComboBox(new String[]{"ITM"}, true);
-      }
-
-      // placing components
-      GridBagConstraints c = new GridBagConstraints();
-      JPanel panel = new JPanel(new GridBagLayout());
-      for (int i = 0; i < entryCount; i++) {
-        int row, col;
-        if (entryCount > 4) {
-          row = i % ((entryCount+1) / 2);
-          col = (i < ((entryCount+1) / 2)) ? 0 : 2;
-        } else {
-          row = i;
-          col = 0;
-        }
-        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                              GridBagConstraints.NONE,
-                              new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
-        panel.add(cbLabel[i], c);
-        c = ViewerUtil.setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                              GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
-        panel.add(cbItems[i], c);
-      }
-
-      triggerActions(cbLabel);
-
-      JPanel pMain = new JPanel(new GridBagLayout());
-      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
-      pMain.add(panel, c);
-      add(pMain, BorderLayout.CENTER);
-    }
-  }
-
-
-  /** Creates a dialog that allows to specify spells for CRE resources. */
-  private static final class CreSpellsPanel extends BasePanel implements ActionListener
-  {
-    private static final int MaxEntryCount     = 16;
-
-    private final int entryCount;
-    private final JCheckBox[] cbLabel;
-    private final JComboBox<NamedResourceEntry>[] cbSpells;
-
-    @SuppressWarnings("unchecked")
-    public CreSpellsPanel(int spellCount)
-    {
-      super();
-      if (spellCount < 1) spellCount = 1; else if (spellCount > MaxEntryCount) spellCount = MaxEntryCount;
-      entryCount = spellCount;
-      cbLabel = new JCheckBox[entryCount];
-      cbSpells = new JComboBox[entryCount];
-      init();
-    }
-
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
-    @Override
-    public void actionPerformed(ActionEvent event)
-    {
-      if (event.getSource() instanceof JCheckBox) {
-        for (int i = 0; i < entryCount; i++) {
-          if (event.getSource() == cbLabel[i]) {
-            cbSpells[i].setEnabled(cbLabel[i].isSelected());
-            if (cbLabel[i].isSelected()) { cbSpells[i].requestFocusInWindow(); }
-            break;
-          }
-        }
-      }
-    }
-    //</editor-fold>
-
-    @Override
-    public boolean isEmpty()
-    {
-      for (int i = 0; i < entryCount; i++) {
-        if (cbLabel[i].isSelected()) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    public boolean isActive(int id)
-    {
-      if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
-      return cbLabel[id].isSelected();
-    }
-
-    public String getOptionSpell(int id)
-    {
-      return Utils.getResourceName(cbLabel[id], cbSpells[id]);
-    }
-
-    private void init()
-    {
-      // initializing components
-      for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("Spell resource %d:", i+1));
-        cbLabel[i].addActionListener(this);
-
-        cbSpells[i] = Utils.createNamedResourceComboBox(new String[]{"SPL"}, true);
-      }
-
-      // placing components
-      GridBagConstraints c = new GridBagConstraints();
-      JPanel panel = new JPanel(new GridBagLayout());
-      for (int i = 0; i < entryCount; i++) {
-        int row, col;
-        if (entryCount > 4) {
-          row = i % ((entryCount+1) / 2);
-          col = (i < ((entryCount+1) / 2)) ? 0 : 2;
-        } else {
-          row = i;
-          col = 0;
-        }
-        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                              GridBagConstraints.NONE,
-                              new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
-        panel.add(cbLabel[i], c);
-        c = ViewerUtil.setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                              GridBagConstraints.HORIZONTAL,
-                              new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
-        panel.add(cbSpells[i], c);
-      }
-
-      triggerActions(cbLabel);
-
-      JPanel pMain = new JPanel(new GridBagLayout());
-      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
-      pMain.add(panel, c);
-      add(pMain, BorderLayout.CENTER);
-    }
-  }
-
-
-  /** Creates a dialog that allows to specify spells for CRE resources. */
-  private static final class CreScriptsPanel extends BasePanel implements ActionListener
-  {
-    private static final int MaxEntryCount     = 8;
-
-    private final int entryCount;
-    private final JCheckBox[] cbLabel;
-    private final JComboBox<NamedResourceEntry>[] cbScripts;
-
-    @SuppressWarnings("unchecked")
-    public CreScriptsPanel(int scriptCount)
-    {
-      super();
-      if (scriptCount < 1) scriptCount = 1; else if (scriptCount > MaxEntryCount) scriptCount = MaxEntryCount;
-      entryCount = scriptCount;
-      cbLabel = new JCheckBox[entryCount];
-      cbScripts = new JComboBox[entryCount];
-      init();
-    }
-
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
-    @Override
-    public void actionPerformed(ActionEvent event)
-    {
-      if (event.getSource() instanceof JCheckBox) {
-        for (int i = 0; i < entryCount; i++) {
-          if (event.getSource() == cbLabel[i]) {
-            cbScripts[i].setEnabled(cbLabel[i].isSelected());
-            if (cbLabel[i].isSelected()) { cbScripts[i].requestFocusInWindow(); }
-            break;
-          }
-        }
-      }
-    }
-    //</editor-fold>
-
-    @Override
-    public boolean isEmpty()
-    {
-      for (int i = 0; i < entryCount; i++) {
-        if (cbLabel[i].isSelected()) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    public boolean isActive(int id)
-    {
-      if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
-      return cbLabel[id].isSelected();
-    }
-
-    public String getOptionScript(int id)
-    {
-      return Utils.getResourceName(cbLabel[id], cbScripts[id]);
-    }
-
-    private void init()
-    {
-      // initializing components
-      for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("Script %d:", i+1));
-        cbLabel[i].addActionListener(this);
-
-        cbScripts[i] = Utils.createNamedResourceComboBox(new String[]{"BCS"}, false);
-      }
-
-      // placing components
-      GridBagConstraints c = new GridBagConstraints();
-      JPanel panel = new JPanel(new GridBagLayout());
-      for (int i = 0; i < entryCount; i++) {
-        int row, col;
-        if (entryCount > 4) {
-          row = i % ((entryCount+1) / 2);
-          col = (i < ((entryCount+1) / 2)) ? 0 : 2;
-        } else {
-          row = i;
-          col = 0;
-        }
-        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                              GridBagConstraints.NONE,
-                              new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
-        panel.add(cbLabel[i], c);
-        c = ViewerUtil.setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                              GridBagConstraints.HORIZONTAL,
-                              new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
-        panel.add(cbScripts[i], c);
-      }
-
-      triggerActions(cbLabel);
-
-      JPanel pMain = new JPanel(new GridBagLayout());
-      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
-      pMain.add(panel, c);
-      add(pMain, BorderLayout.CENTER);
     }
   }
 
@@ -5924,105 +5714,6 @@ public class SearchResource extends ChildFrame
                               GridBagConstraints.HORIZONTAL,
                               new Insets((i == 0) ? 0 : 4, 8, 0, 0), 0, 0);
         panel.add(cbCategory[i], c);
-      }
-
-      triggerActions(cbLabel);
-
-      JPanel pMain = new JPanel(new GridBagLayout());
-      c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.BOTH, new Insets(8, 8, 8, 8), 0, 0);
-      pMain.add(panel, c);
-      add(pMain, BorderLayout.CENTER);
-    }
-  }
-
-
-  /** Creates a dialog that allows to specify items provided by stores. */
-  private static final class StoForSalePanel extends BasePanel implements ActionListener
-  {
-    private static final int MaxEntryCount = 16;
-
-    private final int entryCount;
-    private final JCheckBox[] cbLabel;
-    private final JComboBox<NamedResourceEntry>[] cbItems;
-
-    @SuppressWarnings("unchecked")
-    public StoForSalePanel(int itemCount)
-    {
-      super();
-      if (itemCount < 1) itemCount = 1; else if (itemCount > MaxEntryCount) itemCount = MaxEntryCount;
-      entryCount = itemCount;
-      cbLabel = new JCheckBox[entryCount];
-      cbItems = new JComboBox[entryCount];
-      init();
-    }
-
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
-    @Override
-    public void actionPerformed(ActionEvent event)
-    {
-      if (event.getSource() instanceof JCheckBox) {
-        for (int i = 0; i < entryCount; i++) {
-          if (event.getSource() == cbLabel[i]) {
-            cbItems[i].setEnabled(cbLabel[i].isSelected());
-            if (cbLabel[i].isSelected()) { cbItems[i].requestFocusInWindow(); }
-            break;
-          }
-        }
-      }
-    }
-    //</editor-fold>
-
-    @Override
-    public boolean isEmpty()
-    {
-      for (int i = 0; i < entryCount; i++) {
-        if (cbLabel[i].isSelected()) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    public boolean isActive(int id)
-    {
-      if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
-      return cbLabel[id].isSelected();
-    }
-
-    public String getOptionItem(int id)
-    {
-      return Utils.getResourceName(cbLabel[id], cbItems[id]);
-    }
-
-    private void init()
-    {
-      for (int i = 0; i < entryCount; i++) {
-        cbLabel[i] = new JCheckBox(String.format("Item for sale %d:", i+1));
-        cbLabel[i].addActionListener(this);
-        cbItems[i] = Utils.createNamedResourceComboBox(new String[]{"ITM"}, true);
-      }
-
-      // placing components
-      GridBagConstraints c = new GridBagConstraints();
-      JPanel panel = new JPanel(new GridBagLayout());
-      for (int i = 0; i < entryCount; i++) {
-        int row, col;
-        if (entryCount >= (MaxEntryCount / 2)) {
-          row = i % ((entryCount+1) / 2);
-          col = (i < (entryCount+1) / 2) ? 0 : 2;
-        } else {
-          row = i;
-          col = 0;
-        }
-        c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                              GridBagConstraints.NONE,
-                              new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
-        panel.add(cbLabel[i], c);
-        c = ViewerUtil.setGBC(c, col+1, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                              GridBagConstraints.HORIZONTAL,
-                              new Insets((i > 0) ? 4 : 0, 8, 0, 0), 0, 0);
-        panel.add(cbItems[i], c);
       }
 
       triggerActions(cbLabel);
