@@ -112,7 +112,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeFlatList(os);
+    super.writeFlatFields(os);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -172,8 +172,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     else if (datatype instanceof RemovableDecNumber && child instanceof Door) {
       Door childDoor = (Door)child;
       int childIndex = childDoor.getTilemapIndex().getValue();
-      for (int i = 0; i < getFieldCount(); i++) {
-        Object o = getField(i);
+      for (final StructEntry o : getFields()) {
         if (o instanceof Door && o != childDoor) {
           DecNumber tilemapIndex = ((Door)o).getTilemapIndex();
           if (tilemapIndex.getValue() >= childIndex)
@@ -204,8 +203,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     else if (datatype instanceof RemovableDecNumber && child instanceof Door) {
       Door childDoor = (Door)child;
       int childIndex = childDoor.getTilemapIndex().getValue();
-      for (int i = 0; i < getFieldCount(); i++) {
-        Object o = getField(i);
+      for (final StructEntry o : getFields()) {
         if (o instanceof Door && o != childDoor) {
           DecNumber tilemapIndex = ((Door)o).getTilemapIndex();
           if (tilemapIndex.getValue() > childIndex)
@@ -313,9 +311,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     }
 
     int endoffset = offset;
-    List<StructEntry> flatList = getFlatList();
-    for (int i = 0; i < flatList.size(); i++) {
-      StructEntry entry = flatList.get(i);
+    for (final StructEntry entry : getFlatFields()) {
       if (entry.getOffset() + entry.getSize() > endoffset) {
         endoffset = entry.getOffset() + entry.getSize();
       }
@@ -338,8 +334,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
       }
     }
 
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getFields()) {
       if (o instanceof Overlay) {
         ((Overlay)o).updateOffsets(datatype.getOffset(), size);
       }
@@ -348,8 +343,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     // Assumes polygon offset is correct
     int offset = ((SectionOffset)getAttribute(WED_OFFSET_WALL_POLYGONS)).getValue();
     offset += ((SectionCount)getAttribute(WED_NUM_WALL_POLYGONS)).getValue() * 18;
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getFields()) {
       if (o instanceof Door) {
         ((Door)o).updatePolygonsOffset(offset);
       }
@@ -361,8 +355,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     // Assumes vertices offset is correct
     int offset = ((HexNumber)getAttribute(WED_OFFSET_VERTICES)).getValue();
     int count = 0;
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getFields()) {
       if (o instanceof Polygon) {
         Polygon polygon = (Polygon)o;
         int vertNum = polygon.updateVertices(offset, count);
@@ -371,8 +364,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
       }
       else if (o instanceof Door) {
         Door door = (Door)o;
-        for (int j = 0; j < door.getFieldCount(); j++) {
-          StructEntry q = door.getField(j);
+        for (final StructEntry q : door.getFields()) {
           if (q instanceof Polygon) {
             Polygon polygon = (Polygon)q;
             int vertNum = polygon.updateVertices(offset, count);

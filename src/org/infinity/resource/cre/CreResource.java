@@ -576,8 +576,7 @@ public final class CreResource extends AbstractStruct
 
   private static void adjustEntryOffsets(AbstractStruct struct, int amount)
   {
-    for (int i = 0; i < struct.getFieldCount(); i++) {
-      StructEntry structEntry = struct.getField(i);
+    for (final StructEntry structEntry : struct.getFields()) {
       structEntry.setOffset(structEntry.getOffset() + amount);
       if (structEntry instanceof AbstractStruct)
         adjustEntryOffsets((AbstractStruct)structEntry, amount);
@@ -594,7 +593,7 @@ public final class CreResource extends AbstractStruct
     if (path != null) {
       try {
         CreResource crefile = (CreResource)ResourceFactory.getResource(resourceEntry);
-        while (!crefile.getField(0).toString().equals("CRE ")) {
+        while (!crefile.getFields().get(0).toString().equals("CRE ")) {
           crefile.removeField(0);
         }
         convertToSemiStandard(crefile);
@@ -613,7 +612,8 @@ public final class CreResource extends AbstractStruct
 
   private static void convertToSemiStandard(CreResource crefile)
   {
-    if (!crefile.getField(1).toString().equals("V1.0")) {
+    final List<StructEntry> fields = crefile.getFields();
+    if (!fields.get(1).toString().equals("V1.0")) {
       System.err.println("Conversion to semi-standard aborted: Unsupported CRE version");
       return;
     }
@@ -636,42 +636,42 @@ public final class CreResource extends AbstractStruct
     SectionOffset items_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_ITEMS);
     SectionOffset effects_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_EFFECTS);
 
-    int indexStructs = crefile.getIndexOf(effects_offset) + 3; // Start of non-permanent section
-    List<StructEntry> newlist = new ArrayList<StructEntry>(crefile.getFieldCount());
+    final int indexStructs = fields.indexOf(effects_offset) + 3; // Start of non-permanent section
+    final List<StructEntry> newlist = new ArrayList<>(fields.size());
     for (int i = 0; i < indexStructs; i++)
-      newlist.add(crefile.getField(i));
+      newlist.add(fields.get(i));
 
     int offsetStructs = 0x2d4;
     knownspells_offset.setValue(offsetStructs);
-    offsetStructs = copyStruct(crefile.getList(), newlist, indexStructs, offsetStructs, KnownSpells.class);
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, KnownSpells.class);
 
     memspellinfo_offset.setValue(offsetStructs);
-    offsetStructs = copyStruct(crefile.getList(), newlist, indexStructs, offsetStructs, SpellMemorization.class);
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, SpellMemorization.class);
 
     memspells_offset.setValue(offsetStructs);
     // XXX: mem spells are not directly stored in crefile.list
     // and added by addFlatList on the Spell Memorization entries
     // (but the offsets are wrong, so we need to realign them with copyStruct)
-    List<StructEntry> trashlist = new ArrayList<StructEntry>();
-    for (int i = indexStructs; i < crefile.getFieldCount(); i++) {
-      StructEntry entry = crefile.getField(i);
+    List<StructEntry> trashlist = new ArrayList<>();
+    for (int i = indexStructs; i < fields.size(); i++) {
+      StructEntry entry = fields.get(i);
       if (entry instanceof SpellMemorization) {
-        offsetStructs = copyStruct(((SpellMemorization)entry).getList(), trashlist, 0, offsetStructs, MemorizedSpells.class);
+        offsetStructs = copyStruct(((SpellMemorization)entry).getFields(), trashlist, 0, offsetStructs, MemorizedSpells.class);
       }
     }
 
     effects_offset.setValue(offsetStructs);
-    offsetStructs =
-    copyStruct(crefile.getList(), newlist, indexStructs, offsetStructs, effects_offset.getSection());
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, effects_offset.getSection());
 
     items_offset.setValue(offsetStructs);
-    offsetStructs = copyStruct(crefile.getList(), newlist, indexStructs, offsetStructs, Item.class);
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, Item.class);
 
     itemslots_offset.setValue(offsetStructs);
-    offsetStructs = copyStruct(crefile.getList(), newlist, indexStructs, offsetStructs, DecNumber.class);
-    copyStruct(crefile.getList(), newlist, indexStructs, offsetStructs, Unknown.class);
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, DecNumber.class);
+    copyStruct(fields, newlist, indexStructs, offsetStructs, Unknown.class);
 
-    crefile.setList(newlist);
+    fields.clear();
+    fields.addAll(newlist);
   }
 
   private static int copyStruct(List<StructEntry> oldlist, List<StructEntry> newlist,
@@ -836,7 +836,7 @@ public final class CreResource extends AbstractStruct
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeFlatList(os);
+    super.writeFlatFields(os);
   }
 
 
@@ -1033,7 +1033,7 @@ public final class CreResource extends AbstractStruct
     addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER));
     addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR));
     addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
-    Bitmap effect_version = (Bitmap)addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
+    Bitmap effect_version = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BMP"));
     addField(new DecNumber(buffer, offset + 60, 1, CRE_REPUTATION));
@@ -1416,8 +1416,7 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 102, 2, CRE_SELECTED_WEAPON_ABILITY));
 
     int endoffset = offset;
-    for (int i = 0; i < getFieldCount(); i++) {
-      StructEntry entry = getField(i);
+    for (final StructEntry entry : getFields()) {
       if (entry.getOffset() + entry.getSize() > endoffset) {
         endoffset = entry.getOffset() + entry.getSize();
       }
@@ -1457,7 +1456,7 @@ public final class CreResource extends AbstractStruct
       addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR));
       addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
     }
-    Bitmap effect_version = (Bitmap)addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
+    Bitmap effect_version = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
       addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BAM"));
@@ -1916,8 +1915,7 @@ public final class CreResource extends AbstractStruct
       }
     }
     int endoffset = offset;
-    for (int i = 0; i < getFieldCount(); i++) {
-      StructEntry entry = getField(i);
+    for (final StructEntry entry : getFields()) {
       if (entry.getOffset() + entry.getSize() > endoffset) {
         endoffset = entry.getOffset() + entry.getSize();
       }
@@ -1930,8 +1928,7 @@ public final class CreResource extends AbstractStruct
     // Assumes memorized spells offset is correct
     int offset = ((HexNumber)getAttribute(CRE_OFFSET_MEMORIZED_SPELLS)).getValue() + getExtraOffset();
     int count = 0;
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getFields()) {
       if (o instanceof SpellMemorization) {
         SpellMemorization info = (SpellMemorization)o;
         int numSpells = info.updateSpells(offset, count);
@@ -1944,7 +1941,7 @@ public final class CreResource extends AbstractStruct
 
   private void updateOffsets(AddRemovable datatype, int size)
   {
-    if (getField(0).toString().equalsIgnoreCase("CHR "))
+    if (getFields().get(0).toString().equalsIgnoreCase("CHR "))
       ((HexNumber)getAttribute(CHR_CRE_SIZE)).incValue(size);
 //    if (!(datatype instanceof MemorizedSpells)) {
 //      HexNumber offsetMemSpells = (HexNumber)getAttribute("Memorized spells offset");

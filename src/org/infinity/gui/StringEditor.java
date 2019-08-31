@@ -1042,7 +1042,7 @@ public class StringEditor extends ChildFrame implements SearchClient
 
       StringTable.StringEntry entry = StringTable.getStringEntry(getSelectedDialogType(), index);
       entry.fillList(index);
-      return entry.getField(selectedRow).toString();
+      return entry.getFields().get(selectedRow).toString();
     }
 
     @Override

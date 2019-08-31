@@ -308,7 +308,7 @@ public abstract class BasicLayer<E extends LayerObject, R extends AbstractStruct
   {
     final List<T> fields = new ArrayList<>();
     if (parent != null && baseOfs >= 0 && maxCount >= 0 && type != null) {
-      for (final StructEntry field : parent.getList()) {
+      for (final StructEntry field : parent.getFields()) {
         if (field.getOffset() >= baseOfs && type.isAssignableFrom(field.getClass())) {
           if (maxCount-- < 0) { break; }
 

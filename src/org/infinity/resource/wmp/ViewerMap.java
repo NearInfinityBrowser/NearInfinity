@@ -645,7 +645,7 @@ public class ViewerMap extends JPanel
           WindowBlocker.blockWindow(wnd, false);
         }
         if (bRet) {
-          final ResourceEntry entry = ((AbstractStruct)getEntry().getParent()).getResourceEntry();
+          final ResourceEntry entry = getEntry().getParent().getResourceEntry();
           final String fileName = StreamUtils.replaceFileExtension(entry.getResourceName(), "PNG");
           ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(os.toByteArray()), fileName, wnd);
         } else {

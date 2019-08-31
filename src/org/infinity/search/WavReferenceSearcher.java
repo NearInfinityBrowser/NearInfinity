@@ -36,8 +36,7 @@ public final class WavReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
-    for (int i = 0; i < struct.getFieldCount(); i++) {
-      StructEntry o = struct.getField(i);
+    for (final StructEntry o : struct.getFields()) {
       if (o instanceof ResourceRef &&
           ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.getResourceName())) {
         addHit(entry, entry.getSearchString(), o);

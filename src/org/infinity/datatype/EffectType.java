@@ -43,7 +43,7 @@ public final class EffectType extends Bitmap implements UpdateListener
         StructEntry entry = list.get(i);
         entry.setOffset(entry.getOffset() + getOffset() + getSize());
       }
-      struct.addToList(this, list);
+      struct.addFields(this, list);
       return true;
     } catch (IOException e) {
       e.printStackTrace();

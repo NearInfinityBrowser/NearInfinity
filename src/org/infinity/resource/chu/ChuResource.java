@@ -23,6 +23,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
+import org.infinity.resource.StructEntry;
 import org.infinity.resource.graphics.BamResource;
 import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.key.ResourceEntry;
@@ -58,14 +59,12 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
   public void write(OutputStream os) throws IOException
   {
     super.write(os);
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getFields()) {
       if (o instanceof Window) {
         ((Window)o).writeControlsTable(os);
       }
     }
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getFields()) {
       if (o instanceof Window) {
         ((Window)o).writeControls(os);
       }
@@ -127,7 +126,7 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
 
 // --------------------- End Interface HasViewerTabs ---------------------
 
-   // Write 'size' number of zeros to the output stream
+  /** Write 'size' number of zeros to the output stream. */
   void writeGap(OutputStream os, int startOfs, int endOfs) throws IOException
   {
     while (startOfs < endOfs) {
@@ -298,18 +297,17 @@ public final class ChuResource extends AbstractStruct implements Resource, HasVi
     // Adding offset/size pairs for each control
     curOfs = ofsControls;
     if (listControls == null) {
-      listControls = new ArrayList<Pair<Integer>>();
+      listControls = new ArrayList<>();
     }
     int ofs = 0, len = 0;
     for (int i = 0; i < numControls; i++, curOfs += 8) {
       ofs = buffer.getInt(curOfs);
       len = buffer.getInt(curOfs + 4);
-      listControls.add(new Pair<Integer>(Integer.valueOf(ofs), Integer.valueOf(len)));
+      listControls.add(new Pair<>(Integer.valueOf(ofs), Integer.valueOf(len)));
     }
 
     // adding virtual entry for determining the true size of the last control entry
     ofs = Math.max(ofs + len, buffer.limit());
-    listControls.add(new Pair<Integer>(Integer.valueOf(ofs), Integer.valueOf(0)));
+    listControls.add(new Pair<>(Integer.valueOf(ofs), Integer.valueOf(0)));
   }
 }
-

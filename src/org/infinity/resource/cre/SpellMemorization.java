@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
@@ -33,9 +33,9 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
     super(null, CRE_MEMORIZATION, StreamUtils.getByteBuffer(16), 0);
   }
 
-  SpellMemorization(AbstractStruct superStruct, ByteBuffer buffer, int offset, int nr) throws Exception
+  SpellMemorization(CreResource cre, ByteBuffer buffer, int offset, int nr) throws Exception
   {
-    super(superStruct, CRE_MEMORIZATION + " " + nr, buffer, offset);
+    super(cre, CRE_MEMORIZATION + " " + nr, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
@@ -77,7 +77,7 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
     if (datatype instanceof MemorizedSpells) {
       int index = ((DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_TABLE_INDEX)).getValue();
       index += ((DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_COUNT)).getValue();
-      CreResource cre = (CreResource)getSuperStruct();
+      final CreResource cre = (CreResource)getParent();
       int offset = ((HexNumber)cre.getAttribute(CreResource.CRE_OFFSET_MEMORIZED_SPELLS)).getValue() +
                    cre.getExtraOffset();
       datatype.setOffset(offset + 12 * index);
@@ -110,8 +110,7 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
   {
     ((DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_TABLE_INDEX)).setValue(startIndex);
     int count = 0;
-    for (int i = 0; i < getFieldCount(); i++) {
-      StructEntry entry = getField(i);
+    for (final StructEntry entry : getFields()) {
       if (entry instanceof MemorizedSpells) {
         entry.setOffset(offset);
         ((AbstractStruct)entry).realignStructOffsets();
@@ -123,4 +122,3 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
     return count;
   }
 }
-

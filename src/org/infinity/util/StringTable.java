@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -1654,7 +1654,7 @@ public class StringTable
 
     public void clearList()
     {
-      if (getFieldCount() > 0) {
+      if (!getFields().isEmpty()) {
         clearFields();
       }
     }
@@ -1662,7 +1662,7 @@ public class StringTable
     public void fillList(int index)
     {
       try {
-        if (getFieldCount() == 0) {
+        if (getFields().isEmpty()) {
           ByteBuffer buffer = StreamUtils.getByteBuffer(26);
           buffer.position(0);
           buffer.putShort(flags);

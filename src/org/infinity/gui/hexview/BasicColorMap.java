@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.hexview;
@@ -163,8 +163,7 @@ public class BasicColorMap implements IColormap
       listBlocks.clear();
     }
 
-    List<StructEntry> flatList = getStruct().getFlatList();
-    for (final StructEntry curEntry: flatList) {
+    for (final StructEntry curEntry : getStruct().getFlatFields()) {
       List<StructEntry> chain = curEntry.getStructChain();
       boolean found = false;
       for (int i = 0; !found && i < chain.size(); i++) {
@@ -193,8 +192,6 @@ public class BasicColorMap implements IColormap
       chain.clear();
       chain = null;
     }
-    flatList.clear();
-    flatList = null;
 
     combineColoredBlocks();
   }
@@ -208,7 +205,7 @@ public class BasicColorMap implements IColormap
     typeMap.clear();
     Coloring[] colors = Coloring.values();
     int colIdx = 0;
-    List<StructEntry> list = getStruct().getList();
+    final List<StructEntry> list = getStruct().getFields();
     Collections.sort(list);
     for (final StructEntry entry: list) {
       if (entry instanceof SectionOffset) {
@@ -371,7 +368,7 @@ public class BasicColorMap implements IColormap
       // check if structure is defined by section offset and count fields
       isTable = false;
       so = null; sc = null;
-      for (final StructEntry entry: struct.getList()) {
+      for (final StructEntry entry: struct.getFields()) {
         if (so == null &&
             entry instanceof SectionOffset &&
             ((SectionOffset)entry).getSection() == classType) {
@@ -390,7 +387,7 @@ public class BasicColorMap implements IColormap
       if (so == null || sc == null) {
         // no section offset and count -> use static table lookup instead
         isTable = true;
-        for (final StructEntry entry: struct.getList()) {
+        for (final StructEntry entry: struct.getFields()) {
           if (entry.getClass() == classType) {
             structures.add(entry);
           }
@@ -418,7 +415,7 @@ public class BasicColorMap implements IColormap
       } else if (sc.getValue() > 0) {
         // structure size not yet cached?
         if (structureSize < 0) {
-          for (final StructEntry entry: getStruct().getList()) {
+          for (final StructEntry entry: getStruct().getFields()) {
             if(entry.getClass() == classType) {
               structureSize = entry.getSize();
               break;
@@ -429,7 +426,7 @@ public class BasicColorMap implements IColormap
         // AbstractCode instances consist of two separate data blocks
         if (AbstractCode.class.isAssignableFrom(classType)) {
           int curIndex = 0;
-          for (final StructEntry entry: getStruct().getList()) {
+          for (final StructEntry entry: getStruct().getFields()) {
             if (entry.getClass() == classType) {
               AbstractCode ac = (AbstractCode)entry;
               if ((offset >= ac.getTextOffset() && offset < ac.getTextOffset()+ac.getTextLength())) {

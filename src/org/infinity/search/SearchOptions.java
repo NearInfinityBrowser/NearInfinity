@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -620,7 +620,7 @@ public class SearchOptions
         Object value = ((Pair<?>)match).getSecond();
         if (!fieldName.isEmpty() && value != null) {
           boolean bRet = false;
-          List<StructEntry> structList = struct.getFlatList();
+          final List<StructEntry> structList = struct.getFlatFields();
           if (structList != null && !structList.isEmpty()) {
             for (int i = 0; i < structList.size(); i++) {
               StructEntry entry = structList.get(i);

@@ -58,7 +58,7 @@ public class EffectsIndexChecker extends AbstractChecker
   {
     final int numGlobalEffects = ((SectionCount) struct.getAttribute(SplResource.SPL_NUM_GLOBAL_EFFECTS)).getValue();
     int expectedEffectsIndex = numGlobalEffects;
-    for (StructEntry e : struct.getList()) {
+    for (final StructEntry e : struct.getFields()) {
       if (e instanceof AbstractAbility) {
         final AbstractAbility abil = (AbstractAbility) e;
         final int effectsIndex = ((DecNumber) abil.getAttribute(AbstractAbility.ABILITY_FIRST_EFFECT_INDEX)).getValue();

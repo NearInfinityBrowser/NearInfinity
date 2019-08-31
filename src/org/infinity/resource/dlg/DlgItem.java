@@ -54,7 +54,7 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
     final boolean alwaysShow = BrowserMenuBar.getInstance().alwaysShowState0();
     // finding and storing initial states
     int count = 0;
-    for (StructEntry e : dlg.getList()) {
+    for (final StructEntry e : dlg.getFields()) {
       if (e instanceof State) {
         final State s = (State)e;
         // First state always under root, if setting is checked

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -74,8 +74,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
   private void searchDialog(ResourceEntry entry, AbstractStruct dialog)
   {
     final String targetName = targetEntry.getResourceName();
-    for (int i = 0; i < dialog.getFieldCount(); i++) {
-      StructEntry o = dialog.getField(i);
+    for (final StructEntry o : dialog.getFields()) {
       if (o instanceof ResourceRef &&
           ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetName)) {
         addHit(entry, entry.getSearchString(), o);
@@ -126,8 +125,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchSavStruct(ResourceEntry entry, ResourceEntry saventry, AbstractStruct struct)
   {
-    for (int i = 0; i < struct.getFieldCount(); i++) {
-      StructEntry o = struct.getField(i);
+    for (final StructEntry o : struct.getFields()) {
       if (o instanceof ResourceRef &&
           ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.getResourceName()))
         addHit(entry, saventry.toString(), o);
@@ -139,8 +137,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
   private void searchSave(ResourceEntry entry, SavResource savfile)
   {
     List<? extends ResourceEntry> entries = savfile.getFileHandler().getFileEntries();
-    for (int i = 0; i < entries.size(); i++) {
-      ResourceEntry saventry = entries.get(i);
+    for (final ResourceEntry saventry : entries) {
       Resource resource = ResourceFactory.getResource(saventry);
       if (resource instanceof AbstractStruct)
         searchSavStruct(entry, saventry, (AbstractStruct)resource);
@@ -174,8 +171,7 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
     final String name = targetEntry.getResourceName();
-    for (int i = 0; i < struct.getFieldCount(); i++) {
-      StructEntry o = struct.getField(i);
+    for (final StructEntry o : struct.getFields()) {
       if (o instanceof ResourceRef &&
           ((ResourceRef)o).getResourceName().equalsIgnoreCase(name)) {
         addHit(entry, entry.getSearchString(), o);

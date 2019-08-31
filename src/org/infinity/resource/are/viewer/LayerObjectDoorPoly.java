@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -8,7 +8,6 @@ import java.awt.Color;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.util.List;
 
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HexNumber;
@@ -278,17 +277,16 @@ public class LayerObjectDoorPoly extends LayerObject
     }
   }
 
-  // Returns the specified WED polygon structure
+  /** Returns the specified WED polygon structure. */
   private org.infinity.resource.wed.Polygon getPolygonStructure(AbstractStruct baseStruct, int baseOfs, int index)
   {
 //    WedResource wed = (WedResource)getParentStructure();
     if (baseStruct != null) {
-      List<StructEntry> list = baseStruct.getList();
       int idx = 0;
-      for (int i = 0; i < list.size(); i++) {
-        if (list.get(i).getOffset() >= baseOfs && list.get(i) instanceof org.infinity.resource.wed.Polygon) {
+      for (final StructEntry e : baseStruct.getFields()) {
+        if (e.getOffset() >= baseOfs && e instanceof org.infinity.resource.wed.Polygon) {
           if (idx == index) {
-            return (org.infinity.resource.wed.Polygon)list.get(i);
+            return (org.infinity.resource.wed.Polygon)e;
           }
           idx++;
         }

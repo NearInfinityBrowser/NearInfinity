@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
@@ -107,14 +107,12 @@ final class ViewerSpells extends JPanel implements ActionListener
     private void updateTable()
     {
       list.clear();
-      for (int i = 0; i < cre.getFieldCount(); i++) {
-        StructEntry o = cre.getField(i);
+      for (final StructEntry o : cre.getFields()) {
         if (o instanceof SpellMemorization) {
           SpellMemorization inf = (SpellMemorization)o;
           int type = ((IsNumeric)inf.getAttribute(SpellMemorization.CRE_MEMORIZATION_TYPE)).getValue();
           int lvl = ((IsNumeric)inf.getAttribute(SpellMemorization.CRE_MEMORIZATION_LEVEL)).getValue();
-          for (int j = 0; j < inf.getFieldCount(); j++) {
-            StructEntry p = inf.getField(j);
+          for (final StructEntry p : inf.getFields()) {
             if (p instanceof MemorizedSpells) {
               MemorizedSpells spell = (MemorizedSpells)p;
               addSpell(type, lvl, (ResourceRef)spell.getAttribute(MemorizedSpells.CRE_MEMORIZED_RESREF));
@@ -205,4 +203,3 @@ final class ViewerSpells extends JPanel implements ActionListener
     }
   }
 }
-

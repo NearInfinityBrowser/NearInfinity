@@ -45,7 +45,7 @@ public abstract class Datatype implements StructEntry
 
   private String name;
   private int offset;
-  private StructEntry parent;
+  private AbstractStruct parent;
 
   protected Datatype(int offset, int length, String name)
   {
@@ -81,7 +81,7 @@ public abstract class Datatype implements StructEntry
   }
 
   @Override
-  public StructEntry getParent()
+  public AbstractStruct getParent()
   {
     return parent;
   }
@@ -137,7 +137,7 @@ public abstract class Datatype implements StructEntry
   }
 
   @Override
-  public void setParent(StructEntry parent)
+  public void setParent(AbstractStruct parent)
   {
     this.parent = parent;
   }

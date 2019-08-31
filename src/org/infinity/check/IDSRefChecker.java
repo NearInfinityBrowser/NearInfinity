@@ -53,7 +53,7 @@ public final class IDSRefChecker extends AbstractChecker
 
   private void search(ResourceEntry entry, AbstractStruct struct)
   {
-    for (StructEntry e : struct.getFlatList()) {
+    for (final StructEntry e : struct.getFlatFields()) {
       if (e instanceof IdsBitmap) {
         final IdsBitmap ref = (IdsBitmap)e;
         final long value = ref.getLongValue();

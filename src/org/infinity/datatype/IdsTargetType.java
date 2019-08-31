@@ -6,7 +6,7 @@ package org.infinity.datatype;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 
 import org.infinity.resource.AbstractStruct;
@@ -85,14 +85,15 @@ public class IdsTargetType extends Bitmap
     boolean retVal = super.updateValue(struct);
     if (updateIdsValues && retVal) {
       int valueOffset = getOffset() - getSize();
-      List<StructEntry> list = struct.getList();
-      for (int i = 0, size = list.size(); i < size; i++) {
-        StructEntry entry = list.get(i);
+      final ListIterator<StructEntry> it = struct.getFields().listIterator();
+      while (it.hasNext()) {
+        final int i = it.nextIndex();
+        final StructEntry entry = it.next();
         if (entry.getOffset() == valueOffset && entry instanceof Datatype) {
-          ByteBuffer buffer = ((Datatype)entry).getDataBuffer();
+          final ByteBuffer buffer = entry.getDataBuffer();
           StructEntry newEntry = createIdsValueFromType(buffer, 0);
           newEntry.setOffset(valueOffset);
-          list.set(i, newEntry);
+          it.set(newEntry);
 
           // notifying listeners
           struct.fireTableRowsUpdated(i, i);

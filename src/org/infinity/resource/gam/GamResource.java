@@ -33,6 +33,7 @@ import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
+import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.itm.ItmResource;
@@ -225,7 +226,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeFlatList(os);
+    super.writeFlatFields(os);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -527,7 +528,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     }
 
     if (offset == 0) {
-      offset = getField(getFieldCount() - 1).getOffset() + getField(getFieldCount() - 1).getSize();
+      final StructEntry last = getFields().get(getFields().size() - 1);
+      offset = last.getOffset() + last.getSize();
     }
 
     return offset;
@@ -535,8 +537,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
   private void updateOffsets()
   {
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getFields()) {
       if (o instanceof PartyNPC) {
         ((PartyNPC)o).updateCREOffset();
       }
@@ -546,4 +547,3 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     }
   }
 }
-

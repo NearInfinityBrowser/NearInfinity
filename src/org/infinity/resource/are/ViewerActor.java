@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -85,8 +85,8 @@ public final class ViewerActor extends JPanel
 
     ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_ORIENTATION), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_OVERRIDE), gbl, gbc, true);
-    if (actor.getSuperStruct() != null &&
-        actor.getSuperStruct().getAttribute(AbstractStruct.COMMON_VERSION).toString().equalsIgnoreCase("V9.1")) {
+    if (actor.getParent() != null &&
+        actor.getParent().getAttribute(AbstractStruct.COMMON_VERSION).toString().equalsIgnoreCase("V9.1")) {
       ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_SPECIAL_1), gbl, gbc, true);
       ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_TEAM), gbl, gbc, true);
       ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_SPECIAL_2), gbl, gbc, true);
@@ -106,4 +106,3 @@ public final class ViewerActor extends JPanel
     return fieldPanel;
   }
 }
-

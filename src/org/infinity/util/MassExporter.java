@@ -563,7 +563,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       return;
     }
     CreResource crefile = new CreResource(entry);
-    final List<StructEntry> flatList = crefile.getFlatList();
+    final List<StructEntry> flatList = crefile.getFlatFields();
     while (!flatList.get(0).toString().equals("CRE ")) {
       flatList.remove(0);
     }

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -38,9 +38,9 @@ public final class Song extends AbstractStruct // implements AddRemovable
   public static final String ARE_SONGS_AMBIENT_VOLUME_NIGHT = "Main ambient volume (night)";
   public static final String ARE_SONGS_REVERB               = "Reverb";
 
-  Song(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception
+  Song(AreResource are, ByteBuffer buffer, int offset) throws Exception
   {
-    super(superStruct, ARE_SONGS, buffer, offset);
+    super(are, ARE_SONGS, buffer, offset);
   }
 
   @Override
@@ -56,16 +56,13 @@ public final class Song extends AbstractStruct // implements AddRemovable
     addField(new Song2daBitmap(buffer, offset + 28, 4, ARE_SONGS_VICTORY_ALTERNATE));
     addField(new Song2daBitmap(buffer, offset + 32, 4, ARE_SONGS_BATTLE_ALTERNATE));
     addField(new Song2daBitmap(buffer, offset + 36, 4, ARE_SONGS_DEFEAT_ALTERNATE));
-    if (getSuperStruct() != null) {
-      addField(new AreResourceRef(buffer, offset + 40, ARE_SONGS_AMBIENT_DAY_1,
-                                  (AreResource)getSuperStruct()));
-      addField(new AreResourceRef(buffer, offset + 48, ARE_SONGS_AMBIENT_DAY_2,
-                                  (AreResource)getSuperStruct()));
+    final AreResource are = (AreResource)getParent();
+    if (are != null) {
+      addField(new AreResourceRef(buffer, offset + 40, ARE_SONGS_AMBIENT_DAY_1, are));
+      addField(new AreResourceRef(buffer, offset + 48, ARE_SONGS_AMBIENT_DAY_2, are));
       addField(new DecNumber(buffer, offset + 56, 4, ARE_SONGS_AMBIENT_VOLUME_DAY));
-      addField(new AreResourceRef(buffer, offset + 60, ARE_SONGS_AMBIENT_NIGHT_1,
-                                  (AreResource)getSuperStruct()));
-      addField(new AreResourceRef(buffer, offset + 68, ARE_SONGS_AMBIENT_NIGHT_2,
-                                  (AreResource)getSuperStruct()));
+      addField(new AreResourceRef(buffer, offset + 60, ARE_SONGS_AMBIENT_NIGHT_1, are));
+      addField(new AreResourceRef(buffer, offset + 68, ARE_SONGS_AMBIENT_NIGHT_2, are));
       addField(new DecNumber(buffer, offset + 76, 4, ARE_SONGS_AMBIENT_VOLUME_NIGHT));
     }
     else {
@@ -88,4 +85,3 @@ public final class Song extends AbstractStruct // implements AddRemovable
     return offset + 144;
   }
 }
-

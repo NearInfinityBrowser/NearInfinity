@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -66,8 +66,8 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer
     else {
       setIconImage(Keyfile.ICON_STRUCT.getImage());
       setTitle(((StructEntry)viewable).getName());
-      if (((AbstractStruct)viewable).getSuperStruct() != null)
-        statusBar.setMessage("Parent structure: " + ((AbstractStruct)viewable).getSuperStruct().getName());
+      if (((StructEntry)viewable).getParent() != null)
+        statusBar.setMessage("Parent structure: " + ((StructEntry)viewable).getParent().getName());
     }
     JPanel pane = (JPanel)getContentPane();
     pane.setLayout(new BorderLayout());
@@ -91,4 +91,3 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer
     return super.windowClosing(forced);
   }
 }
-
