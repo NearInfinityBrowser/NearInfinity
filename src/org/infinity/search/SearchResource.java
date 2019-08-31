@@ -5652,7 +5652,6 @@ public class SearchResource extends ChildFrame
   /** Common base for {@link IndexedString} and {@link ObjectString}. */
   private interface StorageString
   {
-    public String getString();
     public Object getObject();
   }
 
@@ -5700,13 +5699,7 @@ public class SearchResource extends ChildFrame
     }
 
     @Override
-    public String getString()
-    {
-      return s;
-    }
-
-    @Override
-    public Object getObject()
+    public Integer getObject()
     {
       return Integer.valueOf(index);
     }
@@ -5740,12 +5733,6 @@ public class SearchResource extends ChildFrame
     {
       this.s = (s == null || s.isEmpty() ? "Unknown" : s);
       this.o = o;
-    }
-
-    @Override
-    public String getString()
-    {
-      return s;
     }
 
     @Override
