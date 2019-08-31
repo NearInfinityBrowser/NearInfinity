@@ -3708,9 +3708,9 @@ public class SearchResource extends ChildFrame
     private static final int FILTER_NUMBER    = 1;
     private static final int FILTER_RESOURCE  = 2;
     private static final int FILTER_FLAGS     = 3;
-    private static final String[] FilterPages = new String[]{"STRING", "NUMBER", "RESOURCE", "FLAGS"};
-    private static final String[] FilterText = new String[]{"as string", "as number", "as resource", "as flags"};
-    private static final String[] ResourceTypes = new String[]{
+    private static final String[] FilterPages = {"STRING", "NUMBER", "RESOURCE", "FLAGS"};
+    private static final String[] FilterText = {"as string", "as number", "as resource", "as flags"};
+    private static final String[] ResourceTypes = {
       "2DA",
       "ACM", "ARE",
       "BAF", "BAM", "BCS", "BIO", "BMP", "BS",
@@ -3879,7 +3879,7 @@ public class SearchResource extends ChildFrame
         }
         case FILTER_FLAGS:
         {
-          final String[] flagsDesc = new String[]{"Select flags",
+          final String[] flagsDesc = {"Select flags",
               "Bit 0", "Bit 1", "Bit 2", "Bit 3", "Bit 4", "Bit 5", "Bit 6", "Bit 7",
               "Bit 8", "Bit 9", "Bit 10", "Bit 11", "Bit 12", "Bit 13", "Bit 14", "Bit 15",
               "Bit 16", "Bit 17", "Bit 18", "Bit 19", "Bit 20", "Bit 21", "Bit 22", "Bit 23",
@@ -4002,11 +4002,13 @@ public class SearchResource extends ChildFrame
     public static final int TIMING_MODE     = 0;
     public static final int TIMING_DURATION = 1;
 
-    private static final int EntryCount = 2;
-    private static final String[] label = new String[]{"Mode:", "Duration:"};
+    private static final String[] LABELS = {
+      "Mode:",
+      "Duration:",
+    };
 
-    private final JCheckBox[] cbTiming = new JCheckBox[EntryCount];
-    private final JSpinner[] sDuration = new JSpinner[EntryCount];
+    private final JCheckBox[] cbTiming = new JCheckBox[LABELS.length];
+    private final JSpinner[] sDuration = new JSpinner[LABELS.length];
     private JComboBox<IndexedString> cbMode;
 
     public TimingModePanel()
@@ -4061,8 +4063,8 @@ public class SearchResource extends ChildFrame
 
     private void init()
     {
-      for (int i = 0; i < cbTiming.length; i++) {
-        cbTiming[i] = new JCheckBox(label[i]);
+      for (int i = 0; i < LABELS.length; i++) {
+        cbTiming[i] = new JCheckBox(LABELS[i]);
         cbTiming[i].addActionListener(this);
       }
 
@@ -4100,11 +4102,14 @@ public class SearchResource extends ChildFrame
   /** Creates a dialog that allows to specify creature level ranges. */
   private static final class CreLevelPanel extends BasePanel implements ActionListener
   {
-    private static final String[] label =
-        new String[]{"First class level:", "Second class level:", "Third class level:"};
+    private static final String[] LABELS = {
+      "First class level:",
+      "Second class level:",
+      "Third class level:",
+    };
 
-    private final JSpinner[][] sLevel = new JSpinner[label.length][2];
-    private final JCheckBox[] cbLevel = new JCheckBox[label.length];
+    private final JSpinner[][] sLevel = new JSpinner[LABELS.length][2];
+    private final JCheckBox[] cbLevel = new JCheckBox[LABELS.length];
 
     public CreLevelPanel()
     {
@@ -4145,7 +4150,7 @@ public class SearchResource extends ChildFrame
     {
       // initializing components
       for (int i = 0; i < sLevel.length; i++) {
-        cbLevel[i] = new JCheckBox(label[i]);
+        cbLevel[i] = new JCheckBox(LABELS[i]);
         cbLevel[i].addActionListener(this);
         sLevel[i][0] = Utils.createNumberSpinner(Byte.MIN_VALUE, Byte.MAX_VALUE, 0, 100, 0, 1);
         sLevel[i][1] = Utils.createNumberSpinner(Byte.MIN_VALUE, Byte.MAX_VALUE, 0, 100, 100, 1);
@@ -4154,7 +4159,7 @@ public class SearchResource extends ChildFrame
       // placing components
       GridBagConstraints c = new GridBagConstraints();
       JPanel panel = new JPanel(new GridBagLayout());
-      for (int i = 0; i < label.length; i++) {
+      for (int i = 0; i < LABELS.length; i++) {
         c = ViewerUtil.setGBC(c, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                               GridBagConstraints.HORIZONTAL, new Insets((i > 0) ? 4 : 0, 0, 0, 0), 0, 0);
         panel.add(cbLevel[i], c);
@@ -4196,16 +4201,23 @@ public class SearchResource extends ChildFrame
     public static final int LEVEL_SORCERER  = 10;
     public static final int LEVEL_WIZARD    = 11;
 
-    private static final int EntryCount     = 12;
-    private static final String[] label = new String[]{"Total level:", "Barbarian level:",
-      "Bard level:", "Cleric level:",
-      "Druid level:", "Fighter level:",
-      "Monk level:", "Paladin level:",
-      "Ranger level:", "Rogue level:",
-      "Sorcerer level:", "Wizard level:"};
+    private static final String[] LABELS = {
+      "Total level:",
+      "Barbarian level:",
+      "Bard level:",
+      "Cleric level:",
+      "Druid level:",
+      "Fighter level:",
+      "Monk level:",
+      "Paladin level:",
+      "Ranger level:",
+      "Rogue level:",
+      "Sorcerer level:",
+      "Wizard level:",
+    };
 
-    private final JSpinner[][] sLevel = new JSpinner[EntryCount][2];
-    private final JCheckBox[] cbLevel = new JCheckBox[EntryCount];
+    private final JSpinner[][] sLevel = new JSpinner[LABELS.length][2];
+    private final JCheckBox[] cbLevel = new JCheckBox[LABELS.length];
 
     public CreLevelIWD2Panel()
     {
@@ -4218,7 +4230,7 @@ public class SearchResource extends ChildFrame
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() instanceof JCheckBox) {
-        for (int i = 0; i < EntryCount; i++) {
+        for (int i = 0; i < cbLevel.length; i++) {
           if (event.getSource() == cbLevel[i]) {
             sLevel[i][0].setEnabled(cbLevel[i].isSelected());
             sLevel[i][1].setEnabled(cbLevel[i].isSelected());
@@ -4232,7 +4244,7 @@ public class SearchResource extends ChildFrame
 
     public boolean isActive(int id)
     {
-      if (id < 0) id = 0; else if (id >= EntryCount) id = EntryCount - 1;
+      if (id < 0) id = 0; else if (id >= cbLevel.length) id = cbLevel.length - 1;
       return cbLevel[id].isSelected();
     }
 
@@ -4245,8 +4257,8 @@ public class SearchResource extends ChildFrame
     private void init()
     {
       // initializing components
-      for (int i = 0; i < EntryCount; i++) {
-        cbLevel[i] = new JCheckBox(label[i]);
+      for (int i = 0; i < LABELS.length; i++) {
+        cbLevel[i] = new JCheckBox(LABELS[i]);
         cbLevel[i].addActionListener(this);
         sLevel[i][0] = Utils.createNumberSpinner(Byte.MIN_VALUE, Byte.MAX_VALUE, 0, 100, 0, 1);
         sLevel[i][1] = Utils.createNumberSpinner(Byte.MIN_VALUE, Byte.MAX_VALUE, 0, 100, 100, 1);
@@ -4255,9 +4267,9 @@ public class SearchResource extends ChildFrame
       // placing components
       GridBagConstraints c = new GridBagConstraints();
       JPanel panel = new JPanel(new GridBagLayout());
-      for (int i = 0; i < EntryCount; i++) {
-        int row = i % (EntryCount / 2);
-        int col = (i < EntryCount / 2) ? 0 : 2;
+      for (int i = 0; i < LABELS.length; i++) {
+        int row = i % (LABELS.length / 2);
+        int col = (i < LABELS.length / 2) ? 0 : 2;
 
         c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                               GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, (col == 2) ? 16 : 0, 0, 0), 0, 0);
@@ -4291,14 +4303,23 @@ public class SearchResource extends ChildFrame
     public static final int TYPE_KIT        = 7;
     private static final int TYPE_SEX       = 8;    // special: IWD2 only
 
-    private static final int EntryCount     = 8;
-    private static final String[] label = new String[]{"General:", "Class:", "Specifics:",
-                                                       "Alignment:", "Gender:", "Race:",
-                                                       "Allegiance:", "Kit:", "Sex:"};
+    private static final String[] LABELS = {
+      "General:",
+      "Class:",
+      "Specifics:",
+      "Alignment:",
+      "Gender:",
+      "Race:",
+      "Allegiance:",
+      "Kit:",
 
-    private final JCheckBox[] cbLabel = new JCheckBox[EntryCount];
+      "Sex:",// replacement for "Gender" in IWD2
+    };
+
+    private final JCheckBox[] cbLabel = new JCheckBox[LABELS.length - 1];
     /** Each combobox contains list of {@link IdsMapEntry}. */
-    private final JComboBox<?>[] cbType = new JComboBox[EntryCount];
+    @SuppressWarnings("unchecked")
+    private final JComboBox<IdsMapEntry>[] cbType = new JComboBox[cbLabel.length];
 
     public CreTypePanel()
     {
@@ -4311,7 +4332,7 @@ public class SearchResource extends ChildFrame
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() instanceof JCheckBox) {
-        for (int i = 0; i < EntryCount; i++) {
+        for (int i = 0; i < cbLabel.length; i++) {
           if (event.getSource() == cbLabel[i]) {
             cbType[i].setEnabled(cbLabel[i].isSelected());
             if (cbLabel[i].isSelected()) { cbType[i].requestFocusInWindow(); }
@@ -4324,13 +4345,13 @@ public class SearchResource extends ChildFrame
 
     public boolean isActive(int id)
     {
-      if (id < 0) id = 0; else if (id >= EntryCount) id = EntryCount - 1;
+      if (id < 0) id = 0; else if (id >= LABELS.length) id = LABELS.length - 1;
       return cbLabel[id].isSelected();
     }
 
     public int getOptionType(int id)
     {
-      if (id < 0) id = 0; else if (id >= EntryCount) id = EntryCount - 1;
+      if (id < 0) id = 0; else if (id >= LABELS.length) id = LABELS.length - 1;
       return Utils.getIdsValue(cbLabel[id], cbType[id]);
     }
 
@@ -4340,11 +4361,11 @@ public class SearchResource extends ChildFrame
       boolean hasKit = Profile.getProperty(Profile.Key.IS_SUPPORTED_KITS);
 
       // initializing components
-      for (int i = 0; i < EntryCount; i++) {
+      for (int i = 0; i < cbLabel.length; i++) {
         if (i == TYPE_GENDER && Profile.getEngine() == Profile.Engine.IWD2) {
-          cbLabel[i] = new JCheckBox(label[TYPE_SEX]);
+          cbLabel[i] = new JCheckBox(LABELS[TYPE_SEX]);
         } else {
-          cbLabel[i] = new JCheckBox(label[i]);
+          cbLabel[i] = new JCheckBox(LABELS[i]);
         }
         cbLabel[i].addActionListener(this);
       }
@@ -4373,9 +4394,9 @@ public class SearchResource extends ChildFrame
       // placing components
       GridBagConstraints c = new GridBagConstraints();
       JPanel panel = new JPanel(new GridBagLayout());
-      for (int i = 0; i < EntryCount; i++) {
-        int row = i % ((EntryCount+1) / 2);
-        int col = (i < (EntryCount+1) / 2) ? 0 : 2;
+      for (int i = 0; i < cbLabel.length; i++) {
+        int row = i % ((cbLabel.length+1) / 2);
+        int col = (i < (cbLabel.length+1) / 2) ? 0 : 2;
 
         c = ViewerUtil.setGBC(c, col, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                               GridBagConstraints.NONE,
@@ -4405,13 +4426,16 @@ public class SearchResource extends ChildFrame
     public static final int TYPE_FEATS3     = 2;
     public static final int TYPE_ATTRIBUTES = 3;
 
-    private static final int EntryCount     = 4;
-    private static final String[] label = new String[]{"Feats 1:", "Feats 2:",
-                                                       "Feats 3:", "Attributes:"};
+    private static final String[] LABELS = {
+      "Feats 1:",
+      "Feats 2:",
+      "Feats 3:",
+      "Attributes:",
+    };
 
-    private final JCheckBox[] cbLabel = new JCheckBox[EntryCount];
-    private final FlagsPanel[] pFlags = new FlagsPanel[EntryCount];
-    private final ButtonPopupWindow[] bpwFlags = new ButtonPopupWindow[EntryCount];
+    private final JCheckBox[] cbLabel = new JCheckBox[LABELS.length];
+    private final FlagsPanel[] pFlags = new FlagsPanel[LABELS.length];
+    private final ButtonPopupWindow[] bpwFlags = new ButtonPopupWindow[LABELS.length];
 
     public static boolean isGameSpecificEnabled()
     {
@@ -4430,7 +4454,7 @@ public class SearchResource extends ChildFrame
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() instanceof JCheckBox) {
-        for (int i = 0; i < EntryCount; i++) {
+        for (int i = 0; i < cbLabel.length; i++) {
           if (event.getSource() == cbLabel[i]) {
             bpwFlags[i].setEnabled(cbLabel[i].isSelected());
             if (cbLabel[i].isSelected()) { bpwFlags[i].requestFocusInWindow(); }
@@ -4443,14 +4467,14 @@ public class SearchResource extends ChildFrame
 
     public boolean isActive(int id)
     {
-      if (id < 0) id = 0; else if (id >= EntryCount) id = EntryCount - 1;
+      if (id < 0) id = 0; else if (id >= cbLabel.length) id = cbLabel.length - 1;
       return cbLabel[id].isSelected();
     }
 
     public Pair<Object> getOptionFlags(int id)
     {
-      if (id < 0) id = 0; else if (id >= EntryCount) id = EntryCount - 1;
-      return cbLabel[id].isSelected() ? pFlags[id].getOptionFlags() : new Pair<Object>(0, false);
+      if (id < 0) id = 0; else if (id >= LABELS.length) id = LABELS.length - 1;
+      return cbLabel[id].isSelected() ? pFlags[id].getOptionFlags() : new Pair<>(0, false);
     }
 
 
@@ -4460,8 +4484,8 @@ public class SearchResource extends ChildFrame
       boolean isBoth = isIWD2 || (Profile.getEngine() == Profile.Engine.PST);
 
       // initializing components
-      for (int i = 0; i < EntryCount; i++) {
-        cbLabel[i] = new JCheckBox(label[i]);
+      for (int i = 0; i < LABELS.length; i++) {
+        cbLabel[i] = new JCheckBox(LABELS[i]);
         cbLabel[i].setEnabled((i == TYPE_ATTRIBUTES) ? isBoth : isIWD2);
         cbLabel[i].addActionListener(this);
       }
@@ -4488,7 +4512,7 @@ public class SearchResource extends ChildFrame
       // placing components
       GridBagConstraints c = new GridBagConstraints();
       JPanel panel = new JPanel(new GridBagLayout());
-      for (int i = 0; i < EntryCount; i++) {
+      for (int i = 0; i < LABELS.length; i++) {
         c = ViewerUtil.setGBC(c, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                               GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, 0, 0, 0), 0, 0);
         panel.add(cbLabel[i], c);
@@ -4592,14 +4616,17 @@ public class SearchResource extends ChildFrame
     public static final int ITEM_KITSUNUSABLE3  = 3;
     public static final int ITEM_KITSUNUSABLE4  = 4;
 
-    private static final int EntryCount     = 5;
-    private static final String[] label = new String[]{"Unusable by:", "Unusable kits 1:",
-                                                       "Unusable kits 2:", "Unusable kits 3:",
-                                                       "Unusable kits 4:"};
+    private static final String[] LABELS = {
+      "Unusable by:",
+      "Unusable kits 1:",
+      "Unusable kits 2:",
+      "Unusable kits 3:",
+      "Unusable kits 4:",
+    };
 
-    private final JCheckBox[] cbLabel = new JCheckBox[EntryCount];
-    private final FlagsPanel[] pFlags = new FlagsPanel[EntryCount];
-    private final ButtonPopupWindow[] bpwFlags = new ButtonPopupWindow[EntryCount];
+    private final JCheckBox[] cbLabel = new JCheckBox[LABELS.length];
+    private final FlagsPanel[] pFlags = new FlagsPanel[LABELS.length];
+    private final ButtonPopupWindow[] bpwFlags = new ButtonPopupWindow[LABELS.length];
 
     public ItmUsabilityPanel()
     {
@@ -4612,7 +4639,7 @@ public class SearchResource extends ChildFrame
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() instanceof JCheckBox) {
-        for (int i = 0; i < EntryCount; i++) {
+        for (int i = 0; i < LABELS.length; i++) {
           if (event.getSource() == cbLabel[i]) {
             bpwFlags[i].setEnabled(cbLabel[i].isSelected());
             if (cbLabel[i].isSelected()) { bpwFlags[i].requestFocusInWindow(); }
@@ -4625,7 +4652,7 @@ public class SearchResource extends ChildFrame
 
     public boolean isActive(int id)
     {
-      if (id < 0) id = 0; else if (id >= EntryCount) id = EntryCount - 1;
+      if (id < 0) id = 0; else if (id >= cbLabel.length) id = cbLabel.length - 1;
       return cbLabel[id].isSelected();
     }
 
@@ -4640,8 +4667,8 @@ public class SearchResource extends ChildFrame
       boolean kitsSupported = Profile.getProperty(Profile.Key.IS_SUPPORTED_KITS);
 
       // initializing components
-      for (int i = 0; i < EntryCount; i++) {
-        cbLabel[i] = new JCheckBox(label[i]);
+      for (int i = 0; i < LABELS.length; i++) {
+        cbLabel[i] = new JCheckBox(LABELS[i]);
         if (i >= ITEM_KITSUNUSABLE1) {
           cbLabel[i].setEnabled(kitsSupported);
         }
@@ -4679,7 +4706,7 @@ public class SearchResource extends ChildFrame
       // placing components
       GridBagConstraints c = new GridBagConstraints();
       JPanel panel = new JPanel(new GridBagLayout());
-      for (int i = 0; i < EntryCount; i++) {
+      for (int i = 0; i < LABELS.length; i++) {
         c = ViewerUtil.setGBC(c, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                               GridBagConstraints.NONE, new Insets((i > 0) ? 4 : 0, 0, 0, 0), 0, 0);
         panel.add(cbLabel[i], c);
@@ -4712,14 +4739,19 @@ public class SearchResource extends ChildFrame
     public static final int STAT_WIS        = 6;
     public static final int STAT_CHA        = 7;
 
-    private static final int EntryCount = 8;
-    private static final String[] Labels = new String[]{
-      "Min. Level:", "Min. STR:", "Min. STR bonus:", "Min. DEX:",
-      "Min. CON:", "Min. INT:", "Min. WIS:", "Min. CHA:"
+    private static final String[] LABELS = {
+      "Min. Level:",
+      "Min. STR:",
+      "Min. STR bonus:",
+      "Min. DEX:",
+      "Min. CON:",
+      "Min. INT:",
+      "Min. WIS:",
+      "Min. CHA:",
     };
 
-    private final JCheckBox[] cbStats = new JCheckBox[EntryCount];
-    private final JSpinner[][] sStats = new JSpinner[EntryCount][2];
+    private final JCheckBox[] cbStats = new JCheckBox[LABELS.length];
+    private final JSpinner[][] sStats = new JSpinner[LABELS.length][2];
 
     public ItmStatsPanel()
     {
@@ -4732,7 +4764,7 @@ public class SearchResource extends ChildFrame
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() instanceof JCheckBox) {
-        for (int i = 0; i < EntryCount; i++) {
+        for (int i = 0; i < cbStats.length; i++) {
           if (event.getSource() == cbStats[i]) {
             sStats[i][0].setEnabled(cbStats[i].isSelected());
             sStats[i][1].setEnabled(cbStats[i].isSelected());
@@ -4746,7 +4778,7 @@ public class SearchResource extends ChildFrame
 
     public boolean isActive(int statID)
     {
-      if (statID >= 0 && statID < EntryCount) {
+      if (statID >= 0 && statID < cbStats.length) {
         return cbStats[statID].isSelected();
       }
       return false;
@@ -4759,8 +4791,8 @@ public class SearchResource extends ChildFrame
 
     private void init()
     {
-      for (int i = 0; i < EntryCount; i++) {
-        cbStats[i] = new JCheckBox(Labels[i]);
+      for (int i = 0; i < LABELS.length; i++) {
+        cbStats[i] = new JCheckBox(LABELS[i]);
         cbStats[i].addActionListener(this);
 
         int min = 0;
@@ -4773,7 +4805,7 @@ public class SearchResource extends ChildFrame
       // placing components
       GridBagConstraints c = new GridBagConstraints();
       JPanel panel = new JPanel(new GridBagLayout());
-      for (int i = 0, row = 0, col = 0; i < EntryCount; i++, row++) {
+      for (int i = 0, row = 0, col = 0; i < LABELS.length; i++, row++) {
         if (i == 4) {
           col = 4;
           row = 0;
@@ -4810,7 +4842,7 @@ public class SearchResource extends ChildFrame
   /** Creates a dialog that allows to specify item ability properties. */
   private static final class ItmAbilityPanel extends BasePanel implements ActionListener
   {
-    private static final  int ITEM_TYPE       = 0;
+    private static final int ITEM_TYPE        = 0;
     private static final int ITEM_TARGET      = 1;
     private static final int ITEM_RANGE       = 2;
     private static final int ITEM_LAUNCHER    = 3;
@@ -4823,12 +4855,22 @@ public class SearchResource extends ChildFrame
     private static final int ITEM_PROJECTILE  = 10;
     private static final int ITEM_EFFECTS     = 11;
 
-    private static int EntryCount = 12;
-    private static String[] Labels = new String[]{
-      "Type:", "Target:", "Range (feet):", "Launcher:", "Speed:", "Dice count:",
-      "Dice size:", "Charges:", "Flags:", "Damage type:", "Projectile:", "Effect opcodes:"};
+    private static String[] LABELS = {
+      "Type:",
+      "Target:",
+      "Range (feet):",
+      "Launcher:",
+      "Speed:",
+      "Dice count:",
+      "Dice size:",
+      "Charges:",
+      "Flags:",
+      "Damage type:",
+      "Projectile:",
+      "Effect opcodes:",
+    };
 
-    private final JCheckBox[] cbItems = new JCheckBox[EntryCount];
+    private final JCheckBox[] cbItems = new JCheckBox[LABELS.length];
     private final JSpinner[] sRange = new JSpinner[2];
     private final JSpinner[] sSpeed = new JSpinner[2];
     private final JSpinner[] sDiceCount = new JSpinner[2];
@@ -4920,7 +4962,7 @@ public class SearchResource extends ChildFrame
 
     public boolean isActive(int itemID)
     {
-      if (itemID >= 0 && itemID < EntryCount) {
+      if (itemID >= 0 && itemID < cbItems.length) {
         return cbItems[itemID].isSelected();
       } else {
         return false;
@@ -4999,8 +5041,8 @@ public class SearchResource extends ChildFrame
 
     private void init()
     {
-      for (int i = 0; i < EntryCount; i++) {
-        cbItems[i] = new JCheckBox(Labels[i]);
+      for (int i = 0; i < LABELS.length; i++) {
+        cbItems[i] = new JCheckBox(LABELS[i]);
         cbItems[i].addActionListener(this);
       }
 
@@ -5158,12 +5200,18 @@ public class SearchResource extends ChildFrame
     private static final int SPELL_PROJECTILE = 6;
     private static final int SPELL_EFFECTS    = 7;
 
-    private static final int EntryCount = 8;
-    private static final String[] Labels = new String[]{"Type:", "Location:", "Target:", "Range (feet):",
-                                                        "Min. level:", "Casting speed:", "Projectile:",
-                                                        "Effect opcodes:"};
+    private static final String[] LABELS = {
+      "Type:",
+      "Location:",
+      "Target:",
+      "Range (feet):",
+      "Min. level:",
+      "Casting speed:",
+      "Projectile:",
+      "Effect opcodes:",
+    };
 
-    private final JCheckBox[] cbSpells = new JCheckBox[EntryCount];
+    private final JCheckBox[] cbSpells = new JCheckBox[LABELS.length];
     private final JSpinner[] sRange = new JSpinner[2];
     private final JSpinner[] sLevel = new JSpinner[2];
     private final JSpinner[] sSpeed = new JSpinner[2];
@@ -5233,7 +5281,7 @@ public class SearchResource extends ChildFrame
 
     public boolean isActive(int spellID)
     {
-      if (spellID >= 0 && spellID < EntryCount) {
+      if (spellID >= 0 && spellID < cbSpells.length) {
         return cbSpells[spellID].isSelected();
       } else {
         return false;
@@ -5292,8 +5340,8 @@ public class SearchResource extends ChildFrame
 
     private void init()
     {
-      for (int i = 0; i < EntryCount; i++) {
-        cbSpells[i] = new JCheckBox(Labels[i]);
+      for (int i = 0; i < LABELS.length; i++) {
+        cbSpells[i] = new JCheckBox(LABELS[i]);
         cbSpells[i].addActionListener(this);
       }
 
@@ -5443,7 +5491,7 @@ public class SearchResource extends ChildFrame
 
     public boolean isActive(int index)
     {
-      if (index >= 0 && index < entryCount) {
+      if (index >= 0 && index < cbLabel.length) {
         return cbLabel[index].isSelected();
       } else {
         return false;
@@ -5810,7 +5858,7 @@ public class SearchResource extends ChildFrame
      * @param enabled If not checked, method returns 0
      * @param value Combobox with selectable values. If none selected, method returns 0
      */
-    public static int getIdsValue(JCheckBox enabled, JComboBox<?> value)
+    public static int getIdsValue(JCheckBox enabled, JComboBox<IdsMapEntry> value)
     {
       if (enabled.isSelected()) {
         final IdsMapEntry selected = (IdsMapEntry)value.getSelectedItem();
