@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -23,7 +23,7 @@ public class ObjectString implements CharSequence, Comparable<ObjectString>
   private final String string;
   private final Object object;
 
-  private String displayFormat;
+  private final String displayFormat;
 
   /**
    * Helper routine: Associate strings with objects.
@@ -80,21 +80,6 @@ public class ObjectString implements CharSequence, Comparable<ObjectString>
     return retVal;
   }
 
-
-  /** Constructs an ObjectString with empty String object fields. */
-  public ObjectString()
-  {
-    this(null, null, null);
-  }
-
-  /**
-   * Constructs an ObjectString with the specified String and empty object field.
-   */
-  public ObjectString(String s)
-  {
-    this(s, null, null);
-  }
-
   /**
    * Constructs an ObjectString with the specified String and object fields.
    */
@@ -112,22 +97,6 @@ public class ObjectString implements CharSequence, Comparable<ObjectString>
     this.string = (s != null) ? s : "";
     this.object = object;
     this.displayFormat = (fmt != null) ? fmt : FMT_OBJECT_BRACKETS;
-  }
-
-  /**
-   * Copy constructor for ObjectString.
-   */
-  public ObjectString(ObjectString os)
-  {
-    if (os != null) {
-      this.string = os.getString();
-      this.object = os.getObject();
-      this.displayFormat = os.getDisplayFormat();
-    } else {
-      this.string = "";
-      this.object = null;
-      this.displayFormat = FMT_OBJECT_BRACKETS;
-    }
   }
 
   @Override
@@ -198,22 +167,5 @@ public class ObjectString implements CharSequence, Comparable<ObjectString>
   public <T> T getObject()
   {
     return (T)object;
-  }
-
-  /**
-   * Specify how to display textual output when using {@code toString()}.
-   * @param fmt Indicates how {@code toString()} should display the formatted string.
-   */
-  public void setDisplayFormat(String fmt)
-  {
-    this.displayFormat = (fmt != null) ? fmt : FMT_OBJECT_BRACKETS;
-  }
-
-  /**
-   * Returns the current display format for {@code toString()}.
-   */
-  public String getDisplayFormat()
-  {
-    return displayFormat;
   }
 }
