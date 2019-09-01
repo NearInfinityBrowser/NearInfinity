@@ -753,26 +753,22 @@ public class SearchResource extends ChildFrame
 
     public String getOptionActor()
     {
-      return Utils.getResourceName(cbOptions[ID_Actor].isEnabled(),
-          (ResourceEntry)((NamedResourceEntry)cbActor.getSelectedItem()).getResourceEntry());
+      return Utils.getResourceName(cbOptions[ID_Actor], cbActor);
     }
 
     public String getOptionAreaScript()
     {
-      return Utils.getResourceName(cbOptions[ID_AreaScript].isEnabled(),
-          (ResourceEntry)((NamedResourceEntry)cbScript.getSelectedItem()).getResourceEntry());
+      return Utils.getResourceName(cbOptions[ID_AreaScript], cbScript);
     }
 
     public String getOptionAnimation()
     {
-      return Utils.getResourceName(cbOptions[ID_Animation].isEnabled(),
-          (ResourceEntry)((NamedResourceEntry)cbAnimation.getSelectedItem()).getResourceEntry());
+      return Utils.getResourceName(cbOptions[ID_Animation], cbAnimation);
     }
 
     public String getOptionItem()
     {
-      return Utils.getResourceName(cbOptions[ID_Item].isEnabled(),
-          (ResourceEntry)((NamedResourceEntry)cbItem.getSelectedItem()).getResourceEntry());
+      return Utils.getResourceName(cbOptions[ID_Item], cbItem);
     }
 
     private void init()
@@ -2295,8 +2291,7 @@ public class SearchResource extends ChildFrame
 
     public String getOptionAnimation()
     {
-      return Utils.getResourceName(cbOptions[ID_Animation].isSelected(),
-          (ResourceEntry)((NamedResourceEntry)cbAnimation.getSelectedItem()).getResourceEntry());
+      return Utils.getResourceName(cbOptions[ID_Animation], cbAnimation);
     }
 
     public int getOptionType()
@@ -3363,8 +3358,7 @@ public class SearchResource extends ChildFrame
 
     public String getOptionAnimation()
     {
-      return Utils.getResourceName(cbOptions[ID_Animation].isSelected(),
-          (ResourceEntry)((NamedResourceEntry)cbAnimation.getSelectedItem()).getResourceEntry());
+      return Utils.getResourceName(cbOptions[ID_Animation], cbAnimation);
     }
 
     private void init()
@@ -4625,8 +4619,9 @@ public class SearchResource extends ChildFrame
 
     private final int entryCount;
     private final JCheckBox[] cbLabel;
-    private final JComboBox<?>[] cbItems;
+    private final JComboBox<NamedResourceEntry>[] cbItems;
 
+    @SuppressWarnings("unchecked")
     public CreItemsPanel(int itemCount)
     {
       super();
@@ -4672,9 +4667,7 @@ public class SearchResource extends ChildFrame
 
     public String getOptionItem(int id)
     {
-      if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
-      return Utils.getResourceName(cbItems[id].isEnabled(),
-          (ResourceEntry)((NamedResourceEntry)cbItems[id].getSelectedItem()).getResourceEntry());
+      return Utils.getResourceName(cbLabel[id], cbItems[id]);
     }
 
     private void init()
@@ -4726,8 +4719,9 @@ public class SearchResource extends ChildFrame
 
     private final int entryCount;
     private final JCheckBox[] cbLabel;
-    private final JComboBox<?>[] cbSpells;
+    private final JComboBox<NamedResourceEntry>[] cbSpells;
 
+    @SuppressWarnings("unchecked")
     public CreSpellsPanel(int spellCount)
     {
       super();
@@ -4773,9 +4767,7 @@ public class SearchResource extends ChildFrame
 
     public String getOptionSpell(int id)
     {
-      if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
-      return Utils.getResourceName(cbSpells[id].isEnabled(),
-          (ResourceEntry)((NamedResourceEntry)cbSpells[id].getSelectedItem()).getResourceEntry());
+      return Utils.getResourceName(cbLabel[id], cbSpells[id]);
     }
 
     private void init()
@@ -4828,8 +4820,9 @@ public class SearchResource extends ChildFrame
 
     private final int entryCount;
     private final JCheckBox[] cbLabel;
-    private final JComboBox<?>[] cbScripts;
+    private final JComboBox<NamedResourceEntry>[] cbScripts;
 
+    @SuppressWarnings("unchecked")
     public CreScriptsPanel(int scriptCount)
     {
       super();
@@ -4875,9 +4868,7 @@ public class SearchResource extends ChildFrame
 
     public String getOptionScript(int id)
     {
-      if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
-      return Utils.getResourceName(cbScripts[id].isEnabled(),
-          (ResourceEntry)((NamedResourceEntry)cbScripts[id].getSelectedItem()).getResourceEntry());
+      return Utils.getResourceName(cbLabel[id], cbScripts[id]);
     }
 
     private void init()
@@ -5953,8 +5944,9 @@ public class SearchResource extends ChildFrame
 
     private final int entryCount;
     private final JCheckBox[] cbLabel;
-    private final JComboBox<?>[] cbItems;
+    private final JComboBox<NamedResourceEntry>[] cbItems;
 
+    @SuppressWarnings("unchecked")
     public StoForSalePanel(int itemCount)
     {
       super();
@@ -5998,11 +5990,9 @@ public class SearchResource extends ChildFrame
       return cbLabel[id].isSelected();
     }
 
-    public String getOptionItem(int index)
+    public String getOptionItem(int id)
     {
-      if (index < 0) index = 0; else if (index >= entryCount) index = entryCount - 1;
-      return Utils.getResourceName(cbItems[index].isEnabled(),
-          (ResourceEntry)((NamedResourceEntry)cbItems[index].getSelectedItem()).getResourceEntry());
+      return Utils.getResourceName(cbLabel[id], cbItems[id]);
     }
 
     private void init()
@@ -6406,9 +6396,11 @@ public class SearchResource extends ChildFrame
     }
 
     /** Returns the resource name of the specified entry. Handles "NONE" correctly. */
-    public static String getResourceName(boolean enabled, ResourceEntry entry)
+    public static String getResourceName(JCheckBox enabled, JComboBox<NamedResourceEntry> selector)
     {
-      if (enabled && entry != null && !"NONE".equalsIgnoreCase(entry.getResourceName())) {
+      final NamedResourceEntry named = (NamedResourceEntry)selector.getSelectedItem();
+      final ResourceEntry entry = named.getResourceEntry();
+      if (enabled.isSelected() && entry != null && !"NONE".equalsIgnoreCase(entry.getResourceName())) {
         return entry.getResourceName();
       }
       return "";
