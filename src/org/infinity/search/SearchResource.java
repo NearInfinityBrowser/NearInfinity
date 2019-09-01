@@ -5671,20 +5671,13 @@ public class SearchResource extends ChildFrame
       if (entry != null) {
         if (entry.getResourceName().equalsIgnoreCase(NONE)) {
           return NONE;
-        } else {
-          if (resName != null) {
-            if (!resName.isEmpty()) {
-              return String.format("%s (%s)", entry.getResourceName(), resName);
-            } else {
-              return String.format("%s (No such index)", entry.getResourceName());
-            }
-          } else {
-            return entry.getResourceName();
-          }
         }
-      } else {
-        return "(Invalid filename)";
+        if (resName != null && !resName.isEmpty()) {
+          return String.format("%s (%s)", entry.getResourceName(), resName);
+        }
+        return entry.getResourceName();
       }
+      return "(Invalid filename)";
     }
 
     @Override
