@@ -20,7 +20,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -87,7 +86,6 @@ import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.itm.Ability;
 import org.infinity.resource.itm.ItmResource;
-import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.other.VvcResource;
 import org.infinity.resource.pro.ProAreaType;
@@ -95,6 +93,8 @@ import org.infinity.resource.pro.ProResource;
 import org.infinity.resource.pro.ProSingleType;
 import org.infinity.resource.spl.SplResource;
 import org.infinity.resource.sto.StoResource;
+import org.infinity.resource.ui.ResourceCellRenderer;
+import org.infinity.resource.ui.ResourceListModel;
 import org.infinity.util.Debugging;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.Misc;
@@ -110,9 +110,9 @@ public class SearchResource extends ChildFrame
   private static final String[] setShowHideText = {"Show options >>>", "Hide options <<<"};
   private static final String propertyOptions = "NearInfinity.Options.IsEmpty";
 
-  private final HashMap<String, OptionsBasePanel> mapOptionsPanel = new HashMap<String, OptionsBasePanel>();
+  private final HashMap<String, OptionsBasePanel> mapOptionsPanel = new HashMap<>();
   private JPanel pFindOptions, pBottomBar;
-  private JList<NamedResourceEntry> listResults;
+  private JList<ResourceEntry> listResults;
   private JLabel lResults;
   private JButton bSearch, bInsertRef, bOpen, bOpenNew;
   private JComboBox<ObjectString> cbResourceType;
@@ -173,27 +173,22 @@ public class SearchResource extends ChildFrame
                                       JOptionPane.ERROR_MESSAGE);
         return;
       } else {
-        if (listResults.getSelectedIndex() >= 0) {
-          ResourceEntry entry = ((NamedResourceEntry)listResults.getSelectedValue()).getResourceEntry();
-          if (entry != null) {
-            String resname = entry.getResourceName().substring(0, entry.getResourceName().indexOf('.'));
-            ((BcsResource)viewable).insertString('\"' + resname + '\"');
-          }
+        final ResourceEntry entry = listResults.getSelectedValue();
+        if (entry != null) {
+          // TODO: Need method to get resource name without extension
+          final String resname = entry.getResourceName().substring(0, entry.getResourceName().indexOf('.'));
+          ((BcsResource)viewable).insertString('"' + resname + '"');
         }
       }
     } else if (event.getSource() == bOpen) {
-      if (listResults.getSelectedIndex() >= 0) {
-        ResourceEntry entry = ((NamedResourceEntry)listResults.getSelectedValue()).getResourceEntry();
-        if (entry != null) {
-          NearInfinity.getInstance().showResourceEntry(entry);
-        }
+      final ResourceEntry entry = listResults.getSelectedValue();
+      if (entry != null) {
+        NearInfinity.getInstance().showResourceEntry(entry);
       }
     } else if (event.getSource() == bOpenNew) {
-      if (listResults.getSelectedIndex() >= 0) {
-        ResourceEntry entry = ((NamedResourceEntry)listResults.getSelectedValue()).getResourceEntry();
-        if (entry != null) {
-          new ViewFrame(this, ResourceFactory.getResource(entry));
-        }
+      final ResourceEntry entry = listResults.getSelectedValue();
+      if (entry != null) {
+        new ViewFrame(this, ResourceFactory.getResource(entry));
       }
     }
   }
@@ -217,7 +212,7 @@ public class SearchResource extends ChildFrame
   @Override
   public void run()
   {
-    listResults.setListData(new NamedResourceEntry[0]);
+    listResults.setListData(new ResourceEntry[0]);
     listResults.setEnabled(false);
     bInsertRef.setEnabled(false);
     bOpen.setEnabled(false);
@@ -228,7 +223,7 @@ public class SearchResource extends ChildFrame
     if (!type.isEmpty()) {
       // initializations
       List<ResourceEntry> resources = ResourceFactory.getResources(type);
-      Vector<NamedResourceEntry> found = new Vector<NamedResourceEntry>();
+      final Vector<ResourceEntry> found = new Vector<>();
       bSearch.setEnabled(false);
       pbProgress.setMinimum(0);
       pbProgress.setMaximum(resources.size());
@@ -414,7 +409,8 @@ public class SearchResource extends ChildFrame
       // creating Results section
       JLabel lResult = new JLabel("Result:");
       lResults = new JLabel("");
-      listResults = new JList<>(new SimpleListModel<NamedResourceEntry>());
+      listResults = new JList<>(new SimpleListModel<>());
+      listResults.setCellRenderer(new ResourceCellRenderer());
       listResults.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
       listResults.addMouseListener(new MouseAdapter() {
         @Override
@@ -547,20 +543,21 @@ public class SearchResource extends ChildFrame
 //-------------------------- INNER CLASSES --------------------------
 
   /** Worker class for threaded searching resources. */
-  private class SearchWorker implements Runnable
+  private final class SearchWorker implements Runnable
   {
-    private final List<NamedResourceEntry> list;
+    /** List with result of operation. */
+    private final List<ResourceEntry> matched;
     private final SearchOptions so;
     private final ResourceEntry entry;
 
     /**
-     * @param list List containing matching resources
+     * @param matched List containing matching resources
      * @param so SearchOptions instance
      * @param entry The resource to search
      */
-    public SearchWorker(List<NamedResourceEntry> list, SearchOptions so, ResourceEntry entry)
+    public SearchWorker(List<ResourceEntry> matched, SearchOptions so, ResourceEntry entry)
     {
-      this.list = list;
+      this.matched = matched;
       this.so = so;
       this.entry = entry;
     }
@@ -569,7 +566,7 @@ public class SearchResource extends ChildFrame
     public void run()
     {
       if (entry.matchSearchOptions(so)) {
-        list.add(new NamedResourceEntry(entry));
+        matched.add(entry);
       }
       synchronized (pbProgress) {
         pbProgress.setValue(pbProgress.getValue() + 1);
@@ -654,7 +651,7 @@ public class SearchResource extends ChildFrame
     private FlagsPanel pType, pLocation;
     private CustomFilterPanel pCustomFilter;
     private ButtonPopupWindow bpwType, bpwLocation, bpwCustomFilter;
-    private JComboBox<NamedResourceEntry> cbActor, cbAnimation, cbScript, cbItem;
+    private JComboBox<ResourceEntry> cbActor, cbAnimation, cbScript, cbItem;
 
 
     public OptionsAREPanel(SearchResource searchResource)
@@ -2169,7 +2166,7 @@ public class SearchResource extends ChildFrame
     private FlagsPanel pBehavior, pFlags, pAreaFlags;
     private CustomFilterPanel pCustomFilter;
     private ButtonPopupWindow bpwFlags, bpwBehavior, bpwAreaFlags, bpwCustomFilter;
-    private JComboBox<NamedResourceEntry> cbAnimation;
+    private JComboBox<ResourceEntry> cbAnimation;
     private JComboBox<IndexedString> cbType;
     private JComboBox<IndexedString> cbExplosionEffect;
 
@@ -3259,7 +3256,7 @@ public class SearchResource extends ChildFrame
     private FlagsPanel pFlags, pColor, pSequencing, pOrientation;
     private CustomFilterPanel pCustomFilter;
     private ButtonPopupWindow bpwFlags, bpwColor, bpwSequencing, bpwOrientation, bpwCustomFilter;
-    private JComboBox<NamedResourceEntry> cbAnimation;
+    private JComboBox<ResourceEntry> cbAnimation;
 
 
     public OptionsVVCPanel(SearchResource searchResource)
@@ -3738,8 +3735,8 @@ public class SearchResource extends ChildFrame
     private final JTextField[] tfFieldName;
     private final JTextField[] tfFieldValueString;
     private final JSpinner[][] sFieldValueNumber;
-    private final JComboBox<?>[] cbFieldValueResource;
-    private final JComboBox<?>[] cbFieldValueResourceType;
+    private final JComboBox<ResourceEntry>[] cbFieldValueResource;
+    private final JComboBox<String>[] cbFieldValueResourceType;
     private final FlagsPanel[] pFieldValueFlags;
     private final ButtonPopupWindow[] bpwFieldValueFlags;
     private final CardLayout[] clFilter;
@@ -3747,6 +3744,7 @@ public class SearchResource extends ChildFrame
     private final JPanel[] pFilterValue;
 
 
+    @SuppressWarnings("unchecked")
     public CustomFilterPanel(int filterCount, String label)
     {
       super();
@@ -3798,7 +3796,7 @@ public class SearchResource extends ChildFrame
                 break;
             }
           } else if (event.getSource() == cbFieldValueResourceType[i]) {
-            updateResourceList(i, (String)cbFieldValueResourceType[i].getSelectedItem());
+            updateResourceList(i);
             break;
           }
         }
@@ -3825,8 +3823,8 @@ public class SearchResource extends ChildFrame
             final Integer max = (Integer)sFieldValueNumber[id][1].getValue();
             return new Pair<>(name, new Pair<>(min, max));
           case FILTER_RESOURCE:
-            final NamedResourceEntry named = (NamedResourceEntry)cbFieldValueResource[id].getSelectedItem();
-            return new Pair<>(name, named.getResourceEntry().getResourceName());
+            final ResourceEntry entry = (ResourceEntry)cbFieldValueResource[id].getSelectedItem();
+            return new Pair<>(name, entry.getResourceName());
           case FILTER_FLAGS:
             return new Pair<>(name, pFieldValueFlags[id].getOptionFlags());
         }
@@ -3867,7 +3865,7 @@ public class SearchResource extends ChildFrame
           cbFieldValueResourceType[entry].addActionListener(this);
           cbFieldValueResource[entry] = new JComboBox<>();
           cbFieldValueResource[entry].setPreferredSize(Utils.getPrototypeSize(cbFieldValueResource[entry]));
-          updateResourceList(entry, (String)cbFieldValueResourceType[entry].getSelectedItem());
+          updateResourceList(entry);
           c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
           panel.add(cbFieldValueResource[entry], c);
@@ -3894,25 +3892,11 @@ public class SearchResource extends ChildFrame
       return panel;
     }
 
-    private void updateResourceList(int entry, String type)
+    private void updateResourceList(int entry)
     {
-      if (entry < 0) entry = 0; else if (entry >= entryCount) entry = entryCount - 1;
+      final String type = (String)cbFieldValueResourceType[entry].getSelectedItem();
       if (type != null) {
-        @SuppressWarnings("unchecked")
-        JComboBox<Object> cb = (JComboBox<Object>)cbFieldValueResource[entry];
-        cb.setEnabled(false);
-        try {
-          cb.removeAllItems();
-          final Vector<NamedResourceEntry> list = Utils.createNamedResourceList(type);
-          final NamedResourceEntry nre = list.get(0);
-          list.sort(null);
-          for (final NamedResourceEntry named : list) {
-            cb.addItem(named);
-          }
-          cb.setSelectedItem(nre);
-        } finally {
-          cb.setEnabled(true);
-        }
+        cbFieldValueResource[entry].setModel(new ResourceListModel(type));
       }
     }
 
@@ -4534,7 +4518,7 @@ public class SearchResource extends ChildFrame
   private static class ResourcesFilterPanel extends BasePanel implements ActionListener
   {
     private final JCheckBox[] cbLabel;
-    private final JComboBox<NamedResourceEntry>[] cbItems;
+    private final JComboBox<ResourceEntry>[] cbItems;
 
     /**
      *
@@ -5646,56 +5630,6 @@ public class SearchResource extends ChildFrame
     }
   }
 
-  /** Simple wrapper for ResourceEntry structures to provide a more informative description. */
-  private static final class NamedResourceEntry implements Comparable<NamedResourceEntry>
-  {
-    private static final String NONE = "None";
-
-    private final ResourceEntry entry;
-    private final String resName;
-
-    public NamedResourceEntry(ResourceEntry entry)
-    {
-      this.entry = entry;
-      resName = (entry != null && !entry.getResourceName().equalsIgnoreCase(NONE)) ? entry.getSearchString() : null;
-    }
-
-    public ResourceEntry getResourceEntry()
-    {
-      return entry;
-    }
-
-    @Override
-    public String toString()
-    {
-      if (entry != null) {
-        if (entry.getResourceName().equalsIgnoreCase(NONE)) {
-          return NONE;
-        }
-        if (resName != null && !resName.isEmpty()) {
-          return String.format("%s (%s)", entry.getResourceName(), resName);
-        }
-        return entry.getResourceName();
-      }
-      return "(Invalid filename)";
-    }
-
-    @Override
-    public int compareTo(NamedResourceEntry o)
-    {
-      if (entry != null && o.entry != null) {
-        return entry.compareTo(o.entry);
-      } else if (entry == null && o.entry != null) {
-        return -1;
-      } else if (entry != null && o.entry == null) {
-        return 1;
-      } else {
-        return 0;
-      }
-    }
-  }
-
-
   /** Controls the maximum string length of text input components. */
   private static final class FormattedDocument extends PlainDocument
   {
@@ -5730,38 +5664,14 @@ public class SearchResource extends ChildFrame
     /** Can be used to determine the preferred size of a combobox. */
     public static final String ProtoTypeString = "XXXXXXXX.XXXX (XXXXXXXXXXXX)";
 
-    /** Returns a unsorted list of resource names, first entry is the special "None" entry. */
-    public static Vector<NamedResourceEntry> createNamedResourceList(String... types)
-    {
-      final Vector<NamedResourceEntry> list = new Vector<>();
-      final NamedResourceEntry nre =
-          new NamedResourceEntry(new FileResourceEntry(FileSystems.getDefault().getPath("None")));
-      list.add(nre);
-      if (types != null) {
-        for (final String type : types) {
-          final List<ResourceEntry> entries = ResourceFactory.getResources(type);
-          if (entries != null) {
-            for (final ResourceEntry entry : entries) {
-              list.add(new NamedResourceEntry(entry));
-            }
-          }
-        }
-      }
-
-      return list;
-    }
-
     /** Returns a combobox containing all available resource of specified extensions. */
-    public static JComboBox<NamedResourceEntry> createNamedResourceComboBox(String[] extensions, boolean usePrototype)
+    public static JComboBox<ResourceEntry> createNamedResourceComboBox(String[] extensions, boolean usePrototype)
     {
-      final Vector<NamedResourceEntry> names = createNamedResourceList(extensions);
-      final NamedResourceEntry nre = names.get(0);
-      names.sort(null);
-      JComboBox<NamedResourceEntry> cb = new JComboBox<>(names);
+      final JComboBox<ResourceEntry> cb = new JComboBox<>(new ResourceListModel(extensions));
+      cb.setRenderer(new ResourceCellRenderer());
       if (usePrototype) {
         cb.setPreferredSize(Utils.getPrototypeSize(cb));
       }
-      cb.setSelectedItem(nre);
 
       return cb;
     }
@@ -5876,10 +5786,9 @@ public class SearchResource extends ChildFrame
     }
 
     /** Returns the resource name of the specified entry. Handles "NONE" correctly. */
-    public static String getResourceName(JCheckBox enabled, JComboBox<NamedResourceEntry> selector)
+    public static String getResourceName(JCheckBox enabled, JComboBox<ResourceEntry> selector)
     {
-      final NamedResourceEntry named = (NamedResourceEntry)selector.getSelectedItem();
-      final ResourceEntry entry = named.getResourceEntry();
+      final ResourceEntry entry = (ResourceEntry)selector.getSelectedItem();
       if (enabled.isSelected() && entry != null && !"NONE".equalsIgnoreCase(entry.getResourceName())) {
         return entry.getResourceName();
       }
