@@ -1541,17 +1541,17 @@ public class SearchResource extends ChildFrame
 
     public Pair<Integer> getOptionEffect()
     {
-      return Utils.getRangeValues(cbOptions[ID_Effect].isSelected(), sOpcode);
+      return Utils.getRangeValues(cbOptions[ID_Effect], sOpcode);
     }
 
     public Pair<Integer> getOptionParam1()
     {
-      return Utils.getRangeValues(cbOptions[ID_Param1].isSelected(), sParam1);
+      return Utils.getRangeValues(cbOptions[ID_Param1], sParam1);
     }
 
     public Pair<Integer> getOptionParam2()
     {
-      return Utils.getRangeValues(cbOptions[ID_Param2].isSelected(), sParam2);
+      return Utils.getRangeValues(cbOptions[ID_Param2], sParam2);
     }
 
     public String getOptionResource1()
@@ -1972,12 +1972,12 @@ public class SearchResource extends ChildFrame
 
     public Pair<Integer> getOptionPrice()
     {
-      return Utils.getRangeValues(cbOptions[ID_Price].isSelected(), sPrice);
+      return Utils.getRangeValues(cbOptions[ID_Price], sPrice);
     }
 
     public Pair<Integer> getOptionEnchantment()
     {
-      return Utils.getRangeValues(cbOptions[ID_Enchantment].isSelected(), sEnchantment);
+      return Utils.getRangeValues(cbOptions[ID_Enchantment], sEnchantment);
     }
 
 
@@ -2307,17 +2307,17 @@ public class SearchResource extends ChildFrame
 
     public Pair<Integer> getOptionSpeed()
     {
-      return Utils.getRangeValues(cbOptions[ID_Speed].isSelected(), sSpeed);
+      return Utils.getRangeValues(cbOptions[ID_Speed], sSpeed);
     }
 
     public Pair<Integer> getOptionTrapSize()
     {
-      return Utils.getRangeValues(cbOptions[ID_TrapSize].isSelected(), sTrapSize);
+      return Utils.getRangeValues(cbOptions[ID_TrapSize], sTrapSize);
     }
 
     public Pair<Integer> getOptionExplosionSize()
     {
-      return Utils.getRangeValues(cbOptions[ID_ExplosionSize].isSelected(), sExplosionSize);
+      return Utils.getRangeValues(cbOptions[ID_ExplosionSize], sExplosionSize);
     }
 
     public int getOptionExplosionEffect()
@@ -2703,7 +2703,7 @@ public class SearchResource extends ChildFrame
 
     public Pair<Integer> getOptionLevel()
     {
-      return Utils.getRangeValues(cbOptions[ID_Level].isSelected(), sLevel);
+      return Utils.getRangeValues(cbOptions[ID_Level], sLevel);
     }
 
     private void init()
@@ -3070,27 +3070,27 @@ public class SearchResource extends ChildFrame
 
     public Pair<Integer> getOptionDepreciationRate()
     {
-      return Utils.getRangeValues(cbOptions[ID_Depreciation].isSelected(), sDepreciation);
+      return Utils.getRangeValues(cbOptions[ID_Depreciation], sDepreciation);
     }
 
     public Pair<Integer> getOptionSellMarkup()
     {
-      return Utils.getRangeValues(cbOptions[ID_SellMarkup].isSelected(), sSellMarkup);
+      return Utils.getRangeValues(cbOptions[ID_SellMarkup], sSellMarkup);
     }
 
     public Pair<Integer> getOptionBuyMarkup()
     {
-      return Utils.getRangeValues(cbOptions[ID_BuyMarkup].isSelected(), sBuyMarkup);
+      return Utils.getRangeValues(cbOptions[ID_BuyMarkup], sBuyMarkup);
     }
 
     public Pair<Integer> getOptionStealing()
     {
-      return Utils.getRangeValues(cbOptions[ID_Stealing].isSelected(), sStealing);
+      return Utils.getRangeValues(cbOptions[ID_Stealing], sStealing);
     }
 
     public Pair<Integer> getOptionCapacity()
     {
-      return Utils.getRangeValues(cbOptions[ID_Capacity].isSelected(), sCapacity);
+      return Utils.getRangeValues(cbOptions[ID_Capacity], sCapacity);
     }
 
     private void init()
@@ -3694,8 +3694,7 @@ public class SearchResource extends ChildFrame
 
     public Pair<Integer> getOptionEffect(int id)
     {
-      if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
-      return Utils.getRangeValues(cbLabel[id].isSelected(), sEffects[id]);
+      return Utils.getRangeValues(cbLabel[id], sEffects[id]);
     }
 
     private void init()
@@ -3866,19 +3865,20 @@ public class SearchResource extends ChildFrame
     public Pair<Object> getOptionFilter(int id)
     {
       if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
-      if (cbLabel[id].isSelected() && !tfFieldName[id].getText().isEmpty()) {
+      final String name = tfFieldName[id].getText();
+      if (cbLabel[id].isSelected() && !name.isEmpty()) {
         switch (cbFilterType[id].getSelectedIndex()) {
           case FILTER_STRING:
-            return new Pair<Object>(tfFieldName[id].getText(), tfFieldValueString[id].getText());
+            return new Pair<>(name, tfFieldValueString[id].getText());
           case FILTER_NUMBER:
-            return new Pair<Object>(tfFieldName[id].getText(),
-                Utils.getRangeValues(true, sFieldValueNumber[id]));
+            final Integer min = (Integer)sFieldValueNumber[id][0].getValue();
+            final Integer max = (Integer)sFieldValueNumber[id][1].getValue();
+            return new Pair<>(name, new Pair<>(min, max));
           case FILTER_RESOURCE:
-            return new Pair<Object>(tfFieldName[id].getText(),
-                                    ((NamedResourceEntry)cbFieldValueResource[id].getSelectedItem())
-                                      .getResourceEntry().getResourceName());
+            final NamedResourceEntry named = (NamedResourceEntry)cbFieldValueResource[id].getSelectedItem();
+            return new Pair<>(name, named.getResourceEntry().getResourceName());
           case FILTER_FLAGS:
-            return new Pair<Object>(tfFieldName[id].getText(), pFieldValueFlags[id].getOptionFlags());
+            return new Pair<>(name, pFieldValueFlags[id].getOptionFlags());
         }
       }
       return null;
@@ -6434,12 +6434,11 @@ public class SearchResource extends ChildFrame
     }
 
     /** Returns the min/max values of the specified spinner objects. */
-    public static Pair<Integer> getRangeValues(boolean enabled, JSpinner[] spinner)
+    public static Pair<Integer> getRangeValues(JCheckBox enabled, JSpinner[] spinner)
     {
-      if (enabled && spinner != null && spinner.length > 1) {
-        return new Pair<Integer>((Integer)spinner[0].getValue(), (Integer)spinner[1].getValue());
-      }
-      return new Pair<Integer>(0, 0);
+      return enabled.isSelected()
+          ? new Pair<>((Integer)spinner[0].getValue(), (Integer)spinner[1].getValue())
+          : new Pair<>(0, 0);
     }
 
     /** Returns a protype dimension object based on the height of @(code c} and the width of (@code prototype}. */
