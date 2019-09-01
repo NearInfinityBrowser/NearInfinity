@@ -1966,8 +1966,7 @@ public class SearchResource extends ChildFrame
 
     public String getOptionAppearance()
     {
-      return Utils.getObjectFromString(cbOptions[ID_Appearance].isSelected(),
-                                       cbAppearance.getSelectedItem()).toString();
+      return Utils.getObjectFromString(cbOptions[ID_Appearance], cbAppearance).toString();
     }
 
     public Pair<Integer> getOptionPrice()
@@ -2302,7 +2301,7 @@ public class SearchResource extends ChildFrame
 
     public int getOptionType()
     {
-      return (Integer)Utils.getObjectFromString(cbOptions[ID_Type].isSelected(), cbType.getSelectedItem());
+      return (Integer)Utils.getObjectFromString(cbOptions[ID_Type], cbType);
     }
 
     public Pair<Integer> getOptionSpeed()
@@ -2322,8 +2321,7 @@ public class SearchResource extends ChildFrame
 
     public int getOptionExplosionEffect()
     {
-      return (Integer)Utils.getObjectFromString(cbOptions[ID_ExplosionEffect].isSelected(),
-                                                cbExplosionEffect.getSelectedItem());
+      return (Integer)Utils.getObjectFromString(cbOptions[ID_ExplosionEffect], cbExplosionEffect);
     }
 
 
@@ -2679,26 +2677,22 @@ public class SearchResource extends ChildFrame
 
     public int getOptionSpellType()
     {
-      return (Integer)Utils.getObjectFromString(cbOptions[ID_SpellType].isSelected(),
-                                                cbSpellType.getSelectedItem());
+      return (Integer)Utils.getObjectFromString(cbOptions[ID_SpellType], cbSpellType);
     }
 
     public int getOptionCastingAnimation()
     {
-      return (Integer)Utils.getObjectFromString(cbOptions[ID_CastingAnimation].isSelected(),
-                                                cbCastingAnim.getSelectedItem());
+      return (Integer)Utils.getObjectFromString(cbOptions[ID_CastingAnimation], cbCastingAnim);
     }
 
     public int getOptionPrimaryType()
     {
-      return (Integer)Utils.getObjectFromString(cbOptions[ID_PrimaryType].isSelected(),
-                                                cbPrimary.getSelectedItem());
+      return (Integer)Utils.getObjectFromString(cbOptions[ID_PrimaryType], cbPrimary);
     }
 
     public int getOptionSecondaryType()
     {
-      return (Integer)Utils.getObjectFromString(cbOptions[ID_SecondaryType].isSelected(),
-                                                cbSecondary.getSelectedItem());
+      return (Integer)Utils.getObjectFromString(cbOptions[ID_SecondaryType], cbSecondary);
     }
 
     public Pair<Integer> getOptionLevel()
@@ -3065,7 +3059,7 @@ public class SearchResource extends ChildFrame
 
     public int getOptionType()
     {
-      return (Integer)Utils.getObjectFromString(cbOptions[ID_Type].isSelected(), cbType.getSelectedItem());
+      return (Integer)Utils.getObjectFromString(cbOptions[ID_Type], cbType);
     }
 
     public Pair<Integer> getOptionDepreciationRate()
@@ -6420,10 +6414,11 @@ public class SearchResource extends ChildFrame
       return "";
     }
 
-    /** Returns the object if value is an ObjectString, or value otherwise. */
-    public static Object getObjectFromString(boolean enabled, Object value)
+    /** Returns the object if value is an {@link StorageString}, or value otherwise. */
+    public static Object getObjectFromString(JCheckBox enabled, JComboBox<? extends StorageString> selector)
     {
-      if (enabled && value != null) {
+      final Object value = selector.getSelectedItem();
+      if (enabled.isSelected() && value != null) {
         if (value instanceof StorageString) {
           return ((StorageString)value).getObject();
         } else {
