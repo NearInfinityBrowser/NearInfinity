@@ -3895,20 +3895,20 @@ public class SearchResource extends ChildFrame
       return panel;
     }
 
-    private void updateResourceList(int entry, String ext)
+    private void updateResourceList(int entry, String type)
     {
       if (entry < 0) entry = 0; else if (entry >= entryCount) entry = entryCount - 1;
-      if (ext != null) {
+      if (type != null) {
         @SuppressWarnings("unchecked")
         JComboBox<Object> cb = (JComboBox<Object>)cbFieldValueResource[entry];
         cb.setEnabled(false);
         try {
           cb.removeAllItems();
-          Vector<NamedResourceEntry> list = Utils.createNamedResourceList(new String[]{ext}, false);
-          NamedResourceEntry nre = list.get(0);
+          final Vector<NamedResourceEntry> list = Utils.createNamedResourceList(type);
+          final NamedResourceEntry nre = list.get(0);
           Collections.sort(list, Utils.NamedResourceComparator);
-          for (int i = 0; i < list.size(); i++) {
-            cb.addItem(list.get(i));
+          for (final NamedResourceEntry named : list) {
+            cb.addItem(named);
           }
           cb.setSelectedItem(nre);
         } finally {
@@ -5746,25 +5746,22 @@ public class SearchResource extends ChildFrame
       }
     };
 
-    /** Returns a (sorted or unsorted) list of resource names, first entry is the special "None" entry. */
-    public static Vector<NamedResourceEntry> createNamedResourceList(String[] extensions, boolean sort)
+    /** Returns a unsorted list of resource names, first entry is the special "None" entry. */
+    public static Vector<NamedResourceEntry> createNamedResourceList(String... types)
     {
-      Vector<NamedResourceEntry> list = new Vector<NamedResourceEntry>();
-      NamedResourceEntry nre =
+      final Vector<NamedResourceEntry> list = new Vector<>();
+      final NamedResourceEntry nre =
           new NamedResourceEntry(new FileResourceEntry(FileSystems.getDefault().getPath("None")));
       list.add(nre);
-      if (extensions != null) {
-        for (int i = 0; i < extensions.length; i++) {
-          List<ResourceEntry> entries = ResourceFactory.getResources(extensions[i]);
+      if (types != null) {
+        for (final String type : types) {
+          final List<ResourceEntry> entries = ResourceFactory.getResources(type);
           if (entries != null) {
-            for (int j = 0; j < entries.size(); j++) {
-              list.add(new NamedResourceEntry(entries.get(j)));
+            for (final ResourceEntry entry : entries) {
+              list.add(new NamedResourceEntry(entry));
             }
           }
         }
-      }
-      if (sort) {
-        Collections.sort(list, Utils.NamedResourceComparator);
       }
 
       return list;
@@ -5773,8 +5770,8 @@ public class SearchResource extends ChildFrame
     /** Returns a combobox containing all available resource of specified extensions. */
     public static JComboBox<NamedResourceEntry> createNamedResourceComboBox(String[] extensions, boolean usePrototype)
     {
-      Vector<NamedResourceEntry> names = createNamedResourceList(extensions, false);
-      NamedResourceEntry nre = names.get(0);
+      final Vector<NamedResourceEntry> names = createNamedResourceList(extensions);
+      final NamedResourceEntry nre = names.get(0);
       Collections.sort(names, Utils.NamedResourceComparator);
       JComboBox<NamedResourceEntry> cb = new JComboBox<>(names);
       if (usePrototype) {
