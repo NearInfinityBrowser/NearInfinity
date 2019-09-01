@@ -3450,9 +3450,6 @@ public class SearchResource extends ChildFrame
   /** Common base class for popup windows. */
   private static abstract class BasePanel extends JPanel implements ActionListener
   {
-    /** Returns true if no option has been selected. */
-    public abstract boolean isEmpty();
-
     protected BasePanel()
     {
       super(new BorderLayout());
@@ -3507,12 +3504,6 @@ public class SearchResource extends ChildFrame
       }
     }
     //</editor-fold>
-
-    @Override
-    public boolean isEmpty()
-    {
-      return false;
-    }
 
     public Pair<Object> getOptionFlags()
     {
@@ -3656,17 +3647,6 @@ public class SearchResource extends ChildFrame
       }
     }
     //</editor-fold>
-
-    @Override
-    public boolean isEmpty()
-    {
-      for (int i = 0; i < entryCount; i++) {
-        if (cbLabel[i].isSelected()) {
-          return false;
-        }
-      }
-      return true;
-    }
 
     public boolean isActive(int id)
     {
@@ -3826,17 +3806,6 @@ public class SearchResource extends ChildFrame
       }
     }
     //</editor-fold>
-
-    @Override
-    public boolean isEmpty()
-    {
-      for (int i = 0; i < entryCount; i++) {
-        if (cbLabel[i].isSelected()) {
-          return false;
-        }
-      }
-      return true;
-    }
 
     public boolean isActive(int id)
     {
@@ -4072,12 +4041,6 @@ public class SearchResource extends ChildFrame
     }
     //</editor-fold>
 
-    @Override
-    public boolean isEmpty()
-    {
-      return false;
-    }
-
     public boolean isActive(int id)
     {
       if (id < 0) id = 0; else if (id >= cbTiming.length) id = cbTiming.length - 1;
@@ -4165,17 +4128,6 @@ public class SearchResource extends ChildFrame
       }
     }
     //</editor-fold>
-
-    @Override
-    public boolean isEmpty()
-    {
-      for (int i = 0; i < cbLevel.length; i++) {
-        if (cbLevel[i].isSelected()) {
-          return false;
-        }
-      }
-      return true;
-    }
 
     public boolean isActive(int classIdx)
     {
@@ -4278,17 +4230,6 @@ public class SearchResource extends ChildFrame
     }
     //</editor-fold>
 
-    @Override
-    public boolean isEmpty()
-    {
-      for (int i = 0; i < EntryCount; i++) {
-        if (cbLevel[i].isSelected()) {
-          return false;
-        }
-      }
-      return true;
-    }
-
     public boolean isActive(int id)
     {
       if (id < 0) id = 0; else if (id >= EntryCount) id = EntryCount - 1;
@@ -4380,17 +4321,6 @@ public class SearchResource extends ChildFrame
       }
     }
     //</editor-fold>
-
-    @Override
-    public boolean isEmpty()
-    {
-      for (int i = 0; i < EntryCount; i++) {
-        if (cbLabel[i].isSelected()) {
-          return false;
-        }
-      }
-      return true;
-    }
 
     public boolean isActive(int id)
     {
@@ -4510,17 +4440,6 @@ public class SearchResource extends ChildFrame
       }
     }
     //</editor-fold>
-
-    @Override
-    public boolean isEmpty()
-    {
-      for (int i = 0; i < EntryCount; i++) {
-        if (cbLabel[i].isSelected()) {
-          return false;
-        }
-      }
-      return true;
-    }
 
     public boolean isActive(int id)
     {
@@ -4652,19 +4571,6 @@ public class SearchResource extends ChildFrame
     }
     //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="BasePanel">
-    @Override
-    public boolean isEmpty()
-    {
-      for (final JCheckBox label : cbLabel) {
-        if (label.isSelected()) {
-          return false;
-        }
-      }
-      return true;
-    }
-    //</editor-fold>
-
     public boolean isActive(int id)
     {
       return cbLabel[id].isSelected();
@@ -4716,17 +4622,6 @@ public class SearchResource extends ChildFrame
       }
     }
     //</editor-fold>
-
-    @Override
-    public boolean isEmpty()
-    {
-      for (int i = 0; i < EntryCount; i++) {
-        if (cbLabel[i].isSelected()) {
-          return false;
-        }
-      }
-      return true;
-    }
 
     public boolean isActive(int id)
     {
@@ -4848,17 +4743,6 @@ public class SearchResource extends ChildFrame
       }
     }
     //</editor-fold>
-
-    @Override
-    public boolean isEmpty()
-    {
-      for (int i = 0; i < cbStats.length; i++) {
-        if (cbStats[i].isSelected()) {
-          return false;
-        }
-      }
-      return true;
-    }
 
     public boolean isActive(int statID)
     {
@@ -5033,17 +4917,6 @@ public class SearchResource extends ChildFrame
       }
     }
     //</editor-fold>
-
-    @Override
-    public boolean isEmpty()
-    {
-      for (int i = 0; i < cbItems.length; i++) {
-        if (cbItems[i].isSelected()) {
-          return true;
-        }
-      }
-      return false;
-    }
 
     public boolean isActive(int itemID)
     {
@@ -5358,17 +5231,6 @@ public class SearchResource extends ChildFrame
     }
     //</editor-fold>
 
-    @Override
-    public boolean isEmpty()
-    {
-      for (int i = 0; i < cbSpells.length; i++) {
-        if (cbSpells[i].isSelected()) {
-          return false;
-        }
-      }
-      return true;
-    }
-
     public boolean isActive(int spellID)
     {
       if (spellID >= 0 && spellID < EntryCount) {
@@ -5578,17 +5440,6 @@ public class SearchResource extends ChildFrame
       }
     }
     //</editor-fold>
-
-    @Override
-    public boolean isEmpty()
-    {
-      for (int i = 0; i < cbLabel.length; i++) {
-        if (cbLabel[i].isSelected()) {
-          return false;
-        }
-      }
-      return true;
-    }
 
     public boolean isActive(int index)
     {
