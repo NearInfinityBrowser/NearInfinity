@@ -23,7 +23,6 @@ import java.beans.PropertyChangeListener;
 import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -3906,7 +3905,7 @@ public class SearchResource extends ChildFrame
           cb.removeAllItems();
           final Vector<NamedResourceEntry> list = Utils.createNamedResourceList(type);
           final NamedResourceEntry nre = list.get(0);
-          Collections.sort(list, Utils.NamedResourceComparator);
+          list.sort(null);
           for (final NamedResourceEntry named : list) {
             cb.addItem(named);
           }
@@ -5738,14 +5737,6 @@ public class SearchResource extends ChildFrame
     /** Can be used to determine the preferred size of a combobox. */
     public static final String ProtoTypeString = "XXXXXXXX.XXXX (XXXXXXXXXXXX)";
 
-    /** Use for sorting by resource filename. */
-    public static final Comparator<NamedResourceEntry> NamedResourceComparator = new Comparator<NamedResourceEntry>() {
-      @Override
-      public int compare(NamedResourceEntry e1, NamedResourceEntry e2) {
-        return e1.getResourceEntry().compareTo(e2.getResourceEntry());
-      }
-    };
-
     /** Returns a unsorted list of resource names, first entry is the special "None" entry. */
     public static Vector<NamedResourceEntry> createNamedResourceList(String... types)
     {
@@ -5772,7 +5763,7 @@ public class SearchResource extends ChildFrame
     {
       final Vector<NamedResourceEntry> names = createNamedResourceList(extensions);
       final NamedResourceEntry nre = names.get(0);
-      Collections.sort(names, Utils.NamedResourceComparator);
+      names.sort(null);
       JComboBox<NamedResourceEntry> cb = new JComboBox<>(names);
       if (usePrototype) {
         cb.setPreferredSize(Utils.getPrototypeSize(cb));
