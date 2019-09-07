@@ -84,6 +84,7 @@ import org.infinity.resource.StructureFactory;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.FileResourceEntry;
+import org.infinity.resource.key.Keyfile;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.DialogSearcher;
 import org.infinity.search.SearchFrame;
@@ -104,11 +105,8 @@ import org.infinity.util.io.FileManager;
 public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 {
   public static final String VERSION = "v2.1-20180615";
-  public static final int OVERRIDE_IN_THREE = 0, OVERRIDE_IN_OVERRIDE = 1, OVERRIDE_SPLIT = 2;
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
-  public static final int RESREF_ONLY = 0, RESREF_REF_NAME = 1, RESREF_NAME_REF = 2;
-  public static final int DEFAULT_VIEW = 0, DEFAULT_EDIT = 1;
 
   /** Defines platform-specific shortcut key (e.g. Ctrl on Win/Linux, Meta on Mac). */
   private static final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
@@ -126,6 +124,82 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   private final ToolsMenu toolsMenu;
   private final HelpMenu helpMenu;
   private final Preferences prefsGui, prefsProfiles;
+
+  //<editor-fold defaultstate="collapsed" desc="Enumerations">
+  /** Determines, in which virtual folder show resources from Override folder. */
+  public enum OverrideMode
+  {
+    /**
+     * All resources shows in folder corresponding to resource extension.
+     * Override folder will show only files with unknown extension, that stored
+     * in Override folder.
+     */
+    InTree("In ??? Folders (CRE, SPL, ...)"),
+    /** All resources from Override folder shows in Override folder. */
+    InOverride("In Override Folder"),
+    /**
+     * All indexed by {@link Keyfile chitin.key} resources shows in folder
+     * corresponding to resource extension, all other - in Override folder.
+     */
+    Split("Split Between ??? and Override Folders");
+
+    /** Title of the menu item in Options menu. */
+    final String title;
+
+    private OverrideMode(String title) { this.title = title; }
+  }
+
+  /** Determines how show resource reference value and title. */
+  public enum ResRefMode
+  {
+    OnlyRef(KeyEvent.VK_1, "Filename") {
+      @Override
+      public String format(ResourceEntry entry) { return entry.getResourceName(); }
+    },
+    RefName(KeyEvent.VK_2, "Filename (Name)") {
+      @Override
+      public String format(ResourceEntry entry)
+      {
+        final String search = entry.getSearchString();
+        final String resname= entry.getResourceName();
+        return search == null ? resname : resname + " (" + search + ')';
+      }
+    },
+    NameRef(KeyEvent.VK_3, "Name (Filename)") {
+      @Override
+      public String format(ResourceEntry entry)
+      {
+        final String search = entry.getSearchString();
+        final String resname= entry.getResourceName();
+        return search == null ? resname : search + " (" + resname + ')';
+      }
+    };
+
+    final int keyKode;
+    /** Title of the menu item in Options menu. */
+    final String title;
+
+    private ResRefMode(int keyKode, String title)
+    {
+      this.keyKode = keyKode;
+      this.title = title;
+    }
+
+    public abstract String format(ResourceEntry entry);
+  }
+
+  /** Determines default tab for viewing structures. */
+  public enum ViewMode
+  {
+    View("View"),
+    Edit("Edit");
+
+    /** Title of the menu item in Options menu. */
+    final String title;
+
+    private ViewMode(String title) { this.title = title; }
+  }
+  //</editor-fold>
 
   public static BrowserMenuBar getInstance()
   {
@@ -431,7 +505,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     return optionsMenu.getBcsIndent();
   }
 
-  public int getDefaultStructView()
+  public ViewMode getDefaultStructView()
   {
     return optionsMenu.getDefaultStructView();
   }
@@ -446,12 +520,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     return optionsMenu.getGlobalFontSize();
   }
 
-  public int getOverrideMode()
+  public OverrideMode getOverrideMode()
   {
     return optionsMenu.getOverrideMode();
   }
 
-  public int getResRefMode()
+  public ResRefMode getResRefMode()
   {
     return optionsMenu.getResRefMode();
   }
@@ -1698,9 +1772,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
     private final List<DataRadioButtonMenuItem> lookAndFeel = new ArrayList<>();
 
-    private final JRadioButtonMenuItem[] showOverrides = new JRadioButtonMenuItem[3];
-    private final JRadioButtonMenuItem[] showResRef = new JRadioButtonMenuItem[3];
-    private final JRadioButtonMenuItem[] viewOrEditShown = new JRadioButtonMenuItem[3];
+    private final JRadioButtonMenuItem[] showOverrides = new JRadioButtonMenuItem[OverrideMode.values().length];
+    private final JRadioButtonMenuItem[] showResRef = new JRadioButtonMenuItem[ResRefMode.values().length];
+    private final JRadioButtonMenuItem[] viewOrEditShown = new JRadioButtonMenuItem[ViewMode.values().length];
     private final JRadioButtonMenuItem[] selectFont = new JRadioButtonMenuItem[FONTS.length];
     private final JRadioButtonMenuItem[] selectTextTabSize = new JRadioButtonMenuItem[3];
     private final JRadioButtonMenuItem[] selectBcsIndent = new JRadioButtonMenuItem[BCSINDENT.length];
@@ -1996,54 +2070,51 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       // Options->Show ResourceRefs As
       JMenu showresrefmenu = new JMenu("Show ResourceRefs As");
       add(showresrefmenu);
-      int selectedresref = getPrefs().getInt(OPTION_SHOWRESREF, RESREF_REF_NAME);
-      showResRef[RESREF_ONLY] = new JRadioButtonMenuItem("Filename", selectedresref == RESREF_ONLY);
-      showResRef[RESREF_ONLY].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, CTRL_MASK));
-      showResRef[RESREF_REF_NAME] =
-      new JRadioButtonMenuItem("Filename (Name)", selectedresref == RESREF_REF_NAME);
-      showResRef[RESREF_REF_NAME].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, CTRL_MASK));
-      showResRef[RESREF_NAME_REF] =
-      new JRadioButtonMenuItem("Name (Filename)", selectedresref == RESREF_NAME_REF);
-      showResRef[RESREF_NAME_REF].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, CTRL_MASK));
+      int selectedresref = getPrefs().getInt(OPTION_SHOWRESREF, ResRefMode.RefName.ordinal());
+
       bg = new ButtonGroup();
-      for (int i = RESREF_ONLY; i <= RESREF_NAME_REF; i++) {
-        showresrefmenu.add(showResRef[i]);
-        bg.add(showResRef[i]);
+      for (final ResRefMode mode : ResRefMode.values()) {
+        final int i = mode.ordinal();
+        final JRadioButtonMenuItem menu = new JRadioButtonMenuItem(mode.title, i == selectedresref);
+        menu.setAccelerator(KeyStroke.getKeyStroke(mode.keyKode, CTRL_MASK));
+
+        bg.add(menu);
+        showresrefmenu.add(menu);
+        showResRef[i] = menu;
       }
 
       // Options->Show Override Files
       JMenu overridesubmenu = new JMenu("Show Override Files");
       add(overridesubmenu);
-      int selectedmode = getPrefs().getInt(OPTION_SHOWOVERRIDES, OVERRIDE_SPLIT);
-      showOverrides[OVERRIDE_IN_THREE] =
-      new JRadioButtonMenuItem("In ??? Folders (CRE, SPL, ...)", selectedmode == OVERRIDE_IN_THREE);
-      showOverrides[OVERRIDE_IN_OVERRIDE] =
-      new JRadioButtonMenuItem("In Override Folder", selectedmode == OVERRIDE_IN_OVERRIDE);
-      showOverrides[OVERRIDE_SPLIT] =
-      new JRadioButtonMenuItem("Split Between ??? and Override Folders", selectedmode == OVERRIDE_SPLIT);
-      showOverrides[OVERRIDE_SPLIT].setToolTipText(
-              "Indexed by Chitin.key => ??? folders; Not indexed => Override folder");
+      int selectedmode = getPrefs().getInt(OPTION_SHOWOVERRIDES, OverrideMode.Split.ordinal());
+
       bg = new ButtonGroup();
-      for (int i = OVERRIDE_IN_THREE; i <= OVERRIDE_SPLIT; i++) {
-        overridesubmenu.add(showOverrides[i]);
-        bg.add(showOverrides[i]);
-        showOverrides[i].setActionCommand("Refresh");
-        showOverrides[i].addActionListener(NearInfinity.getInstance());
+      for (final OverrideMode mode : OverrideMode.values()) {
+        final int i = mode.ordinal();
+        final JRadioButtonMenuItem menu = new JRadioButtonMenuItem(mode.title, i == selectedmode);
+        menu.setActionCommand("Refresh");
+        menu.addActionListener(NearInfinity.getInstance());
+
+        bg.add(menu);
+        overridesubmenu.add(menu);
+        showOverrides[i] = menu;
       }
+      showOverrides[OverrideMode.Split.ordinal()].setToolTipText(
+              "Indexed by Chitin.key => ??? folders; Not indexed => Override folder");
 
       // Options->Default Structure Display
       JMenu vieworeditmenu = new JMenu("Default Structure Display");
       add(vieworeditmenu);
-      int selectedview = getPrefs().getInt(OPTION_VIEWOREDITSHOWN, DEFAULT_VIEW);
-      viewOrEditShown[DEFAULT_VIEW] =
-      new JRadioButtonMenuItem("View", selectedview == DEFAULT_VIEW);
-      viewOrEditShown[DEFAULT_EDIT] =
-      new JRadioButtonMenuItem("Edit", selectedview == DEFAULT_EDIT);
+      final int selectedview = getPrefs().getInt(OPTION_VIEWOREDITSHOWN, ViewMode.Edit.ordinal());
       bg = new ButtonGroup();
-      bg.add(viewOrEditShown[DEFAULT_VIEW]);
-      bg.add(viewOrEditShown[DEFAULT_EDIT]);
-      vieworeditmenu.add(viewOrEditShown[DEFAULT_VIEW]);
-      vieworeditmenu.add(viewOrEditShown[DEFAULT_EDIT]);
+      for (final ViewMode mode : ViewMode.values()) {
+        final int i = mode.ordinal();
+        final JRadioButtonMenuItem menu = new JRadioButtonMenuItem(mode.title, i == selectedview);
+
+        bg.add(menu);
+        vieworeditmenu.add(menu);
+        viewOrEditShown[i] = menu;
+      }
 
       // Options->Global Font Size
       JMenu fontSizeMenu = new JMenu("Change Global Font Size");
@@ -2425,10 +2496,10 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       getPrefs().putBoolean(OPTION_SHOWTREESEARCHNAMES, optionTreeSearchNames.isSelected());
       getPrefs().putBoolean(OPTION_HIGHLIGHT_OVERRIDDEN, optionHighlightOverridden.isSelected());
 //      getPrefs().putBoolean(OPTION_MONITORFILECHANGES, optionMonitorFileChanges.isSelected());
-      getPrefs().putInt(OPTION_SHOWRESREF, getResRefMode());
-      getPrefs().putInt(OPTION_SHOWOVERRIDES, getOverrideMode());
+      getPrefs().putInt(OPTION_SHOWRESREF, getResRefMode().ordinal());
+      getPrefs().putInt(OPTION_SHOWOVERRIDES, getOverrideMode().ordinal());
       getPrefs().put(OPTION_LOOKANDFEELCLASS, getLookAndFeel().getClassName());
-      getPrefs().putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView());
+      getPrefs().putInt(OPTION_VIEWOREDITSHOWN, getDefaultStructView().ordinal());
       int selectedFont = getSelectedButtonIndex(selectFont, 0);
       getPrefs().putInt(OPTION_FONT, selectedFont);
       Font font = FONTS[FONTS.length - 1];
@@ -2747,22 +2818,24 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     }
 
 
-    public int getResRefMode()
+    public ResRefMode getResRefMode()
     {
-      if (showResRef[RESREF_ONLY].isSelected())
-        return RESREF_ONLY;
-      else if (showResRef[RESREF_NAME_REF].isSelected())
-        return RESREF_NAME_REF;
-      return RESREF_REF_NAME;
+      for (ResRefMode mode : ResRefMode.values()) {
+        if (showResRef[mode.ordinal()].isSelected()) {
+          return mode;
+        }
+      }
+      return ResRefMode.RefName;
     }
 
-    public int getOverrideMode()
+    public OverrideMode getOverrideMode()
     {
-      if (showOverrides[OVERRIDE_IN_THREE].isSelected())
-        return OVERRIDE_IN_THREE;
-      else if (showOverrides[OVERRIDE_IN_OVERRIDE].isSelected())
-        return OVERRIDE_IN_OVERRIDE;
-      return OVERRIDE_SPLIT;
+      for (OverrideMode mode : OverrideMode.values()) {
+        if (showOverrides[mode.ordinal()].isSelected()) {
+          return mode;
+        }
+      }
+      return OverrideMode.Split;
     }
 
     public LookAndFeelInfo getLookAndFeel()
@@ -2780,11 +2853,14 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       return ((Integer)globalFontSize[getSelectedButtonIndex(globalFontSize, 2)].getData()).intValue();
     }
 
-    public int getDefaultStructView()
+    public ViewMode getDefaultStructView()
     {
-      if (viewOrEditShown[DEFAULT_VIEW].isSelected())
-        return DEFAULT_VIEW;
-      return DEFAULT_EDIT;
+      for (ViewMode mode : ViewMode.values()) {
+        if (viewOrEditShown[mode.ordinal()].isSelected()) {
+          return mode;
+        }
+      }
+      return ViewMode.Edit;
     }
 
     @Override

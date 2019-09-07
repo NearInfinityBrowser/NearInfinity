@@ -175,6 +175,9 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
                            BrowserMenuBar.getInstance().ignoreOverrides());
   }
 
+  /**
+   * Returns localized name of the resource. This string used in game interface.
+   */
   public String getSearchString()
   {
     if (searchString == null) {

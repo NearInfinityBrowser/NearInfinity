@@ -37,6 +37,7 @@ import org.infinity.datatype.SecTypeBitmap;
 import org.infinity.datatype.Song2daBitmap;
 import org.infinity.datatype.Summon2daBitmap;
 import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.BrowserMenuBar.OverrideMode;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.IdsBrowser;
 import org.infinity.resource.are.AreResource;
@@ -1134,7 +1135,8 @@ public final class ResourceFactory implements FileWatchListener
 
   private void registerResourceInternal(Path resource, boolean autoselect)
   {
-    if (!BrowserMenuBar.getInstance().showUnknownResourceTypes() &&
+    final BrowserMenuBar options = BrowserMenuBar.getInstance();
+    if (!options.showUnknownResourceTypes() &&
         !Profile.isResourceTypeSupported(FileManager.getFileExtension(resource))) {
       return;
     }
@@ -1147,8 +1149,7 @@ public final class ResourceFactory implements FileWatchListener
     if (entry != null) {
       boolean match = false;
       if (entry instanceof BIFFResourceEntry) {
-        boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
-                                      BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
+        final boolean overrideInOverride = (options.getOverrideMode() == OverrideMode.InOverride);
         if (overrideInOverride && entry.getTreeFolderName().equalsIgnoreCase(Profile.getOverrideFolderName())) {
           match = true;
         }
@@ -1213,8 +1214,7 @@ public final class ResourceFactory implements FileWatchListener
       entry = getResourceEntry(resource.getFileName().toString());
       String folderName = null;
       if (entry instanceof BIFFResourceEntry) {
-        boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
-                                      BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
+        final boolean overrideInOverride = (options.getOverrideMode() == OverrideMode.InOverride);
         if (overrideInOverride) {
           treeModel.removeResourceEntry(entry, entry.getExtension());
         }
@@ -1279,7 +1279,7 @@ public final class ResourceFactory implements FileWatchListener
 
     NearInfinity.advanceProgress("Loading override resources...");
     final boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
-                                        BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
+                                        BrowserMenuBar.getInstance().getOverrideMode() == OverrideMode.InOverride);
     String overrideFolder = Profile.getOverrideFolderName();
     List<Path> overridePaths = Profile.getOverrideFolders(false);
     for (final Path overridePath: overridePaths) {

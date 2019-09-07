@@ -41,6 +41,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.infinity.NearInfinity;
+import org.infinity.gui.BrowserMenuBar.OverrideMode;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -775,7 +776,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         }
         setIcon(e.getIcon());
         // Do not use bold in Override mode othrewise almost all entries will be in bold, which looks not so good
-        final boolean inOverrideMode = options.getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE;
+        final boolean inOverrideMode = options.getOverrideMode() == OverrideMode.InOverride;
         if (e.hasOverride() && !inOverrideMode && options.highlightOverridden()) {
           font = font.deriveFont(Font.BOLD);
         }
