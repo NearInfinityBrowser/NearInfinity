@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -32,6 +31,7 @@ import javax.swing.table.TableModel;
 
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
+import org.infinity.util.ArrayUtil;
 
 public final class SortableTable extends JTable implements MouseListener
 {
@@ -302,7 +302,7 @@ public final class SortableTable extends JTable implements MouseListener
         // Extract numbers from strings and compare it as numbers
         final String[] arr1 = SPLIT_BY_NUMBER.split(string1);
         final String[] arr2 = SPLIT_BY_NUMBER.split(string2);
-        res = Arrays.compare(arr1, arr2, SORTER);
+        res = ArrayUtil.compare(arr1, arr2, SORTER);
       }
       if (sortAscending) {
         res = -res;
