@@ -5,6 +5,8 @@
 package org.infinity.util;
 
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Objects;
 
 public final class ArrayUtil
 {
@@ -50,6 +52,42 @@ public final class ArrayUtil
       }
     }
     return -1;
+  }
+
+  /**
+   * Reimplementation of {@code Arrays.compare} from Java 9, because minimum
+   * supported version now is Java 8.
+   *
+   * @param a the first array to compare
+   * @param b the second array to compare
+   * @param cmp the comparator to compare array elements
+   * @param <T> the type of array elements
+   *
+   * @return the value {@code 0} if the first and second array are equal and
+   *         contain the same elements in the same order;
+   *         a value less than {@code 0} if the first array is
+   *         lexicographically less than the second array; and
+   *         a value greater than {@code 0} if the first array is
+   *         lexicographically greater than the second array
+   *
+   * @throws NullPointerException if the comparator is {@code null}
+   */
+  public static <T> int compare(T[] a, T[] b, Comparator<? super T> cmp)
+  {
+    //TODO: Replace with Arrays.compare when minimum supported version raised to Java 9
+    Objects.requireNonNull(cmp);
+    if (a == b) return 0;
+    if (a == null) return -1;
+    if (b == null) return 1;
+
+    final int length = Math.min(a.length, b.length);
+    for (int i = 0; i < length; ++i) {
+      final int res = cmp.compare(a[i], b[i]);
+
+      if (res != 0) { return res; }
+    }
+
+    return a.length - b.length;
   }
 
   private ArrayUtil(){}
