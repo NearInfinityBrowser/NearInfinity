@@ -10,7 +10,6 @@ import javax.swing.JComponent;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.ColorPicker;
-import org.infinity.datatype.Datatype;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HashBitmap;

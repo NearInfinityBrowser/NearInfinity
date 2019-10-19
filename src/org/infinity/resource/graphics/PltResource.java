@@ -22,10 +22,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
@@ -48,7 +46,6 @@ import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.infinity.NearInfinity;
 
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;

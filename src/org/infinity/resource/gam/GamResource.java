@@ -76,6 +76,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   public static final String GAM_SAVE_VERSION                     = "Save version";
   public static final String GAM_NUM_UNKNOWN                      = "Unknown section count";
   public static final String GAM_OFFSET_UNKNOWN                   = "Unknown section offset";
+  public static final String GAM_NIGHTMARE_MODE                   = "Nightmare mode";
   public static final String GAM_OFFSET_MODRON_MAZE               = "Modron maze offset";
   public static final String GAM_OFFSET_KILL_VARIABLES            = "Kill variables offset";
   public static final String GAM_NUM_KILL_VARIABLES               = "# kill variables";
@@ -97,6 +98,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   public static final String GAM_UNKNOWN_STRUCTURE                = "Unknown structure";
   public static final String GAM_POCKET_PLANE                     = "Pocket plane";
 
+  public static final String[] s_noyes = {"No", "Yes"};
   public static final String[] s_formation = {"Button 1", "Button 2", "Button 3", "Button 4", "Button 5"};
   public static final String[] s_weather = {"No weather", "Raining", "Snowing", "Light weather",
                                             "Medium weather", "Light wind", "Medium wind", "Rare lightning",
@@ -394,7 +396,8 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       addField(numIWD2);
       offIWD2 = new SectionOffset(buffer, offset + 104, GAM_OFFSET_UNKNOWN, UnknownSection3.class);
       addField(offIWD2);
-      addField(new Unknown(buffer, offset + 108, 72));
+      addField(new Bitmap(buffer, offset + 108, 4, GAM_NIGHTMARE_MODE, s_noyes));
+      addField(new Unknown(buffer, offset + 112, 68));
     }
 
     offset = offset_partynpc.getValue();
