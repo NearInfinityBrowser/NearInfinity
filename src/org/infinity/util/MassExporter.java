@@ -54,7 +54,6 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
-import org.infinity.resource.Writeable;
 import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.graphics.BamDecoder;
