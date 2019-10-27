@@ -50,8 +50,8 @@ import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
-public final class PlainTextResource implements TextResource, Writeable, ActionListener, ItemListener,
-                                                DocumentListener, Closeable
+public class PlainTextResource implements TextResource, Writeable, ActionListener, ItemListener,
+                                          DocumentListener, Closeable
 {
   private final ResourceEntry entry;
   private final String text;
