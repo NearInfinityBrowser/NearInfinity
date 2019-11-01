@@ -61,28 +61,22 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   private JPanel panel;
   private InfinityTextArea editor;
   private boolean resourceChanged;
-  private int highlightedLine;
+  private int highlightedLine = -1;
 
   public PlainTextResource(ResourceEntry entry) throws Exception
-  {
-    this(entry, -1);
-  }
-
-  public PlainTextResource(ResourceEntry entry, int highlightedLine) throws Exception
   {
     this.entry = entry;
     ByteBuffer buffer = entry.getResourceBuffer();
     if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
       buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
-    Charset cs = null;
+    final Charset cs;
     if (BrowserMenuBar.getInstance() != null) {
       cs = Charset.forName(BrowserMenuBar.getInstance().getSelectedCharset());
     } else {
       cs = Misc.CHARSET_DEFAULT;
     }
     text = StreamUtils.readString(buffer, buffer.limit(), cs);
-    this.highlightedLine = highlightedLine;
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
