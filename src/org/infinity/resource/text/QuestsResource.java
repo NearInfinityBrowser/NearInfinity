@@ -4,11 +4,15 @@
 
 package org.infinity.resource.text;
 
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
 
 import org.infinity.datatype.StringRef;
 import org.infinity.icon.Icons;
@@ -24,10 +28,16 @@ import org.infinity.util.StringTable;
  *
  * @author Mingun
  */
-public class QuestsResource extends PlainTextResource
+public class QuestsResource extends PlainTextResource implements ChangeListener
 {
   /** Special resource name {@code "quests.ini"}. */
   public static final String RESOURCE_NAME = "quests.ini";
+
+  /**
+   * Flag, that indicates, that {@link #quests is not synchronized with current
+   * {@link #getText() resource text} and reloading is required.
+   */
+  private boolean dirty = false;
 
   //<editor-fold defaultstate="collapsed" desc="Internal classes">
   /** Represents one quest in the file. */
@@ -139,15 +149,54 @@ public class QuestsResource extends PlainTextResource
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
+    final JComponent textPage = super.makeViewer(container);
+    final QuestsPanel details = new QuestsPanel(readQuests());
     final JTabbedPane pane = new JTabbedPane();
-    pane.addTab("Quest List", new QuestsPanel(readQuests()));
-    pane.addTab("Text", Icons.getIcon(Icons.ICON_EDIT_16), super.makeViewer(container));
+    pane.addTab("Quest List", details);
+    pane.addTab("Text", Icons.getIcon(Icons.ICON_EDIT_16), textPage);
+    pane.addChangeListener(this);
     return pane;
   }
 
+  //<editor-fold defaultstate="collapsed" desc="DocumentListener">
+  @Override
+  public void changedUpdate(DocumentEvent event)
+  {
+    super.changedUpdate(event);
+    dirty = true;
+  }
+
+  @Override
+  public void insertUpdate(DocumentEvent event)
+  {
+    super.insertUpdate(event);
+    dirty = true;
+  }
+
+  @Override
+  public void removeUpdate(DocumentEvent event)
+  {
+    super.removeUpdate(event);
+    dirty = true;
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="ChangeListener">
+  @Override
+  public void stateChanged(ChangeEvent e)
+  {
+    final JTabbedPane pane = (JTabbedPane)e.getSource();
+    final Component selected = pane.getSelectedComponent();
+    if (selected instanceof QuestsPanel && dirty) {
+      ((QuestsPanel)selected).setQuests(readQuests());
+      dirty = false;
+    }
+  }
+  //</editor-fold>
+
   private List<Quest> readQuests()
   {
-    final IniMap ini = new IniMap(getResourceEntry());
+    final IniMap ini = new IniMap(editor.getText());
     final IniMapSection init = ini.getSection("init");
     final int questCount = init == null ? -1 : init.getAsInteger("questcount", -1);
     final ArrayList<Quest> quests = new ArrayList<>(questCount < 0 ? ini.getSectionCount() : questCount);

@@ -59,7 +59,8 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
 
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
-  private InfinityTextArea editor;
+  /** Text editor for editing resource. Created after calling {@link #makeViewer}. */
+  protected InfinityTextArea editor;
   private boolean resourceChanged;
   private int highlightedLine = -1;
 

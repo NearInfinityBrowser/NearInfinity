@@ -19,6 +19,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
@@ -139,9 +141,7 @@ final class QuestsPanel extends JPanel implements ListSelectionListener
   public QuestsPanel(List<Quest> quests)
   {
     super(new BorderLayout());
-    this.quests = new JTable(new QuestsModel(quests));
-    final int size = this.quests.getFontMetrics(this.quests.getFont()).charWidth('w') * 4;
-    this.quests.getColumnModel().getColumn(0).setMaxWidth(size);
+    this.quests = new JTable();
     this.quests.getSelectionModel().addListSelectionListener(this);
 
     final JPanel questInfo = new JPanel();
@@ -154,8 +154,10 @@ final class QuestsPanel extends JPanel implements ListSelectionListener
     panel.add(questInfo, BorderLayout.CENTER);
 
     final JScrollPane scroll = new JScrollPane(this.quests);
-    scroll.setBorder(BorderFactory.createTitledBorder(String.format("Quests (%d)", quests.size())));
+    scroll.setBorder(BorderFactory.createTitledBorder(""));
     add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scroll, panel), BorderLayout.CENTER);
+
+    setQuests(quests);
   }
 
   //<editor-fold defaultstate="collapsed" desc="ListSelectionListener">
@@ -186,6 +188,19 @@ final class QuestsPanel extends JPanel implements ListSelectionListener
     }
   }
   //</editor-fold>
+
+  public void setQuests(List<Quest> quests)
+  {
+    this.quests.setModel(new QuestsModel(quests));
+    final int size = this.quests.getFontMetrics(this.quests.getFont()).charWidth('w') * 4;
+    this.quests.getColumnModel().getColumn(0).setMaxWidth(size);
+    // Direct parent of quests - JViewport
+    final JScrollPane scroll = (JScrollPane)this.quests.getParent().getParent();
+    final TitledBorder border = (TitledBorder)scroll.getBorder();
+    border.setTitle(String.format("Quests (%d)", quests.size()));
+    // To repaint TitledBorder. Swing have a bug and do not doing this automatically
+    scroll.repaint();
+  }
 
   private JPanel createPanel(InfinityTextArea area, JTable checks, String title)
   {
