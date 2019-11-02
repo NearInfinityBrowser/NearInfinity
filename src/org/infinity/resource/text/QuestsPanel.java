@@ -5,12 +5,18 @@
 package org.infinity.resource.text;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.font.TextAttribute;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import static java.util.stream.Collectors.toList;
 
-import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -19,11 +25,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 
 import org.infinity.datatype.StringRef;
 import org.infinity.gui.BrowserMenuBar;
@@ -31,7 +36,9 @@ import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
 import org.infinity.resource.text.QuestsResource.Check;
 import org.infinity.resource.text.QuestsResource.Quest;
+import org.infinity.resource.text.QuestsResource.State;
 import org.infinity.util.StringTable;
+import org.infinity.util.Variables;
 
 /**
  * <code><pre>
@@ -45,11 +52,13 @@ import org.infinity.util.StringTable;
  * </pre></code>
  * @author Mingun
  */
-final class QuestsPanel extends JPanel implements ListSelectionListener
+public final class QuestsPanel extends JPanel implements ListSelectionListener
 {
-  private static final ConditionModel EMPTY_MODEL = new ConditionModel(Collections.emptyList());
+  private static final ConditionModel EMPTY_MODEL = new ConditionModel(Collections.emptyList(), null);
   private static final String NO_QUEST_SELECTED = "No quest selected";
   private static final String DESCRIPTION = "Description";
+
+  private final Variables vars;
 
   private final JTable quests;
   private final JLabel title = new JLabel(NO_QUEST_SELECTED);
@@ -104,19 +113,22 @@ final class QuestsPanel extends JPanel implements ListSelectionListener
       "Variable Name",
       "Condition",
       "Value",
+      "Current",
     };
     private final List<Check> conditions;
+    private final Variables vars;
 
-    public ConditionModel(List<Check> conditions)
+    public ConditionModel(List<Check> conditions, Variables vars)
     {
       this.conditions = conditions;
+      this.vars = vars;
     }
 
     @Override
     public int getRowCount() { return conditions.size(); }
 
     @Override
-    public int getColumnCount() { return COLUMNS.length; }
+    public int getColumnCount() { return COLUMNS.length - (vars == null ? 1 : 0); }
 
     @Override
     public String getColumnName(int columnIndex) { return COLUMNS[columnIndex]; }
@@ -132,17 +144,74 @@ final class QuestsPanel extends JPanel implements ListSelectionListener
         case 0: return cond.var;
         case 1: return cond.getHumanizedCondition();
         case 2: return cond.value;
+        case 3: return vars.getInt(cond.var);
       }
       throw new IndexOutOfBoundsException("Invalid column " + columnIndex);
     }
   }
+
+  private class CompletedCellRenderer extends DefaultTableCellRenderer
+  {
+    protected final Color defaultBackground = getBackground();
+    @SuppressWarnings("unchecked")
+    protected void setupCompleted(boolean isSelected)
+    {
+      if (!isSelected) {
+        setBackground(Color.cyan);
+      }
+      final Font font = getFont();
+      // Because of capture (symbol ?) in type signature raw type usage is required...
+      final Map attributes = font.getAttributes();
+      attributes.put(TextAttribute.STRIKETHROUGH, true);
+      setFont(font.deriveFont(attributes));
+    }
+  }
   //</editor-fold>
 
-  public QuestsPanel(List<Quest> quests)
+  public QuestsPanel(List<Quest> quests, Variables vars)
   {
     super(new BorderLayout());
+    this.vars = vars;
     this.quests = new JTable();
     this.quests.getSelectionModel().addListSelectionListener(this);
+    if (vars != null) {
+      quests = quests.stream().filter(q -> q.evaluate(vars) != State.Unassigned).collect(toList());
+      this.quests.setDefaultRenderer(Object.class, new CompletedCellRenderer() {
+        private final Color defaultForeground = getForeground();
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
+        {
+          setBackground(defaultBackground);
+          setForeground(defaultForeground);
+          super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+          final QuestsModel model = (QuestsModel)table.getModel();
+          final Quest quest = model.quests.get(row);
+          switch (quest.evaluate(vars)) {
+            case Unassigned: setForeground(Color.gray); break;
+            case Completed: setupCompleted(isSelected); break;
+          }
+          return this;
+        }
+      });
+      final CompletedCellRenderer checksRenderer = new CompletedCellRenderer() {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
+        {
+          setBackground(defaultBackground);
+          super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+          final ConditionModel model = (ConditionModel)table.getModel();
+          final Check check = model.conditions.get(row);
+          if (!check.evaluate(vars)) {
+            setupCompleted(isSelected);
+          }
+          return this;
+        }
+      };
+      assignedChecks.setDefaultRenderer(Object.class, checksRenderer);
+      completeChecks.setDefaultRenderer(Object.class, checksRenderer);
+    }
 
     final JPanel questInfo = new JPanel();
     questInfo.setLayout(new BoxLayout(questInfo, BoxLayout.X_AXIS));
@@ -175,8 +244,8 @@ final class QuestsPanel extends JPanel implements ListSelectionListener
       setText(descAssigned , quest.descAssigned);
       setText(descCompleted, quest.descCompleted);
 
-      assignedChecks.setModel(new ConditionModel(quest.assignedChecks));
-      completeChecks.setModel(new ConditionModel(quest.completeChecks));
+      assignedChecks.setModel(new ConditionModel(quest.assignedChecks, vars));
+      completeChecks.setModel(new ConditionModel(quest.completeChecks, vars));
     } else {
       title.setText(NO_QUEST_SELECTED);
 

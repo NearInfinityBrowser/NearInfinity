@@ -1,19 +1,23 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.gam;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.ByteBuffer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import org.infinity.datatype.Bestiary;
+import javax.swing.JTextArea;
 
+import org.infinity.datatype.Bestiary;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
@@ -38,6 +42,9 @@ import org.infinity.resource.are.AreResource;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.text.QuestsPanel;
+import org.infinity.resource.text.QuestsResource;
+import org.infinity.util.Variables;
 
 /**
  * This resource is used to hold game information in save games. The GAM file does
@@ -123,14 +130,14 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       "Party member 4", "Party member 5"};
 
   private StructHexViewer hexViewer;
+  private Variables globalVars;
 
   public GamResource(ResourceEntry entry) throws Exception
   {
     super(entry);
   }
 
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
@@ -169,28 +176,23 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   {
     return true;
   }
+  //</editor-fold>
 
-// --------------------- End Interface HasAddRemovable ---------------------
-
-
-// --------------------- Begin Interface HasViewerTabs ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
-    return 2;
+    // Page "Quests" with assigned and completed quests in PS:T
+    return Profile.getEngine() == Profile.Engine.PST ? 3 : 2;
   }
 
   @Override
   public String getViewerTabName(int index)
   {
-    switch (index) {
-      case 0:
-        return StructViewer.TAB_VIEW;
-      case 1:
-        return StructViewer.TAB_RAW;
+    if (Profile.getEngine() == Profile.Engine.PST && index == 1) {
+      return "Quests";
     }
-    return null;
+    return index == 0 ? StructViewer.TAB_VIEW : StructViewer.TAB_RAW;
   }
 
   @Override
@@ -205,34 +207,43 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       }
       case 1:
       {
+        if (Profile.getEngine() == Profile.Engine.PST) {
+          try {
+            return new QuestsPanel(new QuestsResource().readQuests(), globalVars);
+          } catch (Exception ex) {
+            ex.printStackTrace();
+            final StringWriter w = new StringWriter();
+            ex.printStackTrace(new PrintWriter(w));
+            return new JTextArea(w.toString());
+          }
+        }
+      }
+      default:
+      {
         if (hexViewer == null) {
           hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
         }
         return hexViewer;
       }
     }
-    return null;
   }
 
   @Override
   public boolean viewerTabAddedBefore(int index)
   {
-    return (index == 0);
+    return index == 0 || Profile.getEngine() == Profile.Engine.PST && index == 1;
   }
+  //</editor-fold>
 
-// --------------------- End Interface HasViewerTabs ---------------------
-
-
-// --------------------- Begin Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Writeable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatFields(os);
   }
+  //</editor-fold>
 
-// --------------------- End Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -245,6 +256,9 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     updateOffsets();
     if (hexViewer != null) {
       hexViewer.dataModified();
+    }
+    if (datatype instanceof Variable) {
+      globalVars.add((Variable)datatype);
     }
   }
 
@@ -264,6 +278,9 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
     if (hexViewer != null) {
       hexViewer.dataModified();
     }
+    if (datatype instanceof Variable) {
+      globalVars.remove((Variable)datatype);
+    }
   }
 
   @Override
@@ -274,10 +291,15 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       hexViewer.dataModified();
     }
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
+    // Unfortunatly, can not initialize in constructor, because this method called
+    // from superclass constructor
+    globalVars = new Variables();
     addField(new TextString(buffer, offset, 4, COMMON_SIGNATURE));
     TextString version = new TextString(buffer, offset + 4, 4, COMMON_VERSION);
     addField(version);
@@ -434,6 +456,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       Variable var = new Variable(this, buffer, offset, i);
       offset += var.getSize();
       addField(var);
+      globalVars.add(var);
     }
 
     if (offKillvariable != null) { // Torment
@@ -537,6 +560,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
     return offset;
   }
+  //</editor-fold>
 
   private void updateOffsets()
   {

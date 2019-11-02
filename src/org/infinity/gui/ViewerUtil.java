@@ -225,6 +225,17 @@ public final class ViewerUtil
     return new JLabel("No " + imageRef.getName().toLowerCase(Locale.ENGLISH), JLabel.CENTER);
   }
 
+  /**
+   * Creates panel with the name, list control and button for edit selected list
+   * element.
+   *
+   * @param title Name of the panel
+   * @param struct Structure, which attributes must be shown in the returned editor
+   * @param listClass List will contain all attributes of {@code struct} with this class
+   * @param attrName Name of attribute in the {@code listClass}, used to show in the list
+   *
+   * @return Editor for show list of the specified attrubutes
+   */
   public static JPanel makeListPanel(String title, AbstractStruct struct,
                                      Class<? extends StructEntry> listClass, String attrName)
   {

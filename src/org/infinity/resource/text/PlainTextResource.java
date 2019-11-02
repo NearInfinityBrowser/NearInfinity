@@ -54,7 +54,7 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
                                           DocumentListener, Closeable
 {
   private final ResourceEntry entry;
-  private final String text;
+  protected final String text;
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private JMenuItem ifindall, ifindthis;

@@ -16,11 +16,13 @@ import javax.swing.event.DocumentEvent;
 
 import org.infinity.datatype.StringRef;
 import org.infinity.icon.Icons;
+import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapSection;
 import org.infinity.util.StringTable;
+import org.infinity.util.Variables;
 
 /**
  * Resource, that represents PS:T {@code "quests.ini"} file - special resource
@@ -73,6 +75,27 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
       completeChecks = readConditions(section, "completeChecks", 'c');
     }
 
+    /**
+     * Evaluates execution status of this quest. Firstly checks completed conditions
+     * and return {@link State#Completed} if all conditions met. If not, run
+     * assigned conditions check and return {@link State#Assigned} if all conditions
+     * met. Otherwise return {@link State#Unassigned}.
+     *
+     * @param vars Container with variables, containing the status of quest.
+     *
+     * @return Execution status of the quest
+     */
+    public State evaluate(Variables vars)
+    {
+      if (evaluateAnd(vars, completeChecks)) {
+        return State.Completed;
+      }
+      if (evaluateAnd(vars, assignedChecks)) {
+        return State.Assigned;
+      }
+      return State.Unassigned;
+    }
+
     public String toString(StringTable.Format fmt)
     {
       return title == null ? "<no title>" : title.toString(fmt);
@@ -92,6 +115,24 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
         result.add(new Check(section, prefix, i));
       }
       return result;
+    }
+
+    /**
+     * Evaluate all checks againist specified variables combining results with AND
+     * logical operator.
+     *
+     * @param vars Container with values of variables
+     * @param checks List of checks to run
+     *
+     * @return {@code true} if all checks evaluated to {@code true}, {@code false}
+     *         otherwise
+     */
+    private static boolean evaluateAnd(Variables vars, List<Check> checks)
+    {
+      for (final Check check : checks) {
+        if (!check.evaluate(vars)) return false;
+      }
+      return true;
     }
   }
   /** Class, that represent one variable check condition for quest. */
@@ -122,6 +163,30 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
         return condition;
       }
     }
+
+    /**
+     * Evaluates check condition.
+     *
+     * @param vars Container with values of variables
+     * @return {@code true} if condition met, {@code false} otherwise
+     *
+     * @throws NumberFormatException If condition {@link #value} is not integer number
+     * @throws IllegalArgumentException If {@link #condition} is not one of the
+     *         {@link Condition known conditions}
+     */
+    public boolean evaluate(Variables vars)
+    {
+      final int val = Integer.parseInt(value);
+      final int var = vars.getInt(this.var);
+      final Condition cond = Condition.valueOf(condition);
+      switch (cond) {
+        case EQ: return var == val;
+        case NE: return var != val;
+        case LT: return var <  val;
+        case GT: return var >  val;
+      }
+      throw new InternalError("Unknown enum variant: " + cond);
+    }
   }
   public enum Condition
   {
@@ -139,7 +204,22 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
 
     private Condition(String title) { this.title = title; }
   }
+  /** Quest execution status. */
+  public enum State
+  {
+    /** Quest not yet taken by player and unknown to him. */
+    Unassigned,
+    /** Quest taken by player but not yet completed, active quest. */
+    Assigned,
+    /** Quest is finished. */
+    Completed;
+  }
   //</editor-fold>
+
+  public QuestsResource() throws Exception
+  {
+    this(ResourceFactory.getResourceEntry(RESOURCE_NAME));
+  }
 
   public QuestsResource(ResourceEntry entry) throws Exception
   {
@@ -150,7 +230,7 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
   public JComponent makeViewer(ViewableContainer container)
   {
     final JComponent textPage = super.makeViewer(container);
-    final QuestsPanel details = new QuestsPanel(readQuests());
+    final QuestsPanel details = new QuestsPanel(readQuests(), null);
     final JTabbedPane pane = new JTabbedPane();
     pane.addTab("Quest List", details);
     pane.addTab("Text", Icons.getIcon(Icons.ICON_EDIT_16), textPage);
@@ -194,9 +274,9 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
   }
   //</editor-fold>
 
-  private List<Quest> readQuests()
+  public List<Quest> readQuests()
   {
-    final IniMap ini = new IniMap(editor.getText());
+    final IniMap ini = new IniMap(editor == null ? text : editor.getText());
     final IniMapSection init = ini.getSection("init");
     final int questCount = init == null ? -1 : init.getAsInteger("questcount", -1);
     final ArrayList<Quest> quests = new ArrayList<>(questCount < 0 ? ini.getSectionCount() : questCount);
