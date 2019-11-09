@@ -150,7 +150,7 @@ public class LayerObjectContainer extends LayerObject
       }
 
       location.x = bounds.x; location.y = bounds.y;
-      item = new ShapedLayerItem(location, container, msg, msg, poly);
+      item = new ShapedLayerItem(container, msg, msg, poly);
       item.setName(getCategory());
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);

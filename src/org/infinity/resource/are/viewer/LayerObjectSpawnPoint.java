@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -41,6 +41,7 @@ public class LayerObjectSpawnPoint extends LayerObject
     init();
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -107,6 +108,7 @@ public class LayerObjectSpawnPoint extends LayerObject
       return false;
     }
   }
+  //</editor-fold>
 
 
   private void init()
@@ -136,7 +138,7 @@ public class LayerObjectSpawnPoint extends LayerObject
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
-      item = new IconLayerItem(location, sp, msg, msg, icon[0], CENTER);
+      item = new IconLayerItem(sp, msg, msg, icon[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelSpawnPoints);
       item.setName(getCategory());
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);

@@ -34,22 +34,21 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   private Object objData;
   private final String message;
   private ItemState itemState;
-  private final Point location;
   private final Point center;
 
   /**
-   * Initialize object with a specific map location, associated Viewable and an additional text message.
-   * @param location Map location
+   * Initialize object with a associated viewable object and message for
+   * both info box and quick info.
+   *
    * @param viewable Associated Viewable object
    * @param message An arbitrary text message for the info box
    * @param tooltip A short text message shown as tooltip or menu item text
    */
-  public AbstractLayerItem(Point location, Viewable viewable, String message, String tooltip)
+  public AbstractLayerItem(Viewable viewable, String message, String tooltip)
   {
     this.viewable = viewable;
     this.itemState = ItemState.NORMAL;
     this.center = new Point();
-    this.location = location == null ? new Point(0, 0) : location;
     this.message = message == null ? "" : message;
     setToolTipText(tooltip);
     addMouseListener(this);

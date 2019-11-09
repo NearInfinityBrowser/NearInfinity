@@ -48,18 +48,18 @@ public class AnimatedLayerItem extends AbstractLayerItem
   private SwingWorker<Void, Void> workerAnimate;
 
   /**
-   * Initialize object with a specific map location, associated Viewable, an additional text message
+   * Initialize object with an associated Viewable, an additional text message
    * and an array of Frame object containing graphics data and frame centers.
-   * @param location Map location
+   *
    * @param viewable Associated Viewable object
    * @param message An arbitrary text message for the info box.
    * @param tooltip A short text message shown as tooltip or menu item text
    * @param anim An array of Frame objects defining the animation for this layer item
    */
-  public AnimatedLayerItem(Point location, Viewable viewable, String message, String tooltip,
+  public AnimatedLayerItem(Viewable viewable, String message, String tooltip,
                            BasicAnimationProvider anim)
   {
-    super(location, viewable, message, tooltip);
+    super(viewable, message, tooltip);
     init();
     initAnimation(anim);
   }

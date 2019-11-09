@@ -265,7 +265,7 @@ public class LayerObjectDoorPoly extends LayerObject
       items = new ShapedLayerItem[count];
       for (int i = 0; i < count; i++) {
         location[i] = new Point(bounds[i].x, bounds[i].y);
-        items[i] = new ShapedLayerItem(location[i], door, msg[i], info[i], poly[i]);
+        items[i] = new ShapedLayerItem(door, msg[i], info[i], poly[i]);
         items[i].setName(getCategory());
         items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
         items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);

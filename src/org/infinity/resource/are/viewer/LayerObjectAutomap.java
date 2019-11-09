@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -55,6 +55,7 @@ public class LayerObjectAutomap extends LayerObject
     init();
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -111,6 +112,7 @@ public class LayerObjectAutomap extends LayerObject
   {
     return new Point[]{location};
   }
+  //</editor-fold>
 
   private void init()
   {
@@ -206,7 +208,7 @@ public class LayerObjectAutomap extends LayerObject
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
-      item = new IconLayerItem(location, note, msg, msg, icon[0], CENTER);
+      item = new IconLayerItem(note, msg, msg, icon[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelMapNotes);
       item.setName(getCategory());
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);

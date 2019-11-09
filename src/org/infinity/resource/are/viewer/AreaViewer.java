@@ -2696,7 +2696,7 @@ public class AreaViewer extends ChildFrame
             }
 
             if (wed[ViewerConstants.AREA_DAY] != null) {
-              wedItem[ViewerConstants.AREA_DAY] = new IconLayerItem(new Point(), wed[ViewerConstants.AREA_DAY],
+              wedItem[ViewerConstants.AREA_DAY] = new IconLayerItem(wed[ViewerConstants.AREA_DAY],
                                                                     wed[ViewerConstants.AREA_DAY].getName());
               wedItem[ViewerConstants.AREA_DAY].setVisible(false);
             }
@@ -2719,7 +2719,7 @@ public class AreaViewer extends ChildFrame
             }
 
             if (wed[ViewerConstants.AREA_NIGHT] != null) {
-              wedItem[ViewerConstants.AREA_NIGHT] = new IconLayerItem(new Point(), wed[ViewerConstants.AREA_NIGHT],
+              wedItem[ViewerConstants.AREA_NIGHT] = new IconLayerItem(wed[ViewerConstants.AREA_NIGHT],
                                                                       wed[ViewerConstants.AREA_NIGHT].getName());
               wedItem[ViewerConstants.AREA_NIGHT].setVisible(false);
             }
@@ -2833,18 +2833,18 @@ public class AreaViewer extends ChildFrame
         }
 
         // initializing pseudo layer items
-        areItem = new IconLayerItem(new Point(), are, are.getName());
+        areItem = new IconLayerItem(are, are.getName());
         areItem.setVisible(false);
 
         Song song = (Song)are.getAttribute(Song.ARE_SONGS);
         if (song != null) {
-          songItem = new IconLayerItem(new Point(), song, "");
+          songItem = new IconLayerItem(song, "");
           songItem.setVisible(false);
         }
 
         RestSpawn rest = (RestSpawn)are.getAttribute(RestSpawn.ARE_RESTSPAWN);
         if (rest != null) {
-          restItem = new IconLayerItem(new Point(), rest, "");
+          restItem = new IconLayerItem(rest, "");
         }
 
         // getting associated WED resources

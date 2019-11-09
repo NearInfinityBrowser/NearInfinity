@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -64,6 +64,7 @@ public class LayerObjectAnimation extends LayerObject
     init();
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public void close()
   {
@@ -163,6 +164,7 @@ public class LayerObjectAnimation extends LayerObject
       return false;
     }
   }
+  //</editor-fold>
 
   /**
    * Sets the lighting condition of the animation. Does nothing if the animation is flagged as
@@ -340,7 +342,7 @@ public class LayerObjectAnimation extends LayerObject
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
-      IconLayerItem item1 = new IconLayerItem(location, anim, msg, msg, icon[0], CENTER);
+      IconLayerItem item1 = new IconLayerItem(anim, msg, msg, icon[0], CENTER);
       item1.setData(keyIcon);
       item1.setLabelEnabled(Settings.ShowLabelAnimations);
       item1.setName(getCategory());
@@ -349,7 +351,7 @@ public class LayerObjectAnimation extends LayerObject
       item1.setVisible(isVisible());
       items[0] = item1;
 
-      AnimatedLayerItem item2 = new AnimatedLayerItem(location, anim, msg, msg, animation);
+      AnimatedLayerItem item2 = new AnimatedLayerItem(anim, msg, msg, animation);
       item2.setData(keyAnim);
       item2.setName(getCategory());
       item2.setToolTipText(msg);
@@ -366,7 +368,7 @@ public class LayerObjectAnimation extends LayerObject
     }
   }
 
-  // Loads a palette from the specified BMP resource (only 8-bit standard BMPs supported)
+  /** Loads a palette from the specified BMP resource (only 8-bit standard BMPs supported). */
   private int[] getExternalPalette(String bmpFile)
   {
     int[] retVal = null;

@@ -39,30 +39,30 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
   private JLabel label;
 
   /**
-   * Initialize object with a specific map location, associated Viewable and an additional text message.
-   * @param location Map location
+   * Initialize object with an associated Viewable and an additional text message.
+   *
    * @param viewable Associated Viewable object
    * @param message An arbitrary text message
    */
-  public IconLayerItem(Point location, Viewable viewable, String message)
+  public IconLayerItem(Viewable viewable, String message)
   {
-    this(location, viewable, message, message, null, null);
+    this(viewable, message, message, null, null);
   }
 
   /**
-   * Initialize object with a specific map location, associated Viewable, an additional text message,
+   * Initialize object with an associated Viewable, an additional text message,
    * an image for the visual representation and a locical center position within the icon.
-   * @param location Map location
+   *
    * @param viewable Associated Viewable object
    * @param message An arbitrary text message
    * @param tooltip A short text message shown as tooltip or menu item text
    * @param image The image to display
    * @param center Logical center position within the icon
    */
-  public IconLayerItem(Point location, Viewable viewable, String message, String tooltip,
+  public IconLayerItem(Viewable viewable, String message, String tooltip,
                        Image image, Point center)
   {
-    super(location, viewable, message, tooltip);
+    super(viewable, message, tooltip);
     setLayout(new BorderLayout());
     // preparing icon
     rcCanvas = new FrameCanvas(this);

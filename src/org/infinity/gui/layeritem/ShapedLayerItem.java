@@ -35,33 +35,33 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
   private boolean stroked, filled;
 
   /**
-   * Initialize object with a specific map location, associated Viewable, an additional text message
+   * Initialize object with an associated Viewable, an additional text message
    * and a shape for the visual representation.
-   * @param location Map location
+   *
    * @param viewable Associated Viewable object
    * @param message An arbitrary text message
    * @param tooltip A short text message shown as tooltip or menu item text
    * @param shape The shape to display
    */
-  public ShapedLayerItem(Point location, Viewable viewable, String message, String tooltip, Shape shape)
+  public ShapedLayerItem(Viewable viewable, String message, String tooltip, Shape shape)
   {
-    this(location, viewable, message, tooltip, shape, null);
+    this(viewable, message, tooltip, shape, null);
   }
 
   /**
-   * Initialize object with a specific map location, associated Viewable, an additional text message,
+   * Initialize object with an associated Viewable, an additional text message,
    * a shape for the visual representation and a locical center position within the shape.
-   * @param location Map location
+   *
    * @param viewable Associated Viewable object
    * @param message An arbitrary text message
    * @param tooltip A short text message shown as tooltip or menu item text
    * @param shape The shape to display
    * @param center Logical center position within the shape
    */
-  public ShapedLayerItem(Point location, Viewable viewable, String message, String tooltip,
+  public ShapedLayerItem(Viewable viewable, String message, String tooltip,
                          Shape shape, Point center)
   {
-    super(location, viewable, message, tooltip);
+    super(viewable, message, tooltip);
     setLayout(new BorderLayout());
     label = new ShapeLabel(this);
     label.setHorizontalAlignment(SwingConstants.CENTER);

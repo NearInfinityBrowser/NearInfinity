@@ -143,7 +143,7 @@ public class LayerObjectRegion extends LayerObject
 
       int colorType = Settings.UseColorShades ? type : 0;
       location.x = bounds.x; location.y = bounds.y;
-      item = new ShapedLayerItem(location, region, msg, msg, poly);
+      item = new ShapedLayerItem(region, msg, msg, poly);
       item.setName(getCategory());
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[colorType][0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[colorType][1]);

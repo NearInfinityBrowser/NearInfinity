@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -222,7 +222,7 @@ public class LayerObjectAmbient extends LayerObject
       }
 
       // creating sound item
-      itemIcon = new IconLayerItem(location, ambient, msg, msg, icon[0], CENTER);
+      itemIcon = new IconLayerItem(ambient, msg, msg, icon[0], CENTER);
       itemIcon.setLabelEnabled(Settings.ShowLabelSounds);
       itemIcon.setName(getCategory());
       itemIcon.setToolTipText(msg);
@@ -231,7 +231,7 @@ public class LayerObjectAmbient extends LayerObject
 
       // creating sound range item
       if (icon == ICON_LOCAL) {
-        itemShape = new ShapedLayerItem(location, ambient, msg, msg, circle, new Point(radiusLocal, radiusLocal));
+        itemShape = new ShapedLayerItem(ambient, msg, msg, circle, new Point(radiusLocal, radiusLocal));
         itemShape.setName(getCategory());
         itemShape.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
         itemShape.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);

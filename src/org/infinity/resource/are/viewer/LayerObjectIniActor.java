@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -52,6 +52,7 @@ public class LayerObjectIniActor extends LayerObjectActor
     init();
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public void reload()
   {
@@ -79,7 +80,7 @@ public class LayerObjectIniActor extends LayerObjectActor
   {
     return true;  // always active
   }
-
+  //</editor-fold>
 
   private void init() throws Exception
   {
@@ -150,7 +151,7 @@ public class LayerObjectIniActor extends LayerObjectActor
       }
 
       ini.setHighlightedLine(creData.getLine() + 1);
-      item = new IconLayerItem(location, ini, msg, info, icon[0], CENTER);
+      item = new IconLayerItem(ini, msg, info, icon[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelActorsIni);
       item.setName(getCategory());
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);

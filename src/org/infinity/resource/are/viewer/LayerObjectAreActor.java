@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -48,6 +48,7 @@ public class LayerObjectAreActor extends LayerObjectActor
     init();
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public void reload()
   {
@@ -75,6 +76,7 @@ public class LayerObjectAreActor extends LayerObjectActor
       return false;
     }
   }
+  //</editor-fold>
 
   private void init()
   {
@@ -131,7 +133,7 @@ public class LayerObjectAreActor extends LayerObjectActor
       if (!actorCreName.equals(actorName)) {
         msg += " (" + actorCreName + ")";
       }
-      item = new IconLayerItem(location, actor, msg, info, icon[0], CENTER);
+      item = new IconLayerItem(actor, msg, info, icon[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelActorsAre);
       item.setName(getCategory());
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);

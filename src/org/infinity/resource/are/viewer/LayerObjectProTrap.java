@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -39,6 +39,7 @@ public class LayerObjectProTrap extends LayerObject
     init();
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -95,6 +96,7 @@ public class LayerObjectProTrap extends LayerObject
   {
     return new Point[]{location};
   }
+  //</editor-fold>
 
   private void init()
   {
@@ -127,7 +129,7 @@ public class LayerObjectProTrap extends LayerObject
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
       }
 
-      item = new IconLayerItem(location, trap, msg, msg, icon[0], CENTER);
+      item = new IconLayerItem(trap, msg, msg, icon[0], CENTER);
       item.setName(getCategory());
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, ICON[1]);
       item.setVisible(isVisible());

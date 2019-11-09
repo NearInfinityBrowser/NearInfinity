@@ -158,7 +158,7 @@ public class LayerObjectTransition extends LayerObject
         e.printStackTrace();
       }
 
-      item = new ShapedLayerItem(location, are, msg, msg, null);
+      item = new ShapedLayerItem(are, msg, msg, null);
       item.setName(getCategory());
       update(1.0);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);

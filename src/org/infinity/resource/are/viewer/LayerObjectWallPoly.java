@@ -140,7 +140,7 @@ public class LayerObjectWallPoly extends LayerObject
       }
 
       location.x = bounds.x; location.y = bounds.y;
-      item = new ShapedLayerItem(location, wall, msg, info, poly);
+      item = new ShapedLayerItem(wall, msg, info, poly);
       item.setName(getCategory());
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
