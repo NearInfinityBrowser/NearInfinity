@@ -122,11 +122,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
 
   public ActionListener[] getActionListeners()
   {
-    ActionListener[] array = new ActionListener[actionListener.size()];
-    for (int i = 0; i < actionListener.size(); i++) {
-      array[i] = actionListener.get(i);
-    }
-    return array;
+    return actionListener.toArray(new ActionListener[actionListener.size()]);
   }
 
   public void removeActionListener(ActionListener l)
@@ -145,11 +141,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
 
   public LayerItemListener[] getLayerItemListeners()
   {
-    LayerItemListener[] array = new LayerItemListener[itemStateListener.size()];
-    for (int i = 0; i < itemStateListener.size(); i++) {
-      array[i] = itemStateListener.get(i);
-    }
-    return array;
+    return itemStateListener.toArray(new LayerItemListener[itemStateListener.size()]);
   }
 
   public void removeLayerItemListener(LayerItemListener l)
