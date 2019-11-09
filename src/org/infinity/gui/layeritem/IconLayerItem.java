@@ -107,15 +107,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
     if (state == null) {
       state = ItemState.NORMAL;
     }
-    switch (state) {
-      case HIGHLIGHTED:
-        if (images.containsKey(ItemState.HIGHLIGHTED))
-          return images.get(ItemState.HIGHLIGHTED);
-      case NORMAL:
-        if (images.containsKey(ItemState.NORMAL))
-          return images.get(ItemState.NORMAL);
-    }
-    return DEFAULT_IMAGE;
+    return images.containsKey(state) ? images.get(state) : DEFAULT_IMAGE;
   }
 
   /**

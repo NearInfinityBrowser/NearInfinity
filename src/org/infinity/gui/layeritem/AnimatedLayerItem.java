@@ -251,14 +251,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
    */
   public boolean isFrameEnabled(ItemState state)
   {
-    switch (state) {
-      case NORMAL:
-        return frameInfos[0].isEnabled();
-      case HIGHLIGHTED:
-        return frameInfos[0].isEnabled();
-      default:
-        return false;
-    }
+    return frameInfos[state.ordinal()].isEnabled();
   }
 
   /**
@@ -266,14 +259,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
    */
   public void setFrameEnabled(ItemState state, boolean enabled)
   {
-    switch (state) {
-      case NORMAL:
-        frameInfos[0].setEnabled(enabled);
-        break;
-      case HIGHLIGHTED:
-        frameInfos[1].setEnabled(enabled);
-        break;
-    }
+    frameInfos[state.ordinal()].setEnabled(enabled);
     updateFrame();
   }
 
@@ -282,14 +268,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
    */
   public int getFrameWidth(ItemState state)
   {
-    switch (state) {
-      case NORMAL:
-        return (int)frameInfos[0].getStroke().getLineWidth();
-      case HIGHLIGHTED:
-        return (int)frameInfos[1].getStroke().getLineWidth();
-      default:
-        return 0;
-    }
+    return (int)frameInfos[state.ordinal()].getStroke().getLineWidth();
   }
 
   /**
@@ -297,15 +276,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
    */
   public void setFrameWidth(ItemState state, int width)
   {
-    if (width < 1) width = 1;
-    switch (state) {
-      case NORMAL:
-        frameInfos[0].setStroke(new BasicStroke((float)width));
-        break;
-      case HIGHLIGHTED:
-        frameInfos[1].setStroke(new BasicStroke((float)width));
-        break;
-    }
+    frameInfos[state.ordinal()].setStroke(new BasicStroke(width < 1 ? 1 : width));
     updateFrame();
   }
 
@@ -314,14 +285,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
    */
   public Color getFrameColor(ItemState state)
   {
-    switch (state) {
-      case NORMAL:
-        return frameInfos[0].getColor();
-      case HIGHLIGHTED:
-        return frameInfos[1].getColor();
-      default:
-        return FrameInfo.DefaultColor;
-    }
+    return frameInfos[state.ordinal()].getColor();
   }
 
   /**
@@ -329,14 +293,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
    */
   public void setFrameColor(ItemState state, Color color)
   {
-    switch (state) {
-      case NORMAL:
-        frameInfos[0].setColor(color);
-        break;
-      case HIGHLIGHTED:
-        frameInfos[1].setColor(color);
-        break;
-    }
+    frameInfos[state.ordinal()].setColor(color);
     updateFrame();
   }
 

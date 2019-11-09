@@ -112,15 +112,7 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
     if (state == null) {
       state = ItemState.NORMAL;
     }
-    switch (state) {
-      case HIGHLIGHTED:
-        if (strokeColors.containsKey(ItemState.HIGHLIGHTED))
-          return strokeColors.get(ItemState.HIGHLIGHTED);
-      case NORMAL:
-        if (strokeColors.containsKey(ItemState.NORMAL))
-          return strokeColors.get(ItemState.NORMAL);
-    }
-    return DEFAULT_COLOR;
+    return strokeColors.containsKey(state) ? strokeColors.get(state) : DEFAULT_COLOR;
   }
 
   /**
@@ -181,15 +173,7 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
     if (state == null) {
       state = ItemState.NORMAL;
     }
-    switch (state) {
-      case HIGHLIGHTED:
-        if (fillColors.containsKey(ItemState.HIGHLIGHTED))
-          return fillColors.get(ItemState.HIGHLIGHTED);
-      case NORMAL:
-        if (fillColors.containsKey(ItemState.NORMAL))
-          return fillColors.get(ItemState.NORMAL);
-    }
-    return DEFAULT_COLOR;
+    return fillColors.containsKey(state) ? fillColors.get(state) : DEFAULT_COLOR;
   }
 
   /**
