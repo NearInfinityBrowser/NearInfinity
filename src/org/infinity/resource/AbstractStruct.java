@@ -4,7 +4,6 @@
 
 package org.infinity.resource;
 
-import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -12,7 +11,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -74,7 +72,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   /** Offset of the last byte in serialized format of this struct. */
   private int endoffset;
   private int extraoffset;
-  private Collection<Component> viewerComponents;
   /**
    * If any {@link PropertyChangeListener}s have been registered,
    * the {@code changeSupport} field describes them.
@@ -375,7 +372,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public JComponent makeViewer(ViewableContainer container)
   {
     if (viewer == null) {
-      viewer = new StructViewer(this, viewerComponents);
+      viewer = new StructViewer(this);
       viewerInitialized(viewer);
     }
     return viewer;
@@ -968,12 +965,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       sb.append(e.getName()).append(": ").append(e).append('\n');
     }
     return sb.toString();
-  }
-
-  public void setExtraComponents(Collection<Component> list)
-  {
-    // List of components to be added to the bottom panel of the StructView component
-    viewerComponents = list;
   }
 
   /** Returns the SectionOffset entry linked to the specified StructEntry object if available. */

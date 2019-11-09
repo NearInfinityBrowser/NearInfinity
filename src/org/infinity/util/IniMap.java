@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -24,16 +24,58 @@ import org.infinity.util.io.StreamUtils;
 public class IniMap implements Iterable<IniMapSection>
 {
   private static final Pattern SECTION_NAME = Pattern.compile("^\\[(.+)\\].*$");
+  private static final Pattern LINE_SPLIT = Pattern.compile("\r?\n");
   private final List<IniMapSection> entries = new ArrayList<>();
 
-  public IniMap(String name)
+  /**
+   * Parses specified text content as {@code ini} file with comments (comment
+   * starts from {@code //} and continues to end of string).
+   *
+   * @param content Text to parse
+   */
+  public IniMap(CharSequence content)
   {
-    this(ResourceFactory.getResourceEntry(name), false);
+    this(content, false);
   }
 
-  public IniMap(String name, boolean ignoreComments)
+  /**
+   * Parses specified text content as {@code ini} file.
+   *
+   * @param content Text to parse
+   * @param ignoreComments If {@code true}, comments (part of string from {@code //}
+   *        to end of line) will not be treated specially (i.e. will not be considered
+   *        as comments)
+   *
+   * @throws NullPointerException If {@code content} si {@code null}
+   */
+  public IniMap(CharSequence content, boolean ignoreComments)
   {
-    this(ResourceFactory.getResourceEntry(name), ignoreComments);
+    final String[] lines = LINE_SPLIT.split(content);
+    String curSection = null;
+    int curSectionLine = 0;
+    final List<IniMapEntry> section = new ArrayList<>();
+    for (int i = 0, count = lines.length; i < count; i++) {
+      final String line = lines[i].trim();
+      if (line.isEmpty()) continue;
+
+      final Matcher m = SECTION_NAME.matcher(line);
+      if (m.matches()) {  // new section found
+        // storing content of previous section
+        if (curSection != null || !section.isEmpty()) {
+          entries.add(new IniMapSection(curSection, curSectionLine, section));
+        }
+        curSection = m.group(1);
+        curSectionLine = i;
+        section.clear();
+      } else {    // potential section entry
+        section.add(parseEntry(line, i, ignoreComments));
+      }
+    }
+
+    // adding last section
+    if (curSection != null || !section.isEmpty()) {
+      entries.add(new IniMapSection(curSection, curSectionLine, section));
+    }
   }
 
   public IniMap(ResourceEntry entry)
@@ -43,7 +85,7 @@ public class IniMap implements Iterable<IniMapSection>
 
   public IniMap(ResourceEntry entry, boolean ignoreComments)
   {
-    init(entry, ignoreComments);
+    this(readResource(entry), ignoreComments);
   }
 
   /** Returns number of available INI sections. */
@@ -90,42 +132,6 @@ public class IniMap implements Iterable<IniMapSection>
     return sb.toString();
   }
 
-  private void init(ResourceEntry entry, boolean ignoreComments)
-  {
-    // reading and storing unprocessed lines of text
-    final String[] lines = readLines(entry);
-    if (lines == null) {
-      return;
-    }
-
-    // parsing lines
-    String curSection = null;
-    int curSectionLine = 0;
-    final List<IniMapEntry> section = new ArrayList<>();
-    for (int i = 0, count = lines.length; i < count; i++) {
-      final String line = lines[i].trim();
-      if (line.isEmpty()) continue;
-
-      final Matcher m = SECTION_NAME.matcher(line);
-      if (m.matches()) {  // new section found
-        // storing content of previous section
-        if (curSection != null || !section.isEmpty()) {
-          entries.add(new IniMapSection(curSection, curSectionLine, section));
-        }
-        curSection = m.group(1);
-        curSectionLine = i;
-        section.clear();
-      } else {    // potential section entry
-        section.add(parseEntry(line, i, ignoreComments));
-      }
-    }
-
-    // adding last section
-    if (curSection != null || !section.isEmpty()) {
-      entries.add(new IniMapSection(curSection, curSectionLine, section));
-    }
-  }
-
   /**
    * Parses key-value pair, delimited with {@code '='} symbol. If {@code '='}
    * not be found in the meaning part of line (i.e. not in comment), then method
@@ -165,12 +171,12 @@ public class IniMap implements Iterable<IniMapSection>
     return new IniMapEntry(key, value, lineNr);
   }
 
-  private static String[] readLines(ResourceEntry entry)
+  private static String readResource(ResourceEntry entry)
   {
     if (entry != null) {
       try {
         final ByteBuffer bb = entry.getResourceBuffer();
-        return StreamUtils.readString(bb, bb.limit(), Misc.CHARSET_DEFAULT).split("\r?\n");
+        return StreamUtils.readString(bb, bb.limit(), Misc.CHARSET_DEFAULT);
       } catch (Exception e) {
         e.printStackTrace();
       }

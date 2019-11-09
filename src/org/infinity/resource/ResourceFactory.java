@@ -75,6 +75,7 @@ import org.infinity.resource.spl.SplResource;
 import org.infinity.resource.src.SrcResource;
 import org.infinity.resource.sto.StoResource;
 import org.infinity.resource.text.PlainTextResource;
+import org.infinity.resource.text.QuestsResource;
 import org.infinity.resource.to.TohResource;
 import org.infinity.resource.to.TotResource;
 import org.infinity.resource.var.VarResource;
@@ -165,7 +166,7 @@ public final class ResourceFactory implements FileWatchListener
         res = new MusResource(entry);
       } else if (ext.equalsIgnoreCase("IDS") || ext.equalsIgnoreCase("2DA") ||
                  ext.equalsIgnoreCase("BIO") || ext.equalsIgnoreCase("RES") ||
-                 ext.equalsIgnoreCase("INI") || ext.equalsIgnoreCase("TXT") ||
+                 ext.equalsIgnoreCase("TXT") ||
                  ext.equalsIgnoreCase("LOG") ||// WeiDU log files
                  (ext.equalsIgnoreCase("SRC") && Profile.getEngine() == Profile.Engine.IWD2) ||
                  (Profile.isEnhancedEdition() && (ext.equalsIgnoreCase("SQL") ||
@@ -174,6 +175,12 @@ public final class ResourceFactory implements FileWatchListener
                                                   ext.equalsIgnoreCase("MENU") ||
                                                   ext.equalsIgnoreCase("GLSL")))) {
         res = new PlainTextResource(entry);
+      } else if (ext.equalsIgnoreCase("INI")) {
+        final boolean isPST = Profile.getEngine() == Profile.Engine.PST;
+
+        res = isPST && QuestsResource.RESOURCE_NAME.equalsIgnoreCase(entry.getResourceName())
+            ? new QuestsResource(entry)
+            : new PlainTextResource(entry);
       } else if (ext.equalsIgnoreCase("MVE")) {
         res = new MveResource(entry);
       } else if (ext.equalsIgnoreCase("WBM")) {
@@ -1338,7 +1345,7 @@ public final class ResourceFactory implements FileWatchListener
       case PST:
         addFileResource(FileManager.query(roots, "autonote.ini"));
         addFileResource(FileManager.query(roots, "beast.ini"));// Bestiary
-        addFileResource(FileManager.query(roots, "quests.ini"));
+        addFileResource(FileManager.query(roots, QuestsResource.RESOURCE_NAME));
         addFileResource(FileManager.query(roots, "VAR.VAR"));
         break;
       default:

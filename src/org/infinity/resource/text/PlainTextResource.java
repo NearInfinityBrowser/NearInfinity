@@ -50,39 +50,34 @@ import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
-public final class PlainTextResource implements TextResource, Writeable, ActionListener, ItemListener,
-                                                DocumentListener, Closeable
+public class PlainTextResource implements TextResource, Writeable, ActionListener, ItemListener,
+                                          DocumentListener, Closeable
 {
   private final ResourceEntry entry;
-  private final String text;
+  protected final String text;
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
-  private InfinityTextArea editor;
+  /** Text editor for editing resource. Created after calling {@link #makeViewer}. */
+  protected InfinityTextArea editor;
   private boolean resourceChanged;
-  private int highlightedLine;
+  private int highlightedLine = -1;
 
   public PlainTextResource(ResourceEntry entry) throws Exception
-  {
-    this(entry, -1);
-  }
-
-  public PlainTextResource(ResourceEntry entry, int highlightedLine) throws Exception
   {
     this.entry = entry;
     ByteBuffer buffer = entry.getResourceBuffer();
     if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
       buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
-    Charset cs = null;
+    final Charset cs;
     if (BrowserMenuBar.getInstance() != null) {
       cs = Charset.forName(BrowserMenuBar.getInstance().getSelectedCharset());
     } else {
       cs = Misc.CHARSET_DEFAULT;
     }
     text = StreamUtils.readString(buffer, buffer.limit(), cs);
-    this.highlightedLine = highlightedLine;
   }
 
 // --------------------- Begin Interface ActionListener ---------------------

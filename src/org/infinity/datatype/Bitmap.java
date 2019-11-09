@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -53,8 +54,7 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
     read(buffer, offset);
   }
 
-// --------------------- Begin Interface Editable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Editable">
   @Override
   public JComponent edit(final ActionListener container)
   {
@@ -122,22 +122,17 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
 
     return true;
   }
+  //</editor-fold>
 
-// --------------------- End Interface Editable ---------------------
-
-
-// --------------------- Begin Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Writeable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     writeInt(os, value);
   }
+  //</editor-fold>
 
-// --------------------- End Interface Writeable ---------------------
-
-//--------------------- Begin Interface Readable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -158,11 +153,9 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
 
     return offset + getSize();
   }
+  //</editor-fold>
 
-//--------------------- End Interface Readable ---------------------
-
-//--------------------- Begin Interface IsNumeric ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="IsNumeric">
   @Override
   public long getLongValue()
   {
@@ -174,8 +167,7 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
   {
     return value;
   }
-
-//--------------------- End Interface IsNumeric ---------------------
+  //</editor-fold>
 
   @Override
   public String toString()

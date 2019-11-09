@@ -28,7 +28,6 @@ import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.nio.ByteBuffer;
-import java.util.Collection;
 import java.util.HashMap;
 
 import javax.swing.BorderFactory;
@@ -210,11 +209,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
   public StructViewer(AbstractStruct struct)
   {
-    this(struct, null);
-  }
-
-  public StructViewer(AbstractStruct struct, Collection<Component> extraComponents)
-  {
     this.struct = struct;
     struct.addTableModelListener(this);
     table.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
@@ -373,11 +367,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     if (struct instanceof Resource && !struct.getFields().isEmpty() && struct.getParent() == null) {
       ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
       ((JButton)buttonPanel.addControl(ButtonPanel.Control.SAVE)).addActionListener(this);
-    }
-    if (extraComponents != null) {
-      for (final Component c: extraComponents) {
-        buttonPanel.add(c);
-      }
     }
 
     JScrollPane scrollTable = new JScrollPane(table);
