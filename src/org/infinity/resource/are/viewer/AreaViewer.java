@@ -205,16 +205,10 @@ public class AreaViewer extends ChildFrame
     return Settings.TimeOfDay;
   }
 
-
-  public AreaViewer(AreResource are)
-  {
-    this(NearInfinity.getInstance(), are);
-  }
-
   public AreaViewer(Component parent, AreResource are)
   {
     super("");
-    windowTitle = String.format("Area Viewer: %s", (are != null) ? are.getName() : "[Unknown]");
+    windowTitle = String.format("Area Viewer: %s", are.getName());
     initProgressMonitor(parent, "Initializing " + are.getName(), "Loading ARE resource...", 3, 0, 0);
     listeners = new Listeners();
     map = new Map(this, are);
@@ -230,12 +224,11 @@ public class AreaViewer extends ChildFrame
         return null;
       }
     };
-    workerInitGui.addPropertyChangeListener(getListeners());
+    workerInitGui.addPropertyChangeListener(listeners);
     workerInitGui.execute();
   }
 
-  //--------------------- Begin Class ChildFrame ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ChildFrame">
   @Override
   public void close()
   {
@@ -247,9 +240,7 @@ public class AreaViewer extends ChildFrame
     if (!map.closeWed(ViewerConstants.AREA_NIGHT, true)) {
       return;
     }
-    if (map != null) {
-      map.clear();
-    }
+    map.clear();
     if (rcCanvas != null) {
       removeLayerItems();
       rcCanvas.clear();
@@ -263,8 +254,7 @@ public class AreaViewer extends ChildFrame
     System.gc();
     super.close();
   }
-
-  //--------------------- End Class ChildFrame ---------------------
+  //</editor-fold>
 
   /**
    * Returns the tileset renderer for this viewer instance.
@@ -745,7 +735,7 @@ public class AreaViewer extends ChildFrame
     cbZoomLevel.setSelectedIndex(Settings.getZoomLevelIndex(Settings.ZoomFactor));
 
     // initializing layers
-    layerManager = new LayerManager(getCurrentAre(), getCurrentWed(), this);
+    layerManager = new LayerManager(map.getAre(), getCurrentWed(), this);
     layerManager.setDoorState(Settings.DrawClosed ? ViewerConstants.DOOR_CLOSED : ViewerConstants.DOOR_OPEN);
     layerManager.setScheduleEnabled(Settings.EnableSchedules);
     layerManager.setSchedule(LayerManager.toSchedule(getHour()));
@@ -840,33 +830,18 @@ public class AreaViewer extends ChildFrame
     updateScheduledItems();
   }
 
-  /** Returns the currently selected ARE resource. */
-  private AreResource getCurrentAre()
-  {
-    if (map != null) {
-      return map.getAre();
-    } else {
-      return null;
-    }
-  }
-
   /** Returns the currently selected WED resource (day/night). */
   private WedResource getCurrentWed()
   {
-    if (map != null) {
-      return map.getWed(getCurrentWedIndex());
-    }
-    return null;
+    return map.getWed(getCurrentWedIndex());
   }
 
   /** Returns the currently selected WED resource (day/night). */
   private int getCurrentWedIndex()
   {
-    if (map != null) {
-      return getDayTime() == ViewerConstants.LIGHTING_NIGHT ? ViewerConstants.AREA_NIGHT : ViewerConstants.AREA_DAY;
-    } else {
-      return ViewerConstants.AREA_DAY;
-    }
+    return getDayTime() == ViewerConstants.LIGHTING_NIGHT
+        ? ViewerConstants.AREA_NIGHT
+        : ViewerConstants.AREA_DAY;
   }
 
 
@@ -1528,23 +1503,21 @@ public class AreaViewer extends ChildFrame
   /** Updates the visibility state of minimaps (search/height/light maps). */
   private void updateMiniMap()
   {
-    if (map != null) {
-      int type;
-      if (cbMiniMaps[ViewerConstants.MAP_SEARCH].isSelected()) {
-        type = ViewerConstants.MAP_SEARCH;
-      } else if (cbMiniMaps[ViewerConstants.MAP_LIGHT].isSelected()) {
-        type = ViewerConstants.MAP_LIGHT;
-      } else if (cbMiniMaps[ViewerConstants.MAP_HEIGHT].isSelected()) {
-        type = ViewerConstants.MAP_HEIGHT;
-      } else {
-        type = ViewerConstants.MAP_NONE;
-      }
-      updateTreeNode(cbMiniMaps[ViewerConstants.MAP_SEARCH]);
-      updateTreeNode(cbMiniMaps[ViewerConstants.MAP_LIGHT]);
-      updateTreeNode(cbMiniMaps[ViewerConstants.MAP_HEIGHT]);
-      Settings.MiniMap = type;
-      rcCanvas.setMiniMap(Settings.MiniMap, map.getMiniMap(Settings.MiniMap, getDayTime() == ViewerConstants.LIGHTING_NIGHT));
+    final int type;
+    if (cbMiniMaps[ViewerConstants.MAP_SEARCH].isSelected()) {
+      type = ViewerConstants.MAP_SEARCH;
+    } else if (cbMiniMaps[ViewerConstants.MAP_LIGHT].isSelected()) {
+      type = ViewerConstants.MAP_LIGHT;
+    } else if (cbMiniMaps[ViewerConstants.MAP_HEIGHT].isSelected()) {
+      type = ViewerConstants.MAP_HEIGHT;
+    } else {
+      type = ViewerConstants.MAP_NONE;
     }
+    updateTreeNode(cbMiniMaps[ViewerConstants.MAP_SEARCH]);
+    updateTreeNode(cbMiniMaps[ViewerConstants.MAP_LIGHT]);
+    updateTreeNode(cbMiniMaps[ViewerConstants.MAP_HEIGHT]);
+    Settings.MiniMap = type;
+    rcCanvas.setMiniMap(Settings.MiniMap, map.getMiniMap(Settings.MiniMap, getDayTime() == ViewerConstants.LIGHTING_NIGHT));
   }
 
   /** Sets visibility state of scheduled layer items depending on current day time. */
@@ -1983,7 +1956,7 @@ public class AreaViewer extends ChildFrame
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         boolean bRet = false;
         try {
-          BufferedImage dstImage = null;
+          final BufferedImage dstImage;
           if (isExportLayersEnabled()) {
             double zoom = getZoomFactor();
             setZoomFactor(1.0, 1.0);
@@ -2005,7 +1978,6 @@ public class AreaViewer extends ChildFrame
           }
           bRet = ImageIO.write(dstImage, "png", os);
           dstImage.flush();
-          dstImage = null;
         } catch (Exception e) {
           e.printStackTrace();
         } finally {
@@ -2013,9 +1985,9 @@ public class AreaViewer extends ChildFrame
           WindowBlocker.blockWindow(AreaViewer.this, false);
         }
         if (bRet) {
-          String fileName = getCurrentAre().getResourceEntry().getResourceName()
+          String fileName = map.getAre().getResourceEntry().getResourceName()
                               .toUpperCase(Locale.US).replace(".ARE", ".PNG");
-          ResourceFactory.exportResource(getCurrentAre().getResourceEntry(),
+          ResourceFactory.exportResource(map.getAre().getResourceEntry(),
                                          StreamUtils.getByteBuffer(os.toByteArray()),
                                          fileName, AreaViewer.this);
         } else {
@@ -2552,7 +2524,7 @@ public class AreaViewer extends ChildFrame
     private final AbstractLayerItem[] wedItem = new IconLayerItem[]{null, null};
     private final GraphicsResource[] mapLight = new GraphicsResource[]{null, null};
 
-    private AreResource are;
+    private final AreResource are;
     private boolean hasDayNight, hasExtendedNight;
     private AbstractLayerItem areItem, songItem, restItem;
     private GraphicsResource mapSearch, mapHeight;
@@ -2571,7 +2543,6 @@ public class AreaViewer extends ChildFrame
     {
       songItem = null;
       restItem = null;
-      are = null;
       areItem = null;
       closeWed(ViewerConstants.AREA_DAY, false);
       wed[ViewerConstants.AREA_DAY] = null;
@@ -2674,55 +2645,53 @@ public class AreaViewer extends ChildFrame
      */
     public void reloadWed(int dayNight)
     {
-      if (are != null) {
-        dayNight = (dayNight == ViewerConstants.AREA_NIGHT) ? ViewerConstants.AREA_NIGHT : ViewerConstants.AREA_DAY;
-        String wedName = "";
-        ResourceRef wedRef = (ResourceRef)are.getAttribute(AreResource.ARE_WED_RESOURCE);
-        if (wedRef != null) {
-          wedName = wedRef.getResourceName();
-          if ("None".equalsIgnoreCase(wedName)) {
-            wedName = "";
-          }
+      dayNight = (dayNight == ViewerConstants.AREA_NIGHT) ? ViewerConstants.AREA_NIGHT : ViewerConstants.AREA_DAY;
+      String wedName = "";
+      ResourceRef wedRef = (ResourceRef)are.getAttribute(AreResource.ARE_WED_RESOURCE);
+      if (wedRef != null) {
+        wedName = wedRef.getResourceName();
+        if ("None".equalsIgnoreCase(wedName)) {
+          wedName = "";
+        }
 
-          if (dayNight == ViewerConstants.AREA_DAY) {
-            if (!wedName.isEmpty()) {
-              try {
-                wed[ViewerConstants.AREA_DAY] = new WedResource(ResourceFactory.getResourceEntry(wedName));
-              } catch (Exception e) {
-                wed[ViewerConstants.AREA_DAY] = null;
-              }
-            } else {
+        if (dayNight == ViewerConstants.AREA_DAY) {
+          if (!wedName.isEmpty()) {
+            try {
+              wed[ViewerConstants.AREA_DAY] = new WedResource(ResourceFactory.getResourceEntry(wedName));
+            } catch (Exception e) {
               wed[ViewerConstants.AREA_DAY] = null;
             }
-
-            if (wed[ViewerConstants.AREA_DAY] != null) {
-              wedItem[ViewerConstants.AREA_DAY] = new IconLayerItem(wed[ViewerConstants.AREA_DAY],
-                                                                    wed[ViewerConstants.AREA_DAY].getName());
-              wedItem[ViewerConstants.AREA_DAY].setVisible(false);
-            }
           } else {
-            // getting extended night map
-            if (hasExtendedNight && !wedName.isEmpty()) {
-              int pos = wedName.lastIndexOf('.');
-              if (pos > 0) {
-                String wedNameNight = wedName.substring(0, pos) + "N" + wedName.substring(pos);
-                try {
-                  wed[ViewerConstants.AREA_NIGHT] = new WedResource(ResourceFactory.getResourceEntry(wedNameNight));
-                } catch (Exception e) {
-                  wed[ViewerConstants.AREA_NIGHT] = wed[ViewerConstants.AREA_DAY];
-                }
-              } else {
+            wed[ViewerConstants.AREA_DAY] = null;
+          }
+
+          if (wed[ViewerConstants.AREA_DAY] != null) {
+            wedItem[ViewerConstants.AREA_DAY] = new IconLayerItem(wed[ViewerConstants.AREA_DAY],
+                                                                  wed[ViewerConstants.AREA_DAY].getName());
+            wedItem[ViewerConstants.AREA_DAY].setVisible(false);
+          }
+        } else {
+          // getting extended night map
+          if (hasExtendedNight && !wedName.isEmpty()) {
+            int pos = wedName.lastIndexOf('.');
+            if (pos > 0) {
+              String wedNameNight = wedName.substring(0, pos) + "N" + wedName.substring(pos);
+              try {
+                wed[ViewerConstants.AREA_NIGHT] = new WedResource(ResourceFactory.getResourceEntry(wedNameNight));
+              } catch (Exception e) {
                 wed[ViewerConstants.AREA_NIGHT] = wed[ViewerConstants.AREA_DAY];
               }
             } else {
               wed[ViewerConstants.AREA_NIGHT] = wed[ViewerConstants.AREA_DAY];
             }
+          } else {
+            wed[ViewerConstants.AREA_NIGHT] = wed[ViewerConstants.AREA_DAY];
+          }
 
-            if (wed[ViewerConstants.AREA_NIGHT] != null) {
-              wedItem[ViewerConstants.AREA_NIGHT] = new IconLayerItem(wed[ViewerConstants.AREA_NIGHT],
-                                                                      wed[ViewerConstants.AREA_NIGHT].getName());
-              wedItem[ViewerConstants.AREA_NIGHT].setVisible(false);
-            }
+          if (wed[ViewerConstants.AREA_NIGHT] != null) {
+            wedItem[ViewerConstants.AREA_NIGHT] = new IconLayerItem(wed[ViewerConstants.AREA_NIGHT],
+                                                                    wed[ViewerConstants.AREA_NIGHT].getName());
+            wedItem[ViewerConstants.AREA_NIGHT].setVisible(false);
           }
         }
       }
@@ -2819,39 +2788,37 @@ public class AreaViewer extends ChildFrame
 
     private void init()
     {
-      if (are != null) {
-        // fetching important flags
-        Flag flags = (Flag)are.getAttribute(AreResource.ARE_LOCATION);
-        if (flags != null) {
-          if (Profile.getEngine() == Profile.Engine.PST) {
-            hasDayNight = flags.isFlagSet(10);
-            hasExtendedNight = false;
-          } else {
-            hasDayNight = flags.isFlagSet(1);
-            hasExtendedNight = flags.isFlagSet(6);
-          }
+      // fetching important flags
+      final Flag flags = (Flag)are.getAttribute(AreResource.ARE_LOCATION);
+      if (flags != null) {
+        if (Profile.getEngine() == Profile.Engine.PST) {
+          hasDayNight = flags.isFlagSet(10);
+          hasExtendedNight = false;
+        } else {
+          hasDayNight = flags.isFlagSet(1);
+          hasExtendedNight = flags.isFlagSet(6);
         }
-
-        // initializing pseudo layer items
-        areItem = new IconLayerItem(are, are.getName());
-        areItem.setVisible(false);
-
-        Song song = (Song)are.getAttribute(Song.ARE_SONGS);
-        if (song != null) {
-          songItem = new IconLayerItem(song, "");
-          songItem.setVisible(false);
-        }
-
-        RestSpawn rest = (RestSpawn)are.getAttribute(RestSpawn.ARE_RESTSPAWN);
-        if (rest != null) {
-          restItem = new IconLayerItem(rest, "");
-        }
-
-        // getting associated WED resources
-        reloadWed(ViewerConstants.AREA_DAY);
-        reloadWed(ViewerConstants.AREA_NIGHT);
-        reloadMiniMaps();
       }
+
+      // initializing pseudo layer items
+      areItem = new IconLayerItem(are, are.getName());
+      areItem.setVisible(false);
+
+      final Song song = (Song)are.getAttribute(Song.ARE_SONGS);
+      if (song != null) {
+        songItem = new IconLayerItem(song, "");
+        songItem.setVisible(false);
+      }
+
+      final RestSpawn rest = (RestSpawn)are.getAttribute(RestSpawn.ARE_RESTSPAWN);
+      if (rest != null) {
+        restItem = new IconLayerItem(rest, "");
+      }
+
+      // getting associated WED resources
+      reloadWed(ViewerConstants.AREA_DAY);
+      reloadWed(ViewerConstants.AREA_NIGHT);
+      reloadMiniMaps();
     }
   }
 
