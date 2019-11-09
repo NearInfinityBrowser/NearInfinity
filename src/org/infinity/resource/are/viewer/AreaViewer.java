@@ -192,14 +192,14 @@ public class AreaViewer extends ChildFrame
     return false;
   }
 
-  // Returns the general day time (day/twilight/night)
+  /** Returns the general day time (day/twilight/night). */
   private static int getDayTime()
   {
     return ViewerConstants.getDayTime(Settings.TimeOfDay);
   }
 
 
-  // Returns the currently selected day time in hours
+  /** Returns the currently selected day time in hours. */
   private static int getHour()
   {
     return Settings.TimeOfDay;
@@ -282,7 +282,7 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // initialize GUI and structures
+  /** initialize GUI and structures. */
   private void init()
   {
     initialized = false;
@@ -685,14 +685,14 @@ public class AreaViewer extends ChildFrame
     initialized = true;
   }
 
-  // Returns whether area viewer is still being initialized
+  /** Returns whether area viewer is still being initialized. */
   private boolean isInitialized()
   {
     return initialized;
   }
 
 
-  // Sets the state of all GUI components and their associated actions
+  /** Sets the state of all GUI components and their associated actions. */
   private void initGuiSettings()
   {
     Settings.loadSettings(false);
@@ -788,7 +788,7 @@ public class AreaViewer extends ChildFrame
     applySettings();
   }
 
-  // Updates the window title
+  /** Updates the window title. */
   private void updateWindowTitle()
   {
     int zoom = (int)Math.round(getZoomFactor()*100.0);
@@ -824,7 +824,7 @@ public class AreaViewer extends ChildFrame
                            windowTitle, getHour(), dayNight, scheduleState, doorState, overlayState, gridState, zoom));
   }
 
-  // Sets day time to a specific hour (0..23).
+  /** Sets day time to a specific hour (0..23). */
   private void setHour(int hour)
   {
     while (hour < 0) { hour += 24; }
@@ -840,7 +840,7 @@ public class AreaViewer extends ChildFrame
     updateScheduledItems();
   }
 
-  // Returns the currently selected ARE resource
+  /** Returns the currently selected ARE resource. */
   private AreResource getCurrentAre()
   {
     if (map != null) {
@@ -850,7 +850,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Returns the currently selected WED resource (day/night)
+  /** Returns the currently selected WED resource (day/night). */
   private WedResource getCurrentWed()
   {
     if (map != null) {
@@ -859,7 +859,7 @@ public class AreaViewer extends ChildFrame
     return null;
   }
 
-  // Returns the currently selected WED resource (day/night)
+  /** Returns the currently selected WED resource (day/night). */
   private int getCurrentWedIndex()
   {
     if (map != null) {
@@ -870,13 +870,13 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Returns the currently selected visual state (day/twilight/night)
+  /** Returns the currently selected visual state (day/twilight/night). */
   private int getVisualState()
   {
     return getDayTime();
   }
 
-  // Set the lighting condition of the current map (day/twilight/night) and real background animations
+  /** Set the lighting condition of the current map (day/twilight/night) and real background animations. */
   private synchronized void setVisualState(int hour)
   {
     while (hour < 0) { hour += 24; }
@@ -934,7 +934,7 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Returns whether map dragging is enabled; updates current and previous mouse positions
+  /** Returns whether map dragging is enabled; updates current and previous mouse positions. */
   private boolean isMapDragging(Point mousePos)
   {
     if (bMapDragging && mousePos != null && !mapDraggingPos.equals(mousePos)) {
@@ -944,7 +944,7 @@ public class AreaViewer extends ChildFrame
     return bMapDragging;
   }
 
-  // Enables/disables map dragging mode (set mouse cursor, global state and current mouse position)
+  /** Enables/disables map dragging mode (set mouse cursor, global state and current mouse position). */
   private void setMapDraggingEnabled(boolean enable, Point mousePos)
   {
     if (bMapDragging != enable) {
@@ -959,7 +959,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Returns the current or previous mouse position
+  /** Returns the current or previous mouse position. */
   private Point getMapDraggingDistance()
   {
     Point pDelta = new Point();
@@ -970,7 +970,7 @@ public class AreaViewer extends ChildFrame
     return pDelta;
   }
 
-  // Updates the map portion displayed in the viewport
+  /** Updates the map portion displayed in the viewport. */
   private void moveMapViewport()
   {
     if (!mapDraggingPosStart.equals(mapDraggingPos)) {
@@ -995,13 +995,13 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Returns whether closed door state is active
+  /** Returns whether closed door state is active. */
   private boolean isDoorStateClosed()
   {
     return Settings.DrawClosed;
   }
 
-  // Draw opened/closed state of doors (affects map tiles, door layer and door poly layer)
+  /** Draw opened/closed state of doors (affects map tiles, door layer and door poly layer). */
   private void setDoorState(boolean closed)
   {
     Settings.DrawClosed = closed;
@@ -1010,7 +1010,7 @@ public class AreaViewer extends ChildFrame
     updateWindowTitle();
   }
 
-  // Called by setDoorState(): sets door state map tiles
+  /** Called by setDoorState(): sets door state map tiles. */
   private void setDoorStateMap(boolean closed)
   {
     if (rcCanvas != null) {
@@ -1018,7 +1018,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Called by setDoorState(): sets door state in door layer and door poly layer
+  /** Called by setDoorState(): sets door state in door layer and door poly layer. */
   private void setDoorStateLayers(boolean closed)
   {
     if (layerManager != null) {
@@ -1027,13 +1027,13 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Returns whether tile grid on map has been enabled
+  /** Returns whether tile grid on map has been enabled. */
   private boolean isTileGridEnabled()
   {
     return Settings.DrawGrid;
   }
 
-  // Enable/disable tile grid on map
+  /** Enable/disable tile grid on map. */
   private void setTileGridEnabled(boolean enable)
   {
     Settings.DrawGrid = enable;
@@ -1044,13 +1044,13 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Returns whether overlays are enabled (considers both internal overlay flag and whether the map contains overlays)
+  /** Returns whether overlays are enabled (considers both internal overlay flag and whether the map contains overlays). */
   private boolean isOverlaysEnabled()
   {
     return Settings.DrawOverlays;
   }
 
-  // Enable/disable overlays
+  /** Enable/disable overlays. */
   private void setOverlaysEnabled(boolean enable)
   {
     Settings.DrawOverlays = enable;
@@ -1061,7 +1061,7 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Returns whether overlays are animated
+  /** Returns whether overlays are animated. */
   private boolean isOverlaysAnimated()
   {
     if (timerOverlays != null) {
@@ -1071,7 +1071,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Activate/deactivate overlay animations
+  /** Activate/deactivate overlay animations. */
   private void setOverlaysAnimated(boolean animate)
   {
     if (timerOverlays != null) {
@@ -1084,7 +1084,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Advances animated overlays by one frame
+  /** Advances animated overlays by one frame. */
   private synchronized void advanceOverlayAnimation()
   {
     if (rcCanvas != null) {
@@ -1093,14 +1093,14 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Returns whether layer items should be included when exporting map as graphics
+  /** Returns whether layer items should be included when exporting map as graphics. */
   private boolean isExportLayersEnabled()
   {
     return Settings.ExportLayers;
   }
 
 
-  // Returns the currently used zoom factor of the canvas map
+  /** Returns the currently used zoom factor of the canvas map. */
   private double getZoomFactor()
   {
     if (rcCanvas != null) {
@@ -1110,7 +1110,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Sets a new zoom level to the map and associated structures
+  /** Sets a new zoom level to the map and associated structures. */
   private void setZoomFactor(double zoomFactor, double fallbackZoomFactor)
   {
     updateViewpointCenter();
@@ -1164,7 +1164,7 @@ public class AreaViewer extends ChildFrame
     updateWindowTitle();
   }
 
-  // Handles manual input of zoom factor (in percent)
+  /** Handles manual input of zoom factor (in percent). */
   private double getCustomZoomFactor(double defaultZoom)
   {
     String defInput = Integer.toString((int)Math.round(defaultZoom * 100.0));
@@ -1193,14 +1193,14 @@ public class AreaViewer extends ChildFrame
     return defaultZoom;
   }
 
-  // Returns whether auto-fit has been selected
+  /** Returns whether auto-fit has been selected. */
   private boolean isAutoZoom()
   {
     return (Settings.ZoomFactor == Settings.ZoomFactorAuto);
   }
 
 
-  // Updates the map coordinate at the center of the current viewport
+  /** Updates the map coordinate at the center of the current viewport. */
   private void updateViewpointCenter()
   {
     if (vpMapCenter == null) {
@@ -1215,7 +1215,7 @@ public class AreaViewer extends ChildFrame
     vpMapCenter.y = (int)((double)vpMapCenter.y / getZoomFactor());
   }
 
-  // Attempts to re-center the last known center coordinate in the current viewport
+  /** Attempts to re-center the last known center coordinate in the current viewport. */
   private void setViewpointCenter()
   {
     if (vpMapCenter != null) {
@@ -1242,7 +1242,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Converts canvas coordinates into actual map coordinates
+  /** Converts canvas coordinates into actual map coordinates. */
   private Point canvasToMapCoordinates(Point coords)
   {
     if (coords != null) {
@@ -1252,7 +1252,7 @@ public class AreaViewer extends ChildFrame
     return coords;
   }
 
-  // Updates the map coordinates pointed to by the current cursor position
+  /** Updates the map coordinates pointed to by the current cursor position. */
   private void showMapCoordinates(Point coords)
   {
     if (coords != null) {
@@ -1269,7 +1269,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Shows a description in the info box
+  /** Shows a description in the info box. */
   private void setInfoText(String text)
   {
     if (taInfo != null) {
@@ -1282,7 +1282,7 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Creates and displays a popup menu containing the items located at the specified location
+  /** Creates and displays a popup menu containing the items located at the specified location. */
   private boolean updateItemPopup(Point canvasCoords)
   {
     final int MaxLen = 32;    // max. length of a menuitem text
@@ -1365,7 +1365,7 @@ public class AreaViewer extends ChildFrame
     return false;
   }
 
-  // Shows a popup menu containing layer items located at the current position if available
+  /** Shows a popup menu containing layer items located at the current position if available. */
   private void showItemPopup(MouseEvent event)
   {
     if (event != null && event.isPopupTrigger()) {
@@ -1388,7 +1388,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Updates all available layer items
+  /** Updates all available layer items. */
   private void reloadLayers()
   {
     rcCanvas.reload(true);
@@ -1397,7 +1397,7 @@ public class AreaViewer extends ChildFrame
     applySettings();
   }
 
-  // Updates ARE-related layer items
+  /** Updates ARE-related layer items. */
   private void reloadAreLayers(boolean order)
   {
     if (layerManager != null) {
@@ -1424,7 +1424,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Updates WED-related layer items
+  /** Updates WED-related layer items. */
   private void reloadWedLayers(boolean order)
   {
     if (layerManager != null) {
@@ -1446,7 +1446,7 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Returns the identifier of the specified layer checkbox, or null on error
+  /** Returns the identifier of the specified layer checkbox, or null on error. */
   private LayerType getLayerType(JCheckBox cb)
   {
     if (cb != null) {
@@ -1459,7 +1459,7 @@ public class AreaViewer extends ChildFrame
     return null;
   }
 
-  // Returns whether the specified layer is visible (by layer)
+  /** Returns whether the specified layer is visible (by layer). */
   private boolean isLayerEnabled(LayerType layer)
   {
     if (layer != null) {
@@ -1469,13 +1469,13 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Returns whether the specified layer is visible (by stacked layer)
+  /** Returns whether the specified layer is visible (by stacked layer). */
   private boolean isLayerEnabled(LayerStackingType layer)
   {
     return isLayerEnabled(Settings.stackingToLayer(layer));
   }
 
-  // Opens a viewable instance associated with the specified layer item
+  /** Opens a viewable instance associated with the specified layer item. */
   private void showTable(AbstractLayerItem item)
   {
     if (item != null) {
@@ -1490,9 +1490,12 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Attempts to find the Window instance containing the viewer of the specified AbstractStruct object
-  // If it cannot find one, it creates and returns a new one.
-  // If all fails, it returns the NearInfinity instance.
+  /**
+   * Attempts to find the Window instance containing the viewer of the specified
+   * AbstractStruct object.
+   * If it cannot find one, it creates and returns a new one.
+   * If all fails, it returns the NearInfinity instance.
+   */
   private Window getViewerWindow(AbstractStruct as)
   {
     if (as != null) {
@@ -1522,7 +1525,7 @@ public class AreaViewer extends ChildFrame
     return NearInfinity.getInstance();
   }
 
-  // Updates the visibility state of minimaps (search/height/light maps)
+  /** Updates the visibility state of minimaps (search/height/light maps). */
   private void updateMiniMap()
   {
     if (map != null) {
@@ -1544,7 +1547,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Sets visibility state of scheduled layer items depending on current day time
+  /** Sets visibility state of scheduled layer items depending on current day time. */
   private void updateScheduledItems()
   {
     if (layerManager != null) {
@@ -1555,14 +1558,14 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Applying time schedule settings to layer items
+  /** Applying time schedule settings to layer items. */
   private void updateTimeSchedules()
   {
     layerManager.setScheduleEnabled(Settings.EnableSchedules);
     updateWindowTitle();
   }
 
-  // Updates the state of the ambient sound range checkbox and associated functionality
+  /** Updates the state of the ambient sound range checkbox and associated functionality. */
   private void updateAmbientRange()
   {
     if (layerManager != null) {
@@ -1582,7 +1585,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Applies the specified lighting condition to real animation items
+  /** Applies the specified lighting condition to real animation items. */
   private void updateRealAnimationsLighting(int visualState)
   {
     if (layerManager != null) {
@@ -1596,7 +1599,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Updates the state of real animation checkboxes and their associated functionality
+  /** Updates the state of real animation checkboxes and their associated functionality. */
   private void updateRealAnimation()
   {
     if (layerManager != null) {
@@ -1636,7 +1639,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Show/hide items of the specified layer
+  /** Show/hide items of the specified layer. */
   private void showLayer(LayerType layer, boolean visible)
   {
     if (layer != null && layerManager != null) {
@@ -1652,7 +1655,7 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Adds items of all available layers to the map canvas.
+  /** Adds items of all available layers to the map canvas. */
   private void addLayerItems()
   {
     for (int i = 0, lloSize = Settings.ListLayerOrder.size(); i < lloSize; i++) {
@@ -1660,7 +1663,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Adds items of the specified layer to the map canvas.
+  /** Adds items of the specified layer to the map canvas. */
   private void addLayerItems(LayerStackingType layer)
   {
     if (layer != null && layerManager != null) {
@@ -1673,7 +1676,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Adds items of a single layer object to the map canvas.
+  /** Adds items of a single layer object to the map canvas. */
   private void addLayerItem(LayerStackingType layer, LayerObject object)
   {
     if (object != null) {
@@ -1700,7 +1703,7 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Removes all items of all available layers.
+  /** Removes all items of all available layers. */
   private void removeLayerItems()
   {
     for (int i = 0, lloSize = Settings.ListLayerOrder.size(); i < lloSize; i++) {
@@ -1708,7 +1711,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Removes all items of the specified layer.
+  /** Removes all items of the specified layer. */
   private void removeLayerItems(LayerStackingType layer)
   {
     if (layer != null && layerManager != null) {
@@ -1721,7 +1724,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Removes items of a single layer object from the map canvas.
+  /** Removes items of a single layer object from the map canvas. */
   private void removeLayerItem(LayerStackingType layer, LayerObject object)
   {
     if (object != null) {
@@ -1745,7 +1748,7 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Re-orders layer items on the map using listLayer for determining priorities.
+  /** Re-orders layer items on the map using listLayer for determining priorities. */
   private void orderLayerItems()
   {
     if (layerManager != null) {
@@ -1786,7 +1789,7 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Updates all items of all available layers.
+  /** Updates all items of all available layers. */
   private void updateLayerItems()
   {
     for (int i = 0, lloSize = Settings.ListLayerOrder.size(); i < lloSize; i++) {
@@ -1794,7 +1797,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Updates the map locations of the items in the specified layer.
+  /** Updates the map locations of the items in the specified layer. */
   private void updateLayerItems(LayerStackingType layer)
   {
     if (layer != null && layerManager != null) {
@@ -1807,7 +1810,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Updates the map locations of the items in the specified layer object.
+  /** Updates the map locations of the items in the specified layer object. */
   private void updateLayerItem(LayerObject object)
   {
     if (object != null) {
@@ -1815,13 +1818,13 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Update toolbar-related stuff
+  /** Update toolbar-related stuff. */
   private void updateToolBarButtons()
   {
     tbWed.setToolTipText(String.format("Edit WED structure (%s)", getCurrentWed().getName()));
   }
 
-  // Initializes a new progress monitor instance
+  /** Initializes a new progress monitor instance. */
   private void initProgressMonitor(Component parent, String msg, String note, int maxProgress,
                                    int msDecide, int msWait)
   {
@@ -1837,7 +1840,7 @@ public class AreaViewer extends ChildFrame
     progress.setProgress(pmCur);
   }
 
-  // Closes the current progress monitor
+  /** Closes the current progress monitor. */
   private void releaseProgressMonitor()
   {
     if (progress != null) {
@@ -1846,7 +1849,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Advances the current progress monitor by one and adds the specified note
+  /** Advances the current progress monitor by one and adds the specified note. */
   private void advanceProgressMonitor(String note)
   {
     if (progress != null) {
@@ -1860,14 +1863,14 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Returns whether a progress monitor is currently active
+  /** Returns whether a progress monitor is currently active. */
   private boolean isProgressMonitorActive()
   {
     return progress != null;
   }
 
 
-  // Updates the tree node containing the specified component
+  /** Updates the tree node containing the specified component. */
   private void updateTreeNode(Component c)
   {
     if (treeControls != null) {
@@ -1881,7 +1884,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Recursive function to find the node containing c
+  /** Recursive function to find the node containing c. */
   private TreeNode getTreeNodeOf(TreeNode node, Component c)
   {
     if (node != null && node instanceof DefaultMutableTreeNode && c != null) {
@@ -1898,7 +1901,7 @@ public class AreaViewer extends ChildFrame
     return null;
   }
 
-  // Shows settings dialog and updates respective controls if needed
+  /** Shows settings dialog and updates respective controls if needed. */
   private void viewSettings()
   {
     SettingsDialog vs = new SettingsDialog(this);
@@ -1908,7 +1911,7 @@ public class AreaViewer extends ChildFrame
     vs = null;
   }
 
-  // Applies current global area viewer settings
+  /** Applies current global area viewer settings. */
   private void applySettings()
   {
     // applying layer stacking order
@@ -1966,7 +1969,7 @@ public class AreaViewer extends ChildFrame
     }
   }
 
-  // Exports the current map state to PNG
+  /** Exports the current map state to PNG. */
   private void exportMap()
   {
     WindowBlocker.blockWindow(this, true);
@@ -2026,7 +2029,7 @@ public class AreaViewer extends ChildFrame
 
 //----------------------------- INNER CLASSES -----------------------------
 
-  // Handles all events of the viewer
+  /** Handles all events of the viewer. */
   private class Listeners implements ActionListener, MouseListener, MouseMotionListener, MouseWheelListener,
                                      ChangeListener, TilesetChangeListener, PropertyChangeListener,
                                      LayerItemListener, ComponentListener, TreeExpansionListener
@@ -2541,7 +2544,7 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Handles map-specific properties
+  /** Handles map-specific properties. */
   private static class Map
   {
     private final Window parent;
@@ -2773,13 +2776,13 @@ public class AreaViewer extends ChildFrame
       }
     }
 
-    // Returns the pseudo layer item for the AreResource structure
+    /** Returns the pseudo layer item for the AreResource structure. */
     public AbstractLayerItem getAreItem()
     {
       return areItem;
     }
 
-    // Returns the pseudo layer item for the WedResource structure of the selected day time
+    /** Returns the pseudo layer item for the WedResource structure of the selected day time. */
     public AbstractLayerItem getWedItem(int dayNight)
     {
       if (dayNight == ViewerConstants.AREA_NIGHT) {
@@ -2789,25 +2792,25 @@ public class AreaViewer extends ChildFrame
       }
     }
 
-    // Returns the pseudo layer item for the ARE's song structure
+    /** Returns the pseudo layer item for the ARE's song structure. */
     public AbstractLayerItem getSongItem()
     {
       return songItem;
     }
 
-    // Returns the pseudo layer item for the ARE's rest encounter structure
+    /** Returns the pseudo layer item for the ARE's rest encounter structure. */
     public AbstractLayerItem getRestItem()
     {
       return restItem;
     }
 
-    // Returns whether the current map supports day/twilight/night settings
+    /** Returns whether the current map supports day/twilight/night settings. */
     public boolean hasDayNight()
     {
       return hasDayNight;
     }
 
-    // Returns true if the current map has separate WEDs for day/night
+    /** Returns true if the current map has separate WEDs for day/night. */
     public boolean hasExtendedNight()
     {
       return hasExtendedNight;
@@ -2853,7 +2856,7 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Defines a panel providing controls for setting day times (either by hour or by general day time)
+  /** Defines a panel providing controls for setting day times (either by hour or by general day time). */
   private static final class DayTimePanel extends JPanel implements ActionListener, ChangeListener
   {
     private final List<ChangeListener> listeners = new ArrayList<ChangeListener>();
@@ -2862,7 +2865,7 @@ public class AreaViewer extends ChildFrame
 
     private JSlider sHours;
 
-    // Creates and returns a string describing the time for display on the parent button
+    /** Creates and returns a string describing the time for display on the parent button. */
     public static String getButtonText(int hour)
     {
       final String[] dayTime = new String[]{"Day", "Twilight", "Night"};
@@ -2973,7 +2976,7 @@ public class AreaViewer extends ChildFrame
 
     // --------------------- End Interface ChangeListener ---------------------
 
-    // Fires a stateChanged event for all registered listeners
+    /** Fires a stateChanged event for all registered listeners. */
     private void fireStateChanged()
     {
       ChangeEvent event = new ChangeEvent(this);
@@ -2982,7 +2985,7 @@ public class AreaViewer extends ChildFrame
       }
     }
 
-    // Updates the text of the parent button
+    /** Updates the text of the parent button. */
     private void updateButton()
     {
       if (bpwDayTime != null) {
@@ -3060,7 +3063,7 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Adds support for visual components in JTree instances
+  /** Adds support for visual components in JTree instances. */
   private static class ComponentTreeCellRenderer extends DefaultTreeCellRenderer
   {
     public ComponentTreeCellRenderer()
@@ -3090,7 +3093,7 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  // Adds support for editable visual components in JTree instances
+  /** Adds support for editable visual components in JTree instances. */
   private static class ComponentTreeCellEditor extends DefaultTreeCellEditor
   {
     public ComponentTreeCellEditor(JTree tree, ComponentTreeCellRenderer renderer)
