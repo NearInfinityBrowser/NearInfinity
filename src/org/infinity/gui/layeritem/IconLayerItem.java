@@ -29,12 +29,12 @@ import org.infinity.resource.graphics.ColorConvert;
  */
 public class IconLayerItem extends AbstractLayerItem implements LayerItemListener
 {
-  private static final Image DefaultImage = ColorConvert.createCompatibleImage(1, 1, true);
+  private static final Image DEFAULT_IMAGE = ColorConvert.createCompatibleImage(1, 1, true);
   private static final Color COLOR_BG_NORMAL = new Color(0x80ffffff, true);
   private static final Color COLOR_BG_HIGHLIGHTED = new Color(0xc0ffffff, true);
 
-  private EnumMap<ItemState, Image> images;
-  private EnumMap<ItemState, FrameInfo> frames;
+  private final EnumMap<ItemState, Image> images = new EnumMap<>(ItemState.class);
+  private final EnumMap<ItemState, FrameInfo> frames = new EnumMap<>(ItemState.class);
   private RenderCanvas rcCanvas;
   private JLabel label;
 
@@ -65,8 +65,6 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
     super(location, viewable, message, tooltip);
     setLayout(new BorderLayout());
     // preparing icon
-    images = new EnumMap<ItemState, Image>(ItemState.class);
-    frames = new EnumMap<ItemState, FrameInfo>(ItemState.class);
     rcCanvas = new FrameCanvas(this);
 //    rcCanvas.setBorder(BorderFactory.createLineBorder(Color.RED));  // DEBUG
     rcCanvas.setHorizontalAlignment(SwingConstants.CENTER);
@@ -117,7 +115,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
         if (images.containsKey(ItemState.NORMAL))
           return images.get(ItemState.NORMAL);
     }
-    return DefaultImage;
+    return DEFAULT_IMAGE;
   }
 
   /**
@@ -221,15 +219,6 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
 
   /**
    * Sets the logical center of the icon.
-   * @return The logical center of the icon.
-   */
-  public Point getCenterPosition()
-  {
-    return getLocationOffset();
-  }
-
-  /**
-   * Sets the logical center of the icon.
    * @param center The center position within the icon.
    */
   public void setCenterPosition(Point center)
@@ -246,11 +235,6 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
       setLocation(loc.x + distance.x, loc.y + distance.y);
       validate();
     }
-  }
-
-  public boolean isLabelEnabled()
-  {
-    return label.isVisible();
   }
 
   public void setLabelEnabled(boolean set)

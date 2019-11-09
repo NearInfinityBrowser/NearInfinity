@@ -129,7 +129,6 @@ public class LayerObjectEntrance extends LayerObject
       item = new IconLayerItem(location, entrance, msg, info, icon[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelEntrances);
       item.setName(getCategory());
-      item.setToolTipText(info);
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.setVisible(isVisible());
     }

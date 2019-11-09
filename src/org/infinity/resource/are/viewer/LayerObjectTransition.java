@@ -26,6 +26,7 @@ public class LayerObjectTransition extends LayerObject
                                         new Color(0xC0808000, true), new Color(0xC0C0C000, true)};
   private static final int WIDTH = 16;    // "width" of the transition polygon
 
+  /** Destination area. */
   private final AreResource are;
   private final Point location = new Point();
   private final Point[] shapeCoords = {new Point(), new Point(), new Point(), new Point()};
@@ -43,6 +44,7 @@ public class LayerObjectTransition extends LayerObject
     init();
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -131,6 +133,7 @@ public class LayerObjectTransition extends LayerObject
   {
     return new Point[]{location};
   }
+  //</editor-fold>
 
   /**
    * Returns the edge of the map this transition is location.

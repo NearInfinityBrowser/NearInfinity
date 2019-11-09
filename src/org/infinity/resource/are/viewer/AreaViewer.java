@@ -1334,16 +1334,16 @@ public class AreaViewer extends ChildFrame
                   }
                   sb.append(": ");
                   int lenPrefix = sb.length();
-                  int lenMsg = items[k].getQuickInfo().length();
+                  int lenMsg = items[k].getToolTipText().length();
                   if (lenPrefix + lenMsg > MaxLen) {
-                    sb.append(items[k].getQuickInfo().substring(0, MaxLen - lenPrefix));
+                    sb.append(items[k].getToolTipText().substring(0, MaxLen - lenPrefix));
                     sb.append("...");
                   } else {
-                    sb.append(items[k].getQuickInfo());
+                    sb.append(items[k].getToolTipText());
                   }
                   DataMenuItem dmi = new DataMenuItem(sb.toString(), null, items[k]);
                   if (lenPrefix + lenMsg > MaxLen) {
-                    dmi.setToolTipText(items[k].getQuickInfo());
+                    dmi.setToolTipText(items[k].getToolTipText());
                   }
                   dmi.addActionListener(getListeners());
                   menuItems.add(dmi);

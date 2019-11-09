@@ -139,7 +139,6 @@ public class LayerObjectSpawnPoint extends LayerObject
       item = new IconLayerItem(location, sp, msg, msg, icon[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelSpawnPoints);
       item.setName(getCategory());
-      item.setToolTipText(msg);
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.setVisible(isVisible());
     }

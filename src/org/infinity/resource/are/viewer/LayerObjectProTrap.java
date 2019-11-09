@@ -129,7 +129,6 @@ public class LayerObjectProTrap extends LayerObject
 
       item = new IconLayerItem(location, trap, msg, msg, icon[0], CENTER);
       item.setName(getCategory());
-      item.setToolTipText(msg);
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, ICON[1]);
       item.setVisible(isVisible());
     }

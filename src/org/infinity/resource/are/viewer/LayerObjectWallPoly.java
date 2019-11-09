@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -41,6 +41,7 @@ public class LayerObjectWallPoly extends LayerObject
     init();
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -101,6 +102,7 @@ public class LayerObjectWallPoly extends LayerObject
   {
     return new Point[]{location};
   }
+  //</editor-fold>
 
   private void init()
   {
@@ -140,7 +142,6 @@ public class LayerObjectWallPoly extends LayerObject
       location.x = bounds.x; location.y = bounds.y;
       item = new ShapedLayerItem(location, wall, msg, info, poly);
       item.setName(getCategory());
-      item.setToolTipText(info);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
       item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
@@ -151,7 +152,7 @@ public class LayerObjectWallPoly extends LayerObject
     }
   }
 
-  // Returns a flags string
+  /** Returns a flags string. */
   private String createFlags(Flag flags, String[] desc)
   {
     if (flags != null) {

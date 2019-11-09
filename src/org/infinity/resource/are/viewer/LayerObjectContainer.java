@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -47,6 +47,7 @@ public class LayerObjectContainer extends LayerObject
     init();
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -107,6 +108,7 @@ public class LayerObjectContainer extends LayerObject
   {
     return new Point[]{location};
   }
+  //</editor-fold>
 
   /**
    * Returns vertices of the polygon used to define the container shape.
@@ -150,7 +152,6 @@ public class LayerObjectContainer extends LayerObject
       location.x = bounds.x; location.y = bounds.y;
       item = new ShapedLayerItem(location, container, msg, msg, poly);
       item.setName(getCategory());
-      item.setToolTipText(msg);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
       item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);

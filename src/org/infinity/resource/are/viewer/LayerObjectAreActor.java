@@ -134,7 +134,6 @@ public class LayerObjectAreActor extends LayerObjectActor
       item = new IconLayerItem(location, actor, msg, info, icon[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelActorsAre);
       item.setName(getCategory());
-      item.setToolTipText(info);
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.setVisible(isVisible());
     }

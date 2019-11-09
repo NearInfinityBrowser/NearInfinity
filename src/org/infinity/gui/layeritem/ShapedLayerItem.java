@@ -25,12 +25,12 @@ import org.infinity.resource.Viewable;
  */
 public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListener
 {
-  private static final Color DefaultColor = Color.BLACK;
+  private static final Color DEFAULT_COLOR = Color.BLACK;
 
   private Shape shape;
-  private EnumMap<ItemState, Color> strokeColors;
-  private EnumMap<ItemState, BasicStroke> strokePen;
-  private EnumMap<ItemState, Color> fillColors;
+  private final EnumMap<ItemState, Color> strokeColors = new EnumMap<>(ItemState.class);
+  private final EnumMap<ItemState, BasicStroke> strokePen = new EnumMap<>(ItemState.class);
+  private final EnumMap<ItemState, Color> fillColors = new EnumMap<>(ItemState.class);
   private JLabel label;
   private boolean stroked, filled;
 
@@ -62,9 +62,6 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
                          Shape shape, Point center)
   {
     super(location, viewable, message, tooltip);
-    strokeColors = new EnumMap<ItemState, Color>(ItemState.class);
-    strokePen = new EnumMap<ItemState, BasicStroke>(ItemState.class);
-    fillColors = new EnumMap<ItemState, Color>(ItemState.class);
     setLayout(new BorderLayout());
     label = new ShapeLabel(this);
     label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -73,15 +70,6 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
     setShape(shape);
     setCenterPosition(center);
     addLayerItemListener(this);
-  }
-
-  /**
-   * Returns the associated shape object.
-   * @return The associated shape object.
-   */
-  public Shape getShape()
-  {
-    return shape;
   }
 
   /**
@@ -132,7 +120,7 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
         if (strokeColors.containsKey(ItemState.NORMAL))
           return strokeColors.get(ItemState.NORMAL);
     }
-    return DefaultColor;
+    return DEFAULT_COLOR;
   }
 
   /**
@@ -201,7 +189,7 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
         if (fillColors.containsKey(ItemState.NORMAL))
           return fillColors.get(ItemState.NORMAL);
     }
-    return DefaultColor;
+    return DEFAULT_COLOR;
   }
 
   /**

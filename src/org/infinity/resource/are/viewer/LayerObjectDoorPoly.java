@@ -46,6 +46,7 @@ public class LayerObjectDoorPoly extends LayerObject
     init();
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -124,6 +125,7 @@ public class LayerObjectDoorPoly extends LayerObject
   {
     return location;
   }
+  //</editor-fold>
 
   /**
    * Returns the number of layer items for a specific open/closed state.
@@ -265,7 +267,6 @@ public class LayerObjectDoorPoly extends LayerObject
         location[i] = new Point(bounds[i].x, bounds[i].y);
         items[i] = new ShapedLayerItem(location[i], door, msg[i], info[i], poly[i]);
         items[i].setName(getCategory());
-        items[i].setToolTipText(info[i]);
         items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
         items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
         items[i].setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
@@ -295,7 +296,7 @@ public class LayerObjectDoorPoly extends LayerObject
     return null;
   }
 
-  // Returns a flags string
+  /** Returns a flags string. */
   private String createFlags(Flag flags, String[] desc)
   {
     if (flags != null) {

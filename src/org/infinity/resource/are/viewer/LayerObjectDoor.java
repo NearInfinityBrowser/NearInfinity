@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -44,6 +44,7 @@ public class LayerObjectDoor extends LayerObject
     init();
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -120,7 +121,7 @@ public class LayerObjectDoor extends LayerObject
   {
     return location;
   }
-
+  //</editor-fold>
 
   private void init()
   {
@@ -167,7 +168,6 @@ public class LayerObjectDoor extends LayerObject
         location[i].x = bounds[i].x; location[i].y = bounds[i].y;
         items[i] = new ShapedLayerItem(location[i], door, msg[i], msg[i], poly[i]);
         items[i].setName(getCategory());
-        items[i].setToolTipText(msg[i]);
         items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
         items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
         items[i].setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);

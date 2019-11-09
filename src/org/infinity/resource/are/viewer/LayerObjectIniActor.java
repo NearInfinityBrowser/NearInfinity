@@ -153,7 +153,6 @@ public class LayerObjectIniActor extends LayerObjectActor
       item = new IconLayerItem(location, ini, msg, info, icon[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelActorsIni);
       item.setName(getCategory());
-      item.setToolTipText(info);
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
       item.setVisible(isVisible());
     }
