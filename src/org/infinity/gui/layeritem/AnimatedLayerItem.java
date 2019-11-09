@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.layeritem;
@@ -46,56 +46,6 @@ public class AnimatedLayerItem extends AbstractLayerItem
   private Rectangle frameBounds;    // Point(x,y) defines the point of origin for the animation graphics
   private RenderCanvas rcCanvas;    // Renders both the animation graphics and an optional frame
   private SwingWorker<Void, Void> workerAnimate;
-
-  /**
-   * Initialize object with default settings.
-   */
-  public AnimatedLayerItem()
-  {
-    this(null);
-  }
-
-  /**
-   * Initialize object with the specified map location.
-   * @param location Map location
-   */
-  public AnimatedLayerItem(Point location)
-  {
-    this(location, null);
-  }
-
-  /**
-   * Initialize object with a specific map location and an associated viewable object.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   */
-  public AnimatedLayerItem(Point location, Viewable viewable)
-  {
-    this(location, viewable, null);
-  }
-
-  /**
-   * Initialize object with a specific map location, associated Viewable and an additional text message.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
-   */
-  public AnimatedLayerItem(Point location, Viewable viewable, String message)
-  {
-    this(location, viewable, message, message);
-  }
-
-  /**
-   * Initialize object with a specific map location, associated Viewable and an additional text message.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
-   * @param tooltip A short text message shown as tooltip or menu item text
-   */
-  public AnimatedLayerItem(Point location, Viewable viewable, String message, String tooltip)
-  {
-    this(location, viewable, message, tooltip, null);
-  }
 
   /**
    * Initialize object with a specific map location, associated Viewable, an additional text message
@@ -402,8 +352,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
     super.setVisible(aFlag);
   }
 
-//--------------------- Begin Interface LayerItemListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="LayerItemListener">
   @Override
   public void layerItemChanged(LayerItemEvent event)
   {
@@ -411,11 +360,9 @@ public class AnimatedLayerItem extends AbstractLayerItem
       updateDisplay(false);
     }
   }
+  //</editor-fold>
 
-//--------------------- End Interface LayerItemListener ---------------------
-
-//--------------------- Begin Interface ActionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -444,24 +391,21 @@ public class AnimatedLayerItem extends AbstractLayerItem
       }
     }
   }
+  //</editor-fold>
 
-//--------------------- End Interface ActionListener ---------------------
-
-//--------------------- Begin Interface PropertyChangeListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="PropertyChangeListener">
   @Override
   public void propertyChange(PropertyChangeEvent event)
   {
     if (event.getSource() == workerAnimate) {
       if ("state".equals(event.getPropertyName()) &&
-          SwingWorker.StateValue.DONE == event.getNewValue()) {
+              SwingWorker.StateValue.DONE == event.getNewValue()) {
         // Important: making sure that only ONE instance is running at a time to avoid GUI freezes
         workerAnimate = null;
       }
     }
   }
-
-//--------------------- End Interface PropertyChangeListener ---------------------
+  //</editor-fold>
 
   @Override
   public void repaint()
@@ -478,8 +422,10 @@ public class AnimatedLayerItem extends AbstractLayerItem
     return r.contains(pt);
   }
 
-  // Calculates a rectangle big enough to fit the current frame image and border into.
-  // Returns whether the canvas size changed.
+  /**
+   * Calculates a rectangle big enough to fit the current frame image and border into.
+   * Returns whether the canvas size changed.
+   */
   private void updateCanvasSize()
   {
     int strokeWidth = (int)Math.max(getFrameInfo(false).getStroke().getLineWidth(),
@@ -517,13 +463,13 @@ public class AnimatedLayerItem extends AbstractLayerItem
     }
   }
 
-  // Returns the FrameInfo object of the specified state
+  /** Returns the FrameInfo object of the specified state. */
   private FrameInfo getFrameInfo(boolean highlighted)
   {
     return highlighted ? frameInfos[1] : frameInfos[0];
   }
 
-  // First-time initializations
+  /** First-time initializations. */
   private void init()
   {
     setLayout(new BorderLayout());
@@ -547,7 +493,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
     addLayerItemListener(this);
   }
 
-  // Animation-related initializations (requires this.frame to be initialized)
+  /** Animation-related initializations (requires this.frame to be initialized). */
   private void initAnimation(BasicAnimationProvider anim)
   {
     boolean isPlaying = isPlaying();
@@ -568,7 +514,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
     }
   }
 
-  // Call whenever the behavior of the current animation changes
+  /** Call whenever the behavior of the current animation changes. */
   private void updateAnimation()
   {
     boolean isPlaying = isPlaying();
@@ -583,7 +529,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
     }
   }
 
-  // Updates the display if needed
+  /** Updates the display if needed. */
   private void updateDisplay(boolean force)
   {
     if (!isPlaying() || force) {
@@ -591,7 +537,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
     }
   }
 
-  // Updates both frame content and position.
+  /** Updates both frame content and position. */
   private void updateFrame()
   {
     updateSize();
@@ -599,7 +545,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
     repaint();
   }
 
-  // Draws the current frame onto the canvas
+  /** Draws the current frame onto the canvas. */
   private synchronized void updateCanvas()
   {
     boolean isHighlighted = (getItemState() == ItemState.HIGHLIGHTED);
@@ -651,7 +597,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
     }
   }
 
-  // Updates the component position based on the current frame's center. Takes zoom factor into account.
+  /** Updates the component position based on the current frame's center. Takes zoom factor into account. */
   private void updatePosition()
   {
     Rectangle bounds = getCanvasBounds(true);
@@ -669,7 +615,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
 
 //----------------------------- INNER CLASSES -----------------------------
 
-  // Stores information about frames around the item
+  /** Stores information about frames around the item. */
   private static class FrameInfo
   {
     private static Color DefaultColor = new Color(0, true);
@@ -721,7 +667,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
   }
 
 
-  // A pseudo animation provider that always returns a transparent image of 16x16 size.
+  /** A pseudo animation provider that always returns a transparent image of 16x16 size. */
   private class DefaultAnimationProvider implements BasicAnimationProvider
   {
     private final BufferedImage image;

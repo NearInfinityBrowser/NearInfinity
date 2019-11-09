@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.layeritem;
@@ -37,45 +37,6 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   private ItemState itemState;
   private Point location;
   private Point center;
-
-  /**
-   * Initialize object with default settings.
-   */
-  public AbstractLayerItem()
-  {
-    this(null);
-  }
-
-  /**
-   * Initialize object with the specified map location.
-   * @param location Map location
-   */
-  public AbstractLayerItem(Point location)
-  {
-    this(location, null);
-  }
-
-  /**
-   * Initialize object with a specific map location and an associated viewable object.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   */
-  public AbstractLayerItem(Point location, Viewable viewable)
-  {
-    this(location, viewable, null);
-  }
-
-  /**
-   * Initialize object with a specified map location, associated viewable object and message for
-   * both info box and quick info.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   * @param message Text message for info box and quick info
-   */
-  public AbstractLayerItem(Point location, Viewable viewable, String message)
-  {
-    this(location, viewable, message, message);
-  }
 
   /**
    * Initialize object with a specific map location, associated Viewable and an additional text message.
@@ -304,8 +265,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     }
   }
 
-//--------------------- Begin Interface MouseListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="MouseListener">
   @Override
   public void mouseClicked(MouseEvent event)
   {
@@ -342,11 +302,9 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
       setItemState(ItemState.NORMAL);
     }
   }
+  //</editor-fold>
 
-//--------------------- End Interface MouseListener ---------------------
-
-//--------------------- Begin Interface MouseMotionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="MouseMotionListener">
   @Override
   public void mouseDragged(MouseEvent event)
   {
@@ -361,9 +319,9 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
       setItemState(ItemState.NORMAL);
     }
   }
+  //</editor-fold>
 
-//--------------------- End Interface MouseMotionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="JComponent">
   @Override
   public String getToolTipText(MouseEvent event)
   {
@@ -381,8 +339,9 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     // Non-visible parts of the component are disregarded by mouse events
     return isMouseOver(new Point(x, y));
   }
+  //</editor-fold>
 
-  // Returns whether the mouse cursor is over the relevant part of the component
+  /** Returns whether the mouse cursor is over the relevant part of the component. */
   protected boolean isMouseOver(Point pt)
   {
     if (pt != null) {
@@ -392,7 +351,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     }
   }
 
-  // Adds an offset to the component's position
+  /** Adds an offset to the component's position. */
   protected void setLocationOffset(Point ofs)
   {
     if (ofs != null) {
@@ -401,7 +360,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     }
   }
 
-  // Returns the offset to the component's position
+  /** Returns the offset to the component's position. */
   protected Point getLocationOffset()
   {
     return center;

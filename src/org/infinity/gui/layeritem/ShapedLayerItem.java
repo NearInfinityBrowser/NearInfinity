@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.layeritem;
@@ -33,57 +33,6 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
   private EnumMap<ItemState, Color> fillColors;
   private JLabel label;
   private boolean stroked, filled;
-
-  /**
-   * Initialize object with default settings.
-   */
-  public ShapedLayerItem()
-  {
-    this(null);
-  }
-
-  /**
-   * Initialize object with the specified map location.
-   * @param location Map location
-   */
-  public ShapedLayerItem(Point location)
-  {
-    this(location, null);
-  }
-
-  /**
-   * Initialize object with a specific map location and an associated viewable object.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   */
-  public ShapedLayerItem(Point location, Viewable viewable)
-  {
-    this(location, viewable, null);
-  }
-
-  /**
-   * Initialize object with a specific map location, associated Viewable and an additional text message.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
-   */
-  public ShapedLayerItem(Point location, Viewable viewable, String message)
-  {
-    this(location, viewable, message, message);
-  }
-
-  /**
-   * Initialize object with a specific map location, associated Viewable, an additional text message
-   * and a shape for the visual representation.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
-   * @param tooltip A short text message shown as tooltip or menu item text
-   */
-  public ShapedLayerItem(Point location, Viewable viewable, String message, String tooltip)
-  {
-    this(location, viewable, message, tooltip, null);
-  }
 
   /**
    * Initialize object with a specific map location, associated Viewable, an additional text message
@@ -314,7 +263,7 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
   }
 
 
-  // Returns whether the mouse cursor is over the relevant part of the component
+  /** Returns whether the mouse cursor is over the relevant part of the component. */
   @Override
   protected boolean isMouseOver(Point pt)
   {
@@ -336,14 +285,13 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
     }
   }
 
-  // Recreates polygons
+  /** Recreates polygons. */
   private void updateShape()
   {
     label.repaint();
   }
 
-//--------------------- Begin Interface LayerItemListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="LayerItemListener">
   @Override
   public void layerItemChanged(LayerItemEvent event)
   {
@@ -351,12 +299,11 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
       updateShape();
     }
   }
-
-//--------------------- End Interface LayerItemListener ---------------------
+  //</editor-fold>
 
 //----------------------------- INNER CLASSES -----------------------------
 
-  // Extended JLabel to draw shapes on the fly
+  /** Extended JLabel to draw shapes on the fly. */
   private static class ShapeLabel extends JLabel
   {
     private final ShapedLayerItem parent;

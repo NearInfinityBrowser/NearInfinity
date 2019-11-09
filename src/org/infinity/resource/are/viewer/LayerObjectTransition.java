@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -155,9 +155,8 @@ public class LayerObjectTransition extends LayerObject
         e.printStackTrace();
       }
 
-      item = new ShapedLayerItem(location, are, msg);
+      item = new ShapedLayerItem(location, are, msg, msg, null);
       item.setName(getCategory());
-      item.setToolTipText(msg);
       update(1.0);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);

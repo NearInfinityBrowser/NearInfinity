@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.layeritem;
@@ -39,33 +39,6 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
   private JLabel label;
 
   /**
-   * Initialize object with default settings.
-   */
-  public IconLayerItem()
-  {
-    this(null);
-  }
-
-  /**
-   * Initialize object with the specified map location.
-   * @param location Map location
-   */
-  public IconLayerItem(Point location)
-  {
-    this(location, null);
-  }
-
-  /**
-   * Initialize object with a specific map location and an associated viewable object.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   */
-  public IconLayerItem(Point location, Viewable viewable)
-  {
-    this(location, viewable, null);
-  }
-
-  /**
    * Initialize object with a specific map location, associated Viewable and an additional text message.
    * @param location Map location
    * @param viewable Associated Viewable object
@@ -73,34 +46,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
    */
   public IconLayerItem(Point location, Viewable viewable, String message)
   {
-    this(location, viewable, message, message);
-  }
-
-  /**
-   * Initialize object with a specific map location, associated Viewable, an additional text message
-   * and an image for the visual representation.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
-   * @param tooltip A short text message shown as tooltip or menu item text
-   */
-  public IconLayerItem(Point location, Viewable viewable, String message, String tooltip)
-  {
-    this(location, viewable, message, tooltip, null);
-  }
-
-  /**
-   * Initialize object with a specific map location, associated Viewable, an additional text message
-   * and an image for the visual representation.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
-   * @param tooltip A short text message shown as tooltip or menu item text
-   * @param image The image to display
-   */
-  public IconLayerItem(Point location, Viewable viewable, String message, String tooltip, Image image)
-  {
-    this(location, viewable, message, tooltip, image, null);
+    this(location, viewable, message, message, null, null);
   }
 
   /**
@@ -313,8 +259,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
     validate();
   }
 
-//--------------------- Begin Interface LayerItemListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="LayerItemListener">
   @Override
   public void layerItemChanged(LayerItemEvent event)
   {
@@ -322,10 +267,9 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
       setCurrentImage(getItemState());
     }
   }
+  //</editor-fold>
 
-//--------------------- End Interface LayerItemListener ---------------------
-
-  // Returns whether the mouse cursor is over the relevant part of the component
+  /** Returns whether the mouse cursor is over the relevant part of the component. */
   @Override
   protected boolean isMouseOver(Point pt)
   {
@@ -402,7 +346,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
 
 //----------------------------- INNER CLASSES -----------------------------
 
-  // Extended JLabel to add the feature to show a frame around the component
+  /** Extended JLabel to add the feature to show a frame around the component. */
   private static class FrameCanvas extends RenderCanvas
   {
     private final IconLayerItem parent;
@@ -431,7 +375,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
     }
   }
 
-  // Stores information required to draw a customized frame around the component
+  /** Stores information required to draw a customized frame around the component. */
   private static class FrameInfo
   {
     private boolean enabled;
@@ -492,5 +436,4 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
       return stroke;
     }
   }
-
 }
