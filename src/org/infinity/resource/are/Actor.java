@@ -28,6 +28,7 @@ import org.infinity.util.io.StreamUtils;
 
 public final class Actor extends AbstractStruct implements AddRemovable, HasViewerTabs, HasAddRemovable
 {
+  //<editor-fold defaultstate="collapsed" desc="Fields">
   // ARE/Actor-specific field labels
   public static final String ARE_ACTOR                      = "Actor";
   public static final String ARE_ACTOR_NAME                 = "Name";
@@ -80,6 +81,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
                                              "19:30-20:29", "20:30-21:29", "21:30-22:29", "22:30-23:29",
                                              "23:30-00:29"};
   public  static final String[] s_diff = {"None", "Level 1", "Level 2", "Level 3"};
+  //</editor-fold>
 
   public Actor() throws Exception
   {
@@ -91,19 +93,15 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
     super(superStruct, ARE_ACTOR + " " + nr, buffer, offset);
   }
 
-//--------------------- Begin Interface AddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
+  //</editor-fold>
 
-//--------------------- End Interface AddRemovable ---------------------
-
-
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
   public AddRemovable[] getAddRemovables()
   {
@@ -121,12 +119,9 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
   {
     return true;
   }
+  //</editor-fold>
 
-// --------------------- End Interface HasAddRemovable ---------------------
-
-
-// --------------------- Begin Interface HasViewerTabs ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -150,9 +145,9 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
   {
     return true;
   }
+  //</editor-fold>
 
-// --------------------- End Interface HasViewerTabs ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
@@ -184,7 +179,9 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
     if (entry instanceof CreResource)
       ((HexNumber)getAttribute(ARE_ACTOR_OFFSET_CRE_STRUCTURE)).setValue(entry.getOffset());
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -207,8 +204,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
       addField(new Unknown(buffer, offset + 47, 1));
     }
     addField(new AnimateBitmap(buffer, offset + 48, 4, ARE_ACTOR_ANIMATION));
-    addField(new Bitmap(buffer, offset + 52, 2, ARE_ACTOR_ORIENTATION, s_orientation));
-    addField(new Unknown(buffer, offset + 54, 2));
+    addField(new Bitmap(buffer, offset + 52, 4, ARE_ACTOR_ORIENTATION, s_orientation));
     addField(new DecNumber(buffer, offset + 56, 4, ARE_ACTOR_EXPIRY_TIME));
     addField(new DecNumber(buffer, offset + 60, 2, ARE_ACTOR_WANDER_DISTANCE));
     addField(new DecNumber(buffer, offset + 62, 2, ARE_ACTOR_FOLLOW_DISTANCE));
@@ -259,4 +255,5 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
 
     return offset + 272;
   }
+  //</editor-fold>
 }
