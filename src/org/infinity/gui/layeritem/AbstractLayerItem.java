@@ -30,7 +30,6 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
 
   private final Vector<ActionListener> actionListener = new Vector<>();
   private final Vector<LayerItemListener> itemStateListener = new Vector<>();
-  private final String actionCommand;
   private final Viewable viewable;
   private Object objData;
   private final String message;
@@ -53,7 +52,6 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     this.location = location == null ? new Point(0, 0) : location;
     this.message = message == null ? "" : message;
     setToolTipText(tooltip);
-    this.actionCommand = "";
     addMouseListener(this);
     addMouseMotionListener(this);
   }
@@ -265,7 +263,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     if (itemState != newState) {
       itemState = newState;
       if (!itemStateListener.isEmpty()) {
-        LayerItemEvent ise = new LayerItemEvent(this, actionCommand);
+        final LayerItemEvent ise = new LayerItemEvent(this, "");
         for (final LayerItemListener l: itemStateListener)
           l.layerItemChanged(ise);
       }
@@ -281,7 +279,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   {
     if ((button == MouseEvent.BUTTON1) && !actionListener.isEmpty()) {
       // processing left mouse click event
-      ActionEvent ae = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, actionCommand);
+      final ActionEvent ae = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "");
       for (final ActionListener l: actionListener) {
         l.actionPerformed(ae);
       }
