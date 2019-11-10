@@ -459,8 +459,8 @@ public class AnimatedLayerItem extends AbstractLayerItem
     if (anim != null) {
       animation = anim;
     } else {
-      if (!(animation != null && animation instanceof DefaultAnimationProvider)) {
-        this.animation = new DefaultAnimationProvider();
+      if (!(animation instanceof DefaultAnimationProvider)) {
+        animation = new DefaultAnimationProvider();
       }
     }
 
@@ -625,7 +625,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
 
 
   /** A pseudo animation provider that always returns a transparent image of 16x16 size. */
-  private class DefaultAnimationProvider implements BasicAnimationProvider
+  private static final class DefaultAnimationProvider implements BasicAnimationProvider
   {
     private final BufferedImage image;
 
