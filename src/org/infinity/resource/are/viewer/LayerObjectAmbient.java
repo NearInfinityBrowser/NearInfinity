@@ -11,10 +11,8 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 
-import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
-import org.infinity.datatype.TextString;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
@@ -41,9 +39,12 @@ public class LayerObjectAmbient extends LayerObject
   private final Ambient ambient;
   private final Point location = new Point();
 
-  private IconLayerItem itemIcon;   // for sound icon
-  private ShapedLayerItem itemShape;  // for sound range
-  private int radiusLocal, volume;
+  /** Center of sound emitter. */
+  private IconLayerItem itemIcon;
+  /** Area of the local sound. */
+  private ShapedLayerItem itemShape;
+  private int radiusLocal;
+  private int volume;
   private Flag scheduleFlags;
 
 
@@ -121,7 +122,7 @@ public class LayerObjectAmbient extends LayerObject
       itemIcon.setItemLocation(x, y);
     }
 
-    if (isLocal()) {
+    if (itemShape != null) {
       Shape circle = createShape(zoomFactor);
       Rectangle rect = circle.getBounds();
       itemShape.setItemLocation(x, y);
@@ -141,31 +142,6 @@ public class LayerObjectAmbient extends LayerObject
   {
     return new Point[]{location, location};
   }
-  //</editor-fold>
-
-  /**
-   * Returns whether the ambient sound uses a local sound radius.
-   */
-  public boolean isLocal()
-  {
-    return (itemShape != null);
-  }
-
-  /**
-   * Returns the local radius of the ambient sound (if any).
-   */
-  public int getRadius()
-  {
-    return radiusLocal;
-  }
-
-  /**
-   * Returns the volume of the ambient sound.
-   */
-  public int getVolume()
-  {
-    return volume;
-  }
 
   @Override
   public boolean isScheduled(int schedule)
@@ -176,46 +152,39 @@ public class LayerObjectAmbient extends LayerObject
       return false;
     }
   }
+  //</editor-fold>
 
+  /**
+   * Returns whether the ambient sound uses a local sound radius.
+   */
+  public boolean isLocal()
+  {
+    return (itemShape != null);
+  }
 
   private void init()
   {
     if (ambient != null) {
       String msg = null;
-      Image[] icons = ICONS_GLOBAL;
-      Shape circle = null;
-      Color[] color = new Color[COLOR_RANGE.length];
+      boolean isLocal = false;
+      final Color[] color = new Color[COLOR_RANGE.length];
       try {
         location.x = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_X)).getValue();
         location.y = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_Y)).getValue();
         radiusLocal = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_RADIUS)).getValue();
         volume = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_VOLUME)).getValue();
-        if (((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_FLAGS)).isFlagSet(2)) {
-          icons = ICONS_GLOBAL;
-          radiusLocal = 0;
-        } else {
-          icons = ICONS_LOCAL;
-        }
+        // Bit 2 - Ignore radius
+        isLocal = !((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_FLAGS)).isFlagSet(2);
 
         scheduleFlags = ((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_ACTIVE_AT));
 
         msg = ambient.getAttribute(Ambient.ARE_AMBIENT_NAME).toString();
-        if (icons == ICONS_LOCAL) {
-          circle = createShape(1.0);
-          double minAlpha = 0.0, maxAlpha = 64.0;
-          final double alphaF = minAlpha + Math.sqrt(volume) / 10.0 * (maxAlpha - minAlpha);
-          int alpha = (int)alphaF & 0xff;
-          color[0] = COLOR_RANGE[0];
-          color[1] = COLOR_RANGE[1];
-          color[2] = new Color(COLOR_RANGE[2].getRGB() | (alpha << 24), true);
-          color[3] = new Color(COLOR_RANGE[3].getRGB() | (alpha << 24), true);
-        }
       } catch (Exception e) {
         e.printStackTrace();
       }
 
       // Using cached icons
-      icons = getIcons(icons);
+      final Image[] icons = getIcons(isLocal ? ICONS_LOCAL : ICONS_GLOBAL);
 
       // creating sound item
       itemIcon = new IconLayerItem(ambient, msg, icons[0], CENTER);
@@ -225,8 +194,17 @@ public class LayerObjectAmbient extends LayerObject
       itemIcon.setVisible(isVisible());
 
       // creating sound range item
-      if (icons == ICONS_LOCAL) {
-        itemShape = new ShapedLayerItem(ambient, msg, circle);
+      if (isLocal) {
+        final double minAlpha = 0.0;
+        final double maxAlpha = 64.0;
+        final double alphaF = minAlpha + Math.sqrt(volume) / 10.0 * (maxAlpha - minAlpha);
+        final int alpha = (int)alphaF & 0xff;
+        color[0] = COLOR_RANGE[0];
+        color[1] = COLOR_RANGE[1];
+        color[2] = new Color(COLOR_RANGE[2].getRGB() | (alpha << 24), true);
+        color[3] = new Color(COLOR_RANGE[3].getRGB() | (alpha << 24), true);
+
+        itemShape = new ShapedLayerItem(ambient, msg, createShape(1.0));
         itemShape.setName(getCategory());
         itemShape.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
         itemShape.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
@@ -237,13 +215,15 @@ public class LayerObjectAmbient extends LayerObject
         itemShape.setStroked(true);
         itemShape.setFilled(true);
         itemShape.setVisible(isVisible());
+      } else {
+        radiusLocal = 0;
       }
     }
   }
 
   private Shape createShape(double zoomFactor)
   {
-    if (ambient != null && itemShape != null && radiusLocal > 0) {
+    if (radiusLocal > 0) {
       float diameter = (float)(radiusLocal*zoomFactor + (zoomFactor / 2.0)) * 2.0f;
       return new Ellipse2D.Float(0.0f, 0.0f, diameter, diameter);
     }
