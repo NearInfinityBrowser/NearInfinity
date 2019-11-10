@@ -59,7 +59,7 @@ public class LayerObjectAnimation extends LayerObject
 
   public LayerObjectAnimation(AreResource parent, Animation anim)
   {
-    super(ViewerConstants.RESOURCE_ARE, "Animation", Animation.class, parent);
+    super("Animation", Animation.class, parent);
     this.anim = anim;
     init();
   }

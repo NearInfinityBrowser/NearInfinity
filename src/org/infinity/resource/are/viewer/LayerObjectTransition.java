@@ -27,7 +27,7 @@ public class LayerObjectTransition extends LayerObject
   private static final int WIDTH = 16;    // "width" of the transition polygon
 
   /** Destination area. */
-  private final AreResource are;
+  private final AreResource destination;
   private final Point location = new Point();
   private final Point[] shapeCoords = {new Point(), new Point(), new Point(), new Point()};
   private final int edge;
@@ -35,10 +35,10 @@ public class LayerObjectTransition extends LayerObject
 
   private ShapedLayerItem item;
 
-  public LayerObjectTransition(AreResource parent, AreResource are, int edge, TilesetRenderer renderer)
+  public LayerObjectTransition(AreResource parent, AreResource destination, int edge, TilesetRenderer renderer)
   {
-    super(ViewerConstants.RESOURCE_ARE, "Transition", AreResource.class, parent);
-    this.are = are;
+    super("Transition", AreResource.class, parent);
+    this.destination = destination;
     this.edge = Math.min(ViewerConstants.EDGE_WEST, Math.max(ViewerConstants.EDGE_NORTH, edge));
     this.renderer = renderer;
     init();
@@ -48,13 +48,13 @@ public class LayerObjectTransition extends LayerObject
   @Override
   public Viewable getViewable()
   {
-    return are;
+    return destination;
   }
 
   @Override
   public Viewable[] getViewables()
   {
-    return new AbstractStruct[]{are};
+    return new AbstractStruct[]{destination};
   }
 
   @Override
@@ -145,7 +145,7 @@ public class LayerObjectTransition extends LayerObject
 
   private void init()
   {
-    if (getParentStructure() instanceof AreResource && are != null && renderer != null) {
+    if (destination != null && renderer != null) {
       AreResource parent = (AreResource)getParentStructure();
       String msg = "";
       try {
@@ -158,7 +158,7 @@ public class LayerObjectTransition extends LayerObject
         e.printStackTrace();
       }
 
-      item = new ShapedLayerItem(are, msg, msg, null);
+      item = new ShapedLayerItem(destination, msg, msg, null);
       item.setName(getCategory());
       update(1.0);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);

@@ -36,7 +36,7 @@ public class LayerObjectWallPoly extends LayerObject
 
   public LayerObjectWallPoly(WedResource parent, WallPolygon wallPoly)
   {
-    super(ViewerConstants.RESOURCE_WED, "Wall Poly", WallPolygon.class, parent);
+    super("Wall Poly", WallPolygon.class, parent);
     this.wall = wallPoly;
     init();
   }

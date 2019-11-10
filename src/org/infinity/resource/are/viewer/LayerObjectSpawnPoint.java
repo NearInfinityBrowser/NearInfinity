@@ -36,7 +36,7 @@ public class LayerObjectSpawnPoint extends LayerObject
 
   public LayerObjectSpawnPoint(AreResource parent, SpawnPoint sp)
   {
-    super(ViewerConstants.RESOURCE_ARE, "Spawn Point", SpawnPoint.class, parent);
+    super("Spawn Point", SpawnPoint.class, parent);
     this.sp = sp;
     init();
   }

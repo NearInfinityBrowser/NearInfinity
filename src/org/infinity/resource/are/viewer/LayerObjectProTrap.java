@@ -34,7 +34,7 @@ public class LayerObjectProTrap extends LayerObject
 
   public LayerObjectProTrap(AreResource parent, ProTrap trap)
   {
-    super(ViewerConstants.RESOURCE_ARE, "Trap", ProTrap.class, parent);
+    super("Trap", ProTrap.class, parent);
     this.trap = trap;
     init();
   }
@@ -120,7 +120,7 @@ public class LayerObjectProTrap extends LayerObject
       // Using cached icons
       Image[] icon;
       String keyIcon = String.format("%s%s", SharedResourceCache.createKey(ICON[0]),
-                                                 SharedResourceCache.createKey(ICON[1]));
+                                             SharedResourceCache.createKey(ICON[1]));
       if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
         icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
         SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon);

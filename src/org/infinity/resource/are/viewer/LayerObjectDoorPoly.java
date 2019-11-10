@@ -25,7 +25,11 @@ import org.infinity.resource.wed.Door;
 import org.infinity.resource.wed.WedResource;
 
 /**
- * Handles specific layer type: WED/Door Polygon
+ * Handles specific layer type: WED/Door Polygon.
+ * <p>
+ * Polygon represents clickable area for interaction with door. As a rule, closed
+ * state geometry of door polygon matches opened state geometry of the
+ * {@link LayerObjectDoor door itself} and vice versa.
  */
 public class LayerObjectDoorPoly extends LayerObject
 {
@@ -41,7 +45,7 @@ public class LayerObjectDoorPoly extends LayerObject
 
   public LayerObjectDoorPoly(WedResource parent, Door doorPoly)
   {
-    super(ViewerConstants.RESOURCE_WED, "Door Poly", Door.class, parent);
+    super("Door Poly", Door.class, parent);
     this.door = doorPoly;
     init();
   }

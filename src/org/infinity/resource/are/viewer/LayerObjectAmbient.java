@@ -48,11 +48,12 @@ public class LayerObjectAmbient extends LayerObject
 
   public LayerObjectAmbient(AreResource parent, Ambient ambient)
   {
-    super(ViewerConstants.RESOURCE_ARE, "Sound", Ambient.class, parent);
+    super("Sound", Ambient.class, parent);
     this.ambient = ambient;
     init();
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -139,6 +140,7 @@ public class LayerObjectAmbient extends LayerObject
   {
     return new Point[]{location, location};
   }
+  //</editor-fold>
 
   /**
    * Returns whether the ambient sound uses a local sound radius.

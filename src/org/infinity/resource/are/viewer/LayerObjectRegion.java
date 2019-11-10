@@ -42,7 +42,7 @@ public class LayerObjectRegion extends LayerObject
 
   public LayerObjectRegion(AreResource parent, ITEPoint region)
   {
-    super(ViewerConstants.RESOURCE_ARE, "Region", ITEPoint.class, parent);
+    super("Region", ITEPoint.class, parent);
     this.region = region;
     init();
   }

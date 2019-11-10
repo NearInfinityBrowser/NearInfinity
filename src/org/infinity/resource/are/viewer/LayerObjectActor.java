@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -22,9 +22,10 @@ public abstract class LayerObjectActor extends LayerObject
 
   protected LayerObjectActor(Class<? extends AbstractStruct> classType, AbstractStruct parent)
   {
-    super(ViewerConstants.RESOURCE_ARE, "Actor", classType, parent);
+    super("Actor", classType, parent);
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public void close()
   {
@@ -70,4 +71,5 @@ public abstract class LayerObjectActor extends LayerObject
   {
     return new Point[]{location};
   }
+  //</editor-fold>
 }

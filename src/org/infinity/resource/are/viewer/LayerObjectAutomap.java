@@ -50,7 +50,7 @@ public class LayerObjectAutomap extends LayerObject
 
   public LayerObjectAutomap(AreResource parent, AutomapNote note)
   {
-    super(ViewerConstants.RESOURCE_ARE, "Automap", AutomapNote.class, parent);
+    super("Automap", AutomapNote.class, parent);
     this.note = note;
     init();
   }

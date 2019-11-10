@@ -42,7 +42,7 @@ public class LayerObjectContainer extends LayerObject
 
   public LayerObjectContainer(AreResource parent, Container container)
   {
-    super(ViewerConstants.RESOURCE_ARE, "Container", Container.class, parent);
+    super("Container", Container.class, parent);
     this.container = container;
     init();
   }

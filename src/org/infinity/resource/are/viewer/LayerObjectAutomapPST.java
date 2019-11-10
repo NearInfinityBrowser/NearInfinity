@@ -35,7 +35,7 @@ public class LayerObjectAutomapPST extends LayerObject
 
   public LayerObjectAutomapPST(AreResource parent, AutomapNotePST note)
   {
-    super(ViewerConstants.RESOURCE_ARE, "Automap", AutomapNotePST.class, parent);
+    super("Automap", AutomapNotePST.class, parent);
     this.note = note;
     init();
   }

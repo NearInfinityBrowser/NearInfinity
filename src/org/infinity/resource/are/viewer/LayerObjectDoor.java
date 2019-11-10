@@ -39,7 +39,7 @@ public class LayerObjectDoor extends LayerObject
 
   public LayerObjectDoor(AreResource parent, Door door)
   {
-    super(ViewerConstants.RESOURCE_ARE, "Door", Door.class, parent);
+    super("Door", Door.class, parent);
     this.door = door;
     init();
   }
