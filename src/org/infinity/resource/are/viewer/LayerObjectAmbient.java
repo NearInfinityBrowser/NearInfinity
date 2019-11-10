@@ -29,10 +29,10 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
  */
 public class LayerObjectAmbient extends LayerObject
 {
-  private static final Image[] ICON_GLOBAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_G_1),
-                                              Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_G_2)};
-  private static final Image[] ICON_LOCAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_L_1),
-                                             Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_L_2)};
+  private static final Image[] ICONS_GLOBAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_G_1),
+                                               Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_G_2)};
+  private static final Image[] ICONS_LOCAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_L_1),
+                                              Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_L_2)};
   private static final Point CENTER = new Point(16, 16);
   private static final Color[] COLOR_RANGE = {new Color(0xA0000080, true), new Color(0xA0000080, true),
                                               new Color(0x00204080, true), new Color(0x004060C0, true)};
@@ -181,7 +181,7 @@ public class LayerObjectAmbient extends LayerObject
   {
     if (ambient != null) {
       String msg = "";
-      Image[] icon = ICON_GLOBAL;
+      Image[] icons = ICONS_GLOBAL;
       Shape circle = null;
       Color[] color = new Color[COLOR_RANGE.length];
       try {
@@ -190,16 +190,16 @@ public class LayerObjectAmbient extends LayerObject
         radiusLocal = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_RADIUS)).getValue();
         volume = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_VOLUME)).getValue();
         if (((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_FLAGS)).isFlagSet(2)) {
-          icon = ICON_GLOBAL;
+          icons = ICONS_GLOBAL;
           radiusLocal = 0;
         } else {
-          icon = ICON_LOCAL;
+          icons = ICONS_LOCAL;
         }
 
         scheduleFlags = ((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_ACTIVE_AT));
 
         msg = ((TextString)ambient.getAttribute(Ambient.ARE_AMBIENT_NAME)).toString();
-        if (icon == ICON_LOCAL) {
+        if (icons == ICONS_LOCAL) {
           circle = createShape(1.0);
           double minAlpha = 0.0, maxAlpha = 64.0;
           double alphaF = minAlpha + Math.sqrt((double)volume) / 10.0 * (maxAlpha - minAlpha);
@@ -214,25 +214,18 @@ public class LayerObjectAmbient extends LayerObject
       }
 
       // Using cached icons
-      String keyIcon = String.format("%s%s", SharedResourceCache.createKey(icon[0]),
-                                                 SharedResourceCache.createKey(icon[1]));
-      if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
-        icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
-        SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon);
-      } else {
-        SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
-      }
+      icons = getIcons(icons);
 
       // creating sound item
-      itemIcon = new IconLayerItem(ambient, msg, msg, icon[0], CENTER);
+      itemIcon = new IconLayerItem(ambient, msg, msg, icons[0], CENTER);
       itemIcon.setLabelEnabled(Settings.ShowLabelSounds);
       itemIcon.setName(getCategory());
       itemIcon.setToolTipText(msg);
-      itemIcon.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
+      itemIcon.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
       itemIcon.setVisible(isVisible());
 
       // creating sound range item
-      if (icon == ICON_LOCAL) {
+      if (icons == ICONS_LOCAL) {
         itemShape = new ShapedLayerItem(ambient, msg, msg, circle, new Point(radiusLocal, radiusLocal));
         itemShape.setName(getCategory());
         itemShape.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);

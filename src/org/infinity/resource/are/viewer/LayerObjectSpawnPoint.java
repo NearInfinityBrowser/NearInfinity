@@ -23,8 +23,8 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
  */
 public class LayerObjectSpawnPoint extends LayerObject
 {
-  private static final Image[] ICON = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_SPAWN_POINT_1),
-                                       Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_SPAWN_POINT_2)};
+  private static final Image[] ICONS = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_SPAWN_POINT_1),
+                                        Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_SPAWN_POINT_2)};
   private static final Point CENTER = new Point(22, 22);
 
   private final SpawnPoint sp;
@@ -127,21 +127,12 @@ public class LayerObjectSpawnPoint extends LayerObject
       }
 
       // Using cached icons
-      Image[] icon;
-      String keyIcon = String.format("%s%s", SharedResourceCache.createKey(ICON[0]),
-                                                 SharedResourceCache.createKey(ICON[1]));
-      if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
-        icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
-        SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon);
-      } else {
-        icon = ICON;
-        SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
-      }
+      final Image[] icons = getIcons(ICONS);
 
-      item = new IconLayerItem(sp, msg, msg, icon[0], CENTER);
+      item = new IconLayerItem(sp, msg, msg, icons[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelSpawnPoints);
       item.setName(getCategory());
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
+      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
       item.setVisible(isVisible());
     }
   }

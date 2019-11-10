@@ -4,6 +4,7 @@
 
 package org.infinity.resource.are.viewer;
 
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
@@ -310,5 +311,20 @@ public abstract class LayerObject
     } else {
       return false;
     }
+  }
+
+  protected static Image[] getIcons(Image[] defIcons)
+  {
+    final Image[] icons;
+    final String keyIcon = SharedResourceCache.createKey(defIcons[0])
+                         + SharedResourceCache.createKey(defIcons[1]);
+    if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
+      icons = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
+      SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon);
+    } else {
+      icons = defIcons;
+      SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icons));
+    }
+    return icons;
   }
 }

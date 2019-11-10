@@ -331,16 +331,9 @@ public class LayerObjectAnimation extends LayerObject
       }
 
       // Using cached icons
-      Image[] icon;
-      String keyIcon = String.format("%s%s", SharedResourceCache.createKey(ICON[iconIdx][0]),
-                                                 SharedResourceCache.createKey(ICON[iconIdx][1]));
-      if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
-        icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
-        SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon);
-      } else {
-        icon = ICON[iconIdx];
-        SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
-      }
+      final Image[] icon = getIcons(ICON[iconIdx]);
+      final String keyIcon = SharedResourceCache.createKey(ICON[iconIdx])
+                           + SharedResourceCache.createKey(ICON[iconIdx]);
 
       IconLayerItem item1 = new IconLayerItem(anim, msg, msg, icon[0], CENTER);
       item1.setData(keyIcon);

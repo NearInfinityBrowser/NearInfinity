@@ -26,12 +26,12 @@ import org.infinity.util.IniMapSection;
  */
 public class LayerObjectIniActor extends LayerObjectActor
 {
-  private static final Image[] ICON_GOOD = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_G_1),
-                                            Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_G_2)};
-  private static final Image[] ICON_NEUTRAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_B_1),
-                                               Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_B_2)};
-  private static final Image[] ICON_EVIL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_R_1),
-                                            Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_R_2)};
+  private static final Image[] ICONS_GOOD = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_G_1),
+                                             Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_G_2)};
+  private static final Image[] ICONS_NEUTRAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_B_1),
+                                                Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_B_2)};
+  private static final Image[] ICONS_EVIL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_R_1),
+                                             Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_INI_ACTOR_R_2)};
   private static final Point CENTER = new Point(12, 40);
 
   private final PlainTextResource ini;
@@ -120,7 +120,6 @@ public class LayerObjectIniActor extends LayerObjectActor
       }
 
       // initializations
-      Image[] icon;
       String info = sectionName;
       String msg = ((StringRef)cre.getAttribute(CreResource.CRE_NAME)).toString() + " [" + sectionName + "]";
       int ea = (int)((IdsBitmap)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
@@ -132,29 +131,23 @@ public class LayerObjectIniActor extends LayerObjectActor
         ea = object[0];
       }
 
+      Image[] icons;
       if (ea >= 2 && ea <= 30) {
-        icon = ICON_GOOD;
+        icons = ICONS_GOOD;
       } else if (ea >= 200) {
-        icon = ICON_EVIL;
+        icons = ICONS_EVIL;
       } else {
-        icon = ICON_NEUTRAL;
+        icons = ICONS_NEUTRAL;
       }
 
       // Using cached icons
-      String keyIcon = String.format("%s%s", SharedResourceCache.createKey(icon[0]),
-                                                 SharedResourceCache.createKey(icon[1]));
-      if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
-        icon = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
-        SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon);
-      } else {
-        SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icon));
-      }
+      icons = getIcons(icons);
 
       ini.setHighlightedLine(creData.getLine() + 1);
-      item = new IconLayerItem(ini, msg, info, icon[0], CENTER);
+      item = new IconLayerItem(ini, msg, info, icons[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelActorsIni);
       item.setName(getCategory());
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
+      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
       item.setVisible(isVisible());
     }
   }
