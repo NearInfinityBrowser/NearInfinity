@@ -11,7 +11,6 @@ import java.awt.Polygon;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
-import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.are.AreResource;
 
@@ -33,7 +32,6 @@ public class LayerObjectTransition extends LayerObject
 
   /** Destination area. */
   private final AreResource destination;
-  private final Point location = new Point();
   private final Point[] shapeCoords = {new Point(), new Point(), new Point(), new Point()};
   private final int edge;
   private final TilesetRenderer renderer;
@@ -57,18 +55,6 @@ public class LayerObjectTransition extends LayerObject
   }
 
   @Override
-  public Viewable[] getViewables()
-  {
-    return new AbstractStruct[]{destination};
-  }
-
-  @Override
-  public AbstractLayerItem getLayerItem()
-  {
-    return item;
-  }
-
-  @Override
   public AbstractLayerItem getLayerItem(int type)
   {
     return (type == 0) ? item : null;
@@ -78,12 +64,6 @@ public class LayerObjectTransition extends LayerObject
   public AbstractLayerItem[] getLayerItems()
   {
     return new AbstractLayerItem[]{item};
-  }
-
-  @Override
-  public void reload()
-  {
-    init();
   }
 
   @Override
@@ -125,18 +105,6 @@ public class LayerObjectTransition extends LayerObject
       normalizePolygon(poly);
       item.setShape(poly);
     }
-  }
-
-  @Override
-  public Point getMapLocation()
-  {
-    return location;
-  }
-
-  @Override
-  public Point[] getMapLocations()
-  {
-    return new Point[]{location};
   }
   //</editor-fold>
 

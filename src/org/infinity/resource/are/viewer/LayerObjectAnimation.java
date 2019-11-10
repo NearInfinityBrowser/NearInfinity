@@ -93,18 +93,6 @@ public class LayerObjectAnimation extends LayerObject
     return anim;
   }
 
-  @Override
-  public Viewable[] getViewables()
-  {
-    return new Viewable[]{anim};
-  }
-
-  @Override
-  public AbstractLayerItem getLayerItem()
-  {
-    return items[0];
-  }
-
   /**
    * Returns the layer item of the specific state. (either ANIM_ITEM_ICON or ANIM_ITEM_REAL).
    * @param type The state of the item to be returned.
@@ -124,12 +112,6 @@ public class LayerObjectAnimation extends LayerObject
   }
 
   @Override
-  public void reload()
-  {
-    init();
-  }
-
-  @Override
   public void update(double zoomFactor)
   {
     for (int i = 0; i < items.length; i++) {
@@ -141,18 +123,6 @@ public class LayerObjectAnimation extends LayerObject
         }
       }
     }
-  }
-
-  @Override
-  public Point getMapLocation()
-  {
-    return location;
-  }
-
-  @Override
-  public Point[] getMapLocations()
-  {
-    return new Point[]{location, location};
   }
 
   @Override

@@ -48,21 +48,9 @@ public class LayerObjectAreActor extends LayerObjectActor
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
-  public void reload()
-  {
-    init();
-  }
-
-  @Override
   public Viewable getViewable()
   {
     return actor;
-  }
-
-  @Override
-  public Viewable[] getViewables()
-  {
-    return new Viewable[]{actor};
   }
 
   @Override

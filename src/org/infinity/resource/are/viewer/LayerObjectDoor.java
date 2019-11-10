@@ -48,18 +48,6 @@ public class LayerObjectDoor extends LayerObject
     return door;
   }
 
-  @Override
-  public Viewable[] getViewables()
-  {
-    return new Viewable[]{door};
-  }
-
-  @Override
-  public AbstractLayerItem getLayerItem()
-  {
-    return items[ViewerConstants.DOOR_OPEN];
-  }
-
   /**
    * Returns the layer item of specified state.
    * @param type The open/closed state of the item.
@@ -88,12 +76,6 @@ public class LayerObjectDoor extends LayerObject
   }
 
   @Override
-  public void reload()
-  {
-    init();
-  }
-
-  @Override
   public void update(double zoomFactor)
   {
     for (int i = 0; i < items.length; i++) {
@@ -105,18 +87,6 @@ public class LayerObjectDoor extends LayerObject
         items[i].setShape(poly);
       }
     }
-  }
-
-  @Override
-  public Point getMapLocation()
-  {
-    return location[0];
-  }
-
-  @Override
-  public Point[] getMapLocations()
-  {
-    return location;
   }
   //</editor-fold>
 

@@ -62,22 +62,6 @@ public class LayerObjectAmbient extends LayerObject
     return ambient;
   }
 
-  @Override
-  public Viewable[] getViewables()
-  {
-    if (isLocal()) {
-      return new Viewable[]{ambient, ambient};
-    } else {
-      return new Viewable[]{ambient};
-    }
-  }
-
-  @Override
-  public AbstractLayerItem getLayerItem()
-  {
-    return itemIcon;
-  }
-
   /**
    * Returns the layer item of specified type.
    * @param type The type of the item to return (either {@code ViewerConstants.AMBIENT_ITEM_ICON} or
@@ -107,12 +91,6 @@ public class LayerObjectAmbient extends LayerObject
   }
 
   @Override
-  public void reload()
-  {
-    init();
-  }
-
-  @Override
   public void update(double zoomFactor)
   {
     int x = (int)(location.x*zoomFactor + (zoomFactor / 2.0));
@@ -129,18 +107,6 @@ public class LayerObjectAmbient extends LayerObject
       itemShape.setCenterPosition(new Point(rect.width / 2, rect.height / 2));
       itemShape.setShape(circle);
     }
-  }
-
-  @Override
-  public Point getMapLocation()
-  {
-    return location;
-  }
-
-  @Override
-  public Point[] getMapLocations()
-  {
-    return new Point[]{location, location};
   }
 
   @Override

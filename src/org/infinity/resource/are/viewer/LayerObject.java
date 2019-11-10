@@ -144,20 +144,6 @@ public abstract class LayerObject
   public abstract Viewable getViewable();
 
   /**
-   * Returns all structures associated with the layer object. This method is useful for layer objects
-   * consisting of multiple structures.
-   * @return A list of structures associated with the layer object.
-   */
-  public abstract Viewable[] getViewables();
-
-  /**
-   * Returns the layer item associated with the layer object. If the layer object consists of
-   * multiple layer items, then the first one available will be returned.
-   * @return The layer item associated with the layer object.
-   */
-  public abstract AbstractLayerItem getLayerItem();
-
-  /**
    * Returns the specified layer item. {@code type} is layer type specific, usually defined
    * as an identifier in {@code ViewerConstants}.
    * @param type A layer-specific type to identify the item to return.
@@ -173,31 +159,10 @@ public abstract class LayerObject
   public abstract AbstractLayerItem[] getLayerItems();
 
   /**
-   * Reloads structure data and associated layer item(s). Note: {@link #update(double)} has
-   * to be called afterwards to account for canvas-specific settings.
-   */
-  public abstract void reload();
-
-  /**
    * Updates the layer item positions. Takes zoom factor into account.
    * Note: Always call this method after loading/reloading structure data.
    */
   public abstract void update(double zoomFactor);
-
-  /**
-   * Returns the original map position of the first available layer item (center or top-left,
-   * depending on object type). Note: This is the location specified in the resource structure.
-   * The resulting position on the canvas may be different.
-   */
-  public abstract Point getMapLocation();
-
-  /**
-   * Returns the original map positions of all available layer items (center or top-left,
-   * depending on object type). Note: This is the location specified in the resource structure.
-   * The resulting position on the canvas may be different.
-   * @return
-   */
-  public abstract Point[] getMapLocations();
 
   /**
    * Returns whether the layer object is active at a specific scheduled time.

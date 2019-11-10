@@ -51,18 +51,6 @@ public class LayerObjectRegion extends LayerObject
   }
 
   @Override
-  public Viewable[] getViewables()
-  {
-    return new Viewable[]{region};
-  }
-
-  @Override
-  public AbstractLayerItem getLayerItem()
-  {
-    return item;
-  }
-
-  @Override
   public AbstractLayerItem getLayerItem(int type)
   {
     return (type == 0) ? item : null;
@@ -75,12 +63,6 @@ public class LayerObjectRegion extends LayerObject
   }
 
   @Override
-  public void reload()
-  {
-    init();
-  }
-
-  @Override
   public void update(double zoomFactor)
   {
     if (item != null) {
@@ -90,18 +72,6 @@ public class LayerObjectRegion extends LayerObject
       normalizePolygon(poly);
       item.setShape(poly);
     }
-  }
-
-  @Override
-  public Point getMapLocation()
-  {
-    return location;
-  }
-
-  @Override
-  public Point[] getMapLocations()
-  {
-    return new Point[]{location};
   }
   //</editor-fold>
 

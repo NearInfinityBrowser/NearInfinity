@@ -55,22 +55,6 @@ public class LayerObjectDoorPoly extends LayerObject
   }
 
   @Override
-  public Viewable[] getViewables()
-  {
-    return new Viewable[]{door};
-  }
-
-  @Override
-  public AbstractLayerItem getLayerItem()
-  {
-    if (items.length > 0) {
-      return items[0];
-    } else {
-      return null;
-    }
-  }
-
-  @Override
   public AbstractLayerItem getLayerItem(int type)
   {
     if (Profile.getEngine() == Profile.Engine.PST) {
@@ -93,12 +77,6 @@ public class LayerObjectDoorPoly extends LayerObject
   }
 
   @Override
-  public void reload()
-  {
-    init();
-  }
-
-  @Override
   public void update(double zoomFactor)
   {
     for (int i = 0; i < items.length; i++) {
@@ -109,22 +87,6 @@ public class LayerObjectDoorPoly extends LayerObject
       normalizePolygon(poly);
       items[i].setShape(poly);
     }
-  }
-
-  @Override
-  public Point getMapLocation()
-  {
-    if (location.length > 0) {
-      return location[0];
-    } else {
-      return null;
-    }
-  }
-
-  @Override
-  public Point[] getMapLocations()
-  {
-    return location;
   }
   //</editor-fold>
 

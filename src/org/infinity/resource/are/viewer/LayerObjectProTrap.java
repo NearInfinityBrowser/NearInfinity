@@ -45,18 +45,6 @@ public class LayerObjectProTrap extends LayerObject
   }
 
   @Override
-  public Viewable[] getViewables()
-  {
-    return new Viewable[]{trap};
-  }
-
-  @Override
-  public AbstractLayerItem getLayerItem()
-  {
-    return item;
-  }
-
-  @Override
   public AbstractLayerItem getLayerItem(int type)
   {
     return (type == 0) ? item : null;
@@ -69,30 +57,12 @@ public class LayerObjectProTrap extends LayerObject
   }
 
   @Override
-  public void reload()
-  {
-    init();
-  }
-
-  @Override
   public void update(double zoomFactor)
   {
     if (item != null) {
       item.setItemLocation((int)(location.x*zoomFactor + (zoomFactor / 2.0)),
                            (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
     }
-  }
-
-  @Override
-  public Point getMapLocation()
-  {
-    return location;
-  }
-
-  @Override
-  public Point[] getMapLocations()
-  {
-    return new Point[]{location};
   }
   //</editor-fold>
 

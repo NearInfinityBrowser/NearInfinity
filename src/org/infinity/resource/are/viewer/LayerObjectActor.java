@@ -34,12 +34,6 @@ public abstract class LayerObjectActor extends LayerObject
   }
 
   @Override
-  public AbstractLayerItem getLayerItem()
-  {
-    return item;
-  }
-
-  @Override
   public AbstractLayerItem getLayerItem(int type)
   {
     return (type == 0) ? item : null;
@@ -58,18 +52,6 @@ public abstract class LayerObjectActor extends LayerObject
       item.setItemLocation((int)(location.x*zoomFactor + (zoomFactor / 2.0)),
                            (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
     }
-  }
-
-  @Override
-  public Point getMapLocation()
-  {
-    return location;
-  }
-
-  @Override
-  public Point[] getMapLocations()
-  {
-    return new Point[]{location};
   }
   //</editor-fold>
 }

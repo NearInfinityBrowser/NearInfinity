@@ -48,25 +48,9 @@ public class LayerObjectIniActor extends LayerObjectActor
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
-  public void reload()
-  {
-    try {
-      init();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-  @Override
   public Viewable getViewable()
   {
     return ini;
-  }
-
-  @Override
-  public Viewable[] getViewables()
-  {
-    return new Viewable[]{ini};
   }
 
   @Override
