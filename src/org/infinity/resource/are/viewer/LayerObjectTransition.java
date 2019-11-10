@@ -20,7 +20,12 @@ import org.infinity.resource.are.AreResource;
  */
 public class LayerObjectTransition extends LayerObject
 {
-  public static final String[] FIELD_NAME = {"Area north", "Area east", "Area south", "Area west"};
+  public static final String[] FIELD_NAME = {
+    AreResource.ARE_AREA_NORTH,
+    AreResource.ARE_AREA_EAST,
+    AreResource.ARE_AREA_SOUTH,
+    AreResource.ARE_AREA_WEST,
+  };
 
   private static final Color[] COLOR = {new Color(0xFF404000, true), new Color(0xFF404000, true),
                                         new Color(0xC0808000, true), new Color(0xC0C0C000, true)};
@@ -147,7 +152,7 @@ public class LayerObjectTransition extends LayerObject
   {
     if (destination != null && renderer != null) {
       AreResource parent = (AreResource)getParentStructure();
-      String msg = "";
+      String msg = null;
       try {
         ResourceRef ref = (ResourceRef)parent.getAttribute(FIELD_NAME[edge]);
         if (ref != null && !ref.getResourceName().isEmpty() &&
@@ -158,7 +163,7 @@ public class LayerObjectTransition extends LayerObject
         e.printStackTrace();
       }
 
-      item = new ShapedLayerItem(destination, msg, msg, null);
+      item = new ShapedLayerItem(destination, msg, null);
       item.setName(getCategory());
       update(1.0);
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);

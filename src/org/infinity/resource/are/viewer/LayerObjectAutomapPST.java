@@ -7,8 +7,7 @@ package org.infinity.resource.are.viewer;
 import java.awt.Image;
 import java.awt.Point;
 
-import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.TextString;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.icon.Icons;
@@ -25,7 +24,7 @@ public class LayerObjectAutomapPST extends LayerObject
   private static final Image[] ICONS = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AUTOMAP_1),
                                         Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AUTOMAP_2)};
   private static final Point CENTER = new Point(26, 26);
-  private static final double MapScale = 32.0 / 3.0;    // scaling factor for MOS to TIS coordinates
+  private static final double MAP_SCALE = 32.0 / 3.0;    // scaling factor for MOS to TIS coordinates
 
   private final AutomapNotePST note;
   private final Point location = new Point();
@@ -102,13 +101,13 @@ public class LayerObjectAutomapPST extends LayerObject
   private void init()
   {
     if (note != null) {
-      String msg = "";
+      String msg = null;
       try {
-        int v = ((DecNumber)note.getAttribute(AutomapNotePST.ARE_AUTOMAP_LOCATION_X)).getValue();
-        location.x = (int)(v * MapScale);
-        v = ((DecNumber)note.getAttribute(AutomapNotePST.ARE_AUTOMAP_LOCATION_Y)).getValue();
-        location.y = (int)(v * MapScale);
-        msg = ((TextString)note.getAttribute(AutomapNotePST.ARE_AUTOMAP_TEXT)).toString();
+        final IsNumeric x = (IsNumeric)note.getAttribute(AutomapNotePST.ARE_AUTOMAP_LOCATION_X);
+        final IsNumeric y = (IsNumeric)note.getAttribute(AutomapNotePST.ARE_AUTOMAP_LOCATION_Y);
+        location.x = (int)(x.getValue() * MAP_SCALE);
+        location.y = (int)(y.getValue() * MAP_SCALE);
+        msg = note.getAttribute(AutomapNotePST.ARE_AUTOMAP_TEXT).toString();
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -116,7 +115,7 @@ public class LayerObjectAutomapPST extends LayerObject
       // Using cached icons
       final Image[] icons = getIcons(ICONS);
 
-      item = new IconLayerItem(note, msg, msg, icons[0], CENTER);
+      item = new IconLayerItem(note, msg, icons[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelMapNotes);
       item.setName(getCategory());
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);

@@ -9,10 +9,10 @@ import java.awt.Image;
 import java.awt.Point;
 import java.nio.ByteBuffer;
 
-import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.IsReference;
 import org.infinity.datatype.ResourceRef;
-import org.infinity.datatype.TextString;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.AnimatedLayerItem;
 import org.infinity.gui.layeritem.BasicAnimationProvider;
@@ -36,7 +36,7 @@ import org.infinity.util.io.FileManager;
  */
 public class LayerObjectAnimation extends LayerObject
 {
-  private static final Image[][] ICON = new Image[][]{
+  private static final Image[][] ICONS = {
     // active versions
     {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_1), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_2)},
     {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_WBM_1), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_WBM_2)},
@@ -195,20 +195,18 @@ public class LayerObjectAnimation extends LayerObject
       String msg = "";
       int iconIdx = 0;
       BackgroundAnimationProvider animation = null;
-      int skippedFrames = 0;
-      boolean isActive = true, isBlended = false, isMirrored = false, isSelfIlluminated = false;
       try {
         // PST seems to ignore a couple of animation settings
         boolean isTorment = (Profile.getEngine() == Profile.Engine.PST);
         boolean isEE = Profile.isEnhancedEdition();
 
-        location.x = ((DecNumber)anim.getAttribute(Animation.ARE_ANIMATION_LOCATION_X)).getValue();
-        location.y = ((DecNumber)anim.getAttribute(Animation.ARE_ANIMATION_LOCATION_Y)).getValue();
+        location.x = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_LOCATION_X)).getValue();
+        location.y = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_LOCATION_Y)).getValue();
         Flag flags = (Flag)anim.getAttribute(Animation.ARE_ANIMATION_APPEARANCE);
-        isActive = flags.isFlagSet(0);
-        isBlended = flags.isFlagSet(1) || isTorment;
-        isMirrored = flags.isFlagSet(11);
-        isSelfIlluminated = !flags.isFlagSet(2);
+        final boolean isActive = flags.isFlagSet(0);
+        final boolean isBlended = flags.isFlagSet(1) || isTorment;
+        final boolean isMirrored = flags.isFlagSet(11);
+        final boolean isSelfIlluminated = !flags.isFlagSet(2);
         boolean isSynchronized = flags.isFlagSet(4);
         boolean isWBM = false;
         boolean isPVRZ = false;
@@ -227,49 +225,31 @@ public class LayerObjectAnimation extends LayerObject
           iconIdx += 4;   // adjusting to display inactive versions of the icons
         }
 
-        msg = ((TextString)anim.getAttribute(Animation.ARE_ANIMATION_NAME)).toString();
+        msg = anim.getAttribute(Animation.ARE_ANIMATION_NAME).toString();
         scheduleFlags = ((Flag)anim.getAttribute(Animation.ARE_ANIMATION_ACTIVE_AT));
 
-        int baseAlpha = ((DecNumber)anim.getAttribute(Animation.ARE_ANIMATION_TRANSLUCENCY)).getValue();
+        int baseAlpha = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_TRANSLUCENCY)).getValue();
         if (baseAlpha < 0) baseAlpha = 0; else if (baseAlpha > 255) baseAlpha = 255;
         baseAlpha = 255 - baseAlpha;
 
         // initializing frames
         if (isWBM) {
           // using icon as placeholder
-          // generating key from icon hashcode
-          keyAnim = String.format("%08x", ICON[iconIdx][0].hashCode());
-          BamDecoder bam = null;
-          if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
-            bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(ICON[iconIdx][0], true, false), CENTER);
-            SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim, new ResourceAnimation(keyAnim, bam));
-          } else {
-            SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim);
-            bam = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.ANIMATION, keyAnim)).getData();
-          }
+          final BamDecoder bam = getDecoder(ICONS[iconIdx][0]);
           animation = new BackgroundAnimationProvider(bam);
           animation.setBaseAlpha(baseAlpha);
           animation.setActive(isActive);
           animation.setActiveIgnored(Settings.OverrideAnimVisibility);
         } else if (isPVRZ) {
           // using icon as placeholder
-          // generating key from icon hashcode
-          keyAnim = String.format("%08x", ICON[iconIdx][0].hashCode());
-          BamDecoder bam = null;
-          if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
-            bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(ICON[iconIdx][0], true, false), CENTER);
-            SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim, new ResourceAnimation(keyAnim, bam));
-          } else {
-            SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim);
-            bam = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.ANIMATION, keyAnim)).getData();
-          }
+          final BamDecoder bam = getDecoder(ICONS[iconIdx][0]);
           animation = new BackgroundAnimationProvider(bam);
           animation.setBaseAlpha(baseAlpha);
           animation.setActive(isActive);
           animation.setActiveIgnored(Settings.OverrideAnimVisibility);
         } else {
           // setting up BAM frames
-          String animFile = ((ResourceRef)anim.getAttribute(Animation.ARE_ANIMATION_RESREF)).getResourceName();
+          String animFile = ((IsReference)anim.getAttribute(Animation.ARE_ANIMATION_RESREF)).getResourceName();
           if (animFile == null || animFile.isEmpty() || "None".equalsIgnoreCase(animFile)) {
             animFile = "";
           }
@@ -277,30 +257,25 @@ public class LayerObjectAnimation extends LayerObject
 //          boolean isRandom = flags.isFlagSet(5);
           boolean playAllFrames = flags.isFlagSet(9);   // play all cycles simultaneously
           boolean hasExternalPalette = flags.isFlagSet(10);
-          int cycle = ((DecNumber)anim.getAttribute(Animation.ARE_ANIMATION_ANIMATION_INDEX)).getValue();
-          int frameCount = ((DecNumber)anim.getAttribute(Animation.ARE_ANIMATION_FRAME_INDEX)).getValue();
-          skippedFrames = ((DecNumber)anim.getAttribute(Animation.ARE_ANIMATION_START_DELAY)).getValue();
+          int cycle = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_ANIMATION_INDEX)).getValue();
+          final int frameCount = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_FRAME_INDEX)).getValue();
+          int skippedFrames = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_START_DELAY)).getValue();
           if (isSynchronized || isTorment) {
             skippedFrames = 0;
           }
 
           // retrieving external palette (if available)
           int[] palette = null;
-          String paletteFile = null;
           if (hasExternalPalette) {
             ResourceRef ref = (ResourceRef)anim.getAttribute(Animation.ARE_ANIMATION_PALETTE);
-            if (ref != null) {
-              paletteFile = ref.getResourceName();
-              if (paletteFile == null || paletteFile.isEmpty() || "None".equalsIgnoreCase(paletteFile)) {
-                paletteFile = "";
-              }
-              palette = getExternalPalette(paletteFile);
+            if (ref != null && !ref.isEmpty()) {
+              palette = getExternalPalette(ref.getResourceName());
             }
           }
 
           // generating unique key from BAM filename and optional palette hashcode
           keyAnim = String.format("%s", animFile);
-          BamDecoder bam = null;
+          final BamDecoder bam;
           if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
             ResourceEntry bamEntry = ResourceFactory.getResourceEntry(animFile);
             bam = BamDecoder.loadBam(bamEntry);
@@ -331,11 +306,11 @@ public class LayerObjectAnimation extends LayerObject
       }
 
       // Using cached icons
-      final Image[] icon = getIcons(ICON[iconIdx]);
-      final String keyIcon = SharedResourceCache.createKey(ICON[iconIdx])
-                           + SharedResourceCache.createKey(ICON[iconIdx]);
+      final Image[] icon = getIcons(ICONS[iconIdx]);
+      final String keyIcon = SharedResourceCache.createKey(ICONS[iconIdx])
+                           + SharedResourceCache.createKey(ICONS[iconIdx]);
 
-      IconLayerItem item1 = new IconLayerItem(anim, msg, msg, icon[0], CENTER);
+      IconLayerItem item1 = new IconLayerItem(anim, msg, icon[0], CENTER);
       item1.setData(keyIcon);
       item1.setLabelEnabled(Settings.ShowLabelAnimations);
       item1.setName(getCategory());
@@ -344,7 +319,7 @@ public class LayerObjectAnimation extends LayerObject
       item1.setVisible(isVisible());
       items[0] = item1;
 
-      AnimatedLayerItem item2 = new AnimatedLayerItem(anim, msg, msg, animation);
+      AnimatedLayerItem item2 = new AnimatedLayerItem(anim, msg, animation);
       item2.setData(keyAnim);
       item2.setName(getCategory());
       item2.setToolTipText(msg);
@@ -370,33 +345,38 @@ public class LayerObjectAnimation extends LayerObject
       if (entry == null) {
         entry = new FileResourceEntry(FileManager.resolve(bmpFile));
       }
-      if (entry != null) {
-        try {
-          ByteBuffer buffer = entry.getResourceBuffer();
-          if (buffer != null && buffer.limit() > 1078) {
-            boolean isBMP = (buffer.getShort(0) == 0x4D42);   // 'BM'
-            int palOfs = buffer.getInt(0x0e);
-            int bpp = buffer.getShort(0x1c);
-            if (isBMP && palOfs >= 0x28 && bpp == 8) {
-              int ofs = 0x0e + palOfs;
-              retVal = new int[256];
-              for (int i = 0; i < 256; i++) {
-                retVal[i] = buffer.getInt(ofs + i*4);
-              }
+      try {
+        final ByteBuffer buffer = entry.getResourceBuffer();
+        if (buffer != null && buffer.limit() > 1078) {
+          final boolean isBMP = (buffer.getShort(0) == 0x4D42);   // 'BM'
+          final int palOfs = buffer.getInt(0x0e);
+          final int bpp = buffer.getShort(0x1c);
+          if (isBMP && palOfs >= 0x28 && bpp == 8) {
+            final int ofs = 0x0e + palOfs;
+            retVal = new int[256];
+            for (int i = 0; i < 256; i++) {
+              retVal[i] = buffer.getInt(ofs + i*4);
             }
           }
-          buffer = null;
-        } catch (Exception e) {
         }
+      } catch (Exception e) {
       }
-      entry = null;
     }
 
-    if (retVal == null) {
-      retVal = new int[0];
-    }
-
-    return retVal;
+    return retVal == null ? new int[0] : retVal;
   }
 
+  private static BamDecoder getDecoder(Image icon)
+  {
+    final String keyAnim = SharedResourceCache.createKey(icon);
+    final BamDecoder bam;
+    if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
+      bam = new PseudoBamDecoder(ColorConvert.toBufferedImage(icon, true, false), CENTER);
+      SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim, new ResourceAnimation(keyAnim, bam));
+    } else {
+      bam = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.ANIMATION, keyAnim)).getData();
+      SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim);
+    }
+    return bam;
+  }
 }

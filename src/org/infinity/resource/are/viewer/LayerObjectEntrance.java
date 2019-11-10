@@ -7,9 +7,7 @@ package org.infinity.resource.are.viewer;
 import java.awt.Image;
 import java.awt.Point;
 
-import org.infinity.datatype.Bitmap;
-import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.TextString;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.icon.Icons;
@@ -102,16 +100,14 @@ public class LayerObjectEntrance extends LayerObject
   private void init()
   {
     if (entrance != null) {
-      String info = "";
-      String msg = "";
+      String msg = null;
       try {
-        location.x = ((DecNumber)entrance.getAttribute(Entrance.ARE_ENTRANCE_LOCATION_X)).getValue();
-        location.y = ((DecNumber)entrance.getAttribute(Entrance.ARE_ENTRANCE_LOCATION_Y)).getValue();
-        int o = ((Bitmap)entrance.getAttribute(Entrance.ARE_ENTRANCE_ORIENTATION)).getValue();
+        location.x = ((IsNumeric)entrance.getAttribute(Entrance.ARE_ENTRANCE_LOCATION_X)).getValue();
+        location.y = ((IsNumeric)entrance.getAttribute(Entrance.ARE_ENTRANCE_LOCATION_Y)).getValue();
+        int o = ((IsNumeric)entrance.getAttribute(Entrance.ARE_ENTRANCE_ORIENTATION)).getValue();
         if (o < 0) o = 0; else if (o >= Actor.s_orientation.length) o = Actor.s_orientation.length - 1;
-        info = ((TextString)entrance.getAttribute(Entrance.ARE_ENTRANCE_NAME)).toString();
-        msg = String.format("%s (%s)", ((TextString)entrance.getAttribute(Entrance.ARE_ENTRANCE_NAME)).toString(),
-                            Actor.s_orientation[o]);
+        final String name = entrance.getAttribute(Entrance.ARE_ENTRANCE_NAME).toString();
+        msg = String.format("%s (%s)", name, Actor.s_orientation[o]);
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -119,7 +115,7 @@ public class LayerObjectEntrance extends LayerObject
       // Using cached icons
       final Image[] icons = getIcons(ICONS);
 
-      item = new IconLayerItem(entrance, msg, info, icons[0], CENTER);
+      item = new IconLayerItem(entrance, msg, icons[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelEntrances);
       item.setName(getCategory());
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);

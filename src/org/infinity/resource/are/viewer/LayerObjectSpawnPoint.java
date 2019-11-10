@@ -7,9 +7,8 @@ package org.infinity.resource.are.viewer;
 import java.awt.Image;
 import java.awt.Point;
 
-import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
-import org.infinity.datatype.TextString;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.icon.Icons;
@@ -114,14 +113,14 @@ public class LayerObjectSpawnPoint extends LayerObject
   private void init()
   {
     if (sp != null) {
-      String msg = "";
+      String msg = null;
       try {
-        location.x = ((DecNumber)sp.getAttribute(SpawnPoint.ARE_SPAWN_LOCATION_X)).getValue();
-        location.y = ((DecNumber)sp.getAttribute(SpawnPoint.ARE_SPAWN_LOCATION_Y)).getValue();
+        location.x = ((IsNumeric)sp.getAttribute(SpawnPoint.ARE_SPAWN_LOCATION_X)).getValue();
+        location.y = ((IsNumeric)sp.getAttribute(SpawnPoint.ARE_SPAWN_LOCATION_Y)).getValue();
 
         scheduleFlags = ((Flag)sp.getAttribute(SpawnPoint.ARE_SPAWN_ACTIVE_AT));
 
-        msg = ((TextString)sp.getAttribute(SpawnPoint.ARE_SPAWN_NAME)).toString();
+        msg = sp.getAttribute(SpawnPoint.ARE_SPAWN_NAME).toString();
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -129,7 +128,7 @@ public class LayerObjectSpawnPoint extends LayerObject
       // Using cached icons
       final Image[] icons = getIcons(ICONS);
 
-      item = new IconLayerItem(sp, msg, msg, icons[0], CENTER);
+      item = new IconLayerItem(sp, msg, icons[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelSpawnPoints);
       item.setName(getCategory());
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);

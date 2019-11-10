@@ -7,8 +7,7 @@ package org.infinity.resource.are.viewer;
 import java.awt.Image;
 import java.awt.Point;
 
-import org.infinity.datatype.IdsBitmap;
-import org.infinity.datatype.StringRef;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.icon.Icons;
@@ -37,11 +36,6 @@ public class LayerObjectIniActor extends LayerObjectActor
   private final PlainTextResource ini;
   private final IniMapSection creData;
   private final int creIndex;
-
-  public LayerObjectIniActor(PlainTextResource ini, IniMapSection creData) throws Exception
-  {
-    this(ini, creData, 0);
-  }
 
   public LayerObjectIniActor(PlainTextResource ini, IniMapSection creData, int creIndex) throws Exception
   {
@@ -91,7 +85,7 @@ public class LayerObjectIniActor extends LayerObjectActor
 
       IniMapEntry entryPoint = creData.getEntry("spawn_point");
       if (entryPoint == null) {
-        throw new Exception(creData.getName() + ": Invalid spawn point");
+        throw new Exception(creData.getName() + ": Invalid spawn point - entry \"spawn_point\" not found in .INI");
       }
       String[] position = IniMapEntry.splitValues(entryPoint.getValue(), IniMapEntry.REGEX_POSITION);
       if (position == null || creIndex >= position.length) {
@@ -99,7 +93,7 @@ public class LayerObjectIniActor extends LayerObjectActor
       }
       int[] pos = IniMapEntry.splitPositionValue(position[creIndex]);
       if (pos == null || pos.length < 2) {
-        throw new Exception(creData.getName() + ": Invalid spawn point value");
+        throw new Exception(creData.getName() + ": Invalid spawn point value #" + creIndex);
       }
 
       String sectionName = creData.getName();
@@ -114,15 +108,12 @@ public class LayerObjectIniActor extends LayerObjectActor
         cre = new CreResource(creEntry);
       } catch (Exception e) {
         e.printStackTrace();
-      }
-      if (cre == null) {
-        throw new Exception(creData.getName() + ": Invalid CRE resource");
+        throw new Exception(creData.getName() + ": Invalid CRE resource", e);
       }
 
       // initializations
-      String info = sectionName;
-      String msg = ((StringRef)cre.getAttribute(CreResource.CRE_NAME)).toString() + " [" + sectionName + "]";
-      int ea = (int)((IdsBitmap)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
+      final String msg = cre.getAttribute(CreResource.CRE_NAME).toString() + " [" + sectionName + "]";
+      int ea = ((IsNumeric)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
       location.x = pos[0];
       location.y = pos[1];
 
@@ -144,7 +135,7 @@ public class LayerObjectIniActor extends LayerObjectActor
       icons = getIcons(icons);
 
       ini.setHighlightedLine(creData.getLine() + 1);
-      item = new IconLayerItem(ini, msg, info, icons[0], CENTER);
+      item = new IconLayerItem(ini, msg, icons[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelActorsIni);
       item.setName(getCategory());
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);

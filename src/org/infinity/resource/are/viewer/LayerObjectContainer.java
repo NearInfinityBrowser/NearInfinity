@@ -9,13 +9,9 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 
-import org.infinity.datatype.Bitmap;
-import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
-import org.infinity.datatype.HexNumber;
 import org.infinity.datatype.IsNumeric;
-import org.infinity.datatype.IsTextual;
-import org.infinity.datatype.TextString;
+import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
 import org.infinity.resource.Viewable;
@@ -28,9 +24,6 @@ import org.infinity.resource.vertex.Vertex;
  */
 public class LayerObjectContainer extends LayerObject
 {
-  private static final String[] TYPE = {"Unknown", "Bag", "Chest", "Drawer", "Pile",
-                                        "Table", "Shelf", "Altar", "Invisible",
-                                        "Spellbook", "Body", "Barrel", "Crate"};
   private static final Color[] COLOR = {new Color(0xFF004040, true), new Color(0xFF004040, true),
                                         new Color(0xC0008080, true), new Color(0xC000C0C0, true)};
 
@@ -122,17 +115,17 @@ public class LayerObjectContainer extends LayerObject
   {
     if (container != null) {
       shapeCoords = null;
-      String msg = "";
+      String msg = null;
       Polygon poly = null;
       Rectangle bounds = null;
       try {
-        int type = ((Bitmap)container.getAttribute(Container.ARE_CONTAINER_TYPE)).getValue();
-        if (type < 0) type = 0; else if (type >= TYPE.length) type = TYPE.length - 1;
+        int type = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_TYPE)).getValue();
+        if (type < 0) type = 0; else if (type >= Container.s_type.length) type = Container.s_type.length - 1;
         msg = String.format("%s (%s) %s",
-                            ((TextString)container.getAttribute(Container.ARE_CONTAINER_NAME)).toString(),
-                            TYPE[type], getAttributes());
-        int vNum = ((DecNumber)container.getAttribute(Container.ARE_CONTAINER_NUM_VERTICES)).getValue();
-        int vOfs = ((HexNumber)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+                            container.getAttribute(Container.ARE_CONTAINER_NAME).toString(),
+                            Container.s_type[type], getAttributes());
+        int vNum = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_NUM_VERTICES)).getValue();
+        int vOfs = ((IsNumeric)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
         shapeCoords = loadVertices(container, vOfs, 0, vNum, Vertex.class);
         poly = createPolygon(shapeCoords, 1.0);
         bounds = normalizePolygon(poly);
@@ -150,7 +143,7 @@ public class LayerObjectContainer extends LayerObject
       }
 
       location.x = bounds.x; location.y = bounds.y;
-      item = new ShapedLayerItem(container, msg, msg, poly);
+      item = new ShapedLayerItem(container, msg, poly);
       item.setName(getCategory());
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
@@ -173,9 +166,9 @@ public class LayerObjectContainer extends LayerObject
         int v = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_LOCK_DIFFICULTY)).getValue();
         if (v > 0) {
           sb.append("Locked (").append(v).append(')');
-          String key = ((IsTextual)container.getAttribute(Container.ARE_CONTAINER_KEY)).getText();
-          if (!key.isEmpty() && !key.equalsIgnoreCase("NONE")) {
-            sb.append(", Key: ").append(key).append(".ITM");
+          final ResourceRef key = (ResourceRef)container.getAttribute(Container.ARE_CONTAINER_KEY);
+          if (!key.isEmpty()) {
+            sb.append(", Key: ").append(key);
           }
         }
       }
@@ -189,10 +182,10 @@ public class LayerObjectContainer extends LayerObject
         }
       }
 
-      String script = ((IsTextual)container.getAttribute(Container.ARE_CONTAINER_SCRIPT_TRAP)).getText();
-      if (!script.isEmpty() && !script.equalsIgnoreCase("NONE")) {
+      final ResourceRef script = (ResourceRef)container.getAttribute(Container.ARE_CONTAINER_SCRIPT_TRAP);
+      if (!script.isEmpty()) {
         if (sb.length() > 1) sb.append(", ");
-        sb.append("Script: ").append(script).append(".BCS");
+        sb.append("Script: ").append(script);
       }
 
       if (sb.length() == 1) sb.append("No Flags");

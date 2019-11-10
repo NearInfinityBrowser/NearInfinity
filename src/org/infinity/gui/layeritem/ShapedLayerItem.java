@@ -31,7 +31,7 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
   private final EnumMap<ItemState, Color> strokeColors = new EnumMap<>(ItemState.class);
   private final EnumMap<ItemState, BasicStroke> strokePen = new EnumMap<>(ItemState.class);
   private final EnumMap<ItemState, Color> fillColors = new EnumMap<>(ItemState.class);
-  private JLabel label;
+  private final JLabel label;
   private boolean stroked, filled;
 
   /**
@@ -39,36 +39,19 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
    * and a shape for the visual representation.
    *
    * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
    * @param tooltip A short text message shown as tooltip or menu item text
    * @param shape The shape to display
    */
-  public ShapedLayerItem(Viewable viewable, String message, String tooltip, Shape shape)
+  public ShapedLayerItem(Viewable viewable, String tooltip, Shape shape)
   {
-    this(viewable, message, tooltip, shape, null);
-  }
-
-  /**
-   * Initialize object with an associated Viewable, an additional text message,
-   * a shape for the visual representation and a locical center position within the shape.
-   *
-   * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
-   * @param tooltip A short text message shown as tooltip or menu item text
-   * @param shape The shape to display
-   * @param center Logical center position within the shape
-   */
-  public ShapedLayerItem(Viewable viewable, String message, String tooltip,
-                         Shape shape, Point center)
-  {
-    super(viewable, message, tooltip);
+    super(viewable, tooltip);
     setLayout(new BorderLayout());
     label = new ShapeLabel(this);
     label.setHorizontalAlignment(SwingConstants.CENTER);
     label.setVerticalAlignment(SwingConstants.CENTER);
     add(label, BorderLayout.CENTER);
     setShape(shape);
-    setCenterPosition(center);
+    setCenterPosition(null);
     addLayerItemListener(this);
   }
 

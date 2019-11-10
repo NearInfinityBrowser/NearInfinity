@@ -46,7 +46,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
    */
   public IconLayerItem(Viewable viewable, String message)
   {
-    this(viewable, message, message, null, null);
+    this(viewable, message, null, null);
   }
 
   /**
@@ -54,15 +54,14 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
    * an image for the visual representation and a locical center position within the icon.
    *
    * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
    * @param tooltip A short text message shown as tooltip or menu item text
    * @param image The image to display
    * @param center Logical center position within the icon
    */
-  public IconLayerItem(Viewable viewable, String message, String tooltip,
+  public IconLayerItem(Viewable viewable, String tooltip,
                        Image image, Point center)
   {
-    super(viewable, message, tooltip);
+    super(viewable, tooltip);
     setLayout(new BorderLayout());
     // preparing icon
     rcCanvas = new FrameCanvas(this);
@@ -71,9 +70,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
     rcCanvas.setVerticalAlignment(SwingConstants.CENTER);
     add(rcCanvas, BorderLayout.CENTER);
     // preparing icon label
-    String msg = (tooltip != null && !tooltip.isEmpty()) ? tooltip : message;
-    if (msg == null) { msg = ""; }
-    label = new JLabel(msg);
+    label = new JLabel(tooltip);
     label.setHorizontalAlignment(SwingConstants.CENTER);
     label.setVerticalAlignment(SwingConstants.CENTER);
     label.setIconTextGap(2);

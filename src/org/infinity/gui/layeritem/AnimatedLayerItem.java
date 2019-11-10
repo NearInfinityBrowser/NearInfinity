@@ -52,14 +52,12 @@ public class AnimatedLayerItem extends AbstractLayerItem
    * and an array of Frame object containing graphics data and frame centers.
    *
    * @param viewable Associated Viewable object
-   * @param message An arbitrary text message for the info box.
    * @param tooltip A short text message shown as tooltip or menu item text
    * @param anim An array of Frame objects defining the animation for this layer item
    */
-  public AnimatedLayerItem(Viewable viewable, String message, String tooltip,
-                           BasicAnimationProvider anim)
+  public AnimatedLayerItem(Viewable viewable, String tooltip, BasicAnimationProvider anim)
   {
-    super(viewable, message, tooltip);
+    super(viewable, tooltip);
     init();
     initAnimation(anim);
   }

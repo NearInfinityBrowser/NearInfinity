@@ -7,12 +7,10 @@ package org.infinity.resource.are.viewer;
 import java.awt.Image;
 import java.awt.Point;
 
-import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
-import org.infinity.datatype.IdsBitmap;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsTextual;
 import org.infinity.datatype.ResourceRef;
-import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
@@ -81,14 +79,14 @@ public class LayerObjectAreActor extends LayerObjectActor
   private void init()
   {
     if (actor != null) {
-      String actorName = "";
-      String actorCreName = "";
+      String actorName = null;
+      String actorCreName = null;
       Image[] icons = ICONS_NEUTRAL;
       int ea = 128;   // default: neutral
       try {
-        actorName = ((IsTextual)actor.getAttribute(Actor.ARE_ACTOR_NAME)).getText();
-        location.x = ((DecNumber)actor.getAttribute(Actor.ARE_ACTOR_POS_X)).getValue();
-        location.y = ((DecNumber)actor.getAttribute(Actor.ARE_ACTOR_POS_Y)).getValue();
+        actorName  = ((IsTextual)actor.getAttribute(Actor.ARE_ACTOR_NAME)).getText();
+        location.x = ((IsNumeric)actor.getAttribute(Actor.ARE_ACTOR_POS_X)).getValue();
+        location.y = ((IsNumeric)actor.getAttribute(Actor.ARE_ACTOR_POS_Y)).getValue();
 
         scheduleFlags = ((Flag)actor.getAttribute(Actor.ARE_ACTOR_PRESENT_AT));
 
@@ -104,8 +102,8 @@ public class LayerObjectAreActor extends LayerObjectActor
           }
         }
         if (cre != null) {
-          actorCreName = ((StringRef)cre.getAttribute(Actor.ARE_ACTOR_NAME)).toString();
-          ea = (int)((IdsBitmap)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
+          actorCreName = cre.getAttribute(CreResource.CRE_NAME).toString();
+          ea = ((IsNumeric)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
         }
         if (ea >= 2 && ea <= 30) {
           icons = ICONS_GOOD;
@@ -121,12 +119,10 @@ public class LayerObjectAreActor extends LayerObjectActor
       // Using cached icons
       icons = getIcons(icons);
 
-      String info = actorName.isEmpty() ? actorCreName : actorName;
-      String msg = actorName;
-      if (!actorCreName.equals(actorName)) {
-        msg += " (" + actorCreName + ")";
-      }
-      item = new IconLayerItem(actor, msg, info, icons[0], CENTER);
+      final String msg = actorCreName == null
+          ? actorName
+          : actorCreName + " (" + actorName + ')';
+      item = new IconLayerItem(actor, msg, icons[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelActorsAre);
       item.setName(getCategory());
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);

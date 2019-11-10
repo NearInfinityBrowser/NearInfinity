@@ -16,6 +16,7 @@ import java.util.Vector;
 import javax.swing.JComponent;
 
 import org.infinity.gui.ViewFrame;
+import org.infinity.resource.StructEntry;
 import org.infinity.resource.Viewable;
 
 /**
@@ -32,7 +33,6 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   private final Vector<LayerItemListener> itemStateListener = new Vector<>();
   private final Viewable viewable;
   private Object objData;
-  private final String message;
   private ItemState itemState;
   private final Point center;
 
@@ -41,16 +41,18 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
    * both info box and quick info.
    *
    * @param viewable Associated Viewable object
-   * @param message An arbitrary text message for the info box
    * @param tooltip A short text message shown as tooltip or menu item text
    */
-  public AbstractLayerItem(Viewable viewable, String message, String tooltip)
+  public AbstractLayerItem(Viewable viewable, String tooltip)
   {
     this.viewable = viewable;
     this.itemState = ItemState.NORMAL;
     this.center = new Point();
-    this.message = message == null ? "" : message;
-    setToolTipText(tooltip);
+    if (viewable instanceof StructEntry) {
+      setToolTipText(((StructEntry) viewable).getName() + ": " + tooltip);
+    } else {
+      setToolTipText(tooltip);
+    }
     addMouseListener(this);
     addMouseMotionListener(this);
   }
@@ -104,21 +106,12 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
   }
 
   /**
-   * Returns a text message associated with the component.
-   * @return A text message.
-   */
-  public String getMessage()
-  {
-    return message;
-  }
-
-  /**
    * Returns a String representation of this object.
    */
   @Override
   public String toString()
   {
-    return getMessage();
+    return getToolTipText();
   }
 
   /**

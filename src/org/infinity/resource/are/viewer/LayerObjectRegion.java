@@ -9,12 +9,8 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 
-import org.infinity.datatype.Bitmap;
-import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.HexNumber;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsTextual;
-import org.infinity.datatype.TextString;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
 import org.infinity.resource.Viewable;
@@ -27,8 +23,7 @@ import org.infinity.resource.vertex.Vertex;
  */
 public class LayerObjectRegion extends LayerObject
 {
-  private static final String[] TYPE = {"Proximity trigger", "Info point", "Travel region"};
-  private static final Color[][] COLOR = new Color[][]{
+  private static final Color[][] COLOR = {
     {new Color(0xFF400000, true), new Color(0xFF400000, true), new Color(0xC0800000, true), new Color(0xC0C00000, true)},
     {new Color(0xFF400000, true), new Color(0xFF400000, true), new Color(0xC0804040, true), new Color(0xC0C06060, true)},
     {new Color(0xFF400000, true), new Color(0xFF400000, true), new Color(0xC0800040, true), new Color(0xC0C00060, true)},
@@ -113,18 +108,18 @@ public class LayerObjectRegion extends LayerObject
   {
     if (region != null) {
       shapeCoords = null;
-      String msg = "";
+      String msg = null;
       Polygon poly = null;
       Rectangle bounds = null;
       int type = 0;
       try {
-        type = ((Bitmap)region.getAttribute(ITEPoint.ARE_TRIGGER_TYPE)).getValue();
-        if (type < 0) type = 0; else if (type >= TYPE.length) type = TYPE.length - 1;
+        type = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_TYPE)).getValue();
+        if (type < 0) type = 0; else if (type >= ITEPoint.s_type.length) type = ITEPoint.s_type.length - 1;
         msg = String.format("%s (%s) %s",
-                            ((TextString)region.getAttribute(ITEPoint.ARE_TRIGGER_NAME)).toString(),
-                            TYPE[type], getAttributes());
-        int vNum = ((DecNumber)region.getAttribute(ITEPoint.ARE_TRIGGER_NUM_VERTICES)).getValue();
-        int vOfs = ((HexNumber)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+                            region.getAttribute(ITEPoint.ARE_TRIGGER_NAME).toString(),
+                            ITEPoint.s_type[type], getAttributes());
+        final int vNum = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_NUM_VERTICES)).getValue();
+        final int vOfs = ((IsNumeric)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
         shapeCoords = loadVertices(region, vOfs, 0, vNum, Vertex.class);
         poly = createPolygon(shapeCoords, 1.0);
         bounds = normalizePolygon(poly);
@@ -143,7 +138,7 @@ public class LayerObjectRegion extends LayerObject
 
       int colorType = Settings.UseColorShades ? type : 0;
       location.x = bounds.x; location.y = bounds.y;
-      item = new ShapedLayerItem(region, msg, msg, poly);
+      item = new ShapedLayerItem(region, msg, poly);
       item.setName(getCategory());
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[colorType][0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[colorType][1]);

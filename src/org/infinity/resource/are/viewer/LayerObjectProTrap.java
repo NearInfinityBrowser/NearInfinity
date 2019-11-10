@@ -7,9 +7,7 @@ package org.infinity.resource.are.viewer;
 import java.awt.Image;
 import java.awt.Point;
 
-import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.IdsBitmap;
-import org.infinity.datatype.ResourceRef;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.icon.Icons;
@@ -101,12 +99,12 @@ public class LayerObjectProTrap extends LayerObject
   private void init()
   {
     if (trap != null) {
-      String msg = "";
+      String msg = null;
       try {
-        location.x = ((DecNumber)trap.getAttribute(ProTrap.ARE_PROTRAP_LOCATION_X)).getValue();
-        location.y = ((DecNumber)trap.getAttribute(ProTrap.ARE_PROTRAP_LOCATION_Y)).getValue();
-        msg = ((ResourceRef)trap.getAttribute(ProTrap.ARE_PROTRAP_TRAP)).toString();
-        int target = (int)((IdsBitmap)trap.getAttribute(ProTrap.ARE_PROTRAP_TARGET)).getValue();
+        location.x = ((IsNumeric)trap.getAttribute(ProTrap.ARE_PROTRAP_LOCATION_X)).getValue();
+        location.y = ((IsNumeric)trap.getAttribute(ProTrap.ARE_PROTRAP_LOCATION_Y)).getValue();
+        msg = trap.getAttribute(ProTrap.ARE_PROTRAP_TRAP).toString();
+        int target = ((IsNumeric)trap.getAttribute(ProTrap.ARE_PROTRAP_TARGET)).getValue();
         if (target < 0) target = 0; else if (target > 255) target = 255;
         if (target >= 2 && target <= 30) {
           msg += " (hostile)";
@@ -120,7 +118,7 @@ public class LayerObjectProTrap extends LayerObject
       // Using cached icons
       final Image[] icons = getIcons(ICONS);
 
-      item = new IconLayerItem(trap, msg, msg, icons[0], CENTER);
+      item = new IconLayerItem(trap, msg, icons[0], CENTER);
       item.setName(getCategory());
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, ICONS[1]);
       item.setVisible(isVisible());

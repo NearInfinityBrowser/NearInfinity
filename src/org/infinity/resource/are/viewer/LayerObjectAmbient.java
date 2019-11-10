@@ -13,6 +13,7 @@ import java.awt.geom.Ellipse2D;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.TextString;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
@@ -180,15 +181,15 @@ public class LayerObjectAmbient extends LayerObject
   private void init()
   {
     if (ambient != null) {
-      String msg = "";
+      String msg = null;
       Image[] icons = ICONS_GLOBAL;
       Shape circle = null;
       Color[] color = new Color[COLOR_RANGE.length];
       try {
-        location.x = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_X)).getValue();
-        location.y = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_Y)).getValue();
-        radiusLocal = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_RADIUS)).getValue();
-        volume = ((DecNumber)ambient.getAttribute(Ambient.ARE_AMBIENT_VOLUME)).getValue();
+        location.x = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_X)).getValue();
+        location.y = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_Y)).getValue();
+        radiusLocal = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_RADIUS)).getValue();
+        volume = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_VOLUME)).getValue();
         if (((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_FLAGS)).isFlagSet(2)) {
           icons = ICONS_GLOBAL;
           radiusLocal = 0;
@@ -198,11 +199,11 @@ public class LayerObjectAmbient extends LayerObject
 
         scheduleFlags = ((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_ACTIVE_AT));
 
-        msg = ((TextString)ambient.getAttribute(Ambient.ARE_AMBIENT_NAME)).toString();
+        msg = ambient.getAttribute(Ambient.ARE_AMBIENT_NAME).toString();
         if (icons == ICONS_LOCAL) {
           circle = createShape(1.0);
           double minAlpha = 0.0, maxAlpha = 64.0;
-          double alphaF = minAlpha + Math.sqrt((double)volume) / 10.0 * (maxAlpha - minAlpha);
+          final double alphaF = minAlpha + Math.sqrt(volume) / 10.0 * (maxAlpha - minAlpha);
           int alpha = (int)alphaF & 0xff;
           color[0] = COLOR_RANGE[0];
           color[1] = COLOR_RANGE[1];
@@ -217,16 +218,15 @@ public class LayerObjectAmbient extends LayerObject
       icons = getIcons(icons);
 
       // creating sound item
-      itemIcon = new IconLayerItem(ambient, msg, msg, icons[0], CENTER);
+      itemIcon = new IconLayerItem(ambient, msg, icons[0], CENTER);
       itemIcon.setLabelEnabled(Settings.ShowLabelSounds);
       itemIcon.setName(getCategory());
-      itemIcon.setToolTipText(msg);
       itemIcon.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
       itemIcon.setVisible(isVisible());
 
       // creating sound range item
       if (icons == ICONS_LOCAL) {
-        itemShape = new ShapedLayerItem(ambient, msg, msg, circle, new Point(radiusLocal, radiusLocal));
+        itemShape = new ShapedLayerItem(ambient, msg, circle);
         itemShape.setName(getCategory());
         itemShape.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
         itemShape.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);

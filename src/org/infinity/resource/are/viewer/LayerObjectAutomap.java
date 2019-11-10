@@ -9,13 +9,9 @@ import java.awt.Point;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.infinity.datatype.Bitmap;
-import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.HexNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
-import org.infinity.datatype.StringRef;
-import org.infinity.datatype.TextEdit;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.icon.Icons;
@@ -117,18 +113,18 @@ public class LayerObjectAutomap extends LayerObject
   private void init()
   {
     if (note != null) {
-      String msg = "";
+      String msg = null;
       try {
-        location.x = ((DecNumber)note.getAttribute(AutomapNote.ARE_AUTOMAP_LOCATION_X)).getValue();
-        location.y = ((DecNumber)note.getAttribute(AutomapNote.ARE_AUTOMAP_LOCATION_Y)).getValue();
-        if (((Bitmap)note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT_LOCATION)).getValue() == 1) {
+        location.x = ((IsNumeric)note.getAttribute(AutomapNote.ARE_AUTOMAP_LOCATION_X)).getValue();
+        location.y = ((IsNumeric)note.getAttribute(AutomapNote.ARE_AUTOMAP_LOCATION_Y)).getValue();
+        if (((IsNumeric)note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT_LOCATION)).getValue() == 1) {// 1 - Dialog.tlk
           // fetching string from dialog.tlk
-          msg = ((StringRef)note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT)).toString();
+          msg = note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT).toString();
         } else {
           // fetching string from talk override
           msg = "[user-defined]";
           try {
-            int srcStrref = ((StringRef)note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT)).getValue();
+            int srcStrref = ((IsNumeric)note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT)).getValue();
             if (srcStrref > 0) {
               String path = getParentStructure().getResourceEntry().getActualPath().toString();
               path = path.replace(getParentStructure().getResourceEntry().getResourceName(), "");
@@ -144,12 +140,12 @@ public class LayerObjectAutomap extends LayerObject
                     for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
                       StrRefEntry2 strref = (StrRefEntry2)toh.getAttribute(curOfs, false);
                       if (strref != null) {
-                        int v = ((StringRef)strref.getAttribute(StrRefEntry2.TOH_STRREF_OVERRIDDEN)).getValue();
+                        int v = ((IsNumeric)strref.getAttribute(StrRefEntry2.TOH_STRREF_OVERRIDDEN)).getValue();
                         if (v == srcStrref) {
-                          int sofs = ((HexNumber)strref.getAttribute(StrRefEntry2.TOH_STRREF_OFFSET_STRING)).getValue();
+                          int sofs = ((IsNumeric)strref.getAttribute(StrRefEntry2.TOH_STRREF_OFFSET_STRING)).getValue();
                           StringEntry2 se = (StringEntry2)toh.getAttribute(so.getValue() + sofs, false);
                           if (se != null) {
-                            msg = ((TextEdit)se.getAttribute(StringEntry2.TOH_STRING_TEXT)).toString();
+                            msg = se.getAttribute(StringEntry2.TOH_STRING_TEXT).toString();
                           }
                           break;
                         }
@@ -172,12 +168,12 @@ public class LayerObjectAutomap extends LayerObject
                     for (int i = 0, count = sc.getValue(), curOfs = 0x14; i < count; i++) {
                       StrRefEntry strref = (StrRefEntry)toh.getAttribute(curOfs, false);
                       if (strref != null) {
-                        int v = ((StringRef)strref.getAttribute(StrRefEntry.TOH_STRREF_OVERRIDDEN)).getValue();
+                        int v = ((IsNumeric)strref.getAttribute(StrRefEntry.TOH_STRREF_OVERRIDDEN)).getValue();
                         if (v == srcStrref) {
-                          int sofs = ((HexNumber)strref.getAttribute(StrRefEntry.TOH_STRREF_OFFSET_TOT_STRING)).getValue();
+                          int sofs = ((IsNumeric)strref.getAttribute(StrRefEntry.TOH_STRREF_OFFSET_TOT_STRING)).getValue();
                           StringEntry se = (StringEntry)tot.getAttribute(sofs, false);
                           if (se != null) {
-                            msg = ((TextEdit)se.getAttribute(StringEntry.TOT_STRING_TEXT)).toString();
+                            msg = se.getAttribute(StringEntry.TOT_STRING_TEXT).toString();
                           }
                           break;
                         }
@@ -199,7 +195,7 @@ public class LayerObjectAutomap extends LayerObject
       // Using cached icons
       final Image[] icons = getIcons(ICONS);
 
-      item = new IconLayerItem(note, msg, msg, icons[0], CENTER);
+      item = new IconLayerItem(note, msg, icons[0], CENTER);
       item.setLabelEnabled(Settings.ShowLabelMapNotes);
       item.setName(getCategory());
       item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);

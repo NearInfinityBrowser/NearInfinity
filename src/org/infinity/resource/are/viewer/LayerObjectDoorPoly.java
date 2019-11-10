@@ -10,10 +10,7 @@ import java.awt.Polygon;
 import java.awt.Rectangle;
 
 import org.infinity.datatype.Flag;
-import org.infinity.datatype.HexNumber;
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
-import org.infinity.datatype.TextString;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
 import org.infinity.resource.AbstractStruct;
@@ -169,64 +166,26 @@ public class LayerObjectDoorPoly extends LayerObject
       location = null;
       shapeCoords = null;
       String[] info = null;
-      String[] msg = null;
       Polygon[] poly = null;
       Rectangle[] bounds = null;
       int count = 0;
       try {
-        int ofsOpen = ((SectionOffset)door.getAttribute(Door.WED_DOOR_OFFSET_POLYGONS_OPEN)).getValue();
-        int ofsClosed = ((SectionOffset)door.getAttribute(Door.WED_DOOR_OFFSET_POLYGONS_CLOSED)).getValue();
-        int numOpen = ((SectionCount)door.getAttribute(Door.WED_DOOR_NUM_POLYGONS_OPEN)).getValue();
-        int numClosed = ((SectionCount)door.getAttribute(Door.WED_DOOR_NUM_POLYGONS_CLOSED)).getValue();
+        final int ofsOpen   = ((IsNumeric)door.getAttribute(Door.WED_DOOR_OFFSET_POLYGONS_OPEN)).getValue();
+        final int ofsClosed = ((IsNumeric)door.getAttribute(Door.WED_DOOR_OFFSET_POLYGONS_CLOSED)).getValue();
+        final int numOpen   = ((IsNumeric)door.getAttribute(Door.WED_DOOR_NUM_POLYGONS_OPEN)).getValue();
+        final int numClosed = ((IsNumeric)door.getAttribute(Door.WED_DOOR_NUM_POLYGONS_CLOSED)).getValue();
         count = numOpen + numClosed;
         openCount = numOpen;
         location = new Point[count];
         shapeCoords = new Point[count][];
         info = new String[count];
-        msg = new String[count];
         poly = new Polygon[count];
         bounds = new Rectangle[count];
-        String[] desc = org.infinity.resource.wed.Polygon.s_flags;
 
         // processing open door polygons
-        for (int i = 0; i < numOpen; i++) {
-          org.infinity.resource.wed.Polygon p = getPolygonStructure(door, ofsOpen, i);
-          if (p != null) {
-            String s = ((TextString)door.getAttribute(Door.WED_DOOR_NAME)).toString();
-            Flag flags = (Flag)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_FLAGS);
-            info[i] = s;
-            if (numOpen > 1) {
-              msg[i] = String.format("%s %d/%d %s", s, i+1, numOpen, createFlags(flags, desc));
-            } else {
-              msg[i] = String.format("%s %s", s, createFlags(flags, desc));
-            }
-            int vNum = ((SectionCount)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_NUM_VERTICES)).getValue();
-            int vOfs = ((HexNumber)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
-            shapeCoords[i] = loadVertices(p, vOfs, 0, vNum, Vertex.class);
-            poly[i] = createPolygon(shapeCoords[i], 1.0);
-            bounds[i] = normalizePolygon(poly[i]);
-          }
-        }
-
+        fillData(ofsOpen  , numOpen  ,       0, info, poly, bounds);
         // processing closed door polygons
-        for (int i = 0; i < numClosed; i++) {
-          org.infinity.resource.wed.Polygon p = getPolygonStructure(door, ofsClosed, i);
-          if (p != null) {
-            String s = ((TextString)door.getAttribute(Door.WED_DOOR_NAME)).toString();
-            Flag flags = (Flag)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_FLAGS);
-            info[numOpen+i] = s;
-            if (numClosed > 1) {
-              msg[numOpen+i] = String.format("%s %d/%d %s", s, i+1, numClosed, createFlags(flags, desc));
-            } else {
-              msg[numOpen+i] = String.format("%s %s", s, createFlags(flags, desc));
-            }
-            int vNum = ((SectionCount)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_NUM_VERTICES)).getValue();
-            int vOfs = ((HexNumber)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
-            shapeCoords[numOpen+i] = loadVertices(p, vOfs, 0, vNum, Vertex.class);
-            poly[numOpen+i] = createPolygon(shapeCoords[numOpen+i], 1.0);
-            bounds[numOpen+i] = normalizePolygon(poly[numOpen+i]);
-          }
-        }
+        fillData(ofsClosed, numClosed, numOpen, info, poly, bounds);
       } catch (Exception e) {
         e.printStackTrace();
         if (shapeCoords == null) {
@@ -234,9 +193,6 @@ public class LayerObjectDoorPoly extends LayerObject
         }
         if (info == null) {
           info = new String[count];
-        }
-        if (msg == null) {
-          msg = new String[count];
         }
         if (poly == null) {
           poly = new Polygon[count];
@@ -251,12 +207,6 @@ public class LayerObjectDoorPoly extends LayerObject
         if (shapeCoords[i] == null) {
           shapeCoords[i] = new Point[0];
         }
-        if (info[i] == null) {
-          info[i] = "";
-        }
-        if (msg[i] == null) {
-          msg[i] = "";
-        }
         if (poly[i] == null) {
           poly[i] = new Polygon();
         }
@@ -269,7 +219,7 @@ public class LayerObjectDoorPoly extends LayerObject
       items = new ShapedLayerItem[count];
       for (int i = 0; i < count; i++) {
         location[i] = new Point(bounds[i].x, bounds[i].y);
-        items[i] = new ShapedLayerItem(door, msg[i], info[i], poly[i]);
+        items[i] = new ShapedLayerItem(door, info[i], poly[i]);
         items[i].setName(getCategory());
         items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
         items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
@@ -282,55 +232,51 @@ public class LayerObjectDoorPoly extends LayerObject
     }
   }
 
+  /**
+   * Fills arrays with information about doors.
+   *
+   * @param start First polygon index in the {@link #door}
+   * @param count Count of polygons for the door
+   * @param offset Offset to first filled items into arrays
+   * @param info Information for infopanel and tooltip. Output parameter
+   * @param poly Polygon geometry. Output parameter
+   * @param bounds Bounds of the polygons. Output parameter
+   */
+  private void fillData(int start, int count, int offset, String[] info, Polygon[] poly, Rectangle[] bounds)
+  {
+    final String name = door.getAttribute(Door.WED_DOOR_NAME).toString();
+    final int vOfs = ((IsNumeric)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES, false)).getValue();
+    // processing closed door polygons
+    for (int i = 0; i < count; i++) {
+      final org.infinity.resource.wed.Polygon p = getPolygonStructure(door, start, i);
+      if (p == null) { continue; }
+
+      final Flag flags = (Flag)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_FLAGS, false);
+      final int index = offset + i;
+      if (count > 1) {
+        info[index] = String.format("%s: %s %d/%d %s", door.getName(), name, i+1, count, flags);
+      } else {
+        info[index] = String.format("%s: %s %s", door.getName(), name, flags);
+      }
+      final int vNum = ((IsNumeric)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_NUM_VERTICES, false)).getValue();
+      shapeCoords[index] = loadVertices(p, vOfs, 0, vNum, Vertex.class);
+      poly[index]        = createPolygon(shapeCoords[index], 1.0);
+      bounds[index]      = normalizePolygon(poly[index]);
+    }
+  }
+
   /** Returns the specified WED polygon structure. */
   private org.infinity.resource.wed.Polygon getPolygonStructure(AbstractStruct baseStruct, int baseOfs, int index)
   {
-//    WedResource wed = (WedResource)getParentStructure();
-    if (baseStruct != null) {
-      int idx = 0;
-      for (final StructEntry e : baseStruct.getFields()) {
-        if (e.getOffset() >= baseOfs && e instanceof org.infinity.resource.wed.Polygon) {
-          if (idx == index) {
-            return (org.infinity.resource.wed.Polygon)e;
-          }
-          idx++;
+    int idx = 0;
+    for (final StructEntry e : baseStruct.getFields()) {
+      if (e.getOffset() >= baseOfs && e instanceof org.infinity.resource.wed.Polygon) {
+        if (idx == index) {
+          return (org.infinity.resource.wed.Polygon)e;
         }
+        idx++;
       }
     }
     return null;
-  }
-
-  /** Returns a flags string. */
-  private String createFlags(Flag flags, String[] desc)
-  {
-    if (flags != null) {
-      int numFlags = 0;
-      for (int i = 0; i < (flags.getSize() << 3); i++) {
-        if (flags.isFlagSet(i)) {
-          numFlags++;
-        }
-      }
-
-      if (numFlags > 0) {
-        StringBuilder sb = new StringBuilder("[");
-
-        for (int i = 0; i < (flags.getSize() << 3); i++) {
-          if (flags.isFlagSet(i)) {
-            numFlags--;
-            if (desc != null && i+1 < desc.length) {
-              sb.append(desc[i+1]);
-            } else {
-              sb.append("Bit " + i);
-            }
-            if (numFlags > 0) {
-              sb.append(", ");
-            }
-          }
-        }
-        sb.append("]");
-        return sb.toString();
-      }
-    }
-    return "[No flags]";
   }
 }

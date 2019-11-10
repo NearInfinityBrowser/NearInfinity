@@ -9,12 +9,9 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 
-import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
-import org.infinity.datatype.HexNumber;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsTextual;
-import org.infinity.datatype.TextString;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
 import org.infinity.resource.Profile;
@@ -128,24 +125,24 @@ public class LayerObjectDoor extends LayerObject
     if (door != null) {
       shapeCoords[ViewerConstants.DOOR_OPEN] = null;
       shapeCoords[ViewerConstants.DOOR_CLOSED] = null;
-      String[] msg = new String[]{"", ""};
-      Polygon[] poly = new Polygon[]{null, null};
-      Rectangle[] bounds = new Rectangle[]{null, null};
+      final String[] msg = new String[2];
+      final Polygon[] poly = new Polygon[2];
+      final Rectangle[] bounds = new Rectangle[2];
       try {
         String attr = getAttributes();
+        final String name = door.getAttribute(Door.ARE_DOOR_NAME).toString();
+        final int vOfs = ((IsNumeric)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
 
         // processing opened state door
-        msg[0] = String.format("%s (Open) %s", ((TextString)door.getAttribute(Door.ARE_DOOR_NAME)).toString(), attr);
-        int vNum = ((DecNumber)door.getAttribute(Door.ARE_DOOR_NUM_VERTICES_OPEN)).getValue();
-        int vOfs = ((HexNumber)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+        msg[ViewerConstants.DOOR_OPEN] = String.format("%s (Open) %s", name, attr);
+        int vNum = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_NUM_VERTICES_OPEN)).getValue();
         shapeCoords[ViewerConstants.DOOR_OPEN] = loadVertices(door, vOfs, 0, vNum, OpenVertex.class);
         poly[ViewerConstants.DOOR_OPEN] = createPolygon(shapeCoords[ViewerConstants.DOOR_OPEN], 1.0);
         bounds[ViewerConstants.DOOR_OPEN] = normalizePolygon(poly[ViewerConstants.DOOR_OPEN]);
 
         // processing closed state door
-        msg[1] = String.format("%s (Closed) %s", ((TextString)door.getAttribute(Door.ARE_DOOR_NAME)).toString(), attr);
-        vNum = ((DecNumber)door.getAttribute(Door.ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
-        vOfs = ((HexNumber)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+        msg[ViewerConstants.DOOR_CLOSED] = String.format("%s (Closed) %s", name, attr);
+        vNum = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
         shapeCoords[ViewerConstants.DOOR_CLOSED] = loadVertices(door, vOfs, 0, vNum, ClosedVertex.class);
         poly[ViewerConstants.DOOR_CLOSED] = createPolygon(shapeCoords[ViewerConstants.DOOR_CLOSED], 1.0);
         bounds[ViewerConstants.DOOR_CLOSED] = normalizePolygon(poly[ViewerConstants.DOOR_CLOSED]);
@@ -166,7 +163,7 @@ public class LayerObjectDoor extends LayerObject
 
       for (int i = 0; i < 2; i++) {
         location[i].x = bounds[i].x; location[i].y = bounds[i].y;
-        items[i] = new ShapedLayerItem(door, msg[i], msg[i], poly[i]);
+        items[i] = new ShapedLayerItem(door, msg[i], poly[i]);
         items[i].setName(getCategory());
         items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
         items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);

@@ -9,10 +9,8 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 
-import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
-import org.infinity.datatype.HexNumber;
-import org.infinity.datatype.SectionOffset;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
 import org.infinity.resource.Viewable;
@@ -108,20 +106,15 @@ public class LayerObjectWallPoly extends LayerObject
   {
     if (wall != null) {
       shapeCoords = null;
-      String msg = "", info = "";
+      String msg = null;
       Polygon poly = null;
       Rectangle bounds = null;
-      int count = 0;
       try {
-        int baseOfs = ((SectionOffset)getParentStructure().getAttribute(WedResource.WED_OFFSET_WALL_POLYGONS)).getValue();
-        int ofs = wall.getOffset();
-        count = (ofs - baseOfs) / wall.getSize();
-        Flag flags = (Flag)wall.getAttribute(WallPolygon.WED_POLY_FLAGS);
-        info = "Wall polygon #" + count;
-        msg = String.format("Wall polygon #%d %s", count,
-                            createFlags(flags, org.infinity.resource.wed.Polygon.s_flags));
-        int vNum = ((DecNumber)wall.getAttribute(WallPolygon.WED_POLY_NUM_VERTICES)).getValue();
-        int vOfs = ((HexNumber)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
+        final Flag flags = (Flag)wall.getAttribute(WallPolygon.WED_POLY_FLAGS, false);
+        msg = flags.toString();
+
+        final int vNum = ((IsNumeric)wall.getAttribute(WallPolygon.WED_POLY_NUM_VERTICES)).getValue();
+        final int vOfs = ((IsNumeric)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
         int startIdx = flags.isFlagSet(2) ? 2 : 0;  // skipping first two vertices for "hovering walls"
         shapeCoords = loadVertices(wall, vOfs, startIdx, vNum - startIdx, Vertex.class);
         poly = createPolygon(shapeCoords, 1.0);
@@ -140,7 +133,7 @@ public class LayerObjectWallPoly extends LayerObject
       }
 
       location.x = bounds.x; location.y = bounds.y;
-      item = new ShapedLayerItem(wall, msg, info, poly);
+      item = new ShapedLayerItem(wall, msg, poly);
       item.setName(getCategory());
       item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
       item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
@@ -150,39 +143,5 @@ public class LayerObjectWallPoly extends LayerObject
       item.setFilled(true);
       item.setVisible(isVisible());
     }
-  }
-
-  /** Returns a flags string. */
-  private String createFlags(Flag flags, String[] desc)
-  {
-    if (flags != null) {
-      int numFlags = 0;
-      for (int i = 0, size = flags.getSize() << 3; i < size; i++) {
-        if (flags.isFlagSet(i)) {
-          numFlags++;
-        }
-      }
-
-      if (numFlags > 0) {
-        StringBuilder sb = new StringBuilder("[");
-
-        for (int i = 0, size = flags.getSize() << 3; i < size; i++) {
-          if (flags.isFlagSet(i)) {
-            numFlags--;
-            if (desc != null && i+1 < desc.length) {
-              sb.append(desc[i+1]);
-            } else {
-              sb.append("Bit " + i);
-            }
-            if (numFlags > 0) {
-              sb.append(", ");
-            }
-          }
-        }
-        sb.append("]");
-        return sb.toString();
-      }
-    }
-    return "[No flags]";
   }
 }

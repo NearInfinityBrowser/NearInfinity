@@ -2365,7 +2365,7 @@ public class AreaViewer extends ChildFrame
       if (event.getSource() instanceof AbstractLayerItem) {
         AbstractLayerItem item = (AbstractLayerItem)event.getSource();
         if (event.isHighlighted()) {
-          setInfoText(item.getMessage());
+          setInfoText(item.getToolTipText());
         } else {
           setInfoText(null);
         }
