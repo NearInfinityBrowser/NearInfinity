@@ -11,6 +11,7 @@ import java.awt.Rectangle;
 
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsTextual;
+import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
 import org.infinity.resource.Viewable;
@@ -115,9 +116,13 @@ public class LayerObjectRegion extends LayerObject
       try {
         type = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_TYPE)).getValue();
         if (type < 0) type = 0; else if (type >= ITEPoint.s_type.length) type = ITEPoint.s_type.length - 1;
-        msg = String.format("%s (%s) %s",
+
+        final IsTextual info = (IsTextual)region.getAttribute(ITEPoint.ARE_TRIGGER_INFO_POINT_TEXT);
+        msg = String.format("%s (%s) %s\n%s",
                             region.getAttribute(ITEPoint.ARE_TRIGGER_NAME).toString(),
-                            ITEPoint.s_type[type], getAttributes());
+                            ITEPoint.s_type[type], getAttributes(),
+                            // For "1 - Info point" show description
+                            type == 1 && info != null ? info.getText() : "");
         final int vNum = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_NUM_VERTICES)).getValue();
         final int vOfs = ((IsNumeric)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
         shapeCoords = loadVertices(region, vOfs, 0, vNum, Vertex.class);
@@ -162,16 +167,19 @@ public class LayerObjectRegion extends LayerObject
         if (v > 0) sb.append("Trapped (").append(v).append(')');
       }
 
-      String script = ((IsTextual)region.getAttribute(ITEPoint.ARE_TRIGGER_SCRIPT)).getText();
-      if (!script.isEmpty() && !script.equalsIgnoreCase("NONE")) {
+      final ResourceRef script = (ResourceRef)region.getAttribute(ITEPoint.ARE_TRIGGER_SCRIPT);
+      if (!script.isEmpty()) {
         if (sb.length() > 1) sb.append(", ");
-        sb.append("Script: ").append(script).append(".BCS");
+        sb.append("Script: ").append(script);
       }
 
-      String area = ((IsTextual)region.getAttribute(ITEPoint.ARE_TRIGGER_DESTINATION_AREA)).getText();
-      if (!area.isEmpty() && !area.equalsIgnoreCase("NONE")) {
+      final ResourceRef dest = (ResourceRef)region.getAttribute(ITEPoint.ARE_TRIGGER_DESTINATION_AREA);
+      if (!dest.isEmpty()) {
         if (sb.length() > 1) sb.append(", ");
-        sb.append("Destination: ").append(area).append(".ARE");
+
+        final AreResource self = (AreResource)getParentStructure();
+        final boolean isSelf = dest.getResourceName().equalsIgnoreCase(self.getName());
+        sb.append("Destination: ").append(isSelf ? "(this area)" : dest);
         String entrance = ((IsTextual)region.getAttribute(ITEPoint.ARE_TRIGGER_ENTRANCE_NAME)).getText();
         if (!entrance.isEmpty() && !entrance.equalsIgnoreCase("NONE")) {
           sb.append('>').append(entrance);
