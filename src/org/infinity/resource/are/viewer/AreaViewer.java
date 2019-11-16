@@ -1264,66 +1264,67 @@ public class AreaViewer extends ChildFrame
 
     if (layerManager != null) {
       // preparing menu items
-      List<JMenuItem> menuItems = new ArrayList<JMenuItem>();
+      final List<JMenuItem> menuItems = new ArrayList<>();
       Point itemLocation = new Point();
       pmItems.removeAll();
 
       // for each active layer...
-      for (int i = 0, lloSize = Settings.ListLayerOrder.size(); i < lloSize; i++) {
-        LayerStackingType stacking = Settings.ListLayerOrder.get(i);
-        LayerType layer = Settings.stackingToLayer(stacking);
-        if (isLayerEnabled(stacking)) {
-          List<? extends LayerObject> itemList = layerManager.getLayerObjects(layer);
-          if (itemList != null && !itemList.isEmpty()) {
-            // for each layer object...
-            for (int j = 0, ilSize = itemList.size(); j < ilSize; j++) {
-              AbstractLayerItem[] items = itemList.get(j).getLayerItems();
-              // for each layer item...
-              for (int k = 0; k < items.length; k++) {
-                // special case: Ambient/Ambient range (avoiding duplicates)
-                if (stacking == LayerStackingType.AMBIENT &&
-                    cbLayerAmbientRange.isSelected() &&
-                    ((LayerObjectAmbient)itemList.get(j)).isLocal()) {
-                  // skipped: will be handled in AmbientRange layer
-                  break;
-                }
-                if (stacking == LayerStackingType.AMBIENT_RANGE) {
-                  if (((LayerObjectAmbient)itemList.get(j)).isLocal() &&
-                      k == ViewerConstants.AMBIENT_ITEM_ICON) {
-                    // considering ranged item only
-                    continue;
-                  } else if (!((LayerObjectAmbient)itemList.get(j)).isLocal()) {
-                    // global sounds don't have ambient ranges
-                    break;
-                  }
-                }
-                itemLocation.x = canvasCoords.x - items[k].getX();
-                itemLocation.y = canvasCoords.y - items[k].getY();
-                if (items[k].isVisible() && items[k].contains(itemLocation)) {
-                  // creating a new menu item
-                  StringBuilder sb = new StringBuilder();
-                  if (items[k].getName() != null && !items[k].getName().isEmpty()) {
-                    sb.append(items[k].getName());
-                  } else {
-                    sb.append("Item");
-                  }
-                  sb.append(": ");
-                  int lenPrefix = sb.length();
-                  int lenMsg = items[k].getToolTipText().length();
-                  if (lenPrefix + lenMsg > MaxLen) {
-                    sb.append(items[k].getToolTipText().substring(0, MaxLen - lenPrefix));
-                    sb.append("...");
-                  } else {
-                    sb.append(items[k].getToolTipText());
-                  }
-                  DataMenuItem dmi = new DataMenuItem(sb.toString(), null, items[k]);
-                  if (lenPrefix + lenMsg > MaxLen) {
-                    dmi.setToolTipText(items[k].getToolTipText());
-                  }
-                  dmi.addActionListener(getListeners());
-                  menuItems.add(dmi);
-                }
+      for (final LayerStackingType stacking : Settings.ListLayerOrder) {
+        final LayerType layer = Settings.stackingToLayer(stacking);
+        if (!isLayerEnabled(layer)) { continue; }
+
+        List<? extends LayerObject> itemList = layerManager.getLayerObjects(layer);
+        if (itemList == null || itemList.isEmpty()) { continue; }
+
+        // for each layer object...
+        for (final LayerObject obj : itemList) {
+          final AbstractLayerItem[] items = obj.getLayerItems();
+          // for each layer item...
+          for (int i = 0; i < items.length; i++) {
+            // special case: Ambient/Ambient range (avoiding duplicates)
+            if (stacking == LayerStackingType.AMBIENT &&
+                cbLayerAmbientRange.isSelected() &&
+                ((LayerObjectAmbient)obj).isLocal()) {
+              // skipped: will be handled in AmbientRange layer
+              break;
+            }
+            if (stacking == LayerStackingType.AMBIENT_RANGE) {
+              if (((LayerObjectAmbient)obj).isLocal() &&
+                  i == ViewerConstants.AMBIENT_ITEM_ICON) {
+                // considering ranged item only
+                continue;
+              } else if (!((LayerObjectAmbient)obj).isLocal()) {
+                // global sounds don't have ambient ranges
+                break;
               }
+            }
+
+            final AbstractLayerItem item = items[i];
+            itemLocation.x = canvasCoords.x - item.getX();
+            itemLocation.y = canvasCoords.y - item.getY();
+            if (item.isVisible() && item.contains(itemLocation)) {
+              // creating a new menu item
+              StringBuilder sb = new StringBuilder();
+              if (item.getName() != null && !item.getName().isEmpty()) {
+                sb.append(item.getName());
+              } else {
+                sb.append("Item");
+              }
+              sb.append(": ");
+              int lenPrefix = sb.length();
+              int lenMsg = item.getToolTipText().length();
+              if (lenPrefix + lenMsg > MaxLen) {
+                sb.append(item.getToolTipText().substring(0, MaxLen - lenPrefix));
+                sb.append("...");
+              } else {
+                sb.append(item.getToolTipText());
+              }
+              DataMenuItem dmi = new DataMenuItem(sb.toString(), null, item);
+              if (lenPrefix + lenMsg > MaxLen) {
+                dmi.setToolTipText(item.getToolTipText());
+              }
+              dmi.addActionListener(getListeners());
+              menuItems.add(dmi);
             }
           }
         }
@@ -1331,8 +1332,8 @@ public class AreaViewer extends ChildFrame
 
       // updating context menu with the prepared item list
       if (!menuItems.isEmpty()) {
-        for (int i = 0, miSize = menuItems.size(); i < miSize; i++) {
-          pmItems.add(menuItems.get(i));
+        for (final JMenuItem item : menuItems) {
+          pmItems.add(item);
         }
       }
       return !menuItems.isEmpty();
@@ -1442,12 +1443,6 @@ public class AreaViewer extends ChildFrame
     } else {
       return false;
     }
-  }
-
-  /** Returns whether the specified layer is visible (by stacked layer). */
-  private boolean isLayerEnabled(LayerStackingType layer)
-  {
-    return isLayerEnabled(Settings.stackingToLayer(layer));
   }
 
   /** Opens a viewable instance associated with the specified layer item. */
@@ -1665,11 +1660,8 @@ public class AreaViewer extends ChildFrame
           rcCanvas.add(item);
         }
       } else {
-        AbstractLayerItem[] items = object.getLayerItems();
-        if (items != null) {
-          for (int i = 0; i < items.length; i++) {
-            rcCanvas.add(items[i]);
-          }
+        for (final AbstractLayerItem item : object.getLayerItems()) {
+          rcCanvas.add(item);
         }
       }
     }
@@ -1710,11 +1702,8 @@ public class AreaViewer extends ChildFrame
           rcCanvas.remove(item);
         }
       } else {
-        AbstractLayerItem[] items = object.getLayerItems();
-        if (items != null) {
-          for (int i = 0; i < items.length; i++) {
-            rcCanvas.remove(items[i]);
-          }
+        for (final AbstractLayerItem item : object.getLayerItems()) {
+          rcCanvas.remove(item);
         }
       }
     }
@@ -1726,33 +1715,28 @@ public class AreaViewer extends ChildFrame
   {
     if (layerManager != null) {
       int index = 0;
-      for (int i = 0, lloSize = Settings.ListLayerOrder.size(); i < lloSize; i++) {
-        List<? extends LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(Settings.ListLayerOrder.get(i)));
-        if (list != null) {
-          for (int j = 0, size = list.size(); j < size; j++) {
-            if (Settings.ListLayerOrder.get(i) == LayerStackingType.AMBIENT_RANGE) {
-              // Special: process ambient ranges only
-              LayerObjectAmbient obj = (LayerObjectAmbient)list.get(j);
-              AbstractLayerItem item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_RANGE);
-              if (item != null) {
-                rcCanvas.setComponentZOrder(item, index);
-                index++;
-              }
-            } else if (Settings.ListLayerOrder.get(i) == LayerStackingType.AMBIENT) {
-              // Special: process ambient icons only
-              LayerObjectAmbient obj = (LayerObjectAmbient)list.get(j);
-              AbstractLayerItem item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_ICON);
+      for (final LayerStackingType type : Settings.ListLayerOrder) {
+        final List<? extends LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(type));
+        if (list == null) { continue; }
+
+        for (final LayerObject obj : list) {
+          if (type == LayerStackingType.AMBIENT_RANGE) {
+            // Special: process ambient ranges only
+            AbstractLayerItem item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_RANGE);
+            if (item != null) {
               rcCanvas.setComponentZOrder(item, index);
               index++;
-            } else {
-              AbstractLayerItem[] items = list.get(j).getLayerItems();
-              if (items != null) {
-                for (int k = 0; k < items.length; k++) {
-                  if (items[k].getParent() != null) {
-                    rcCanvas.setComponentZOrder(items[k], index);
-                    index++;
-                  }
-                }
+            }
+          } else if (type == LayerStackingType.AMBIENT) {
+            // Special: process ambient icons only
+            AbstractLayerItem item = obj.getLayerItem(ViewerConstants.AMBIENT_ITEM_ICON);
+            rcCanvas.setComponentZOrder(item, index);
+            index++;
+          } else {
+            for (final AbstractLayerItem item : obj.getLayerItems()) {
+              if (item.getParent() != null) {
+                rcCanvas.setComponentZOrder(item, index);
+                index++;
               }
             }
           }

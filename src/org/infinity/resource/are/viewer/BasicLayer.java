@@ -113,7 +113,7 @@ public abstract class BasicLayer<E extends LayerObject, R extends AbstractStruct
 
   /**
    * Returns the list of layer objects for direct manipulation.
-   * @return List of layer objects.
+   * @return List of layer objects. Never {@code null}
    */
   public List<E> getLayerObjects()
   {
@@ -320,18 +320,18 @@ public abstract class BasicLayer<E extends LayerObject, R extends AbstractStruct
     return fields;
   }
 
-  /** Convenience method: sets required listeners. */
+  /**
+   * Subscribe viewer to events from all items in this object.
+   *
+   * @param obj Layer object, must not be {@code null}
+   */
   protected void setListeners(LayerObject obj)
   {
-    if (obj != null) {
-      for (final AbstractLayerItem item : obj.getLayerItems()) {
-        if (item != null) {
-          item.addActionListener(viewer.getListeners());
-          item.addLayerItemListener(viewer.getListeners());
-          item.addMouseListener(viewer.getListeners());
-          item.addMouseMotionListener(viewer.getListeners());
-        }
-      }
+    for (final AbstractLayerItem item : obj.getLayerItems()) {
+      item.addActionListener(viewer.getListeners());
+      item.addLayerItemListener(viewer.getListeners());
+      item.addMouseListener(viewer.getListeners());
+      item.addMouseMotionListener(viewer.getListeners());
     }
   }
 

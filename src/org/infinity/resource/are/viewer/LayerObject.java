@@ -47,40 +47,36 @@ public abstract class LayerObject
    */
   public void close()
   {
-    AbstractLayerItem[] items = getLayerItems();
-    if (items != null) {
-      for (int i = 0; i < items.length; i++) {
-        // removing listeners from layer item
-        EventListener[][] listeners = new EventListener[4][];
-        listeners[0] = items[i].getActionListeners();
-        listeners[1] = items[i].getLayerItemListeners();
-        listeners[2] = items[i].getMouseListeners();
-        listeners[3] = items[i].getMouseMotionListeners();
-        for (int j = 0; j < listeners.length; j++) {
-          if (listeners[j] != null) {
-            for (int k = 0; k < listeners[j].length; k++) {
-              switch (j) {
-                case 0:
-                  items[i].removeActionListener((ActionListener)listeners[j][k]);
-                  break;
-                case 1:
-                  items[i].removeLayerItemListener((LayerItemListener)listeners[j][k]);
-                  break;
-                case 2:
-                  items[i].removeMouseListener((MouseListener)listeners[j][k]);
-                  break;
-                case 3:
-                  items[i].removeMouseMotionListener((MouseMotionListener)listeners[j][k]);
-                  break;
-              }
+    for (final AbstractLayerItem item : getLayerItems()) {
+      // removing listeners from layer item
+      EventListener[][] listeners = new EventListener[4][];
+      listeners[0] = item.getActionListeners();
+      listeners[1] = item.getLayerItemListeners();
+      listeners[2] = item.getMouseListeners();
+      listeners[3] = item.getMouseMotionListeners();
+      for (int j = 0; j < listeners.length; j++) {
+        if (listeners[j] != null) {
+          for (final EventListener l : listeners[j]) {
+            switch (j) {
+              case 0:
+                item.removeActionListener((ActionListener) l);
+                break;
+              case 1:
+                item.removeLayerItemListener((LayerItemListener) l);
+                break;
+              case 2:
+                item.removeMouseListener((MouseListener) l);
+                break;
+              case 3:
+                item.removeMouseMotionListener((MouseMotionListener) l);
+                break;
             }
           }
         }
-
-        // removing items from container
-        if (items[i].getParent() != null) {
-          items[i].getParent().remove(items[i]);
-        }
+      }
+      // removing items from container
+      if (item.getParent() != null) {
+        item.getParent().remove(item);
       }
     }
   }
@@ -126,11 +122,8 @@ public abstract class LayerObject
   {
     if (state != visible) {
       visible = state;
-      AbstractLayerItem[] items = getLayerItems();
-      if (items != null) {
-        for (int i = 0; i < items.length; i++) {
-          items[i].setVisible(visible);
-        }
+      for (final AbstractLayerItem item : getLayerItems()) {
+        item.setVisible(visible);
       }
     }
   }
@@ -154,7 +147,8 @@ public abstract class LayerObject
   /**
    * Returns all layer items associated with the layer object. This method is useful for layer objects
    * consisting of multiple layer items (e.g. door polygons or ambient sounds/sound ranges).
-   * @return A list of layer items associated with the layer object.
+   * @return A list of layer items associated with the layer object. Never {@code null}
+   *         and array do not contain {@code null}'s
    */
   public abstract AbstractLayerItem[] getLayerItems();
 

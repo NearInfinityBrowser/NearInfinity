@@ -62,11 +62,7 @@ public class LayerObjectDoor extends LayerObject
     } else {
       type = (type == ViewerConstants.DOOR_OPEN) ? ViewerConstants.DOOR_OPEN : ViewerConstants.DOOR_CLOSED;
     }
-    if (items != null && items.length > type) {
-      return items[type];
-    } else {
-      return null;
-    }
+    return items[type];
   }
 
   @Override
@@ -79,13 +75,11 @@ public class LayerObjectDoor extends LayerObject
   public void update(double zoomFactor)
   {
     for (int i = 0; i < items.length; i++) {
-      if (items[i] != null) {
-        items[i].setItemLocation((int)(location[i].x*zoomFactor + (zoomFactor / 2.0)),
-                                 (int)(location[i].y*zoomFactor + (zoomFactor / 2.0)));
-        Polygon poly = createPolygon(shapeCoords[i], zoomFactor);
-        normalizePolygon(poly);
-        items[i].setShape(poly);
-      }
+      items[i].setItemLocation((int)(location[i].x*zoomFactor + (zoomFactor / 2.0)),
+                               (int)(location[i].y*zoomFactor + (zoomFactor / 2.0)));
+      Polygon poly = createPolygon(shapeCoords[i], zoomFactor);
+      normalizePolygon(poly);
+      items[i].setShape(poly);
     }
   }
   //</editor-fold>
