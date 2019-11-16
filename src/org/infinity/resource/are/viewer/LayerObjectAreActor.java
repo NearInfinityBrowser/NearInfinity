@@ -43,7 +43,54 @@ public class LayerObjectAreActor extends LayerObjectActor
   {
     super(Actor.class, parent);
     this.actor = actor;
-    init();
+    String actorName = null;
+    String actorCreName = null;
+    Image[] icons = ICONS_NEUTRAL;
+    int ea = 128;   // default: neutral
+    try {
+      actorName  = ((IsTextual)actor.getAttribute(Actor.ARE_ACTOR_NAME)).getText();
+      location.x = ((IsNumeric)actor.getAttribute(Actor.ARE_ACTOR_POS_X)).getValue();
+      location.y = ((IsNumeric)actor.getAttribute(Actor.ARE_ACTOR_POS_Y)).getValue();
+
+      scheduleFlags = ((Flag)actor.getAttribute(Actor.ARE_ACTOR_PRESENT_AT));
+
+      StructEntry obj = actor.getAttribute(Actor.ARE_ACTOR_CHARACTER);
+      CreResource cre = null;
+      if (obj instanceof TextString) {
+        // ARE in saved game
+        cre = (CreResource)actor.getAttribute(Actor.ARE_ACTOR_CRE_FILE);
+      } else if (obj instanceof ResourceRef) {
+        String creName = ((ResourceRef)obj).getResourceName();
+        if (creName.lastIndexOf('.') > 0) {
+          cre = new CreResource(ResourceFactory.getResourceEntry(creName));
+        }
+      }
+      if (cre != null) {
+        actorCreName = cre.getAttribute(CreResource.CRE_NAME).toString();
+        ea = ((IsNumeric)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
+      }
+      if (ea >= 2 && ea <= 30) {
+        icons = ICONS_GOOD;
+      } else if (ea >= 200) {
+        icons = ICONS_EVIL;
+      } else {
+        icons = ICONS_NEUTRAL;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    // Using cached icons
+    icons = getIcons(icons);
+
+    final String msg = actorCreName == null
+        ? actorName
+        : actorCreName + " (" + actorName + ')';
+    item = new IconLayerItem(actor, msg, icons[0], CENTER);
+    item.setLabelEnabled(Settings.ShowLabelActorsAre);
+    item.setName(getCategory());
+    item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
+    item.setVisible(isVisible());
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -63,58 +110,4 @@ public class LayerObjectAreActor extends LayerObjectActor
     }
   }
   //</editor-fold>
-
-  private void init()
-  {
-    if (actor != null) {
-      String actorName = null;
-      String actorCreName = null;
-      Image[] icons = ICONS_NEUTRAL;
-      int ea = 128;   // default: neutral
-      try {
-        actorName  = ((IsTextual)actor.getAttribute(Actor.ARE_ACTOR_NAME)).getText();
-        location.x = ((IsNumeric)actor.getAttribute(Actor.ARE_ACTOR_POS_X)).getValue();
-        location.y = ((IsNumeric)actor.getAttribute(Actor.ARE_ACTOR_POS_Y)).getValue();
-
-        scheduleFlags = ((Flag)actor.getAttribute(Actor.ARE_ACTOR_PRESENT_AT));
-
-        StructEntry obj = actor.getAttribute(Actor.ARE_ACTOR_CHARACTER);
-        CreResource cre = null;
-        if (obj instanceof TextString) {
-          // ARE in saved game
-          cre = (CreResource)actor.getAttribute(Actor.ARE_ACTOR_CRE_FILE);
-        } else if (obj instanceof ResourceRef) {
-          String creName = ((ResourceRef)obj).getResourceName();
-          if (creName.lastIndexOf('.') > 0) {
-            cre = new CreResource(ResourceFactory.getResourceEntry(creName));
-          }
-        }
-        if (cre != null) {
-          actorCreName = cre.getAttribute(CreResource.CRE_NAME).toString();
-          ea = ((IsNumeric)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
-        }
-        if (ea >= 2 && ea <= 30) {
-          icons = ICONS_GOOD;
-        } else if (ea >= 200) {
-          icons = ICONS_EVIL;
-        } else {
-          icons = ICONS_NEUTRAL;
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
-      // Using cached icons
-      icons = getIcons(icons);
-
-      final String msg = actorCreName == null
-          ? actorName
-          : actorCreName + " (" + actorName + ')';
-      item = new IconLayerItem(actor, msg, icons[0], CENTER);
-      item.setLabelEnabled(Settings.ShowLabelActorsAre);
-      item.setName(getCategory());
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
-      item.setVisible(isVisible());
-    }
-  }
 }

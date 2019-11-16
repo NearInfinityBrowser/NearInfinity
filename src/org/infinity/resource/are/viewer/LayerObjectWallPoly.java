@@ -29,14 +29,38 @@ public class LayerObjectWallPoly extends LayerObject
   private final WallPolygon wall;
   private final Point location = new Point();
 
-  private ShapedLayerItem item;
+  private final ShapedLayerItem item;
   private Point[] shapeCoords;
 
-  public LayerObjectWallPoly(WedResource parent, WallPolygon wallPoly)
+  public LayerObjectWallPoly(WedResource parent, WallPolygon wall)
   {
     super("Wall Poly", WallPolygon.class, parent);
-    this.wall = wallPoly;
-    init();
+    this.wall = wall;
+    String msg = null;
+    try {
+      final Flag flags = (Flag)wall.getAttribute(WallPolygon.WED_POLY_FLAGS, false);
+      msg = flags.toString();
+
+      final int vNum = ((IsNumeric)wall.getAttribute(WallPolygon.WED_POLY_NUM_VERTICES)).getValue();
+      final int vOfs = ((IsNumeric)parent.getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
+      int startIdx = flags.isFlagSet(2) ? 2 : 0;  // skipping first two vertices for "hovering walls"
+      shapeCoords = loadVertices(wall, vOfs, startIdx, vNum - startIdx, Vertex.class);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    final Polygon poly = createPolygon(shapeCoords, 1.0);
+    final Rectangle bounds = normalizePolygon(poly);
+
+    location.x = bounds.x; location.y = bounds.y;
+    item = new ShapedLayerItem(wall, msg, poly);
+    item.setName(getCategory());
+    item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
+    item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
+    item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
+    item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
+    item.setStroked(true);
+    item.setFilled(true);
+    item.setVisible(isVisible());
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -71,35 +95,4 @@ public class LayerObjectWallPoly extends LayerObject
     }
   }
   //</editor-fold>
-
-  private void init()
-  {
-    if (wall != null) {
-      String msg = null;
-      try {
-        final Flag flags = (Flag)wall.getAttribute(WallPolygon.WED_POLY_FLAGS, false);
-        msg = flags.toString();
-
-        final int vNum = ((IsNumeric)wall.getAttribute(WallPolygon.WED_POLY_NUM_VERTICES)).getValue();
-        final int vOfs = ((IsNumeric)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
-        int startIdx = flags.isFlagSet(2) ? 2 : 0;  // skipping first two vertices for "hovering walls"
-        shapeCoords = loadVertices(wall, vOfs, startIdx, vNum - startIdx, Vertex.class);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      final Polygon poly = createPolygon(shapeCoords, 1.0);
-      final Rectangle bounds = normalizePolygon(poly);
-
-      location.x = bounds.x; location.y = bounds.y;
-      item = new ShapedLayerItem(wall, msg, poly);
-      item.setName(getCategory());
-      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
-      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
-      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
-      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
-      item.setStroked(true);
-      item.setFilled(true);
-      item.setVisible(isVisible());
-    }
-  }
 }

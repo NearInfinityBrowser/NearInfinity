@@ -37,7 +37,7 @@ public class LayerObjectDoorPoly extends LayerObject
   private final Door door;
 
   private Point[] location;
-  private ShapedLayerItem[] items;
+  private final ShapedLayerItem[] items;
   private Point[][] shapeCoords;
   private int openCount;
 
@@ -45,7 +45,48 @@ public class LayerObjectDoorPoly extends LayerObject
   {
     super("Door Poly", Door.class, parent);
     this.door = doorPoly;
-    init();
+    location = null;
+    String[] info = null;
+    int count = 0;
+    try {
+      final int ofsOpen   = ((IsNumeric)door.getAttribute(Door.WED_DOOR_OFFSET_POLYGONS_OPEN)).getValue();
+      final int ofsClosed = ((IsNumeric)door.getAttribute(Door.WED_DOOR_OFFSET_POLYGONS_CLOSED)).getValue();
+      final int numOpen   = ((IsNumeric)door.getAttribute(Door.WED_DOOR_NUM_POLYGONS_OPEN)).getValue();
+      final int numClosed = ((IsNumeric)door.getAttribute(Door.WED_DOOR_NUM_POLYGONS_CLOSED)).getValue();
+      count = numOpen + numClosed;
+      openCount = numOpen;
+      location = new Point[count];
+      shapeCoords = new Point[count][];
+      info = new String[count];
+
+      // processing open door polygons
+      fillData(ofsOpen  , numOpen  ,       0, info);
+      // processing closed door polygons
+      fillData(ofsClosed, numClosed, numOpen, info);
+    } catch (Exception e) {
+      e.printStackTrace();
+      if (info == null) {
+        info = new String[count];
+      }
+    }
+
+    // creating layer items
+    items = new ShapedLayerItem[count];
+    for (int i = 0; i < count; i++) {
+      final Polygon poly = createPolygon(shapeCoords[i], 1.0);
+      final Rectangle bounds = normalizePolygon(poly);
+
+      location[i] = bounds.getLocation();
+      items[i] = new ShapedLayerItem(door, info[i], poly);
+      items[i].setName(getCategory());
+      items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
+      items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
+      items[i].setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
+      items[i].setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
+      items[i].setStroked(true);
+      items[i].setFilled(true);
+      items[i].setVisible(isVisible());
+    }
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -107,54 +148,6 @@ public class LayerObjectDoorPoly extends LayerObject
     return new AbstractLayerItem[0];
   }
 
-  private void init()
-  {
-    if (door != null) {
-      location = null;
-      String[] info = null;
-      int count = 0;
-      try {
-        final int ofsOpen   = ((IsNumeric)door.getAttribute(Door.WED_DOOR_OFFSET_POLYGONS_OPEN)).getValue();
-        final int ofsClosed = ((IsNumeric)door.getAttribute(Door.WED_DOOR_OFFSET_POLYGONS_CLOSED)).getValue();
-        final int numOpen   = ((IsNumeric)door.getAttribute(Door.WED_DOOR_NUM_POLYGONS_OPEN)).getValue();
-        final int numClosed = ((IsNumeric)door.getAttribute(Door.WED_DOOR_NUM_POLYGONS_CLOSED)).getValue();
-        count = numOpen + numClosed;
-        openCount = numOpen;
-        location = new Point[count];
-        shapeCoords = new Point[count][];
-        info = new String[count];
-
-        // processing open door polygons
-        fillData(ofsOpen  , numOpen  ,       0, info);
-        // processing closed door polygons
-        fillData(ofsClosed, numClosed, numOpen, info);
-      } catch (Exception e) {
-        e.printStackTrace();
-        if (info == null) {
-          info = new String[count];
-        }
-      }
-
-      // creating layer items
-      items = new ShapedLayerItem[count];
-      for (int i = 0; i < count; i++) {
-        final Polygon poly = createPolygon(shapeCoords[i], 1.0);
-        final Rectangle bounds = normalizePolygon(poly);
-
-        location[i] = bounds.getLocation();
-        items[i] = new ShapedLayerItem(door, info[i], poly);
-        items[i].setName(getCategory());
-        items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
-        items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
-        items[i].setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
-        items[i].setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
-        items[i].setStroked(true);
-        items[i].setFilled(true);
-        items[i].setVisible(isVisible());
-      }
-    }
-  }
-
   /**
    * Fills arrays with information about doors.
    *
@@ -185,7 +178,7 @@ public class LayerObjectDoorPoly extends LayerObject
   }
 
   /** Returns the specified WED polygon structure. */
-  private org.infinity.resource.wed.Polygon getPolygonStructure(AbstractStruct baseStruct, int baseOfs, int index)
+  private static org.infinity.resource.wed.Polygon getPolygonStructure(AbstractStruct baseStruct, int baseOfs, int index)
   {
     int idx = 0;
     for (final StructEntry e : baseStruct.getFields()) {

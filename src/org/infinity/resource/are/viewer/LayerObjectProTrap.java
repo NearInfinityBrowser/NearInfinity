@@ -28,13 +28,35 @@ public class LayerObjectProTrap extends LayerObject
   private final ProTrap trap;
   private final Point location = new Point();
 
-  private IconLayerItem item;
+  private final IconLayerItem item;
 
   public LayerObjectProTrap(AreResource parent, ProTrap trap)
   {
     super("Trap", ProTrap.class, parent);
     this.trap = trap;
-    init();
+    String msg = null;
+    try {
+      msg = trap.getAttribute(ProTrap.ARE_PROTRAP_TRAP).toString();
+      location.x = ((IsNumeric)trap.getAttribute(ProTrap.ARE_PROTRAP_LOCATION_X)).getValue();
+      location.y = ((IsNumeric)trap.getAttribute(ProTrap.ARE_PROTRAP_LOCATION_Y)).getValue();
+      int target = ((IsNumeric)trap.getAttribute(ProTrap.ARE_PROTRAP_TARGET)).getValue();
+      if (target < 0) target = 0; else if (target > 255) target = 255;
+      if (target >= 2 && target <= 30) {
+        msg += " (hostile)";
+      } else if (target >= 200) {
+        msg += " (friendly)";
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    // Using cached icons
+    final Image[] icons = getIcons(ICONS);
+
+    item = new IconLayerItem(trap, msg, icons[0], CENTER);
+    item.setName(getCategory());
+    item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, ICONS[1]);
+    item.setVisible(isVisible());
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -65,33 +87,4 @@ public class LayerObjectProTrap extends LayerObject
     }
   }
   //</editor-fold>
-
-  private void init()
-  {
-    if (trap != null) {
-      String msg = null;
-      try {
-        location.x = ((IsNumeric)trap.getAttribute(ProTrap.ARE_PROTRAP_LOCATION_X)).getValue();
-        location.y = ((IsNumeric)trap.getAttribute(ProTrap.ARE_PROTRAP_LOCATION_Y)).getValue();
-        msg = trap.getAttribute(ProTrap.ARE_PROTRAP_TRAP).toString();
-        int target = ((IsNumeric)trap.getAttribute(ProTrap.ARE_PROTRAP_TARGET)).getValue();
-        if (target < 0) target = 0; else if (target > 255) target = 255;
-        if (target >= 2 && target <= 30) {
-          msg += " (hostile)";
-        } else if (target >= 200) {
-          msg += " (friendly)";
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
-      // Using cached icons
-      final Image[] icons = getIcons(ICONS);
-
-      item = new IconLayerItem(trap, msg, icons[0], CENTER);
-      item.setName(getCategory());
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, ICONS[1]);
-      item.setVisible(isVisible());
-    }
-  }
 }

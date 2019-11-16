@@ -38,7 +38,40 @@ public class LayerObjectDoor extends LayerObject
   {
     super("Door", Door.class, parent);
     this.door = door;
-    init();
+    final String[] msg = new String[2];
+    try {
+      String attr = getAttributes();
+      final String name = door.getAttribute(Door.ARE_DOOR_NAME).toString();
+      final int vOfs = ((IsNumeric)parent.getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+
+      // processing opened state door
+      msg[ViewerConstants.DOOR_OPEN] = String.format("%s (Open) %s", name, attr);
+      int vNum = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_NUM_VERTICES_OPEN)).getValue();
+      shapeCoords[ViewerConstants.DOOR_OPEN] = loadVertices(door, vOfs, 0, vNum, OpenVertex.class);
+
+      // processing closed state door
+      msg[ViewerConstants.DOOR_CLOSED] = String.format("%s (Closed) %s", name, attr);
+      vNum = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
+      shapeCoords[ViewerConstants.DOOR_CLOSED] = loadVertices(door, vOfs, 0, vNum, ClosedVertex.class);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    for (int i = 0; i < 2; i++) {
+      final Polygon poly = createPolygon(shapeCoords[i], 1.0);
+      final Rectangle bounds = normalizePolygon(poly);
+
+      location[i].x = bounds.x; location[i].y = bounds.y;
+      items[i] = new ShapedLayerItem(door, msg[i], poly);
+      items[i].setName(getCategory());
+      items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
+      items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
+      items[i].setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
+      items[i].setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
+      items[i].setStroked(true);
+      items[i].setFilled(true);
+      items[i].setVisible(isVisible());
+    }
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -83,46 +116,6 @@ public class LayerObjectDoor extends LayerObject
     }
   }
   //</editor-fold>
-
-  private void init()
-  {
-    if (door != null) {
-      final String[] msg = new String[2];
-      try {
-        String attr = getAttributes();
-        final String name = door.getAttribute(Door.ARE_DOOR_NAME).toString();
-        final int vOfs = ((IsNumeric)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
-
-        // processing opened state door
-        msg[ViewerConstants.DOOR_OPEN] = String.format("%s (Open) %s", name, attr);
-        int vNum = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_NUM_VERTICES_OPEN)).getValue();
-        shapeCoords[ViewerConstants.DOOR_OPEN] = loadVertices(door, vOfs, 0, vNum, OpenVertex.class);
-
-        // processing closed state door
-        msg[ViewerConstants.DOOR_CLOSED] = String.format("%s (Closed) %s", name, attr);
-        vNum = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
-        shapeCoords[ViewerConstants.DOOR_CLOSED] = loadVertices(door, vOfs, 0, vNum, ClosedVertex.class);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
-      for (int i = 0; i < 2; i++) {
-        final Polygon poly = createPolygon(shapeCoords[i], 1.0);
-        final Rectangle bounds = normalizePolygon(poly);
-
-        location[i].x = bounds.x; location[i].y = bounds.y;
-        items[i] = new ShapedLayerItem(door, msg[i], poly);
-        items[i].setName(getCategory());
-        items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
-        items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
-        items[i].setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
-        items[i].setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
-        items[i].setStroked(true);
-        items[i].setFilled(true);
-        items[i].setVisible(isVisible());
-      }
-    }
-  }
 
   private String getAttributes()
   {

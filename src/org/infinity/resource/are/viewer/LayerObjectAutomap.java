@@ -41,14 +41,96 @@ public class LayerObjectAutomap extends LayerObject
   private final AutomapNote note;
   private final Point location = new Point();
 
-  private IconLayerItem item;
+  private final IconLayerItem item;
 
 
   public LayerObjectAutomap(AreResource parent, AutomapNote note)
   {
     super("Automap", AutomapNote.class, parent);
     this.note = note;
-    init();
+    String msg = null;
+    try {
+      location.x = ((IsNumeric)note.getAttribute(AutomapNote.ARE_AUTOMAP_LOCATION_X)).getValue();
+      location.y = ((IsNumeric)note.getAttribute(AutomapNote.ARE_AUTOMAP_LOCATION_Y)).getValue();
+      if (((IsNumeric)note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT_LOCATION)).getValue() == 1) {// 1 - Dialog.tlk
+        // fetching string from dialog.tlk
+        msg = note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT).toString();
+      } else {
+        // fetching string from talk override
+        msg = "[user-defined]";
+        int srcStrref = ((IsNumeric)note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT)).getValue();
+        if (srcStrref > 0) {
+          String path = parent.getResourceEntry().getActualPath().toString();
+          path = path.replace(parent.getResourceEntry().getResourceName(), "");
+          if (Profile.isEnhancedEdition()) {
+            // processing new TOH structure
+            Path tohFile = FileManager.resolve(path, "DEFAULT.TOH");
+            if (Files.exists(tohFile)) {
+              FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
+              TohResource toh = new TohResource(tohEntry);
+              SectionOffset so = (SectionOffset)toh.getAttribute(TohResource.TOH_OFFSET_ENTRIES);
+              SectionCount sc = (SectionCount)toh.getAttribute(TohResource.TOH_NUM_ENTRIES);
+              if (so != null && sc != null && sc.getValue() > 0) {
+                for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
+                  StrRefEntry2 strref = (StrRefEntry2)toh.getAttribute(curOfs, false);
+                  if (strref != null) {
+                    int v = ((IsNumeric)strref.getAttribute(StrRefEntry2.TOH_STRREF_OVERRIDDEN)).getValue();
+                    if (v == srcStrref) {
+                      int sofs = ((IsNumeric)strref.getAttribute(StrRefEntry2.TOH_STRREF_OFFSET_STRING)).getValue();
+                      StringEntry2 se = (StringEntry2)toh.getAttribute(so.getValue() + sofs, false);
+                      if (se != null) {
+                        msg = se.getAttribute(StringEntry2.TOH_STRING_TEXT).toString();
+                      }
+                      break;
+                    }
+                    curOfs += strref.getSize();
+                  }
+                }
+              }
+            }
+          } else {
+            // processing legacy TOH/TOT structures
+            Path tohFile = FileManager.resolve(path, "DEFAULT.TOH");
+            Path totFile = FileManager.resolve(path, "DEFAULT.TOT");
+            if (Files.exists(tohFile) && Files.exists(totFile)) {
+              FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
+              FileResourceEntry totEntry = new FileResourceEntry(totFile);
+              TohResource toh = new TohResource(tohEntry);
+              TotResource tot = new TotResource(totEntry);
+              SectionCount sc = (SectionCount)toh.getAttribute(TohResource.TOH_NUM_ENTRIES);
+              if (sc != null && sc.getValue() > 0) {
+                for (int i = 0, count = sc.getValue(), curOfs = 0x14; i < count; i++) {
+                  StrRefEntry strref = (StrRefEntry)toh.getAttribute(curOfs, false);
+                  if (strref != null) {
+                    int v = ((IsNumeric)strref.getAttribute(StrRefEntry.TOH_STRREF_OVERRIDDEN)).getValue();
+                    if (v == srcStrref) {
+                      int sofs = ((IsNumeric)strref.getAttribute(StrRefEntry.TOH_STRREF_OFFSET_TOT_STRING)).getValue();
+                      StringEntry se = (StringEntry)tot.getAttribute(sofs, false);
+                      if (se != null) {
+                        msg = se.getAttribute(StringEntry.TOT_STRING_TEXT).toString();
+                      }
+                      break;
+                    }
+                    curOfs += strref.getSize();
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    // Using cached icons
+    final Image[] icons = getIcons(ICONS);
+
+    item = new IconLayerItem(note, msg, icons[0], CENTER);
+    item.setLabelEnabled(Settings.ShowLabelMapNotes);
+    item.setName(getCategory());
+    item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
+    item.setVisible(isVisible());
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -79,97 +161,4 @@ public class LayerObjectAutomap extends LayerObject
     }
   }
   //</editor-fold>
-
-  private void init()
-  {
-    if (note != null) {
-      String msg = null;
-      try {
-        location.x = ((IsNumeric)note.getAttribute(AutomapNote.ARE_AUTOMAP_LOCATION_X)).getValue();
-        location.y = ((IsNumeric)note.getAttribute(AutomapNote.ARE_AUTOMAP_LOCATION_Y)).getValue();
-        if (((IsNumeric)note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT_LOCATION)).getValue() == 1) {// 1 - Dialog.tlk
-          // fetching string from dialog.tlk
-          msg = note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT).toString();
-        } else {
-          // fetching string from talk override
-          msg = "[user-defined]";
-          try {
-            int srcStrref = ((IsNumeric)note.getAttribute(AutomapNote.ARE_AUTOMAP_TEXT)).getValue();
-            if (srcStrref > 0) {
-              String path = getParentStructure().getResourceEntry().getActualPath().toString();
-              path = path.replace(getParentStructure().getResourceEntry().getResourceName(), "");
-              if (Profile.isEnhancedEdition()) {
-                // processing new TOH structure
-                Path tohFile = FileManager.resolve(path, "DEFAULT.TOH");
-                if (Files.exists(tohFile)) {
-                  FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
-                  TohResource toh = new TohResource(tohEntry);
-                  SectionOffset so = (SectionOffset)toh.getAttribute(TohResource.TOH_OFFSET_ENTRIES);
-                  SectionCount sc = (SectionCount)toh.getAttribute(TohResource.TOH_NUM_ENTRIES);
-                  if (so != null && sc != null && sc.getValue() > 0) {
-                    for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
-                      StrRefEntry2 strref = (StrRefEntry2)toh.getAttribute(curOfs, false);
-                      if (strref != null) {
-                        int v = ((IsNumeric)strref.getAttribute(StrRefEntry2.TOH_STRREF_OVERRIDDEN)).getValue();
-                        if (v == srcStrref) {
-                          int sofs = ((IsNumeric)strref.getAttribute(StrRefEntry2.TOH_STRREF_OFFSET_STRING)).getValue();
-                          StringEntry2 se = (StringEntry2)toh.getAttribute(so.getValue() + sofs, false);
-                          if (se != null) {
-                            msg = se.getAttribute(StringEntry2.TOH_STRING_TEXT).toString();
-                          }
-                          break;
-                        }
-                        curOfs += strref.getSize();
-                      }
-                    }
-                  }
-                }
-              } else {
-                // processing legacy TOH/TOT structures
-                Path tohFile = FileManager.resolve(path, "DEFAULT.TOH");
-                Path totFile = FileManager.resolve(path, "DEFAULT.TOT");
-                if (Files.exists(tohFile) && Files.exists(totFile)) {
-                  FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
-                  FileResourceEntry totEntry = new FileResourceEntry(totFile);
-                  TohResource toh = new TohResource(tohEntry);
-                  TotResource tot = new TotResource(totEntry);
-                  SectionCount sc = (SectionCount)toh.getAttribute(TohResource.TOH_NUM_ENTRIES);
-                  if (sc != null && sc.getValue() > 0) {
-                    for (int i = 0, count = sc.getValue(), curOfs = 0x14; i < count; i++) {
-                      StrRefEntry strref = (StrRefEntry)toh.getAttribute(curOfs, false);
-                      if (strref != null) {
-                        int v = ((IsNumeric)strref.getAttribute(StrRefEntry.TOH_STRREF_OVERRIDDEN)).getValue();
-                        if (v == srcStrref) {
-                          int sofs = ((IsNumeric)strref.getAttribute(StrRefEntry.TOH_STRREF_OFFSET_TOT_STRING)).getValue();
-                          StringEntry se = (StringEntry)tot.getAttribute(sofs, false);
-                          if (se != null) {
-                            msg = se.getAttribute(StringEntry.TOT_STRING_TEXT).toString();
-                          }
-                          break;
-                        }
-                        curOfs += strref.getSize();
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
-      // Using cached icons
-      final Image[] icons = getIcons(ICONS);
-
-      item = new IconLayerItem(note, msg, icons[0], CENTER);
-      item.setLabelEnabled(Settings.ShowLabelMapNotes);
-      item.setName(getCategory());
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
-      item.setVisible(isVisible());
-    }
-  }
 }

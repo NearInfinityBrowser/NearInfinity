@@ -40,7 +40,7 @@ public class LayerObjectAmbient extends LayerObject
   private final Point location = new Point();
 
   /** Center of sound emitter. */
-  private IconLayerItem itemIcon;
+  private final IconLayerItem itemIcon;
   /** Area of the local sound. */
   private ShapedLayerItem itemShape;
   private int radiusLocal;
@@ -52,7 +52,59 @@ public class LayerObjectAmbient extends LayerObject
   {
     super("Sound", Ambient.class, parent);
     this.ambient = ambient;
-    init();
+    String msg = null;
+    boolean isLocal = false;
+    final Color[] color = new Color[COLOR_RANGE.length];
+    try {
+      location.x = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_X)).getValue();
+      location.y = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_Y)).getValue();
+      radiusLocal = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_RADIUS)).getValue();
+      volume = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_VOLUME)).getValue();
+      // Bit 2 - Ignore radius
+      isLocal = !((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_FLAGS)).isFlagSet(2);
+
+      scheduleFlags = ((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_ACTIVE_AT));
+
+      msg = ambient.getAttribute(Ambient.ARE_AMBIENT_NAME).toString();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    // Using cached icons
+    final Image[] icons = getIcons(isLocal ? ICONS_LOCAL : ICONS_GLOBAL);
+
+    // creating sound item
+    itemIcon = new IconLayerItem(ambient, msg, icons[0], CENTER);
+    itemIcon.setLabelEnabled(Settings.ShowLabelSounds);
+    itemIcon.setName(getCategory());
+    itemIcon.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
+    itemIcon.setVisible(isVisible());
+
+    // creating sound range item
+    if (isLocal) {
+      final double minAlpha = 0.0;
+      final double maxAlpha = 64.0;
+      final double alphaF = minAlpha + Math.sqrt(volume) / 10.0 * (maxAlpha - minAlpha);
+      final int alpha = (int)alphaF & 0xff;
+      color[0] = COLOR_RANGE[0];
+      color[1] = COLOR_RANGE[1];
+      color[2] = new Color(COLOR_RANGE[2].getRGB() | (alpha << 24), true);
+      color[3] = new Color(COLOR_RANGE[3].getRGB() | (alpha << 24), true);
+
+      itemShape = new ShapedLayerItem(ambient, msg, createShape(1.0));
+      itemShape.setName(getCategory());
+      itemShape.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
+      itemShape.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
+      itemShape.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
+      itemShape.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
+      itemShape.setStrokeWidth(AbstractLayerItem.ItemState.NORMAL, 2);
+      itemShape.setStrokeWidth(AbstractLayerItem.ItemState.HIGHLIGHTED, 2);
+      itemShape.setStroked(true);
+      itemShape.setFilled(true);
+      itemShape.setVisible(isVisible());
+    } else {
+      radiusLocal = 0;
+    }
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -71,19 +123,19 @@ public class LayerObjectAmbient extends LayerObject
   @Override
   public AbstractLayerItem getLayerItem(int type)
   {
-    if (type == ViewerConstants.AMBIENT_ITEM_RANGE && isLocal()) {
+    if (type == ViewerConstants.AMBIENT_ITEM_RANGE) {
       return itemShape;
-    } else if (type == ViewerConstants.AMBIENT_ITEM_ICON) {
-      return itemIcon;
-    } else {
-      return null;
     }
+    if (type == ViewerConstants.AMBIENT_ITEM_ICON) {
+      return itemIcon;
+    }
+    return null;
   }
 
   @Override
   public AbstractLayerItem[] getLayerItems()
   {
-    if (isLocal()) {
+    if (itemShape != null) {
       return new AbstractLayerItem[]{itemIcon, itemShape};
     } else {
       return new AbstractLayerItem[]{itemIcon};
@@ -96,9 +148,7 @@ public class LayerObjectAmbient extends LayerObject
     int x = (int)(location.x*zoomFactor + (zoomFactor / 2.0));
     int y = (int)(location.y*zoomFactor + (zoomFactor / 2.0));
 
-    if (itemIcon != null) {
-      itemIcon.setItemLocation(x, y);
-    }
+    itemIcon.setItemLocation(x, y);
 
     if (itemShape != null) {
       Shape circle = createShape(zoomFactor);
@@ -126,65 +176,6 @@ public class LayerObjectAmbient extends LayerObject
   public boolean isLocal()
   {
     return (itemShape != null);
-  }
-
-  private void init()
-  {
-    if (ambient != null) {
-      String msg = null;
-      boolean isLocal = false;
-      final Color[] color = new Color[COLOR_RANGE.length];
-      try {
-        location.x = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_X)).getValue();
-        location.y = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_ORIGIN_Y)).getValue();
-        radiusLocal = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_RADIUS)).getValue();
-        volume = ((IsNumeric)ambient.getAttribute(Ambient.ARE_AMBIENT_VOLUME)).getValue();
-        // Bit 2 - Ignore radius
-        isLocal = !((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_FLAGS)).isFlagSet(2);
-
-        scheduleFlags = ((Flag)ambient.getAttribute(Ambient.ARE_AMBIENT_ACTIVE_AT));
-
-        msg = ambient.getAttribute(Ambient.ARE_AMBIENT_NAME).toString();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
-      // Using cached icons
-      final Image[] icons = getIcons(isLocal ? ICONS_LOCAL : ICONS_GLOBAL);
-
-      // creating sound item
-      itemIcon = new IconLayerItem(ambient, msg, icons[0], CENTER);
-      itemIcon.setLabelEnabled(Settings.ShowLabelSounds);
-      itemIcon.setName(getCategory());
-      itemIcon.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
-      itemIcon.setVisible(isVisible());
-
-      // creating sound range item
-      if (isLocal) {
-        final double minAlpha = 0.0;
-        final double maxAlpha = 64.0;
-        final double alphaF = minAlpha + Math.sqrt(volume) / 10.0 * (maxAlpha - minAlpha);
-        final int alpha = (int)alphaF & 0xff;
-        color[0] = COLOR_RANGE[0];
-        color[1] = COLOR_RANGE[1];
-        color[2] = new Color(COLOR_RANGE[2].getRGB() | (alpha << 24), true);
-        color[3] = new Color(COLOR_RANGE[3].getRGB() | (alpha << 24), true);
-
-        itemShape = new ShapedLayerItem(ambient, msg, createShape(1.0));
-        itemShape.setName(getCategory());
-        itemShape.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, color[0]);
-        itemShape.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[1]);
-        itemShape.setFillColor(AbstractLayerItem.ItemState.NORMAL, color[2]);
-        itemShape.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, color[3]);
-        itemShape.setStrokeWidth(AbstractLayerItem.ItemState.NORMAL, 2);
-        itemShape.setStrokeWidth(AbstractLayerItem.ItemState.HIGHLIGHTED, 2);
-        itemShape.setStroked(true);
-        itemShape.setFilled(true);
-        itemShape.setVisible(isVisible());
-      } else {
-        radiusLocal = 0;
-      }
-    }
   }
 
   private Shape createShape(double zoomFactor)

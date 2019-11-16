@@ -29,7 +29,7 @@ public class LayerObjectSpawnPoint extends LayerObject
   private final SpawnPoint sp;
   private final Point location = new Point();
 
-  private IconLayerItem item;
+  private final IconLayerItem item;
   private Flag scheduleFlags;
 
 
@@ -37,7 +37,26 @@ public class LayerObjectSpawnPoint extends LayerObject
   {
     super("Spawn Point", SpawnPoint.class, parent);
     this.sp = sp;
-    init();
+    String msg = null;
+    try {
+      msg = sp.getAttribute(SpawnPoint.ARE_SPAWN_NAME).toString();
+      location.x = ((IsNumeric)sp.getAttribute(SpawnPoint.ARE_SPAWN_LOCATION_X)).getValue();
+      location.y = ((IsNumeric)sp.getAttribute(SpawnPoint.ARE_SPAWN_LOCATION_Y)).getValue();
+
+      scheduleFlags = ((Flag)sp.getAttribute(SpawnPoint.ARE_SPAWN_ACTIVE_AT));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    // Using cached icons
+    final Image[] icons = getIcons(ICONS);
+
+    item = new IconLayerItem(sp, msg, icons[0], CENTER);
+    item.setLabelEnabled(Settings.ShowLabelSpawnPoints);
+    item.setName(getCategory());
+    item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
+    item.setVisible(isVisible());
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -78,31 +97,4 @@ public class LayerObjectSpawnPoint extends LayerObject
     }
   }
   //</editor-fold>
-
-
-  private void init()
-  {
-    if (sp != null) {
-      String msg = null;
-      try {
-        location.x = ((IsNumeric)sp.getAttribute(SpawnPoint.ARE_SPAWN_LOCATION_X)).getValue();
-        location.y = ((IsNumeric)sp.getAttribute(SpawnPoint.ARE_SPAWN_LOCATION_Y)).getValue();
-
-        scheduleFlags = ((Flag)sp.getAttribute(SpawnPoint.ARE_SPAWN_ACTIVE_AT));
-
-        msg = sp.getAttribute(SpawnPoint.ARE_SPAWN_NAME).toString();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
-      // Using cached icons
-      final Image[] icons = getIcons(ICONS);
-
-      item = new IconLayerItem(sp, msg, icons[0], CENTER);
-      item.setLabelEnabled(Settings.ShowLabelSpawnPoints);
-      item.setName(getCategory());
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
-      item.setVisible(isVisible());
-    }
-  }
 }

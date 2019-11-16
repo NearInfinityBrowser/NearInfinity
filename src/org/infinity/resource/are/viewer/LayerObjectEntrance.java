@@ -29,13 +29,32 @@ public class LayerObjectEntrance extends LayerObject
   private final Entrance entrance;
   private final Point location = new Point();
 
-  private IconLayerItem item;
+  private final IconLayerItem item;
 
   public LayerObjectEntrance(AreResource parent, Entrance entrance)
   {
     super("Entrance", Entrance.class, parent);
     this.entrance = entrance;
-    init();
+    String msg = null;
+    try {
+      location.x = ((IsNumeric)entrance.getAttribute(Entrance.ARE_ENTRANCE_LOCATION_X)).getValue();
+      location.y = ((IsNumeric)entrance.getAttribute(Entrance.ARE_ENTRANCE_LOCATION_Y)).getValue();
+      int o = ((IsNumeric)entrance.getAttribute(Entrance.ARE_ENTRANCE_ORIENTATION)).getValue();
+      if (o < 0) o = 0; else if (o >= Actor.s_orientation.length) o = Actor.s_orientation.length - 1;
+      final String name = entrance.getAttribute(Entrance.ARE_ENTRANCE_NAME).toString();
+      msg = String.format("%s (%s)", name, Actor.s_orientation[o]);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    // Using cached icons
+    final Image[] icons = getIcons(ICONS);
+
+    item = new IconLayerItem(entrance, msg, icons[0], CENTER);
+    item.setLabelEnabled(Settings.ShowLabelEntrances);
+    item.setName(getCategory());
+    item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
+    item.setVisible(isVisible());
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -66,30 +85,4 @@ public class LayerObjectEntrance extends LayerObject
     }
   }
   //</editor-fold>
-
-  private void init()
-  {
-    if (entrance != null) {
-      String msg = null;
-      try {
-        location.x = ((IsNumeric)entrance.getAttribute(Entrance.ARE_ENTRANCE_LOCATION_X)).getValue();
-        location.y = ((IsNumeric)entrance.getAttribute(Entrance.ARE_ENTRANCE_LOCATION_Y)).getValue();
-        int o = ((IsNumeric)entrance.getAttribute(Entrance.ARE_ENTRANCE_ORIENTATION)).getValue();
-        if (o < 0) o = 0; else if (o >= Actor.s_orientation.length) o = Actor.s_orientation.length - 1;
-        final String name = entrance.getAttribute(Entrance.ARE_ENTRANCE_NAME).toString();
-        msg = String.format("%s (%s)", name, Actor.s_orientation[o]);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
-      // Using cached icons
-      final Image[] icons = getIcons(ICONS);
-
-      item = new IconLayerItem(entrance, msg, icons[0], CENTER);
-      item.setLabelEnabled(Settings.ShowLabelEntrances);
-      item.setName(getCategory());
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
-      item.setVisible(isVisible());
-    }
-  }
 }

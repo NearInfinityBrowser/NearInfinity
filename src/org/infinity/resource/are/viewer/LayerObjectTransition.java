@@ -36,7 +36,7 @@ public class LayerObjectTransition extends LayerObject
   private final int edge;
   private final TilesetRenderer renderer;
 
-  private ShapedLayerItem item;
+  private final ShapedLayerItem item;
 
   public LayerObjectTransition(AreResource parent, AreResource destination, int edge, TilesetRenderer renderer)
   {
@@ -44,7 +44,26 @@ public class LayerObjectTransition extends LayerObject
     this.destination = destination;
     this.edge = Math.min(ViewerConstants.EDGE_WEST, Math.max(ViewerConstants.EDGE_NORTH, edge));
     this.renderer = renderer;
-    init();
+    String msg = null;
+    try {
+      final ResourceRef ref = (ResourceRef)parent.getAttribute(FIELD_NAME[this.edge]);
+      if (ref != null && !ref.isEmpty()) {
+        msg = String.format("Transition to %s", ref.getResourceName());
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    item = new ShapedLayerItem(destination, msg, null);
+    item.setName(getCategory());
+    update(1.0);
+    item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
+    item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
+    item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
+    item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
+    item.setStroked(true);
+    item.setFilled(true);
+    item.setVisible(isVisible());
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -69,7 +88,7 @@ public class LayerObjectTransition extends LayerObject
   @Override
   public void update(double zoomFactor)
   {
-    if (item != null && renderer != null) {
+    if (renderer != null) {
       int mapW = renderer.getMapWidth(true);
       int mapH = renderer.getMapHeight(true);
       switch (edge) {
@@ -107,31 +126,4 @@ public class LayerObjectTransition extends LayerObject
     }
   }
   //</editor-fold>
-
-  private void init()
-  {
-    if (destination != null && renderer != null) {
-      AreResource parent = (AreResource)getParentStructure();
-      String msg = null;
-      try {
-        ResourceRef ref = (ResourceRef)parent.getAttribute(FIELD_NAME[edge]);
-        if (ref != null && !ref.isEmpty()) {
-          msg = String.format("Transition to %s", ref.getResourceName());
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
-      item = new ShapedLayerItem(destination, msg, null);
-      item.setName(getCategory());
-      update(1.0);
-      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
-      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
-      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
-      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
-      item.setStroked(true);
-      item.setFilled(true);
-      item.setVisible(isVisible());
-    }
-  }
 }

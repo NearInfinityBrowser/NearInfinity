@@ -29,14 +29,32 @@ public class LayerObjectAutomapPST extends LayerObject
   private final AutomapNotePST note;
   private final Point location = new Point();
 
-  private IconLayerItem item;
+  private final IconLayerItem item;
 
 
   public LayerObjectAutomapPST(AreResource parent, AutomapNotePST note)
   {
     super("Automap", AutomapNotePST.class, parent);
     this.note = note;
-    init();
+    String msg = null;
+    try {
+      final IsNumeric x = (IsNumeric)note.getAttribute(AutomapNotePST.ARE_AUTOMAP_LOCATION_X);
+      final IsNumeric y = (IsNumeric)note.getAttribute(AutomapNotePST.ARE_AUTOMAP_LOCATION_Y);
+      location.x = (int)(x.getValue() * MAP_SCALE);
+      location.y = (int)(y.getValue() * MAP_SCALE);
+      msg = note.getAttribute(AutomapNotePST.ARE_AUTOMAP_TEXT).toString();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    // Using cached icons
+    final Image[] icons = getIcons(ICONS);
+
+    item = new IconLayerItem(note, msg, icons[0], CENTER);
+    item.setLabelEnabled(Settings.ShowLabelMapNotes);
+    item.setName(getCategory());
+    item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
+    item.setVisible(isVisible());
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -67,29 +85,4 @@ public class LayerObjectAutomapPST extends LayerObject
     }
   }
   //</editor-fold>
-
-  private void init()
-  {
-    if (note != null) {
-      String msg = null;
-      try {
-        final IsNumeric x = (IsNumeric)note.getAttribute(AutomapNotePST.ARE_AUTOMAP_LOCATION_X);
-        final IsNumeric y = (IsNumeric)note.getAttribute(AutomapNotePST.ARE_AUTOMAP_LOCATION_Y);
-        location.x = (int)(x.getValue() * MAP_SCALE);
-        location.y = (int)(y.getValue() * MAP_SCALE);
-        msg = note.getAttribute(AutomapNotePST.ARE_AUTOMAP_TEXT).toString();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
-      // Using cached icons
-      final Image[] icons = getIcons(ICONS);
-
-      item = new IconLayerItem(note, msg, icons[0], CENTER);
-      item.setLabelEnabled(Settings.ShowLabelMapNotes);
-      item.setName(getCategory());
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
-      item.setVisible(isVisible());
-    }
-  }
 }

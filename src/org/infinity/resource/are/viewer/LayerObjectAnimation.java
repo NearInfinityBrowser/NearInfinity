@@ -61,7 +61,148 @@ public class LayerObjectAnimation extends LayerObject
   {
     super("Animation", Animation.class, parent);
     this.anim = anim;
-    init();
+    String keyAnim = "";
+    String msg = "";
+    int iconIdx = 0;
+    BackgroundAnimationProvider animation = null;
+    try {
+      // PST seems to ignore a couple of animation settings
+      boolean isTorment = (Profile.getEngine() == Profile.Engine.PST);
+      boolean isEE = Profile.isEnhancedEdition();
+
+      location.x = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_LOCATION_X)).getValue();
+      location.y = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_LOCATION_Y)).getValue();
+      Flag flags = (Flag)anim.getAttribute(Animation.ARE_ANIMATION_APPEARANCE);
+      final boolean isActive = flags.isFlagSet(0);
+      final boolean isBlended = flags.isFlagSet(1) || isTorment;
+      final boolean isMirrored = flags.isFlagSet(11);
+      final boolean isSelfIlluminated = !flags.isFlagSet(2);
+      boolean isSynchronized = flags.isFlagSet(4);
+      boolean isWBM = false;
+      boolean isPVRZ = false;
+      if (isEE) {
+        isWBM = flags.isFlagSet(13);
+        isPVRZ = flags.isFlagSet(15);
+        if (flags.isFlagSet(13)) {
+          iconIdx = 1;
+        } else if (flags.isFlagSet(15)) {
+          iconIdx = 2;
+        } else {
+          iconIdx = 3;
+        }
+      }
+      if (!isActive) {
+        iconIdx += 4;   // adjusting to display inactive versions of the icons
+      }
+
+      msg = anim.getAttribute(Animation.ARE_ANIMATION_NAME).toString();
+      scheduleFlags = ((Flag)anim.getAttribute(Animation.ARE_ANIMATION_ACTIVE_AT));
+
+      int baseAlpha = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_TRANSLUCENCY)).getValue();
+      if (baseAlpha < 0) baseAlpha = 0; else if (baseAlpha > 255) baseAlpha = 255;
+      baseAlpha = 255 - baseAlpha;
+
+      // initializing frames
+      if (isWBM) {
+        // using icon as placeholder
+        final BamDecoder bam = getDecoder(ICONS[iconIdx][0]);
+        animation = new BackgroundAnimationProvider(bam);
+        animation.setBaseAlpha(baseAlpha);
+        animation.setActive(isActive);
+        animation.setActiveIgnored(Settings.OverrideAnimVisibility);
+      } else if (isPVRZ) {
+        // using icon as placeholder
+        final BamDecoder bam = getDecoder(ICONS[iconIdx][0]);
+        animation = new BackgroundAnimationProvider(bam);
+        animation.setBaseAlpha(baseAlpha);
+        animation.setActive(isActive);
+        animation.setActiveIgnored(Settings.OverrideAnimVisibility);
+      } else {
+        // setting up BAM frames
+        String animFile = ((IsReference)anim.getAttribute(Animation.ARE_ANIMATION_RESREF)).getResourceName();
+        if (animFile == null || animFile.isEmpty() || "None".equalsIgnoreCase(animFile)) {
+          animFile = "";
+        }
+        boolean isPartial = flags.isFlagSet(3) && !isTorment;
+//          boolean isRandom = flags.isFlagSet(5);
+        boolean playAllFrames = flags.isFlagSet(9);   // play all cycles simultaneously
+        boolean hasExternalPalette = flags.isFlagSet(10);
+        int cycle = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_ANIMATION_INDEX)).getValue();
+        final int frameCount = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_FRAME_INDEX)).getValue();
+        int skippedFrames = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_START_DELAY)).getValue();
+        if (isSynchronized || isTorment) {
+          skippedFrames = 0;
+        }
+
+        // retrieving external palette (if available)
+        int[] palette = null;
+        if (hasExternalPalette) {
+          ResourceRef ref = (ResourceRef)anim.getAttribute(Animation.ARE_ANIMATION_PALETTE);
+          if (ref != null && !ref.isEmpty()) {
+            palette = getExternalPalette(ref.getResourceName());
+          }
+        }
+
+        // generating unique key from BAM filename and optional palette hashcode
+        keyAnim = String.format("%s", animFile);
+        final BamDecoder bam;
+        if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
+          ResourceEntry bamEntry = ResourceFactory.getResourceEntry(animFile);
+          bam = BamDecoder.loadBam(bamEntry);
+          SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim, new ResourceAnimation(keyAnim, bam));
+        } else {
+          SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim);
+          bam = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.ANIMATION, keyAnim)).getData();
+        }
+        animation = new BackgroundAnimationProvider(bam);
+        animation.setPalette(palette);
+        animation.setPaletteEnabled(palette != null);
+        animation.setActive(isActive);
+        animation.setActiveIgnored(Settings.OverrideAnimVisibility);
+        animation.setBaseAlpha(baseAlpha);
+        animation.setBlended(isBlended);
+        BamDecoder.BamControl control = bam.createControl();
+        if (cycle < 0) cycle = 0; else if (cycle >= control.cycleCount()) cycle = control.cycleCount() - 1;
+        animation.setCycle(cycle);
+        animation.setLooping(!isPartial);
+        animation.setMirrored(isMirrored);
+        animation.setMultiPart(playAllFrames);
+        animation.setSelfIlluminated(isSelfIlluminated);
+        animation.setFrameCap(isPartial ? frameCount : -1);
+        animation.setStartFrame(skippedFrames);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    // Using cached icons
+    final Image[] icon = getIcons(ICONS[iconIdx]);
+    final String keyIcon = SharedResourceCache.createKey(ICONS[iconIdx])
+                         + SharedResourceCache.createKey(ICONS[iconIdx]);
+
+    IconLayerItem item1 = new IconLayerItem(anim, msg, icon[0], CENTER);
+    item1.setData(keyIcon);
+    item1.setLabelEnabled(Settings.ShowLabelAnimations);
+    item1.setName(getCategory());
+    item1.setToolTipText(msg);
+    item1.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
+    item1.setVisible(isVisible());
+    items[0] = item1;
+
+    AnimatedLayerItem item2 = new AnimatedLayerItem(anim, msg, animation);
+    item2.setData(keyAnim);
+    item2.setName(getCategory());
+    item2.setToolTipText(msg);
+    item2.setVisible(false);
+    item2.setFrameRate(10.0);
+    item2.setAutoPlay(false);
+    item2.setFrameColor(AbstractLayerItem.ItemState.NORMAL, new Color(0xA0FF0000, true));
+    item2.setFrameWidth(AbstractLayerItem.ItemState.NORMAL, 2);
+    item2.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, false);
+    item2.setFrameColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color.RED);
+    item2.setFrameWidth(AbstractLayerItem.ItemState.HIGHLIGHTED, 2);
+    item2.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, true);
+    items[1] = item2;
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -141,167 +282,16 @@ public class LayerObjectAnimation extends LayerObject
   public void setLighting(int dayTime)
   {
     AnimatedLayerItem item = (AnimatedLayerItem)items[ViewerConstants.ANIM_ITEM_REAL];
-    if (item != null) {
-      BasicAnimationProvider provider = item.getAnimation();
-      if (provider instanceof BackgroundAnimationProvider) {
-        BackgroundAnimationProvider anim = (BackgroundAnimationProvider)provider;
-        anim.setLighting(dayTime);
-      }
-      item.repaint();
+    BasicAnimationProvider provider = item.getAnimation();
+    if (provider instanceof BackgroundAnimationProvider) {
+      BackgroundAnimationProvider anim = (BackgroundAnimationProvider)provider;
+      anim.setLighting(dayTime);
     }
-  }
-
-
-  private void init()
-  {
-    if (anim != null) {
-      String keyAnim = "";
-      String msg = "";
-      int iconIdx = 0;
-      BackgroundAnimationProvider animation = null;
-      try {
-        // PST seems to ignore a couple of animation settings
-        boolean isTorment = (Profile.getEngine() == Profile.Engine.PST);
-        boolean isEE = Profile.isEnhancedEdition();
-
-        location.x = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_LOCATION_X)).getValue();
-        location.y = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_LOCATION_Y)).getValue();
-        Flag flags = (Flag)anim.getAttribute(Animation.ARE_ANIMATION_APPEARANCE);
-        final boolean isActive = flags.isFlagSet(0);
-        final boolean isBlended = flags.isFlagSet(1) || isTorment;
-        final boolean isMirrored = flags.isFlagSet(11);
-        final boolean isSelfIlluminated = !flags.isFlagSet(2);
-        boolean isSynchronized = flags.isFlagSet(4);
-        boolean isWBM = false;
-        boolean isPVRZ = false;
-        if (isEE) {
-          isWBM = flags.isFlagSet(13);
-          isPVRZ = flags.isFlagSet(15);
-          if (flags.isFlagSet(13)) {
-            iconIdx = 1;
-          } else if (flags.isFlagSet(15)) {
-            iconIdx = 2;
-          } else {
-            iconIdx = 3;
-          }
-        }
-        if (!isActive) {
-          iconIdx += 4;   // adjusting to display inactive versions of the icons
-        }
-
-        msg = anim.getAttribute(Animation.ARE_ANIMATION_NAME).toString();
-        scheduleFlags = ((Flag)anim.getAttribute(Animation.ARE_ANIMATION_ACTIVE_AT));
-
-        int baseAlpha = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_TRANSLUCENCY)).getValue();
-        if (baseAlpha < 0) baseAlpha = 0; else if (baseAlpha > 255) baseAlpha = 255;
-        baseAlpha = 255 - baseAlpha;
-
-        // initializing frames
-        if (isWBM) {
-          // using icon as placeholder
-          final BamDecoder bam = getDecoder(ICONS[iconIdx][0]);
-          animation = new BackgroundAnimationProvider(bam);
-          animation.setBaseAlpha(baseAlpha);
-          animation.setActive(isActive);
-          animation.setActiveIgnored(Settings.OverrideAnimVisibility);
-        } else if (isPVRZ) {
-          // using icon as placeholder
-          final BamDecoder bam = getDecoder(ICONS[iconIdx][0]);
-          animation = new BackgroundAnimationProvider(bam);
-          animation.setBaseAlpha(baseAlpha);
-          animation.setActive(isActive);
-          animation.setActiveIgnored(Settings.OverrideAnimVisibility);
-        } else {
-          // setting up BAM frames
-          String animFile = ((IsReference)anim.getAttribute(Animation.ARE_ANIMATION_RESREF)).getResourceName();
-          if (animFile == null || animFile.isEmpty() || "None".equalsIgnoreCase(animFile)) {
-            animFile = "";
-          }
-          boolean isPartial = flags.isFlagSet(3) && !isTorment;
-//          boolean isRandom = flags.isFlagSet(5);
-          boolean playAllFrames = flags.isFlagSet(9);   // play all cycles simultaneously
-          boolean hasExternalPalette = flags.isFlagSet(10);
-          int cycle = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_ANIMATION_INDEX)).getValue();
-          final int frameCount = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_FRAME_INDEX)).getValue();
-          int skippedFrames = ((IsNumeric)anim.getAttribute(Animation.ARE_ANIMATION_START_DELAY)).getValue();
-          if (isSynchronized || isTorment) {
-            skippedFrames = 0;
-          }
-
-          // retrieving external palette (if available)
-          int[] palette = null;
-          if (hasExternalPalette) {
-            ResourceRef ref = (ResourceRef)anim.getAttribute(Animation.ARE_ANIMATION_PALETTE);
-            if (ref != null && !ref.isEmpty()) {
-              palette = getExternalPalette(ref.getResourceName());
-            }
-          }
-
-          // generating unique key from BAM filename and optional palette hashcode
-          keyAnim = String.format("%s", animFile);
-          final BamDecoder bam;
-          if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
-            ResourceEntry bamEntry = ResourceFactory.getResourceEntry(animFile);
-            bam = BamDecoder.loadBam(bamEntry);
-            SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim, new ResourceAnimation(keyAnim, bam));
-          } else {
-            SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim);
-            bam = ((ResourceAnimation)SharedResourceCache.get(SharedResourceCache.Type.ANIMATION, keyAnim)).getData();
-          }
-          animation = new BackgroundAnimationProvider(bam);
-          animation.setPalette(palette);
-          animation.setPaletteEnabled(palette != null);
-          animation.setActive(isActive);
-          animation.setActiveIgnored(Settings.OverrideAnimVisibility);
-          animation.setBaseAlpha(baseAlpha);
-          animation.setBlended(isBlended);
-          BamDecoder.BamControl control = bam.createControl();
-          if (cycle < 0) cycle = 0; else if (cycle >= control.cycleCount()) cycle = control.cycleCount() - 1;
-          animation.setCycle(cycle);
-          animation.setLooping(!isPartial);
-          animation.setMirrored(isMirrored);
-          animation.setMultiPart(playAllFrames);
-          animation.setSelfIlluminated(isSelfIlluminated);
-          animation.setFrameCap(isPartial ? frameCount : -1);
-          animation.setStartFrame(skippedFrames);
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
-      // Using cached icons
-      final Image[] icon = getIcons(ICONS[iconIdx]);
-      final String keyIcon = SharedResourceCache.createKey(ICONS[iconIdx])
-                           + SharedResourceCache.createKey(ICONS[iconIdx]);
-
-      IconLayerItem item1 = new IconLayerItem(anim, msg, icon[0], CENTER);
-      item1.setData(keyIcon);
-      item1.setLabelEnabled(Settings.ShowLabelAnimations);
-      item1.setName(getCategory());
-      item1.setToolTipText(msg);
-      item1.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icon[1]);
-      item1.setVisible(isVisible());
-      items[0] = item1;
-
-      AnimatedLayerItem item2 = new AnimatedLayerItem(anim, msg, animation);
-      item2.setData(keyAnim);
-      item2.setName(getCategory());
-      item2.setToolTipText(msg);
-      item2.setVisible(false);
-      item2.setFrameRate(10.0);
-      item2.setAutoPlay(false);
-      item2.setFrameColor(AbstractLayerItem.ItemState.NORMAL, new Color(0xA0FF0000, true));
-      item2.setFrameWidth(AbstractLayerItem.ItemState.NORMAL, 2);
-      item2.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, false);
-      item2.setFrameColor(AbstractLayerItem.ItemState.HIGHLIGHTED, Color.RED);
-      item2.setFrameWidth(AbstractLayerItem.ItemState.HIGHLIGHTED, 2);
-      item2.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, true);
-      items[1] = item2;
-    }
+    item.repaint();
   }
 
   /** Loads a palette from the specified BMP resource (only 8-bit standard BMPs supported). */
-  private int[] getExternalPalette(String bmpFile)
+  private static int[] getExternalPalette(String bmpFile)
   {
     int[] retVal = null;
     if (bmpFile != null && !bmpFile.isEmpty()) {

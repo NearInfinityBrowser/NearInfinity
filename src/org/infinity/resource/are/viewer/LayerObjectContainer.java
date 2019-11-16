@@ -30,14 +30,39 @@ public class LayerObjectContainer extends LayerObject
   private final Container container;
   private final Point location = new Point();
 
-  private ShapedLayerItem item;
+  private final ShapedLayerItem item;
   private Point[] shapeCoords;
 
   public LayerObjectContainer(AreResource parent, Container container)
   {
     super("Container", Container.class, parent);
     this.container = container;
-    init();
+    String msg = null;
+    try {
+      int type = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_TYPE)).getValue();
+      if (type < 0) type = 0; else if (type >= Container.s_type.length) type = Container.s_type.length - 1;
+      msg = String.format("%s (%s) %s",
+                          container.getAttribute(Container.ARE_CONTAINER_NAME).toString(),
+                          Container.s_type[type], getAttributes());
+      int vNum = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_NUM_VERTICES)).getValue();
+      int vOfs = ((IsNumeric)parent.getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+      shapeCoords = loadVertices(container, vOfs, 0, vNum, Vertex.class);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    final Polygon poly = createPolygon(shapeCoords, 1.0);
+    final Rectangle bounds = normalizePolygon(poly);
+
+    location.x = bounds.x; location.y = bounds.y;
+    item = new ShapedLayerItem(container, msg, poly);
+    item.setName(getCategory());
+    item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
+    item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
+    item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
+    item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
+    item.setStroked(true);
+    item.setFilled(true);
+    item.setVisible(isVisible());
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -72,38 +97,6 @@ public class LayerObjectContainer extends LayerObject
     }
   }
   //</editor-fold>
-
-  private void init()
-  {
-    if (container != null) {
-      String msg = null;
-      try {
-        int type = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_TYPE)).getValue();
-        if (type < 0) type = 0; else if (type >= Container.s_type.length) type = Container.s_type.length - 1;
-        msg = String.format("%s (%s) %s",
-                            container.getAttribute(Container.ARE_CONTAINER_NAME).toString(),
-                            Container.s_type[type], getAttributes());
-        int vNum = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_NUM_VERTICES)).getValue();
-        int vOfs = ((IsNumeric)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
-        shapeCoords = loadVertices(container, vOfs, 0, vNum, Vertex.class);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      final Polygon poly = createPolygon(shapeCoords, 1.0);
-      final Rectangle bounds = normalizePolygon(poly);
-
-      location.x = bounds.x; location.y = bounds.y;
-      item = new ShapedLayerItem(container, msg, poly);
-      item.setName(getCategory());
-      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
-      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
-      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
-      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
-      item.setStroked(true);
-      item.setFilled(true);
-      item.setVisible(isVisible());
-    }
-  }
 
   private String getAttributes()
   {

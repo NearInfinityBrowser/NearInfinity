@@ -178,13 +178,12 @@ public abstract class LayerObject
    * @param type The specific vertex type to look for.
    * @return Array of Point objects containing vertex data.
    */
-  protected Point[] loadVertices(AbstractStruct superStruct, int baseOfs, int index, int count,
-                                 Class<? extends Vertex> type)
+  protected static Point[] loadVertices(AbstractStruct superStruct, int baseOfs, int index, int count,
+                                        Class<? extends Vertex> type)
   {
-    Point[] coords = null;
     if (superStruct != null && index >= 0 && count > 0 && type != null) {
       int idx = 0, cnt = 0;
-      coords = new Point[count];
+      final Point[] coords = new Point[count];
       for (final StructEntry e : superStruct.getFields()) {
         if (e.getOffset() >= baseOfs && type.isAssignableFrom(e.getClass())) {
           if (idx >= index) {
@@ -204,11 +203,9 @@ public abstract class LayerObject
       for (int i = cnt; i < coords.length; i++) {
         coords[i] = new Point();
       }
-    } else {
-      coords = new Point[0];
+      return coords;
     }
-
-    return coords;
+    return new Point[0];
   }
 
   /**
@@ -217,7 +214,7 @@ public abstract class LayerObject
    * @param zoomFactor Coordinates will be scaled by this value.
    * @return A {@code Polygon} object.
    */
-  protected Polygon createPolygon(Point[] coords, double zoomFactor)
+  protected static Polygon createPolygon(Point[] coords, double zoomFactor)
   {
     Polygon poly = new Polygon();
     if (coords != null) {
@@ -235,7 +232,7 @@ public abstract class LayerObject
    * @param poly The polygon to normalize (will be processed in place).
    * @return Bounding box of the polygon in global coordinates.
    */
-  protected Rectangle normalizePolygon(Polygon poly)
+  protected static Rectangle normalizePolygon(Polygon poly)
   {
     if (poly != null) {
       Rectangle r = poly.getBounds();
@@ -251,7 +248,7 @@ public abstract class LayerObject
    * @param flags The appearance schedule.
    * @param dayTime The desired day time.
    */
-  protected boolean isActiveAt(Flag flags, int dayTime)
+  protected static boolean isActiveAt(Flag flags, int dayTime)
   {
     if (flags != null && flags.getSize() > 2) {
       if (dayTime == ViewerConstants.LIGHTING_NIGHT) {

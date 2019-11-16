@@ -34,16 +34,72 @@ public class LayerObjectIniActor extends LayerObjectActor
   private static final Point CENTER = new Point(12, 40);
 
   private final PlainTextResource ini;
-  private final IniMapSection creData;
-  private final int creIndex;
 
-  public LayerObjectIniActor(PlainTextResource ini, IniMapSection creData, int creIndex) throws Exception
+  public LayerObjectIniActor(PlainTextResource ini, IniMapSection creData, int creIndex) throws IllegalArgumentException
   {
     super(CreResource.class, null);
     this.ini = ini;
-    this.creData = creData;
-    this.creIndex = creIndex;
-    init();
+    // preparations
+    IniMapEntry entrySpec = creData.getEntry("spec");
+    int[] object = (entrySpec != null) ? IniMapEntry.splitObjectValue(entrySpec.getValue()) : null;
+
+    IniMapEntry entryPoint = creData.getEntry("spawn_point");
+    if (entryPoint == null) {
+      throw new IllegalArgumentException(creData.getName() + ": Invalid spawn point - entry \"spawn_point\" not found in .INI");
+    }
+    String[] position = IniMapEntry.splitValues(entryPoint.getValue(), IniMapEntry.REGEX_POSITION);
+    if (position == null || creIndex >= position.length) {
+      throw new IllegalArgumentException(creData.getName() + ": Invalid spawn point index (" + creIndex + ")");
+    }
+    int[] pos = IniMapEntry.splitPositionValue(position[creIndex]);
+    if (pos == null || pos.length < 2) {
+      throw new IllegalArgumentException(creData.getName() + ": Invalid spawn point value #" + creIndex);
+    }
+
+    String sectionName = creData.getName();
+    String[] creNames = IniMapEntry.splitValues(creData.getEntry("cre_file").getValue());
+    String creName = (creNames.length > 0) ? (creNames[0] + ".cre") : null;
+    ResourceEntry creEntry = ResourceFactory.getResourceEntry(creName);
+    if (creEntry == null) {
+      throw new IllegalArgumentException(creData.getName() + ": Invalid CRE resref (" + creName + ")");
+    }
+    CreResource cre = null;
+    try {
+      cre = new CreResource(creEntry);
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new IllegalArgumentException(creData.getName() + ": Invalid CRE resource", e);
+    }
+
+    // initializations
+    final String msg = cre.getAttribute(CreResource.CRE_NAME).toString() + " [" + sectionName + "]";
+    int ea = ((IsNumeric)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
+    location.x = pos[0];
+    location.y = pos[1];
+
+    // checking for overridden allegiance
+    if (object != null && object.length > 0 && object[0] != 0) {
+      ea = object[0];
+    }
+
+    Image[] icons;
+    if (ea >= 2 && ea <= 30) {
+      icons = ICONS_GOOD;
+    } else if (ea >= 200) {
+      icons = ICONS_EVIL;
+    } else {
+      icons = ICONS_NEUTRAL;
+    }
+
+    // Using cached icons
+    icons = getIcons(icons);
+
+    ini.setHighlightedLine(creData.getLine() + 1);
+    item = new IconLayerItem(ini, msg, icons[0], CENTER);
+    item.setLabelEnabled(Settings.ShowLabelActorsIni);
+    item.setName(getCategory());
+    item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
+    item.setVisible(isVisible());
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -59,71 +115,4 @@ public class LayerObjectIniActor extends LayerObjectActor
     return true;  // always active
   }
   //</editor-fold>
-
-  private void init() throws Exception
-  {
-    if (ini != null && creData != null && creIndex >= 0) {
-      // preparations
-      IniMapEntry entrySpec = creData.getEntry("spec");
-      int[] object = (entrySpec != null) ? IniMapEntry.splitObjectValue(entrySpec.getValue()) : null;
-
-      IniMapEntry entryPoint = creData.getEntry("spawn_point");
-      if (entryPoint == null) {
-        throw new Exception(creData.getName() + ": Invalid spawn point - entry \"spawn_point\" not found in .INI");
-      }
-      String[] position = IniMapEntry.splitValues(entryPoint.getValue(), IniMapEntry.REGEX_POSITION);
-      if (position == null || creIndex >= position.length) {
-        throw new Exception(creData.getName() + ": Invalid spawn point index (" + creIndex + ")");
-      }
-      int[] pos = IniMapEntry.splitPositionValue(position[creIndex]);
-      if (pos == null || pos.length < 2) {
-        throw new Exception(creData.getName() + ": Invalid spawn point value #" + creIndex);
-      }
-
-      String sectionName = creData.getName();
-      String[] creNames = IniMapEntry.splitValues(creData.getEntry("cre_file").getValue());
-      String creName = (creNames.length > 0) ? (creNames[0] + ".cre") : null;
-      ResourceEntry creEntry = ResourceFactory.getResourceEntry(creName);
-      if (creEntry == null) {
-        throw new Exception(creData.getName() + ": Invalid CRE resref (" + creName + ")");
-      }
-      CreResource cre = null;
-      try {
-        cre = new CreResource(creEntry);
-      } catch (Exception e) {
-        e.printStackTrace();
-        throw new Exception(creData.getName() + ": Invalid CRE resource", e);
-      }
-
-      // initializations
-      final String msg = cre.getAttribute(CreResource.CRE_NAME).toString() + " [" + sectionName + "]";
-      int ea = ((IsNumeric)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
-      location.x = pos[0];
-      location.y = pos[1];
-
-      // checking for overridden allegiance
-      if (object != null && object.length > 0 && object[0] != 0) {
-        ea = object[0];
-      }
-
-      Image[] icons;
-      if (ea >= 2 && ea <= 30) {
-        icons = ICONS_GOOD;
-      } else if (ea >= 200) {
-        icons = ICONS_EVIL;
-      } else {
-        icons = ICONS_NEUTRAL;
-      }
-
-      // Using cached icons
-      icons = getIcons(icons);
-
-      ini.setHighlightedLine(creData.getLine() + 1);
-      item = new IconLayerItem(ini, msg, icons[0], CENTER);
-      item.setLabelEnabled(Settings.ShowLabelActorsIni);
-      item.setName(getCategory());
-      item.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
-      item.setVisible(isVisible());
-    }
-  }
 }

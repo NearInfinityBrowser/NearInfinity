@@ -62,6 +62,7 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient, AreResource>
    * Sets the visibility state of all items in the layer. Takes enabled states of the different
    * item types into account.
    */
+  @Override
   public void setLayerVisible(boolean visible)
   {
     setVisibilityState(visible);

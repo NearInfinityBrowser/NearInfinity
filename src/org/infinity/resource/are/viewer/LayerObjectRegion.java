@@ -33,14 +33,45 @@ public class LayerObjectRegion extends LayerObject
   private final ITEPoint region;
   private final Point location = new Point();
 
-  private ShapedLayerItem item;
+  private final ShapedLayerItem item;
   private Point[] shapeCoords;
 
   public LayerObjectRegion(AreResource parent, ITEPoint region)
   {
     super("Region", ITEPoint.class, parent);
     this.region = region;
-    init();
+    String msg = null;
+    int type = 0;
+    try {
+      type = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_TYPE)).getValue();
+      if (type < 0) type = 0; else if (type >= ITEPoint.s_type.length) type = ITEPoint.s_type.length - 1;
+
+      final IsTextual info = (IsTextual)region.getAttribute(ITEPoint.ARE_TRIGGER_INFO_POINT_TEXT);
+      msg = String.format("%s (%s) %s\n%s",
+                          region.getAttribute(ITEPoint.ARE_TRIGGER_NAME).toString(),
+                          ITEPoint.s_type[type], getAttributes(),
+                          // For "1 - Info point" show description
+                          type == 1 && info != null ? info.getText() : "");
+      final int vNum = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_NUM_VERTICES)).getValue();
+      final int vOfs = ((IsNumeric)parent.getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+      shapeCoords = loadVertices(region, vOfs, 0, vNum, Vertex.class);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    final Polygon poly = createPolygon(shapeCoords, 1.0);
+    final Rectangle bounds = normalizePolygon(poly);
+
+    int colorType = Settings.UseColorShades ? type : 0;
+    location.x = bounds.x; location.y = bounds.y;
+    item = new ShapedLayerItem(region, msg, poly);
+    item.setName(getCategory());
+    item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[colorType][0]);
+    item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[colorType][1]);
+    item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[colorType][2]);
+    item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[colorType][3]);
+    item.setStroked(true);
+    item.setFilled(true);
+    item.setVisible(isVisible());
   }
 
   //<editor-fold defaultstate="collapsed" desc="LayerObject">
@@ -74,44 +105,6 @@ public class LayerObjectRegion extends LayerObject
     }
   }
   //</editor-fold>
-
-  private void init()
-  {
-    if (region != null) {
-      String msg = null;
-      int type = 0;
-      try {
-        type = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_TYPE)).getValue();
-        if (type < 0) type = 0; else if (type >= ITEPoint.s_type.length) type = ITEPoint.s_type.length - 1;
-
-        final IsTextual info = (IsTextual)region.getAttribute(ITEPoint.ARE_TRIGGER_INFO_POINT_TEXT);
-        msg = String.format("%s (%s) %s\n%s",
-                            region.getAttribute(ITEPoint.ARE_TRIGGER_NAME).toString(),
-                            ITEPoint.s_type[type], getAttributes(),
-                            // For "1 - Info point" show description
-                            type == 1 && info != null ? info.getText() : "");
-        final int vNum = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_NUM_VERTICES)).getValue();
-        final int vOfs = ((IsNumeric)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
-        shapeCoords = loadVertices(region, vOfs, 0, vNum, Vertex.class);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      final Polygon poly = createPolygon(shapeCoords, 1.0);
-      final Rectangle bounds = normalizePolygon(poly);
-
-      int colorType = Settings.UseColorShades ? type : 0;
-      location.x = bounds.x; location.y = bounds.y;
-      item = new ShapedLayerItem(region, msg, poly);
-      item.setName(getCategory());
-      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[colorType][0]);
-      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[colorType][1]);
-      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[colorType][2]);
-      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[colorType][3]);
-      item.setStroked(true);
-      item.setFilled(true);
-      item.setVisible(isVisible());
-    }
-  }
 
   private String getAttributes()
   {
