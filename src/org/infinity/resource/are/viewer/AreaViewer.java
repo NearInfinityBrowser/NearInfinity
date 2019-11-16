@@ -2628,52 +2628,39 @@ public class AreaViewer extends ChildFrame
     public void reloadWed(int dayNight)
     {
       dayNight = (dayNight == ViewerConstants.AREA_NIGHT) ? ViewerConstants.AREA_NIGHT : ViewerConstants.AREA_DAY;
-      String wedName = "";
       ResourceRef wedRef = (ResourceRef)are.getAttribute(AreResource.ARE_WED_RESOURCE);
       if (wedRef != null) {
-        wedName = wedRef.getResourceName();
-        if ("None".equalsIgnoreCase(wedName)) {
-          wedName = "";
-        }
-
         if (dayNight == ViewerConstants.AREA_DAY) {
-          if (!wedName.isEmpty()) {
-            try {
-              wed[ViewerConstants.AREA_DAY] = new WedResource(ResourceFactory.getResourceEntry(wedName));
-            } catch (Exception e) {
-              wed[ViewerConstants.AREA_DAY] = null;
+          wed[dayNight] = null;
+          try {
+            if (!wedRef.isEmpty()) {
+              final WedResource res = new WedResource(ResourceFactory.getResourceEntry(wedRef.getResourceName()));
+              wed[dayNight] = res;
+              wedItem[dayNight] = new IconLayerItem(res, res.getName());
+              wedItem[dayNight].setVisible(false);
             }
-          } else {
-            wed[ViewerConstants.AREA_DAY] = null;
-          }
-
-          if (wed[ViewerConstants.AREA_DAY] != null) {
-            wedItem[ViewerConstants.AREA_DAY] = new IconLayerItem(wed[ViewerConstants.AREA_DAY],
-                                                                  wed[ViewerConstants.AREA_DAY].getName());
-            wedItem[ViewerConstants.AREA_DAY].setVisible(false);
+          } catch (Exception e) {
+            e.printStackTrace();
           }
         } else {
+          wed[dayNight] = wed[ViewerConstants.AREA_DAY];
           // getting extended night map
-          if (hasExtendedNight && !wedName.isEmpty()) {
+          if (hasExtendedNight && !wedRef.isEmpty()) {
+            final String wedName = wedRef.getResourceName();
             int pos = wedName.lastIndexOf('.');
             if (pos > 0) {
               String wedNameNight = wedName.substring(0, pos) + "N" + wedName.substring(pos);
               try {
-                wed[ViewerConstants.AREA_NIGHT] = new WedResource(ResourceFactory.getResourceEntry(wedNameNight));
+                wed[dayNight] = new WedResource(ResourceFactory.getResourceEntry(wedNameNight));
               } catch (Exception e) {
-                wed[ViewerConstants.AREA_NIGHT] = wed[ViewerConstants.AREA_DAY];
+                e.printStackTrace();
               }
-            } else {
-              wed[ViewerConstants.AREA_NIGHT] = wed[ViewerConstants.AREA_DAY];
             }
-          } else {
-            wed[ViewerConstants.AREA_NIGHT] = wed[ViewerConstants.AREA_DAY];
           }
 
-          if (wed[ViewerConstants.AREA_NIGHT] != null) {
-            wedItem[ViewerConstants.AREA_NIGHT] = new IconLayerItem(wed[ViewerConstants.AREA_NIGHT],
-                                                                    wed[ViewerConstants.AREA_NIGHT].getName());
-            wedItem[ViewerConstants.AREA_NIGHT].setVisible(false);
+          if (wed[dayNight] != null) {
+            wedItem[dayNight] = new IconLayerItem(wed[dayNight], wed[dayNight].getName());
+            wedItem[dayNight].setVisible(false);
           }
         }
       }
@@ -2686,44 +2673,18 @@ public class AreaViewer extends ChildFrame
     {
       if (wed[ViewerConstants.AREA_DAY] != null) {
         String mapName = wed[ViewerConstants.AREA_DAY].getName().toUpperCase(Locale.ENGLISH);
-        if (mapName.lastIndexOf('.') >= 0) {
-          mapName = mapName.substring(0, mapName.lastIndexOf('.'));
+        final int pos = mapName.lastIndexOf('.');
+        if (pos >= 0) {
+          mapName = mapName.substring(0, pos);
         }
 
         // loading search map
-        String name = mapName + "SR.BMP";
-        try {
-          mapSearch = new GraphicsResource(ResourceFactory.getResourceEntry(name));
-        } catch (Exception e) {
-          mapSearch = null;
-        }
-
+        mapSearch = loadMap(mapName + "SR.BMP", null);
         // loading height map
-        name = mapName + "HT.BMP";
-        try {
-          mapHeight = new GraphicsResource(ResourceFactory.getResourceEntry(name));
-        } catch (Exception e) {
-          mapHeight = null;
-        }
-
+        mapHeight = loadMap(mapName + "HT.BMP", null);
         // loading light map(s)
-        name = mapName + "LM.BMP";
-        try {
-          mapLight[0] = new GraphicsResource(ResourceFactory.getResourceEntry(name));
-        } catch (Exception e) {
-          mapLight[0] = null;
-        }
-        if (hasExtendedNight()) {
-          name = mapName + "LN.BMP";
-          try {
-            mapLight[1] = new GraphicsResource(ResourceFactory.getResourceEntry(name));
-          } catch (Exception e) {
-            mapLight[1] = mapLight[0];
-          }
-        } else {
-          mapLight[1] = mapLight[0];
-        }
-
+        mapLight[0] = loadMap(mapName + "LM.BMP", null);
+        mapLight[1] = hasExtendedNight ? loadMap(mapName + "LN.BMP", mapLight[0]) : mapLight[0];
       }
     }
 
@@ -2767,6 +2728,14 @@ public class AreaViewer extends ChildFrame
       return hasExtendedNight;
     }
 
+    private static GraphicsResource loadMap(String mapName, GraphicsResource def)
+    {
+      try {
+        return new GraphicsResource(ResourceFactory.getResourceEntry(mapName));
+      } catch (Exception e) {
+        return def;
+      }
+    }
 
     private void init()
     {
