@@ -293,31 +293,28 @@ public class LayerObjectAnimation extends LayerObject
   /** Loads a palette from the specified BMP resource (only 8-bit standard BMPs supported). */
   private static int[] getExternalPalette(String bmpFile)
   {
-    int[] retVal = null;
-    if (bmpFile != null && !bmpFile.isEmpty()) {
-      ResourceEntry entry = ResourceFactory.getResourceEntry(bmpFile);
-      if (entry == null) {
-        entry = new FileResourceEntry(FileManager.resolve(bmpFile));
-      }
-      try {
-        final ByteBuffer buffer = entry.getResourceBuffer();
-        if (buffer != null && buffer.limit() > 1078) {
-          final boolean isBMP = (buffer.getShort(0) == 0x4D42);   // 'BM'
-          final int palOfs = buffer.getInt(0x0e);
-          final int bpp = buffer.getShort(0x1c);
-          if (isBMP && palOfs >= 0x28 && bpp == 8) {
-            final int ofs = 0x0e + palOfs;
-            retVal = new int[256];
-            for (int i = 0; i < 256; i++) {
-              retVal[i] = buffer.getInt(ofs + i*4);
-            }
-          }
+    ResourceEntry entry = ResourceFactory.getResourceEntry(bmpFile);
+    if (entry == null) {
+      entry = new FileResourceEntry(FileManager.resolve(bmpFile));
+    }
+    try {
+      final ByteBuffer buffer = entry.getResourceBuffer();
+      if (buffer != null && buffer.limit() > 256*4 + 54) {
+        final boolean isBMP = (buffer.getShort(0) == 0x4D42);   // 'BM'
+        final int palOfs = buffer.getInt(0x0e);
+        final int bpp = buffer.getShort(0x1c);
+        if (isBMP && palOfs >= 0x28 && bpp == 8) {
+          final int ofs = 0x0e + palOfs;
+          final int[] palette = new int[256];
+          buffer.position(ofs).asIntBuffer().get(palette);
+          return palette;
         }
-      } catch (Exception e) {
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
 
-    return retVal == null ? new int[0] : retVal;
+    return new int[0];
   }
 
   private static BamDecoder getDecoder(Image icon)
