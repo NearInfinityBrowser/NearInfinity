@@ -111,17 +111,10 @@ public class LayerObjectRegion extends LayerObject
     final StringBuilder sb = new StringBuilder();
     sb.append('[');
 
-    final boolean isTrapped = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_TRAPPED)).getValue() != 0;
-    if (isTrapped) {
-      int v = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_TRAP_REMOVAL_DIFFICULTY)).getValue();
-      if (v > 0) sb.append("Trapped (").append(v).append(')');
-    }
-
-    final ResourceRef script = (ResourceRef)region.getAttribute(ITEPoint.ARE_TRIGGER_SCRIPT);
-    if (script != null && !script.isEmpty()) {
-      if (sb.length() > 1) sb.append(", ");
-      sb.append("Script: ").append(script);
-    }
+    addTrappedDesc(sb, region,
+                   ITEPoint.ARE_TRIGGER_TRAPPED,
+                   ITEPoint.ARE_TRIGGER_TRAP_REMOVAL_DIFFICULTY,
+                   ITEPoint.ARE_TRIGGER_SCRIPT);
 
     final ResourceRef dest = (ResourceRef)region.getAttribute(ITEPoint.ARE_TRIGGER_DESTINATION_AREA);
     if (dest != null && !dest.isEmpty()) {

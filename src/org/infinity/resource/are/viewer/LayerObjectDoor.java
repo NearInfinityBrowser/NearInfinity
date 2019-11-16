@@ -11,8 +11,6 @@ import java.awt.Rectangle;
 
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
-import org.infinity.datatype.IsTextual;
-import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
 import org.infinity.resource.Profile;
@@ -131,28 +129,15 @@ public class LayerObjectDoor extends LayerObject
         int bit = (Profile.getEngine() == Profile.Engine.IWD2) ? 14 : 10;
         boolean usesKey = ((Flag)door.getAttribute(Door.ARE_DOOR_FLAGS)).isFlagSet(bit);
         if (usesKey) {
-          final ResourceRef key = (ResourceRef)door.getAttribute(Door.ARE_DOOR_KEY);
-          if (key != null && !key.isEmpty()) {
-            sb.append(", Key: ").append(key);
-          }
+          addResResDesc(sb, door, Door.ARE_DOOR_KEY, "Key: ");
         }
       }
     }
 
-    final boolean isTrapped = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_TRAPPED)).getValue() != 0;
-    if (isTrapped) {
-      int v = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_TRAP_REMOVAL_DIFFICULTY)).getValue();
-      if (v > 0) {
-        if (sb.length() > 1) sb.append(", ");
-        sb.append("Trapped (").append(v).append(')');
-      }
-    }
-
-    final ResourceRef script = (ResourceRef)door.getAttribute(Door.ARE_DOOR_SCRIPT);
-    if (script != null && !script.isEmpty()) {
-      if (sb.length() > 1) sb.append(", ");
-      sb.append("Script: ").append(script);
-    }
+    addTrappedDesc(sb, door,
+                   Door.ARE_DOOR_TRAPPED,
+                   Door.ARE_DOOR_TRAP_REMOVAL_DIFFICULTY,
+                   Door.ARE_DOOR_SCRIPT);
 
     final boolean isSecret = ((Flag)door.getAttribute(Door.ARE_DOOR_FLAGS)).isFlagSet(7);
     if (isSecret) {

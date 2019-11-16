@@ -15,6 +15,8 @@ import java.util.EventListener;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.LayerItemListener;
 import org.infinity.resource.AbstractStruct;
@@ -282,5 +284,27 @@ public abstract class LayerObject
       SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icons));
     }
     return icons;
+  }
+
+  protected static void addResResDesc(StringBuilder sb, AbstractStruct struct, String resRefAttr, String desc)
+  {
+    final ResourceRef res = (ResourceRef)struct.getAttribute(resRefAttr, false);
+    if (res != null && !res.isEmpty()) {
+      if (sb.length() > 1) sb.append(", ");
+      sb.append(desc).append(res);
+    }
+  }
+
+  protected static void addTrappedDesc(StringBuilder sb, AbstractStruct struct, String trappedAttr, String difficultyAttr, String scriptAttr)
+  {
+    final boolean isTrapped = ((IsNumeric)struct.getAttribute(trappedAttr, false)).getValue() != 0;
+    if (isTrapped) {
+      int v = ((IsNumeric)struct.getAttribute(difficultyAttr, false)).getValue();
+      if (v > 0) {
+        if (sb.length() > 1) sb.append(", ");
+        sb.append("Trapped (").append(v).append(')');
+      }
+    }
+    addResResDesc(sb, struct, scriptAttr, "Script: ");
   }
 }

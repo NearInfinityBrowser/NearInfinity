@@ -11,7 +11,6 @@ import java.awt.Rectangle;
 
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
-import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
 import org.infinity.resource.Viewable;
@@ -108,27 +107,14 @@ public class LayerObjectContainer extends LayerObject
       int v = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_LOCK_DIFFICULTY)).getValue();
       if (v > 0) {
         sb.append("Locked (").append(v).append(')');
-        final ResourceRef key = (ResourceRef)container.getAttribute(Container.ARE_CONTAINER_KEY);
-        if (key != null && !key.isEmpty()) {
-          sb.append(", Key: ").append(key);
-        }
+        addResResDesc(sb, container, Container.ARE_CONTAINER_KEY, "Key: ");
       }
     }
 
-    final boolean isTrapped = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_TRAPPED)).getValue() != 0;
-    if (isTrapped) {
-      int v = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_TRAP_REMOVAL_DIFFICULTY)).getValue();
-      if (v > 0) {
-        if (sb.length() > 1) sb.append(", ");
-        sb.append("Trapped (").append(v).append(')');
-      }
-    }
-
-    final ResourceRef script = (ResourceRef)container.getAttribute(Container.ARE_CONTAINER_SCRIPT_TRAP);
-    if (script != null && !script.isEmpty()) {
-      if (sb.length() > 1) sb.append(", ");
-      sb.append("Script: ").append(script);
-    }
+    addTrappedDesc(sb, container,
+                   Container.ARE_CONTAINER_TRAPPED,
+                   Container.ARE_CONTAINER_TRAP_REMOVAL_DIFFICULTY,
+                   Container.ARE_CONTAINER_SCRIPT_TRAP);
 
     if (sb.length() == 1) sb.append("No Flags");
     sb.append(']');
