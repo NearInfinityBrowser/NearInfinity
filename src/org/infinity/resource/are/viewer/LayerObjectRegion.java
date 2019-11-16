@@ -108,38 +108,36 @@ public class LayerObjectRegion extends LayerObject
 
   private String getAttributes()
   {
-    StringBuilder sb = new StringBuilder();
-    if (region != null) {
-      sb.append('[');
+    final StringBuilder sb = new StringBuilder();
+    sb.append('[');
 
-      boolean isTrapped = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_TRAPPED)).getValue() != 0;
-      if (isTrapped) {
-        int v = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_TRAP_REMOVAL_DIFFICULTY)).getValue();
-        if (v > 0) sb.append("Trapped (").append(v).append(')');
-      }
-
-      final ResourceRef script = (ResourceRef)region.getAttribute(ITEPoint.ARE_TRIGGER_SCRIPT);
-      if (!script.isEmpty()) {
-        if (sb.length() > 1) sb.append(", ");
-        sb.append("Script: ").append(script);
-      }
-
-      final ResourceRef dest = (ResourceRef)region.getAttribute(ITEPoint.ARE_TRIGGER_DESTINATION_AREA);
-      if (!dest.isEmpty()) {
-        if (sb.length() > 1) sb.append(", ");
-
-        final AreResource self = (AreResource)getParentStructure();
-        final boolean isSelf = dest.getResourceName().equalsIgnoreCase(self.getName());
-        sb.append("Destination: ").append(isSelf ? "(this area)" : dest);
-        String entrance = ((IsTextual)region.getAttribute(ITEPoint.ARE_TRIGGER_ENTRANCE_NAME)).getText();
-        if (!entrance.isEmpty() && !entrance.equalsIgnoreCase("NONE")) {
-          sb.append('>').append(entrance);
-        }
-      }
-
-      if (sb.length() == 1) sb.append("No flags");
-      sb.append(']');
+    final boolean isTrapped = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_TRAPPED)).getValue() != 0;
+    if (isTrapped) {
+      int v = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_TRAP_REMOVAL_DIFFICULTY)).getValue();
+      if (v > 0) sb.append("Trapped (").append(v).append(')');
     }
+
+    final ResourceRef script = (ResourceRef)region.getAttribute(ITEPoint.ARE_TRIGGER_SCRIPT);
+    if (script != null && !script.isEmpty()) {
+      if (sb.length() > 1) sb.append(", ");
+      sb.append("Script: ").append(script);
+    }
+
+    final ResourceRef dest = (ResourceRef)region.getAttribute(ITEPoint.ARE_TRIGGER_DESTINATION_AREA);
+    if (dest != null && !dest.isEmpty()) {
+      if (sb.length() > 1) sb.append(", ");
+
+      final AreResource self = (AreResource)getParentStructure();
+      final boolean isSelf = dest.getResourceName().equalsIgnoreCase(self.getName());
+      sb.append("Destination: ").append(isSelf ? "(this area)" : dest);
+      String entrance = ((IsTextual)region.getAttribute(ITEPoint.ARE_TRIGGER_ENTRANCE_NAME)).getText();
+      if (!entrance.isEmpty() && !entrance.equalsIgnoreCase("NONE")) {
+        sb.append('>').append(entrance);
+      }
+    }
+
+    if (sb.length() == 1) sb.append("No flags");
+    sb.append(']');
     return sb.toString();
   }
 }

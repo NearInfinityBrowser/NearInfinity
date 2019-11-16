@@ -100,40 +100,38 @@ public class LayerObjectContainer extends LayerObject
 
   private String getAttributes()
   {
-    StringBuilder sb = new StringBuilder();
-    if (container != null) {
-      sb.append('[');
+    final StringBuilder sb = new StringBuilder();
+    sb.append('[');
 
-      boolean isLocked = ((Flag)container.getAttribute(Container.ARE_CONTAINER_FLAGS)).isFlagSet(0);
-      if (isLocked) {
-        int v = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_LOCK_DIFFICULTY)).getValue();
-        if (v > 0) {
-          sb.append("Locked (").append(v).append(')');
-          final ResourceRef key = (ResourceRef)container.getAttribute(Container.ARE_CONTAINER_KEY);
-          if (!key.isEmpty()) {
-            sb.append(", Key: ").append(key);
-          }
+    final boolean isLocked = ((Flag)container.getAttribute(Container.ARE_CONTAINER_FLAGS)).isFlagSet(0);
+    if (isLocked) {
+      int v = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_LOCK_DIFFICULTY)).getValue();
+      if (v > 0) {
+        sb.append("Locked (").append(v).append(')');
+        final ResourceRef key = (ResourceRef)container.getAttribute(Container.ARE_CONTAINER_KEY);
+        if (key != null && !key.isEmpty()) {
+          sb.append(", Key: ").append(key);
         }
       }
-
-      boolean isTrapped = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_TRAPPED)).getValue() != 0;
-      if (isTrapped) {
-        int v = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_TRAP_REMOVAL_DIFFICULTY)).getValue();
-        if (v > 0) {
-          if (sb.length() > 1) sb.append(", ");
-          sb.append("Trapped (").append(v).append(')');
-        }
-      }
-
-      final ResourceRef script = (ResourceRef)container.getAttribute(Container.ARE_CONTAINER_SCRIPT_TRAP);
-      if (!script.isEmpty()) {
-        if (sb.length() > 1) sb.append(", ");
-        sb.append("Script: ").append(script);
-      }
-
-      if (sb.length() == 1) sb.append("No Flags");
-      sb.append(']');
     }
+
+    final boolean isTrapped = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_TRAPPED)).getValue() != 0;
+    if (isTrapped) {
+      int v = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_TRAP_REMOVAL_DIFFICULTY)).getValue();
+      if (v > 0) {
+        if (sb.length() > 1) sb.append(", ");
+        sb.append("Trapped (").append(v).append(')');
+      }
+    }
+
+    final ResourceRef script = (ResourceRef)container.getAttribute(Container.ARE_CONTAINER_SCRIPT_TRAP);
+    if (script != null && !script.isEmpty()) {
+      if (sb.length() > 1) sb.append(", ");
+      sb.append("Script: ").append(script);
+    }
+
+    if (sb.length() == 1) sb.append("No Flags");
+    sb.append(']');
     return sb.toString();
   }
 }

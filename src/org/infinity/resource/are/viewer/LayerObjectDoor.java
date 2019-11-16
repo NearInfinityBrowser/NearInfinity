@@ -12,6 +12,7 @@ import java.awt.Rectangle;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsTextual;
+import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
 import org.infinity.resource.Profile;
@@ -119,50 +120,48 @@ public class LayerObjectDoor extends LayerObject
 
   private String getAttributes()
   {
-    StringBuilder sb = new StringBuilder();
-    if (door != null) {
-      sb.append('[');
+    final StringBuilder sb = new StringBuilder();
+    sb.append('[');
 
-      boolean isLocked = ((Flag)door.getAttribute(Door.ARE_DOOR_FLAGS)).isFlagSet(1);
-      if (isLocked) {
-        int v = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_LOCK_DIFFICULTY)).getValue();
-        if (v > 0) {
-          sb.append("Locked (").append(v).append(')');
-          int bit = (Profile.getEngine() == Profile.Engine.IWD2) ? 14 : 10;
-          boolean usesKey = ((Flag)door.getAttribute(Door.ARE_DOOR_FLAGS)).isFlagSet(bit);
-          if (usesKey) {
-            String key = ((IsTextual)door.getAttribute(Door.ARE_DOOR_KEY)).getText();
-            if (!key.isEmpty() && !key.equalsIgnoreCase("NONE")) {
-              sb.append(", Key: ").append(key).append(".ITM");
-            }
+    final boolean isLocked = ((Flag)door.getAttribute(Door.ARE_DOOR_FLAGS)).isFlagSet(1);
+    if (isLocked) {
+      int v = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_LOCK_DIFFICULTY)).getValue();
+      if (v > 0) {
+        sb.append("Locked (").append(v).append(')');
+        int bit = (Profile.getEngine() == Profile.Engine.IWD2) ? 14 : 10;
+        boolean usesKey = ((Flag)door.getAttribute(Door.ARE_DOOR_FLAGS)).isFlagSet(bit);
+        if (usesKey) {
+          final ResourceRef key = (ResourceRef)door.getAttribute(Door.ARE_DOOR_KEY);
+          if (key != null && !key.isEmpty()) {
+            sb.append(", Key: ").append(key);
           }
         }
       }
-
-      boolean isTrapped = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_TRAPPED)).getValue() != 0;
-      if (isTrapped) {
-        int v = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_TRAP_REMOVAL_DIFFICULTY)).getValue();
-        if (v > 0) {
-          if (sb.length() > 1) sb.append(", ");
-          sb.append("Trapped (").append(v).append(')');
-        }
-      }
-
-      String script = ((IsTextual)door.getAttribute(Door.ARE_DOOR_SCRIPT)).getText();
-      if (!script.isEmpty() && !script.equalsIgnoreCase("NONE")) {
-        if (sb.length() > 1) sb.append(", ");
-        sb.append("Script: ").append(script).append(".BCS");
-      }
-
-      boolean isSecret = ((Flag)door.getAttribute(Door.ARE_DOOR_FLAGS)).isFlagSet(7);
-      if (isSecret) {
-        if (sb.length() > 1) sb.append(", ");
-        sb.append("Secret door");
-      }
-
-      if (sb.length() == 1) sb.append("No flags");
-      sb.append(']');
     }
+
+    final boolean isTrapped = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_TRAPPED)).getValue() != 0;
+    if (isTrapped) {
+      int v = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_TRAP_REMOVAL_DIFFICULTY)).getValue();
+      if (v > 0) {
+        if (sb.length() > 1) sb.append(", ");
+        sb.append("Trapped (").append(v).append(')');
+      }
+    }
+
+    final ResourceRef script = (ResourceRef)door.getAttribute(Door.ARE_DOOR_SCRIPT);
+    if (script != null && !script.isEmpty()) {
+      if (sb.length() > 1) sb.append(", ");
+      sb.append("Script: ").append(script);
+    }
+
+    final boolean isSecret = ((Flag)door.getAttribute(Door.ARE_DOOR_FLAGS)).isFlagSet(7);
+    if (isSecret) {
+      if (sb.length() > 1) sb.append(", ");
+      sb.append("Secret door");
+    }
+
+    if (sb.length() == 1) sb.append("No flags");
+    sb.append(']');
     return sb.toString();
   }
 }
