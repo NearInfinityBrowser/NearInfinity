@@ -1186,8 +1186,8 @@ public class AreaViewer extends ChildFrame
     Rectangle view = spCanvas.getViewport().getViewRect();
     vpMapCenter.x = (view.width > mapWidth) ? mapWidth / 2 : view.x + (view.width / 2);
     vpMapCenter.y = (view.height > mapHeight) ? mapHeight / 2 : view.y + (view.height / 2);
-    vpMapCenter.x = (int)((double)vpMapCenter.x / getZoomFactor());
-    vpMapCenter.y = (int)((double)vpMapCenter.y / getZoomFactor());
+    vpMapCenter.x = (int)(vpMapCenter.x / getZoomFactor());
+    vpMapCenter.y = (int)(vpMapCenter.y / getZoomFactor());
   }
 
   /** Attempts to re-center the last known center coordinate in the current viewport. */
@@ -1196,8 +1196,8 @@ public class AreaViewer extends ChildFrame
     if (vpMapCenter != null) {
       int mapWidth = rcCanvas.getMapWidth(true);
       int mapHeight = rcCanvas.getMapHeight(true);
-      int centerX = (int)((double)vpMapCenter.x * getZoomFactor());
-      int centerY = (int)((double)vpMapCenter.y * getZoomFactor());
+      final int centerX = (int)(vpMapCenter.x * getZoomFactor());
+      final int centerY = (int)(vpMapCenter.y * getZoomFactor());
       JViewport vp = spCanvas.getViewport();
       Rectangle view = vp.getViewRect();
       Point newView = new Point(view.getLocation());
@@ -1221,8 +1221,8 @@ public class AreaViewer extends ChildFrame
   private Point canvasToMapCoordinates(Point coords)
   {
     if (coords != null) {
-      coords.x = (int)((double)coords.x / getZoomFactor());
-      coords.y = (int)((double)coords.y / getZoomFactor());
+      coords.x = (int)(coords.x / getZoomFactor());
+      coords.y = (int)(coords.y / getZoomFactor());
     }
     return coords;
   }
@@ -1469,13 +1469,13 @@ public class AreaViewer extends ChildFrame
   private Window getViewerWindow(AbstractStruct as)
   {
     if (as != null) {
-      if (as.getViewer() != null && as.getViewer().getParent() != null) {
+      final StructViewer sv = as.getViewer();
+      if (sv != null && sv.getParent() != null) {
         // Determining whether the structure is associated with any open NearInfinity window
-        StructViewer sv = as.getViewer();
         Component[] list = sv.getParent().getComponents();
         if (list != null) {
-          for (int i = 0; i < list.length; i++) {
-            if (list[i] == sv) {
+          for (final Component comp : list) {
+            if (comp == sv) {
               Component c = sv.getParent();
               while (c != null) {
                 if (c instanceof Window) {
@@ -1559,9 +1559,8 @@ public class AreaViewer extends ChildFrame
     if (layerManager != null) {
       List<? extends LayerObject> list = layerManager.getLayerObjects(LayerType.ANIMATION);
       if (list != null) {
-        for (int i = 0, size = list.size(); i < size; i++) {
-          LayerObjectAnimation obj = (LayerObjectAnimation)list.get(i);
-          obj.setLighting(visualState);
+        for (final LayerObject obj : list) {
+          ((LayerObjectAnimation)obj).setLighting(visualState);
         }
       }
     }
@@ -1682,8 +1681,8 @@ public class AreaViewer extends ChildFrame
     if (layer != null && layerManager != null) {
       List<? extends LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(layer));
       if (list != null) {
-        for (int i = 0, size = list.size(); i < size; i++) {
-          removeLayerItem(layer, list.get(i));
+        for (final LayerObject obj : list) {
+          removeLayerItem(layer, obj);
         }
       }
     }
@@ -1749,8 +1748,8 @@ public class AreaViewer extends ChildFrame
   /** Updates all items of all available layers. */
   private void updateLayerItems()
   {
-    for (int i = 0, lloSize = Settings.ListLayerOrder.size(); i < lloSize; i++) {
-      updateLayerItems(Settings.ListLayerOrder.get(i));
+    for (final LayerStackingType type : Settings.ListLayerOrder) {
+      updateLayerItems(type);
     }
   }
 
@@ -1760,8 +1759,8 @@ public class AreaViewer extends ChildFrame
     if (layer != null && layerManager != null) {
       List<? extends LayerObject> list = layerManager.getLayerObjects(Settings.stackingToLayer(layer));
       if (list != null) {
-        for (int i = 0, size = list.size(); i < size; i++) {
-          updateLayerItem(list.get(i));
+        for (final LayerObject obj : list) {
+          updateLayerItem(obj);
         }
       }
     }
@@ -1865,7 +1864,6 @@ public class AreaViewer extends ChildFrame
     if (vs.settingsChanged()) {
       applySettings();
     }
-    vs = null;
   }
 
   /** Applies current global area viewer settings. */
@@ -2607,7 +2605,7 @@ public class AreaViewer extends ChildFrame
                                                     optionType, JOptionPane.WARNING_MESSAGE, null,
                                                     options[optionIndex], options[optionIndex][0]);
           if (result == 0) {
-            ResourceFactory.saveResource((Resource)wed[dayNight], parent);
+            ResourceFactory.saveResource(wed[dayNight], parent);
           }
           if (result != 2) {
             wed[dayNight].setStructChanged(false);
@@ -2810,7 +2808,7 @@ public class AreaViewer extends ChildFrame
   /** Defines a panel providing controls for setting day times (either by hour or by general day time). */
   private static final class DayTimePanel extends JPanel implements ActionListener, ChangeListener
   {
-    private final List<ChangeListener> listeners = new ArrayList<ChangeListener>();
+    private final List<ChangeListener> listeners = new ArrayList<>();
     private final JRadioButton[] rbDayTime = new JRadioButton[3];
     private final ButtonPopupWindow bpwDayTime;
 
@@ -2883,15 +2881,10 @@ public class AreaViewer extends ChildFrame
     @SuppressWarnings("unused")
     public ChangeListener[] getChangeListeners()
     {
-      ChangeListener[] retVal = new ChangeListener[listeners.size()];
-      for (int i = 0, size = listeners.size(); i < size; i++) {
-        retVal[i] = listeners.get(i);
-      }
-      return retVal;
+      return listeners.toArray(new ChangeListener[listeners.size()]);
     }
 
-    // --------------------- Begin Interface ActionListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -2905,11 +2898,9 @@ public class AreaViewer extends ChildFrame
         }
       }
     }
+    //</editor-fold>
 
-    // --------------------- End Interface ActionListener ---------------------
-
-    // --------------------- Begin Interface ChangeListener ---------------------
-
+    //<editor-fold defaultstate="collapsed" desc="ChangeListener">
     @Override
     public void stateChanged(ChangeEvent event)
     {
@@ -2924,15 +2915,14 @@ public class AreaViewer extends ChildFrame
         }
       }
     }
-
-    // --------------------- End Interface ChangeListener ---------------------
+    //</editor-fold>
 
     /** Fires a stateChanged event for all registered listeners. */
     private void fireStateChanged()
     {
       ChangeEvent event = new ChangeEvent(this);
-      for (int i = 0, size = listeners.size(); i < size; i++) {
-        listeners.get(i).stateChanged(event);
+      for (final ChangeListener l : listeners) {
+        l.stateChanged(event);
       }
     }
 
@@ -2964,9 +2954,9 @@ public class AreaViewer extends ChildFrame
       rbDayTime[ViewerConstants.LIGHTING_NIGHT].addActionListener(this);
       bg.add(rbDayTime[ViewerConstants.LIGHTING_NIGHT]);
 
-      Hashtable<Integer, JLabel> table = new Hashtable<Integer, JLabel>();
+      final Hashtable<Integer, JLabel> table = new Hashtable<>();
       for (int i = 0; i < 24; i += 4) {
-        table.put(Integer.valueOf(i), new JLabel(String.format("%02d:00", i)));
+        table.put(i, new JLabel(String.format("%02d:00", i)));
       }
       sHours = new JSlider(0, 23, hour);
       sHours.addChangeListener(this);
@@ -3017,13 +3007,6 @@ public class AreaViewer extends ChildFrame
   /** Adds support for visual components in JTree instances. */
   private static class ComponentTreeCellRenderer extends DefaultTreeCellRenderer
   {
-    public ComponentTreeCellRenderer()
-    {
-      super();
-    }
-
-    // --------------------- Begin Interface TreeCellRenderer ---------------------
-
     @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected,
                                                   boolean expanded, boolean leaf, int row,
@@ -3031,16 +3014,11 @@ public class AreaViewer extends ChildFrame
       if (value instanceof DefaultMutableTreeNode) {
         value = ((DefaultMutableTreeNode)value).getUserObject();
       }
-      Component c = null;
       if (value instanceof Component) {
-        c = (Component)value;
-      } else {
-        c = new JLabel((value != null) ? value.toString() : "");
+        return (Component)value;
       }
-      return c;
+      return new JLabel((value != null) ? value.toString() : "");
     }
-
-    // --------------------- End Interface TreeCellRenderer ---------------------
   }
 
 
@@ -3051,8 +3029,6 @@ public class AreaViewer extends ChildFrame
     {
       super(tree, renderer);
     }
-
-    // --------------------- Begin Interface TreeCellEditor ---------------------
 
     @Override
     public boolean isCellEditable(EventObject event)
@@ -3066,7 +3042,5 @@ public class AreaViewer extends ChildFrame
     {
       return renderer.getTreeCellRendererComponent(tree, value, isSelected, expanded, leaf, row, true);
     }
-
-    // --------------------- End Interface TreeCellEditor ---------------------
   }
 }
