@@ -21,6 +21,7 @@ import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.bcs.Compiler;
 import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.bcs.ScriptType;
+import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
@@ -34,19 +35,32 @@ import org.infinity.resource.text.PlainTextResource;
 
 public final class ReferenceSearcher extends AbstractReferenceSearcher
 {
+  /** Optional alternate name to search for. */
+  private String creDeathVar;
+
   public ReferenceSearcher(ResourceEntry targetEntry, Component parent)
   {
-    super(targetEntry, AbstractReferenceSearcher.FILE_TYPES, parent);
+    this(targetEntry, AbstractReferenceSearcher.FILE_TYPES, parent);
   }
 
   public ReferenceSearcher(ResourceEntry targetEntry, String[] fileTypes, Component parent)
   {
     super(targetEntry, fileTypes, parent);
-  }
-
-  public ReferenceSearcher(ResourceEntry targetEntry, String[] fileTypes, boolean[] preselect, Component parent)
-  {
-    super(targetEntry, fileTypes, preselect, parent);
+    if (targetEntry != null && "CRE".equalsIgnoreCase(targetEntry.getExtension())) {
+      try {
+        CreResource cre = new CreResource(targetEntry);
+        StructEntry nameEntry = cre.getAttribute(CreResource.CRE_SCRIPT_NAME);
+        if (nameEntry instanceof TextString) {
+          creDeathVar = ((TextString)nameEntry).toString().trim();
+          // ignore specific script names
+          if (creDeathVar.isEmpty() || creDeathVar.equalsIgnoreCase("None")) {
+            creDeathVar = null;
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   @Override
@@ -105,11 +119,11 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
                 }
               }
             }
-            if (!hit && targetEntryName != null) {
-              Pattern p = Pattern.compile("\\b" + targetEntryName + "\\b", Pattern.CASE_INSENSITIVE);
+            if (!hit && creDeathVar != null) {
+              Pattern p = Pattern.compile("\\b" + creDeathVar + "\\b", Pattern.CASE_INSENSITIVE);
               Matcher m = p.matcher(code);
               if (m.find()) {
-                addHit(entry, targetEntryName, sourceCode);
+                addHit(entry, creDeathVar, sourceCode);
               }
             }
           }
@@ -156,11 +170,11 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
         hit = true;
         addHit(entry, entry.getSearchString(), null);
       }
-      if (!hit && targetEntryName != null) {
-        Pattern p = Pattern.compile("\\b" + targetEntryName + "\\b", Pattern.CASE_INSENSITIVE);
+      if (!hit && creDeathVar != null) {
+        Pattern p = Pattern.compile("\\b" + creDeathVar + "\\b", Pattern.CASE_INSENSITIVE);
         Matcher m = p.matcher(code);
         if (m.find()) {
-          addHit(entry, targetEntryName, null);
+          addHit(entry, creDeathVar, null);
         }
       }
     } catch (Exception e) {
@@ -284,11 +298,11 @@ public final class ReferenceSearcher extends AbstractReferenceSearcher
     if (m.find()) {
       addHit(entry, entry.getSearchString(), null);
     }
-    if (targetEntryName != null && !targetEntryName.equalsIgnoreCase(name)) {
-      p = Pattern.compile("\\b" + targetEntryName + "\\b", Pattern.CASE_INSENSITIVE);
+    if (creDeathVar != null && !creDeathVar.equalsIgnoreCase(name)) {
+      p = Pattern.compile("\\b" + creDeathVar + "\\b", Pattern.CASE_INSENSITIVE);
       m = p.matcher(text.getText());
       if (m.find()) {
-        addHit(entry, targetEntryName, null);
+        addHit(entry, creDeathVar, null);
       }
     }
   }

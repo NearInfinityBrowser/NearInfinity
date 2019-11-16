@@ -17,14 +17,12 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
-import org.infinity.datatype.TextString;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
-import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.key.ResourceEntry;
 
 abstract class AbstractReferenceSearcher extends AbstractSearcher implements Runnable, ActionListener
@@ -44,8 +42,6 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
 
   /** Window with results of search. */
   private final ReferenceHitFrame hitFrame;
-  /** Optional alternate name to search for. */
-  protected String targetEntryName;
   /** Actual list of resources in which perform search. */
   private List<ResourceEntry> files;
 
@@ -58,21 +54,6 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
   {
     super(SEARCH_MULTI_TYPE_FORMAT, parent);
     this.targetEntry = targetEntry;
-    if (targetEntry != null && "CRE".equalsIgnoreCase(targetEntry.getExtension())) {
-      try {
-        CreResource cre = new CreResource(targetEntry);
-        StructEntry nameEntry = cre.getAttribute(CreResource.CRE_SCRIPT_NAME);
-        if (nameEntry instanceof TextString) {
-          targetEntryName = ((TextString)nameEntry).toString().trim();
-          // ignore specific script names
-          if (targetEntryName.isEmpty() || targetEntryName.equalsIgnoreCase("None")) {
-            targetEntryName = null;
-          }
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
 
     hitFrame = new ReferenceHitFrame(targetEntry, parent);
     if (filetypes.length == 1) {
