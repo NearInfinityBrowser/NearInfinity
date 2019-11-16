@@ -73,21 +73,10 @@ public class LayerObjectContainer extends LayerObject
   }
   //</editor-fold>
 
-  /**
-   * Returns vertices of the polygon used to define the container shape.
-   */
-  public Point[] getShapeCoords()
-  {
-    return shapeCoords;
-  }
-
   private void init()
   {
     if (container != null) {
-      shapeCoords = null;
       String msg = null;
-      Polygon poly = null;
-      Rectangle bounds = null;
       try {
         int type = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_TYPE)).getValue();
         if (type < 0) type = 0; else if (type >= Container.s_type.length) type = Container.s_type.length - 1;
@@ -97,20 +86,11 @@ public class LayerObjectContainer extends LayerObject
         int vNum = ((IsNumeric)container.getAttribute(Container.ARE_CONTAINER_NUM_VERTICES)).getValue();
         int vOfs = ((IsNumeric)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
         shapeCoords = loadVertices(container, vOfs, 0, vNum, Vertex.class);
-        poly = createPolygon(shapeCoords, 1.0);
-        bounds = normalizePolygon(poly);
       } catch (Exception e) {
         e.printStackTrace();
-        if (shapeCoords == null) {
-          shapeCoords = new Point[0];
-        }
-        if (poly == null) {
-          poly = new Polygon();
-        }
-        if (bounds == null) {
-          bounds = new Rectangle();
-        }
       }
+      final Polygon poly = createPolygon(shapeCoords, 1.0);
+      final Rectangle bounds = normalizePolygon(poly);
 
       location.x = bounds.x; location.y = bounds.y;
       item = new ShapedLayerItem(container, msg, poly);

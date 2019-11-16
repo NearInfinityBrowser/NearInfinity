@@ -93,11 +93,7 @@ public class LayerObjectDoor extends LayerObject
   private void init()
   {
     if (door != null) {
-      shapeCoords[ViewerConstants.DOOR_OPEN] = null;
-      shapeCoords[ViewerConstants.DOOR_CLOSED] = null;
       final String[] msg = new String[2];
-      final Polygon[] poly = new Polygon[2];
-      final Rectangle[] bounds = new Rectangle[2];
       try {
         String attr = getAttributes();
         final String name = door.getAttribute(Door.ARE_DOOR_NAME).toString();
@@ -107,33 +103,21 @@ public class LayerObjectDoor extends LayerObject
         msg[ViewerConstants.DOOR_OPEN] = String.format("%s (Open) %s", name, attr);
         int vNum = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_NUM_VERTICES_OPEN)).getValue();
         shapeCoords[ViewerConstants.DOOR_OPEN] = loadVertices(door, vOfs, 0, vNum, OpenVertex.class);
-        poly[ViewerConstants.DOOR_OPEN] = createPolygon(shapeCoords[ViewerConstants.DOOR_OPEN], 1.0);
-        bounds[ViewerConstants.DOOR_OPEN] = normalizePolygon(poly[ViewerConstants.DOOR_OPEN]);
 
         // processing closed state door
         msg[ViewerConstants.DOOR_CLOSED] = String.format("%s (Closed) %s", name, attr);
         vNum = ((IsNumeric)door.getAttribute(Door.ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
         shapeCoords[ViewerConstants.DOOR_CLOSED] = loadVertices(door, vOfs, 0, vNum, ClosedVertex.class);
-        poly[ViewerConstants.DOOR_CLOSED] = createPolygon(shapeCoords[ViewerConstants.DOOR_CLOSED], 1.0);
-        bounds[ViewerConstants.DOOR_CLOSED] = normalizePolygon(poly[ViewerConstants.DOOR_CLOSED]);
       } catch (Exception e) {
         e.printStackTrace();
-        for (int i = 0; i < 2; i++) {
-          if (shapeCoords[i] == null) {
-            shapeCoords[i] = new Point[0];
-          }
-          if (poly[i] == null) {
-            poly[i] = new Polygon();
-          }
-          if (bounds[i] == null) {
-            bounds[i] = new Rectangle();
-          }
-        }
       }
 
       for (int i = 0; i < 2; i++) {
-        location[i].x = bounds[i].x; location[i].y = bounds[i].y;
-        items[i] = new ShapedLayerItem(door, msg[i], poly[i]);
+        final Polygon poly = createPolygon(shapeCoords[i], 1.0);
+        final Rectangle bounds = normalizePolygon(poly);
+
+        location[i].x = bounds.x; location[i].y = bounds.y;
+        items[i] = new ShapedLayerItem(door, msg[i], poly);
         items[i].setName(getCategory());
         items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
         items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);

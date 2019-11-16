@@ -108,14 +108,6 @@ public class LayerObjectTransition extends LayerObject
   }
   //</editor-fold>
 
-  /**
-   * Returns the edge of the map this transition is location.
-   */
-  public int getEdge()
-  {
-    return edge;
-  }
-
   private void init()
   {
     if (destination != null && renderer != null) {
@@ -123,8 +115,7 @@ public class LayerObjectTransition extends LayerObject
       String msg = null;
       try {
         ResourceRef ref = (ResourceRef)parent.getAttribute(FIELD_NAME[edge]);
-        if (ref != null && !ref.getResourceName().isEmpty() &&
-            !"None".equalsIgnoreCase(ref.getResourceName())) {
+        if (ref != null && !ref.isEmpty()) {
           msg = String.format("Transition to %s", ref.getResourceName());
         }
       } catch (Exception e) {

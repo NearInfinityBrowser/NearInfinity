@@ -75,10 +75,7 @@ public class LayerObjectWallPoly extends LayerObject
   private void init()
   {
     if (wall != null) {
-      shapeCoords = null;
       String msg = null;
-      Polygon poly = null;
-      Rectangle bounds = null;
       try {
         final Flag flags = (Flag)wall.getAttribute(WallPolygon.WED_POLY_FLAGS, false);
         msg = flags.toString();
@@ -87,20 +84,11 @@ public class LayerObjectWallPoly extends LayerObject
         final int vOfs = ((IsNumeric)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
         int startIdx = flags.isFlagSet(2) ? 2 : 0;  // skipping first two vertices for "hovering walls"
         shapeCoords = loadVertices(wall, vOfs, startIdx, vNum - startIdx, Vertex.class);
-        poly = createPolygon(shapeCoords, 1.0);
-        bounds = normalizePolygon(poly);
       } catch (Exception e) {
         e.printStackTrace();
-        if (shapeCoords == null) {
-          shapeCoords = new Point[0];
-        }
-        if (poly == null) {
-          poly = new Polygon();
-        }
-        if (bounds == null) {
-          bounds = new Rectangle();
-        }
       }
+      final Polygon poly = createPolygon(shapeCoords, 1.0);
+      final Rectangle bounds = normalizePolygon(poly);
 
       location.x = bounds.x; location.y = bounds.y;
       item = new ShapedLayerItem(wall, msg, poly);

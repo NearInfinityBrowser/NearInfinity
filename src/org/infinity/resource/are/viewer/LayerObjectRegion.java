@@ -78,10 +78,7 @@ public class LayerObjectRegion extends LayerObject
   private void init()
   {
     if (region != null) {
-      shapeCoords = null;
       String msg = null;
-      Polygon poly = null;
-      Rectangle bounds = null;
       int type = 0;
       try {
         type = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_TYPE)).getValue();
@@ -96,20 +93,11 @@ public class LayerObjectRegion extends LayerObject
         final int vNum = ((IsNumeric)region.getAttribute(ITEPoint.ARE_TRIGGER_NUM_VERTICES)).getValue();
         final int vOfs = ((IsNumeric)getParentStructure().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
         shapeCoords = loadVertices(region, vOfs, 0, vNum, Vertex.class);
-        poly = createPolygon(shapeCoords, 1.0);
-        bounds = normalizePolygon(poly);
       } catch (Exception e) {
         e.printStackTrace();
-        if (shapeCoords == null) {
-          shapeCoords = new Point[0];
-        }
-        if (poly == null) {
-          poly = new Polygon();
-        }
-        if (bounds == null) {
-          bounds = new Rectangle();
-        }
       }
+      final Polygon poly = createPolygon(shapeCoords, 1.0);
+      final Rectangle bounds = normalizePolygon(poly);
 
       int colorType = Settings.UseColorShades ? type : 0;
       location.x = bounds.x; location.y = bounds.y;

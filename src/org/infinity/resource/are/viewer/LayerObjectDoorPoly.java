@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.util.Arrays;
 
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
@@ -91,45 +92,26 @@ public class LayerObjectDoorPoly extends LayerObject
   //</editor-fold>
 
   /**
-   * Returns the number of layer items for a specific open/closed state.
-   * @param state The state to return the number of layer items for.
-   * @return Number of layer items for this state.
-   */
-  public int getLayerItemCount(int state)
-  {
-    if (state == ViewerConstants.DOOR_OPEN) {
-      return openCount;
-    } else if (state == ViewerConstants.DOOR_CLOSED) {
-      return items.length - openCount;
-    } else {
-      return 0;
-    }
-  }
-
-  /**
    * Returns an array of layer items of the specified state.
    * @param state The state of the layer items ({@code Open} or {@code Closed}).
    * @return An array of layer items.
    */
   public AbstractLayerItem[] getLayerItems(int state)
   {
-    AbstractLayerItem[] retVal = new AbstractLayerItem[getLayerItemCount(state)];
     if (state == ViewerConstants.DOOR_OPEN) {
-      System.arraycopy(items, 0, retVal, 0, getLayerItemCount(ViewerConstants.DOOR_OPEN));
-    } else if (state == ViewerConstants.DOOR_CLOSED) {
-      System.arraycopy(items, getLayerItemCount(ViewerConstants.DOOR_OPEN), retVal, 0, getLayerItemCount(ViewerConstants.DOOR_CLOSED));
+      return Arrays.copyOf(items, openCount);
     }
-    return retVal;
+    if (state == ViewerConstants.DOOR_CLOSED) {
+      return Arrays.copyOfRange(items, openCount, items.length);
+    }
+    return new AbstractLayerItem[0];
   }
 
   private void init()
   {
     if (door != null) {
       location = null;
-      shapeCoords = null;
       String[] info = null;
-      Polygon[] poly = null;
-      Rectangle[] bounds = null;
       int count = 0;
       try {
         final int ofsOpen   = ((IsNumeric)door.getAttribute(Door.WED_DOOR_OFFSET_POLYGONS_OPEN)).getValue();
@@ -141,47 +123,26 @@ public class LayerObjectDoorPoly extends LayerObject
         location = new Point[count];
         shapeCoords = new Point[count][];
         info = new String[count];
-        poly = new Polygon[count];
-        bounds = new Rectangle[count];
 
         // processing open door polygons
-        fillData(ofsOpen  , numOpen  ,       0, info, poly, bounds);
+        fillData(ofsOpen  , numOpen  ,       0, info);
         // processing closed door polygons
-        fillData(ofsClosed, numClosed, numOpen, info, poly, bounds);
+        fillData(ofsClosed, numClosed, numOpen, info);
       } catch (Exception e) {
         e.printStackTrace();
-        if (shapeCoords == null) {
-          shapeCoords = new Point[count][];
-        }
         if (info == null) {
           info = new String[count];
-        }
-        if (poly == null) {
-          poly = new Polygon[count];
-        }
-        if (bounds == null) {
-          bounds = new Rectangle[count];
-        }
-      }
-
-      // sanity checks
-      for (int i = 0; i < count; i++) {
-        if (shapeCoords[i] == null) {
-          shapeCoords[i] = new Point[0];
-        }
-        if (poly[i] == null) {
-          poly[i] = new Polygon();
-        }
-        if (bounds[i] == null) {
-          bounds[i] = new Rectangle();
         }
       }
 
       // creating layer items
       items = new ShapedLayerItem[count];
       for (int i = 0; i < count; i++) {
-        location[i] = new Point(bounds[i].x, bounds[i].y);
-        items[i] = new ShapedLayerItem(door, info[i], poly[i]);
+        final Polygon poly = createPolygon(shapeCoords[i], 1.0);
+        final Rectangle bounds = normalizePolygon(poly);
+
+        location[i] = bounds.getLocation();
+        items[i] = new ShapedLayerItem(door, info[i], poly);
         items[i].setName(getCategory());
         items[i].setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
         items[i].setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
@@ -201,10 +162,8 @@ public class LayerObjectDoorPoly extends LayerObject
    * @param count Count of polygons for the door
    * @param offset Offset to first filled items into arrays
    * @param info Information for infopanel and tooltip. Output parameter
-   * @param poly Polygon geometry. Output parameter
-   * @param bounds Bounds of the polygons. Output parameter
    */
-  private void fillData(int start, int count, int offset, String[] info, Polygon[] poly, Rectangle[] bounds)
+  private void fillData(int start, int count, int offset, String[] info)
   {
     final String name = door.getAttribute(Door.WED_DOOR_NAME).toString();
     final int vOfs = ((IsNumeric)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES, false)).getValue();
@@ -222,8 +181,6 @@ public class LayerObjectDoorPoly extends LayerObject
       }
       final int vNum = ((IsNumeric)p.getAttribute(org.infinity.resource.wed.Polygon.WED_POLY_NUM_VERTICES, false)).getValue();
       shapeCoords[index] = loadVertices(p, vOfs, 0, vNum, Vertex.class);
-      poly[index]        = createPolygon(shapeCoords[index], 1.0);
-      bounds[index]      = normalizePolygon(poly[index]);
     }
   }
 
