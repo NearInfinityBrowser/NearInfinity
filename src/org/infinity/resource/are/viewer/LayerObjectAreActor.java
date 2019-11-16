@@ -59,10 +59,11 @@ public class LayerObjectAreActor extends LayerObjectActor
       if (obj instanceof TextString) {
         // ARE in saved game
         cre = (CreResource)actor.getAttribute(Actor.ARE_ACTOR_CRE_FILE);
-      } else if (obj instanceof ResourceRef) {
-        String creName = ((ResourceRef)obj).getResourceName();
-        if (creName.lastIndexOf('.') > 0) {
-          cre = new CreResource(ResourceFactory.getResourceEntry(creName));
+      } else
+      if (obj instanceof ResourceRef) {
+        final ResourceRef creRef = (ResourceRef)obj;
+        if (!creRef.isEmpty()) {
+          cre = new CreResource(ResourceFactory.getResourceEntry(creRef.getResourceName()));
         }
       }
       if (cre != null) {

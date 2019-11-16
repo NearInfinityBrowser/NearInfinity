@@ -11,7 +11,6 @@ import java.nio.ByteBuffer;
 
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
-import org.infinity.datatype.IsReference;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.AnimatedLayerItem;
@@ -119,10 +118,6 @@ public class LayerObjectAnimation extends LayerObject
         animation.setActiveIgnored(Settings.OverrideAnimVisibility);
       } else {
         // setting up BAM frames
-        String animFile = ((IsReference)anim.getAttribute(Animation.ARE_ANIMATION_RESREF)).getResourceName();
-        if (animFile == null || animFile.isEmpty() || "None".equalsIgnoreCase(animFile)) {
-          animFile = "";
-        }
         boolean isPartial = flags.isFlagSet(3) && !isTorment;
 //          boolean isRandom = flags.isFlagSet(5);
         boolean playAllFrames = flags.isFlagSet(9);   // play all cycles simultaneously
@@ -138,16 +133,14 @@ public class LayerObjectAnimation extends LayerObject
         int[] palette = null;
         if (hasExternalPalette) {
           ResourceRef ref = (ResourceRef)anim.getAttribute(Animation.ARE_ANIMATION_PALETTE);
-          if (ref != null && !ref.isEmpty()) {
-            palette = getExternalPalette(ref.getResourceName());
-          }
+          palette = getExternalPalette(ref);
         }
 
-        // generating unique key from BAM filename and optional palette hashcode
-        keyAnim = String.format("%s", animFile);
+        final ResourceRef animRef = (ResourceRef)anim.getAttribute(Animation.ARE_ANIMATION_RESREF);
+        keyAnim = animRef == null || animRef.isEmpty() ? "" : animRef.getResourceName();
         final BamDecoder bam;
         if (!SharedResourceCache.contains(SharedResourceCache.Type.ANIMATION, keyAnim)) {
-          ResourceEntry bamEntry = ResourceFactory.getResourceEntry(animFile);
+          final ResourceEntry bamEntry = ResourceFactory.getResourceEntry(keyAnim);
           bam = BamDecoder.loadBam(bamEntry);
           SharedResourceCache.add(SharedResourceCache.Type.ANIMATION, keyAnim, new ResourceAnimation(keyAnim, bam));
         } else {
@@ -291,8 +284,12 @@ public class LayerObjectAnimation extends LayerObject
   }
 
   /** Loads a palette from the specified BMP resource (only 8-bit standard BMPs supported). */
-  private static int[] getExternalPalette(String bmpFile)
+  private static int[] getExternalPalette(ResourceRef bmpRef)
   {
+    if (bmpRef == null || bmpRef.isEmpty()) {
+      return null;
+    }
+    final String bmpFile = bmpRef.getResourceName();
     ResourceEntry entry = ResourceFactory.getResourceEntry(bmpFile);
     if (entry == null) {
       entry = new FileResourceEntry(FileManager.resolve(bmpFile));
