@@ -48,7 +48,7 @@ public class LayerObjectTransition extends LayerObject
     try {
       final ResourceRef ref = (ResourceRef)parent.getAttribute(FIELD_NAME[this.edge]);
       if (ref != null && !ref.isEmpty()) {
-        msg = String.format("Transition to %s", ref.getResourceName());
+        msg = String.format("Transition to %s", ref);
       }
     } catch (Exception e) {
       e.printStackTrace();
