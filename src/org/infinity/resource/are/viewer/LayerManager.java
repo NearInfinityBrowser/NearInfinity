@@ -7,7 +7,6 @@ package org.infinity.resource.are.viewer;
 import java.util.EnumMap;
 import java.util.List;
 
-import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.viewer.ViewerConstants.LayerType;
 import org.infinity.resource.wed.WedResource;
@@ -359,21 +358,6 @@ public final class LayerManager
   }
 
   /**
-   * Returns a specific layer object.
-   * @param layer The layer of the object.
-   * @param index The index of the object.
-   * @return The layer object if found, {@code null} otherwise.
-   */
-  public LayerObject getLayerObject(LayerType layer, int index)
-  {
-    BasicLayer<?, ?> bl = layers.get(layer);
-    if (bl != null) {
-      return bl.getLayerObject(index);
-    }
-    return null;
-  }
-
-  /**
    * Returns a list of objects associated with the specified layer.
    * @param layer The layer of the objects
    * @return A list of objects or {@code null} if not found.
@@ -559,28 +543,6 @@ public final class LayerManager
         bl.setLayerVisible(visible);
       }
     }
-  }
-
-  /**
-   * Attempts to find the LayerObject instance the specified item belongs to.
-   * @param item The AbstractLayerItem object.
-   * @return A LayerObject instance if a match has been found, {@code null} otherwise.
-   */
-  public LayerObject getLayerObjectOf(AbstractLayerItem item)
-  {
-    if (item != null) {
-      for (final LayerType type: LayerType.values())
-      {
-        BasicLayer<?, ?> bl = layers.get(type);
-        if (bl != null) {
-          LayerObject obj = bl.getLayerObjectOf(item);
-          if (obj != null) {
-            return obj;
-          }
-        }
-      }
-    }
-    return null;
   }
 
   // Loads objects for each layer if the parent resource (are, wed) has changed.

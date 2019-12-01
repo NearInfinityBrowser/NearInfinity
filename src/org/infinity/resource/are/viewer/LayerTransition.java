@@ -29,18 +29,14 @@ public class LayerTransition extends BasicLayer<LayerObjectTransition, AreResour
     final List<LayerObjectTransition> list = getLayerObjects();
     for (int i = 0; i < LayerObjectTransition.FIELD_NAME.length; i++) {
       ResourceRef ref = (ResourceRef)parent.getAttribute(LayerObjectTransition.FIELD_NAME[i]);
-      //TODO: replace "None" to null
-      if (ref != null && !ref.getResourceName().isEmpty() && !"None".equalsIgnoreCase(ref.getResourceName())) {
-        AreResource destAre = null;
+      if (ref != null && !ref.isEmpty()) {
         try {
-          destAre = new AreResource(ResourceFactory.getResourceEntry(ref.getResourceName()));
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-        if (destAre != null) {
+          final AreResource destAre = new AreResource(ResourceFactory.getResourceEntry(ref.getResourceName()));
           LayerObjectTransition obj = new LayerObjectTransition(parent, destAre, i, getViewer().getRenderer());
           setListeners(obj);
           list.add(obj);
+        } catch (Exception e) {
+          e.printStackTrace();
         }
       }
     }

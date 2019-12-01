@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -62,6 +62,7 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient, AreResource>
    * Sets the visibility state of all items in the layer. Takes enabled states of the different
    * item types into account.
    */
+  @Override
   public void setLayerVisible(boolean visible)
   {
     setVisibilityState(visible);
@@ -155,46 +156,6 @@ public class LayerAmbient extends BasicLayer<LayerObjectAmbient, AreResource>
       count += listGlobalSounds.size();
     }
     return count;
-  }
-
-  /**
-   * Returns the layer object at the specified index of the desired sound type.
-   * @param ambientType The ambient sound type (either ViewerConstants.AMBIENT_TYPE_GLOBAL,
-   *                    ViewerConstants.AMBIENT_TYPE_LOCAL or ViewerConstants.AMBIENT_TYPE_ALL).
-   * @param index The index of the layer object.
-   * @return The layer object, of {@code null} if not available.
-   */
-  public LayerObjectAmbient getLayerObject(int ambientType, int index)
-  {
-    index = Math.min(Math.max(index, 0), getLayerObjectCount(ambientType));
-    if ((ambientType & ViewerConstants.AMBIENT_TYPE_ALL) == ViewerConstants.AMBIENT_TYPE_LOCAL) {
-      return listLocalSounds.get(index);
-    } else if ((ambientType & ViewerConstants.AMBIENT_TYPE_ALL) == ViewerConstants.AMBIENT_TYPE_GLOBAL) {
-      return listGlobalSounds.get(index);
-    } else if ((ambientType & ViewerConstants.AMBIENT_TYPE_ALL) == ViewerConstants.AMBIENT_TYPE_ALL) {
-      return getLayerObject(index);
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * Returns the list of layer objects of the specified type for direct manipulation.
-   * @param ambientType The ambient sound type (either ViewerConstants.AMBIENT_TYPE_GLOBAL,
-   *                    ViewerConstants.AMBIENT_TYPE_LOCAL or ViewerConstants.AMBIENT_TYPE_ALL).
-   * @return List of layer objects.
-   */
-  public List<LayerObjectAmbient> getLayerObjects(int ambientType)
-  {
-    if ((ambientType & ViewerConstants.AMBIENT_TYPE_ALL) == ViewerConstants.AMBIENT_TYPE_LOCAL) {
-      return listLocalSounds;
-    } else if ((ambientType & ViewerConstants.AMBIENT_TYPE_ALL) == ViewerConstants.AMBIENT_TYPE_GLOBAL) {
-      return listGlobalSounds;
-    } else if ((ambientType & ViewerConstants.AMBIENT_TYPE_ALL) == ViewerConstants.AMBIENT_TYPE_ALL) {
-      return getLayerObjects();
-    } else {
-      return new ArrayList<LayerObjectAmbient>();
-    }
   }
 
   @Override

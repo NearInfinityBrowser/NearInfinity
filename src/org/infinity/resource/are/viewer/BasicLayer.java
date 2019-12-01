@@ -98,22 +98,8 @@ public abstract class BasicLayer<E extends LayerObject, R extends AbstractStruct
   }
 
   /**
-   * Returns the layer object at the specified index.
-   * @param index The index of the layer object.
-   * @return The layer object, of {@code null} if not available.
-   */
-  public E getLayerObject(int index)
-  {
-    if (index >= 0 && index < listObjects.size()) {
-      return listObjects.get(index);
-    } else {
-      return null;
-    }
-  }
-
-  /**
    * Returns the list of layer objects for direct manipulation.
-   * @return List of layer objects.
+   * @return List of layer objects. Never {@code null}
    */
   public List<E> getLayerObjects()
   {
@@ -142,24 +128,6 @@ public abstract class BasicLayer<E extends LayerObject, R extends AbstractStruct
       }
     }
     this.visible = visible;
-  }
-
-  /**
-   * Returns the layer object containing the specified layer item.
-   * @return The object, if it has been found, {@code null} otherwise.
-   */
-  public E getLayerObjectOf(AbstractLayerItem item)
-  {
-    if (item != null) {
-      for (final E obj : listObjects) {
-        for (final AbstractLayerItem layerItem : obj.getLayerItems()) {
-          if (layerItem == item) {
-            return obj;
-          }
-        }
-      }
-    }
-    return null;
   }
 
   /**
@@ -276,12 +244,10 @@ public abstract class BasicLayer<E extends LayerObject, R extends AbstractStruct
    */
   public boolean isScheduled(int index)
   {
-    E obj = getLayerObject(index);
-    if (obj != null) {
-      return !isScheduleEnabled() || obj.isScheduled(getSchedule());
-    } else {
-      return false;
+    if (index >= 0 && index < listObjects.size()) {
+      return !isScheduleEnabled() || listObjects.get(index).isScheduled(getSchedule());
     }
+    return false;
   }
 
   /**
@@ -320,18 +286,18 @@ public abstract class BasicLayer<E extends LayerObject, R extends AbstractStruct
     return fields;
   }
 
-  /** Convenience method: sets required listeners. */
+  /**
+   * Subscribe viewer to events from all items in this object.
+   *
+   * @param obj Layer object, must not be {@code null}
+   */
   protected void setListeners(LayerObject obj)
   {
-    if (obj != null) {
-      for (final AbstractLayerItem item : obj.getLayerItems()) {
-        if (item != null) {
-          item.addActionListener(viewer.getListeners());
-          item.addLayerItemListener(viewer.getListeners());
-          item.addMouseListener(viewer.getListeners());
-          item.addMouseMotionListener(viewer.getListeners());
-        }
-      }
+    for (final AbstractLayerItem item : obj.getLayerItems()) {
+      item.addActionListener(viewer.getListeners());
+      item.addLayerItemListener(viewer.getListeners());
+      item.addMouseListener(viewer.getListeners());
+      item.addMouseMotionListener(viewer.getListeners());
     }
   }
 
