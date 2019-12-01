@@ -496,7 +496,7 @@ public class UpdaterSettings extends JDialog
         JButton b = new JButton("Check");
         b.addActionListener(getListeners());
         listCheck.add(b);
-        listValidated.add(Boolean.valueOf(false));
+        listValidated.add(false);
       }
     }
 
