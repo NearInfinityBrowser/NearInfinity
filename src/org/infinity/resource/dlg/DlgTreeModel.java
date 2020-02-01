@@ -586,6 +586,7 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
         final TransitionItem trans = slowFindTransition(dlg, (Transition)entry);
         if (trans != null) return trans;
       }
+      return null;
     }
     return elem.main;
   }
