@@ -77,7 +77,8 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   private final ItemInfo dlgInfo;
 
   private final DlgTreeModel dlgModel;
-  private JScrollPane spInfo, spTree;
+  private final JScrollPane spInfo;
+  private final JScrollPane spTree;
   private TreeWorker worker;
   private WindowBlocker blocker;
 
@@ -91,7 +92,122 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     // Expand first dialog first level
     dlgTree.expandPath(dlgModel.getMainDlgPath());
     dlgInfo = new ItemInfo();
-    initControls();
+
+    // initializing info component
+    spInfo = new JScrollPane(dlgInfo, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    spInfo.getViewport().addChangeListener((ChangeEvent e) -> {
+      // never scroll horizontally
+      JViewport vp = (JViewport)e.getSource();
+      if (vp != null) {
+        Dimension d = vp.getExtentSize();
+        if (d.width != vp.getView().getWidth()) {
+          d.height = vp.getView().getHeight();
+          vp.getView().setSize(d);
+        }
+      }
+    });
+    spInfo.getVerticalScrollBar().setUnitIncrement(16);
+
+    // initializing tree component
+    JPanel pTree = new JPanel(new GridBagLayout());
+    pTree.setBackground(dlgTree.getBackground());
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
+    pTree.add(dlgTree, gbc);
+    spTree = new JScrollPane(pTree);
+    spTree.setBorder(BorderFactory.createEmptyBorder());
+    spTree.getHorizontalScrollBar().setUnitIncrement(16);
+    spTree.getVerticalScrollBar().setUnitIncrement(16);
+
+    dlgTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    dlgTree.setRootVisible(true);
+    dlgTree.setEditable(false);
+
+    dlgTree.setCellRenderer(new DlgTreeCellRenderer(dlg));
+
+    // preventing root node from collapsing
+    dlgTree.addTreeWillExpandListener(new TreeWillExpandListener() {
+      @Override
+      public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {}
+
+      @Override
+      public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException
+      {
+        final JTree tree = (JTree)event.getSource();
+        if (event.getPath().getLastPathComponent() == tree.getModel().getRoot()) {
+          throw new ExpandVetoException(event);
+        }
+      }
+    });
+
+    // initializing popup menu
+    miEditEntry.addActionListener(this);
+    miEditEntry.setEnabled(!dlgTree.isSelectionEmpty());
+    miExpand.addActionListener(this);
+    miExpand.setEnabled(!dlgTree.isSelectionEmpty());
+    miCollapse.addActionListener(this);
+    miCollapse.setEnabled(!dlgTree.isSelectionEmpty());
+    miExpandAll.addActionListener(this);
+    miCollapseAll.addActionListener(this);
+    pmTree.add(miEditEntry);
+    pmTree.addSeparator();
+    pmTree.add(miExpand);
+    pmTree.add(miCollapse);
+    pmTree.add(miExpandAll);
+    pmTree.add(miCollapseAll);
+    dlgTree.addMouseListener(new MouseAdapter()
+    {
+      @Override
+      public void mouseClicked(MouseEvent e)
+      {
+        if (e.getClickCount() != 2) { return; }
+
+        final JTree tree = (JTree)e.getSource();
+        final TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+        if (path == null) { return; }
+
+        final Object last = path.getLastPathComponent();
+        if (!(last instanceof ItemBase)) { return; }
+
+        // If item can have children (if infinity tree option is on) or clicked
+        // item is main element, then do nothing, otherwise go to main item
+        final ItemBase item = (ItemBase)last;
+        if (item.getAllowsChildren() || item.getMain() == null) { return; }
+
+        final TreePath target = item.getMain().getPath();
+        tree.setSelectionPath(target);
+        tree.scrollPathToVisible(target);
+      }
+
+      @Override
+      public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
+
+      @Override
+      public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
+
+      private void maybeShowPopup(MouseEvent e)
+      {
+        if (e.isPopupTrigger()) {
+          final JTree tree = (JTree)e.getSource();
+          final TreePath path = tree.getClosestPathForLocation(e.getX(), e.getY());
+          tree.setSelectionPath(path);
+          final boolean isNonRoot = path != null && path.getLastPathComponent() instanceof ItemBase;
+
+          miEditEntry.setEnabled(isNonRoot && !(path.getLastPathComponent() instanceof BrokenReference));
+          miExpand.setEnabled(isNonRoot && !isNodeExpanded(path));
+          miCollapse.setEnabled(isNonRoot && !isNodeCollapsed(path));
+
+          pmTree.show(tree, e.getX(), e.getY());
+        }
+      }
+    });
+
+    // putting components together
+    JSplitPane splitv = new JSplitPane(JSplitPane.VERTICAL_SPLIT, spTree, spInfo);
+    splitv.setDividerLocation(2 * NearInfinity.getInstance().getContentPane().getHeight() / 5);
+    add(splitv, BorderLayout.CENTER);
   }
 
   //<editor-fold defaultstate="collapsed" desc="ActionListener">
@@ -354,127 +470,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
     // jumping to top of scroll area
     SwingUtilities.invokeLater(() -> spInfo.getVerticalScrollBar().setValue(0));
-  }
-
-  private void initControls()
-  {
-    // initializing info component
-    spInfo = new JScrollPane(dlgInfo, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    spInfo.getViewport().addChangeListener((ChangeEvent e) -> {
-      // never scroll horizontally
-      JViewport vp = (JViewport)e.getSource();
-      if (vp != null) {
-        Dimension d = vp.getExtentSize();
-        if (d.width != vp.getView().getWidth()) {
-          d.height = vp.getView().getHeight();
-          vp.getView().setSize(d);
-        }
-      }
-    });
-    spInfo.getVerticalScrollBar().setUnitIncrement(16);
-
-    // initializing tree component
-    JPanel pTree = new JPanel(new GridBagLayout());
-    pTree.setBackground(dlgTree.getBackground());
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.BOTH, new Insets(4, 4, 4, 4), 0, 0);
-    pTree.add(dlgTree, gbc);
-    spTree = new JScrollPane(pTree);
-    spTree.setBorder(BorderFactory.createEmptyBorder());
-    spTree.getHorizontalScrollBar().setUnitIncrement(16);
-    spTree.getVerticalScrollBar().setUnitIncrement(16);
-
-    dlgTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-    dlgTree.setRootVisible(true);
-    dlgTree.setEditable(false);
-
-    dlgTree.setCellRenderer(new DlgTreeCellRenderer(dlg));
-
-    // preventing root node from collapsing
-    dlgTree.addTreeWillExpandListener(new TreeWillExpandListener() {
-      @Override
-      public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException
-      {
-      }
-
-      @Override
-      public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException
-      {
-        final JTree tree = (JTree)event.getSource();
-        if (event.getPath().getLastPathComponent() == tree.getModel().getRoot()) {
-          throw new ExpandVetoException(event);
-        }
-      }
-    });
-
-    // initializing popup menu
-    miEditEntry.addActionListener(this);
-    miEditEntry.setEnabled(!dlgTree.isSelectionEmpty());
-    miExpand.addActionListener(this);
-    miExpand.setEnabled(!dlgTree.isSelectionEmpty());
-    miCollapse.addActionListener(this);
-    miCollapse.setEnabled(!dlgTree.isSelectionEmpty());
-    miExpandAll.addActionListener(this);
-    miCollapseAll.addActionListener(this);
-    pmTree.add(miEditEntry);
-    pmTree.addSeparator();
-    pmTree.add(miExpand);
-    pmTree.add(miCollapse);
-    pmTree.add(miExpandAll);
-    pmTree.add(miCollapseAll);
-    dlgTree.addMouseListener(new MouseAdapter()
-    {
-      @Override
-      public void mouseClicked(MouseEvent e)
-      {
-        if (e.getClickCount() != 2) { return; }
-
-        final JTree tree = (JTree)e.getSource();
-        final TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-        if (path == null) { return; }
-
-        final Object last = path.getLastPathComponent();
-        if (!(last instanceof ItemBase)) { return; }
-
-        // If item can have children (if infinity tree option is on) or clicked
-        // item is main element, then do nothing, otherwise go to main item
-        final ItemBase item = (ItemBase)last;
-        if (item.getAllowsChildren() || item.getMain() == null) { return; }
-
-        final TreePath target = item.getMain().getPath();
-        tree.setSelectionPath(target);
-        tree.scrollPathToVisible(target);
-      }
-
-      @Override
-      public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
-
-      @Override
-      public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
-
-      private void maybeShowPopup(MouseEvent e)
-      {
-        if (e.isPopupTrigger()) {
-          final JTree tree = (JTree)e.getSource();
-          final TreePath path = tree.getClosestPathForLocation(e.getX(), e.getY());
-          tree.setSelectionPath(path);
-          final boolean isNonRoot = path != null && path.getLastPathComponent() instanceof ItemBase;
-
-          miEditEntry.setEnabled(isNonRoot && !(path.getLastPathComponent() instanceof BrokenReference));
-          miExpand.setEnabled(isNonRoot && !isNodeExpanded(path));
-          miCollapse.setEnabled(isNonRoot && !isNodeCollapsed(path));
-
-          pmTree.show(tree, e.getX(), e.getY());
-        }
-      }
-    });
-
-    // putting components together
-    JSplitPane splitv = new JSplitPane(JSplitPane.VERTICAL_SPLIT, spTree, spInfo);
-    splitv.setDividerLocation(2 * NearInfinity.getInstance().getContentPane().getHeight() / 5);
-    add(splitv, BorderLayout.CENTER);
   }
 
   /** Returns true if the given path contains expanded nodes. */
