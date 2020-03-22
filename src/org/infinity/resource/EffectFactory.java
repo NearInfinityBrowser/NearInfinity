@@ -189,6 +189,37 @@ public final class EffectFactory
     "Divination water", "", "Mushroom fire", "Mushroom gray", "Mushroom green", "Shaft fire",
     "Shaft light", "Shaft white", "Hit door", "Hit finger of death"};
   public static final String[] s_cretype = {
+      // 0..9
+      "Anyone", "Undead", "Not undead", "Fire-dwelling", "Not fire-dwelling", "Humanoid",
+      "Not humanoid", "Animal", "Not animal", "Elemental",
+      // 10..19
+      "Not elemental", "Fungus", "Not fungus", "Huge creature", "Not huge creature", "Elf", "Not elf",
+      "Umber hulk", "Not umber hulk", "Half-elf",
+      // 20..29
+      "Not half-elf", "Humanoid or animal", "Not humanoid or animal", "Blind", "Not blind",
+      "Cold-dwelling", "Not cold-dwelling", "Golem", "Not golem", "Minotaur",
+      // 30..39
+      "Not minotaur", "Undead or fungus", "Not undead or fungus", "Good", "Not good", "Neutral",
+      "Not neutral", "Evil", "Not evil", "Paladin",
+      // 40..49
+      "Not paladin", "Same moral alignment as source", "Not same moral alignment as source", "Source",
+      "Not source", "Water-dwelling", "Not water-dwelling", "Breathing", "Not breathing", "Allies",
+      // 50..59
+      "Not allies", "Enemies", "Not enemies", "Fire or cold dwelling", "Not fire or cold dwelling",
+      "Unnatural", "Not unnatural", "Male", "Not male", "Lawful",
+      // 60..69
+      "Not lawful", "Chaotic", "Not chaotic", "Evasion check", "Orc", "Not orc", "Deaf", "Not deaf",
+      "Summoned creature", "Not summoned creature",
+      // 70..79
+      "Mind flayer", "Not mind flayer", "Silenced", "Not silenced", "Intelligence less than",
+      "Intelligence greater than", "Intelligence less than or equal to",
+      "Intelligence greater than or equal to", "Skald", "Not skald",
+      // 80..89
+      "Near enemies", "Not near enemies", "Drow", "Not drow", "Gray dwarf", "Not gray dwarf",
+      "Daytime", "Not daytime", "Outdoor", "Not outdoor",
+      // 90..
+      "Keg", "Not keg", "Outsider", "Not outsider"};
+  public static final String[] s_cretype2 = {
     // 0..9
     "Anyone", "Undead", "Not undead", "Fire-dwelling", "Not fire-dwelling", "Humanoid",
     "Not humanoid", "Animal", "Not animal", "Elemental",
@@ -208,17 +239,17 @@ public final class EffectFactory
     "Not allies", "Enemies", "Not enemies", "Fire or cold dwelling", "Not fire or cold dwelling",
     "Unnatural", "Not unnatural", "Male", "Not male", "Lawful",
     // 60..69
-    "Not lawful", "Chaotic", "Not chaotic", "Evasion check", "Orc", "Not orc", "Deaf", "Not deaf",
-    "Summoned creature", "Not summoned creature",
+    "Not lawful", "Chaotic", "Not chaotic", "Orc", "Not orc", "Deaf", "Not deaf", "Same alignment",
+    "Not same alignment", "Allied and same alignment",
     // 70..79
-    "Mind flayer", "Not mind flayer", "Silenced", "Not silenced", "Intelligence less than",
-    "Intelligence greater than", "Intelligence less than or equal to",
-    "Intelligence greater than or equal to", "Skald", "Not skald",
+    "Not allied and same alignment", "HP greater than value", "HP less than value", "Drow", "Not drow",
+    "Gray dwarf", "Not gray dwarf", "Summoned creature", "Not summoned creature", "Goblin",
     // 80..89
-    "Near enemies", "Not near enemies", "Drow", "Not drow", "Gray dwarf", "Not gray dwarf",
-    "Daytime", "Not daytime", "Outdoor", "Not outdoor",
+    "Not goblin", "Giant", "Not giant", "Troll", "Not troll", "Keg", "Not keg", "Human", "Not human",
+    "Yuan-ti",
     // 90..
-    "Keg", "Not keg", "Outsider", "Not outsider"};
+    "Not yuan-ti", "Outsider", "Not outsider"};
+
   public static final String[] s_sumanim = {"No animation", "Monster summoning circle",
                                             "Animal summoning circle", "Earth summoning circle",
                                             "Fire summoning circle", "Water summoning circle", "",
@@ -4956,8 +4987,8 @@ public final class EffectFactory
         break;
 
       case 402: // Apply effects list
-        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Creature type", s_cretype));
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Creature type", s_cretype2));
         restype = "SPL";
         break;
 
