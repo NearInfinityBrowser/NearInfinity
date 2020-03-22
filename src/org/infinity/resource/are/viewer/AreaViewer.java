@@ -99,7 +99,6 @@ import org.infinity.gui.layeritem.LayerItemListener;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
-import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.RestSpawn;

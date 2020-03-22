@@ -4528,6 +4528,7 @@ public class SearchResource extends ChildFrame
      * @param ext Extension, used to fill comboboxes with resources
      * @param usePrototype Use prototype string to determine size of combobox
      */
+    @SuppressWarnings("unchecked")
     public ResourcesFilterPanel(int filterCount, String nameTemplate, String ext, boolean usePrototype)
     {
       cbLabel = new JCheckBox[filterCount];
@@ -5446,6 +5447,7 @@ public class SearchResource extends ChildFrame
     private final JCheckBox[] cbLabel;
     private final JComboBox<IndexedString>[] cbCategory;
 
+    @SuppressWarnings("unchecked")
     public StoCategoriesPanel(int purchasedCount)
     {
       super();

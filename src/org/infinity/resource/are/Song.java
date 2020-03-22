@@ -14,6 +14,7 @@ import org.infinity.datatype.Song2daBitmap;
 import org.infinity.datatype.TableBitmap;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
+import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 
 public final class Song extends AbstractStruct // implements AddRemovable
@@ -57,7 +58,7 @@ public final class Song extends AbstractStruct // implements AddRemovable
     addField(new Song2daBitmap(buffer, offset + 32, 4, ARE_SONGS_BATTLE_ALTERNATE));
     addField(new Song2daBitmap(buffer, offset + 36, 4, ARE_SONGS_DEFEAT_ALTERNATE));
     final AreResource are = (AreResource)getParent();
-    if (are != null) {
+    if (are != null && !Profile.isEnhancedEdition()) {
       addField(new AreResourceRef(buffer, offset + 40, ARE_SONGS_AMBIENT_DAY_1, are));
       addField(new AreResourceRef(buffer, offset + 48, ARE_SONGS_AMBIENT_DAY_2, are));
       addField(new DecNumber(buffer, offset + 56, 4, ARE_SONGS_AMBIENT_VOLUME_DAY));

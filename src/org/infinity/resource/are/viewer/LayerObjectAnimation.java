@@ -303,7 +303,7 @@ public class LayerObjectAnimation extends LayerObject
         if (isBMP && palOfs >= 0x28 && bpp == 8) {
           final int ofs = 0x0e + palOfs;
           final int[] palette = new int[256];
-          buffer.position(ofs).asIntBuffer().get(palette);
+          ((ByteBuffer)buffer.position(ofs)).asIntBuffer().get(palette);
           return palette;
         }
       }

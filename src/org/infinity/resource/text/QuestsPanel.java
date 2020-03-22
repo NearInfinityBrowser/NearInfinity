@@ -12,7 +12,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.font.TextAttribute;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import static java.util.stream.Collectors.toList;
@@ -161,6 +160,7 @@ public final class QuestsPanel extends JPanel implements ListSelectionListener
       }
       final Font font = getFont();
       // Because of capture (symbol ?) in type signature raw type usage is required...
+      @SuppressWarnings("rawtypes")
       final Map attributes = font.getAttributes();
       attributes.put(TextAttribute.STRIKETHROUGH, true);
       setFont(font.deriveFont(attributes));
@@ -180,7 +180,6 @@ public final class QuestsPanel extends JPanel implements ListSelectionListener
         private final Color defaultForeground = getForeground();
 
         @Override
-        @SuppressWarnings("unchecked")
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
         {
           setBackground(defaultBackground);
@@ -191,6 +190,8 @@ public final class QuestsPanel extends JPanel implements ListSelectionListener
           switch (quest.evaluate(vars)) {
             case Unassigned: setForeground(Color.gray); break;
             case Completed: setupCompleted(isSelected); break;
+            default:
+              break;
           }
           return this;
         }
