@@ -770,8 +770,9 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         ta.setHighlightCurrentLine(false);
       }
       ta.setEditable(!readOnly);
-      ta.setWrapStyleWord(true);
-      ta.setLineWrap(true);
+      // TODO: setLineWrap() appears to put a high load on CPU and/or GFX; disabling for now
+//      ta.setWrapStyleWord(true);
+//      ta.setLineWrap(true);
 
       return ta;
     }
