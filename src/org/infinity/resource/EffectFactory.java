@@ -2162,6 +2162,8 @@ public final class EffectFactory
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new Bitmap(buffer, offset + 4, 4, "Panic type", new String[]{"Normal", "Harpy wail"}));
+        } else if (Profile.isEnhancedEdition()) {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Panic type", new String[] {"Normal", "Bypass immunity"}));
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
@@ -5252,6 +5254,10 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset, 4, "Icon", array));
           break;
         }
+
+        case 109: // Paralyze
+          s.add(new Bitmap(buffer, offset, 4, "Effect", new String[] {"Normal", "Fake petrification"}));
+          break;
 
         case 145: // Disable spellcasting
           s.add(new Bitmap(buffer, offset, 4, "Display message?", s_yesno));
