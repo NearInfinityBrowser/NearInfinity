@@ -8,6 +8,7 @@ import java.awt.Component;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
@@ -39,6 +40,8 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.search.SearchOptions;
 import org.infinity.util.IdsMapCache;
+import org.infinity.util.LuaEntry;
+import org.infinity.util.LuaParser;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
@@ -139,13 +142,14 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   public static final String[] s_atype_iwd2 = {"Normal", "Can't save game", "Cannot rest", "Lock battle music"};
   public static final String[] s_edge = {"No flags set", "Party required", "Party enabled"};
 
+  private static HashMap<String, String> mapNames = null; // Map ARE resref -> description
+
   private StructHexViewer hexViewer;
   private AreaViewer areaViewer;
 
   /**
-   * Retrivies localized name of the area from {@code mapname.2da} resource. If such
-   * resource does not exists, or not contains mapping for the specified area, returns
-   * {@code null}.
+   * Returns localized name of the area. If such resource does not exists, or not contains mapping
+   * for the specified area, returns {@code null}.
    *
    * @param entry Pointer to ARE resource. If {@code null}, method returns {@code null}
    * @return String with localized name of the area from male talk table
@@ -153,19 +157,90 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   public static String getSearchString(ResourceEntry entry)
   {
     String retVal = null;
-    if (entry != null && ResourceFactory.resourceExists("MAPNAME.2DA")) {
-      Table2da table = Table2daCache.get("MAPNAME.2DA");
-      if (table != null) {
-        String are = entry.getResourceName();
-        are = are.substring(0, are.lastIndexOf('.'));
-        for (int row = 0, cnt = table.getRowCount(); row < cnt; row++) {
-          if (are.equalsIgnoreCase(table.get(row, 0))) {
-            try {
-              int strref = Integer.parseInt(table.get(row, 1));
-              retVal = StringTable.getStringRef(strref);
-            } catch (NumberFormatException e) {
-            }
-          }
+    if (entry != null)
+      retVal = getMapName(entry.getResourceName());
+    return retVal;
+  }
+
+  // Returns descriptive name of specified ARE resref if available, null otherwise.
+  private static String getMapName(String resref) {
+    String retVal = null;
+    initMapNames(false);
+    if (mapNames == null)
+      return retVal;
+
+    if (resref != null) {
+      if (resref.lastIndexOf('.') > 0)
+        resref = resref.substring(0, resref.lastIndexOf('.'));
+      resref = resref.toUpperCase();
+      retVal = mapNames.getOrDefault(resref, null);
+    }
+    return retVal;
+  }
+
+  // Initializes search names for ARE resources if available
+  private static void initMapNames(boolean force) {
+    if (mapNames == null || force) {
+      mapNames = null;
+      if (Profile.isEnhancedEdition() && ResourceFactory.resourceExists("BGEE.LUA")) {
+        // Enhanced Edition 2.0+ map names
+        try {
+          // getting all cheatAreas* tables from BGEE.LUA
+          LuaEntry entries = LuaParser.Parse(ResourceFactory.getResourceEntry("BGEE.LUA"), "cheatAreas\\w*", false);
+          mapNames = createMapNamesFromLua(entries);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      } else if (ResourceFactory.resourceExists("MAPNAME.2DA")) {
+        // PST map names
+        mapNames = createMapNamesFromTable();
+      }
+    }
+  }
+
+  // Decodes area code -> area name entries from specified LuaEntry structure
+  private static HashMap<String, String> createMapNamesFromLua(LuaEntry root)
+  {
+    if (root == null || root.children.isEmpty())
+      return null;
+
+    HashMap<String, String> retVal = new HashMap<>();
+    for (LuaEntry table : root.children) {
+      for (LuaEntry area : table.children) {
+        if (area.children != null && area.children.size() >= 2) {
+          Object areaCode = area.children.get(0).value;
+          Object areaName = area.children.get(1).value;
+
+          // PSTEE-specific: area name is provided as strref
+          if (areaName instanceof Integer)
+            areaName = StringTable.getStringRef((Integer)areaName);
+
+          if (areaCode != null && areaName != null && !areaName.toString().isEmpty())
+            retVal.put(areaCode.toString().toUpperCase(), areaName.toString());
+        }
+      }
+    }
+    return retVal;
+  }
+
+  // Initializes PST map names
+  private static HashMap<String, String> createMapNamesFromTable()
+  {
+    HashMap<String, String> retVal = null;
+
+    Table2da table = Table2daCache.get("MAPNAME.2DA");
+    if (table != null) {
+      retVal = new HashMap<>(table.getRowCount());
+      for (int row = 0, cnt = table.getRowCount(); row < cnt; row++) {
+        String resref = table.get(row, 0);
+        String desc = null;
+        try {
+          int strref = Integer.parseInt(table.get(row, 1));
+          desc = StringTable.getStringRef(strref);
+        } catch (NumberFormatException e) {
+        }
+        if (resref != table.getDefaultValue() && desc != null) {
+          retVal.put(resref.toUpperCase(), desc);
         }
       }
     }
