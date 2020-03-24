@@ -25,19 +25,10 @@ public final class ViewerContainer extends JPanel
     JPanel fieldPanel = makeFieldPanel(container);
     JPanel itemPanel = ViewerUtil.makeListPanel("Items", container, Item.class, Item.ARE_ITEM_RESREF);
 
-    JPanel mainPanel = new JPanel(new GridLayout(1, 2, 3, 3));
+    JPanel mainPanel = new JPanel(new GridLayout(1, 2, 16, 3));
     mainPanel.add(fieldPanel);
     mainPanel.add(itemPanel);
-
-    GridBagLayout gbl = new GridBagLayout();
-    GridBagConstraints gbc = new GridBagConstraints();
-    setLayout(gbl);
-
-    gbc.weightx = 0.0;
-    gbc.weighty = 0.0;
-    gbc.fill = GridBagConstraints.NONE;
-    gbc.anchor = GridBagConstraints.CENTER;
-    gbl.setConstraints(mainPanel, gbc);
+    setLayout(new GridBagLayout());
     add(mainPanel);
   }
 
@@ -91,6 +82,7 @@ public final class ViewerContainer extends JPanel
                                  gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, container.getAttribute(Container.ARE_CONTAINER_TRAP_REMOVAL_DIFFICULTY),
                                  gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, container.getAttribute(Container.ARE_CONTAINER_SCRIPT_TRAP), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, container.getAttribute(Container.ARE_CONTAINER_KEY), gbl, gbc, true);
 
     JComponent check1 = ViewerUtil.makeCheckPanel((Flag)container.getAttribute(Container.ARE_CONTAINER_FLAGS), 1);
