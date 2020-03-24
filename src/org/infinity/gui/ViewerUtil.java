@@ -181,7 +181,7 @@ public final class ViewerUtil
 
   public static JPanel makeCheckPanel(Flag flag, int rows)
   {
-    JPanel panel = new JPanel(new GridLayout(0, rows, 3, 3));
+    JPanel panel = new JPanel(new GridLayout(0, rows, 8, 4));
     for (int i = 0; i < flag.getSize() << 3; i++) {
       final String label = flag.getString(i);
       if (label != null) {
@@ -192,7 +192,7 @@ public final class ViewerUtil
       }
     }
     panel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder(flag.getName()),
-                                                       BorderFactory.createEmptyBorder(3, 3, 3, 3)));
+                                                       BorderFactory.createEmptyBorder(2, 8, 2, 8)));
     return panel;
   }
 
