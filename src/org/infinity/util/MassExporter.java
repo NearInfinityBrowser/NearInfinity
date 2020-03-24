@@ -400,7 +400,6 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       // Keep trying. File may be in use by another thread.
       try (BufferedWriter bw = new BufferedWriter(tryOpenOutputWriter(output, 10, 100))) {
         bw.write(script.replaceAll("\r?\n", Misc.LINE_SEPARATOR));
-        bw.newLine();
       }
     }
   }
