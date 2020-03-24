@@ -51,13 +51,13 @@ final class Viewer extends JPanel
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     se = gam.getAttribute(GamResource.GAM_WEATHER);
     if (se != null) {
-      JPanel weatherPanel = ViewerUtil.makeCheckPanel((Flag)se, 4);
+      JPanel weatherPanel = ViewerUtil.makeCheckPanel((Flag)se, 2);
       panel.add(weatherPanel, gbc);
     }
 
     se = gam.getAttribute(GamResource.GAM_CONFIGURATION);
     if (se != null) {
-      JPanel configPanel = ViewerUtil.makeCheckPanel((Flag)se, 4);
+      JPanel configPanel = ViewerUtil.makeCheckPanel((Flag)se, 2);
       panel.add(configPanel, gbc);
     }
 
