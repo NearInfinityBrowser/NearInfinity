@@ -55,7 +55,6 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.TextResourceSearcher;
-import org.infinity.util.Misc;
 import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.StreamUtils;
 
@@ -280,7 +279,6 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     sourceText.setCaretPosition(0);
     sourceText.setAutoIndentEnabled(BrowserMenuBar.getInstance().getBcsAutoIndentEnabled());
     sourceText.addCaretListener(container.getStatusBar());
-    sourceText.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     sourceText.setMargin(new Insets(3, 3, 3, 3));
     sourceText.setLineWrap(false);
     sourceText.getDocument().addDocumentListener(this);
@@ -305,7 +303,6 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
     sourcePanel.add(bpSource, BorderLayout.SOUTH);
 
     codeText = new InfinityTextArea(true);
-    codeText.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     codeText.setMargin(new Insets(3, 3, 3, 3));
     codeText.setCaretPosition(0);
     codeText.setLineWrap(false);

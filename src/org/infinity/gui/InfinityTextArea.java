@@ -5,6 +5,7 @@
 package org.infinity.gui;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.IOException;
@@ -38,6 +39,7 @@ import org.infinity.resource.text.modes.BCSTokenMaker;
 import org.infinity.resource.text.modes.GLSLTokenMaker;
 import org.infinity.resource.text.modes.TLKTokenMaker;
 import org.infinity.resource.text.modes.WeiDULogTokenMaker;
+import org.infinity.util.Misc;
 
 /**
  * Extends {@link RSyntaxTextArea} by NearInfinity-specific features.
@@ -146,6 +148,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
       applySettings(true);
       applyExtendedSettings(null, null);
     }
+    setFont(getGlobalFont());
   }
 
   /**
@@ -160,6 +163,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
       applySettings(true);
       applyExtendedSettings(null, null);
     }
+    setFont(getGlobalFont());
   }
 
   /**
@@ -174,6 +178,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
       applySettings(true);
       applyExtendedSettings(null, null);
     }
+    setFont(getGlobalFont());
   }
 
   /**
@@ -188,6 +193,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
       applySettings(true);
       applyExtendedSettings(null, null);
     }
+    setFont(getGlobalFont());
   }
 
   /**
@@ -204,6 +210,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
       applySettings(true);
       applyExtendedSettings(null, null);
     }
+    setFont(getGlobalFont());
   }
 
   /**
@@ -221,6 +228,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
       applySettings(true);
       applyExtendedSettings(null, null);
     }
+    setFont(getGlobalFont());
   }
 
   /**
@@ -239,6 +247,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
       applySettings(true);
       applyExtendedSettings(null, null);
     }
+    setFont(getGlobalFont());
   }
 
   /**
@@ -614,6 +623,14 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
         }
       }
     }
+  }
+
+  // Returns scaled global font
+  private Font getGlobalFont() {
+    Font f = (BrowserMenuBar.getInstance() != null) ? BrowserMenuBar.getInstance().getScriptFont() : getFont();
+    if (f != null)
+      f = Misc.getScaledFont(f);
+    return f;
   }
 
 

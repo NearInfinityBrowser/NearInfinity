@@ -34,7 +34,6 @@ import javax.swing.event.TableModelListener;
 import org.infinity.NearInfinity;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.StringRef;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.InfinityScrollPane;
@@ -673,6 +672,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
 
       if (!useHighlighting) {
         textArea.applyExtendedSettings(null, null);
+        textArea.setFont(Misc.getScaledFont(textArea.getFont()));
       }
       textArea.setEditable(false);
       textArea.setHighlightCurrentLine(false);
@@ -681,7 +681,6 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         textArea.setWrapStyleWord(true);
       }
       textArea.setMargin(new Insets(3, 3, 3, 3));
-      textArea.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
       if (!useHighlighting) {
         scroll.setLineNumbersEnabled(false);

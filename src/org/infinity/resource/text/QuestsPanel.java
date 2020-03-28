@@ -36,6 +36,7 @@ import org.infinity.gui.InfinityTextArea;
 import org.infinity.resource.text.QuestsResource.Check;
 import org.infinity.resource.text.QuestsResource.Quest;
 import org.infinity.resource.text.QuestsResource.State;
+import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.Variables;
 
@@ -213,6 +214,9 @@ public final class QuestsPanel extends JPanel implements ListSelectionListener
       assignedChecks.setDefaultRenderer(Object.class, checksRenderer);
       completeChecks.setDefaultRenderer(Object.class, checksRenderer);
     }
+    this.quests.setRowHeight(Misc.getFontHeight(this.quests.getGraphics(), this.quests.getFont()));
+    assignedChecks.setRowHeight(Misc.getFontHeight(assignedChecks.getGraphics(), assignedChecks.getFont()));
+    completeChecks.setRowHeight(Misc.getFontHeight(completeChecks.getGraphics(), completeChecks.getFont()));
 
     final JPanel questInfo = new JPanel();
     questInfo.setLayout(new BoxLayout(questInfo, BoxLayout.X_AXIS));

@@ -26,7 +26,6 @@ import javax.swing.event.ListSelectionListener;
 import org.infinity.NearInfinity;
 import org.infinity.datatype.Bestiary;
 import org.infinity.datatype.StringRef;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.SortableTable;
@@ -149,7 +148,6 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
         bottomPanel.add(scrollText, BorderLayout.CENTER);
         bottomPanel.add(searchPanel, BorderLayout.EAST);
         pane.add(bottomPanel, BorderLayout.SOUTH);
-        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
         table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
         pane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
         table.getSelectionModel().addListSelectionListener(this);

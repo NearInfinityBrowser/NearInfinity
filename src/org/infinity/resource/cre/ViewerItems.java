@@ -35,6 +35,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Misc;
 
 final class ViewerItems extends JPanel implements ActionListener, ListSelectionListener, TableModelListener
 {
@@ -84,6 +85,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
     maxWidth = Math.max(maxWidth, table.getColumnModel().getColumn(0).getPreferredWidth());
     table.getColumnModel().getColumn(0).setPreferredWidth(maxWidth + 8);
     table.getColumnModel().getColumn(0).setMaxWidth(maxWidth + 100);
+    table.setRowHeight(Misc.getFontHeight(table.getGraphics(), table.getFont()));
     table.addMouseListener(new MouseAdapter()
     {
       @Override

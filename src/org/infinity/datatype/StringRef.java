@@ -153,8 +153,8 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
       taRefText = new InfinityTextArea(1, 200, true);
       if (BrowserMenuBar.getInstance().getTlkSyntaxHighlightingEnabled()) {
         taRefText.applyExtendedSettings(InfinityTextArea.Language.TLK, null);
+        taRefText.setFont(Misc.getScaledFont(taRefText.getFont()));
       }
-      taRefText.setFont(Misc.getScaledFont(taRefText.getFont()));
       taRefText.setHighlightCurrentLine(false);
       taRefText.setEditable(false);
       taRefText.setLineWrap(true);

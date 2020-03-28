@@ -64,7 +64,6 @@ public class Unknown extends Datatype implements Editable, IsBinary
       JButton bUpdate;
       if (textArea == null) {
         textArea = new InfinityTextArea(15, 5, true);
-        textArea.setFont(Misc.getScaledFont(textArea.getFont()));
         textArea.setWrapStyleWord(true);
         textArea.setLineWrap(true);
         textArea.setEOLMarkersVisible(false);

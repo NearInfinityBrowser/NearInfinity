@@ -899,6 +899,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         UIManager.put(key, new FontUIResource(f));
       }
     }
+    consoletext.setFont(Misc.getScaledFont(consoletext.getFont()));
   }
 
   private void storePreferences()

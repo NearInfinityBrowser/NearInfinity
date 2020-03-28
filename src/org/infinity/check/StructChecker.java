@@ -30,7 +30,6 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
 import org.infinity.datatype.TextString;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.SortableTable;
@@ -44,7 +43,6 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.wed.Overlay;
 import org.infinity.resource.wed.Tilemap;
-import org.infinity.util.Misc;
 
 public final class StructChecker extends AbstractChecker implements ListSelectionListener
 {
@@ -161,7 +159,6 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
       pane.add(panel, BorderLayout.SOUTH);
       bopen.setEnabled(false);
       bopennew.setEnabled(false);
-      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.getSelectionModel().addListSelectionListener(this);
       table.addMouseListener(new MouseAdapter()

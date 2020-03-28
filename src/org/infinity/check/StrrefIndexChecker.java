@@ -23,7 +23,6 @@ import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.StringRef;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.SortableTable;
@@ -47,7 +46,6 @@ import org.infinity.resource.gam.JournalEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.search.StringReferenceSearcher;
-import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
 public class StrrefIndexChecker extends AbstractChecker implements ListSelectionListener
@@ -144,7 +142,6 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
       pane.add(panel, BorderLayout.SOUTH);
       bopen.setEnabled(false);
       bopennew.setEnabled(false);
-      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.getSelectionModel().addListSelectionListener(this);
       table.addMouseListener(new MouseAdapter()

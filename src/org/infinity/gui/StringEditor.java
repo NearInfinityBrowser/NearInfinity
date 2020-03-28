@@ -191,7 +191,6 @@ public class StringEditor extends ChildFrame implements SearchClient
     table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(listeners);
-    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     table.getTableHeader().setReorderingAllowed(false);
     table.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
     JScrollPane spTable = new JScrollPane(table);
@@ -201,8 +200,8 @@ public class StringEditor extends ChildFrame implements SearchClient
     tfStrref.addActionListener(listeners);
     if (BrowserMenuBar.getInstance().getTlkSyntaxHighlightingEnabled()) {
       taText.applyExtendedSettings(InfinityTextArea.Language.TLK, null);
+      taText.setFont(Misc.getScaledFont(taText.getFont()));
     }
-    taText.setFont(Misc.getScaledFont(taText.getFont()));
     taText.setMargin(new Insets(3, 3, 3, 3));
     taText.setLineWrap(true);
     taText.setWrapStyleWord(true);

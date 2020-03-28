@@ -2188,7 +2188,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         if (FONTS[i] != null) {
           selectFont[i] = new JRadioButtonMenuItem(FONTS[i].getName() + ' ' + FONTS[i].getSize(),
                                                    i == selectedFont);
-          selectFont[i].setFont(Misc.getScaledFont(FONTS[i]));
+          //selectFont[i].setFont(Misc.getScaledFont(FONTS[i]));
         } else {
           Font font = null;
           String fontName = getPrefs().get(OPTION_FONT_NAME, "");

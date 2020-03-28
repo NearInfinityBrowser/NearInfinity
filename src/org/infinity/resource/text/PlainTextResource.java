@@ -345,6 +345,7 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
     }
     if (edit != null) {
       edit.applyExtendedSettings(language, null);
+      edit.setFont(Misc.getScaledFont(edit.getFont()));
     }
     if (pane != null) {
       pane.applyExtendedSettings(language);

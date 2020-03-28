@@ -93,7 +93,6 @@ import org.infinity.search.AttributeSearcher;
 import org.infinity.search.DialogItemRefSearcher;
 import org.infinity.search.DialogStateReferenceSearcher;
 import org.infinity.search.ReferenceSearcher;
-import org.infinity.util.Misc;
 import org.infinity.util.Pair;
 import org.infinity.util.StructClipboard;
 import org.infinity.util.io.ByteBufferOutputStream;
@@ -214,7 +213,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     table.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
     table.getSelectionModel().addListSelectionListener(this);
-    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.addMouseListener(new MouseAdapter()
     {
@@ -298,7 +296,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     tatext.setEOLMarkersVisible(false);
     tatext.setEditable(false);
     tatext.setMargin(new Insets(3, 3, 3, 3));
-    tatext.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     InfinityScrollPane scroll = new InfinityScrollPane(tatext, true);
     scroll.setLineNumbersEnabled(false);
     table.setModel(struct);

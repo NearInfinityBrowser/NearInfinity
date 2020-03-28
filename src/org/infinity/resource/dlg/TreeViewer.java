@@ -44,7 +44,6 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.infinity.NearInfinity;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.LinkButton;
 import org.infinity.gui.ScriptTextArea;
 import org.infinity.gui.StructViewer;
@@ -53,7 +52,6 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.StructEntry;
-import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
 
@@ -573,7 +571,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       pStateWAV.add(lbStateWAV, gbc);
 
       taStateTrigger = createScriptTextArea(true);
-      taStateTrigger.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       taStateTrigger.setMargin(new Insets(0, 4, 0, 4));
       pStateTrigger = new JPanel(new BorderLayout());
       pStateTrigger.setBorder(createTitledBorder(StateTrigger.DLG_STATETRIGGER, Font.BOLD, false));
@@ -617,14 +614,12 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       pResponseJournal.add(taResponseJournal, BorderLayout.CENTER);
 
       taResponseTrigger = createScriptTextArea(true);
-      taResponseTrigger.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       taResponseTrigger.setMargin(new Insets(0, 4, 0, 4));
       pResponseTrigger = new JPanel(new BorderLayout());
       pResponseTrigger.setBorder(createTitledBorder(ResponseTrigger.DLG_RESPONSETRIGGER, Font.BOLD, false));
       pResponseTrigger.add(taResponseTrigger, BorderLayout.CENTER);
 
       taResponseAction = createScriptTextArea(true);
-      taResponseAction.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       taResponseAction.setMargin(new Insets(0, 4, 0, 4));
       pResponseAction = new JPanel(new BorderLayout());
       pResponseAction.setBorder(createTitledBorder(Action.DLG_ACTION, Font.BOLD, false));

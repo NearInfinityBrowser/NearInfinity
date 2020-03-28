@@ -62,6 +62,7 @@ import org.infinity.util.IniMap;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
+import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
 /**
@@ -377,6 +378,7 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       };
       table.setDefaultRenderer(Object.class, renderer);
       table.setDefaultRenderer(Integer.class, renderer);
+      table.setRowHeight(Misc.getFontHeight(table.getGraphics(), table.getFont()));
 
       openVar.addActionListener(this);
       gotoVar.addActionListener(this);

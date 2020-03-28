@@ -31,6 +31,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Misc;
 
 final class ViewerSpells extends JPanel implements ActionListener
 {
@@ -49,6 +50,7 @@ final class ViewerSpells extends JPanel implements ActionListener
     table.getColumnModel().getColumn(0).setMaxWidth(60);
     table.getColumnModel().getColumn(1).setMaxWidth(40);
     table.getColumnModel().getColumn(2).setMaxWidth(20);
+    table.setRowHeight(Misc.getFontHeight(table.getGraphics(), table.getFont()));
     table.addMouseListener(new MouseAdapter()
     {
       @Override

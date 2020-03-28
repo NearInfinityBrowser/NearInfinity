@@ -32,7 +32,6 @@ import javax.swing.event.ListSelectionListener;
 import org.infinity.NearInfinity;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.SortableTable;
@@ -56,7 +55,6 @@ import org.infinity.resource.dlg.Transition;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.search.AbstractSearcher;
-import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
 public final class ResourceUseChecker extends AbstractSearcher implements Runnable, ListSelectionListener, ActionListener
@@ -219,7 +217,6 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
         pane.add(panel, BorderLayout.SOUTH);
         bopen.setEnabled(false);
         bopennew.setEnabled(false);
-        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
         table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
         table.addMouseListener(new MouseAdapter()
         {
