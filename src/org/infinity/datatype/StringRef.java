@@ -11,6 +11,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -21,7 +23,10 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.JSpinner.DefaultEditor;
+import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -149,6 +154,26 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
     if (sRefNr == null) {
       sRefNr = new JSpinner(new SpinnerNumberModel((long)value, -0x80000000L, 0xFFFFFFFFL, 1L));
       sRefNr.setEditor(new JSpinner.NumberEditor(sRefNr, "#")); // no special formatting
+
+      // Restore click events for text field in JSpinner component
+      if (sRefNr.getEditor() instanceof DefaultEditor) {
+        DefaultEditor edit = (DefaultEditor)sRefNr.getEditor();
+        edit.getTextField().addMouseListener(new MouseAdapter() {
+          @Override
+          public void mouseClicked(MouseEvent e) {
+            if (SwingUtilities.isLeftMouseButton(e) && e.getSource() instanceof JTextField) {
+              JTextField edit = (JTextField)e.getSource();
+              // Invoke later to circumvent content validation (may not work correctly on every platform)
+              if (e.getClickCount() == 2) {
+                SwingUtilities.invokeLater(() -> edit.selectAll());
+              } else {
+                SwingUtilities.invokeLater(() -> edit.setCaretPosition(edit.viewToModel(e.getPoint())));
+              }
+            }
+          }
+        });
+      }
+
       sRefNr.addChangeListener(this);
       taRefText = new InfinityTextArea(1, 200, true);
       if (BrowserMenuBar.getInstance().getTlkSyntaxHighlightingEnabled()) {
