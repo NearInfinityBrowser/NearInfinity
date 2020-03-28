@@ -24,6 +24,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
+import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.SortableTable;
@@ -38,6 +39,7 @@ import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
+import org.infinity.util.Misc;
 
 /** Performs checking {@link BcsResource BCS} & {@code BS} resources. */
 public final class BCSIDSChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener
@@ -145,6 +147,7 @@ public final class BCSIDSChecker extends AbstractSearcher implements Runnable, A
         pane.add(panel, BorderLayout.SOUTH);
         bopen.setEnabled(false);
         bopennew.setEnabled(false);
+        table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
         table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
         table.getSelectionModel().addListSelectionListener(this);
         table.addMouseListener(new MouseAdapter()

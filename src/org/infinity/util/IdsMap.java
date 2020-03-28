@@ -182,10 +182,6 @@ public class IdsMap
 
   private void extractIDS(String line)
   {
-    if (line.contains("WatchersKeep")) {
-      if (true) {
-      }
-    }
     line = line.trim();
     int p = Math.min(line.indexOf(' ') & Integer.MAX_VALUE, line.indexOf('\t') & Integer.MAX_VALUE);
     if (p == Integer.MAX_VALUE) {

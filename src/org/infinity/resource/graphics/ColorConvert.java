@@ -752,7 +752,8 @@ public class ColorConvert
 
     public int getLongestSideIndex()
     {
-      int m = Integer.MIN_VALUE, maxIndex = -1;
+      int m = Integer.MIN_VALUE;
+      int maxIndex = -1;
       for (int i = 0; i < Pixel.MAX_SIZE; i++) {
         int diff = maxCorner.getElement(i) - minCorner.getElement(i);
         if (diff > m) {

@@ -323,15 +323,15 @@ public class SpellProtType extends Bitmap
               break;
             case 0x106: // areatype (like outdoors, forest, etc)
               if (isBitwiseRelation(rel) && value != -1) {
-              } else {
                 label = String.format("AREATYPE %s %s [0x%x]",
                                       getRelation(rel),
                                       getIdsValue("AREATYPE.IDS", value, isBitwiseRelation(rel)),
                                       value);
-              }
+              } else {
                 label = String.format("AREATYPE %s %s",
                                       getRelation(rel),
                                       getIdsValue("AREATYPE.IDS", value, isBitwiseRelation(rel)));
+              }
               break;
             case 0x107: // daytime
               label = String.format("Time of day is %d to %d", value, rel);

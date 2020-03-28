@@ -27,6 +27,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
+import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.SortableTable;
@@ -48,6 +49,7 @@ import org.infinity.resource.dlg.State;
 import org.infinity.resource.dlg.Transition;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.AbstractSearcher;
+import org.infinity.util.Misc;
 
 /** Performs checking {@link DlgResource DLG} resources. */
 public final class DialogChecker extends AbstractSearcher implements Runnable, ActionListener, ListSelectionListener, ChangeListener
@@ -197,8 +199,10 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
         pane.add(panel, BorderLayout.SOUTH);
         bopen.setEnabled(false);
         bopennew.setEnabled(false);
+        errorTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
         errorTable.setRowHeight(errorTable.getFontMetrics(errorTable.getFont()).getHeight() + 1);
         errorTable.getSelectionModel().addListSelectionListener(this);
+        warningTable.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
         warningTable.setRowHeight(warningTable.getFontMetrics(warningTable.getFont()).getHeight() + 1);
         warningTable.getSelectionModel().addListSelectionListener(this);
         MouseListener listener = new MouseAdapter()

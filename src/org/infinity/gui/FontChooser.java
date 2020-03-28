@@ -318,7 +318,7 @@ public class FontChooser extends JComponent
   {
     String[] names = getFontFamilies();
     for (int i = 0; i < names.length; i++) {
-      if (names[i].toLowerCase().equals(name.toLowerCase())) {
+      if (names[i].equalsIgnoreCase(name)) {
         getFontFamilyList().setSelectedIndex(i);
         break;
       }

@@ -59,6 +59,7 @@ import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.StringTable;
 
@@ -267,6 +268,7 @@ public final class ViewerUtil
       text = entry.toString();
     }
     InfinityTextArea ta = new InfinityTextArea(text, true);
+    ta.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     ta.setCaretPosition(0);
     ta.setHighlightCurrentLine(false);
     ta.setEditable(false);

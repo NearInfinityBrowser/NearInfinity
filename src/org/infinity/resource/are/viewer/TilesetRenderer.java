@@ -152,11 +152,7 @@ public class TilesetRenderer extends RenderCanvas
   public boolean loadMap(WedResource wed)
   {
     if (this.wed != wed) {
-      if (init(wed)) {
-        return true;
-      } else {
-        return false;
-      }
+      return init(wed);
     } else {
       return true;
     }

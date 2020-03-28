@@ -681,6 +681,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       // creating table
       JTable table = new JTable(model);
       table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.setBorder(BorderFactory.createLineBorder(Color.GRAY));
       table.getTableHeader().setBorder(BorderFactory.createLineBorder(Color.GRAY));

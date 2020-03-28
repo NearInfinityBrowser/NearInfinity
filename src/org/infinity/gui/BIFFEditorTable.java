@@ -35,6 +35,7 @@ import javax.swing.table.TableColumnModel;
 import org.infinity.NearInfinity;
 import org.infinity.icon.Icons;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Misc;
 
 final class BIFFEditorTable extends JPanel implements ActionListener
 {
@@ -83,6 +84,7 @@ final class BIFFEditorTable extends JPanel implements ActionListener
     table.setDefaultRenderer(Object.class, new ToolTipTableCellRenderer());
     table.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     table.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     table.getColumnModel().setColumnSelectionAllowed(false);
     TableCellRenderer renderer = new TableCellRenderer()
     {

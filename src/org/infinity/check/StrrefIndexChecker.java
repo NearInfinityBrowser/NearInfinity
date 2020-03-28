@@ -23,6 +23,7 @@ import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.StringRef;
+import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.SortableTable;
@@ -46,6 +47,7 @@ import org.infinity.resource.gam.JournalEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.search.StringReferenceSearcher;
+import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
 public class StrrefIndexChecker extends AbstractChecker implements ListSelectionListener
@@ -142,6 +144,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
       pane.add(panel, BorderLayout.SOUTH);
       bopen.setEnabled(false);
       bopennew.setEnabled(false);
+      table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
       table.getSelectionModel().addListSelectionListener(this);
       table.addMouseListener(new MouseAdapter()
@@ -244,19 +247,18 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
           final String strrefString = stringRef.toString();
           final String source = decompiler.getSource();
           final String[] lines = source.split("\r?\n");
-          int line = -1, pos = -1, len = -1;
+          int line = -1, pos = -1;
           final Pattern pattern = Pattern.compile("\\b" + strrefString + "\\b", Pattern.DOTALL);
           for (int i = 0; i < lines.length; i++) {
             final Matcher matcher = pattern.matcher(lines[i]);
             if (matcher.find()) {
               line = i;
               pos = matcher.start();
-              len = matcher.end() - pos;
               break;
             }
           }
           synchronized (table) {
-            table.addTableItem(new StrrefEntry(script.getResourceEntry(), line + 1, pos + 1, len, strref));
+            table.addTableItem(new StrrefEntry(script.getResourceEntry(), line + 1, pos + 1, strref));
           }
         }
       }
@@ -299,7 +301,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
           if (strref >= Integer.MIN_VALUE && strref <= Integer.MAX_VALUE) {
             if (strref < -1 || strref > strrefCount) {
               synchronized (table) {
-                table.addTableItem(new StrrefEntry(text.getResourceEntry(), line + 1, pos + 1, len, (int)strref));
+                table.addTableItem(new StrrefEntry(text.getResourceEntry(), line + 1, pos + 1, (int)strref));
               }
             }
           }
@@ -321,7 +323,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
     private final int strref;
 
     /** Constructor for text resources (2DA, BCS, ...). */
-    public StrrefEntry(ResourceEntry entry, int line, int pos, int len, int strref)
+    public StrrefEntry(ResourceEntry entry, int line, int pos, int strref)
     {
       this.isText = true;
       this.entry = entry;

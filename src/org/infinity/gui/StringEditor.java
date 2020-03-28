@@ -188,6 +188,7 @@ public class StringEditor extends ChildFrame implements SearchClient
   {
     setIconImage(Icons.getIcon(Icons.ICON_EDIT_16).getImage());
 
+    table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(listeners);
