@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -59,6 +59,7 @@ import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.StringTable;
 
@@ -180,20 +181,18 @@ public final class ViewerUtil
 
   public static JPanel makeCheckPanel(Flag flag, int rows)
   {
-    JPanel panel = new JPanel(new GridLayout(0, rows, 3, 3));
+    JPanel panel = new JPanel(new GridLayout(0, rows, 8, 4));
     for (int i = 0; i < flag.getSize() << 3; i++) {
-      String s = flag.getString(i);
-      if (s != null && !s.equals("") && !s.startsWith("Unknown")) {
-        JLabel check = new JLabel(flag.getString(i));
-        if (flag.isFlagSet(i))
-          check.setIcon(Icons.getIcon(Icons.ICON_CHECK_16));
-        else
-          check.setIcon(Icons.getIcon(Icons.ICON_CHECK_NOT_16));
+      final String label = flag.getString(i);
+      if (label != null) {
+        final JLabel check = new JLabel(label);
+        final String icon = flag.isFlagSet(i) ? Icons.ICON_CHECK_16 : Icons.ICON_CHECK_NOT_16;
+        check.setIcon(Icons.getIcon(icon));
         panel.add(check);
       }
     }
     panel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder(flag.getName()),
-                                                       BorderFactory.createEmptyBorder(3, 3, 3, 3)));
+                                                       BorderFactory.createEmptyBorder(2, 8, 2, 8)));
     return panel;
   }
 
@@ -227,6 +226,17 @@ public final class ViewerUtil
     return new JLabel("No " + imageRef.getName().toLowerCase(Locale.ENGLISH), JLabel.CENTER);
   }
 
+  /**
+   * Creates panel with the name, list control and button for edit selected list
+   * element.
+   *
+   * @param title Name of the panel
+   * @param struct Structure, which attributes must be shown in the returned editor
+   * @param listClass List will contain all attributes of {@code struct} with this class
+   * @param attrName Name of attribute in the {@code listClass}, used to show in the list
+   *
+   * @return Editor for show list of the specified attrubutes
+   */
   public static JPanel makeListPanel(String title, AbstractStruct struct,
                                      Class<? extends StructEntry> listClass, String attrName)
   {
@@ -258,6 +268,7 @@ public final class ViewerUtil
       text = entry.toString();
     }
     InfinityTextArea ta = new InfinityTextArea(text, true);
+    ta.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     ta.setCaretPosition(0);
     ta.setHighlightCurrentLine(false);
     ta.setEditable(false);
@@ -327,7 +338,6 @@ public final class ViewerUtil
     private final JList<Object> list;
     private final SimpleListModel<Object> listModel = new SimpleListModel<Object>();
     private final JButton bOpen = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
-    private Comparator<AbstractStruct> comp;
 
     private StructListPanel(String title, AbstractStruct struct,
                             Class<? extends StructEntry> listClass, String attrName,
@@ -346,8 +356,7 @@ public final class ViewerUtil
         list.setCellRenderer(renderer);
       }
       if (attrName == null) {
-        for (int i = 0; i < struct.getFieldCount(); i++) {
-          StructEntry o = struct.getField(i);
+        for (final StructEntry o : struct.getFields()) {
           if (o.getClass() == listClass) {
             listModel.addElement(o);
           }
@@ -357,17 +366,15 @@ public final class ViewerUtil
         if (renderer == null) {
           list.setCellRenderer(new StructListRenderer(attrName));
         }
-        List<AbstractStruct> templist = new ArrayList<AbstractStruct>();
-        for (int i = 0; i < struct.getFieldCount(); i++) {
-          StructEntry o = struct.getField(i);
+        final List<AbstractStruct> templist = new ArrayList<>();
+        for (final StructEntry o : struct.getFields()) {
           if (o.getClass() == listClass) {
             templist.add((AbstractStruct)o);
           }
         }
-        comp = new StructListComparator(attrName);
-        Collections.sort(templist, comp);
-        for (int i = 0; i < templist.size(); i++) {
-          listModel.addElement(templist.get(i));
+        Collections.sort(templist, new StructListComparator(attrName));
+        for (AbstractStruct s : templist) {
+          listModel.addElement(s);
         }
       }
 
@@ -386,11 +393,11 @@ public final class ViewerUtil
           }
         }
       });
-      if (listModel.size() > 0) {
+      if (!listModel.isEmpty()) {
         list.setSelectedIndex(0);
       }
       bOpen.addActionListener(this);
-      bOpen.setEnabled(listModel.size() > 0 && listModel.get(0) instanceof Viewable);
+      bOpen.setEnabled(!listModel.isEmpty() && listModel.get(0) instanceof Viewable);
 
       add(new JLabel(title), BorderLayout.NORTH);
       add(new JScrollPane(list), BorderLayout.CENTER);
@@ -413,13 +420,7 @@ public final class ViewerUtil
       if (event.getType() == TableModelEvent.DELETE) {
 
         // go through the list and find what was deleted
-        List<StructEntry> structlist = struct.getList();
-        for (int i = 0; i < listModel.size(); i++) {
-          if (!structlist.contains(listModel.get(i))) {
-            listModel.remove(i);
-            i--;
-          }
-        }
+        listModel.retainAll(struct.getFields());
         /*
         // Ineffective - any better solutions?
         if (comp == null) {
@@ -446,16 +447,17 @@ public final class ViewerUtil
         }
         */
 
-        if (listModel.size() > 0)
+        if (!listModel.isEmpty())
           list.setSelectedIndex(0);
-        bOpen.setEnabled(listModel.size() > 0 && listModel.get(0) instanceof Viewable);
+        bOpen.setEnabled(!listModel.isEmpty() && listModel.get(0) instanceof Viewable);
       }
       else if (event.getType() == TableModelEvent.INSERT) {
+        final List<StructEntry> fields = struct.getFields();
         for (int i = event.getFirstRow(); i <= event.getLastRow(); i++) {
-          if (i >= struct.getFieldCount()) {
+          if (i >= fields.size()) {
             break;
           }
-          Object o = struct.getField(i);
+          final StructEntry o = fields.get(i);
           if (o.getClass() == listClass) {
             listModel.addElement(o);    // Not sorted properly after this...
             if (!bOpen.isEnabled() && listModel.get(0) instanceof Viewable) {
@@ -640,4 +642,3 @@ public final class ViewerUtil
     }
   }
 }
-

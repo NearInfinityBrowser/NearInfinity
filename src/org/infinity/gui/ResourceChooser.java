@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -57,7 +57,7 @@ public class ResourceChooser extends JComponent implements ActionListener
   private final EventListenerList listeners = new EventListenerList();
 
   private JComboBox<String> cbType;
-  private TextListPanel lpResources;
+  private TextListPanel<ResourceEntry> lpResources;
   private int dialogResult;
 
   /**
@@ -141,8 +141,9 @@ public class ResourceChooser extends JComponent implements ActionListener
   public String getSelectedItem()
   {
     if (lpResources != null) {
-      if (lpResources.getSelectedValue() != null) {
-        return lpResources.getSelectedValue().toString();
+      final ResourceEntry entry = lpResources.getSelectedValue();
+      if (entry != null) {
+        return entry.getResourceName();
       }
     }
     return null;
@@ -234,7 +235,7 @@ public class ResourceChooser extends JComponent implements ActionListener
       });
     } else {
       // initializing new list panel (no need to block controls)
-      lpResources = new TextListPanel(resources, true);
+      lpResources = new TextListPanel<>(resources, true);
       lpResources.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent event)

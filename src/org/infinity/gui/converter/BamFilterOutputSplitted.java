@@ -366,6 +366,8 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
       // creating a format string for BAM output filenames
       String bamFileName = getConverter().getBamOutput().toString();
       String ext = "BAM";
+      int suffixStart = ((Integer)spinnerSuffixStart.getValue()).intValue();
+      int suffixStep = ((Integer)spinnerSuffixStep.getValue()).intValue();
       int idx = bamFileName.lastIndexOf('.');
       if (idx >= 0) {
         ext = bamFileName.substring(idx+1);
@@ -394,7 +396,8 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
         segmentDecoder.setCyclesList(decoder.getCyclesList());
 
         // converting segmented BAM structure
-        if (!convertBam(FileManager.resolve(String.format(fmtBamFileName, segIdx)), segmentDecoder)) {
+        int suffix = suffixStart + segIdx * suffixStep;
+        if (!convertBam(FileManager.resolve(String.format(fmtBamFileName, suffix)), segmentDecoder)) {
           throw new Exception(String.format("Error converting segment %d/%d", segIdx + 1, segmentCount));
         }
 

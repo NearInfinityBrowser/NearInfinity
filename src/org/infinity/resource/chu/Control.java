@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.chu;
@@ -9,6 +9,7 @@ import java.awt.Point;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.ColorPicker;
@@ -21,6 +22,7 @@ import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
+import org.infinity.resource.StructEntry;
 
 final class Control extends AbstractStruct // implements AddRemovable
 {
@@ -111,17 +113,16 @@ final class Control extends AbstractStruct // implements AddRemovable
     this.size = size;
   }
 
-// --------------------- Begin Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
-    getField(0).write(os);
-    getField(1).write(os);
+    getFields().get(0).write(os);
+    getFields().get(1).write(os);
   }
+  //</editor-fold>
 
-// --------------------- End Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -129,11 +130,7 @@ final class Control extends AbstractStruct // implements AddRemovable
     addField(new HexNumber(buffer, offset + 4, 4, CHU_CONTROL_LENGTH));
     return offset + 8;
   }
-
-  public int getControlSize()
-  {
-    return size;
-  }
+  //</editor-fold>
 
   /** Returns the control id. */
   public int getControlId()
@@ -165,7 +162,7 @@ final class Control extends AbstractStruct // implements AddRemovable
   public int readControl(ByteBuffer buffer)
   {
     int offset = ((HexNumber)getAttribute(CHU_CONTROL_OFFSET)).getValue();
-    int endOffset = offset + getControlSize();
+    final int endOffset = offset + size;
     addField(new DecNumber(buffer, offset, 2, CHU_CONTROL_ID));
     addField(new DecNumber(buffer, offset + 2, 2, CHU_CONTROL_BUFFER_LENGTH));
     addField(new DecNumber(buffer, offset + 4, 2, CHU_CONTROL_POSITION_X));
@@ -218,7 +215,7 @@ final class Control extends AbstractStruct // implements AddRemovable
         addField(new DecNumber(buffer, offset + 52, 2, CHU_CONTROL_TF_CARET_POSITION_Y));
         addField(new DecNumber(buffer, offset + 54, 4, CHU_CONTROL_TF_ID));
         if (Profile.isEnhancedEdition()) {
-          addField(new ResourceRef(buffer, offset + 58, CHU_CONTROL_TF_FONT, new String[]{"FNT", "BAM"}));
+          addField(new ResourceRef(buffer, offset + 58, CHU_CONTROL_TF_FONT, "FNT", "BAM"));
         } else {
           addField(new ResourceRef(buffer, offset + 58, CHU_CONTROL_TF_FONT, "BAM"));
         }
@@ -230,8 +227,8 @@ final class Control extends AbstractStruct // implements AddRemovable
         break;
       case 5: // Text area
         if (Profile.isEnhancedEdition()) {
-          addField(new ResourceRef(buffer, offset + 14, CHU_CONTROL_TA_FONT_MAIN, new String[]{"FNT", "BAM"}));
-          addField(new ResourceRef(buffer, offset + 22, CHU_CONTROL_TA_FONT_INITIALS, new String[]{"FNT", "BAM"}));
+          addField(new ResourceRef(buffer, offset + 14, CHU_CONTROL_TA_FONT_MAIN, "FNT", "BAM"));
+          addField(new ResourceRef(buffer, offset + 22, CHU_CONTROL_TA_FONT_INITIALS, "FNT", "BAM"));
         } else {
           addField(new ResourceRef(buffer, offset + 14, CHU_CONTROL_TA_FONT_MAIN, "BAM"));
           addField(new ResourceRef(buffer, offset + 22, CHU_CONTROL_TA_FONT_INITIALS, "BAM"));
@@ -245,7 +242,7 @@ final class Control extends AbstractStruct // implements AddRemovable
       case 6: // Label
         addField(new StringRef(buffer, offset + 14, CHU_CONTROL_LBL_TEXT));
         if (Profile.isEnhancedEdition()) {
-          addField(new ResourceRef(buffer, offset + 18, CHU_CONTROL_LBL_FONT, new String[]{"FNT", "BAM"}));
+          addField(new ResourceRef(buffer, offset + 18, CHU_CONTROL_LBL_FONT, "FNT", "BAM"));
         } else {
           addField(new ResourceRef(buffer, offset + 18, CHU_CONTROL_LBL_FONT, "BAM"));
         }
@@ -284,8 +281,9 @@ final class Control extends AbstractStruct // implements AddRemovable
 
   public void writeControl(OutputStream os) throws IOException
   {
-    for (int i = 2; i < getFieldCount(); i++)
-      getField(i).write(os);
+    final List<StructEntry> fields = getFields();
+    for (int i = 2; i < fields.size(); i++) {
+      fields.get(i).write(os);
+    }
   }
 }
-

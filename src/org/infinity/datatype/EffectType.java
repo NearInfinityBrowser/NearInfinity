@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -27,12 +27,7 @@ public final class EffectType extends Bitmap implements UpdateListener
 
   public EffectType(ByteBuffer buffer, int offset, int length)
   {
-    this(null, buffer, offset, length);
-  }
-
-  public EffectType(StructEntry parent, ByteBuffer buffer, int offset, int length)
-  {
-    super(parent, buffer, offset, length, EFFECT_TYPE, EffectFactory.getFactory().getEffectNameArray());
+    super(buffer, offset, length, EFFECT_TYPE, EffectFactory.getFactory().getEffectNameArray());
   }
 
 // --------------------- Begin Interface Editable ---------------------
@@ -42,13 +37,13 @@ public final class EffectType extends Bitmap implements UpdateListener
   {
     super.updateValue(struct);
     try {
-      List<StructEntry> list = new ArrayList<StructEntry>();
+      final List<StructEntry> list = new ArrayList<>();
       readAttributes(struct.removeFromList(this, attr_length), 0, list);
       for (int i = 0; i < list.size(); i++) {
         StructEntry entry = list.get(i);
         entry.setOffset(entry.getOffset() + getOffset() + getSize());
       }
-      struct.addToList(this, list);
+      struct.addFields(this, list);
       return true;
     } catch (IOException e) {
       e.printStackTrace();
@@ -98,4 +93,3 @@ public final class EffectType extends Bitmap implements UpdateListener
     return off;
   }
 }
-

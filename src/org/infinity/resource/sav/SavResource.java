@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.sav;
@@ -51,6 +51,13 @@ import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.SimpleListModel;
 
+/**
+ * This resource acts as a standalone compressed archive. The file is zlib compressed,
+ * and allows incremental updates to be carried out quickly and easily.
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/sav_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/sav_v1.htm</a>
+ */
 public final class SavResource implements Resource, Closeable, Writeable,
                                           ActionListener, ListSelectionListener
 {
@@ -179,7 +186,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
-    listModel = new SimpleListModel<ResourceEntry>();
+    listModel = new SimpleListModel<>();
     for (int i = 0; i < handler.getFileEntries().size(); i++) {
       listModel.addElement(handler.getFileEntries().get(i));
     }
@@ -429,4 +436,3 @@ public final class SavResource implements Resource, Closeable, Writeable,
     }
   }
 }
-

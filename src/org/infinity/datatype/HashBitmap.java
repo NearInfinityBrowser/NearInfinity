@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -26,42 +27,42 @@ import org.infinity.gui.StructViewer;
 import org.infinity.gui.TextListPanel;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.StructEntry;
 import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.Misc;
 import org.infinity.util.ObjectString;
 
-public class HashBitmap extends Datatype implements Editable, IsNumeric
+/**
+ * Field that represents an integer enumeration of some values.
+ *
+ * <h2>Bean property</h2>
+ * When this field is child of {@link AbstractStruct}, then changes of its internal
+ * value reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent}
+ * struct.
+ * <ul>
+ * <li>Property name: {@link #getName() name} of this field</li>
+ * <li>Property type: {@code long}</li>
+ * <li>Value meaning: numerical value of this field</li>
+ * </ul>
+ */
+public class HashBitmap extends Datatype implements Editable, IsNumeric//TODO: try to unify with Bitmap
 {
   private final LongIntegerHashMap<? extends Object> idsmap;
   private final List<JButton> buttonList;
   private final JButton bUpdate;
   private final boolean sortByName;
-  private TextListPanel list;
+  private TextListPanel<Object> list;
   private long value;
 
   public HashBitmap(ByteBuffer buffer, int offset, int length, String name,
                     LongIntegerHashMap<? extends Object> idsmap)
   {
-    this(null, buffer, offset, length, name, idsmap, true);
+    this(buffer, offset, length, name, idsmap, true);
   }
 
   public HashBitmap(ByteBuffer buffer, int offset, int length, String name,
                     LongIntegerHashMap<? extends Object> idsmap, boolean sortByName)
   {
-    this(null, buffer, offset, length, name, idsmap, sortByName);
-  }
-
-  public HashBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
-                    LongIntegerHashMap<? extends Object> idsmap)
-  {
-    this(parent, buffer, offset, length, name, idsmap, true);
-  }
-
-  public HashBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
-                    LongIntegerHashMap<? extends Object> idsmap, boolean sortByName)
-  {
-    super(parent, offset, length, name);
+    super(offset, length, name);
     this.idsmap = normalizeHashMap(idsmap);
     this.sortByName = sortByName;
     this.bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
@@ -71,22 +72,17 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
     read(buffer, offset);
   }
 
-// --------------------- Begin Interface Editable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Editable">
   @Override
   public JComponent edit(final ActionListener container)
   {
-    long[] keys = idsmap.keys();
-    List<Object> items = new ArrayList<Object>(keys.length);
-    for (final long id : keys) {
-      if (idsmap.containsKey(id)) {
-        Object o = idsmap.get(id);
-        if (o != null) {
-          items.add(o);
-        }
+    final List<Object> items = new ArrayList<>(idsmap.size());
+    for (Object o : idsmap.values()) {
+      if (o != null) {//TODO: It seems that map never contains nulls and this check can be removed
+        items.add(o);
       }
     }
-    list = new TextListPanel(items, sortByName);
+    list = new TextListPanel<>(items, sortByName);
     list.addMouseListener(new MouseAdapter()
     {
       @Override
@@ -151,7 +147,6 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
     panel.add(p);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
-    panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
     return panel;
   }
 
@@ -167,7 +162,7 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
     // updating value
     Long number = getValueOfItem(list.getSelectedValue());
     if (number != null) {
-      value = number.longValue();
+      setValue(number.longValue());
     } else {
       return false;
     }
@@ -178,20 +173,15 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
     return true;
   }
 
-// --------------------- End Interface Editable ---------------------
-
-// --------------------- Begin Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Writeable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     writeLong(os, value);
   }
+  //</editor-fold>
 
-// --------------------- End Interface Writeable ---------------------
-
-//--------------------- Begin Interface Readable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -212,22 +202,17 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
 
     return offset + getSize();
   }
-
-//--------------------- End Interface Readable ---------------------
+  //</editor-fold>
+  //</editor-fold>
 
   @Override
   public String toString()
   {
-    Object o = idsmap.get(Long.valueOf(value));
-    if (o == null) {
-      return "Unknown - " + value;
-    } else {
-      return o.toString();
-    }
+    final Object o = getValueOf(value);
+    return o == null ? "Unknown - " + value : o.toString();
   }
 
-//--------------------- Begin Interface IsNumeric ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="IsNumeric">
   @Override
   public long getLongValue()
   {
@@ -239,12 +224,15 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
   {
     return (int)value;
   }
-
-//--------------------- End Interface IsNumeric ---------------------
+  //</editor-fold>
 
   protected void setValue(long newValue)
   {
+    final long oldValue = value;
     this.value = newValue;
+    if (oldValue != newValue) {
+      firePropertyChange(oldValue, newValue);
+    }
   }
 
   /** Called whenever the user selects a new list item. */
@@ -267,37 +255,10 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
     }
   }
 
-  /** Returns the number of registered buttons. */
-  public int getButtonCount()
-  {
-    return buttonList.size();
-  }
-
-  /**
-   * Returns the button control at the specified index.
-   * First entry is always the "Update value" button.
-   */
-  public JButton getButton(int index)
-  {
-    return buttonList.get(index);
-  }
-
   /** Returns the TextListPanel control used by this datatype. */
-  public TextListPanel getListPanel()
+  public TextListPanel<Object> getListPanel()
   {
     return list;
-  }
-
-  /** Returns the number if IDS entries. */
-  public int getListSize()
-  {
-    return idsmap.size();
-  }
-
-  /** Returns an array of numeric IDS values */
-  public long[] getKeys()
-  {
-    return idsmap.keys();
   }
 
   /** Returns the textual representation of the specified IDS value. */
@@ -306,32 +267,20 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
     return idsmap.get(Long.valueOf(key));
   }
 
-  /** Returns the symbol associated with the specified IDS value. */
-  public String getSymbol(long index)
+  protected Long getCurrentValue()
   {
-    Object o = idsmap.get(index);
-    if (o != null) {
-      if (o instanceof ObjectString) {
-        return ((ObjectString)o).getString();
-      } else {
-        int i = o.toString().lastIndexOf(" - ");
-        if (i >= 0) {
-          return o.toString().substring(0, i);
-        }
-      }
-    }
-    return null;
+    return getValueOfItem(list.getSelectedValue());
   }
 
   /** Attempts to extract the IDS value from the specified list item. */
-  protected Long getValueOfItem(Object item)
+  private Long getValueOfItem(Object item)
   {
     Long retVal = null;
     if (item != null) {
       if (item instanceof ObjectString && ((ObjectString)item).getObject() instanceof Number) {
         retVal = ((Number)((ObjectString)item).getObject()).longValue();
       } else {
-        int i = item.toString().lastIndexOf(" - ");
+        int i = item.toString().lastIndexOf(" - ");//FIXME: Smell code
         try {
           retVal = Long.parseLong(item.toString().substring(i + 3));
         } catch (NumberFormatException e) {
@@ -349,12 +298,12 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
 
   private static LongIntegerHashMap<? extends Object> normalizeHashMap(LongIntegerHashMap<? extends Object> map)
   {
-    if (map != null && !map.isEmpty() && map.get(map.keys()[0]) instanceof String) {
-      LongIntegerHashMap<ObjectString> retVal = new LongIntegerHashMap<ObjectString>();
-      long[] keys = map.keys();
-      for (final long key: keys) {
-        retVal.put(Long.valueOf(key), new ObjectString(map.get(key).toString(), Long.valueOf(key),
-                                                       ObjectString.FMT_OBJECT_HYPHEN));
+    //TODO: The smelling code. It seems that there is a check on the fact that the map contains String's
+    if (map != null && !map.isEmpty() && map.firstEntry().getValue() instanceof String) {
+      final LongIntegerHashMap<ObjectString> retVal = new LongIntegerHashMap<>();
+      for (Map.Entry<Long, ? extends Object> e : map.entrySet()) {
+        retVal.put(e.getKey(), new ObjectString(e.getValue().toString(), e.getKey(),
+                                                ObjectString.FMT_OBJECT_HYPHEN));
       }
       return retVal;
     } else if (map == null) {
@@ -364,4 +313,3 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric
     }
   }
 }
-

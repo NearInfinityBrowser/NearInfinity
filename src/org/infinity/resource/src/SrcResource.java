@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.src;
@@ -19,6 +19,18 @@ import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
 import org.infinity.resource.key.ResourceEntry;
 
+/**
+ * This resource contain strrefs for out-of-dialog text (e.g text displayed over
+ * the chracter on the game screen). Text is usually displayed over the creatures
+ * head, and the associated sound is played.
+ * <p>
+ * SRC files have a very simple header, simply containing the count of strref entries.
+ * Each strref entry is eight bytes and consists of a strref and an unknown dword
+ * (always set to 1).
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/src.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/src.htm</a>
+ */
 public final class SrcResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
   // SRC-specific field labels
@@ -140,4 +152,3 @@ public final class SrcResource extends AbstractStruct implements Resource, HasAd
     }
   }
 }
-

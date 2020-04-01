@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.vef;
@@ -22,6 +22,17 @@ import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 
+/**
+ * Visual effects allow you to group other visual effects, animations, and sounds
+ * together and specify the timing with which each component plays. This is powerful
+ * in the sense that you can create a whole visual effect display with these files.
+ * VEF files can be used with the actions {@code CreateVisualEffect(S:Object*,P:Location*)}
+ * and {@code CreateVisualEffectObject(S:Object*,O:Target*)}, and in effect opcode
+ * 215 (Graphics: Play 3D Effect).
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/vef_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/vef_v1.htm</a>
+ */
 public final class VefResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
   // VEF-specific field labels
@@ -124,8 +135,7 @@ public final class VefResource extends AbstractStruct implements Resource, HasAd
     }
 
     int endoffset = offset;
-    for (int i = 0; i < getFieldCount(); i++) {
-      StructEntry entry = getField(i);
+    for (final StructEntry entry : getFields()) {
       if (entry.getOffset() + entry.getSize() > endoffset)
         endoffset = entry.getOffset() + entry.getSize();
     }

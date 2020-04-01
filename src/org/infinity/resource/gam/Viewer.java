@@ -16,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 
+import org.infinity.datatype.Flag;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.ViewerUtil.ListValueRenderer;
 import org.infinity.resource.AbstractStruct;
@@ -33,11 +34,33 @@ final class Viewer extends JPanel
     gbc.insets = new Insets(2, 3, 3, 3);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute(GamResource.GAM_WORLD_AREA), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute(GamResource.GAM_GAME_TIME), gbl, gbc, true);
-    if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) { // V2.0 - better check?
-      ViewerUtil.addLabelFieldPair(panel, gam.getAttribute(GamResource.GAM_REAL_TIME), gbl, gbc, true);
-    }
+    StructEntry se = gam.getAttribute(GamResource.GAM_REAL_TIME);
+    if (se != null)
+      ViewerUtil.addLabelFieldPair(panel, se, gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute(GamResource.GAM_PARTY_GOLD), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, gam.getAttribute(GamResource.GAM_MASTER_AREA), gbl, gbc, true);
+    se = gam.getAttribute(GamResource.GAM_WORLDMAP);
+    if (se != null)
+      ViewerUtil.addLabelFieldPair(panel, se, gbl, gbc, true);
+    se = gam.getAttribute(GamResource.GAM_ZOOM_LEVEL);
+    if (se != null)
+      ViewerUtil.addLabelFieldPair(panel, se, gbl, gbc, true);
+
+    gbc.insets.top = 10;
+    gbc.gridwidth = 2;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    se = gam.getAttribute(GamResource.GAM_WEATHER);
+    if (se != null) {
+      JPanel weatherPanel = ViewerUtil.makeCheckPanel((Flag)se, 2);
+      panel.add(weatherPanel, gbc);
+    }
+
+    se = gam.getAttribute(GamResource.GAM_CONFIGURATION);
+    if (se != null) {
+      JPanel configPanel = ViewerUtil.makeCheckPanel((Flag)se, 2);
+      panel.add(configPanel, gbc);
+    }
+
     return panel;
   }
 

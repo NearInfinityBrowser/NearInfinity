@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.wed;
@@ -29,8 +29,8 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
   public static final String WED_POLY_MAX_COORD_Y   = "Maximum coordinate: Y";
 
   public static final String[] s_flags = { "No flags set", "Shade wall", "Semi transparent",
-                                            "Hovering wall", "Cover animations", "Unknown",
-                                            "Unknown", "Unknown", "Is door" };
+                                            "Hovering wall", "Cover animations", null,
+                                            null, null, "Is door" };
 
   public Polygon(AbstractStruct superStruct, String name, ByteBuffer buffer, int offset) throws Exception
   {
@@ -76,9 +76,9 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
     if (datatype instanceof Vertex) {
       int index = ((DecNumber)getAttribute(WED_POLY_VERTEX_INDEX)).getValue();
       index += ((DecNumber)getAttribute(WED_POLY_NUM_VERTICES)).getValue();
-      AbstractStruct superStruct = getSuperStruct();
-      while (superStruct.getSuperStruct() != null)
-        superStruct = superStruct.getSuperStruct();
+      AbstractStruct superStruct = getParent();
+      while (superStruct.getParent() != null)
+        superStruct = superStruct.getParent();
       int offset = ((HexNumber)superStruct.getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
       datatype.setOffset(offset + 4 * index);
       ((AbstractStruct)datatype).realignStructOffsets();
@@ -98,8 +98,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
   {
     ((DecNumber)getAttribute(WED_POLY_VERTEX_INDEX)).setValue(startIndex);
     int count = 0;
-    for (int i = 0; i < getFieldCount(); i++) {
-      StructEntry entry = getField(i);
+    for (final StructEntry entry : getFields()) {
       if (entry instanceof Vertex) {
         entry.setOffset(offset);
         ((AbstractStruct)entry).realignStructOffsets();
@@ -125,4 +124,3 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
     return offset + 18;
   }
 }
-

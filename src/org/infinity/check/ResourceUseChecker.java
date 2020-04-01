@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.check;
@@ -12,30 +12,20 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
-import javax.swing.ProgressMonitor;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -51,7 +41,6 @@ import org.infinity.gui.ViewFrame;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -66,13 +55,12 @@ import org.infinity.resource.dlg.State;
 import org.infinity.resource.dlg.Transition;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
-import org.infinity.util.Debugging;
+import org.infinity.search.AbstractSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
-public final class ResourceUseChecker implements Runnable, ListSelectionListener, ActionListener
+public final class ResourceUseChecker extends AbstractSearcher implements Runnable, ListSelectionListener, ActionListener
 {
-  private static final String FMT_PROGRESS = "Checking resource %d/%d";
   private static final Pattern RESREFPATTERN = Pattern.compile("\\w{3,8}");
   private static final String[] FILETYPES = {"2DA", "ARE", "BCS", "BS", "CHR", "CHU", "CRE",
                                              "DLG", "EFF", "INI", "ITM", "PRO", "SPL", "STO",
@@ -83,17 +71,16 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
   private final JButton bstart = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
   private final JButton bcancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
   private final JRadioButton[] typeButtons = new JRadioButton[CHECKTYPES.length];
-  private final List<ResourceEntry> checkList = new ArrayList<ResourceEntry>();
+  private final List<ResourceEntry> unusedResources = new ArrayList<>();
   private ChildFrame resultFrame;
   private JButton bopen, bopennew, bsave;
+  /** List of the {@link UnusedFileTableItem} objects. */
   private SortableTable table;
   private String checkType;
-  private ProgressMonitor progress;
-  private int progressIndex;
-  private List<ResourceEntry> files;
 
   public ResourceUseChecker(Component parent)
   {
+    super(CHECK_MULTI_TYPE_FORMAT, parent);
     ButtonGroup bg = new ButtonGroup();
     JPanel radioPanel = new JPanel(new GridLayout(0, 1));
     for (int i = 0; i < typeButtons.length; i++) {
@@ -160,32 +147,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
-      fc.setDialogTitle("Save search result");
-      fc.setSelectedFile(new File(fc.getCurrentDirectory(), "result.txt"));
-      if (fc.showSaveDialog(resultFrame) == JFileChooser.APPROVE_OPTION) {
-        Path output = fc.getSelectedFile().toPath();
-        if (Files.exists(output)) {
-          String options[] = {"Overwrite", "Cancel"};
-          if (JOptionPane.showOptionDialog(resultFrame, output + " exists. Overwrite?",
-                                           "Save result", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
-            return;
-        }
-        try (BufferedWriter bw = Files.newBufferedWriter(output)) {
-          bw.write("Result of CRE inventory check"); bw.newLine();
-          bw.write("Number of hits: " + table.getRowCount()); bw.newLine();
-          for (int i = 0; i < table.getRowCount(); i++) {
-            bw.write(table.getTableItemAt(i).toString()); bw.newLine();
-          }
-          JOptionPane.showMessageDialog(resultFrame, "Result saved to " + output, "Save complete",
-                                        JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException e) {
-          JOptionPane.showMessageDialog(resultFrame, "Error while saving " + output,
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-          e.printStackTrace();
-        }
-      }
+      table.saveCheckResult(resultFrame, "Unused " + checkType + " resources");
     }
   }
 
@@ -209,65 +171,29 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
   @Override
   public void run()
   {
-    WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
+    final WindowBlocker blocker = new WindowBlocker(NearInfinity.getInstance());
     blocker.setBlocked(true);
     try {
-      files = new ArrayList<ResourceEntry>();
+      final ArrayList<ResourceEntry> files = new ArrayList<>();
       for (final String fileType : FILETYPES) {
         files.addAll(ResourceFactory.getResources(fileType));
       }
-      ThreadPoolExecutor executor = Misc.createThreadPool();
-      progressIndex = 0;
-      progress = new ProgressMonitor(NearInfinity.getInstance(), "Searching..." + Misc.MSG_EXPAND_LARGE,
-                                     String.format(FMT_PROGRESS, files.size(), files.size()),
-                                     0, files.size());
-      progress.setNote(String.format(FMT_PROGRESS, 0, files.size()));
 
-      List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(2);
-      colClasses.add(Object.class); colClasses.add(Object.class);
-      table = new SortableTable(Arrays.asList(new String[]{"File", "Name"}),
-                                colClasses, Arrays.asList(new Integer[]{200, 200}));
-
-      checkList.addAll(ResourceFactory.getResources(checkType));
-      boolean isCancelled = false;
-      Debugging.timerReset();
-      for (int i = 0; i < files.size(); i++) {
-        Misc.isQueueReady(executor, true, -1);
-        executor.execute(new Worker(files.get(i)));
-        if (progress.isCanceled()) {
-          isCancelled = true;
-          break;
-        }
-      }
-
-      // enforcing thread termination if process has been cancelled
-      if (isCancelled) {
-        executor.shutdownNow();
-      } else {
-        executor.shutdown();
-      }
-
-      // waiting for pending threads to terminate
-      while (!executor.isTerminated()) {
-        if (!isCancelled && progress.isCanceled()) {
-          executor.shutdownNow();
-          isCancelled = true;
-        }
-        try { Thread.sleep(1); } catch (InterruptedException e) {}
-      }
-
-      if (isCancelled) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Operation cancelled",
-                                      "Info", JOptionPane.INFORMATION_MESSAGE);
+      unusedResources.addAll(ResourceFactory.getResources(checkType));
+      if (runSearch("Searching", files)) {
         return;
       }
 
-      for (int i = 0; i < checkList.size(); i++)
-        table.addTableItem(new UnusedFileTableItem(checkList.get(i)));
-      if (table.getRowCount() == 0)
+      if (unusedResources.isEmpty()) {
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), "No unused " + checkType + "s found",
                                       "Info", JOptionPane.INFORMATION_MESSAGE);
-      else {
+      } else {
+        table = new SortableTable(new String[]{"File", "Name"},
+                                  new Class<?>[]{ResourceEntry.class, String.class},
+                                  new Integer[]{200, 200});
+        for (ResourceEntry entry : unusedResources) {
+          table.addTableItem(new UnusedFileTableItem(entry));
+        }
         table.tableComplete();
         resultFrame = new ChildFrame("Result", true);
         resultFrame.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
@@ -323,81 +249,52 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
         resultFrame.setVisible(true);
       }
     } finally {
-      advanceProgress(true);
       blocker.setBlocked(false);
-      if (files != null) {
-        files.clear();
-        files = null;
-      }
     }
-    Debugging.timerShow("Check completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
 
+  @Override
+  protected Runnable newWorker(ResourceEntry entry)
+  {
+    return () -> {
+      final Resource resource = ResourceFactory.getResource(entry);
+      if (resource instanceof DlgResource) {
+        checkDialog((DlgResource)resource);
+      } else if (resource instanceof BcsResource) {
+        checkScript((BcsResource)resource);
+      } else if (resource instanceof PlainTextResource) {
+        checkTextfile((PlainTextResource)resource);
+      } else if (resource instanceof AbstractStruct) {
+        checkStruct((AbstractStruct)resource);
+      }
+      advanceProgress();
+    };
+  }
+
   private void checkDialog(DlgResource dialog)
   {
-    List<StructEntry> flatList = dialog.getList();
-    for (int i = 0; i < flatList.size(); i++) {
-      if (flatList.get(i) instanceof ResourceRef) {
-        ResourceRef ref = (ResourceRef)flatList.get(i);
-        if (ref.getType().equalsIgnoreCase(checkType)) {
-          synchronized (checkList) {
-            for (Iterator<ResourceEntry> j = checkList.iterator(); j.hasNext();) {
-              if (j.next().toString().equalsIgnoreCase(ref.getResourceName())) {
-                j.remove();
-                break;
-              }
-            }
-          }
-        }
+    for (final StructEntry entry : dialog.getFields()) {
+      if (entry instanceof ResourceRef) {
+        checkResourceRef((ResourceRef)entry);
       }
-      else if (flatList.get(i) instanceof AbstractCode) {
-        AbstractCode code = (AbstractCode)flatList.get(i);
+      else if (entry instanceof AbstractCode) {
         try {
-          Compiler compiler = new Compiler(code.toString(),
-                                             (code instanceof Action) ? ScriptType.ACTION :
-                                                                        ScriptType.TRIGGER);
-          String compiled = compiler.getCode();
-          Decompiler decompiler = new Decompiler(compiled, ScriptType.BCS, true);
-          decompiler.setGenerateComments(false);
-          decompiler.setGenerateResourcesUsed(true);
-          if (code instanceof Action) {
-            decompiler.setScriptType(ScriptType.ACTION);
-          } else {
-            decompiler.setScriptType(ScriptType.TRIGGER);
-          }
-          decompiler.decompile();
-          Set<ResourceEntry> resourcesUsed = decompiler.getResourcesUsed();
-          for (final ResourceEntry resourceEntry : resourcesUsed) {
-            synchronized (checkList) {
-              checkList.remove(resourceEntry);
-            }
-          }
+          final AbstractCode code = (AbstractCode)entry;
+          final ScriptType type = code instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
+          final Compiler compiler = new Compiler(code.getText(), type);
+
+          checkCode(compiler.getCode(), type);
         } catch (Exception e) {
           e.printStackTrace();
         }
       }
       else if (checkType.equalsIgnoreCase("WAV") &&
-               (flatList.get(i) instanceof State || flatList.get(i) instanceof Transition)) {
-        List<StructEntry> subList = ((AbstractStruct)flatList.get(i)).getFlatList();
-        for (int j = 0; j < subList.size(); j++) {
-          if (subList.get(j) instanceof StringRef) {
-            StringRef ref = (StringRef)subList.get(j);
-            if (ref.getValue() >= 0) {
-              String wav = StringTable.getSoundResource(ref.getValue());
-              if (!wav.isEmpty()) {
-                wav += ".WAV";
-                synchronized (checkList) {
-                  for (Iterator<ResourceEntry> k = checkList.iterator(); k.hasNext();) {
-                    if (wav.equalsIgnoreCase(k.next().toString())) {
-                      k.remove();
-                      break;
-                    }
-                  }
-                }
-              }
-            }
+               (entry instanceof State || entry instanceof Transition)) {
+        for (final StructEntry e : ((AbstractStruct)entry).getFlatFields()) {
+          if (e instanceof StringRef) {
+            checkSound((StringRef)e);
           }
         }
       }
@@ -406,17 +303,8 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
 
   private void checkScript(BcsResource script)
   {
-    Decompiler decompiler = new Decompiler(script.getCode(), true);
-    decompiler.setGenerateComments(false);
-    decompiler.setGenerateResourcesUsed(true);
     try {
-      decompiler.decompile();
-      Set<ResourceEntry> resourcesUsed = decompiler.getResourcesUsed();
-      for (final ResourceEntry resourceEntry : resourcesUsed) {
-        synchronized (checkList) {
-          checkList.remove(resourceEntry);
-        }
-      }
+      checkCode(script.getCode(), ScriptType.BCS);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -424,70 +312,98 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
 
   private void checkStruct(AbstractStruct struct)
   {
-    List<StructEntry> flatList = struct.getFlatList();
-    for (int i = 0; i < flatList.size(); i++) {
-      if (flatList.get(i) instanceof ResourceRef) {
-        ResourceRef ref = (ResourceRef)flatList.get(i);
-        if (ref.getType().equalsIgnoreCase(checkType)) {
-          synchronized (checkList) {
-            for (Iterator<ResourceEntry> j = checkList.iterator(); j.hasNext();) {
-              if (j.next().toString().equalsIgnoreCase(ref.getResourceName())) {
-                j.remove();
-                break;
-              }
-            }
-          }
-        }
+    for (final StructEntry entry : struct.getFlatFields()) {
+      if (entry instanceof ResourceRef) {
+        checkResourceRef((ResourceRef)entry);
       }
-      else if (checkType.equalsIgnoreCase("WAV") && flatList.get(i) instanceof StringRef) {
-        StringRef ref = (StringRef)flatList.get(i);
-        if (ref.getValue() >= 0) {
-          String wav = StringTable.getSoundResource(ref.getValue());
-          if (!wav.isEmpty()) {
-            wav += ".WAV";
-            synchronized (checkList) {
-              for (Iterator<ResourceEntry> j = checkList.iterator(); j.hasNext();) {
-                if (wav.equalsIgnoreCase(j.next().toString())) {
-                  j.remove();
-                  break;
-                }
-              }
-            }
-          }
-        }
+      else if (checkType.equalsIgnoreCase("WAV") && entry instanceof StringRef) {
+        checkSound((StringRef)entry);
       }
     }
   }
 
   private void checkTextfile(PlainTextResource text)
   {
-    Matcher m = RESREFPATTERN.matcher(text.getText());
+    final Matcher m = RESREFPATTERN.matcher(text.getText());
     while (m.find()) {
-      String s = text.getText().substring(m.start(), m.end()) + '.' + checkType;
-      synchronized (checkList) {
-        for (Iterator<ResourceEntry> i = checkList.iterator(); i.hasNext();) {
-          if (i.next().toString().equalsIgnoreCase(s)) {
-            i.remove();
-            break;
-          }
-        }
+      removeEntries(m.group() + '.' + checkType);
+    }
+  }
+
+  /**
+   * Removes from {@link #unusedResources} all resources to which the script code refers.
+   * <p>
+   * This method can be called from several threads
+   *
+   * @param compiledCode Compiled code from BCS, dialog action or trigger.
+   *        Must not be {@code null}
+   *
+   * @throws Exception If {@code compiledCode} contains invalid code
+   */
+  private void checkCode(String compiledCode, ScriptType type) throws Exception
+  {
+    final Decompiler decompiler = new Decompiler(compiledCode, type, true);
+    decompiler.setGenerateComments(false);
+    decompiler.setGenerateResourcesUsed(true);
+    decompiler.decompile();
+
+    synchronized (unusedResources) {
+      for (final ResourceEntry entry : decompiler.getResourcesUsed()) {
+        unusedResources.remove(entry);
       }
     }
   }
 
-  private synchronized void advanceProgress(boolean finished)
+  /**
+   * If type (a.k.a. extension) of the resource equals to the {@link #checkType
+   * type of checking resources}, removes specified resource name from
+   * {@link #unusedResources}, otherwise do nothing.
+   * <p>
+   * This method can be called from several threads
+   *
+   * @param ref Reference to the resource for checking
+   */
+  private void checkResourceRef(ResourceRef ref)
   {
-    if (progress != null) {
-      if (finished) {
-        progressIndex = 0;
-        progress.close();
-        progress = null;
-      } else {
-        progressIndex++;
-        if (progressIndex % 100 == 0) {
-          progress.setNote(String.format(FMT_PROGRESS, progressIndex, files.size()));
+    if (checkType.equalsIgnoreCase(ref.getType())) {
+      removeEntries(ref.getResourceName());
+    }
+  }
+
+  /**
+   * If string reference has the associated sound, removes this sound from
+   * {@link #unusedResources}, otherwise do nothing.
+   * <p>
+   * This method can be called from several threads
+   *
+   * @param ref Reference to entry in string table that contains sound file name
+   */
+  private void checkSound(StringRef ref)
+  {
+    final int index = ref.getValue();
+    if (index >= 0) {
+      final String wav = StringTable.getSoundResource(index);
+      if (!wav.isEmpty()) {
+        removeEntries(wav + ".WAV");
+      }
+    }
+  }
+
+  /**
+   * Removes from {@link #unusedResources} all entries that name equals {@code name}.
+   * <p>
+   * This method can be called from several threads
+   *
+   * @param name Resource name that must be erased from unused list
+   */
+  private void removeEntries(String name)
+  {
+    synchronized (unusedResources) {
+      for (final Iterator<ResourceEntry> it = unusedResources.iterator(); it.hasNext();) {
+        if (it.next().getResourceName().equalsIgnoreCase(name)) {
+          it.remove();
+          break;
         }
-        progress.setProgress(progressIndex);
       }
     }
   }
@@ -514,36 +430,7 @@ public final class ResourceUseChecker implements Runnable, ListSelectionListener
     @Override
     public String toString()
     {
-      return String.format("File: %s  Name: %s", file.toString(), file.getSearchString());
-    }
-  }
-
-  private class Worker implements Runnable
-  {
-    private final ResourceEntry entry;
-
-    public Worker(ResourceEntry entry)
-    {
-      this.entry = entry;
-    }
-
-    @Override
-    public void run()
-    {
-      if (entry != null) {
-        Resource resource = ResourceFactory.getResource(entry);
-        if (resource instanceof DlgResource) {
-          checkDialog((DlgResource)resource);
-        } else if (resource instanceof BcsResource) {
-          checkScript((BcsResource)resource);
-        } else if (resource instanceof PlainTextResource) {
-          checkTextfile((PlainTextResource)resource);
-        } else if (resource != null) {
-          checkStruct((AbstractStruct)resource);
-        }
-      }
-      advanceProgress(false);
+      return String.format("File: %s, Name: %s", file.getResourceName(), file.getSearchString());
     }
   }
 }
-

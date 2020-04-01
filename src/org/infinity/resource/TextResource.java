@@ -4,8 +4,10 @@
 
 package org.infinity.resource;
 
+/** Represents resource that is just plain text in some format. */
 public interface TextResource extends Resource
 {
+  /** Returns text representation of the resource. */
   String getText();
 
   /** Select text of specified {@code linenr}, optionally limited to matching {@code text}. */

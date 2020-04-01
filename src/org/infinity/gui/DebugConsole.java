@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -27,28 +28,31 @@ import org.infinity.util.Misc;
 
 final class DebugConsole extends ChildFrame implements ActionListener
 {
-  private final JButton bclearconsole = new JButton("Clear", Icons.getIcon(Icons.ICON_NEW_16));
-  private final JButton bsaveconsole = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+  private final JButton bClearConsole = new JButton("Clear", Icons.getIcon(Icons.ICON_NEW_16));
+  private final JButton bSaveConsole = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+  private final JCheckBox cbExtraInfo = new JCheckBox("Print internal debug info");
 
   DebugConsole()
   {
     super("Debug Console");
     setIconImage(Icons.getIcon(Icons.ICON_PROPERTIES_16).getImage());
 
-    bclearconsole.setMnemonic('c');
-    bclearconsole.addActionListener(this);
-    bsaveconsole.setMnemonic('s');
-    bsaveconsole.addActionListener(this);
+    bClearConsole.setMnemonic('c');
+    bClearConsole.addActionListener(this);
+    bSaveConsole.setMnemonic('s');
+    bSaveConsole.addActionListener(this);
+    cbExtraInfo.setToolTipText("Enable output of internal class information of current top-level window, resource and selected field in structure viewer.");
+    cbExtraInfo.setSelected(BrowserMenuBar.getInstance().getShowDebugExtraInfo());
+    cbExtraInfo.addActionListener(this);
 
     InfinityTextArea taconsole = NearInfinity.getConsoleText();
-    taconsole.setFont(Misc.getScaledFont(taconsole.getFont()));
     taconsole.setHighlightCurrentLine(false);
     taconsole.setEditable(false);
-    taconsole.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
 
     JPanel lowerpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    lowerpanel.add(bclearconsole);
-    lowerpanel.add(bsaveconsole);
+    lowerpanel.add(bClearConsole);
+    lowerpanel.add(bSaveConsole);
+    lowerpanel.add(cbExtraInfo);
 
     JPanel pane = (JPanel)getContentPane();
     pane.setLayout(new BorderLayout());
@@ -64,9 +68,9 @@ final class DebugConsole extends ChildFrame implements ActionListener
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (event.getSource() == bclearconsole)
+    if (event.getSource() == bClearConsole)
       NearInfinity.getConsoleText().setText("");
-    else if (event.getSource() == bsaveconsole) {
+    else if (event.getSource() == bSaveConsole) {
       JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
       chooser.setDialogTitle("Save console");
       chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "nidebuglog.txt"));
@@ -98,9 +102,11 @@ final class DebugConsole extends ChildFrame implements ActionListener
         }
       }
     }
+    else if (event.getSource() == cbExtraInfo) {
+      BrowserMenuBar.getInstance().setShowDebugExtraInfo(cbExtraInfo.isSelected());
+    }
   }
 
 // --------------------- End Interface ActionListener ---------------------
 
 }
-

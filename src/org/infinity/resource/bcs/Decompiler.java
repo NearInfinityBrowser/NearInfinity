@@ -41,32 +41,6 @@ public final class Decompiler
   private Signatures triggers, actions;
   private boolean triggerOverrideEnabled;
 
-  public Decompiler(ResourceEntry bcs, boolean generateErrors) throws Exception
-  {
-    this(bcs, ScriptType.BCS, generateErrors);
-  }
-
-  public Decompiler(ResourceEntry bcs, ScriptType type, boolean generateErrors) throws Exception
-  {
-    if (bcs == null) {
-      throw new NullPointerException();
-    }
-    if (BrowserMenuBar.getInstance() != null) {
-      if (BrowserMenuBar.getInstance().getBcsAutoIndentEnabled()) {
-        indent = BrowserMenuBar.getInstance().getBcsIndent();
-      } else {
-        indent = "";
-      }
-    }
-    this.scriptType = type;
-    this.generateErrors = generateErrors;
-    this.generateComments = true;
-    this.generateResUsed = true;
-    ByteBuffer buffer = bcs.getResourceBuffer();
-    this.code = StreamUtils.readString(buffer, buffer.limit());
-    setTriggerOverrideEnabled(this.scriptType != ScriptType.TRIGGER);
-  }
-
   public Decompiler(String code, boolean generateErrors)
   {
     this(code, ScriptType.BCS, generateErrors);
@@ -1070,7 +1044,6 @@ public final class Decompiler
         if (type.equals("TLK")) {
           int intValue = (int)value;
           if (isGenerateComments()) {
-//            sb.append(getNormalizedString(StringResource.getStringRef(intValue)));
             sb.append(getNormalizedString(StringTable.getStringRef(intValue)));
           }
           if (isGenerateResourcesUsed()) {

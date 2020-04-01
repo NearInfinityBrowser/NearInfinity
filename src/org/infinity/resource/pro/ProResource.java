@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.pro;
@@ -10,7 +10,6 @@ import javax.swing.JComponent;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.ColorPicker;
-import org.infinity.datatype.Datatype;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HashBitmap;
@@ -36,6 +35,19 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
 import org.infinity.util.LongIntegerHashMap;
 
+/**
+ * This resource describes projectiles, and the files are referenced spells and
+ * projectile weapons. Projectile files can control:
+ * <ul>
+ * <li>Projectile graphics</li>
+ * <li>Projectile speed</li>
+ * <li>Projectile area of effect</li>
+ * <li>Projectile sound</li>
+ * </ul>
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pro_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pro_v1.htm</a>
+ */
 public final class ProResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs, UpdateListener
 {
   // PRO-specific field labels
@@ -95,8 +107,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     super(entry);
   }
 
-//--------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
@@ -114,11 +125,9 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   {
     return true;
   }
+  //</editor-fold>
 
-//--------------------- End Interface HasAddRemovable ---------------------
-
-//--------------------- Begin Interface UpdateListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="UpdateListener">
   @Override
   public boolean valueUpdated(UpdateEvent event)
   {
@@ -143,36 +152,36 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       // add/remove extended sections in the parent structure depending on the current value
       if (struct instanceof Resource && struct instanceof HasAddRemovable) {
         if (proType.getValue() == 3L) {         // area of effect
-          StructEntry entry = struct.getList().get(struct.getList().size() - 1);
+          StructEntry entry = struct.getFields().get(struct.getFields().size() - 1);
           try {
             if (!(entry instanceof ProSingleType) && !(entry instanceof ProAreaType))
-              struct.addDatatype(new ProSingleType(), struct.getList().size());
-            entry = struct.getList().get(struct.getList().size() - 1);
+              struct.addDatatype(new ProSingleType(), struct.getFields().size());
+            entry = struct.getFields().get(struct.getFields().size() - 1);
             if (!(entry instanceof ProAreaType))
-              struct.addDatatype(new ProAreaType(), struct.getList().size());
+              struct.addDatatype(new ProAreaType(), struct.getFields().size());
           } catch (Exception e) {
             e.printStackTrace();
             return false;
           }
         } else if (proType.getValue() == 2L) {  // single target
-          StructEntry entry = struct.getList().get(struct.getList().size() - 1);
+          StructEntry entry = struct.getFields().get(struct.getFields().size() - 1);
           if (entry instanceof ProAreaType)
             struct.removeDatatype((AddRemovable)entry, false);
-          entry = struct.getList().get(struct.getList().size() - 1);
+          entry = struct.getFields().get(struct.getFields().size() - 1);
           if (!(entry instanceof ProSingleType)) {
             try {
-              struct.addDatatype(new ProSingleType(), struct.getList().size());
+              struct.addDatatype(new ProSingleType(), struct.getFields().size());
             } catch (Exception e) {
               e.printStackTrace();
               return false;
             }
           }
         } else if (proType.getValue() == 1L) {  // no bam
-          if (struct.getList().size() > 2) {
-            StructEntry entry = struct.getList().get(struct.getList().size() - 1);
+          if (struct.getFields().size() > 2) {
+            StructEntry entry = struct.getFields().get(struct.getFields().size() - 1);
             if (entry instanceof ProAreaType)
               struct.removeDatatype((AddRemovable)entry, false);
-            entry = struct.getList().get(struct.getList().size() - 1);
+            entry = struct.getFields().get(struct.getFields().size() - 1);
             if (entry instanceof ProSingleType)
               struct.removeDatatype((AddRemovable)entry, false);
           }
@@ -184,11 +193,9 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
     }
     return false;
   }
+  //</editor-fold>
 
-//--------------------- End Interface UpdateListener ---------------------
-
-//--------------------- Begin Interface HasViewerTabs ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -218,9 +225,9 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   {
     return false;
   }
+  //</editor-fold>
 
-//--------------------- End Interface HasViewerTabs ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -294,7 +301,9 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
 
     return offset;
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -334,53 +343,56 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
       hexViewer.dataModified();
     }
   }
+  //</editor-fold>
 
-  // Updates current IDS targeting to IWD style and returns true if changes have been made
+  /** Updates current IDS targeting to IWD style and returns true if changes have been made. */
   private boolean setIwdStyleIdsType(AbstractStruct struct, int offset, int nr)
   {
     if (struct != null && offset >= 0) {
       StructEntry e1 = struct.getAttribute(offset, false);
       StructEntry e2 = struct.getAttribute(offset + 2, false);
       if (!(e2 instanceof SpellProtType)) {
-        ByteBuffer typeBuffer = ((Datatype)e2).getDataBuffer();
-        SpellProtType newType = new SpellProtType(typeBuffer, 0, 2, null, nr);
+        final ByteBuffer typeBuffer = e2.getDataBuffer();
+        final SpellProtType newType = new SpellProtType(typeBuffer, 0, 2, null, nr);
         newType.setOffset(offset + 2);
-        ByteBuffer valueBuffer = ((Datatype)e1).getDataBuffer();
-        StructEntry newValue = newType.createCreatureValueFromType(valueBuffer, 0);
+        final ByteBuffer valueBuffer = e1.getDataBuffer();
+        final StructEntry newValue = newType.createCreatureValueFromType(valueBuffer, 0);
         newValue.setOffset(offset);
 
-        replaceEntry(newValue);
-        replaceEntry(newType);
+        replaceField(newValue);
+        replaceField(newType);
         return true;
       }
     }
     return false;
   }
 
-  // Updates current IDS targeting to old BG style and returns true if changes have been made
+  /** Updates current IDS targeting to old BG style and returns true if changes have been made. */
   private boolean setOldStyleIdsType(AbstractStruct struct, int offset, int nr)
   {
     if (struct != null && offset >= 0) {
       StructEntry e1 = struct.getAttribute(offset, false);
       StructEntry e2 = struct.getAttribute(offset + 2, false);
       if (!(e2 instanceof IdsTargetType)) {
-        ByteBuffer typeBuffer = ((Datatype)e2).getDataBuffer();
-        IdsTargetType newType = new IdsTargetType(typeBuffer, 0, 2, null, nr, null, false);
+        final ByteBuffer typeBuffer = e2.getDataBuffer();
+        final IdsTargetType newType = new IdsTargetType(typeBuffer, 0, 2, null, nr, null, false);
         newType.setOffset(offset + 2);
-        ByteBuffer valueBuffer = ((Datatype)e1).getDataBuffer();
-        StructEntry newValue = newType.createIdsValueFromType(valueBuffer, 0);
+        final ByteBuffer valueBuffer = e1.getDataBuffer();
+        final StructEntry newValue = newType.createIdsValueFromType(valueBuffer, 0);
         newValue.setOffset(offset);
 
-        replaceEntry(newValue);
-        replaceEntry(newType);
+        replaceField(newValue);
+        replaceField(newType);
         return true;
       }
     }
     return false;
   }
 
-  // Called by "Extended Search"
-  // Checks whether the specified resource entry matches all available search options.
+  /**
+   * Checks whether the specified resource entry matches all available search options.
+   * Called by "Extended Search"
+   */
   public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
   {
     if (entry != null && searchOptions != null) {

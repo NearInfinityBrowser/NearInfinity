@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -41,6 +41,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.infinity.NearInfinity;
+import org.infinity.gui.BrowserMenuBar.OverrideMode;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -58,8 +59,8 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   private final JButton bnext = new JButton("Forward", Icons.getIcon(Icons.ICON_FORWARD_16));
   private final JButton bprev = new JButton("Back", Icons.getIcon(Icons.ICON_BACK_16));
   private final JTree tree = new JTree();
-  private final Stack<ResourceEntry> nextstack = new Stack<ResourceEntry>();
-  private final Stack<ResourceEntry> prevstack = new Stack<ResourceEntry>();
+  private final Stack<ResourceEntry> nextstack = new Stack<>();
+  private final Stack<ResourceEntry> prevstack = new Stack<>();
   private ResourceEntry prevnextnode, shownresource;
   private boolean showresource = true;
 
@@ -208,7 +209,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   {
     ResourceTreeModel model = (ResourceTreeModel)tree.getModel();
     if (model != null) {
-      ResourceTreeFolder root = (ResourceTreeFolder)model.getRoot();
+      ResourceTreeFolder root = model.getRoot();
       processAllNodes(tree, new TreePath(root), true);
     }
   }
@@ -217,7 +218,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   {
     ResourceTreeModel model = (ResourceTreeModel)tree.getModel();
     if (model != null) {
-      ResourceTreeFolder root = (ResourceTreeFolder)model.getRoot();
+      ResourceTreeFolder root = model.getRoot();
       processAllNodes(tree, new TreePath(root), false);
       tree.expandPath(new TreePath(root));  // virtual root node is always expanded
     }
@@ -250,22 +251,26 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   /** Attempts to rename the specified file resource entry. */
   static void renameResource(FileResourceEntry entry)
   {
-    String filename = JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter new filename",
-                                                  "Rename " + entry.toString(),
-                                                  JOptionPane.QUESTION_MESSAGE);
+    String filename = (String)JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter new filename",
+                                                          "Rename " + entry.getResourceName(),
+                                                          JOptionPane.QUESTION_MESSAGE,
+                                                          null, null, entry.getResourceName());
     if (filename == null) {
       return;
     }
-    if (!filename.toUpperCase(Locale.ENGLISH).endsWith(entry.getExtension())) {
+    if (!filename.contains(".")) {
       filename = filename + '.' + entry.getExtension();
     }
-    if (Files.exists(entry.getActualPath().getParent().resolve(filename))) {
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File already exists!", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
+    if (Files.exists(entry.getActualPath().getParent().resolve(filename))
+     && JOptionPane.showConfirmDialog(NearInfinity.getInstance(),
+                                      "File with name \"" + filename + "\" already exists! Overwrite?",
+                                      "Confirm overwrite " + filename, JOptionPane.OK_CANCEL_OPTION,
+                                      JOptionPane.QUESTION_MESSAGE) != JOptionPane.OK_OPTION
+    ) {
       return;
     }
     try {
-      entry.renameFile(filename, false);
+      entry.renameFile(filename, true);
     } catch (IOException e) {
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Error renaming file \"" + filename + "\"!",
                                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -754,14 +759,30 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     public Component getTreeCellRendererComponent(JTree tree, Object o, boolean sel, boolean expanded,
                                                   boolean leaf, int row, boolean hasFocus)
     {
+      super.getTreeCellRendererComponent(tree, o, sel, expanded, leaf, row, hasFocus);
+      Font font = tree.getFont();
       if (leaf && o instanceof ResourceEntry) {
-        super.getTreeCellRendererComponent(tree, o, sel, expanded, leaf, row, hasFocus);
-        setIcon(((ResourceEntry)o).getIcon());
-        return this;
+        final ResourceEntry e = (ResourceEntry)o;
+
+        final BrowserMenuBar options = BrowserMenuBar.getInstance();
+        if (options.showTreeSearchNames()) {
+          final String name  = e.getResourceName();
+          final String title = e.getSearchString();
+          //TODO: refactor code and remove "No such index" comparison
+          // Now getSearchString returns that string when StringRef index not found
+          // in the talk table
+          final boolean hasTitle = title != null && !title.isEmpty() && !"No such index".equals(title);
+          setText(hasTitle ? name + " - " + title : name);
+        }
+        setIcon(e.getIcon());
+        // Do not use bold in Override mode othrewise almost all entries will be in bold, which looks not so good
+        final boolean inOverrideMode = options.getOverrideMode() == OverrideMode.InOverride;
+        if (e.hasOverride() && !inOverrideMode && options.highlightOverridden()) {
+          font = font.deriveFont(Font.BOLD);
+        }
       }
-      else
-        return super.getTreeCellRendererComponent(tree, o, sel, expanded, leaf, row, hasFocus);
+      setFont(font);
+      return this;
     }
   }
 }
-

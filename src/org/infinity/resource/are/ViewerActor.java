@@ -1,44 +1,78 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
 
+import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 
 import org.infinity.datatype.Flag;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.cre.CreResource;
 
 public final class ViewerActor extends JPanel
 {
   ViewerActor(Actor actor)
   {
-    JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag)actor.getAttribute(Actor.ARE_ACTOR_PRESENT_AT), 2);
+    JTabbedPane tabs = new JTabbedPane();
+
+    JPanel presentPanel = ViewerUtil.makeCheckPanel((Flag)actor.getAttribute(Actor.ARE_ACTOR_PRESENT_AT), 2);
+    JPanel flagsPanel = ViewerUtil.makeCheckPanel((Flag)actor.getAttribute(Actor.ARE_ACTOR_FLAGS), 1);
+    JPanel difficultyPanel = null;
+    if (actor.getParent() != null &&
+        actor.getParent().getAttribute(AbstractStruct.COMMON_VERSION).toString().equalsIgnoreCase("V9.1")) {
+      difficultyPanel = ViewerUtil.makeCheckPanel((Flag)actor.getAttribute(Actor.ARE_ACTOR_DIFFICULTY), 1);
+    }
     JPanel fieldPanel = makeFieldPanel(actor);
 
-    JPanel mainPanel = new JPanel(new GridLayout(1, 2, 3, 3));
-    mainPanel.add(fieldPanel);
-    mainPanel.add(boxPanel);
-
-    GridBagLayout gbl = new GridBagLayout();
+    JPanel mainPanel = new JPanel(new GridBagLayout());
+    JPanel subPanel = new JPanel(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
-    setLayout(gbl);
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.anchor = GridBagConstraints.NORTH;
+    gbc.insets = new Insets(0, 0, 0, 10);
+    gbc.gridheight = 2;
+    subPanel.add(fieldPanel, gbc);
 
-    gbc.weightx = 0.0;
-    gbc.weighty = 0.0;
-    gbc.fill = GridBagConstraints.NONE;
-    gbc.anchor = GridBagConstraints.CENTER;
-    gbl.setConstraints(mainPanel, gbc);
-    add(mainPanel);
+    gbc.gridx = 1;
+    if (difficultyPanel != null)
+      gbc.gridheight = 1;
+    gbc.insets.left = 10;
+    gbc.weighty = 1.0;
+    gbc.fill = GridBagConstraints.BOTH;
+    subPanel.add(flagsPanel, gbc);
+    if  (difficultyPanel != null) {
+      gbc.gridy = 1;
+      gbc.insets.top = 10;
+      subPanel.add(difficultyPanel, gbc);
+      gbc.gridy = 0;
+    }
+
+    gbc.gridx = 2;
+    gbc.gridheight = 2;
+    gbc.insets.right = gbc.insets.top = 0;
+    subPanel.add(presentPanel, gbc);
+
+    mainPanel.add(subPanel);
+
+    tabs.addTab("Actor", mainPanel);
+    CreResource cre = (CreResource)actor.getAttribute(Actor.ARE_ACTOR_CRE_FILE);
+    if (cre != null) {
+      tabs.add("CRE", new org.infinity.resource.cre.Viewer(cre));
+    }
+    setLayout(new BorderLayout());
+    add(tabs, BorderLayout.CENTER);
   }
 
   private JPanel makeFieldPanel(Actor actor)
@@ -84,9 +118,10 @@ public final class ViewerActor extends JPanel
     fieldPanel.add(tf2);
 
     ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_ORIENTATION), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_ANIMATION), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_OVERRIDE), gbl, gbc, true);
-    if (actor.getSuperStruct() != null &&
-        actor.getSuperStruct().getAttribute(AbstractStruct.COMMON_VERSION).toString().equalsIgnoreCase("V9.1")) {
+    if (actor.getParent() != null &&
+        actor.getParent().getAttribute(AbstractStruct.COMMON_VERSION).toString().equalsIgnoreCase("V9.1")) {
       ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_SPECIAL_1), gbl, gbc, true);
       ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_TEAM), gbl, gbc, true);
       ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_SCRIPT_SPECIAL_2), gbl, gbc, true);
@@ -106,4 +141,3 @@ public final class ViewerActor extends JPanel
     return fieldPanel;
   }
 }
-

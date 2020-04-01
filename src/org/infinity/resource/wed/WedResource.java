@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.wed;
@@ -10,7 +10,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 
 import javax.swing.JComponent;
 
@@ -34,6 +33,33 @@ import org.infinity.resource.vertex.Vertex;
 import org.infinity.util.ArrayUtil;
 import org.infinity.util.Misc;
 
+/**
+ * This resource maps the layout of terrain to the tiles in the tileset, and adds
+ * structure to an area by listing its {@link Door doors} and {@link WallPolygon walls}.
+ * <p>
+ * An area is a grid, with each 64*64 cell within the grid (called a tile cell)
+ * being a location for a tile. Tile cells are numbered, starting at 0, and run
+ * from top left to bottom right (i.e. a tile cell number can be calculated by
+ * {@code y*width+x}). As well the tiles for the main area graphics, an area can
+ * use {@link Overlay overlays}. Overlays are usually used for rivers and lakes.
+ * Each overlay layer is placed in a separate grid, which are stacked on top of
+ * the base grid. Areas also contain another grid, split into 16*16 squares, for
+ * the exploration map.
+ * <p>
+ * The process of drawing an area is outlined below:
+ * <ul>
+ * <li>The cell number acts as an index into a tilemap structure</li>
+ * <li>This give a "tile lookup index" which is an index into the tile indices
+ *     lookup table</li>
+ * <li>The tile indices lookup table gives the index into the actual tileset, at
+ *     which point, the tile is drawn</li>
+ * <li>The process is repeated for each required overlay (using the associated
+ *     overlay tilemap / tile indices)</li>
+ * </ul>
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/wed_v1.3.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/wed_v1.3.htm</a>
+ */
 public final class WedResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
   // WED-specific field labels
@@ -85,7 +111,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeFlatList(os);
+    super.writeFlatFields(os);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -145,8 +171,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     else if (datatype instanceof RemovableDecNumber && child instanceof Door) {
       Door childDoor = (Door)child;
       int childIndex = childDoor.getTilemapIndex().getValue();
-      for (int i = 0; i < getFieldCount(); i++) {
-        Object o = getField(i);
+      for (final StructEntry o : getFields()) {
         if (o instanceof Door && o != childDoor) {
           DecNumber tilemapIndex = ((Door)o).getTilemapIndex();
           if (tilemapIndex.getValue() >= childIndex)
@@ -177,8 +202,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     else if (datatype instanceof RemovableDecNumber && child instanceof Door) {
       Door childDoor = (Door)child;
       int childIndex = childDoor.getTilemapIndex().getValue();
-      for (int i = 0; i < getFieldCount(); i++) {
-        Object o = getField(i);
+      for (final StructEntry o : getFields()) {
         if (o instanceof Door && o != childDoor) {
           DecNumber tilemapIndex = ((Door)o).getTilemapIndex();
           if (tilemapIndex.getValue() > childIndex)
@@ -207,7 +231,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     SectionOffset offsetOverlays = new SectionOffset(buffer, offset + 16, WED_OFFSET_OVERLAYS,
                                                      Overlay.class);
     addField(offsetOverlays);
-    SectionOffset offsetHeader2 = new SectionOffset(buffer, offset + 20, WED_OFFSET_SECOND_HEADER, null);
+    SectionOffset offsetHeader2 = new SectionOffset(buffer, offset + 20, WED_OFFSET_SECOND_HEADER, HexNumber.class);
     addField(offsetHeader2);
     SectionOffset offsetDoors = new SectionOffset(buffer, offset + 24, WED_OFFSET_DOORS,
                                                   Door.class);
@@ -286,9 +310,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     }
 
     int endoffset = offset;
-    List<StructEntry> flatList = getFlatList();
-    for (int i = 0; i < flatList.size(); i++) {
-      StructEntry entry = flatList.get(i);
+    for (final StructEntry entry : getFlatFields()) {
       if (entry.getOffset() + entry.getSize() > endoffset) {
         endoffset = entry.getOffset() + entry.getSize();
       }
@@ -311,8 +333,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
       }
     }
 
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getFields()) {
       if (o instanceof Overlay) {
         ((Overlay)o).updateOffsets(datatype.getOffset(), size);
       }
@@ -321,8 +342,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     // Assumes polygon offset is correct
     int offset = ((SectionOffset)getAttribute(WED_OFFSET_WALL_POLYGONS)).getValue();
     offset += ((SectionCount)getAttribute(WED_NUM_WALL_POLYGONS)).getValue() * 18;
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getFields()) {
       if (o instanceof Door) {
         ((Door)o).updatePolygonsOffset(offset);
       }
@@ -334,8 +354,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     // Assumes vertices offset is correct
     int offset = ((HexNumber)getAttribute(WED_OFFSET_VERTICES)).getValue();
     int count = 0;
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getFields()) {
       if (o instanceof Polygon) {
         Polygon polygon = (Polygon)o;
         int vertNum = polygon.updateVertices(offset, count);
@@ -344,8 +363,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
       }
       else if (o instanceof Door) {
         Door door = (Door)o;
-        for (int j = 0; j < door.getFieldCount(); j++) {
-          StructEntry q = door.getField(j);
+        for (final StructEntry q : door.getFields()) {
           if (q instanceof Polygon) {
             Polygon polygon = (Polygon)q;
             int vertNum = polygon.updateVertices(offset, count);
@@ -357,4 +375,3 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     }
   }
 }
-

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -11,7 +11,6 @@ import java.awt.Polygon;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
-import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.are.AreResource;
 
@@ -20,45 +19,58 @@ import org.infinity.resource.are.AreResource;
  */
 public class LayerObjectTransition extends LayerObject
 {
-  public static final String[] FIELD_NAME = {"Area north", "Area east", "Area south", "Area west"};
+  public static final String[] FIELD_NAME = {
+    AreResource.ARE_AREA_NORTH,
+    AreResource.ARE_AREA_EAST,
+    AreResource.ARE_AREA_SOUTH,
+    AreResource.ARE_AREA_WEST,
+  };
 
   private static final Color[] COLOR = {new Color(0xFF404000, true), new Color(0xFF404000, true),
                                         new Color(0xC0808000, true), new Color(0xC0C0C000, true)};
   private static final int WIDTH = 16;    // "width" of the transition polygon
 
-  private final AreResource are;
-  private final Point location = new Point();
+  /** Destination area. */
+  private final AreResource destination;
   private final Point[] shapeCoords = {new Point(), new Point(), new Point(), new Point()};
   private final int edge;
   private final TilesetRenderer renderer;
 
-  private ShapedLayerItem item;
+  private final ShapedLayerItem item;
 
-  public LayerObjectTransition(AreResource parent, AreResource are, int edge, TilesetRenderer renderer)
+  public LayerObjectTransition(AreResource parent, AreResource destination, int edge, TilesetRenderer renderer)
   {
-    super(ViewerConstants.RESOURCE_ARE, "Transition", AreResource.class, parent);
-    this.are = are;
+    super("Transition", AreResource.class, parent);
+    this.destination = destination;
     this.edge = Math.min(ViewerConstants.EDGE_WEST, Math.max(ViewerConstants.EDGE_NORTH, edge));
     this.renderer = renderer;
-    init();
+    String msg = null;
+    try {
+      final ResourceRef ref = (ResourceRef)parent.getAttribute(FIELD_NAME[this.edge]);
+      if (ref != null && !ref.isEmpty()) {
+        msg = String.format("Transition to %s", ref);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    item = new ShapedLayerItem(destination, msg, null);
+    item.setName(getCategory());
+    update(1.0);
+    item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
+    item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
+    item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
+    item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
+    item.setStroked(true);
+    item.setFilled(true);
+    item.setVisible(isVisible());
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
-    return are;
-  }
-
-  @Override
-  public Viewable[] getViewables()
-  {
-    return new AbstractStruct[]{are};
-  }
-
-  @Override
-  public AbstractLayerItem getLayerItem()
-  {
-    return item;
+    return destination;
   }
 
   @Override
@@ -74,15 +86,9 @@ public class LayerObjectTransition extends LayerObject
   }
 
   @Override
-  public void reload()
-  {
-    init();
-  }
-
-  @Override
   public void update(double zoomFactor)
   {
-    if (item != null && renderer != null) {
+    if (renderer != null) {
       int mapW = renderer.getMapWidth(true);
       int mapH = renderer.getMapHeight(true);
       switch (edge) {
@@ -119,53 +125,5 @@ public class LayerObjectTransition extends LayerObject
       item.setShape(poly);
     }
   }
-
-  @Override
-  public Point getMapLocation()
-  {
-    return location;
-  }
-
-  @Override
-  public Point[] getMapLocations()
-  {
-    return new Point[]{location};
-  }
-
-  /**
-   * Returns the edge of the map this transition is location.
-   */
-  public int getEdge()
-  {
-    return edge;
-  }
-
-  private void init()
-  {
-    if (getParentStructure() instanceof AreResource && are != null && renderer != null) {
-      AreResource parent = (AreResource)getParentStructure();
-      String msg = "";
-      try {
-        ResourceRef ref = (ResourceRef)parent.getAttribute(FIELD_NAME[edge]);
-        if (ref != null && !ref.getResourceName().isEmpty() &&
-            !"None".equalsIgnoreCase(ref.getResourceName())) {
-          msg = String.format("Transition to %s", ref.getResourceName());
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
-      item = new ShapedLayerItem(location, are, msg);
-      item.setName(getCategory());
-      item.setToolTipText(msg);
-      update(1.0);
-      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
-      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
-      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
-      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
-      item.setStroked(true);
-      item.setFilled(true);
-      item.setVisible(isVisible());
-    }
-  }
+  //</editor-fold>
 }

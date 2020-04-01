@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.bcs;
@@ -17,7 +17,6 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -55,15 +54,280 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
-import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ScriptReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
+import org.infinity.util.IdsMap;
 import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.Misc;
-import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * This resource represent scripted actions. {@code .bcs} files are scripts attached
+ * to anything other than the player characters. {@code .bs} files are scripts which
+ * drive a characters actions automatically (AI scripts) based on criteria in the
+ * environment.
+ * <p>
+ * Just as the files from which they are compiled, these script files make use of
+ * the concept of "triggers" and "responses". A trigger is a condition which causes
+ * a response with a certain probability. A response is one or more calls to functions
+ * they have exposed to the script. It seems that this to be the difference between
+ * {@code .bcs} and {@code .bs} files. (They are assigned different resource types
+ * in the resource management code, too.)
+ * <p>
+ * The format will be given in a top-down sense: i.e. first will describe the formatting
+ * of top-level blocks, and then will describe the contents of the blocks. The
+ * process will proceed recursively until the whole format is described.
+ * <p>
+ * The top-level block is the script file.
+ *
+ * <h3>Parameters</h3>
+ * First, a brief word on "function parameters". Both {@link BcsTrigger triggers}
+ * and {@link BcsAction actions} are essentially calls to functions inside the
+ * Infinity Engine. Triggers can take up to 7 arguments, and actions can take up
+ * to 10 arguments. There are three allowable forms of arguments: strings, integers,
+ * and objects. The different function calls are defined in {@code TRIGGER.IDS}
+ * and {@code ACTION.IDS}.
+ * <p>
+ * There are also functions defined in {@code SVTRIOBJ.IDS}, which are a {sub|super}
+ * set of of the function calls defined in {@code TRIGGER.IDS}. They are probably
+ * used for {insert spiel here}.
+ * <p>
+ * String arguments are simply quoted strings (i.e. ASCII strings delimited by
+ * the double quote character {@code '"'}). The format of these descriptions is
+ * given below, by way of an example (from BG's {@code TRIGGER.IDS}):
+ *
+ * <code><pre>
+ * 0x401D Specifics(O:Object*,I:Specifics*Specific)
+ * </pre></code>
+ *
+ * The first thing on the line is the ID (in hex. IDs in scripts are typically
+ * in decimal). Next is the name of the function. Inside the parentheses, similarly
+ * to C/C++, is a comma-delimited list of argument type and argument name.
+ * <p>
+ * The argument types are:
+ * <ul>
+ * <li>S: string</li>
+ * <li>O: object</li>
+ * <li>I: integer</li>
+ * <li>P: point</li>
+ * <li>A: action</li>
+ * </ul>
+ * There is always a tag after the {@code ':'} and before the {@code '*'}. It seems
+ * that the tag is used only for expository function -- i.e. simply an argument name
+ * to help discern the purpose. There is, however, one minor complication. Actions
+ * only have space for 2 string parameters. There are actions taking anywhere from
+ * 0 to 4 strings. Some of the actions which take strings (usually either 2 or 4
+ * strings) actually concatenate the strings. In this case, it is always an
+ * {@code "Area"} and a {@code "Name"} parameter, (though the parameter names vary
+ * somewhat).
+ * <p>
+ * The only surefire way to tell which is which is to hardcode the values of the
+ * actions which concatenate strings. When the strings are concatenated, the
+ * {@code "Area"} is always the first part of the resulting string, and always
+ * takes exactly 6 characters. It works, in most respects, just like a namespace
+ * qualifier in, for instance, C++. An aside: The functions which actually concatenate
+ * the strings are typically the ones which access "global variables", i.e.
+ * {@code Global}, {@code SetGlobal}, {@code IncrementGlobal}, et cetera.
+ * <p>
+ * At present there is no confidence how "action" type parameters are stored.
+ * This will require some investigation.
+ * <p>
+ * The final detail in the above example is the bit following the {@code '*'}.
+ * This occurs (it seems) only in integer arguments; the string following the
+ * asterisk is the name of an {@link IdsMap IDS} file. The values in the IDS file
+ * are the only allowed values for that parameter; moreover, it is extremely probable
+ * that the parameter can be accessed using the symbolic names given in the IDS file,
+ * though this is merely speculation. Each trigger can use up to 2 (3?) integer
+ * arguments, up to 2 string arguments, and one object argument. These seven arguments
+ * are always specified in each trigger, even if they are not all used. If an argument
+ * is not used, it is assigned a dummy value. Finally, the arguments are used in order
+ * when they are listed in the scripts. For instance, two integer parameters always
+ * occupy the first two "integer parameter" slots in the trigger or action. A trigger
+ * has an additional "flags" field, in which, for instance, a bit is either set or
+ * cleared to indicate whether the trigger is to be negated or not. (i.e. whether the
+ * success of the trigger should return {@code true} or {@code false}).
+ *
+ * <h3>Script file</h3>
+ * <code><pre>
+ * SC (newline)
+ * Condition-response block
+ * Condition-response block
+ * ...
+ * Condition-response block
+ * SC (newline)
+ * </pre></code>
+ *
+ * <h3>Condition-response block</h3>
+ * This can be interpreted as "if condition, then response set". A response set
+ * is a set of actions, each of which is performed with a certain probability:
+ * <code><pre>
+ * CR (newline)
+ * Condition
+ * Response set
+ * CR (newline)
+ * </pre></code>
+ *
+ * <h3>Condition</h3>
+ * This should be interpreted as the AND of all the "trigger" conditions. The
+ * condition is {@code true} iff all triggers inside are {@code true}:
+ * <code><pre>
+ * CO (newline)
+ * Trigger
+ * Trigger
+ * ...
+ * Trigger
+ * CO (newline)
+ * </pre></code>
+ *
+ * <h3>Trigger</h3>
+ * This format is slightly hairier. First, it has a "trigger ID", which is an ID
+ * in the {@code TRIGGER.IDS} file. Essentially, each trigger corresponds to a call
+ * to one of the functions listed in there. See the section on parameters for details:
+ * <code><pre>
+ * TR (newline)
+ * trigger ID from TRIGGER.IDS (no newline)
+ * 1 integer parameter (no newline)
+ * 1 flags dword (no newline):
+ *    bit 0: negate condition flag (if true, this trigger is negated -- i.e. success=>false, failure=>true)
+ * 1 integer parameter (no newline)
+ * 1 integer. Unknown purpose.
+ * 2 string parameters (no newline)
+ * 1 object parameter (newline)
+ * TR (newline)
+ * </pre></code>
+ *
+ * <h3>Response set</h3>
+ * Each response in a reponse set has a certain weight associated with it. Usually,
+ * this is 100%, but if not, then the response is only played with a certain probability.
+ * To find the chance of a particular response being chosen, sum the probabilities of
+ * all the responses in the response set. Each response Rnhas a probability {@code Pn/Sum(P)}
+ * of being chosen, if the response set is to be played:
+ * <code><pre>
+ * RS (newline)
+ * Response
+ * Response
+ * ...
+ * Response
+ * </pre></code>
+ *
+ * <h3>Response</h3>
+ * A response is simply the concatenation of a probability and an ACTION:
+ * <code><pre>
+ * RE (newline)
+ * weight. i.e. how likely this response is to occur, given that the response
+ *         set is to be run (no newline -- often no whitespace, though that may
+ *         not be important).
+ * action (newline)
+ * RE (newline)
+ * </pre></code>
+ *
+ * <h3>Action</h3>
+ * This format is slightly hairier. First, it has a "action ID", which is an ID
+ * in the {@code action.IDS} file. Essentially, each action corresponds to a call
+ * to one of the functions listed in there. See the section on parameters for details:
+ * <code><pre>
+ * AC (newline)
+ * action ID from ACTION.IDS (no newline)
+ * 3 object parameters (newlines after each)
+ * 1 integer parameters (no newline)
+ * 1 point parameter (formatted as two integers x y) (no newline)
+ * 2 integer parameters (no newline)
+ * 2 string parameters (no newline)
+ * AC (newline)
+ * </pre></code>
+ *
+ * <h3>Object</h3>
+ * Objects represent things (i.e. characters) in the game. An object has several
+ * parameters. These parameters have enumerated values which can be looked up in
+ * {@code .IDS} files. Planescape: Torment has more parameters than BG did:
+ * <ul>
+ * <li>{@code TEAM} (Planescape: Torment only).
+ * <p>Every object in Torment can have a TEAM. Most objects do not have a team specified</li>
+ * <li>{@code FACTION} (Planescape: Torment only).
+ * <p>Every object in Torment can belong to a FACTION. Most creatures do, in fact,
+ * belong to a faction</li>
+ * <li>{@code EA} (Enemy-Ally).
+ * <p>Whether the character is friendly to your party. Values include {@code "INANIMATE" (=1)},
+ * for inanimate objects, {@code "PC" (=2)} for characters belonging to the player,
+ * {@code "CHARMED" (=6)} for characters who have been charmed, and hence are under
+ * friendly control, or {@code "ENEMY" (=255)} for characters who are hostile towards
+ * the character. Two special values of EA exist: {@code "GOODCUTOFF" (=30)} and
+ * {@code "EVILCUTOFF" (=200)}. Characters who are below the good cutoff are always
+ * hostile towards characters over the evil cutoff, and vice versa. To this end, you
+ * can use {@code GOODCUTOFF} and {@code EVILCUTOFF} as sort of "wildcards".
+ * {@code EVILCUTOFF} specifies all characters who are "evil", and {@code GOODCUTOFF}
+ * specifies all characters who are "good". Note that this has little to do with the
+ * alignment</li>
+ * <li>{@code GENERAL}
+ * <p>The general type of an object. This includes {@code "HUMANOID"}, {@code "UNDEAD"},
+ * {@code "ANIMAL"} et cetera, but also {@code "HELMET"}, {@code "KEY"}, {@code "POTION"},
+ * {@code "GLOVES"}, et cetera</li>
+ * <li>{@code RACE}
+ * <p>The race of an object. Creatures obviously have a race, but items also have "race",
+ * which can include a slightly more specific description of the type of item than was
+ * given in the {@code GENERAL} field. For instance, for armor items, this includes the
+ * "type" of the armor -- leather, chain, plate, etc.</li>
+ * <li>{@code CLASS}
+ * <p>The class of a creature or item. Again, the class notion makes more sense for
+ * creatures, but gives some information about the specific type of an item. For a
+ * "sword" or "bow", for instance, the class can be {@code "LONG_SWORD"} or {@code
+ * "LONG_BOW"}. As another example, the different types of spiders (phase, wraith, etc)
+ * are differentiated by the class field</li>
+ * <li>{@code SPECIFIC}
+ * <p>The specific type of an item. BG only defines three specific types: {@code NORMAL},
+ * {@code MAGIC}, and {@code NO_MAGIC}. Dunno. Torment uses this field much more
+ * extensively to differentiate precise individuals matching a description from
+ * everyone else</li>
+ * <li>{@code GENDER}
+ * <p>Gender field. There are, mind-boggling as it may seem, five possible values for
+ * this in BG, including the expected {@code MALE} and {@code FEMALE}. There's also
+ * {@code "NIETHER"} (sic), which seems presume was meant as {@code NEITHER}. Finally,
+ * there are {@code OTHER} and {@code BOTH}</li>
+ * <li>{@code ALIGNMENT}
+ * <p>This field is fairly obvious. The high nybble is the Chaotic-Lawful axis, and
+ * the low nybble is the Good-Evil axis. The values for this are specified in
+ * {@code ALIGNMEN.IDS}. The only nuance to this is that there are several values
+ * {@code MASK_CHAOTIC}, {@code MASK_LCNEUTRAL}, [@code MASK_LAWFUL}, {@code MASK_EVIL},
+ * {@code MASK_GENEUTRAL}, {@code MASK_GOOD} which are wildcards, meaning, respectively,
+ * all chaotic objects, all neutral (on the lawful-chaotic axis) objects, all lawful
+ * objects, all evil objects, all neutral (good-evil axis) objects, and all good objects</li>
+ * <li>{@code IDENTIFIERS}
+ * <p>The 5 identifiers for an object allow functional specification of an object
+ * ({@code LastAttackedBy(Myself)}, etc.). These values are looked up in {@code OBJECT.IDS}.
+ * Any unused bytes are set to 0.
+ * <li>{@code NAME}
+ * <p>This is a string parameter, and is only used for characters who have specific
+ * names. Objects can be looked up by name, or referenced by name in scripts.
+ * That is the purpose of this field.
+ * </ul>
+ * The specific format of an object is as follows:
+ * <code><pre>
+ * OB (newline)
+ * integer: enemy-ally field (EA.IDS)
+ * integer: (torment only) faction (FACTION.IDS)
+ * integer: (torment only) team (TEAM.IDS)
+ * integer: general (GENERAL.IDS)
+ * integer: race (RACE.IDS)
+ * integer: class (CLASS.IDS)
+ * integer: specific (SPECIFIC.IDS)
+ * integer: gender (GENDER.IDS)
+ * integer: alignment (ALIGNMEN.IDS)
+ * integer: identifiers (OBJECT.IDS)
+ * (Not in BG1) object coordinates
+ * string: name
+ * OB (newline)
+ * </pre></code>
+ * Object coordinates must be specified as a point. Coordinate values which are -1
+ * indicate that the specified part of the coordinate is not used.
+ * A point is represented as:
+ * <code><pre>
+ * [x.y]
+ * </pre></code>
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/bcs.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/bcs.htm</a>
+ */
 public final class BcsResource implements TextResource, Writeable, Closeable, ActionListener, ItemListener,
                                           DocumentListener
 {
@@ -128,30 +392,16 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       int result = JOptionPane.showOptionDialog(panel, "Script contains uncompiled changes", "Uncompiled changes",
                                                 JOptionPane.YES_NO_CANCEL_OPTION,
                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0) {
+      if (result == JOptionPane.YES_OPTION) {
         ((JButton)bpDecompile.getControlByType(CtrlCompile)).doClick();
         if (bpDecompile.getControlByType(CtrlErrors).isEnabled()) {
           throw new Exception("Save aborted");
         }
         ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
-      } else if (result == 2 || result == JOptionPane.CLOSED_OPTION)
+      } else if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION)
         throw new Exception("Save aborted");
     } else if (codeChanged) {
-      Path output;
-      if (entry instanceof BIFFResourceEntry) {
-        output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
-      } else {
-        output = entry.getActualPath();
-      }
-      String options[] = {"Save changes", "Discard changes", "Cancel"};
-      int result = JOptionPane.showOptionDialog(panel, "Save changes to " + output + '?', "Resource changed",
-                                                JOptionPane.YES_NO_CANCEL_OPTION,
-                                                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0) {
-        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
-      } else if (result != 1) {
-        throw new Exception("Save aborted");
-      }
+      ResourceFactory.closeResource(this, entry, panel);
     }
   }
 
@@ -256,7 +506,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
             }
           });
         }
-        chooser.setSelectedFile(new File(StreamUtils.replaceFileExtension(entry.toString(), "BAF")));
+        chooser.setSelectedFile(new File(StreamUtils.replaceFileExtension(entry.getResourceName(), "BAF")));
         int returnval = chooser.showSaveDialog(panel.getTopLevelAncestor());
         if (returnval == JFileChooser.APPROVE_OPTION) {
           try (BufferedWriter bw =
@@ -310,6 +560,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
       return sourceText.getText();
     }
     Decompiler decompiler = new Decompiler(text, false);
+    decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
     try {
       return decompiler.getSource();
     } catch (Exception e) {
@@ -360,7 +611,6 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     sourceText = new ScriptTextArea();
     sourceText.setAutoIndentEnabled(BrowserMenuBar.getInstance().getBcsAutoIndentEnabled());
     sourceText.addCaretListener(container.getStatusBar());
-    sourceText.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     sourceText.setMargin(new Insets(3, 3, 3, 3));
     sourceText.setLineWrap(false);
     sourceText.getDocument().addDocumentListener(this);
@@ -387,7 +637,6 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     decompiledPanel.add(bpDecompile, BorderLayout.SOUTH);
 
     codeText = new InfinityTextArea(text, true);
-    codeText.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     codeText.setMargin(new Insets(3, 3, 3, 3));
     codeText.setCaretPosition(0);
     codeText.setLineWrap(false);
@@ -530,6 +779,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     ButtonPopupMenu bpmUses = (ButtonPopupMenu)buttonPanel.getControlByType(CtrlUses);
 
     Decompiler decompiler = new Decompiler(codeText.getText(), true);
+    decompiler.setGenerateComments(BrowserMenuBar.getInstance().autogenBCSComments());
     try {
       sourceText.setText(decompiler.getSource());
     } catch (Exception e) {
@@ -543,7 +793,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     for (final ResourceEntry usesEntry : uses) {
       if (usesEntry.getSearchString() != null) {
         usesItems[usesIndex++] =
-        new JMenuItem(usesEntry.toString() + " (" + usesEntry.getSearchString() + ')');
+        new JMenuItem(usesEntry.getResourceName() + " (" + usesEntry.getSearchString() + ')');
       } else {
         usesItems[usesIndex++] = new JMenuItem(usesEntry.toString());
       }
@@ -576,4 +826,3 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
     }
   }
 }
-

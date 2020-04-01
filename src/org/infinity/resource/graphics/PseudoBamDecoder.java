@@ -1013,10 +1013,7 @@ public class PseudoBamDecoder extends BamDecoder
       bamData = null;
 
       // generating PVRZ files
-      if (!createPvrzPages(pvrzFilePath, dxtType, listGrid, listFrameData, progress, curProgress)) {
-        return false;
-      }
-      return true;
+      return createPvrzPages(pvrzFilePath, dxtType, listGrid, listFrameData, progress, curProgress);
     }
     return false;
   }

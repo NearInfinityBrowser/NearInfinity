@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.gam;
@@ -97,11 +97,11 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
     partyOrder.put(4L, "Slot 5");
     partyOrder.put(5L, "Slot 6");
 //    partyOrder.put(0x8000L, "In party, dead");
-    partyOrder.put(new Long(0xffff), "Not in party");
+    partyOrder.put(0xffffL, "Not in party");
 
     m_selected.put(0L, "Not selected");
     m_selected.put(1L, "Selected");
-    m_selected.put(32768L, "Dead");
+    m_selected.put(0x8000L, "Dead");
   }
 
   PartyNPC() throws Exception
@@ -184,7 +184,8 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
   @Override
   protected void datatypeAddedInChild(AbstractStruct child, AddRemovable datatype)
   {
-    ((DecNumber)getAttribute(GAM_NPC_CRE_SIZE)).setValue(getField(getFieldCount() - 1).getSize());
+    final StructEntry last = getFields().get(getFields().size() - 1);
+    ((DecNumber)getAttribute(GAM_NPC_CRE_SIZE)).setValue(last.getSize());
     super.datatypeAddedInChild(child, datatype);
   }
 
@@ -200,13 +201,14 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
   @Override
   protected void datatypeRemovedInChild(AbstractStruct child, AddRemovable datatype)
   {
-    ((DecNumber)getAttribute(GAM_NPC_CRE_SIZE)).setValue(getField(getFieldCount() - 1).getSize());
+    final StructEntry last = getFields().get(getFields().size() - 1);
+    ((DecNumber)getAttribute(GAM_NPC_CRE_SIZE)).setValue(last.getSize());
     super.datatypeRemovedInChild(child, datatype);
   }
 
   void updateCREOffset()
   {
-    StructEntry entry = getField(getFieldCount() - 1);
+    final StructEntry entry = getFields().get(getFields().size() - 1);
     if (entry instanceof CreResource)
       ((HexNumber)getAttribute(GAM_NPC_OFFSET_CRE)).setValue(entry.getOffset());
   }
@@ -474,4 +476,3 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
     return StreamUtils.getByteBuffer(size);
   }
 }
-

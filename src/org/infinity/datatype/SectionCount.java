@@ -1,10 +1,11 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 import org.infinity.resource.StructEntry;
 
@@ -12,16 +13,11 @@ public final class SectionCount extends DecNumber
 {
   private final Class<? extends StructEntry> section;
 
-  public SectionCount(ByteBuffer buffer, int offset, int length, String desc, Class<? extends StructEntry> section)
-  {
-    this(null, buffer, offset, length, desc, section);
-  }
-
-  public SectionCount(StructEntry parent, ByteBuffer buffer, int offset, int length, String desc,
+  public SectionCount(ByteBuffer buffer, int offset, int length, String desc,
                       Class<? extends StructEntry> section)
   {
-    super(parent, buffer, offset, length, desc);
-    this.section = section;
+    super(buffer, offset, length, desc);
+    this.section = Objects.requireNonNull(section, "Class for SectionCount must not be null");
   }
 
 //--------------------- Begin Interface InlineEditable ---------------------
@@ -40,4 +36,3 @@ public final class SectionCount extends DecNumber
     return section;
   }
 }
-

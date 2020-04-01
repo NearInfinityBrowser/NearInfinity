@@ -1,9 +1,10 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
 
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
@@ -11,10 +12,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.EventListener;
-import java.util.List;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.LayerItemListener;
 import org.infinity.resource.AbstractStruct;
@@ -27,17 +29,15 @@ import org.infinity.resource.vertex.Vertex;
  */
 public abstract class LayerObject
 {
-  private final int resourceType;
   private final String category;
   private final Class<? extends AbstractStruct> classType;
   private final AbstractStruct parent;    // base structure (e.g. AreResource or WedResource)
 
   private boolean visible;
 
-  protected LayerObject(int resourceType, String category, Class<? extends AbstractStruct> classType,
+  protected LayerObject(String category, Class<? extends AbstractStruct> classType,
                         AbstractStruct parent)
   {
-    this.resourceType = resourceType;
     this.category = (category != null && !category.isEmpty()) ? category : "Layer object";
     this.classType = (classType != null) ? classType : AbstractStruct.class;
     this.parent = parent;
@@ -49,50 +49,38 @@ public abstract class LayerObject
    */
   public void close()
   {
-    AbstractLayerItem[] items = getLayerItems();
-    if (items != null) {
-      for (int i = 0; i < items.length; i++) {
-        // removing listeners from layer item
-        EventListener[][] listeners = new EventListener[4][];
-        listeners[0] = items[i].getActionListeners();
-        listeners[1] = items[i].getLayerItemListeners();
-        listeners[2] = items[i].getMouseListeners();
-        listeners[3] = items[i].getMouseMotionListeners();
-        for (int j = 0; j < listeners.length; j++) {
-          if (listeners[j] != null) {
-            for (int k = 0; k < listeners[j].length; k++) {
-              switch (j) {
-                case 0:
-                  items[i].removeActionListener((ActionListener)listeners[j][k]);
-                  break;
-                case 1:
-                  items[i].removeLayerItemListener((LayerItemListener)listeners[j][k]);
-                  break;
-                case 2:
-                  items[i].removeMouseListener((MouseListener)listeners[j][k]);
-                  break;
-                case 3:
-                  items[i].removeMouseMotionListener((MouseMotionListener)listeners[j][k]);
-                  break;
-              }
+    for (final AbstractLayerItem item : getLayerItems()) {
+      // removing listeners from layer item
+      EventListener[][] listeners = new EventListener[4][];
+      listeners[0] = item.getActionListeners();
+      listeners[1] = item.getLayerItemListeners();
+      listeners[2] = item.getMouseListeners();
+      listeners[3] = item.getMouseMotionListeners();
+      for (int j = 0; j < listeners.length; j++) {
+        if (listeners[j] != null) {
+          for (final EventListener l : listeners[j]) {
+            switch (j) {
+              case 0:
+                item.removeActionListener((ActionListener) l);
+                break;
+              case 1:
+                item.removeLayerItemListener((LayerItemListener) l);
+                break;
+              case 2:
+                item.removeMouseListener((MouseListener) l);
+                break;
+              case 3:
+                item.removeMouseMotionListener((MouseMotionListener) l);
+                break;
             }
           }
         }
-
-        // removing items from container
-        if (items[i].getParent() != null) {
-          items[i].getParent().remove(items[i]);
-        }
+      }
+      // removing items from container
+      if (item.getParent() != null) {
+        item.getParent().remove(item);
       }
     }
-  }
-
-  /**
-   * Returns the type of the parent resource (either RESOURCE_ARE or RESOURCE_WED).
-   */
-  public int getResourceType()
-  {
-    return resourceType;
   }
 
   /**
@@ -136,11 +124,8 @@ public abstract class LayerObject
   {
     if (state != visible) {
       visible = state;
-      AbstractLayerItem[] items = getLayerItems();
-      if (items != null) {
-        for (int i = 0; i < items.length; i++) {
-          items[i].setVisible(visible);
-        }
+      for (final AbstractLayerItem item : getLayerItems()) {
+        item.setVisible(visible);
       }
     }
   }
@@ -154,20 +139,6 @@ public abstract class LayerObject
   public abstract Viewable getViewable();
 
   /**
-   * Returns all structures associated with the layer object. This method is useful for layer objects
-   * consisting of multiple structures.
-   * @return A list of structures associated with the layer object.
-   */
-  public abstract Viewable[] getViewables();
-
-  /**
-   * Returns the layer item associated with the layer object. If the layer object consists of
-   * multiple layer items, then the first one available will be returned.
-   * @return The layer item associated with the layer object.
-   */
-  public abstract AbstractLayerItem getLayerItem();
-
-  /**
    * Returns the specified layer item. {@code type} is layer type specific, usually defined
    * as an identifier in {@code ViewerConstants}.
    * @param type A layer-specific type to identify the item to return.
@@ -178,36 +149,16 @@ public abstract class LayerObject
   /**
    * Returns all layer items associated with the layer object. This method is useful for layer objects
    * consisting of multiple layer items (e.g. door polygons or ambient sounds/sound ranges).
-   * @return A list of layer items associated with the layer object.
+   * @return A list of layer items associated with the layer object. Never {@code null}
+   *         and array do not contain {@code null}'s
    */
   public abstract AbstractLayerItem[] getLayerItems();
-
-  /**
-   * Reloads structure data and associated layer item(s). Note: {@link #update(double)} has
-   * to be called afterwards to account for canvas-specific settings.
-   */
-  public abstract void reload();
 
   /**
    * Updates the layer item positions. Takes zoom factor into account.
    * Note: Always call this method after loading/reloading structure data.
    */
   public abstract void update(double zoomFactor);
-
-  /**
-   * Returns the original map position of the first available layer item (center or top-left,
-   * depending on object type). Note: This is the location specified in the resource structure.
-   * The resulting position on the canvas may be different.
-   */
-  public abstract Point getMapLocation();
-
-  /**
-   * Returns the original map positions of all available layer items (center or top-left,
-   * depending on object type). Note: This is the location specified in the resource structure.
-   * The resulting position on the canvas may be different.
-   * @return
-   */
-  public abstract Point[] getMapLocations();
 
   /**
    * Returns whether the layer object is active at a specific scheduled time.
@@ -229,38 +180,34 @@ public abstract class LayerObject
    * @param type The specific vertex type to look for.
    * @return Array of Point objects containing vertex data.
    */
-  protected Point[] loadVertices(AbstractStruct superStruct, int baseOfs, int index, int count,
-                                 Class<? extends Vertex> type)
+  protected static Point[] loadVertices(AbstractStruct superStruct, int baseOfs, int index, int count,
+                                        Class<? extends Vertex> type)
   {
-    Point[] coords = null;
     if (superStruct != null && index >= 0 && count > 0 && type != null) {
       int idx = 0, cnt = 0;
-      coords = new Point[count];
-      List<StructEntry> list = superStruct.getList();
-        for (int i = 0, size = list.size(); i < size; i++) {
-          if (list.get(i).getOffset() >= baseOfs && type.isAssignableFrom(list.get(i).getClass())) {
-            if (idx >= index) {
-              Vertex vertex = (Vertex)list.get(i);
-              coords[cnt] = new Point(((DecNumber)vertex.getAttribute(Vertex.VERTEX_X)).getValue(),
-                                      ((DecNumber)vertex.getAttribute(Vertex.VERTEX_Y)).getValue());
-              cnt++;
-              if (cnt >= count) {
-                break;
-              }
+      final Point[] coords = new Point[count];
+      for (final StructEntry e : superStruct.getFields()) {
+        if (e.getOffset() >= baseOfs && type.isAssignableFrom(e.getClass())) {
+          if (idx >= index) {
+            final Vertex vertex = (Vertex)e;
+            coords[cnt] = new Point(((DecNumber)vertex.getAttribute(Vertex.VERTEX_X)).getValue(),
+                                    ((DecNumber)vertex.getAttribute(Vertex.VERTEX_Y)).getValue());
+            cnt++;
+            if (cnt >= count) {
+              break;
             }
-            idx++;
           }
+          idx++;
         }
+      }
 
       // filling up remaining coordinates with empty values (if any)
       for (int i = cnt; i < coords.length; i++) {
         coords[i] = new Point();
       }
-    } else {
-      coords = new Point[0];
+      return coords;
     }
-
-    return coords;
+    return new Point[0];
   }
 
   /**
@@ -269,7 +216,7 @@ public abstract class LayerObject
    * @param zoomFactor Coordinates will be scaled by this value.
    * @return A {@code Polygon} object.
    */
-  protected Polygon createPolygon(Point[] coords, double zoomFactor)
+  protected static Polygon createPolygon(Point[] coords, double zoomFactor)
   {
     Polygon poly = new Polygon();
     if (coords != null) {
@@ -287,7 +234,7 @@ public abstract class LayerObject
    * @param poly The polygon to normalize (will be processed in place).
    * @return Bounding box of the polygon in global coordinates.
    */
-  protected Rectangle normalizePolygon(Polygon poly)
+  protected static Rectangle normalizePolygon(Polygon poly)
   {
     if (poly != null) {
       Rectangle r = poly.getBounds();
@@ -303,7 +250,7 @@ public abstract class LayerObject
    * @param flags The appearance schedule.
    * @param dayTime The desired day time.
    */
-  protected boolean isActiveAt(Flag flags, int dayTime)
+  protected static boolean isActiveAt(Flag flags, int dayTime)
   {
     if (flags != null && flags.getSize() > 2) {
       if (dayTime == ViewerConstants.LIGHTING_NIGHT) {
@@ -322,5 +269,42 @@ public abstract class LayerObject
     } else {
       return false;
     }
+  }
+
+  protected static Image[] getIcons(Image[] defIcons)
+  {
+    final Image[] icons;
+    final String keyIcon = SharedResourceCache.createKey(defIcons[0])
+                         + SharedResourceCache.createKey(defIcons[1]);
+    if (SharedResourceCache.contains(SharedResourceCache.Type.ICON, keyIcon)) {
+      icons = ((ResourceIcon)SharedResourceCache.get(SharedResourceCache.Type.ICON, keyIcon)).getData();
+      SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon);
+    } else {
+      icons = defIcons;
+      SharedResourceCache.add(SharedResourceCache.Type.ICON, keyIcon, new ResourceIcon(keyIcon, icons));
+    }
+    return icons;
+  }
+
+  protected static void addResResDesc(StringBuilder sb, AbstractStruct struct, String resRefAttr, String desc)
+  {
+    final ResourceRef res = (ResourceRef)struct.getAttribute(resRefAttr, false);
+    if (res != null && !res.isEmpty()) {
+      if (sb.length() > 1) sb.append(", ");
+      sb.append(desc).append(res);
+    }
+  }
+
+  protected static void addTrappedDesc(StringBuilder sb, AbstractStruct struct, String trappedAttr, String difficultyAttr, String scriptAttr)
+  {
+    final boolean isTrapped = ((IsNumeric)struct.getAttribute(trappedAttr, false)).getValue() != 0;
+    if (isTrapped) {
+      int v = ((IsNumeric)struct.getAttribute(difficultyAttr, false)).getValue();
+      if (v > 0) {
+        if (sb.length() > 1) sb.append(", ");
+        sb.append("Trapped (").append(v).append(')');
+      }
+    }
+    addResResDesc(sb, struct, scriptAttr, "Script: ");
   }
 }

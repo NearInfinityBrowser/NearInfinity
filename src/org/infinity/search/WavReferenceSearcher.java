@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -36,15 +36,14 @@ public final class WavReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
-    for (int i = 0; i < struct.getFieldCount(); i++) {
-      StructEntry o = struct.getField(i);
+    for (final StructEntry o : struct.getFields()) {
       if (o instanceof ResourceRef &&
-          ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString())) {
+          ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.getResourceName())) {
         addHit(entry, entry.getSearchString(), o);
       }
       else if (o instanceof StringRef &&
                !StringTable.getSoundResource(((StringRef)o).getValue()).isEmpty() &&
-               targetEntry.toString().equalsIgnoreCase(StringTable.getSoundResource(((StringRef)o).getValue()) + ".WAV")) {
+               targetEntry.getResourceName().equalsIgnoreCase(StringTable.getSoundResource(((StringRef)o).getValue()) + ".WAV")) {
         addHit(entry, null, o);
       }
       else if (o instanceof AbstractStruct) {
@@ -67,4 +66,3 @@ public final class WavReferenceSearcher extends AbstractReferenceSearcher
     }
   }
 }
-

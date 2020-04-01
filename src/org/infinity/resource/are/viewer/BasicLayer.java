@@ -1,12 +1,15 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
+import org.infinity.datatype.SectionCount;
+import org.infinity.datatype.SectionOffset;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
@@ -16,31 +19,32 @@ import org.infinity.resource.wed.WedResource;
 
 /**
  * Common base class for layer-specific managers.
+ *
+ * @param <E> Type of the layer item in the manager
+ * @param <R> Type of the resource that contains layer items
  */
-public abstract class BasicLayer<E extends LayerObject>
+public abstract class BasicLayer<E extends LayerObject, R extends AbstractStruct>
 {
   private final LayerType layerType;
   private final int layerTypeIndex;
-  private final List<E> listObjects = new ArrayList<E>();
+  private final List<E> listObjects = new ArrayList<>();
   private final AreaViewer viewer;
 
-  private AbstractStruct parent;
+  protected final R parent;
   private int schedule;
-  private boolean visible, initialized, scheduleEnabled;
+  private boolean visible, scheduleEnabled;
+  /** Determines whether this layer has been loaded at least once. */
+  private boolean initialized;
 
   /**
    * Initializes the current layer.
-   * @param parent The parent resource of the layer (either AreResource or WedResource).
+   * @param parent The parent resource of the layer (either {@link AreResource} or {@link WedResource}).
    * @param type The type/identifier of the layer.
    */
-  public BasicLayer(AbstractStruct parent, LayerType type, AreaViewer viewer)
+  public BasicLayer(R parent, LayerType type, AreaViewer viewer)
   {
     // setting parent resource
-    if (parent instanceof AreResource || parent instanceof WedResource) {
-      this.parent = parent;
-    } else {
-      this.parent = null;
-    }
+    this.parent = parent;
 
     // setting layer type
     this.layerType = type;
@@ -64,38 +68,6 @@ public abstract class BasicLayer<E extends LayerObject>
   public AreaViewer getViewer()
   {
     return viewer;
-  }
-
-  /**
-   * Returns whether the parent structure is of type AreResource.
-   */
-  public boolean hasAre()
-  {
-    return (parent instanceof AreResource);
-  }
-
-  /**
-   * Returns the parent as AreResource structure if available.
-   */
-  public AreResource getAre()
-  {
-    return (parent instanceof AreResource) ? (AreResource)parent : null;
-  }
-
-  /**
-   * Returns whether the parent structure is of type WedResource.
-   */
-  public boolean hasWed()
-  {
-    return (parent instanceof WedResource);
-  }
-
-  /**
-   * Returns the parent as WedResource structure if available.
-   */
-  public WedResource getWed()
-  {
-    return (parent instanceof WedResource) ? (WedResource)parent : null;
   }
 
   /**
@@ -126,22 +98,8 @@ public abstract class BasicLayer<E extends LayerObject>
   }
 
   /**
-   * Returns the layer object at the specified index.
-   * @param index The index of the layer object.
-   * @return The layer object, of {@code null} if not available.
-   */
-  public E getLayerObject(int index)
-  {
-    if (index >= 0 && index < listObjects.size()) {
-      return listObjects.get(index);
-    } else {
-      return null;
-    }
-  }
-
-  /**
    * Returns the list of layer objects for direct manipulation.
-   * @return List of layer objects.
+   * @return List of layer objects. Never {@code null}
    */
   public List<E> getLayerObjects()
   {
@@ -163,34 +121,13 @@ public abstract class BasicLayer<E extends LayerObject>
   public void setLayerVisible(boolean visible)
   {
     for (int i = 0, size = listObjects.size(); i < size; i++) {
-      boolean state = visible && (!isScheduleEnabled() || (isScheduleEnabled() && isScheduled(i)));
+      boolean state = visible && (!isScheduleEnabled() || isScheduled(i));
       E obj = listObjects.get(i);
-      AbstractLayerItem[] items = obj.getLayerItems();
-      for (int j = 0; j < items.length; j++) {
-        items[j].setVisible(state);
+      for (final AbstractLayerItem item : obj.getLayerItems()) {
+        item.setVisible(state);
       }
     }
     this.visible = visible;
-  }
-
-  /**
-   * Returns the layer object containing the specified layer item.
-   * @return The object, if it has been found, {@code null} otherwise.
-   */
-  public E getLayerObjectOf(AbstractLayerItem item)
-  {
-    if (item != null) {
-      for (int i = 0, size = listObjects.size(); i < size; i++) {
-        E obj = listObjects.get(i);
-        AbstractLayerItem[] items = obj.getLayerItems();
-        for (int j = 0; j < items.length; j++) {
-          if (items[j] == item) {
-            return obj;
-          }
-        }
-      }
-    }
-    return null;
   }
 
   /**
@@ -198,7 +135,48 @@ public abstract class BasicLayer<E extends LayerObject>
    * @param forced If {@code true}, always (re-)loads the current layer, even if it has been loaded already.
    * @return The number of initialized layer objects.
    */
-  public abstract int loadLayer(boolean forced);
+  public final int loadLayer(boolean forced)
+  {
+    if (forced || !initialized) {
+      close();
+      loadLayer();
+      return listObjects.size();
+    }
+    return 0;
+  }
+
+  /**
+   * Loads all items with specified class from {@link #parent} structure.
+   *
+   * @param offsetAttribute Attribute in the {@link #parent} structure that contains
+   *        offset of the first item to load
+   * @param countAttribute Attribute in the {@link #parent} structure that contains
+   *        count of the items to load
+   * @param itemClass Class ot the item to load
+   * @param newLayerObject Function that creates new layer object from item, extracted
+   *        from resource
+   *
+   * @param <T> Type of the items on the layer
+   */
+  protected final <T extends StructEntry> void loadLayerItems(String offsetAttribute, String countAttribute,
+                                                              Class<T> itemClass, Function<T, E> newLayerObject)
+  {
+    final SectionOffset so = (SectionOffset)parent.getAttribute(offsetAttribute);
+    final SectionCount  sc = (SectionCount )parent.getAttribute(countAttribute);
+    if (so != null && sc != null) {
+      final int ofs = so.getValue();
+      final int cnt = sc.getValue();
+      for (final T entry : getStructures(ofs, cnt, itemClass)) {
+        final E obj = newLayerObject.apply(entry);
+        setListeners(obj);
+        listObjects.add(obj);
+      }
+      setInitialized(true);
+    }
+  }
+
+  /** Loads all available objects of this layer. */
+  protected abstract void loadLayer();
 
   /**
    * Removes all objects of the layer from memory. Additionally all associated layer items will be
@@ -207,8 +185,8 @@ public abstract class BasicLayer<E extends LayerObject>
   public void close()
   {
     if (getViewer() != null) {
-      for (int i = 0, size = listObjects.size(); i < size; i++) {
-        listObjects.get(i).close();
+      for (final E obj : listObjects) {
+        obj.close();
       }
     }
     listObjects.clear();
@@ -266,12 +244,10 @@ public abstract class BasicLayer<E extends LayerObject>
    */
   public boolean isScheduled(int index)
   {
-    E obj = getLayerObject(index);
-    if (obj != null) {
-      return !isScheduleEnabled() || obj.isScheduled(getSchedule());
-    } else {
-      return false;
+    if (index >= 0 && index < listObjects.size()) {
+      return !isScheduleEnabled() || listObjects.get(index).isScheduled(getSchedule());
     }
+    return false;
   }
 
   /**
@@ -281,49 +257,48 @@ public abstract class BasicLayer<E extends LayerObject>
   public abstract String getAvailability();
 
 
-  // Creates a list of structures of the specified type from the parent structure
-  protected List<StructEntry> getStructures(int baseOfs, int count, Class<? extends StructEntry> type)
+  /**
+   * Returns all direct children from parent of this object (i.e. siblings of this
+   * object) with the specified type, which are located after the specified offset.
+   *
+   * @param baseOfs Offset from which take fields
+   * @param maxCount Maximum count of returned objects. Returned list will have
+   *        size not more than this value
+   * @param type Class of fields to get
+   *
+   * @param <T> Expected return type
+   *
+   * @return List of specified fields. Never {@code null}
+   */
+  protected <T extends StructEntry> List<T> getStructures(int baseOfs, int maxCount, Class<? extends T> type)
   {
-    List<StructEntry> listStruct = new ArrayList<StructEntry>();
-    if (getParent() != null && baseOfs >= 0 && count >= 0 && type != null) {
-      List<StructEntry> list = getParent().getList();
-      int cnt = 0;
-      for (int i = 0, size = list.size(); i < size; i++) {
-        if (list.get(i).getOffset() >= baseOfs && type.isAssignableFrom(list.get(i).getClass())) {
-          listStruct.add(list.get(i));
-          cnt++;
-          if (cnt >= count) {
-            break;
-          }
+    final List<T> fields = new ArrayList<>();
+    if (parent != null && baseOfs >= 0 && maxCount >= 0 && type != null) {
+      for (final StructEntry field : parent.getFields()) {
+        if (field.getOffset() >= baseOfs && type.isAssignableFrom(field.getClass())) {
+          if (maxCount-- < 0) { break; }
+
+          fields.add(type.cast(field));
         }
       }
     }
 
-    return listStruct;
-  }
-
-  // Convenience method: sets required listeners
-  protected void setListeners(LayerObject obj)
-  {
-    if (obj != null) {
-      AbstractLayerItem[] items = obj.getLayerItems();
-      for (int i = 0; i < items.length; i++) {
-        if (items[i] != null) {
-          items[i].addActionListener(viewer.getListeners());
-          items[i].addLayerItemListener(viewer.getListeners());
-          items[i].addMouseListener(viewer.getListeners());
-          items[i].addMouseMotionListener(viewer.getListeners());
-        }
-      }
-    }
+    return fields;
   }
 
   /**
-   * [For internal use only] Returns whether this layer has been loaded at least once.
+   * Subscribe viewer to events from all items in this object.
+   *
+   * @param obj Layer object, must not be {@code null}
    */
-  protected boolean isInitialized()
+  protected void setListeners(LayerObject obj)
   {
-    return initialized;
+    for (final AbstractLayerItem item : obj.getLayerItems()) {
+      item.addActionListener(viewer.getListeners());
+      item.addLayerItemListener(viewer.getListeners());
+      item.addMouseListener(viewer.getListeners());
+      item.addMouseMotionListener(viewer.getListeners());
+    }
   }
 
   /**
@@ -341,11 +316,5 @@ public abstract class BasicLayer<E extends LayerObject>
   protected void setVisibilityState(boolean state)
   {
     visible = state;
-  }
-
-  // Returns the parent structure of the layer objects regardless of type.
-  private AbstractStruct getParent()
-  {
-    return parent;
   }
 }

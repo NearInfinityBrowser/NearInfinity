@@ -4,6 +4,7 @@
 
 package org.infinity.resource.spl;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -33,7 +34,12 @@ final class ViewerAbility extends JPanel
     ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_RANGE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(Ability.SPL_ABIL_MIN_LEVEL), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(Ability.SPL_ABIL_CASTING_SPEED), gbl, gbc, true);
-//    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute("# charges"), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, ability.getAttribute(AbstractAbility.ABILITY_PROJECTILE), gbl, gbc, true);
+
+    // workaround to increase size of effects list control
+    JPanel spacer = new JPanel();
+    spacer.setPreferredSize(new Dimension(256, 100));
+    fieldPanel.add(spacer, gbc);
 
     return fieldPanel;
   }

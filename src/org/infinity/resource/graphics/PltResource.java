@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
@@ -55,27 +54,48 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.gui.WrapLayout;
 import org.infinity.gui.hexview.GenericHexViewer;
 import org.infinity.resource.Closeable;
-import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
 import org.infinity.resource.cre.CreResource;
-import org.infinity.resource.key.BIFFResourceEntry;
-import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
-import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
 import tv.porst.jhexview.DataChangedEvent;
 import tv.porst.jhexview.IDataChangedListener;
 
+/**
+ * This resource describes the appearance of paperdolls displayed on the inventory
+ * screen. A paperdoll can display several "materials" (e.g. skin, hair, leather,
+ * metal) each of which is represented by a different colour set. The colours for
+ * each material are set in the {@link CreResource CRE} file (major and minor colour
+ * can be set within the game) which correspond to a colour gradient.
+ * <p>
+ * Each pixel is mapped to a colour by the colour byte which is then given an
+ * intensity by the intensity byte. The colours are listed below:
+ * <ul>
+ * <li>0 - Skin</li>
+ * <li>1 - Hair</li>
+ * <li>2 - Metal</li>
+ * <li>3 - Leather</li>
+ * <li>4 - Metal</li>
+ * <li>5 - Minor colour (<i>settable within the game</i>)</li>
+ * <li>6 - Major colour (<i>settable within the game</i>)</li>
+ * <li>7 - 127 Shadow</li>
+ * </ul>
+ *
+ * Colour maps 128 - 255 repeat this pattern.
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/plt_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/plt_v1.htm</a>
+ */
 public class PltResource implements Resource, Closeable, Writeable, ItemListener, ActionListener,
                                      ChangeListener, IDataChangedListener
 {
-  // available random colors for initial coloring
+  /** Available random colors for initial coloring. */
   private static final int[][] CreColorRandomIndices = {
       { 8, 9, 12, 12, 12, 13, 13, 87, 90, 114 },    // Skin
       { 0, 0, 0, 1, 2, 2, 3, 4, 5, 6 },             // Hair
@@ -85,7 +105,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
       { 39, 46, 48, 50, 54, 60, 63, 64, 66, 66 },   // Minor
       { 38, 40, 41, 47, 51, 52, 57, 60, 61, 63 },   // Major
   };
-  // color types based on CRE field names
+  /** Color types based on CRE field names. */
   private static final String[] ColorIndexNames = {
       CreResource.CRE_COLOR_SKIN, CreResource.CRE_COLOR_HAIR, CreResource.CRE_COLOR_METAL,
       CreResource.CRE_COLOR_ARMOR, CreResource.CRE_COLOR_LEATHER, CreResource.CRE_COLOR_MINOR,
@@ -133,7 +153,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
     cbColors = new JComboBox[ColorIndexNames.length];
     Random rnd = new Random();
     for (int i = 0; i < ColorIndexNames.length; ++i) {
-      cbColors[i] = new JComboBox<ColorItem>(new ColorModel());
+      cbColors[i] = new JComboBox<>(new ColorModel());
       cbColors[i].setRenderer(new ColorRenderer());
       if (randomizeColors) {
         cbColors[i].setSelectedIndex(CreColorRandomIndices[i][rnd.nextInt(CreColorRandomIndices[i].length)]);
@@ -214,30 +234,13 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
 
 //--------------------- Begin Interface Closeable ---------------------
 
- @Override
- public void close() throws Exception
- {
-   if (isRawModified()) {
-     Path output = null;
-     if (entry instanceof BIFFResourceEntry) {
-       output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
-     } else if (entry instanceof FileResourceEntry) {
-       output = entry.getActualPath();
-     }
-
-     if (output != null) {
-       final String options[] = {"Save changes", "Discard changes", "Cancel"};
-       int result = JOptionPane.showOptionDialog(panelMain, "Save changes to " + output.toString(),
-                                                 "Resource changed", JOptionPane.YES_NO_CANCEL_OPTION,
-                                                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-       if (result == 0) {
-         ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor());
-       } else if (result != 1) {
-         throw new Exception("Save aborted");
-       }
-     }
-   }
- }
+  @Override
+  public void close() throws Exception
+  {
+    if (isRawModified()) {
+      ResourceFactory.closeResource(this, entry, panelMain);
+    }
+  }
 
 //--------------------- End Interface Closeable ---------------------
 
@@ -264,8 +267,8 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
     } else if (e.getSource() == miExport) {
       ResourceFactory.exportResource(entry, panelMain.getTopLevelAncestor());
     } else if (e.getSource() == miExportPNG) {
-      try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-        String fileName = entry.toString().replace(".PLT", ".PNG");
+      try (final ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+        final String fileName = StreamUtils.replaceFileExtension(entry.getResourceName(), "PNG");
         boolean bRet = false;
         WindowBlocker.blockWindow(true);
         try {
@@ -277,7 +280,7 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
           ResourceFactory.exportResource(entry, StreamUtils.getByteBuffer(os.toByteArray()),
                                          fileName, panelMain.getTopLevelAncestor());
         } else {
-          throw new Exception("PNG write error");
+          throw new UnsupportedOperationException("PNG writing is not supported");
         }
       } catch (Exception ioe) {
         ioe.printStackTrace();
@@ -450,15 +453,19 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
 
 //--------------------------- INNER CLASSES ---------------------------
 
-  // Stores color index and value
+  /** Stores color index and value. */
   private static class ColorItem
   {
-    private final int index;  // color index
+    /** Color index. */
+    private final int index;
     private final Random rand = new Random();
 
-    private int[] range;      // full range of color entries as ARGB values (0xaarrggbb)
-    private int[] squareDist; // lookup for squared distances
-    private ColorItem[] randItems;  // initialized if item refers to a random color
+    /** Full range of color entries as ARGB values ({@code 0xaarrggbb}). */
+    private int[] range;
+    /** Lookup for squared distances. */
+    private int[] squareDist;
+    /** Initialized if item refers to a random color. */
+    private ColorItem[] randItems;
     private int randIndex;
 
     public ColorItem(int index, int[] range)
@@ -830,5 +837,4 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
       return image;
     }
   }
-
 }

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.hexview;
@@ -27,7 +27,7 @@ import tv.porst.jhexview.IDataProvider;
  */
 public class StructuredDataProvider implements IDataProvider
 {
-  private final ArrayList<IDataChangedListener> listeners = new ArrayList<IDataChangedListener>();
+  private final ArrayList<IDataChangedListener> listeners = new ArrayList<>();
   private final AbstractStruct struct;
 
   private List<StructEntry> listStructures;
@@ -65,7 +65,7 @@ public class StructuredDataProvider implements IDataProvider
     }
 
     if (length > 0) {
-      ArrayList<StructEntry> listEntries = new ArrayList<StructEntry>();
+      ArrayList<StructEntry> listEntries = new ArrayList<>();
       int entryIndex = findStructureIndex((int)offset);
       if (entryIndex >= 0) {
         // collecting matching entries
@@ -168,7 +168,7 @@ public class StructuredDataProvider implements IDataProvider
       }
 
       if (length > 0) {
-        ArrayList<StructEntry> listEntries = new ArrayList<StructEntry>();
+        ArrayList<StructEntry> listEntries = new ArrayList<>();
         int entryIndex = findStructureIndex((int)offset);
         // collecting matching entries
         if (entryIndex >= 0) {
@@ -236,7 +236,7 @@ public class StructuredDataProvider implements IDataProvider
   public void reset()
   {
     close();
-    listStructures = getStruct().getFlatList();
+    listStructures = getStruct().getFlatFields();
     dataSize = 0;
     for (final StructEntry e: listStructures) {
       dataSize = Math.max(dataSize, e.getOffset()+e.getSize());
@@ -270,7 +270,7 @@ public class StructuredDataProvider implements IDataProvider
     }
   }
 
-  // Returns the list of cached top-level StructEntry objects
+  /** Returns the list of cached top-level StructEntry objects. */
   private List<StructEntry> getCachedList()
   {
     if (listStructures == null) {
@@ -279,7 +279,7 @@ public class StructuredDataProvider implements IDataProvider
     return listStructures;
   }
 
-  // Returns the list index of the StructEntry containing the specified offset. Returns -1 on failure.
+  /** Returns the list index of the StructEntry containing the specified offset. Returns -1 on failure. */
   private int findStructureIndex(int offset)
   {
     StructEntry key = new EmptyStructure(offset);
@@ -306,15 +306,15 @@ public class StructuredDataProvider implements IDataProvider
 
 //-------------------------- INNER CLASSES --------------------------
 
-  // A dummy StructEntry implementation that can be used as key in a search operations.
-  private class EmptyStructure implements StructEntry
+  /** A dummy {@link StructEntry} implementation that can be used as key in a search operations. */
+  private static final class EmptyStructure implements StructEntry
   {
     private int offset;
 
     public EmptyStructure(int offset) { this.offset = offset; }
 
     @Override
-    public Object clone() { return null; }
+    public EmptyStructure clone() { return null; }
 
     @Override
     public int compareTo(StructEntry o) { return 0; }
@@ -338,7 +338,7 @@ public class StructuredDataProvider implements IDataProvider
     public int getOffset() { return offset; }
 
     @Override
-    public StructEntry getParent() { return null; }
+    public AbstractStruct getParent() { return null; }
 
     @Override
     public int getSize() { return 0; }
@@ -353,6 +353,6 @@ public class StructuredDataProvider implements IDataProvider
     public void setOffset(int newoffset) { this.offset = newoffset; }
 
     @Override
-    public void setParent(StructEntry parent) {}
+    public void setParent(AbstractStruct parent) {}
   }
 }

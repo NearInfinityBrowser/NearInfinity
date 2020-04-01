@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -9,10 +9,8 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 
-import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
-import org.infinity.datatype.HexNumber;
-import org.infinity.datatype.SectionOffset;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
 import org.infinity.resource.Viewable;
@@ -31,32 +29,45 @@ public class LayerObjectWallPoly extends LayerObject
   private final WallPolygon wall;
   private final Point location = new Point();
 
-  private ShapedLayerItem item;
+  private final ShapedLayerItem item;
   private Point[] shapeCoords;
 
-  public LayerObjectWallPoly(WedResource parent, WallPolygon wallPoly)
+  public LayerObjectWallPoly(WedResource parent, WallPolygon wall)
   {
-    super(ViewerConstants.RESOURCE_WED, "Wall Poly", WallPolygon.class, parent);
-    this.wall = wallPoly;
-    init();
+    super("Wall Poly", WallPolygon.class, parent);
+    this.wall = wall;
+    String msg = null;
+    try {
+      final Flag flags = (Flag)wall.getAttribute(WallPolygon.WED_POLY_FLAGS, false);
+      msg = flags.toString();
+
+      final int vNum = ((IsNumeric)wall.getAttribute(WallPolygon.WED_POLY_NUM_VERTICES)).getValue();
+      final int vOfs = ((IsNumeric)parent.getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
+      int startIdx = flags.isFlagSet(2) ? 2 : 0;  // skipping first two vertices for "hovering walls"
+      shapeCoords = loadVertices(wall, vOfs, startIdx, vNum - startIdx, Vertex.class);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    final Polygon poly = createPolygon(shapeCoords, 1.0);
+    final Rectangle bounds = normalizePolygon(poly);
+
+    location.x = bounds.x; location.y = bounds.y;
+    item = new ShapedLayerItem(wall, msg, poly);
+    item.setName(getCategory());
+    item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
+    item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
+    item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
+    item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
+    item.setStroked(true);
+    item.setFilled(true);
+    item.setVisible(isVisible());
   }
 
+  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
     return wall;
-  }
-
-  @Override
-  public Viewable[] getViewables()
-  {
-    return new Viewable[]{wall};
-  }
-
-  @Override
-  public AbstractLayerItem getLayerItem()
-  {
-    return item;
   }
 
   @Override
@@ -72,12 +83,6 @@ public class LayerObjectWallPoly extends LayerObject
   }
 
   @Override
-  public void reload()
-  {
-    init();
-  }
-
-  @Override
   public void update(double zoomFactor)
   {
     if (item != null) {
@@ -89,99 +94,5 @@ public class LayerObjectWallPoly extends LayerObject
       item.setShape(poly);
     }
   }
-
-  @Override
-  public Point getMapLocation()
-  {
-    return location;
-  }
-
-  @Override
-  public Point[] getMapLocations()
-  {
-    return new Point[]{location};
-  }
-
-  private void init()
-  {
-    if (wall != null) {
-      shapeCoords = null;
-      String msg = "", info = "";
-      Polygon poly = null;
-      Rectangle bounds = null;
-      int count = 0;
-      try {
-        int baseOfs = ((SectionOffset)getParentStructure().getAttribute(WedResource.WED_OFFSET_WALL_POLYGONS)).getValue();
-        int ofs = wall.getOffset();
-        count = (ofs - baseOfs) / wall.getSize();
-        Flag flags = (Flag)wall.getAttribute(WallPolygon.WED_POLY_FLAGS);
-        info = "Wall polygon #" + count;
-        msg = String.format("Wall polygon #%d %s", count,
-                            createFlags(flags, org.infinity.resource.wed.Polygon.s_flags));
-        int vNum = ((DecNumber)wall.getAttribute(WallPolygon.WED_POLY_NUM_VERTICES)).getValue();
-        int vOfs = ((HexNumber)getParentStructure().getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
-        int startIdx = flags.isFlagSet(2) ? 2 : 0;  // skipping first two vertices for "hovering walls"
-        shapeCoords = loadVertices(wall, vOfs, startIdx, vNum - startIdx, Vertex.class);
-        poly = createPolygon(shapeCoords, 1.0);
-        bounds = normalizePolygon(poly);
-      } catch (Exception e) {
-        e.printStackTrace();
-        if (shapeCoords == null) {
-          shapeCoords = new Point[0];
-        }
-        if (poly == null) {
-          poly = new Polygon();
-        }
-        if (bounds == null) {
-          bounds = new Rectangle();
-        }
-      }
-
-      location.x = bounds.x; location.y = bounds.y;
-      item = new ShapedLayerItem(location, wall, msg, info, poly);
-      item.setName(getCategory());
-      item.setToolTipText(info);
-      item.setStrokeColor(AbstractLayerItem.ItemState.NORMAL, COLOR[0]);
-      item.setStrokeColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[1]);
-      item.setFillColor(AbstractLayerItem.ItemState.NORMAL, COLOR[2]);
-      item.setFillColor(AbstractLayerItem.ItemState.HIGHLIGHTED, COLOR[3]);
-      item.setStroked(true);
-      item.setFilled(true);
-      item.setVisible(isVisible());
-    }
-  }
-
-  // Returns a flags string
-  private String createFlags(Flag flags, String[] desc)
-  {
-    if (flags != null) {
-      int numFlags = 0;
-      for (int i = 0, size = flags.getSize() << 3; i < size; i++) {
-        if (flags.isFlagSet(i)) {
-          numFlags++;
-        }
-      }
-
-      if (numFlags > 0) {
-        StringBuilder sb = new StringBuilder("[");
-
-        for (int i = 0, size = flags.getSize() << 3; i < size; i++) {
-          if (flags.isFlagSet(i)) {
-            numFlags--;
-            if (desc != null && i+1 < desc.length) {
-              sb.append(desc[i+1]);
-            } else {
-              sb.append("Bit " + i);
-            }
-            if (numFlags > 0) {
-              sb.append(", ");
-            }
-          }
-        }
-        sb.append("]");
-        return sb.toString();
-      }
-    }
-    return "[No flags]";
-  }
+  //</editor-fold>
 }

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -308,6 +308,8 @@ public final class Profile implements FileWatcher.FileWatchListener
     IS_SUPPORTED_ITM_V20,
     /** Property: ({@code Boolean}) Are {@code KEY} resources supported? */
     IS_SUPPORTED_KEY,
+    /** Property: ({@code Boolean}) Are {@code LOG} resources supported? */
+    IS_SUPPORTED_LOG,
     /** Property: ({@code Boolean}) Are {@code LUA} resources supported? */
     IS_SUPPORTED_LUA,
     /** Property: ({@code Boolean}) Are {@code MAZE} resources supported? */
@@ -988,6 +990,8 @@ public final class Profile implements FileWatcher.FileWatchListener
         (Boolean)getProperty(Key.IS_SUPPORTED_ITM_V11) ||
         (Boolean)getProperty(Key.IS_SUPPORTED_ITM_V20)) { list.add("ITM"); }
     if (ignoreGame ||
+        (Boolean)getProperty(Key.IS_SUPPORTED_LOG))     { list.add("LOG"); }
+    if (ignoreGame ||
         (Boolean)getProperty(Key.IS_SUPPORTED_LUA))     { list.add("LUA"); }
     if (ignoreGame ||
         (Boolean)getProperty(Key.IS_SUPPORTED_MENU))     { list.add("MENU"); }
@@ -1376,6 +1380,15 @@ public final class Profile implements FileWatcher.FileWatchListener
       if (ini != null && Files.isRegularFile(ini)) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
+    } else if (game == Game.Tutu ||
+        Files.isRegularFile(FileManager.query(gameRoots, "bg1tutu.exe")) ||
+        Files.isRegularFile(FileManager.query(gameRoots, "bg1mov/MovieCD1.bif"))) {
+      if (game == null) game = Game.Tutu;
+      addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
+      Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
+      if (ini != null && Files.isRegularFile(ini)) {
+        addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
+      }
     } else if (game == Game.BG2SoA || game == Game.BG2ToB || game == Game.BGT ||
                (Files.isRegularFile(FileManager.query(gameRoots, "baldur.exe"))) &&
                (Files.isRegularFile(FileManager.query(gameRoots, "BGConfig.exe")))) {
@@ -1390,14 +1403,6 @@ public final class Profile implements FileWatcher.FileWatchListener
                ((Files.isRegularFile(FileManager.query(gameRoots, "baldur.exe"))) &&
                 (Files.isRegularFile(FileManager.query(gameRoots, "Config.exe"))))) {
       if (game == null) game = Game.BG1;
-      addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
-      Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
-      if (ini != null && Files.isRegularFile(ini)) {
-        addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
-      }
-    } else if (game == Game.Tutu ||
-               Files.isRegularFile(FileManager.query(gameRoots, "bg1tutu.exe"))) {
-      if (game == null) game = Game.Tutu;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
       if (ini != null && Files.isRegularFile(ini)) {
@@ -1669,9 +1674,9 @@ public final class Profile implements FileWatcher.FileWatchListener
 
       // putting all root folders into a list ordered by priority (highest first)
       List<Path> gameRoots = new ArrayList<>();
-      gameRoots.add(gameRoot);
-      dlcRoots.forEach((path) -> gameRoots.add(path));
       gameRoots.add(homeRoot);
+      dlcRoots.forEach((path) -> gameRoots.add(path));
+      gameRoots.add(gameRoot);
 
       // registering override paths
       for (final Path root: gameRoots) {
@@ -1731,24 +1736,24 @@ public final class Profile implements FileWatcher.FileWatchListener
     Game game = getGame();
     Engine engine = getEngine();
 
-    addEntry(Key.IS_SUPPORTED_2DA, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_2DA, Type.BOOLEAN, true);
 
-    addEntry(Key.IS_SUPPORTED_ACM, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_ACM, Type.BOOLEAN, true);
 
     addEntry(Key.IS_SUPPORTED_ARE_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
                                                       engine == Engine.IWD || engine == Engine.PST ||
                                                       engine == Engine.EE || engine == Engine.Unknown));
     addEntry(Key.IS_SUPPORTED_ARE_V91, Type.BOOLEAN, (engine == Engine.IWD2));
 
-    addEntry(Key.IS_SUPPORTED_BAM_V1, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_BAM_V1, Type.BOOLEAN, true);
     addEntry(Key.IS_SUPPORTED_BAMC_V1, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD ||
                                                       engine == Engine.IWD2 || engine == Engine.EE));
     addEntry(Key.IS_SUPPORTED_BAM_V1_ALPHA, Type.BOOLEAN, isEnhancedEdition());
     addEntry(Key.IS_SUPPORTED_BAM_V2, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(Key.IS_SUPPORTED_BCS, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_BCS, Type.BOOLEAN, true);
 
-    addEntry(Key.IS_SUPPORTED_BIFF, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_BIFF, Type.BOOLEAN, true);
     addEntry(Key.IS_SUPPORTED_BIF, Type.BOOLEAN, (engine == Engine.IWD));
     addEntry(Key.IS_SUPPORTED_BIFC, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD2));
 
@@ -1757,7 +1762,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     addEntry(Key.IS_SUPPORTED_BIO, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
                                                   engine == Engine.EE || engine == Engine.Unknown));
 
-    addEntry(Key.IS_SUPPORTED_BMP_PAL, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_BMP_PAL, Type.BOOLEAN, true);
     addEntry(Key.IS_SUPPORTED_BMP_ALPHA, Type.BOOLEAN, isEnhancedEdition());
 
     addEntry(Key.IS_SUPPORTED_CHR_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.Unknown));
@@ -1765,7 +1770,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     addEntry(Key.IS_SUPPORTED_CHR_V21, Type.BOOLEAN, (game == Game.BG2ToB || engine == Engine.EE));
     addEntry(Key.IS_SUPPORTED_CHR_V22, Type.BOOLEAN, (engine == Engine.IWD2));
 
-    addEntry(Key.IS_SUPPORTED_CHU, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_CHU, Type.BOOLEAN, true);
 
     addEntry(Key.IS_SUPPORTED_CRE_V10, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
                                                       engine == Engine.EE || engine == Engine.Unknown));
@@ -1773,7 +1778,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     addEntry(Key.IS_SUPPORTED_CRE_V22, Type.BOOLEAN, (engine == Engine.IWD2));
     addEntry(Key.IS_SUPPORTED_CRE_V90, Type.BOOLEAN, (engine == Engine.IWD));
 
-    addEntry(Key.IS_SUPPORTED_DLG, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_DLG, Type.BOOLEAN, true);
 
     addEntry(Key.IS_SUPPORTED_EFF, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
                                                   engine == Engine.IWD || engine == Engine.EE ||
@@ -1791,7 +1796,7 @@ public final class Profile implements FileWatcher.FileWatchListener
 
     addEntry(Key.IS_SUPPORTED_GUI, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(Key.IS_SUPPORTED_IDS, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_IDS, Type.BOOLEAN, true);
 
     addEntry(Key.IS_SUPPORTED_INI, Type.BOOLEAN, (engine == Engine.IWD || engine == Engine.IWD2 ||
                                                   engine == Engine.PST || engine == Engine.EE));
@@ -1802,7 +1807,9 @@ public final class Profile implements FileWatcher.FileWatchListener
     addEntry(Key.IS_SUPPORTED_ITM_V11, Type.BOOLEAN, (engine == Engine.PST));
     addEntry(Key.IS_SUPPORTED_ITM_V20, Type.BOOLEAN, (engine == Engine.IWD2));
 
-    addEntry(Key.IS_SUPPORTED_KEY, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_KEY, Type.BOOLEAN, true);
+
+    addEntry(Key.IS_SUPPORTED_LOG, Type.BOOLEAN, true);
 
     addEntry(Key.IS_SUPPORTED_LUA, Type.BOOLEAN, isEnhancedEdition());
 
@@ -1810,18 +1817,18 @@ public final class Profile implements FileWatcher.FileWatchListener
 
     addEntry(Key.IS_SUPPORTED_MENU, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(Key.IS_SUPPORTED_MOS_V1, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_MOS_V1, Type.BOOLEAN, true);
     addEntry(Key.IS_SUPPORTED_MOSC_V1, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD ||
                                                       engine == Engine.IWD2 || engine == Engine.EE));
     addEntry(Key.IS_SUPPORTED_MOS_V2, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(Key.IS_SUPPORTED_MUS, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_MUS, Type.BOOLEAN, true);
 
-    addEntry(Key.IS_SUPPORTED_MVE, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_MVE, Type.BOOLEAN, true);
 
     addEntry(Key.IS_SUPPORTED_OGG, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(Key.IS_SUPPORTED_PLT, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_PLT, Type.BOOLEAN, true);
 
     addEntry(Key.IS_SUPPORTED_PNG, Type.BOOLEAN, isEnhancedEdition());
 
@@ -1831,7 +1838,7 @@ public final class Profile implements FileWatcher.FileWatchListener
 
     addEntry(Key.IS_SUPPORTED_RES, Type.BOOLEAN, (engine == Engine.IWD || engine == Engine.IWD2));
 
-    addEntry(Key.IS_SUPPORTED_SAV, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_SAV, Type.BOOLEAN, true);
 
     addEntry(Key.IS_SUPPORTED_SPL_V1, Type.BOOLEAN, (engine == Engine.BG1 || engine == Engine.BG2 ||
                                                      engine == Engine.IWD || engine == Engine.PST ||
@@ -1850,10 +1857,10 @@ public final class Profile implements FileWatcher.FileWatchListener
     addEntry(Key.IS_SUPPORTED_STO_V11, Type.BOOLEAN, (engine == Engine.PST || game == Game.PSTEE));
     addEntry(Key.IS_SUPPORTED_STO_V90, Type.BOOLEAN, (engine == Engine.IWD || engine == Engine.IWD2));
 
-    addEntry(Key.IS_SUPPORTED_TIS_V1, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_TIS_V1, Type.BOOLEAN, true);
     addEntry(Key.IS_SUPPORTED_TIS_V2, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(Key.IS_SUPPORTED_TLK, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_TLK, Type.BOOLEAN, true);
 
     addEntry(Key.IS_SUPPORTED_TO_V1, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.IWD));
     addEntry(Key.IS_SUPPORTED_TO_V2, Type.BOOLEAN, isEnhancedEdition());
@@ -1866,17 +1873,17 @@ public final class Profile implements FileWatcher.FileWatchListener
 
     addEntry(Key.IS_SUPPORTED_VVC, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
 
-    addEntry(Key.IS_SUPPORTED_WAV, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_WAV, Type.BOOLEAN, true);
 
-    addEntry(Key.IS_SUPPORTED_WAVC, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_WAVC, Type.BOOLEAN, true);
 
     addEntry(Key.IS_SUPPORTED_WBM, Type.BOOLEAN, isEnhancedEdition());
 
-    addEntry(Key.IS_SUPPORTED_WED, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_WED, Type.BOOLEAN, true);
 
     addEntry(Key.IS_SUPPORTED_WFX, Type.BOOLEAN, (engine == Engine.BG2 || engine == Engine.EE));
 
-    addEntry(Key.IS_SUPPORTED_WMP, Type.BOOLEAN, Boolean.valueOf(true));
+    addEntry(Key.IS_SUPPORTED_WMP, Type.BOOLEAN, true);
   }
 
   // Initializes game-specific features

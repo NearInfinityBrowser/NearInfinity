@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.other;
@@ -20,6 +20,17 @@ import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
 import org.infinity.resource.key.ResourceEntry;
 
+/**
+ * This resource determines variation for playback of wave sounds. A WFX file
+ * controls the variation for the the WAV file with the same basename (e.g.
+ * {@code mysound.wfx} controls the variation for {@code mysound.wav}).
+ * <p>
+ * WFX files only contain a header section. Each WFX file has a constant length
+ * of 108h (264) bytes.
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/wfx_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/wfx_v1.htm</a>
+ */
 public final class WfxResource extends AbstractStruct implements Resource, HasViewerTabs
 {
   // WFX-specific field labels
@@ -88,4 +99,3 @@ public final class WfxResource extends AbstractStruct implements Resource, HasVi
     viewer.addTabChangeListener(hexViewer);
   }
 }
-

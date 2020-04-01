@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.vef;
@@ -26,12 +26,7 @@ public final class VefType extends Bitmap
 
   public VefType(ByteBuffer buffer, int offset, int length)
   {
-    this(null, buffer, offset, length);
-  }
-
-  public VefType(StructEntry parent, ByteBuffer buffer, int offset, int length)
-  {
-    super(parent, buffer, offset, length, VEF_TYPE, s_restype);
+    super(buffer, offset, length, VEF_TYPE, s_restype);
   }
 
   // --------------------- Begin Interface Editable ---------------------
@@ -41,13 +36,13 @@ public final class VefType extends Bitmap
   {
     super.updateValue(struct);
     try {
-      List<StructEntry> list = new ArrayList<StructEntry>();
+      final List<StructEntry> list = new ArrayList<>();
       readAttributes(struct.removeFromList(this, buf_size), 0, list);
       for (int i = 0; i < list.size(); i++) {
         StructEntry entry = list.get(i);
         entry.setOffset(entry.getOffset() + getOffset() + getSize());
       }
-      struct.addToList(this, list);
+      struct.addFields(this, list);
       return true;
     } catch (IOException e) {
       e.printStackTrace();
@@ -61,13 +56,13 @@ public final class VefType extends Bitmap
   {
     switch (getValue()) {
     case 0:
-      list.add(new ResourceRef(buffer, off, 8, VEF_TYPE_RESOURCE, "WAV"));
+      list.add(new ResourceRef(buffer, off, VEF_TYPE_RESOURCE, "WAV"));
       break;
     case 1:
-      list.add(new ResourceRef(buffer, off, 8, VEF_TYPE_RESOURCE, new String[]{"VVC", "BAM"}));
+      list.add(new ResourceRef(buffer, off, VEF_TYPE_RESOURCE, "VVC", "BAM"));
       break;
     case 2:
-      list.add(new ResourceRef(buffer, off, 8, VEF_TYPE_RESOURCE, new String[]{"VEF", "VVC", "BAM"}));
+      list.add(new ResourceRef(buffer, off, VEF_TYPE_RESOURCE, "VEF", "VVC", "BAM"));
       break;
     default:
       list.add(new TextString(buffer, off, 8, VEF_TYPE_RESOURCE));

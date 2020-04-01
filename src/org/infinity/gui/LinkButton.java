@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -32,7 +32,7 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
   private static final String CMD_OPEN_NEW  = "OPEN_NEW"; // open resource in new window
   private static final String CMD_BROWSE    = "BROWSE";   // open URL in system-default browser
 
-  private final List<ActionListener> listeners = new ArrayList<ActionListener>();
+  private final List<ActionListener> listeners = new ArrayList<>();
   private ResourceEntry entry;
   private String url;
   private boolean isResource;
@@ -75,34 +75,23 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
   public void setResource(ResourceRef resourceRef)
   {
     if (resourceRef != null) {
-      setResource(resourceRef, resourceRef.toString());
+      setResource(ResourceFactory.getResourceEntry(resourceRef.getResourceName()), resourceRef.toString());
     } else {
-      setResource(null, "");
+      setResource(null, null);
     }
   }
 
   /** Attempts to create a link from the specified resource name. */
   public void setResource(String resourceName)
   {
-    setResource(null, resourceName);
+    setResource(ResourceFactory.getResourceEntry(resourceName), resourceName);
   }
 
-  // Uses either ResourceRef or String to create a link
-  private void setResource(ResourceRef resource, String resourceName)
+  private void setResource(ResourceEntry entry, String resourceName)
   {
     isResource = true;
     removeActionListener(this);
-    if (resource != null) {
-      entry = ResourceFactory.getResourceEntry(resource.getResourceName());
-      if (resourceName == null) {
-        resourceName = resource.toString();
-      }
-    } else {
-      entry = ResourceFactory.getResourceEntry(resourceName);
-      if (resourceName == null) {
-        resourceName = "";
-      }
-    }
+    this.entry = entry;
     if (entry != null) {
       addActionListener(this);
       setLink(resourceName, entry.getResourceName(), true);
@@ -115,7 +104,7 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
     }
   }
 
-  // Sets link or label text, depending on arguments
+  /** Sets link or label text, depending on arguments. */
   private void setLink(String text, String resource, boolean asLink)
   {
     removeMouseListener(this);
@@ -156,14 +145,13 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
   public String getUrl()
   {
     if (isResource) {
-      return entry.toString();
+      return entry.getResourceName();
     } else {
       return url;
     }
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent e)
   {
@@ -184,12 +172,9 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
       }
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface ActionListener ---------------------
-
-
-// --------------------- Begin Interface MouseListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="MouseListener">
   @Override
   public void mouseClicked(MouseEvent e)
   {
@@ -206,8 +191,9 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
     }
 
     ActionEvent event = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, cmd);
-    for (int i = 0; i < listeners.size(); i++)
-      listeners.get(i).actionPerformed(event);
+    for (final ActionListener l : listeners) {
+      l.actionPerformed(event);
+    }
   }
 
   @Override
@@ -229,8 +215,7 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
   public void mouseExited(MouseEvent e)
   {
   }
-
-// --------------------- End Interface MouseListener ---------------------
+  //</editor-fold>
 
   public void removeActionListener(ActionListener listener)
   {
@@ -242,4 +227,3 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
     listeners.add(listener);
   }
 }
-

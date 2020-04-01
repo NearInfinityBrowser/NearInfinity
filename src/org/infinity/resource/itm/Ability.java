@@ -52,9 +52,9 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
   public static final String[] s_abilityuse = {"", "Weapon", "Spell", "Item", "Ability", "reserved"};
   public static final String[] s_recharge = {
     "No flags set", "Add strength bonus", "Breakable", "EE: Damage strength bonus",
-    "EE: THAC0 strength bonus", "", "", "", "", "", "",
-    "Hostile", "Recharge after resting", "", "", "", "", "Bypass armor", "Keen edge", "",
-    "", "", "", "", "", "", "Ex: Toggle backstab", "Ex: Cannot target invisible"};
+    "EE: THAC0 strength bonus", null, null, null, null, null, null,
+    "Hostile", "Recharge after resting", null, null, null, null, "Bypass armor", "Keen edge", null,
+    null, null, null, null, null, null, "Ex: Toggle backstab", "EE/Ex: Cannot target invisible"};
 
   Ability() throws Exception
   {
@@ -170,7 +170,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
     addField(new DecNumber(buffer, offset + 34, 2, ABILITY_NUM_CHARGES));
     addField(new Bitmap(buffer, offset + 36, 2, ABILITY_WHEN_DRAINED, s_drain));
     addField(new Flag(buffer, offset + 38, 4, ITM_ABIL_FLAGS, s_recharge));
-    if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
+    if (ResourceFactory.resourceExists("PROJECTL.IDS") && ResourceFactory.resourceExists("MISSILE.IDS")) {
       addField(new ProRef(buffer, offset + 42, ABILITY_PROJECTILE));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       addField(new Bitmap(buffer, offset + 42, 2, ABILITY_PROJECTILE, s_proj_pst));

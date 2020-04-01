@@ -46,6 +46,8 @@ import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 
+import org.infinity.util.Misc;
+
 /**
  * The {@code FontChooser} class is a swing component for font selection.
  * This class has {@code FileChooser} like APIs. The following code pops up
@@ -160,7 +162,7 @@ public class FontChooser extends JComponent
           getFontFamilyList()));
       fontFamilyTextField.getDocument().addDocumentListener(
           new ListSearchTextFieldDocumentHandler(getFontFamilyList()));
-      fontFamilyTextField.setFont(DEFAULT_FONT);
+      fontFamilyTextField.setFont(Misc.getScaledFont(DEFAULT_FONT));
 
     }
     return fontFamilyTextField;
@@ -176,7 +178,7 @@ public class FontChooser extends JComponent
           getFontStyleList()));
       fontStyleTextField.getDocument().addDocumentListener(
           new ListSearchTextFieldDocumentHandler(getFontStyleList()));
-      fontStyleTextField.setFont(DEFAULT_FONT);
+      fontStyleTextField.setFont(Misc.getScaledFont(DEFAULT_FONT));
     }
     return fontStyleTextField;
   }
@@ -191,7 +193,7 @@ public class FontChooser extends JComponent
           getFontSizeList()));
       fontSizeTextField.getDocument().addDocumentListener(
           new ListSearchTextFieldDocumentHandler(getFontSizeList()));
-      fontSizeTextField.setFont(DEFAULT_FONT);
+      fontSizeTextField.setFont(Misc.getScaledFont(DEFAULT_FONT));
     }
     return fontSizeTextField;
   }
@@ -203,7 +205,7 @@ public class FontChooser extends JComponent
       fontNameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       fontNameList.addListSelectionListener(new ListSelectionHandler(getFontFamilyTextField()));
       fontNameList.setSelectedIndex(0);
-      fontNameList.setFont(DEFAULT_FONT);
+      fontNameList.setFont(Misc.getScaledFont(DEFAULT_FONT));
       fontNameList.setFocusable(false);
     }
     return fontNameList;
@@ -216,7 +218,7 @@ public class FontChooser extends JComponent
       fontStyleList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       fontStyleList.addListSelectionListener(new ListSelectionHandler(getFontStyleTextField()));
       fontStyleList.setSelectedIndex(0);
-      fontStyleList.setFont(DEFAULT_FONT);
+      fontStyleList.setFont(Misc.getScaledFont(DEFAULT_FONT));
       fontStyleList.setFocusable(false);
     }
     return fontStyleList;
@@ -229,7 +231,7 @@ public class FontChooser extends JComponent
       fontSizeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       fontSizeList.addListSelectionListener(new ListSelectionHandler(getFontSizeTextField()));
       fontSizeList.setSelectedIndex(0);
-      fontSizeList.setFont(DEFAULT_FONT);
+      fontSizeList.setFont(Misc.getScaledFont(DEFAULT_FONT));
       fontSizeList.setFocusable(false);
     }
     return fontSizeList;
@@ -316,7 +318,7 @@ public class FontChooser extends JComponent
   {
     String[] names = getFontFamilies();
     for (int i = 0; i < names.length; i++) {
-      if (names[i].toLowerCase().equals(name.toLowerCase())) {
+      if (names[i].equalsIgnoreCase(name)) {
         getFontFamilyList().setSelectedIndex(i);
         break;
       }
@@ -619,9 +621,9 @@ public class FontChooser extends JComponent
     Action cancelAction = new DialogCancelAction(dialog);
 
     JButton okButton = new JButton(okAction);
-    okButton.setFont(DEFAULT_FONT);
+    okButton.setFont(Misc.getScaledFont(DEFAULT_FONT));
     JButton cancelButton = new JButton(cancelAction);
-    cancelButton.setFont(DEFAULT_FONT);
+    cancelButton.setFont(Misc.getScaledFont(DEFAULT_FONT));
 
     JPanel buttonsPanel = new JPanel();
     buttonsPanel.setLayout(new GridLayout(2, 1));

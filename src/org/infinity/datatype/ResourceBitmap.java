@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -31,12 +31,21 @@ import org.infinity.gui.ViewFrame;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 
 /**
  * Datatype for selecting resource entries, constructed from a predefined list of key/value pairs.
+ *
+ * <h2>Bean property</h2>
+ * When this field is child of {@link AbstractStruct}, then changes of its internal
+ * value reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent}
+ * struct.
+ * <ul>
+ * <li>Property name: {@link #getName() name} of this field</li>
+ * <li>Property type: {@code long}</li>
+ * <li>Value meaning: index of the resource in the predefined list</li>
+ * </ul>
  */
 public class ResourceBitmap extends Datatype
     implements Editable, IsNumeric, IsReference, ActionListener, ListSelectionListener
@@ -68,29 +77,17 @@ public class ResourceBitmap extends Datatype
   private final String defaultLabel;
   private final String formatString;
   private JButton bView;
-  private TextListPanel list;
+  private TextListPanel<RefEntry> list;
   private long value;
 
-  public ResourceBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
-      List<RefEntry> resources)
-  {
-    this(parent, buffer, offset, length, name, resources, null, null);
-  }
-
-  public ResourceBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
-      List<RefEntry> resources, String defLabel)
-  {
-    this(parent, buffer, offset, length, name, resources, defLabel, null);
-  }
-
-  public ResourceBitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name,
+  public ResourceBitmap(ByteBuffer buffer, int offset, int length, String name,
                         List<RefEntry> resources, String defLabel, String fmt)
   {
-    super(parent, offset, length, name);
+    super(offset, length, name);
     this.formatString = (fmt != null) ? fmt : FMT_REF_VALUE;
     this.defaultLabel = (defLabel != null) ? defLabel : "Unknown";
 
-    this.resources = new ArrayList<RefEntry>((resources != null) ? resources.size() : 10);
+    this.resources = new ArrayList<>((resources != null) ? resources.size() : 10);
     if (resources != null) {
       for (final RefEntry entry: resources) {
         entry.setFormatString(this.formatString);
@@ -108,15 +105,10 @@ public class ResourceBitmap extends Datatype
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == bView) {
-      Object selected = list.getSelectedValue();
-      if (selected instanceof RefEntry) {
-        RefEntry re = (RefEntry)selected;
-        ResourceEntry entry = re.getResourceEntry();
-        if (entry != null) {
-          new ViewFrame(list.getTopLevelAncestor(), ResourceFactory.getResource(entry));
-        } else {
-          new ViewFrame(list.getTopLevelAncestor(), null);
-        }
+      final RefEntry selected = list.getSelectedValue();
+      if (selected != null) {
+        final ResourceEntry entry = selected.getResourceEntry();
+        new ViewFrame(list.getTopLevelAncestor(), entry == null ? null : ResourceFactory.getResource(entry));
       }
     }
   }
@@ -128,11 +120,8 @@ public class ResourceBitmap extends Datatype
   @Override
   public void valueChanged(ListSelectionEvent e)
   {
-    Object selected = list.getSelectedValue();
-    if (selected instanceof RefEntry) {
-      RefEntry re = (RefEntry)selected;
-      bView.setEnabled(re.isResource());
-    }
+    final RefEntry selected = list.getSelectedValue();
+    bView.setEnabled(selected != null && selected.isResource());
   }
 
 //--------------------- End Interface ListSelectionListener ---------------------
@@ -142,7 +131,7 @@ public class ResourceBitmap extends Datatype
   @Override
   public JComponent edit(final ActionListener container)
   {
-    list = new TextListPanel(resources, false);
+    list = new TextListPanel<>(resources, false);
     list.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent event)
@@ -168,8 +157,7 @@ public class ResourceBitmap extends Datatype
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
     bView = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
     bView.addActionListener(this);
-    bView.setEnabled(list.getSelectedValue() instanceof RefEntry &&
-                     ((RefEntry)list.getSelectedValue()).isResource());
+    bView.setEnabled(curEntry != null && curEntry.isResource());
     list.addListSelectionListener(this);
 
     GridBagLayout gbl = new GridBagLayout();
@@ -199,7 +187,6 @@ public class ResourceBitmap extends Datatype
     panel.add(bView);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
-    panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
     return panel;
   }
 
@@ -212,14 +199,12 @@ public class ResourceBitmap extends Datatype
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
-    Object selected = list.getSelectedValue();
-    if (selected instanceof RefEntry) {
-      RefEntry re = (RefEntry)selected;
-      value = re.getValue();
-    } else {
+    final RefEntry selected = list.getSelectedValue();
+    if (selected == null) {
       return false;
     }
 
+    setValue(selected.getValue());
     // notifying listeners
     fireValueUpdated(new UpdateEvent(this, struct));
 
@@ -322,8 +307,7 @@ public class ResourceBitmap extends Datatype
 
   private RefEntry getRefEntry(long value)
   {
-    for (int i = 0, size = resources.size(); i < size; i++) {
-      RefEntry entry = resources.get(i);
+    for (final RefEntry entry : resources) {
       if (entry.getValue() == value) {
         return entry;
       }
@@ -331,16 +315,31 @@ public class ResourceBitmap extends Datatype
     return null;
   }
 
+  private void setValue(long newValue)
+  {
+    final long oldValue = value;
+    value = newValue;
+    if (oldValue != newValue) {
+      firePropertyChange(oldValue, newValue);
+    }
+  }
+
 //-------------------------- INNER CLASSES --------------------------
 
-  public static class RefEntry implements Comparable<RefEntry>
+  public static final class RefEntry implements Comparable<RefEntry>
   {
-    private final long value;           // associated ID
-    private final String name;          // alternate label if ResourceEntry is empty
-    private final ResourceEntry entry;  // contains resource if available
-    private final String searchString;  // resource-dependent search string
-    private String fmt;                 // format string for textual representation
-    private String desc;                // cached textual output for toString() method
+    /** Associated ID. */
+    private final long value;
+    /** Alternate label if ResourceEntry is empty. */
+    private final String name;
+    /** Contains resource if available. */
+    private final ResourceEntry entry;
+    /** Resource-dependent search string. */
+    private final String searchString;
+    /** Format string for textual representation. */
+    private String fmt;
+    /** Cached textual output for {@link #toString()} method. */
+    private String desc;
 
     public RefEntry(long value, String ref)
     {
@@ -376,13 +375,13 @@ public class ResourceBitmap extends Datatype
     @Override
     public boolean equals(Object o)
     {
-      return toString().equalsIgnoreCase(o.toString());
+      return desc.equalsIgnoreCase(o.toString());
     }
 
     @Override
     public int compareTo(RefEntry o)
     {
-      return toString().compareToIgnoreCase(o.toString());
+      return desc.compareToIgnoreCase(o.toString());
     }
 
     public boolean isResource() { return (entry != null); }

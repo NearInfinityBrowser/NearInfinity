@@ -1,9 +1,10 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -91,26 +92,28 @@ public class Keyfile
   private static final String KEY_SIGNATURE = "KEY ";
   private static final String KEY_VERSION   = "V1  ";
 
-  private final Path keyFile;         // primary key file
-  private final List<Path> keyList;   // list of additional DLC key files
+  /** Path to primary key file (usually {@code chitin.key}). */
+  private final Path keyFile;
+  /** List of additional DLC key files. */
+  private final List<Path> keyList;
 
-  private final IntegerHashMap<String> extMap = new IntegerHashMap<String>();
-  private final Map<String, ImageIcon> resourceIcons = new HashMap<String, ImageIcon>();
+  private final IntegerHashMap<String> extMap = new IntegerHashMap<>();
+  private final Map<String, ImageIcon> resourceIcons = new HashMap<>();
 
-  // Map of key file path => list of associated key files
+  /** Map of key file path => list of associated key files. */
   private final Map<Path, List<BIFFEntry>> biffEntries = new HashMap<>();
 
-  // Sorted map of effective BIFFResourceEntry objects
+  /** Sorted map of effective BIFFResourceEntry objects. */
   private final TreeMap<String, BIFFResourceEntry> resourceEntries = new TreeMap<>(Misc.getIgnoreCaseComparator());
 
 
-  public Keyfile(Path keyFile) throws IOException
+  public Keyfile(Path keyFile) throws FileNotFoundException
   {
     if (keyFile == null) {
       throw new NullPointerException("No keyfile specified");
     }
     if (!Files.isRegularFile(keyFile)) {
-      throw new IOException("Keyfile not found");
+      throw new FileNotFoundException("Keyfile " + keyFile + " not found or is not regular file");
     }
 
     this.keyFile = keyFile;
@@ -214,6 +217,8 @@ public class Keyfile
     resourceIcons.put("TXT", ICON_TEXT);
     resourceIcons.put("RES", ICON_TEXT);
     resourceIcons.put("BAF", ICON_SCRIPT);
+    resourceIcons.put("VAR", ICON_STRUCT);// PST VAR.VAR file - from Special category in the resource tree
+    resourceIcons.put("LOG", ICON_TEXT);// WeiDU log files - from Special category in the resource tree
   }
 
   @Override
@@ -221,7 +226,8 @@ public class Keyfile
   {
     if (o == this) {
       return true;
-    } else if (o instanceof Keyfile) {
+    }
+    if (o instanceof Keyfile) {
       Keyfile other = (Keyfile)o;
       return (keyFile.equals(other.keyFile));
     }
@@ -253,7 +259,7 @@ public class Keyfile
   public void addKeyfile(Path keyFile) throws IOException
   {
     if (keyFile == null) {
-      throw new NullPointerException();
+      throw new NullPointerException("No DLC keyfile specified");
     }
     if (!keyList.contains(keyFile)) {
       keyList.add(keyFile);
@@ -271,24 +277,28 @@ public class Keyfile
     }
   }
 
-  /** Returns the resource extension string of specified type. */
+  /**
+   * Returns the resource extension string of specified type.
+   *
+   * @param type One of the {@code TYPE_} constants
+   * @return Extension (in upper case) for that type or null, if type is unknown
+   */
   public String getExtension(int type)
   {
     return extMap.get(type);
   }
 
-  /** Attempts to determine the resource type of the specified extension. */
+  /**
+   * Attempts to determine the resource type of the specified extension.
+   *
+   * @param extension Extension string, that can be in any case
+   */
   public int getExtensionType(String extension)
   {
     if (extension != null) {
-      if (extension.length() > 0 && extension.charAt(0) == '.') {
-        extension = extension.substring(1);
-      }
-      extension = extension.toUpperCase(Locale.ENGLISH);
-      int[] keys = extMap.keys();
-      for (final int type: keys) {
-        if (extMap.get(type).equals(extension)) {
-          return type;
+      for (final Map.Entry<Integer, String> e : extMap.entrySet()) {
+        if (e.getValue().equalsIgnoreCase(extension)) {
+          return e.getKey().intValue();
         }
       }
     }
@@ -398,7 +408,7 @@ public class Keyfile
   {
     BIFFResourceEntry retVal = null;
     if (resourceName != null) {
-      retVal = resourceEntries.get(resourceName);
+      retVal = resourceEntries.get(resourceName.toUpperCase(Locale.ENGLISH));
     }
     return retVal;
   }
@@ -440,7 +450,7 @@ public class Keyfile
     }
   }
 
-  // caches all BIFF files referenced in the current KEY file
+  /** Caches all BIFF files referenced in the current KEY file. */
   private void cacheBIFFs()
   {
     SwingUtilities.invokeLater(new Runnable() {
@@ -499,7 +509,7 @@ public class Keyfile
 //  }
 
 
-  // Creates or updates cached biff maps and entry tables
+  /** Creates or updates cached biff maps and entry tables. */
   private void init() throws IOException
   {
     if (getKeyfile() == null) {
@@ -556,13 +566,13 @@ public class Keyfile
 
         // processing resource entries
         for (int i = 0, ofs = ofsRes; i < numRes; i++, ofs += 14) {
-          addResourceEntry(new BIFFResourceEntry(file, buffer, ofs, 8));
+          addResourceEntry(new BIFFResourceEntry(file, buffer, ofs));
         }
       }
     }
   }
 
-  // Returns the list of BIFFEntry objects for the specified key file, optionally removes it
+  /** Returns the list of BIFFEntry objects for the specified key file, optionally removes it. */
   private List<BIFFEntry> getBIFFList(Path keyFile, boolean remove)
   {
     if (keyFile != null) {
@@ -575,12 +585,12 @@ public class Keyfile
     return null;
   }
 
-  // Adds the specified resource entry to the list, overwrites existing entries of same name.
+  /** Adds the specified resource entry to the list, overwrites existing entries of same name. */
   private BIFFResourceEntry addResourceEntry(BIFFResourceEntry entry)
   {
     BIFFResourceEntry retVal = null;
     if (entry != null) {
-      String key = entry.toString();
+      final String key = entry.getResourceName().toUpperCase(Locale.ENGLISH);
       retVal = resourceEntries.put(key, entry);
     }
     return retVal;

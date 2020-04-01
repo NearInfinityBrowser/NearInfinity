@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.text;
@@ -15,8 +15,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
@@ -26,7 +26,6 @@ import java.util.regex.Pattern;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
@@ -44,48 +43,41 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
-import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.Misc;
-import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
-public final class PlainTextResource implements TextResource, Writeable, ActionListener, ItemListener,
-                                                DocumentListener, Closeable
+public class PlainTextResource implements TextResource, Writeable, ActionListener, ItemListener,
+                                          DocumentListener, Closeable
 {
   private final ResourceEntry entry;
-  private final String text;
+  protected final String text;
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private JMenuItem ifindall, ifindthis;
   private JPanel panel;
-  private InfinityTextArea editor;
+  /** Text editor for editing resource. Created after calling {@link #makeViewer}. */
+  protected InfinityTextArea editor;
   private boolean resourceChanged;
-  private int highlightedLine;
+  private int highlightedLine = -1;
 
   public PlainTextResource(ResourceEntry entry) throws Exception
-  {
-    this(entry, -1);
-  }
-
-  public PlainTextResource(ResourceEntry entry, int highlightedLine) throws Exception
   {
     this.entry = entry;
     ByteBuffer buffer = entry.getResourceBuffer();
     if (buffer.limit() > 1 && buffer.getShort(0) == -1) {
       buffer = StaticSimpleXorDecryptor.decrypt(buffer, 2);
     }
-    Charset cs = null;
+    final Charset cs;
     if (BrowserMenuBar.getInstance() != null) {
       cs = Charset.forName(BrowserMenuBar.getInstance().getSelectedCharset());
     } else {
       cs = Misc.CHARSET_DEFAULT;
     }
     text = StreamUtils.readString(buffer, buffer.limit(), cs);
-    this.highlightedLine = highlightedLine;
   }
 
 // --------------------- Begin Interface ActionListener ---------------------
@@ -101,7 +93,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.TRIM_SPACES) == event.getSource()) {
-      StringBuffer newText = new StringBuffer(editor.getText().length());
+      final StringBuilder newText = new StringBuilder(editor.getText().length());
       StringTokenizer st = new StringTokenizer(editor.getText(), "\n");
       while (st.hasMoreTokens()) {
         newText.append(st.nextToken().trim()).append('\n');
@@ -120,21 +112,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
   public void close() throws Exception
   {
     if (resourceChanged) {
-      Path output;
-      if (entry instanceof BIFFResourceEntry) {
-        output = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName(), entry.toString());
-      } else {
-        output = entry.getActualPath();
-      }
-      String options[] = {"Save changes", "Discard changes", "Cancel"};
-      int result = JOptionPane.showOptionDialog(panel, "Save changes to " + output + '?', "Resource changed",
-                                                JOptionPane.YES_NO_CANCEL_OPTION,
-                                                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0) {
-        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
-      } else if (result != 1) {
-        throw new Exception("Save aborted");
-      }
+      ResourceFactory.closeResource(this, entry, panel);
     }
   }
 
@@ -172,13 +150,10 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU);
     if (event.getSource() == bpmFind) {
       if (bpmFind.getSelectedItem() == ifindall) {
-        String type = entry.toString().substring(entry.toString().indexOf(".") + 1);
-        List<ResourceEntry> files = ResourceFactory.getResources(type);
+        final List<ResourceEntry> files = ResourceFactory.getResources(entry.getExtension());
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
-        List<ResourceEntry> files = new ArrayList<ResourceEntry>();
-        files.add(entry);
-        new TextResourceSearcher(files, panel.getTopLevelAncestor());
+        new TextResourceSearcher(Arrays.asList(entry), panel.getTopLevelAncestor());
       }
     }
   }
@@ -253,20 +228,20 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     editor.setCaretPosition(0);
     editor.setLineWrap(false);
     editor.getDocument().addDocumentListener(this);
-    if (entry.toString().toUpperCase(Locale.ENGLISH).endsWith(".BIO") ||
-        entry.toString().toUpperCase(Locale.ENGLISH).endsWith(".RES")) {
+
+    final String ext = entry.getExtension();
+    if ("BIO".equals(ext) || "RES".equals(ext)) {
       editor.setLineWrap(true);
       editor.setWrapStyleWord(true);
     }
 
-    ifindall =
-        new JMenuItem("in all " + entry.toString().substring(entry.toString().indexOf(".") + 1) + " files");
+    ifindall  = new JMenuItem("in all " + ext + " files");
     ifindthis = new JMenuItem("in this file only");
     ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FIND_MENU);
     bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
     bpmFind.addItemListener(this);
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.TRIM_SPACES)).addActionListener(this);
-    if (entry.toString().toUpperCase(Locale.ENGLISH).endsWith(".2DA")) {
+    if ("2DA".equals(ext)) {
       ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
     }
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
@@ -277,13 +252,9 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     panel.add(pane, BorderLayout.CENTER);
     panel.add(buttonPanel, BorderLayout.SOUTH);
 
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run()
-      {
-        if (highlightedLine >= 0) {
-          highlightText(highlightedLine, null);
-        }
+    SwingUtilities.invokeLater(() -> {
+      if (highlightedLine >= 0) {
+        highlightText(highlightedLine, null);
       }
     });
 
@@ -327,7 +298,7 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     st.nextToken();
     String header = st.nextToken();
     st = new StringTokenizer(header);
-    List<String> strings = new ArrayList<String>();
+    final List<String> strings = new ArrayList<>();
     while (st.hasMoreTokens())
       strings.add(st.nextToken().toUpperCase(Locale.ENGLISH));
     return strings;
@@ -374,10 +345,10 @@ public final class PlainTextResource implements TextResource, Writeable, ActionL
     }
     if (edit != null) {
       edit.applyExtendedSettings(language, null);
+      edit.setFont(Misc.getScaledFont(edit.getFont()));
     }
     if (pane != null) {
       pane.applyExtendedSettings(language);
     }
   }
 }
-

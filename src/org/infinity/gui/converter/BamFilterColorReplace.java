@@ -160,21 +160,21 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
   private BufferedImage applyEffect(BufferedImage srcImage)
   {
     BufferedImage dstImage = srcImage;
-    if (srcImage != null && paletteDialog.isModified()) {
-      if (srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-        int width = srcImage.getWidth();
-        int height = srcImage.getHeight();
-        IndexColorModel cm = (IndexColorModel)srcImage.getColorModel();
-        int[] newPalette = paletteDialog.getPalette();
+    if (srcImage != null &&
+        paletteDialog.isModified() &&
+        srcImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+      int width = srcImage.getWidth();
+      int height = srcImage.getHeight();
+      IndexColorModel cm = (IndexColorModel)srcImage.getColorModel();
+      int[] newPalette = paletteDialog.getPalette();
 
-        IndexColorModel cm2 = new IndexColorModel(8, 256, newPalette, 0, cm.hasAlpha(),
-                                                  cm.getTransparentPixel(), DataBuffer.TYPE_BYTE);
-        dstImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, cm2);
-        byte[] srcBuffer = ((DataBufferByte)srcImage.getRaster().getDataBuffer()).getData();
-        byte[] dstBuffer = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
-        System.arraycopy(srcBuffer, 0, dstBuffer, 0, dstBuffer.length);
-        srcBuffer = null; dstBuffer = null;
-      }
+      IndexColorModel cm2 = new IndexColorModel(8, 256, newPalette, 0, cm.hasAlpha(),
+                                                cm.getTransparentPixel(), DataBuffer.TYPE_BYTE);
+      dstImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, cm2);
+      byte[] srcBuffer = ((DataBufferByte)srcImage.getRaster().getDataBuffer()).getData();
+      byte[] dstBuffer = ((DataBufferByte)dstImage.getRaster().getDataBuffer()).getData();
+      System.arraycopy(srcBuffer, 0, dstBuffer, 0, dstBuffer.length);
+      srcBuffer = null; dstBuffer = null;
     }
 
     return dstImage;

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
@@ -9,85 +9,59 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.infinity.datatype.Flag;
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.AnimatedLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.Animation;
 import org.infinity.resource.are.AreResource;
+import static org.infinity.resource.are.AreResource.ARE_NUM_ANIMATIONS;
+import static org.infinity.resource.are.AreResource.ARE_OFFSET_ANIMATIONS;
 
 /**
  * Manages background animation layer objects.
  */
-public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
+public class LayerAnimation extends BasicLayer<LayerObjectAnimation, AreResource>
 {
   private static final String AvailableFmt = "Background animations: %d";
 
   private boolean realEnabled, realPlaying, forcedInterpolation, isAnimActiveIgnored;
   private int frameState;
-  private Object interpolationType;
-  private double frameRate;
+  private Object interpolationType = ViewerConstants.TYPE_NEAREST_NEIGHBOR;
+  private double frameRate = ViewerConstants.FRAME_AUTO;
 
   public LayerAnimation(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.ANIMATION, viewer);
-    realEnabled = realPlaying = false;
-    frameState = ViewerConstants.FRAME_AUTO;
-    forcedInterpolation = false;
-    interpolationType = ViewerConstants.TYPE_NEAREST_NEIGHBOR;
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectAnimation> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_ANIMATIONS);
-        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_ANIMATIONS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          List<StructEntry> listStruct = getStructures(ofs, count, Animation.class);
-          for (int i = 0, size = listStruct.size(); i < size; i++) {
-            LayerObjectAnimation obj = new LayerObjectAnimation(are, (Animation)listStruct.get(i));
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
+    loadLayerItems(ARE_OFFSET_ANIMATIONS, ARE_NUM_ANIMATIONS,
+                   Animation.class, a -> new LayerObjectAnimation(parent, a));
+
+    // sorting entries (animations not flagged as "draw as background" come first)
+    Collections.sort(getLayerObjects(), new Comparator<LayerObjectAnimation>() {
+      @Override
+      public int compare(LayerObjectAnimation o1, LayerObjectAnimation o2) {
+        boolean isBackground1, isBackground2;
+        try {
+          isBackground1 = ((Flag)((Animation)o1.getViewable()).getAttribute(Animation.ARE_ANIMATION_APPEARANCE)).isFlagSet(8);
+          isBackground2 = ((Flag)((Animation)o2.getViewable()).getAttribute(Animation.ARE_ANIMATION_APPEARANCE)).isFlagSet(8);
+        } catch (Exception e) {
+          isBackground1 = false;
+          isBackground2 = false;
+        }
+        if (!isBackground1 && isBackground2) {
+          return -1;
+        } else if (isBackground1 && !isBackground2) {
+          return 1;
+        } else {
+          return 0;
         }
       }
-
-      // sorting entries (animations not flagged as "draw as background" come first)
-      Collections.sort(list, new Comparator<LayerObjectAnimation>() {
-        @Override
-        public int compare(LayerObjectAnimation o1, LayerObjectAnimation o2) {
-          boolean isBackground1, isBackground2;
-          try {
-            isBackground1 = ((Flag)((Animation)o1.getViewable()).getAttribute(Animation.ARE_ANIMATION_APPEARANCE)).isFlagSet(8);
-            isBackground2 = ((Flag)((Animation)o2.getViewable()).getAttribute(Animation.ARE_ANIMATION_APPEARANCE)).isFlagSet(8);
-          } catch (Exception e) {
-            isBackground1 = false;
-            isBackground2 = false;
-          }
-          if (!isBackground1 && isBackground2) {
-            return -1;
-          } else if (isBackground1 && !isBackground2) {
-            return 1;
-          } else {
-            return 0;
-          }
-        }
-      });
-
-      return list.size();
-    }
-    return 0;
+    });
   }
 
   @Override
@@ -101,26 +75,25 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
    * Sets the visibility state of all items in the layer. Takes enabled states of the different
    * item types into account.
    */
+  @Override
   public void setLayerVisible(boolean visible)
   {
     setVisibilityState(visible);
     List<LayerObjectAnimation> list = getLayerObjects();
-    if (list != null) {
-      for (int i = 0, size = list.size(); i < size; i++) {
-        boolean state = isLayerVisible() && (!isScheduleEnabled() || (isScheduleEnabled() && isScheduled(i)));
-        LayerObjectAnimation obj = list.get(i);
-        IconLayerItem iconItem = (IconLayerItem)obj.getLayerItem(ViewerConstants.ANIM_ITEM_ICON);
-        if (iconItem != null) {
-          iconItem.setVisible(state && !realEnabled);
-        }
-        AnimatedLayerItem animItem = (AnimatedLayerItem)obj.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
-        if (animItem != null) {
-          animItem.setVisible(state && realEnabled);
-          if (isRealAnimationEnabled() && isRealAnimationPlaying()) {
-            animItem.play();
-          } else {
-            animItem.stop();
-          }
+    for (int i = 0, size = list.size(); i < size; i++) {
+      boolean state = isLayerVisible() && (!isScheduleEnabled() || isScheduled(i));
+      LayerObjectAnimation obj = list.get(i);
+      IconLayerItem iconItem = (IconLayerItem)obj.getLayerItem(ViewerConstants.ANIM_ITEM_ICON);
+      if (iconItem != null) {
+        iconItem.setVisible(state && !realEnabled);
+      }
+      AnimatedLayerItem animItem = (AnimatedLayerItem)obj.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+      if (animItem != null) {
+        animItem.setVisible(state && realEnabled);
+        if (isRealAnimationEnabled() && isRealAnimationPlaying()) {
+          animItem.play();
+        } else {
+          animItem.stop();
         }
       }
     }
@@ -145,13 +118,10 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
   {
     if (interpolationType != this.interpolationType) {
       this.interpolationType = interpolationType;
-      List<LayerObjectAnimation> list = getLayerObjects();
-      if (list != null) {
-        for (int i = 0, size = list.size(); i < size; i++) {
-          AnimatedLayerItem item = (AnimatedLayerItem)list.get(i).getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
-          if (item != null) {
-            item.setInterpolationType(this.interpolationType);
-          }
+      for (final LayerObjectAnimation layer : getLayerObjects()) {
+        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+        if (item != null) {
+          item.setInterpolationType(interpolationType);
         }
       }
     }
@@ -174,13 +144,10 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
   {
     if (forced != forcedInterpolation) {
       forcedInterpolation = forced;
-      List<LayerObjectAnimation> list = getLayerObjects();
-      if (list != null) {
-        for (int i = 0, size = list.size(); i < size; i++) {
-          AnimatedLayerItem item = (AnimatedLayerItem)list.get(i).getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
-          if (item != null) {
-            item.setForcedInterpolation(forcedInterpolation);
-          }
+      for (final LayerObjectAnimation layer : getLayerObjects()) {
+        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+        if (item != null) {
+          item.setForcedInterpolation(forced);
         }
       }
     }
@@ -281,13 +248,10 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
     frameRate = Math.min(Math.max(frameRate, 1.0), 30.0);
     if (frameRate != this.frameRate) {
       this.frameRate = frameRate;
-      List<LayerObjectAnimation> list = getLayerObjects();
-      if (list != null) {
-        for (int i = 0, size = list.size(); i < size; i++) {
-          AnimatedLayerItem item = (AnimatedLayerItem)list.get(i).getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
-          if (item != null) {
-            item.setFrameRate(this.frameRate);
-          }
+      for (final LayerObjectAnimation layer : getLayerObjects()) {
+        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+        if (item != null) {
+          item.setFrameRate(frameRate);
         }
       }
     }
@@ -309,14 +273,11 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
   public void setRealAnimationActiveIgnored(boolean set)
   {
     isAnimActiveIgnored = set;
-    List<LayerObjectAnimation> list = getLayerObjects();
-    if (list != null) {
-      for (int i = 0, size = list.size(); i < size; i++) {
-        AnimatedLayerItem item = (AnimatedLayerItem)list.get(i).getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
-        if (item != null) {
-          if (item.getAnimation() instanceof BackgroundAnimationProvider) {
-            ((BackgroundAnimationProvider)item.getAnimation()).setActiveIgnored(isAnimActiveIgnored);
-          }
+    for (final LayerObjectAnimation layer : getLayerObjects()) {
+      final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+      if (item != null) {
+        if (item.getAnimation() instanceof BackgroundAnimationProvider) {
+          ((BackgroundAnimationProvider)item.getAnimation()).setActiveIgnored(set);
         }
       }
     }
@@ -325,25 +286,22 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation>
 
   private void updateFrameState()
   {
-    List<LayerObjectAnimation> list = getLayerObjects();
-    if (list != null) {
-      for (int i = 0, size = list.size(); i < size; i++) {
-        AnimatedLayerItem item = (AnimatedLayerItem)list.get(i).getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
-        if (item != null) {
-          switch (frameState) {
-            case ViewerConstants.FRAME_NEVER:
-              item.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, false);
-              item.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, false);
-              break;
-            case ViewerConstants.FRAME_AUTO:
-              item.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, false);
-              item.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, true);
-              break;
-            case ViewerConstants.FRAME_ALWAYS:
-              item.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, true);
-              item.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, true);
-              break;
-          }
+    for (final LayerObjectAnimation layer : getLayerObjects()) {
+      final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+      if (item != null) {
+        switch (frameState) {
+          case ViewerConstants.FRAME_NEVER:
+            item.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, false);
+            item.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, false);
+            break;
+          case ViewerConstants.FRAME_AUTO:
+            item.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, false);
+            item.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, true);
+            break;
+          case ViewerConstants.FRAME_ALWAYS:
+            item.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, true);
+            item.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, true);
+            break;
         }
       }
     }

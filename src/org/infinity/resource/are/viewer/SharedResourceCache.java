@@ -165,7 +165,7 @@ public class SharedResourceCache
     while (iter.hasNext()) {
       Object key = iter.next();
       DataWrapper dw = tables.get(type).get(key);
-      if ((dw.getData() == null && dw.getData() == data) ||
+      if ((dw.getData() == null && data == null) ||
           (dw.getData() != null && dw.getData().equals(data))) {
         return key;
       }

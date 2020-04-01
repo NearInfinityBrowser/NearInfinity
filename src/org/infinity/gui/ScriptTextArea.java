@@ -42,6 +42,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.modes.BCSTokenMaker;
 import org.infinity.util.CreMapCache;
 import org.infinity.util.IdsMapCache;
+import org.infinity.util.Misc;
 
 /**
  * Extends {@link InfinityTextArea} by script-specific features.
@@ -86,6 +87,7 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
       lang = Language.NONE;
     }
     applyExtendedSettings(lang, null);
+    setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
 
     triggers = Signatures.getTriggers();
     actions = Signatures.getActions();

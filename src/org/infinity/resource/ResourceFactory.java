@@ -1,10 +1,12 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
 
 import java.awt.Component;
+import java.awt.GraphicsEnvironment;
+import java.awt.HeadlessException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
+import javax.swing.JComponent;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -34,6 +37,7 @@ import org.infinity.datatype.SecTypeBitmap;
 import org.infinity.datatype.Song2daBitmap;
 import org.infinity.datatype.Summon2daBitmap;
 import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.BrowserMenuBar.OverrideMode;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.IdsBrowser;
 import org.infinity.resource.are.AreResource;
@@ -71,6 +75,7 @@ import org.infinity.resource.spl.SplResource;
 import org.infinity.resource.src.SrcResource;
 import org.infinity.resource.sto.StoResource;
 import org.infinity.resource.text.PlainTextResource;
+import org.infinity.resource.text.QuestsResource;
 import org.infinity.resource.to.TohResource;
 import org.infinity.resource.to.TotResource;
 import org.infinity.resource.var.VarResource;
@@ -95,6 +100,11 @@ import org.infinity.util.io.StreamUtils;
  */
 public final class ResourceFactory implements FileWatchListener
 {
+  /**
+   * Name of tree node that contains important game files that not stored in
+   * the BIF archives or override folders.
+   */
+  private static final String SPECIAL_CATEGORY = "Special";
   private static ResourceFactory instance;
 
   private JFileChooser fc;
@@ -109,6 +119,27 @@ public final class ResourceFactory implements FileWatchListener
     } else {
       return null;
     }
+  }
+
+  /**
+   * Opens a save dialog and returns the file path selected by the user.
+   * @param parent Parent component of the file chooser dialog.
+   * @param fileName Filename shown when the dialog opens.
+   * @param forceOverwrite Whether to skip asking for confirmation if file already exists.
+   * @return The path to the selected file. Returns {@code null} if user cancelled operation.
+   */
+  public static Path getExportFileDialog(Component parent, String fileName, boolean forceOverwrite)
+  {
+    return getInstance().getExportFileDialogInternal(parent, fileName, forceOverwrite);
+  }
+
+  /**
+   * Returns the file path of the last export operation. Returns the root folder of the game otherwise.
+   * @return Directory as {@link Path} object.
+   */
+  public static Path getExportFilePath()
+  {
+    return getInstance().getExportFilePathInternal();
   }
 
   public static Resource getResource(ResourceEntry entry)
@@ -135,7 +166,8 @@ public final class ResourceFactory implements FileWatchListener
         res = new MusResource(entry);
       } else if (ext.equalsIgnoreCase("IDS") || ext.equalsIgnoreCase("2DA") ||
                  ext.equalsIgnoreCase("BIO") || ext.equalsIgnoreCase("RES") ||
-                 ext.equalsIgnoreCase("INI") || ext.equalsIgnoreCase("TXT") ||
+                 ext.equalsIgnoreCase("TXT") ||
+                 ext.equalsIgnoreCase("LOG") ||// WeiDU log files
                  (ext.equalsIgnoreCase("SRC") && Profile.getEngine() == Profile.Engine.IWD2) ||
                  (Profile.isEnhancedEdition() && (ext.equalsIgnoreCase("SQL") ||
                                                   ext.equalsIgnoreCase("GUI") ||
@@ -143,6 +175,12 @@ public final class ResourceFactory implements FileWatchListener
                                                   ext.equalsIgnoreCase("MENU") ||
                                                   ext.equalsIgnoreCase("GLSL")))) {
         res = new PlainTextResource(entry);
+      } else if (ext.equalsIgnoreCase("INI")) {
+        final boolean isPST = Profile.getEngine() == Profile.Engine.PST;
+
+        res = isPST && QuestsResource.RESOURCE_NAME.equalsIgnoreCase(entry.getResourceName())
+            ? new QuestsResource(entry)
+            : new PlainTextResource(entry);
       } else if (ext.equalsIgnoreCase("MVE")) {
         res = new MveResource(entry);
       } else if (ext.equalsIgnoreCase("WBM")) {
@@ -592,6 +630,55 @@ public final class ResourceFactory implements FileWatchListener
   }
 
   /**
+   * If {@code output} is not {@code null}, shows confirmation dialog for saving resource.
+   * If user accepts saving then resource will be saved if it implements {@link Writable}
+   *
+   * @param resource Resource that must be saved
+   * @param entry Entry that represents resource. Must not be {@code null}
+   * @param parent Component that will be parent for dialog window. Must not be {@code null}
+   *
+   * @throws HeadlessException if {@link GraphicsEnvironment#isHeadless} returns {@code true}
+   * @throws NullPointerException If any argument is {@code null}
+   * @throws Exception If save will be cancelled
+   */
+  public static void closeResource(Resource resource, ResourceEntry entry, JComponent parent) throws Exception {
+    final Path output;
+    if (entry instanceof BIFFResourceEntry) {
+      output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.getResourceName());
+    } else {
+      output = entry.getActualPath();
+    }
+    closeResource(resource, output, parent);
+  }
+
+  /**
+   * If {@code output} is not {@code null}, shows confirmation dialog for saving resource.
+   * If user accepts saving then resource will be saved if it implements {@link Writable}
+   *
+   * @param resource Resource that must be saved
+   * @param output Path of the saved resource. If {@code null} method do nothing
+   * @param parent Component that will be parent for dialog window. Must not be {@code null}
+   *
+   * @throws HeadlessException if {@link GraphicsEnvironment#isHeadless} returns {@code true}
+   * @throws NullPointerException If {@code resource} or {@code parent} is {@code null}
+   * @throws Exception If save will be cancelled
+   */
+  public static void closeResource(Resource resource, Path output, JComponent parent) throws Exception {
+    if (output != null) {
+      final String options[] = {"Save changes", "Discard changes", "Cancel"};
+      final int result = JOptionPane.showOptionDialog(parent, "Save changes to " + output + '?',
+                                                      "Resource changed", JOptionPane.YES_NO_CANCEL_OPTION,
+                                                      JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+      if (result == JOptionPane.YES_OPTION) {
+        saveResource(resource, parent.getTopLevelAncestor());
+      } else
+      if (result != JOptionPane.NO_OPTION) {
+        throw new Exception("Save aborted");
+      }
+    }
+  }
+
+  /**
    * Returns a list of available game language directories for the current game in Enhanced Edition games.
    * Returns an empty list otherwise.
    */
@@ -776,7 +863,7 @@ public final class ResourceFactory implements FileWatchListener
     return dirList;
   }
 
-  // Returns the currently used language of an Enhanced Edition game.
+  /** Returns the currently used language of an Enhanced Edition game. */
   static String fetchGameLanguage(Path iniFile)
   {
     final String langDefault = "en_US";   // using default language, if no language entry found
@@ -854,7 +941,7 @@ public final class ResourceFactory implements FileWatchListener
     }
   }
 
-  // Cleans up resources
+  /** Cleans up resources. */
   private void close()
   {
     FileWatcher.getInstance().removeFileWatchListener(this);
@@ -875,17 +962,55 @@ public final class ResourceFactory implements FileWatchListener
                                            ext.equalsIgnoreCase("SQL") ||
                                            ext.equalsIgnoreCase("GLSL")))) {
         if (buffer.getShort(0) == -1) {
-          exportResourceInternal(entry, StaticSimpleXorDecryptor.decrypt(buffer, 2), entry.toString(), parent, output);
+          exportResourceInternal(entry, StaticSimpleXorDecryptor.decrypt(buffer, 2), entry.getResourceName(), parent, output);
         } else {
           buffer.position(0);
-          exportResourceInternal(entry, buffer, entry.toString(), parent, output);
+          exportResourceInternal(entry, buffer, entry.getResourceName(), parent, output);
         }
       } else {
-        exportResourceInternal(entry, buffer, entry.toString(), parent, output);
+        exportResourceInternal(entry, buffer, entry.getResourceName(), parent, output);
       }
     } catch (Exception e) {
       throw new Exception("Can't read " + entry);
     }
+  }
+
+  private Path getExportFilePathInternal()
+  {
+    Path path = null;
+    if (fc != null) {
+      File file = fc.getCurrentDirectory();
+      if (file != null) {
+        path = file.toPath();
+      }
+    }
+    if (path == null) {
+      path = Profile.getGameRoot();
+    }
+    return path;
+  }
+
+  private Path getExportFileDialogInternal(Component parent, String fileName, boolean forceOverwrite)
+  {
+    Path path = null;
+    if (fc == null) {
+      fc = new JFileChooser(Profile.getGameRoot().toFile());
+      fc.setDialogTitle("Export resource");
+      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    }
+    fc.setSelectedFile(new File(fc.getCurrentDirectory(), fileName));
+    if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
+      path = fc.getSelectedFile().toPath();
+      if (!forceOverwrite && Files.exists(path)) {
+        final String options[] = {"Overwrite", "Cancel"};
+        if (JOptionPane.showOptionDialog(parent, path + " exists. Overwrite?", "Export resource",
+                                         JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+                                         null, options, options[0]) != 0) {
+          path = null;
+        }
+      }
+    }
+    return path;
   }
 
   private void exportResourceInternal(ResourceEntry entry, ByteBuffer buffer, String fileName,
@@ -894,23 +1019,7 @@ public final class ResourceFactory implements FileWatchListener
     // ask for output file path if needed
     boolean interactive = (output == null);
     if (interactive) {
-      if (fc == null) {
-        fc = new JFileChooser(Profile.getGameRoot().toFile());
-        fc.setDialogTitle("Export resource");
-        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      }
-      fc.setSelectedFile(new File(fc.getCurrentDirectory(), fileName));
-      if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
-        output = fc.getSelectedFile().toPath();
-        if (Files.exists(output)) {
-          final String options[] = {"Overwrite", "Cancel"};
-          if (JOptionPane.showOptionDialog(parent, output + " exists. Overwrite?", "Export resource",
-                                           JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-                                           null, options, options[0]) != 0) {
-            return;
-          }
-        }
-      }
+      output = getExportFileDialogInternal(parent, fileName, false);
     }
 
     // exporting resource
@@ -1033,7 +1142,8 @@ public final class ResourceFactory implements FileWatchListener
 
   private void registerResourceInternal(Path resource, boolean autoselect)
   {
-    if (!BrowserMenuBar.getInstance().showUnknownResourceTypes() &&
+    final BrowserMenuBar options = BrowserMenuBar.getInstance();
+    if (!options.showUnknownResourceTypes() &&
         !Profile.isResourceTypeSupported(FileManager.getFileExtension(resource))) {
       return;
     }
@@ -1046,8 +1156,7 @@ public final class ResourceFactory implements FileWatchListener
     if (entry != null) {
       boolean match = false;
       if (entry instanceof BIFFResourceEntry) {
-        boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
-                                      BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
+        final boolean overrideInOverride = (options.getOverrideMode() == OverrideMode.InOverride);
         if (overrideInOverride && entry.getTreeFolderName().equalsIgnoreCase(Profile.getOverrideFolderName())) {
           match = true;
         }
@@ -1112,8 +1221,7 @@ public final class ResourceFactory implements FileWatchListener
       entry = getResourceEntry(resource.getFileName().toString());
       String folderName = null;
       if (entry instanceof BIFFResourceEntry) {
-        boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
-                                      BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
+        final boolean overrideInOverride = (options.getOverrideMode() == OverrideMode.InOverride);
         if (overrideInOverride) {
           treeModel.removeResourceEntry(entry, entry.getExtension());
         }
@@ -1172,13 +1280,13 @@ public final class ResourceFactory implements FileWatchListener
     List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
     extraPaths.forEach((path) -> {
       if (Files.isDirectory(path)) {
-        treeModel.addDirectory((ResourceTreeFolder)treeModel.getRoot(), path, false);
+        treeModel.addDirectory(treeModel.getRoot(), path, false);
       }
     });
 
     NearInfinity.advanceProgress("Loading override resources...");
     final boolean overrideInOverride = (BrowserMenuBar.getInstance() != null &&
-                                        BrowserMenuBar.getInstance().getOverrideMode() == BrowserMenuBar.OVERRIDE_IN_OVERRIDE);
+                                        BrowserMenuBar.getInstance().getOverrideMode() == OverrideMode.InOverride);
     String overrideFolder = Profile.getOverrideFolderName();
     List<Path> overridePaths = Profile.getOverrideFolders(false);
     for (final Path overridePath: overridePaths) {
@@ -1201,7 +1309,66 @@ public final class ResourceFactory implements FileWatchListener
         }
       }
     }
+    loadSpecialResources();
     treeModel.sort();
+  }
+
+  /**
+   * Registers in the resourse tree all special game resources that are not stored
+   * in the override folders or BIF archives
+   *
+   * @param folderName Folder in the resource tree under which register files
+   */
+  private void loadSpecialResources()
+  {
+    final List<Path> roots = Profile.getRootFolders();
+    final Profile.Game game = Profile.getGame();
+    final Profile.Engine engine = Profile.getEngine();
+
+    addFileResource(Profile.getProperty(Profile.Key.GET_GAME_INI_FILE));
+    addFileResource(FileManager.query(roots, "WeiDU.log")); // Installed WeiDU mods
+
+    switch (engine) {
+      case EE:
+        addFileResource(FileManager.query(roots, "engine.lua"));
+        break;
+      case BG2:
+        addFileResource(FileManager.query(roots, "Autorun.ini"));
+        break;
+      case IWD:
+        addFileResource(FileManager.query(roots, "Language.ini"));
+        break;
+      case IWD2:
+        addFileResource(FileManager.query(roots, "Language.ini"));
+        addFileResource(FileManager.query(roots, "Party.ini"));
+        break;
+      case PST:
+        addFileResource(FileManager.query(roots, "autonote.ini"));
+        addFileResource(FileManager.query(roots, "beast.ini"));// Bestiary
+        addFileResource(FileManager.query(roots, QuestsResource.RESOURCE_NAME));
+        addFileResource(FileManager.query(roots, "VAR.VAR"));
+        break;
+      default:
+    }
+
+    if (engine != Profile.Engine.EE) {
+      addFileResource(FileManager.query(roots, "Keymap.ini"));// Key shortcuts
+    }
+
+    if (game == Profile.Game.EET) {
+      addFileResource(FileManager.query(roots, "WeiDU-BGEE.log"));
+    }
+  }
+  /**
+   * Register specified path as file resource is such path points to regular file
+   *
+   * @param path Path to register
+   */
+  private void addFileResource(Path path)
+  {
+    if (path != null && Files.isRegularFile(path)) {
+      treeModel.addResourceEntry(new FileResourceEntry(path), SPECIAL_CATEGORY, false);
+    }
   }
 
   private List<ResourceEntry> getResourcesInternal(String type, List<Path> extraDirs)
@@ -1209,9 +1376,9 @@ public final class ResourceFactory implements FileWatchListener
     List<ResourceEntry> list;
     ResourceTreeFolder bifNode = treeModel.getFolder(type);
     if (bifNode != null) {
-      list = new ArrayList<ResourceEntry>(bifNode.getResourceEntries());
+      list = new ArrayList<>(bifNode.getResourceEntries());
     } else {
-      list = new ArrayList<ResourceEntry>();
+      list = new ArrayList<>();
     }
     int initsize = list.size();
 
@@ -1225,6 +1392,11 @@ public final class ResourceFactory implements FileWatchListener
         list.addAll(extraNode.getResourceEntries(type));
       }
     });
+    // Include special files
+    final ResourceTreeFolder specialNode = treeModel.getFolder(SPECIAL_CATEGORY);
+    if (specialNode != null) {
+      list.addAll(specialNode.getResourceEntries(type));
+    }
 
     // include override folders
     if (BrowserMenuBar.getInstance() != null && !BrowserMenuBar.getInstance().ignoreOverrides()) {
@@ -1242,19 +1414,11 @@ public final class ResourceFactory implements FileWatchListener
 
   private List<ResourceEntry> getResourcesInternal(Pattern pattern, List<Path> extraDirs)
   {
-    List<ResourceEntry> retList = new ArrayList<>();
+    final ArrayList<ResourceEntry> retList = new ArrayList<>();
 
     String[] resTypes = Profile.getAvailableResourceTypes();
-    for (final String type: resTypes) {
-      ResourceTreeFolder bifNode = treeModel.getFolder(type);
-      if (bifNode != null) {
-        List<ResourceEntry> list = bifNode.getResourceEntries();
-        list.forEach(entry -> {
-          if (pattern == null || pattern.matcher(entry.getResourceName()).matches()) {
-            retList.add(entry);
-          }
-        });
-      }
+    for (final String type : resTypes) {
+      fillResources(retList, type, pattern);
     }
 
     // include extra folders
@@ -1262,46 +1426,55 @@ public final class ResourceFactory implements FileWatchListener
       extraDirs = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
     }
     extraDirs.forEach(path -> {
-      ResourceTreeFolder extraNode = treeModel.getFolder(path.getFileName().toString());
-      if (extraNode != null) {
-        List<ResourceEntry> list = extraNode.getResourceEntries();
-        list.forEach(entry -> {
-          if (pattern == null || pattern.matcher(entry.getResourceName()).matches()) {
-            retList.add(entry);
-          }
-        });
-      }
+      fillResources(retList, path.getFileName().toString(), pattern);
     });
 
     // include override folders
     if (BrowserMenuBar.getInstance() != null && !BrowserMenuBar.getInstance().ignoreOverrides()) {
-      ResourceTreeFolder overrideNode = treeModel.getFolder(Profile.getOverrideFolderName());
-      if (overrideNode != null) {
-        List<ResourceEntry> list = overrideNode.getResourceEntries();
-        list.forEach(entry -> {
-          if (pattern == null || pattern.matcher(entry.getResourceName()).matches()) {
-            retList.add(entry);
-          }
-        });
-      }
+      fillResources(retList, Profile.getOverrideFolderName(), pattern);
     }
 
-    if (retList.size() > 1) {
-      Collections.sort(retList);
-    }
+    retList.sort(null);
 
     return retList;
+  }
+
+  /**
+   * Adds to {@code retList} all resources from specified {@code folderName}, that
+   * match specified {@code pattern}. If such folder not exists, do nothing.
+   *
+   * @param retList List to be filled. Must not be {@code null}
+   * @param folderName Folder from which all direct resources must be added
+   * @param pattern Pattern to which resource name must match to be added to the list.
+   *        If {@code null}, then all folder resources will be added
+   */
+  private void fillResources(List<ResourceEntry> retList, String folderName, Pattern pattern)
+  {
+    final ResourceTreeFolder folder = treeModel.getFolder(folderName);
+    if (folder != null) {
+      final List<ResourceEntry> entries = folder.getResourceEntries();
+      if (pattern == null) {
+        retList.addAll(entries);
+      } else {
+        for (final ResourceEntry entry : entries) {
+          if (pattern.matcher(entry.getResourceName()).matches()) {
+            retList.add(entry);
+          }
+        }
+      }
+    }
   }
 
   private void saveCopyOfResourceInternal(ResourceEntry entry)
   {
     String fileName;
     do {
-      fileName = JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter new filename",
-                                             "Add copy of " + entry.toString(),
-                                             JOptionPane.QUESTION_MESSAGE);
+      fileName = (String)JOptionPane.showInputDialog(NearInfinity.getInstance(), "Enter new filename",
+                                                     "Add copy of " + entry.getResourceName(),
+                                                     JOptionPane.QUESTION_MESSAGE,
+                                                     null, null, entry.getResourceName());
       if (fileName != null) {
-        if (fileName.indexOf(".") == -1) {
+        if (!fileName.contains(".")) {
           fileName += '.' + entry.getExtension();
         }
         if (fileName.lastIndexOf('.') > 8) {
@@ -1310,19 +1483,26 @@ public final class ResourceFactory implements FileWatchListener
                                         "Error", JOptionPane.ERROR_MESSAGE);
           fileName = null;
         }
-        if (resourceExists(fileName)) {
-          JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File already exists!",
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-          fileName = null;
-        }
       } else {
         return;
       }
     } while (fileName == null);
 
-    // creating override folder in game directory if it doesn't exist
+    final Path outPath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName().toLowerCase(Locale.ENGLISH));
+    Path outFile = outPath.resolve(fileName);
+    if (entry.getExtension().equalsIgnoreCase("bs")) {
+      outFile = FileManager.query(Profile.getGameRoot(), "Scripts", fileName);
+    }
 
-    Path outPath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName().toLowerCase(Locale.ENGLISH));
+    if (Files.exists(outFile)) {
+      String options[] = {"Overwrite", "Cancel"};
+      if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), outFile + " exists. Overwrite?",
+                                       "Confirm overwrite " + outFile, JOptionPane.YES_NO_OPTION,
+                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
+        return;
+    }
+
+    // creating override folder in game directory if it doesn't exist
     if (!Files.isDirectory(outPath)) {
       try {
         Files.createDirectory(outPath);
@@ -1334,18 +1514,6 @@ public final class ResourceFactory implements FileWatchListener
       }
     }
 
-    Path outFile = outPath.resolve(fileName);
-    if (entry.getExtension().equalsIgnoreCase("bs")) {
-      outFile = FileManager.query(Profile.getGameRoot(), "Scripts", fileName);
-    }
-
-    if (Files.exists(outFile)) {
-      String options[] = {"Overwrite", "Cancel"};
-      if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), outFile + " exists. Overwrite?",
-                                       "Save resource", JOptionPane.YES_NO_OPTION,
-                                       JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
-        return;
-    }
     try {
       setPendingSelection(outFile);
       ByteBuffer bb = entry.getResourceBuffer();
@@ -1353,7 +1521,7 @@ public final class ResourceFactory implements FileWatchListener
         WritableByteChannel wbc = Channels.newChannel(os);
         wbc.write(bb);
       }
-      JOptionPane.showMessageDialog(NearInfinity.getInstance(), entry.toString() + " copied to " + outFile,
+      JOptionPane.showMessageDialog(NearInfinity.getInstance(), entry + " copied to " + outFile,
                                     "Copy complete", JOptionPane.INFORMATION_MESSAGE);
       ResourceEntry newEntry = new FileResourceEntry(outFile, !entry.getExtension().equalsIgnoreCase("bs"));
       treeModel.addResourceEntry(newEntry, newEntry.getTreeFolderName(), true);
@@ -1376,7 +1544,7 @@ public final class ResourceFactory implements FileWatchListener
       JOptionPane.showMessageDialog(parent, "Resource not savable", "Error", JOptionPane.ERROR_MESSAGE);
       return false;
     }
-    ResourceEntry entry = resource.getResourceEntry();
+    final ResourceEntry entry = resource.getResourceEntry();
     if (entry == null) {
       return false;
     }
@@ -1393,7 +1561,7 @@ public final class ResourceFactory implements FileWatchListener
           return false;
         }
       }
-      outPath = FileManager.query(overridePath, entry.toString());
+      outPath = FileManager.query(overridePath, entry.getResourceName());
       ((BIFFResourceEntry)entry).setOverride(true);
     } else {
       outPath = entry.getActualPath();
@@ -1438,27 +1606,27 @@ public final class ResourceFactory implements FileWatchListener
     try (OutputStream os = StreamUtils.getOutputStream(outPath, true)) {
       ((Writeable)resource).write(os);
     } catch (IOException e) {
-      JOptionPane.showMessageDialog(parent, "Error while saving " + resource.getResourceEntry().toString(),
+      JOptionPane.showMessageDialog(parent, "Error while saving " + entry,
                                     "Error", JOptionPane.ERROR_MESSAGE);
       e.printStackTrace();
       return false;
     }
     JOptionPane.showMessageDialog(parent, "File saved to \"" + outPath.toAbsolutePath() + '\"',
                                   "Save complete", JOptionPane.INFORMATION_MESSAGE);
-    if (resource.getResourceEntry().getExtension().equals("IDS")) {
-      IdsMapCache.remove(resource.getResourceEntry());
-      IdsBrowser idsbrowser = (IdsBrowser)ChildFrame.getFirstFrame(IdsBrowser.class);
+    if ("IDS".equals(entry.getExtension())) {
+      IdsMapCache.remove(entry);
+      final IdsBrowser idsbrowser = ChildFrame.getFirstFrame(IdsBrowser.class);
       if (idsbrowser != null) {
         idsbrowser.refreshList();
       }
       CreMapCache.reset();
-    } else if (resource.getResourceEntry().toString().equalsIgnoreCase(Song2daBitmap.getTableName())) {
+    } else if (entry.getResourceName().equalsIgnoreCase(Song2daBitmap.getTableName())) {
       Song2daBitmap.resetSonglist();
-    } else if (resource.getResourceEntry().toString().equalsIgnoreCase(Summon2daBitmap.getTableName())) {
+    } else if (entry.getResourceName().equalsIgnoreCase(Summon2daBitmap.getTableName())) {
       Summon2daBitmap.resetSummonTable();
-    } else if (resource.getResourceEntry().toString().equalsIgnoreCase(PriTypeBitmap.getTableName())) {
+    } else if (entry.getResourceName().equalsIgnoreCase(PriTypeBitmap.getTableName())) {
       PriTypeBitmap.resetTypeTable();
-    } else if (resource.getResourceEntry().toString().equalsIgnoreCase(SecTypeBitmap.getTableName())) {
+    } else if (entry.getResourceName().equalsIgnoreCase(SecTypeBitmap.getTableName())) {
       SecTypeBitmap.resetTypeTable();
     }
     return true;

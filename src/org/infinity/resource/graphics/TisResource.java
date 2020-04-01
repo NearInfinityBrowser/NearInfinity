@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.graphics;
@@ -73,6 +73,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
+import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.wed.Door;
 import org.infinity.resource.wed.Overlay;
@@ -84,6 +85,44 @@ import org.infinity.util.DynamicArray;
 import org.infinity.util.IntegerHashMap;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * This resource describes a tileset. There are currently two variants available:
+ * <ol>
+ * <li><b>Palette-based TIS</b>
+ * <p>
+ * TIS files are generally comprised of a large number of tiles, each of which
+ * consists of a palette and a rectangular block of pixels. Each pixel is an
+ * index into the associated palette. Each tile has its own palette and a block
+ * of pixels. The pixel data is not compressed.
+ * <p>
+ * Each tile consists of a 256 colour palette, with each entry being an RGBA value
+ * stored in BGRA order (note that the Alpha value is unused), followed by 8-bit
+ * pixel values, which are indices into the palette. The pixel values are row by
+ * row, from left to right and top to bottom. Index 0 is hardcoded to be the
+ * transparent index.
+ * </li>
+ * <li><b>PVRZ-based TIS</b>
+ * <p>
+ * This variant is only supported by {@link Profile.Engine#EE Enhanced Edition}
+ * games. Each tile definition refers to a block of pixels within an associated
+ * {@link PvrzResource PVRZ} file.
+ * <p>
+ * Each tile consists of a block of pixels that is defined in an associated PVRZ file.</li>
+ * </ol>
+ * TIS files contain only the graphics for an area - the location information is
+ * stored in a {@link WedResource WED} file.
+ * <p>
+ * Engine specific notes:
+ * <ul>
+ * <li>PST can only load TIS files when they are stored in a {@link BIFFResourceEntry BIFF} file.</li>
+ * <li>Palette-based TIS induces a noticeable performance hit and occasional visual
+ * glitches when used in {@link Profile.Engine#EE Enhanced Edition} games. It is
+ * highly recommended to use PVRZ-based TIS instead.</li>
+ * </ul>
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/tis_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/tis_v1.htm</a>
+ */
 public class TisResource implements Resource, Closeable, ActionListener, ChangeListener,
                                      ItemListener, KeyListener, PropertyChangeListener
 {
@@ -493,7 +532,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
   private Path getTisFileName(Component parent, boolean enforceValidName)
   {
     Path retVal = null;
-    JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
+    JFileChooser fc = new JFileChooser(ResourceFactory.getExportFilePath().toFile());
     fc.setDialogTitle("Export resource");
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
     FileNameExtensionFilter filter = new FileNameExtensionFilter("TIS files (*.tis)", "tis");
@@ -532,7 +571,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
   private Path getPngFileName(Component parent)
   {
     Path retVal = null;
-    JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
+    JFileChooser fc = new JFileChooser(ResourceFactory.getExportFilePath().toFile());
     fc.setDialogTitle("Export resource");
     fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
     FileNameExtensionFilter filter = new FileNameExtensionFilter("PNG files (*.png)", "png");
@@ -747,7 +786,10 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
           // processing tiles
           final BinPack2D.HeuristicRules binPackRule = BinPack2D.HeuristicRules.BOTTOM_LEFT_RULE;
           final int pageDim = 16;   // 16 tiles a 64x64 pixels
-          int tisWidth = tileGrid.getTileColumns();
+          int tisWidth = 1;
+          if (ovl != null) {
+            tisWidth = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
+          }
           int tisHeight = (numTiles+tisWidth-1) / tisWidth;
           int numTilesPrimary = numTiles;
           if (ovl != null) {

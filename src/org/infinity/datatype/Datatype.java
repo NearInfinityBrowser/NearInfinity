@@ -1,42 +1,54 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
 
 import java.awt.Dimension;
+import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
+import javax.swing.event.EventListenerList;
+
+import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * Base class for all types of fields. Supplies base properties for fields: its
+ * name (not stored in the file), offset in the resource at which it starts and
+ * length in bytes in the resource.
+ *
+ * <h2>Bean property</h2>
+ * When this field is child of {@link AbstractStruct}, then changes of its internal
+ * value reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent}
+ * struct.
+ * <ul>
+ * <li>Property name: {@link #getName() name} of this field</li>
+ * <li>Property type: <i>depends of subclass</i></li>
+ * <li>Value meaning: <i>depends of subclass</i></li>
+ * </ul>
+ */
 public abstract class Datatype implements StructEntry
 {
   protected static final Dimension DIM_WIDE = new Dimension(800, 100);
   protected static final Dimension DIM_BROAD = new Dimension(650, 100);
   protected static final Dimension DIM_MEDIUM = new Dimension(450, 100);
 
-  private final List<UpdateListener> listeners = new ArrayList<UpdateListener>();
+  protected final EventListenerList listenerList = new EventListenerList();
   private final int length;
 
   private String name;
   private int offset;
-  private StructEntry parent;
+  private AbstractStruct parent;
 
   protected Datatype(int offset, int length, String name)
   {
-    this(null, offset, length, name);
-  }
-
-  protected Datatype(StructEntry parent, int offset, int length, String name)
-  {
-    this.parent = parent;
     this.offset = offset;
     this.length = length;
     this.name = name;
@@ -56,9 +68,9 @@ public abstract class Datatype implements StructEntry
 // --------------------- Begin Interface StructEntry ---------------------
 
   @Override
-  public Object clone() throws CloneNotSupportedException
+  public Datatype clone() throws CloneNotSupportedException
   {
-    return super.clone();
+    return (Datatype)super.clone();
   }
 
   @Override
@@ -69,7 +81,7 @@ public abstract class Datatype implements StructEntry
   }
 
   @Override
-  public StructEntry getParent()
+  public AbstractStruct getParent()
   {
     return parent;
   }
@@ -86,7 +98,7 @@ public abstract class Datatype implements StructEntry
     if (newName != null) {
       name = newName;
     } else {
-      throw new NullPointerException();
+      throw new NullPointerException("Name of struct field must not be null");
     }
   }
 
@@ -105,7 +117,7 @@ public abstract class Datatype implements StructEntry
   @Override
   public List<StructEntry> getStructChain()
   {
-    List<StructEntry> list = new Vector<StructEntry>();
+    final List<StructEntry> list = new ArrayList<>();
     StructEntry e = this;
     while (e != null) {
       list.add(0, e);
@@ -125,7 +137,7 @@ public abstract class Datatype implements StructEntry
   }
 
   @Override
-  public void setParent(StructEntry parent)
+  public void setParent(AbstractStruct parent)
   {
     this.parent = parent;
   }
@@ -152,22 +164,7 @@ public abstract class Datatype implements StructEntry
    */
   public void addUpdateListener(UpdateListener l)
   {
-    if (l != null) {
-      listeners.add(l);
-    }
-  }
-
-  /**
-   * Returns an array of all update listeners registered on this object.
-   * @return All of this object's update listener or an empty array if no listener is registered.
-   */
-  public UpdateListener[] getUpdateListeners()
-  {
-    UpdateListener[] ar = new UpdateListener[listeners.size()];
-    for (int i = 0; i < listeners.size(); i++) {
-      ar[i] = listeners.get(i);
-    }
-    return ar;
+    listenerList.add(UpdateListener.class, l);
   }
 
   /**
@@ -177,9 +174,7 @@ public abstract class Datatype implements StructEntry
    */
   public void removeUpdateListener(UpdateListener l)
   {
-    if (l != null) {
-      listeners.remove(l);
-    }
+    listenerList.remove(UpdateListener.class, l);
   }
 
   /**
@@ -193,8 +188,14 @@ public abstract class Datatype implements StructEntry
         event.getStructure().getViewer().storeCurrentSelection();
       }
       boolean retVal = false;
-      for (final UpdateListener l: listeners) {
-        retVal |= l.valueUpdated(event);
+      // Guaranteed to return a non-null array
+      final Object[] listeners = listenerList.getListenerList();
+      // Process the listeners last to first, notifying
+      // those that are interested in this event
+      for (int i = listeners.length-2; i >= 0; i -= 2) {
+        if (listeners[i] == UpdateListener.class) {
+          retVal |= ((UpdateListener)listeners[i+1]).valueUpdated(event);
+        }
       }
       if (retVal) {
         event.getStructure().fireTableDataChanged();
@@ -205,35 +206,44 @@ public abstract class Datatype implements StructEntry
     }
   }
 
+  /**
+   * If parent of this datatype is {@link AbstractStruct} then generates event
+   * that describe change in this object. Property name in generated event
+   * is {@link #getName()} and owner is {@link #parent}.
+   *
+   * @param oldValue Old value of this object
+   * @param newValue Old value of this object
+   */
+  protected void firePropertyChange(Object oldValue, Object newValue)
+  {
+    if (parent instanceof AbstractStruct) {
+      ((AbstractStruct)parent).propertyChange(new PropertyChangeEvent(parent, getName(), oldValue, newValue));
+    }
+  }
 
   void writeInt(OutputStream os, int value) throws IOException
   {
-    if (getSize() == 4) {
-      StreamUtils.writeInt(os, value);
-    } else if (getSize() == 3) {
-      StreamUtils.writeInt24(os, value);
-    } else if (getSize() == 2) {
-      StreamUtils.writeShort(os, (short)value);
-    } else if (getSize() == 1) {
-      StreamUtils.writeByte(os, (byte)value);
-    } else {
-      throw new IllegalArgumentException();
+    final int size = getSize();
+    switch (size) {
+      case 4:
+        StreamUtils.writeInt(os, value);
+        break;
+      case 3:
+        StreamUtils.writeInt24(os, value);
+        break;
+      case 2:
+        StreamUtils.writeShort(os, (short)value);
+        break;
+      case 1:
+        StreamUtils.writeByte(os, (byte)value);
+        break;
+      default:
+        throw new IllegalArgumentException("Field '"+name+"' of class "+getClass()+" has unsupported size; expected one of 1-4, but it has "+size);
     }
   }
 
   void writeLong(OutputStream os, long value) throws IOException
   {
-    if (getSize() == 4) {
-      StreamUtils.writeInt(os, (int)value);
-    } else if (getSize() == 3) {
-      StreamUtils.writeInt24(os, (int)value);
-    } else if (getSize() == 2) {
-      StreamUtils.writeShort(os, (short)value);
-    } else if (getSize() == 1) {
-      StreamUtils.writeByte(os, (byte)value);
-    } else {
-      throw new IllegalArgumentException();
-    }
+    writeInt(os, (int)value);
   }
 }
-
