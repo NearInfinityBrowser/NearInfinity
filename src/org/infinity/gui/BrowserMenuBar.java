@@ -104,7 +104,7 @@ import org.infinity.util.io.FileManager;
 
 public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 {
-  public static final String VERSION = "v2.1-20180615";
+  public static final String VERSION = "v2.1-20200401";
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
 
