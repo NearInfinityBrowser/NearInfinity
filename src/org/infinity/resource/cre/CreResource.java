@@ -1,17 +1,15 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,7 +20,6 @@ import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
@@ -79,8 +76,26 @@ import org.infinity.util.IniMapSection;
 import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
+import org.infinity.util.Table2da;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * This resource describes a "creature". Creatures have several stats (some visible
+ * through the game UI) which are generally mapped to {@link IdsMap IDS} or
+ * {@link Table2da 2DA} files.
+ * <p>
+ * Planescape: Torment engine specific notes:
+ * <ul>
+ * <li>PST creature disguises are not stored as a field in the creature file, they
+ * are held as a GLOBAL variable, named {@code 'appearance'}. A value of 1 equates
+ * to zombie disguise, a value of 2 equates to dustman disguise.</li>
+ * <li>Several fields for The Nameless One are generated dynamically, and as a result
+ * changing fields in the relevant CRE file will have no effect.</li>
+ * </ul>
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/cre_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/cre_v1.htm</a>
+ */
 public final class CreResource extends AbstractStruct
   implements Resource, HasAddRemovable, AddRemovable, HasViewerTabs, ItemListener, UpdateListener
 {
@@ -255,7 +270,6 @@ public final class CreResource extends AbstractStruct
   public static final String CRE_FAVORED_ENEMY_FMT            = "Favored enemy %d";
   public static final String CRE_RACIAL_ENEMY                 = "Racial enemy";
   public static final String CRE_SUBRACE                      = "Subrace";
-  public static final String CRE_UNDEAD_LEVEL                 = "Undead level";
   public static final String CRE_TRACKING                     = "Tracking";
   public static final String CRE_TARGET                       = "Target";
   public static final String CRE_LEVEL_FIRST_CLASS            = "Level first class";
@@ -416,7 +430,7 @@ public final class CreResource extends AbstractStruct
     "Original class: Fighter", "Original class: Mage", "Original class: Cleric", "Original class: Thief",
     "Original class: Druid", "Original class: Ranger", "Fallen paladin", "Fallen ranger",
     "Export allowed", "Hide status", "Large creature", "Moving between areas", "Been in party",
-    "Holding item", "Reset bit 16", "", "", "EE: No exploding death", "", "EE: Ignore nightmare mode",
+    "Holding item", "Reset bit 16", null, null, "EE: No exploding death", null, "EE: Ignore nightmare mode",
     "EE: No tooltip", "Allegiance tracking", "General tracking", "Race tracking", "Class tracking",
     "Specifics tracking", "Gender tracking", "Alignment tracking", "Uninterruptible"};
   public static final String[] s_feats1 = {
@@ -444,10 +458,10 @@ public final class CreResource extends AbstractStruct
       "Aamimar/Drow/Gold dwarf/Strongheart halfling/Deep gnome",
       "Tiefling/Wild elf/Gray dwarf/Ghostwise halfling"};
   public static final String[] s_attributes_pst = {
-    "No flags set", "Auto-calc marker rect", "Translucent", "", "", "Track script name", "Increment kill count",
+    "No flags set", "Auto-calc marker rect", "Translucent", null, null, "Track script name", "Increment kill count",
     "Script name only", "Track faction death", "Track team death", "Invulnerable",
     "Modify good on death", "Modify law on death", "Modify lady on death", "Modify murder on death",
-    "No dialogue turn", "Call for help", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Death globals set (internal)", "Area supplemental"};
+    "No dialogue turn", "Call for help", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Death globals set (internal)", "Area supplemental"};
   public static final String[] s_attributes_iwd2 = {"No flags set", "Mental fortitude", "Critical hit immunity",
                                                     "Cannot be paladin", "Cannot be monk"};
   public static final String[] s_attacks = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};
@@ -562,8 +576,7 @@ public final class CreResource extends AbstractStruct
 
   private static void adjustEntryOffsets(AbstractStruct struct, int amount)
   {
-    for (int i = 0; i < struct.getFieldCount(); i++) {
-      StructEntry structEntry = struct.getField(i);
+    for (final StructEntry structEntry : struct.getFields()) {
       structEntry.setOffset(structEntry.getOffset() + amount);
       if (structEntry instanceof AbstractStruct)
         adjustEntryOffsets((AbstractStruct)structEntry, amount);
@@ -575,30 +588,19 @@ public final class CreResource extends AbstractStruct
     if (!resourceEntry.getExtension().equalsIgnoreCase("CHR")) {
       return;
     }
-    String resourcename = resourceEntry.toString();
-    resourcename = resourcename.substring(0, resourcename.lastIndexOf(".")) + ".CRE";
-    JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
-    chooser.setDialogTitle("Convert CHR to CRE");
-    chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), resourcename));
-    if (chooser.showSaveDialog(NearInfinity.getInstance()) == JFileChooser.APPROVE_OPTION) {
-      Path output = chooser.getSelectedFile().toPath();
-      if (Files.exists(output)) {
-        String options[] = {"Overwrite", "Cancel"};
-        int result = JOptionPane.showOptionDialog(NearInfinity.getInstance(), output + " exists. Overwrite?",
-                                                  "Save resource", JOptionPane.YES_NO_OPTION,
-                                                  JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-        if (result != 0) return;
-      }
+    final String fileName = StreamUtils.replaceFileExtension(resourceEntry.getResourceName(), "CRE");
+    final Path path = ResourceFactory.getExportFileDialog(NearInfinity.getInstance(), fileName, false);
+    if (path != null) {
       try {
         CreResource crefile = (CreResource)ResourceFactory.getResource(resourceEntry);
-        while (!crefile.getField(0).toString().equals("CRE ")) {
+        while (!crefile.getFields().get(0).toString().equals("CRE ")) {
           crefile.removeField(0);
         }
         convertToSemiStandard(crefile);
-        try (OutputStream os = StreamUtils.getOutputStream(output, true)) {
+        try (OutputStream os = StreamUtils.getOutputStream(path, true)) {
           crefile.write(os);
         }
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File saved to " + output,
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "File saved to " + path,
                                       "Conversion complete", JOptionPane.INFORMATION_MESSAGE);
       } catch (Exception e) {
         e.printStackTrace();
@@ -610,7 +612,8 @@ public final class CreResource extends AbstractStruct
 
   private static void convertToSemiStandard(CreResource crefile)
   {
-    if (!crefile.getField(1).toString().equals("V1.0")) {
+    final List<StructEntry> fields = crefile.getFields();
+    if (!fields.get(1).toString().equals("V1.0")) {
       System.err.println("Conversion to semi-standard aborted: Unsupported CRE version");
       return;
     }
@@ -633,42 +636,42 @@ public final class CreResource extends AbstractStruct
     SectionOffset items_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_ITEMS);
     SectionOffset effects_offset = (SectionOffset)crefile.getAttribute(CRE_OFFSET_EFFECTS);
 
-    int indexStructs = crefile.getIndexOf(effects_offset) + 3; // Start of non-permanent section
-    List<StructEntry> newlist = new ArrayList<StructEntry>(crefile.getFieldCount());
+    final int indexStructs = fields.indexOf(effects_offset) + 3; // Start of non-permanent section
+    final List<StructEntry> newlist = new ArrayList<>(fields.size());
     for (int i = 0; i < indexStructs; i++)
-      newlist.add(crefile.getField(i));
+      newlist.add(fields.get(i));
 
     int offsetStructs = 0x2d4;
     knownspells_offset.setValue(offsetStructs);
-    offsetStructs = copyStruct(crefile.getList(), newlist, indexStructs, offsetStructs, KnownSpells.class);
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, KnownSpells.class);
 
     memspellinfo_offset.setValue(offsetStructs);
-    offsetStructs = copyStruct(crefile.getList(), newlist, indexStructs, offsetStructs, SpellMemorization.class);
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, SpellMemorization.class);
 
     memspells_offset.setValue(offsetStructs);
     // XXX: mem spells are not directly stored in crefile.list
     // and added by addFlatList on the Spell Memorization entries
     // (but the offsets are wrong, so we need to realign them with copyStruct)
-    List<StructEntry> trashlist = new ArrayList<StructEntry>();
-    for (int i = indexStructs; i < crefile.getFieldCount(); i++) {
-      StructEntry entry = crefile.getField(i);
+    List<StructEntry> trashlist = new ArrayList<>();
+    for (int i = indexStructs; i < fields.size(); i++) {
+      StructEntry entry = fields.get(i);
       if (entry instanceof SpellMemorization) {
-        offsetStructs = copyStruct(((SpellMemorization)entry).getList(), trashlist, 0, offsetStructs, MemorizedSpells.class);
+        offsetStructs = copyStruct(((SpellMemorization)entry).getFields(), trashlist, 0, offsetStructs, MemorizedSpells.class);
       }
     }
 
     effects_offset.setValue(offsetStructs);
-    offsetStructs =
-    copyStruct(crefile.getList(), newlist, indexStructs, offsetStructs, effects_offset.getSection());
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, effects_offset.getSection());
 
     items_offset.setValue(offsetStructs);
-    offsetStructs = copyStruct(crefile.getList(), newlist, indexStructs, offsetStructs, Item.class);
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, Item.class);
 
     itemslots_offset.setValue(offsetStructs);
-    offsetStructs = copyStruct(crefile.getList(), newlist, indexStructs, offsetStructs, DecNumber.class);
-    copyStruct(crefile.getList(), newlist, indexStructs, offsetStructs, Unknown.class);
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, DecNumber.class);
+    copyStruct(fields, newlist, indexStructs, offsetStructs, Unknown.class);
 
-    crefile.setList(newlist);
+    fields.clear();
+    fields.addAll(newlist);
   }
 
   private static int copyStruct(List<StructEntry> oldlist, List<StructEntry> newlist,
@@ -833,7 +836,7 @@ public final class CreResource extends AbstractStruct
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeFlatList(os);
+    super.writeFlatFields(os);
   }
 
 
@@ -1030,7 +1033,7 @@ public final class CreResource extends AbstractStruct
     addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER));
     addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR));
     addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
-    Bitmap effect_version = (Bitmap)addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
+    Bitmap effect_version = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BMP"));
     addField(new DecNumber(buffer, offset + 60, 1, CRE_REPUTATION));
@@ -1167,7 +1170,7 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 614, 2, CRE_MORALE_RECOVERY));
     addField(new KitIdsBitmap(buffer, offset + 616, CRE_KIT));
     addField(new ResourceRef(buffer, offset + 620, CRE_SCRIPT_OVERRIDE, "BCS"));
-    addField(new ResourceRef(buffer, offset + 628, CRE_SCRIPT_SPECIAL_2, new String[]{"BCS", "BS"}));
+    addField(new ResourceRef(buffer, offset + 628, CRE_SCRIPT_SPECIAL_2, "BCS", "BS"));
     addField(new ResourceRef(buffer, offset + 636, CRE_SCRIPT_COMBAT, "BCS"));
     addField(new ResourceRef(buffer, offset + 644, CRE_SCRIPT_SPECIAL_3, "BCS"));
     addField(new ResourceRef(buffer, offset + 652, CRE_SCRIPT_MOVEMENT, "BCS"));
@@ -1211,7 +1214,7 @@ public final class CreResource extends AbstractStruct
     // Bard spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 946 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_BARD_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_BARD_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1198 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_BARD_FMT, i+1));
       addField(s_off);
@@ -1224,7 +1227,7 @@ public final class CreResource extends AbstractStruct
     // Cleric spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 982 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_CLERIC_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_CLERIC_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1234 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_CLERIC_FMT, i+1));
       addField(s_off);
@@ -1237,7 +1240,7 @@ public final class CreResource extends AbstractStruct
     // Druid spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1018 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_DRUID_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_DRUID_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1270 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_DRUID_FMT, i+1));
       addField(s_off);
@@ -1250,7 +1253,7 @@ public final class CreResource extends AbstractStruct
     // Paladin spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1054 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_PALADIN_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_PALADIN_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1306 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_PALADIN_FMT, i+1));
       addField(s_off);
@@ -1263,7 +1266,7 @@ public final class CreResource extends AbstractStruct
     // Ranger spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1090 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_RANGER_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_RANGER_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1342 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_RANGER_FMT, i+1));
       addField(s_off);
@@ -1276,7 +1279,7 @@ public final class CreResource extends AbstractStruct
     // Sorcerer spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1126 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_SORCERER_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_SORCERER_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1378 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_SORCERER_FMT, i+1));
       addField(s_off);
@@ -1289,7 +1292,7 @@ public final class CreResource extends AbstractStruct
     // Wizard spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1162 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_WIZARD_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_WIZARD_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1414 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_WIZARD_FMT, i+1));
       addField(s_off);
@@ -1302,7 +1305,7 @@ public final class CreResource extends AbstractStruct
     // Domain spells
     for (int i = 0; i < 9; i++) {
       SectionOffset s_off = new SectionOffset(buffer, offset + 1450 + (i * 4),
-                                              String.format(CRE_OFFSET_SPELLS_DOMAIN_FMT, i+1), null);
+                                              String.format(CRE_OFFSET_SPELLS_DOMAIN_FMT, i+1), Iwd2Spell.class);
       DecNumber s_count = new DecNumber(buffer, offset + 1486 + (i * 4), 4,
                                         String.format(CRE_NUM_SPELLS_DOMAIN_FMT, i+1));
       addField(s_off);
@@ -1313,7 +1316,7 @@ public final class CreResource extends AbstractStruct
     }
 
     // Innate abilities
-    SectionOffset inn_off = new SectionOffset(buffer, offset + 1522, CRE_OFFSET_ABILITIES, null);
+    SectionOffset inn_off = new SectionOffset(buffer, offset + 1522, CRE_OFFSET_ABILITIES, Iwd2Ability.class);
     DecNumber inn_num = new DecNumber(buffer, offset + 1526, 4, CRE_NUM_ABILITIES);
     addField(inn_off);
     addField(inn_num);
@@ -1322,7 +1325,7 @@ public final class CreResource extends AbstractStruct
     addField(inn_str);
 
     // Songs
-    SectionOffset song_off = new SectionOffset(buffer, offset + 1530, CRE_OFFSET_SONGS, null);
+    SectionOffset song_off = new SectionOffset(buffer, offset + 1530, CRE_OFFSET_SONGS, Iwd2Song.class);
     DecNumber song_num = new DecNumber(buffer, offset + 1534, 4, CRE_NUM_SONGS);
     addField(song_off);
     addField(song_num);
@@ -1331,7 +1334,7 @@ public final class CreResource extends AbstractStruct
     addField(song_str);
 
     // Shapes
-    SectionOffset shape_off = new SectionOffset(buffer, offset + 1538, CRE_OFFSET_SHAPES, null);
+    SectionOffset shape_off = new SectionOffset(buffer, offset + 1538, CRE_OFFSET_SHAPES, Iwd2Shape.class);
     DecNumber shape_num = new DecNumber(buffer, offset + 1542, 4, CRE_NUM_SHAPES);
     addField(shape_off);
     addField(shape_num);
@@ -1339,7 +1342,7 @@ public final class CreResource extends AbstractStruct
                                               shape_num, CRE_SHAPES, Iwd2Struct.TYPE_SHAPE);
     addField(shape_str);
 
-    SectionOffset itemslots_offset = new SectionOffset(buffer, offset + 1546, CRE_OFFSET_ITEM_SLOTS, null);
+    SectionOffset itemslots_offset = new SectionOffset(buffer, offset + 1546, CRE_OFFSET_ITEM_SLOTS, DecNumber.class);
     addField(itemslots_offset);
     SectionOffset items_offset = new SectionOffset(buffer, offset + 1550, CRE_OFFSET_ITEMS,
                                                    Item.class);
@@ -1413,8 +1416,7 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 102, 2, CRE_SELECTED_WEAPON_ABILITY));
 
     int endoffset = offset;
-    for (int i = 0; i < getFieldCount(); i++) {
-      StructEntry entry = getField(i);
+    for (final StructEntry entry : getFields()) {
       if (entry.getOffset() + entry.getSize() > endoffset) {
         endoffset = entry.getOffset() + entry.getSize();
       }
@@ -1437,7 +1439,7 @@ public final class CreResource extends AbstractStruct
     addField(new IdsFlag(buffer, offset + 24, 4, CRE_STATUS, "STATE.IDS"));
     addField(new DecNumber(buffer, offset + 28, 2, CRE_HP_CURRENT));
     addField(new DecNumber(buffer, offset + 30, 2, CRE_HP_MAX));
-    AnimateBitmap animate = new AnimateBitmap(buffer, offset + 32, 4, CRE_ANIMATION, "ANIMATE.IDS");
+    final AnimateBitmap animate = new AnimateBitmap(buffer, offset + 32, 4, CRE_ANIMATION);
     if (Profile.getGame() == Profile.Game.PSTEE && version.equals("V1.0")) {
       // TODO: resolve issues with Listener queue filled with duplicate entries on each "Update" button click
 //      animate.addUpdateListener(this);
@@ -1454,7 +1456,7 @@ public final class CreResource extends AbstractStruct
       addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR));
       addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
     }
-    Bitmap effect_version = (Bitmap)addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
+    Bitmap effect_version = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
       addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BAM"));
@@ -1565,7 +1567,7 @@ public final class CreResource extends AbstractStruct
       clearFields();
       throw new Exception("Unsupported version: " + version);
     }
-    addField(new DecNumber(buffer, offset + 122, 1, CRE_UNDEAD_LEVEL));
+    addField(new DecNumber(buffer, offset + 122, 1, CRE_TURN_UNDEAD_LEVEL));
     addField(new DecNumber(buffer, offset + 123, 1, CRE_TRACKING));
     if (Profile.getGame() == Profile.Game.PSTEE) {
       addField(new DecNumber(buffer, offset + 124, 4, CRE_XP_SECOND_CLASS));
@@ -1637,7 +1639,7 @@ public final class CreResource extends AbstractStruct
       }
     }
     addField(new ResourceRef(buffer, offset + 576, CRE_SCRIPT_OVERRIDE, "BCS"));
-    addField(new ResourceRef(buffer, offset + 584, CRE_SCRIPT_CLASS, new String[]{"BCS", "BS"}));
+    addField(new ResourceRef(buffer, offset + 584, CRE_SCRIPT_CLASS, "BCS", "BS"));
     addField(new ResourceRef(buffer, offset + 592, CRE_SCRIPT_RACE, "BCS"));
     addField(new ResourceRef(buffer, offset + 600, CRE_SCRIPT_GENERAL, "BCS"));
     addField(new ResourceRef(buffer, offset + 608, CRE_SCRIPT_DEFAULT, "BCS"));
@@ -1734,7 +1736,7 @@ public final class CreResource extends AbstractStruct
     SectionCount countMemSpells = new SectionCount(buffer, offset + 684, 4, CRE_NUM_MEMORIZED_SPELLS,
                                                    MemorizedSpells.class);
     addField(countMemSpells);
-    SectionOffset offsetItemslots = new SectionOffset(buffer, offset + 688, CRE_OFFSET_ITEM_SLOTS, null);
+    SectionOffset offsetItemslots = new SectionOffset(buffer, offset + 688, CRE_OFFSET_ITEM_SLOTS, DecNumber.class);
     addField(offsetItemslots);
     SectionOffset offsetItems = new SectionOffset(buffer, offset + 692, CRE_OFFSET_ITEMS, Item.class);
     addField(offsetItems);
@@ -1913,8 +1915,7 @@ public final class CreResource extends AbstractStruct
       }
     }
     int endoffset = offset;
-    for (int i = 0; i < getFieldCount(); i++) {
-      StructEntry entry = getField(i);
+    for (final StructEntry entry : getFields()) {
       if (entry.getOffset() + entry.getSize() > endoffset) {
         endoffset = entry.getOffset() + entry.getSize();
       }
@@ -1927,8 +1928,7 @@ public final class CreResource extends AbstractStruct
     // Assumes memorized spells offset is correct
     int offset = ((HexNumber)getAttribute(CRE_OFFSET_MEMORIZED_SPELLS)).getValue() + getExtraOffset();
     int count = 0;
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : getFields()) {
       if (o instanceof SpellMemorization) {
         SpellMemorization info = (SpellMemorization)o;
         int numSpells = info.updateSpells(offset, count);
@@ -1941,7 +1941,7 @@ public final class CreResource extends AbstractStruct
 
   private void updateOffsets(AddRemovable datatype, int size)
   {
-    if (getField(0).toString().equalsIgnoreCase("CHR "))
+    if (getFields().get(0).toString().equalsIgnoreCase("CHR "))
       ((HexNumber)getAttribute(CHR_CRE_SIZE)).incValue(size);
 //    if (!(datatype instanceof MemorizedSpells)) {
 //      HexNumber offsetMemSpells = (HexNumber)getAttribute("Memorized spells offset");
@@ -2296,4 +2296,3 @@ public final class CreResource extends AbstractStruct
     return false;
   }
 }
-

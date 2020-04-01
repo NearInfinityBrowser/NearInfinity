@@ -1,12 +1,12 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.List;
+import java.util.ListIterator;
 
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
@@ -64,7 +64,7 @@ public class SpellProtType extends Bitmap
       "ALIGN.IDS", "KIT.IDS" };
 
   private static final String tableName = "SPLPROT.2DA";
-  private static final LongIntegerHashMap<String> statIds = new LongIntegerHashMap<String>();
+  private static final LongIntegerHashMap<String> statIds = new LongIntegerHashMap<>();
   private static String[] creType;
 
   static {
@@ -88,32 +88,12 @@ public class SpellProtType extends Bitmap
 
   public SpellProtType(ByteBuffer buffer, int offset, int length)
   {
-    this(null, buffer, offset, length, null, -1);
-  }
-
-  public SpellProtType(StructEntry parent, ByteBuffer buffer, int offset, int length)
-  {
-    this(parent, buffer, offset, length, null, -1);
-  }
-
-  public SpellProtType(ByteBuffer buffer, int offset, int length, String name)
-  {
-    this(null, buffer, offset, length, name, -1);
-  }
-
-  public SpellProtType(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
-  {
-    this(parent, buffer, offset, length, name, -1);
+    this(buffer, offset, length, null, -1);
   }
 
   public SpellProtType(ByteBuffer buffer, int offset, int length, String name, int idx)
   {
-    this(null, buffer, offset, length, name, idx);
-  }
-
-  public SpellProtType(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, int idx)
-  {
-    super(parent, buffer, offset, length, createFieldName(name, idx, DEFAULT_NAME_TYPE), getTypeTable());
+    super(buffer, offset, length, createFieldName(name, idx, DEFAULT_NAME_TYPE), getTypeTable());
     this.index = idx;
     this.isExternalized = isTableExternalized();
     this.updateIdsValues = true;
@@ -127,14 +107,15 @@ public class SpellProtType extends Bitmap
     boolean retVal = super.updateValue(struct);
     if (updateIdsValues && retVal) {
       int valueOffset = getOffset() - getSize();
-      List<StructEntry> list = struct.getList();
-      for (int i = 0, size = list.size(); i < size; i++) {
-        StructEntry entry = list.get(i);
+      final ListIterator<StructEntry> it = struct.getFields().listIterator();
+      while (it.hasNext()) {
+        final int i = it.nextIndex();
+        final StructEntry entry = it.next();
         if (entry.getOffset() == valueOffset && entry instanceof Datatype) {
-          ByteBuffer buffer = ((Datatype)entry).getDataBuffer();
-          StructEntry newEntry = createCreatureValueFromType(buffer, 0);
+          final ByteBuffer buffer = entry.getDataBuffer();
+          final StructEntry newEntry = createCreatureValueFromType(buffer, 0);
           newEntry.setOffset(valueOffset);
-          list.set(i, newEntry);
+          it.set(newEntry);
 
           // notifying listeners
           struct.fireTableRowsUpdated(i, i);
@@ -331,7 +312,7 @@ public class SpellProtType extends Bitmap
               label = String.format("Match entries %d or %d", value, rel);
               break;
             case 0x104: // negate 0x103
-              label = String.format("Not match entries %d or %d", value, rel);
+              label = String.format("Not match entries %d and %d", value, rel);
               break;
             case 0x105: // source and target morale match
               switch (rel) {
@@ -342,15 +323,15 @@ public class SpellProtType extends Bitmap
               break;
             case 0x106: // areatype (like outdoors, forest, etc)
               if (isBitwiseRelation(rel) && value != -1) {
-              } else {
                 label = String.format("AREATYPE %s %s [0x%x]",
                                       getRelation(rel),
                                       getIdsValue("AREATYPE.IDS", value, isBitwiseRelation(rel)),
                                       value);
-              }
+              } else {
                 label = String.format("AREATYPE %s %s",
                                       getRelation(rel),
                                       getIdsValue("AREATYPE.IDS", value, isBitwiseRelation(rel)));
+              }
               break;
             case 0x107: // daytime
               label = String.format("Time of day is %d to %d", value, rel);

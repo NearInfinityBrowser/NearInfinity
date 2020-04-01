@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -7,65 +7,62 @@ package org.infinity.search;
 import java.awt.Component;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.infinity.datatype.IsTextual;
 
 import org.infinity.datatype.ResourceRef;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.Actor;
+import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.Container;
 import org.infinity.resource.are.Door;
 import org.infinity.resource.are.ITEPoint;
 import org.infinity.resource.bcs.BcsResource;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.dlg.AbstractCode;
+import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.text.PlainTextResource;
 
+/**
+ * Performs search usages of the specified script in the {@link AreResource area},
+ * {@link BcsResource script}, {@link CreResource characters and creatures},
+ * {@link DlgResource dialogues} and the ini files.
+ */
 public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
 {
-  private String targetResRef;
-  private Pattern cutscene;
-
-
-  public ScriptReferenceSearcher(ResourceEntry targetEntry, Component parent)
+  public ScriptReferenceSearcher(ResourceEntry bcsScript, Component parent)
   {
-    super(targetEntry, new String[]{"ARE", "BCS", "CHR", "CRE", "DLG", "INI"}, parent);
-    this.targetResRef = targetEntry.getResourceName().substring(0,
-                          targetEntry.getResourceName().indexOf('.'));
-    this.cutscene = Pattern.compile("StartCutScene(\""
-                       + targetResRef + "\")", Pattern.CASE_INSENSITIVE | Pattern.LITERAL);
+    super(bcsScript, new String[]{"ARE", "BCS", "CHR", "CRE", "DLG", "INI"}, parent);
   }
 
   @Override
   protected void search(ResourceEntry entry, Resource resource)
   {
     if (resource instanceof BcsResource) {
-      // TODO: avoid decompilation
-      String text = ((BcsResource) resource).getText();
-      if (cutscene.matcher(text).find()) {
-        addHit(entry, null, null);
-      }
+      // passing raw bytecode to improve performance
+      searchScript(entry, ((BcsResource)resource).getCode(), null);
     } else if (resource instanceof PlainTextResource) {
-      searchText(entry, (PlainTextResource)resource);
-    } else {
+      searchText(entry, ((PlainTextResource)resource).getText());
+    } else if (resource instanceof AbstractStruct) {
       searchStruct(entry, (AbstractStruct)resource);
     }
   }
 
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
-    for (int i = 0; i < struct.getFieldCount(); i++) {
-      StructEntry o = struct.getField(i);
+    final String name = targetEntry.getResourceName();
+    for (final StructEntry o : struct.getFields()) {
       if (o instanceof ResourceRef &&
-          ((ResourceRef)o).getResourceName().equalsIgnoreCase(targetEntry.toString())) {
-        ResourceRef ref = (ResourceRef)o;
+          ((ResourceRef)o).getResourceName().equalsIgnoreCase(name)) {
         if (struct instanceof CreResource) {
-          addHit(entry, entry.getSearchString(), ref);
+          addHit(entry, entry.getSearchString(), o);
         } else if (struct instanceof Actor) {
-          addHit(entry, struct.getField(20).toString(), ref);
+          final IsTextual actorName = (IsTextual)struct.getAttribute(Actor.ARE_ACTOR_NAME);
+          addHit(entry, actorName.getText(), o);
         } else {
-          addHit(entry, null, ref);
+          addHit(entry, null, o);
         }
       }
       else if (o instanceof Actor ||
@@ -75,26 +72,36 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
         searchStruct(entry, (AbstractStruct)o);
       }
       else if (o instanceof AbstractCode) {
-        String text = o.toString();
-        if (cutscene.matcher(text).find()) {
-          addHit(entry, o.getName(), o);
-        }
+        searchScript(entry, ((AbstractCode)o).getText(), o);
       }
     }
   }
 
-  private void searchText(ResourceEntry entry, PlainTextResource text)
+  private void searchText(ResourceEntry entry, String text)
   {
-    String name = getTargetEntry().getResourceName();
-    int idx = name.lastIndexOf('.');
+    String name = targetEntry.getResourceName();
+    int idx = name.lastIndexOf('.');//TODO: add special method to get name without extension
     if (idx > 0) {
       name = name.substring(0, idx);
     }
-    Pattern p = Pattern.compile("\\b" + name + "\\b", Pattern.CASE_INSENSITIVE);
-    Matcher m = p.matcher(text.getText());
+    final Pattern p = Pattern.compile("\\b" + name + "\\b", Pattern.CASE_INSENSITIVE);
+    final Matcher m = p.matcher(text);
     if (m.find()) {
       addHit(entry, entry.getSearchString(), null);
     }
   }
-}
 
+  private void searchScript(ResourceEntry entry, String script, StructEntry ref)
+  {
+    String name = targetEntry.getResourceName();
+    int idx = name.lastIndexOf('.');//TODO: add special method to get name without extension
+    if (idx > 0) {
+      name = name.substring(0, idx);
+    }
+    final Pattern p = Pattern.compile("\"" + name + "\"", Pattern.CASE_INSENSITIVE);
+    final Matcher m = p.matcher(script);
+    if (m.find()) {
+      addHit(entry, entry.getSearchString(), ref);
+    }
+  }
+}

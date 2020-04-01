@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -37,7 +37,7 @@ public class DialogItemRefSearcher implements Runnable {
 
   @Override
   public void run() {
-    List<StructEntry> searchItems = dlg.getList();
+    final List<StructEntry> searchItems = dlg.getFields();
     ProgressMonitor progress = new ProgressMonitor(parent, "Searching...", null, 0, searchItems.size());
     progress.setMillisToDecideToPopup(100);
     long startTime = System.currentTimeMillis();

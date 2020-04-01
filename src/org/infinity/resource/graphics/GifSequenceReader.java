@@ -135,7 +135,8 @@ public class GifSequenceReader
       gifImg = (BufferedImage)rimg;
     } else {
       ColorModel cm = rimg.getColorModel();
-      int width = rimg.getWidth(), height = rimg.getHeight();
+      int width = rimg.getWidth();
+      int height = rimg.getHeight();
       WritableRaster raster = cm.createCompatibleWritableRaster(width, height);
       boolean isAlphaPre = cm.isAlphaPremultiplied();
       Hashtable<String, Object> properties = new Hashtable<>();

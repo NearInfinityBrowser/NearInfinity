@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.video;
@@ -44,6 +44,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
+import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.monte.media.AudioFormatKeys;
@@ -53,6 +54,13 @@ import org.monte.media.VideoFormatKeys;
 import org.monte.media.avi.AVIWriter;
 import org.monte.media.math.Rational;
 
+/**
+ * This resource describes the movies played during the game. Movies can only be
+ * played by the engine when they are stored in a {@link BIFFResourceEntry BIFF} file.
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mve.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mve.htm</a>
+ */
 public class MveResource implements Resource, ActionListener, ItemListener, Closeable, Runnable
 {
   private static final int VIDEO_BUFFERS = 3;
@@ -500,7 +508,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     return false;
   }
 
-  // Reduces color range from [0, 255] to [16, 235] to conform to CCIR-601 standard.
+  /** Reduces color range from [0, 255] to [16, 235] to conform to CCIR-601 standard. */
   private static void adjustColorSpace(BufferedImage image)
   {
     if (image != null) {

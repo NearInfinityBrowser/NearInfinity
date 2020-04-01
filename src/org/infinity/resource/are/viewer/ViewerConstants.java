@@ -47,10 +47,6 @@ public final class ViewerConstants
   public static final int FRAME_AUTO    = 1;  // show frame on mouse-over
   public static final int FRAME_ALWAYS  = 2;  // always show frame
 
-  // Parent resource for layer objects
-  public static final int RESOURCE_ARE = 0;
-  public static final int RESOURCE_WED = 1;
-
   // Lighting conditions to simulate different day times (AnimatedLayerItem, TilesetRenderer)
   public static final int LIGHTING_DAY      = 0;
   public static final int LIGHTING_TWILIGHT = 1;

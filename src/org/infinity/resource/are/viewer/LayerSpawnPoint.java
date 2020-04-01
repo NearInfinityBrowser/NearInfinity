@@ -1,55 +1,32 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are.viewer;
 
-import java.util.List;
-
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.AreResource;
+import static org.infinity.resource.are.AreResource.ARE_NUM_SPAWN_POINTS;
+import static org.infinity.resource.are.AreResource.ARE_OFFSET_SPAWN_POINTS;
 import org.infinity.resource.are.SpawnPoint;
 
 /**
  * Manages spawn point layer objects.
  */
-public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint>
+public class LayerSpawnPoint extends BasicLayer<LayerObjectSpawnPoint, AreResource>
 {
   private static final String AvailableFmt = "Spawn points: %d";
 
   public LayerSpawnPoint(AreResource are, AreaViewer viewer)
   {
     super(are, ViewerConstants.LayerType.SPAWN_POINT, viewer);
-    loadLayer(false);
+    loadLayer();
   }
 
   @Override
-  public int loadLayer(boolean forced)
+  protected void loadLayer()
   {
-    if (forced || !isInitialized()) {
-      close();
-      List<LayerObjectSpawnPoint> list = getLayerObjects();
-      if (hasAre()) {
-        AreResource are = getAre();
-        SectionOffset so = (SectionOffset)are.getAttribute(AreResource.ARE_OFFSET_SPAWN_POINTS);
-        SectionCount sc = (SectionCount)are.getAttribute(AreResource.ARE_NUM_SPAWN_POINTS);
-        if (so != null && sc != null) {
-          int ofs = so.getValue();
-          int count = sc.getValue();
-          List<StructEntry> listStruct = getStructures(ofs, count, SpawnPoint.class);
-          for (int i = 0, size = listStruct.size(); i < size; i++) {
-            LayerObjectSpawnPoint obj = new LayerObjectSpawnPoint(are, (SpawnPoint)listStruct.get(i));
-            setListeners(obj);
-            list.add(obj);
-          }
-          setInitialized(true);
-        }
-      }
-      return list.size();
-    }
-    return 0;
+    loadLayerItems(ARE_OFFSET_SPAWN_POINTS, ARE_NUM_SPAWN_POINTS,
+                   SpawnPoint.class, p -> new LayerObjectSpawnPoint(parent, p));
   }
 
   @Override

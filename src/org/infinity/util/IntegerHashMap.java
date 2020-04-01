@@ -31,22 +31,10 @@ public final class IntegerHashMap<V> extends HashMap<Integer, V>
     super(m);
   }
 
-  public int[] keys()
-  {
-    Set<Integer> set = keySet();
-    int[] result = new int[set.size()];
-    Iterator<Integer> iter = set.iterator();
-    int i = 0;
-    while (iter.hasNext() && i < result.length) {
-      result[i++] = iter.next().intValue();
-    }
-    return result;
-  }
-
   @Override
   public String toString()
   {
-    StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append('{');
     Set<Map.Entry<Integer, V>> set = entrySet();
     Iterator<Map.Entry<Integer, V>> i = set.iterator();

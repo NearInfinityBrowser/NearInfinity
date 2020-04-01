@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -175,6 +175,9 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
                            BrowserMenuBar.getInstance().ignoreOverrides());
   }
 
+  /**
+   * Returns localized name of the resource. This string used in game interface.
+   */
   public String getSearchString()
   {
     if (searchString == null) {
@@ -196,7 +199,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
           try (InputStream is = getResourceDataAsStream()) {
             searchString = StoResource.getSearchString(is);
           }
-        } else if (extension.equalsIgnoreCase("ARE") && Profile.isEnhancedEdition()) {
+        } else if (extension.equalsIgnoreCase("ARE")) {
           searchString = AreResource.getSearchString(this);
         }
       } catch (Exception e) {
@@ -273,6 +276,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
 
   public abstract String getResourceName();
 
+  /** Returns name of folder in the resource tree in which this entry appears. */
   public abstract String getTreeFolderName();
 
   public abstract ResourceTreeFolder getTreeFolder();

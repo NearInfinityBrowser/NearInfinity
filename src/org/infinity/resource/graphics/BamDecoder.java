@@ -369,8 +369,10 @@ public abstract class BamDecoder
         rect = new Rectangle();
       }
 
-      int x1 = Integer.MAX_VALUE, x2 = Integer.MIN_VALUE;
-      int y1 = Integer.MAX_VALUE, y2 = Integer.MIN_VALUE;
+      int x1 = Integer.MAX_VALUE;
+      int x2 = Integer.MIN_VALUE;
+      int y1 = Integer.MAX_VALUE;
+      int y2 = Integer.MIN_VALUE;
       if (cycleBased) {
         for (int i = 0; i < cycleFrameCount(); i++) {
           int frame = cycleGetFrameIndexAbsolute(i);

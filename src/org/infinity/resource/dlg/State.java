@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -12,7 +12,12 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
 
-public final class State extends AbstractStruct implements AddRemovable
+/**
+ * Actor response in the {@link DlgResource dialog}. Each state contains NPC text,
+ * list of {@link Transition responces} and may have associated {@link StateTrigger trigger}
+ * with a condition, defining whether it is possible to use this state.
+ */
+public final class State extends AbstractStruct implements AddRemovable, TreeItemEntry
 {
   // DLG/State-specific field labels
   public static final String DLG_STATE                      = "State";
@@ -21,6 +26,7 @@ public final class State extends AbstractStruct implements AddRemovable
   public static final String DLG_STATE_NUM_RESPONSES        = "# responses";
   public static final String DLG_STATE_TRIGGER_INDEX        = "Trigger index";
 
+  /** State number which is unique defining it in a dialog. */
   private int nr;
 
   State() throws Exception
@@ -28,15 +34,29 @@ public final class State extends AbstractStruct implements AddRemovable
     super(null, DLG_STATE, StreamUtils.getByteBuffer(16), 0);
   }
 
-  State(AbstractStruct superStruct, ByteBuffer buffer, int offset, int count) throws Exception
+  State(DlgResource dlg, ByteBuffer buffer, int offset, int count) throws Exception
   {
-    super(superStruct, DLG_STATE + " " + count, buffer, offset);
+    super(dlg, DLG_STATE + " " + count, buffer, offset);
     nr = count;
   }
 
+  //<editor-fold defaultstate="collapsed" desc="TreeItemEntry">
+  @Override
+  public DlgResource getParent() { return (DlgResource)super.getParent(); }
+
+  @Override
+  public boolean hasAssociatedText() { return true; }
+
+  @Override
+  public StringRef getAssociatedText()
+  {
+    return (StringRef)getAttribute(DLG_STATE_RESPONSE, false);
+  }
+  //</editor-fold>
+
   public int getFirstTrans()
   {
-    return ((DecNumber)getAttribute(DLG_STATE_FIRST_RESPONSE_INDEX)).getValue();
+    return ((DecNumber)getAttribute(DLG_STATE_FIRST_RESPONSE_INDEX, false)).getValue();
   }
 
   public int getNumber()
@@ -44,19 +64,14 @@ public final class State extends AbstractStruct implements AddRemovable
     return nr;
   }
 
-  public StringRef getResponse()
-  {
-    return (StringRef)getAttribute(DLG_STATE_RESPONSE);
-  }
-
   public int getTransCount()
   {
-    return ((DecNumber)getAttribute(DLG_STATE_NUM_RESPONSES)).getValue();
+    return ((DecNumber)getAttribute(DLG_STATE_NUM_RESPONSES, false)).getValue();
   }
 
   public int getTriggerIndex()
   {
-    return ((DecNumber)getAttribute(DLG_STATE_TRIGGER_INDEX)).getValue();
+    return ((DecNumber)getAttribute(DLG_STATE_TRIGGER_INDEX, false)).getValue();
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------
@@ -79,4 +94,3 @@ public final class State extends AbstractStruct implements AddRemovable
     return offset + 16;
   }
 }
-

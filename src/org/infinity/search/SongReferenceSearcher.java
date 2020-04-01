@@ -1,12 +1,10 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
 
 import java.awt.Component;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,22 +22,63 @@ import org.infinity.resource.bcs.Decompiler;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.mus.MusResource;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * Performs search of the specified song in the {@link AreResource areas},
+ * {@link BcsResource scripts} and {@link DlgResource dialogues}.
+ */
 public class SongReferenceSearcher extends AbstractReferenceSearcher
 {
-  private final List<Pattern> scriptActions = new ArrayList<Pattern>();
+  /** Regular expression that contains script commands that controls music. */
+  private final Pattern pattern;
+  /** Index of searched playlist resource in the file with playlists. */
+  private final long songId;
 
-  private long songId;
-  private ResourceEntry songEntry;
-
-  public SongReferenceSearcher(ResourceEntry targetEntry, Component parent)
+  /**
+   * Creates finder that searches usages of the specified {@link MusResource playlist}.
+   *
+   * @param musPlaylist Pointer to the searched playlist
+   * @param parent GUI component that will be parent for results window
+   */
+  public SongReferenceSearcher(ResourceEntry musPlaylist, Component parent)
   {
-    super(targetEntry, new String[]{"ARE", "BCS", "BS", "DLG"},
+    super(musPlaylist, new String[]{"ARE", "BCS", "BS", "DLG"},
           new boolean[]{true, true, false, true}, parent);
-    init(targetEntry);
+    long songId = -1L;
+    final Song2daBitmap songBitmap = new Song2daBitmap(StreamUtils.getByteBuffer(4), 0, 4);
+    for (final RefEntry refEntry : songBitmap.getResourceList()) {
+      final ResourceEntry entry = refEntry.getResourceEntry();
+      if (entry != null && entry.equals(musPlaylist)) {
+        songId = refEntry.getValue();
+        break;
+      }
+    }
+
+    if (songId >= 0 && Profile.getGame() != Profile.Game.PST) {
+      final StringBuilder sb = new StringBuilder();
+      sb.append("StartMusic\\(").append(songId).append(",.+\\)");
+      IdsMap map = null;
+      if (ResourceFactory.resourceExists("SONGLIST.IDS")) {
+        map = IdsMapCache.get("SONGLIST.IDS");
+      } else if (Profile.getGame() == Profile.Game.IWD2) {
+        map = IdsMapCache.get("MUSIC.IDS");
+      }
+      if (map != null && map.get(songId) != null) {
+        final String musicId = map.get(songId).getSymbol();
+        sb.append("|SetMusic\\(.+?,").append(songId).append("\\)");
+        if (musicId != null && !musicId.isEmpty()) {
+          sb.append("|SetMusic\\(.+?,").append(Pattern.quote(musicId)).append("\\)");
+        }
+      }
+      pattern = Pattern.compile(sb.toString());
+    } else {
+      pattern = null;
+    }
+    this.songId = songId;
   }
 
   @Override
@@ -58,8 +97,9 @@ public class SongReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchBcs(ResourceEntry entry, BcsResource bcs)
   {
-//    Decompiler decompiler = new Decompiler(bcs.getCode(), true);
-    Decompiler decompiler = new Decompiler(bcs.getCode(), true);
+    if (pattern == null) { return; }
+
+    final Decompiler decompiler = new Decompiler(bcs.getCode(), true);
     decompiler.setGenerateComments(false);
     decompiler.setGenerateResourcesUsed(false);
     try {
@@ -72,8 +112,9 @@ public class SongReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchDlg(ResourceEntry entry, DlgResource dlg)
   {
-    List<StructEntry> list = dlg.getList();
-    for (final StructEntry e: list) {
+    if (pattern == null) { return; }
+
+    for (final StructEntry e : dlg.getFields()) {
       if (e instanceof AbstractCode) {
         String text = ((AbstractCode)e).getText();
         searchText(entry, e, text);
@@ -83,11 +124,9 @@ public class SongReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchText(ResourceEntry entry, StructEntry res, String text)
   {
-    for (final Pattern pattern: scriptActions) {
-      Matcher matcher = pattern.matcher(text);
-      if (matcher.find()) {
-        addHit(entry, matcher.group(), res);
-      }
+    final Matcher matcher = pattern.matcher(text);
+    if (matcher.find()) {
+      addHit(entry, matcher.group(), res);
     }
   }
 
@@ -101,47 +140,10 @@ public class SongReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchStruct(ResourceEntry entry, AbstractStruct struct)
   {
-    List<StructEntry> list = struct.getFlatList();
-    for (final StructEntry e: list) {
+    for (final StructEntry e : struct.getFlatFields()) {
       if (e instanceof Song2daBitmap) {
-        int v = ((Song2daBitmap)e).getValue();
-        if (v == songId) {
-          addHit(entry, String.format("%s (%d)", songEntry.getResourceName(), songId), e);
-        }
-      }
-    }
-  }
-
-  private void init(ResourceEntry targetEntry)
-  {
-    songEntry = targetEntry;
-
-    songId = -1L;
-    Song2daBitmap songBitmap = new Song2daBitmap(StreamUtils.getByteBuffer(4), 0, 4);
-    List<RefEntry> resList = songBitmap.getResourceList();
-    for (final RefEntry refEntry: resList) {
-      ResourceEntry entry = refEntry.getResourceEntry();
-      if (entry != null && entry.equals(targetEntry)) {
-        songId = refEntry.getValue();
-        break;
-      }
-    }
-
-    if (songId >= 0) {
-      if (Profile.getGame() != Profile.Game.PST) {
-        scriptActions.add(Pattern.compile("StartMusic\\(" + Long.toString(songId) + ",.+\\)"));
-        IdsMap map = null;
-        if (ResourceFactory.resourceExists("SONGLIST.IDS")) {
-          map = IdsMapCache.get("SONGLIST.IDS");
-        } else if (Profile.getGame() == Profile.Game.IWD2) {
-          map = IdsMapCache.get("MUSIC.IDS");
-        }
-        if (map != null && map.get(songId) != null) {
-          String musicId = map.get(songId).getSymbol();
-          scriptActions.add(Pattern.compile("SetMusic\\(.+?," + Long.toString(songId) + "\\)"));
-          if (musicId != null && !musicId.isEmpty()) {
-            scriptActions.add(Pattern.compile("SetMusic\\(.+?," + musicId + "\\)"));
-          }
+        if (songId == ((Song2daBitmap)e).getLongValue()) {
+          addHit(entry, String.format("%s (%d)", targetEntry.getResourceName(), songId), e);
         }
       }
     }

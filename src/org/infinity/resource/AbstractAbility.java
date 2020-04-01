@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -37,7 +37,7 @@ public abstract class AbstractAbility extends AbstractStruct
 
   public static final String[] s_type = {"None", "Melee", "Ranged", "Magical", "Launcher"};
   public static final String[] s_type_flags = {"None", "Usable after ID;Only relevant for item abilities",
-                                               "Usable before ID;;Only relevant for item abilities",
+                                               "Usable before ID;Only relevant for item abilities",
                                                "Exclusive effects"};
   public static final String[] s_targettype = {"", "Living actor", "Inventory", "Dead actor",
                                                "Any point within range", "Caster", "",
@@ -348,8 +348,7 @@ public abstract class AbstractAbility extends AbstractStruct
   @Override
   public void write(OutputStream os) throws IOException
   {
-    for (int i = 0; i < getFieldCount(); i++) {
-      Writeable w = getField(i);
+    for (final StructEntry w : getFields()) {
       if (w instanceof Effect) {
         return;
       }
@@ -363,7 +362,7 @@ public abstract class AbstractAbility extends AbstractStruct
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof Effect && getEffectsCount() >= 1) {
-      SectionOffset effectOffset = (SectionOffset)getSuperStruct().getAttribute(SplResource.SPL_OFFSET_EFFECTS);
+      final SectionOffset effectOffset = (SectionOffset)getParent().getAttribute(SplResource.SPL_OFFSET_EFFECTS);
       int effectIndex = ((DecNumber)getAttribute(Ability.ABILITY_FIRST_EFFECT_INDEX)).getValue() + getEffectsCount() - 1;
       datatype.setOffset(effectOffset.getValue() + effectIndex * 48);
     }
@@ -397,12 +396,10 @@ public abstract class AbstractAbility extends AbstractStruct
 
   public void writeEffects(OutputStream os) throws IOException
   {
-    for (int i = 0; i < getFieldCount(); i++) {
-      Writeable w = getField(i);
+    for (final StructEntry w : getFields()) {
       if (w instanceof Effect) {
         w.write(os);
       }
     }
   }
 }
-

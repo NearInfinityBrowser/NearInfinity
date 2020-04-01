@@ -27,9 +27,6 @@ public class WeiDULogTokenMaker extends AbstractTokenMaker
 
   private static final String CharDigit       = "-0123456789";
 
-  private int currentTokenStart;
-  private int currentTokenType;
-
 
   public WeiDULogTokenMaker()
   {
@@ -39,6 +36,9 @@ public class WeiDULogTokenMaker extends AbstractTokenMaker
   @Override
   public Token getTokenList(Segment text, int initialTokenType, int startOffset)
   {
+    int currentTokenStart;
+    int currentTokenType;
+
     resetTokenList();
 
     char[] array = text.array;

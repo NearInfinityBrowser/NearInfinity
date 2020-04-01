@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
@@ -31,6 +31,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Misc;
 
 final class ViewerSpells extends JPanel implements ActionListener
 {
@@ -49,6 +50,7 @@ final class ViewerSpells extends JPanel implements ActionListener
     table.getColumnModel().getColumn(0).setMaxWidth(60);
     table.getColumnModel().getColumn(1).setMaxWidth(40);
     table.getColumnModel().getColumn(2).setMaxWidth(20);
+    table.setRowHeight(Misc.getFontHeight(table.getGraphics(), table.getFont()));
     table.addMouseListener(new MouseAdapter()
     {
       @Override
@@ -94,7 +96,7 @@ final class ViewerSpells extends JPanel implements ActionListener
 
   private static final class MemSpellTableModel extends AbstractTableModel implements TableModelListener
   {
-    private final List<MemSpellTableEntry> list = new ArrayList<MemSpellTableEntry>();
+    private final List<MemSpellTableEntry> list = new ArrayList<>();
     private final CreResource cre;
 
     private MemSpellTableModel(CreResource cre)
@@ -107,14 +109,12 @@ final class ViewerSpells extends JPanel implements ActionListener
     private void updateTable()
     {
       list.clear();
-      for (int i = 0; i < cre.getFieldCount(); i++) {
-        StructEntry o = cre.getField(i);
+      for (final StructEntry o : cre.getFields()) {
         if (o instanceof SpellMemorization) {
           SpellMemorization inf = (SpellMemorization)o;
           int type = ((IsNumeric)inf.getAttribute(SpellMemorization.CRE_MEMORIZATION_TYPE)).getValue();
           int lvl = ((IsNumeric)inf.getAttribute(SpellMemorization.CRE_MEMORIZATION_LEVEL)).getValue();
-          for (int j = 0; j < inf.getFieldCount(); j++) {
-            StructEntry p = inf.getField(j);
+          for (final StructEntry p : inf.getFields()) {
             if (p instanceof MemorizedSpells) {
               MemorizedSpells spell = (MemorizedSpells)p;
               addSpell(type, lvl, (ResourceRef)spell.getAttribute(MemorizedSpells.CRE_MEMORIZED_RESREF));
@@ -156,8 +156,8 @@ final class ViewerSpells extends JPanel implements ActionListener
       MemSpellTableEntry entry = list.get(rowIndex);
       switch (columnIndex) {
         case 0:  return entry.getTypeName();
-        case 1:  return new Integer(entry.lvl + 1);
-        case 2:  return new Integer(entry.count + 1);
+        case 1:  return entry.lvl + 1;
+        case 2:  return entry.count + 1;
         default: return entry.spell;
       }
     }
@@ -205,4 +205,3 @@ final class ViewerSpells extends JPanel implements ActionListener
     }
   }
 }
-

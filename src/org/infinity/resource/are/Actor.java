@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -63,6 +63,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
   public static final String ARE_ACTOR_OFFSET_CRE_STRUCTURE = "CRE structure offset";
   public static final String ARE_ACTOR_SIZE_CRE_STRUCTURE   = "CRE structure size";
   public static final String ARE_ACTOR_CRE_FILE             = "CRE file";
+  public static final String ARE_ACTOR_NAME_ALT             = "Alternate actor name";
 
   public static final String[] s_orientation = { "South", "SSW", "SW", "WSW", "West", "WNW", "NW", "NNW",
                                                  "North", "NNE", "NE", "ENE", "East", "ESE", "SE", "SSE" };
@@ -179,7 +180,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
 
   void updateCREOffset()
   {
-    StructEntry entry = getField(getFieldCount() - 1);
+    final StructEntry entry = getFields().get(getFields().size() - 1);
     if (entry instanceof CreResource)
       ((HexNumber)getAttribute(ARE_ACTOR_OFFSET_CRE_STRUCTURE)).setValue(entry.getOffset());
   }
@@ -205,7 +206,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
     } else {
       addField(new Unknown(buffer, offset + 47, 1));
     }
-    addField(new AnimateBitmap(buffer, offset + 48, 4, ARE_ACTOR_ANIMATION, "ANIMATE.IDS"));
+    addField(new AnimateBitmap(buffer, offset + 48, 4, ARE_ACTOR_ANIMATION));
     addField(new Bitmap(buffer, offset + 52, 2, ARE_ACTOR_ORIENTATION, s_orientation));
     addField(new Unknown(buffer, offset + 54, 2));
     addField(new DecNumber(buffer, offset + 56, 4, ARE_ACTOR_EXPIRY_TIME));
@@ -244,7 +245,12 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
       addField(new Unknown(buffer, offset + 152, 120));
     }
     else {
-      addField(new Unknown(buffer, offset + 144, 128));
+      if (Profile.isEnhancedEdition()) {
+        addField(new TextString(buffer, offset + 144, 32, ARE_ACTOR_NAME_ALT));
+        addField(new Unknown(buffer, offset + 176, 96));
+      } else {
+        addField(new Unknown(buffer, offset + 144, 128));
+      }
     }
 
     if (creOffset.getValue() > 0 && creSize.getValue() >= 0x2d4) {
@@ -254,4 +260,3 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
     return offset + 272;
   }
 }
-

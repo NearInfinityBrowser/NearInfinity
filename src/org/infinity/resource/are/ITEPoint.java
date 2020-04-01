@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -129,8 +129,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
   {
     ((DecNumber)getAttribute(ARE_TRIGGER_FIRST_VERTEX_INDEX)).setValue(number);
     int count = 0;
-    for (int i = 0; i < getFieldCount(); i++) {
-      StructEntry entry = getField(i);
+    for (final StructEntry entry : getFields()) {
       if (entry instanceof Vertex) {
         entry.setOffset(offset);
         ((Vertex)entry).realignStructOffsets();
@@ -150,7 +149,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     if (datatype instanceof Vertex) {
       int index = ((DecNumber)getAttribute(ARE_TRIGGER_FIRST_VERTEX_INDEX)).getValue();
       index += ((DecNumber)getAttribute(ARE_TRIGGER_NUM_VERTICES)).getValue();
-      int offset = ((HexNumber)getSuperStruct().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+      final int offset = ((HexNumber)getParent().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
       datatype.setOffset(offset + 4 * index);
       ((AbstractStruct)datatype).realignStructOffsets();
     }
@@ -213,4 +212,3 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     return offset + 196;
   }
 }
-

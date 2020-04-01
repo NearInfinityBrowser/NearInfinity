@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -11,19 +11,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -41,7 +32,6 @@ import org.infinity.gui.TableItem;
 import org.infinity.gui.ViewFrame;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -53,25 +43,30 @@ import org.infinity.util.Misc;
 
 public final class ReferenceHitFrame extends ChildFrame implements ActionListener, ListSelectionListener
 {
+  private static final String QUERY_STRING = "string reference";
+
   private final Component parent;
   private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
   private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
   private final JButton bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
   private final JLabel count;
   private final Object query;
+  /** List of the {@link ReferenceHit} objects. */
   private final SortableTable table;
 
   public ReferenceHitFrame(Object query, Component parent)
   {
     super("Result", true);
+    if (query == null) {
+      query = QUERY_STRING;
+    }
     this.query = query;
     this.parent = parent;
     setIconImage(Icons.getIcon(Icons.ICON_HISTORY_16).getImage());
 
-    List<Class<? extends Object>> colClasses = new ArrayList<Class<? extends Object>>(3);
-    colClasses.add(Object.class); colClasses.add(Object.class); colClasses.add(Object.class);
-    table = new SortableTable(Arrays.asList(new String[]{"File", "Name", "Attribute"}),
-                              colClasses, Arrays.asList(new Integer[]{100, 100, 300}));
+    table = new SortableTable(new String[]{"File", "Name", "Attribute"},
+                              new Class<?>[]{ResourceEntry.class, String.class, String.class},
+                              new Integer[]{100, 100, 300});
 
     bopen.setMnemonic('o');
     bopennew.setMnemonic('n');
@@ -154,32 +149,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
       }
     }
     else if (event.getSource() == bsave) {
-      JFileChooser chooser = new JFileChooser(Profile.getGameRoot().toFile());
-      chooser.setDialogTitle("Save result");
-      chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "result.txt"));
-      if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-        Path output = chooser.getSelectedFile().toPath();
-        if (Files.exists(output)) {
-          String options[] = {"Overwrite", "Cancel"};
-          if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?",
-                                           "Save result", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
-            return;
-        }
-        try (BufferedWriter bw = Files.newBufferedWriter(output)) {
-          bw.write("Searched for: " + query); bw.newLine();
-          bw.write("Number of hits: " + table.getRowCount()); bw.newLine();
-          for (int i = 0; i < table.getRowCount(); i++) {
-            bw.write(table.getTableItemAt(i).toString()); bw.newLine();
-          }
-          JOptionPane.showMessageDialog(this, "Result saved to " + output, "Save complete",
-                                        JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException e) {
-          JOptionPane.showMessageDialog(this, "Error while saving " + output,
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-          e.printStackTrace();
-        }
-      }
+      table.saveSearchResult(this, query.toString());
     }
   }
 
@@ -188,7 +158,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
       DlgResource dlgRes = (DlgResource) viewable;
       JComponent detailViewer = dlgRes.getViewerTab(0);
       JTabbedPane parent = (JTabbedPane) detailViewer.getParent();
-      dlgRes.showStateWithStructEntry(
+      dlgRes.selectInEdit(
           ((ReferenceHit)table.getTableItemAt(row)).getStructEntry());
       // make sure we see the detail viewer
       parent.getModel().setSelectedIndex(parent.indexOfComponent(detailViewer));
@@ -278,14 +248,13 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     @Override
     public String toString()
     {
-      StringBuffer buf = new StringBuffer("File: ");
-      buf.append(entry.toString());
+      final StringBuilder buf = new StringBuilder("File: ");
+      buf.append(entry.getResourceName());
       if (name != null)
-        buf.append("  Name: ").append(name);
+        buf.append(", Name: ").append(name);
       if (ref != null)
-        buf.append("  Attribute: ").append(ref.getName() + '=' + ref);
+        buf.append(", Attribute: ").append(ref.getName()).append('=').append(ref);
       return buf.toString();
     }
   }
 }
-

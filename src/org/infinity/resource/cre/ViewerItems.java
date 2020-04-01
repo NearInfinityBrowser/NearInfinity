@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
@@ -35,21 +35,21 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.Misc;
 
 final class ViewerItems extends JPanel implements ActionListener, ListSelectionListener, TableModelListener
 {
   private final InventoryTableModel tableModel = new InventoryTableModel();
   private final JButton bOpen;
   private final JTable table;
-  private final List<StructEntry> slots = new ArrayList<StructEntry>();
+  private final List<StructEntry> slots = new ArrayList<>();
 
   ViewerItems(CreResource cre)
   {
     super(new BorderLayout(0, 3));
-    List<Item> items = new ArrayList<Item>();
+    final List<Item> items = new ArrayList<>();
     HexNumber slots_offset = (HexNumber)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS);
-    for (int i = 0; i < cre.getFieldCount(); i++) {
-      StructEntry entry = cre.getField(i);
+    for (final StructEntry entry : cre.getFields()) {
       if (entry instanceof Item)
         items.add((Item)entry);
       else if (entry.getOffset() >= slots_offset.getValue() + cre.getOffset() &&
@@ -85,6 +85,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
     maxWidth = Math.max(maxWidth, table.getColumnModel().getColumn(0).getPreferredWidth());
     table.getColumnModel().getColumn(0).setPreferredWidth(maxWidth + 8);
     table.getColumnModel().getColumn(0).setMaxWidth(maxWidth + 100);
+    table.setRowHeight(Misc.getFontHeight(table.getGraphics(), table.getFont()));
     table.addMouseListener(new MouseAdapter()
     {
       @Override
@@ -150,11 +151,10 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
   {
     if (event.getType() == TableModelEvent.UPDATE) {
       CreResource cre = (CreResource)event.getSource();
-      Object changed = cre.getField(event.getFirstRow());
+      final StructEntry changed = cre.getFields().get(event.getFirstRow());
       if (slots.contains(changed)) {
-        List<Item> items = new ArrayList<Item>();
-        for (int i = 0; i < cre.getFieldCount(); i++) {
-          StructEntry entry = cre.getField(i);
+        final List<Item> items = new ArrayList<>();
+        for (final StructEntry entry : cre.getFields()) {
           if (entry instanceof Item)
             items.add((Item)entry);
         }
@@ -198,7 +198,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
 
   private static final class InventoryTableModel extends AbstractTableModel
   {
-    private final List<InventoryTableEntry> list = new ArrayList<InventoryTableEntry>();
+    private final List<InventoryTableEntry> list = new ArrayList<>();
 
     private InventoryTableModel()
     {
@@ -252,4 +252,3 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
     }
   }
 }
-

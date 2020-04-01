@@ -7,9 +7,15 @@ package org.infinity.util;
 import java.util.ArrayDeque;
 import java.util.Iterator;
 
-public class IdsMapEntry implements Comparable<IdsMapEntry>
+/**
+ * Mapping from several symbolic names to an integer and vice versa. Used for script
+ * purposes and for mapping the file index to filename.
+ */
+public class IdsMapEntry implements Comparable<IdsMapEntry>, Iterable<String>
 {
+  /** Symbolic names that can be used in scripts for specifying {@link #id}. */
   private final ArrayDeque<String> symbols = new ArrayDeque<>();
+  /** Value that used in compiled scripts. */
   private final long id;
 
   public IdsMapEntry(long id, String symbol)
@@ -37,7 +43,8 @@ public class IdsMapEntry implements Comparable<IdsMapEntry>
   }
 
   /** Returns an iterator over the whole collection of available symbols. */
-  public Iterator<String> getSymbols()
+  @Override
+  public Iterator<String> iterator()
   {
     return symbols.iterator();
   }

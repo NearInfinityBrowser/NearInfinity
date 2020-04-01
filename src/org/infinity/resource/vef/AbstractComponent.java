@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.vef;
@@ -56,7 +56,7 @@ public class AbstractComponent extends AbstractStruct implements AddRemovable
 
     List<StructEntry> list = new ArrayList<StructEntry>();
     offset = type.readAttributes(buffer, offset + 16, list);
-    addToList(getList().size() - 1, list);
+    addFields(getFields().size() - 1, list);
 
     addField(new Bitmap(buffer, offset, 4, VEF_COMP_CONTINUOUS, s_noyes));
     addField(new Unknown(buffer, offset + 4, 196));

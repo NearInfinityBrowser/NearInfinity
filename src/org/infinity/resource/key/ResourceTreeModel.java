@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -97,6 +97,15 @@ public final class ResourceTreeModel implements TreeModel
 
 // --------------------- End Interface TreeModel ---------------------
 
+  /**
+   * Recursively adds all files from directory {@code directory} as file resources
+   * under {@code parentFolder}.
+   *
+   * @param parentFolder Navigation tree element under which new fiels will be added
+   * @param directory Directory from which all files will be added (recursively)
+   * @param overwrite If {@code true}, new files will replace existent resources
+   *        otherwise it will be skipped and not added to the tree
+   */
   public void addDirectory(ResourceTreeFolder parentFolder, Path directory, boolean overwrite)
   {
     try (DirectoryStream<Path> dstream = Files.newDirectoryStream(directory)) {
@@ -304,7 +313,7 @@ public final class ResourceTreeModel implements TreeModel
     TreeModelEvent event = new TreeModelEvent(this, path, new int[]{getIndexOfChild(parent, entry)},
                                               new Object[]{entry});
     parent.removeResourceEntry(entry);
-    entries.remove(entry.toString().toUpperCase(Locale.ENGLISH));
+    entries.remove(entry.getResourceName().toUpperCase(Locale.ENGLISH));
     if (parent.getChildCount() == 0) {
       root.removeFolder(parent);
       folders.remove(parent.folderName());
@@ -355,4 +364,3 @@ public final class ResourceTreeModel implements TreeModel
     }
   }
 }
-

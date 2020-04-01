@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.wmp;
@@ -22,8 +22,26 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
+import org.infinity.resource.graphics.BamResource;
+import org.infinity.resource.graphics.MosResource;
 import org.infinity.resource.key.ResourceEntry;
 
+/**
+ * This resource describes the top-level map structure of the game. It details the
+ * x/y coordinate location of areas, the graphics used to represent the area on the
+ * map (both {@link MosResource MOS} and {@link BamResource BAM}) and stores flag
+ * information used to decide how the map icon is displayed (visable, reachable,
+ * already visited etc.)
+ * <p>
+ * Engine specific notes: Areas may be also displayed on the WorldMap in ToB using 2DA files:
+ * <ul>
+ * <li>{@code XNEWAREA.2DA} (Area entries section of wmp)</li>
+ * <li>2DA file specified in {@code XNEWAREA.2DA} (Area links section) for example
+ *     {@code XL3000.2DA}</li>
+ * </ul>
+ * <p>
+ * A WMP resource must have at least one area entry, and one area link to be considered valid.
+*/
 public final class WmpResource extends AbstractStruct implements Resource, HasViewerTabs
 {
   // WMP-specific field labels
@@ -96,7 +114,7 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
   @Override
   public void write(OutputStream os) throws IOException
   {
-    super.writeFlatList(os);
+    super.writeFlatFields(os);
   }
 
 // --------------------- End Interface Writeable ---------------------
@@ -159,4 +177,3 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
     }
   }
 }
-

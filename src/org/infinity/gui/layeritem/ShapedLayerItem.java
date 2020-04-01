@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.layeritem;
@@ -25,114 +25,34 @@ import org.infinity.resource.Viewable;
  */
 public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListener
 {
-  private static final Color DefaultColor = Color.BLACK;
+  private static final Color DEFAULT_COLOR = Color.BLACK;
 
   private Shape shape;
-  private EnumMap<ItemState, Color> strokeColors;
-  private EnumMap<ItemState, BasicStroke> strokePen;
-  private EnumMap<ItemState, Color> fillColors;
-  private JLabel label;
+  private final EnumMap<ItemState, Color> strokeColors = new EnumMap<>(ItemState.class);
+  private final EnumMap<ItemState, BasicStroke> strokePen = new EnumMap<>(ItemState.class);
+  private final EnumMap<ItemState, Color> fillColors = new EnumMap<>(ItemState.class);
+  private final JLabel label;
   private boolean stroked, filled;
 
   /**
-   * Initialize object with default settings.
-   */
-  public ShapedLayerItem()
-  {
-    this(null);
-  }
-
-  /**
-   * Initialize object with the specified map location.
-   * @param location Map location
-   */
-  public ShapedLayerItem(Point location)
-  {
-    this(location, null);
-  }
-
-  /**
-   * Initialize object with a specific map location and an associated viewable object.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   */
-  public ShapedLayerItem(Point location, Viewable viewable)
-  {
-    this(location, viewable, null);
-  }
-
-  /**
-   * Initialize object with a specific map location, associated Viewable and an additional text message.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
-   */
-  public ShapedLayerItem(Point location, Viewable viewable, String message)
-  {
-    this(location, viewable, message, message);
-  }
-
-  /**
-   * Initialize object with a specific map location, associated Viewable, an additional text message
+   * Initialize object with an associated Viewable, an additional text message
    * and a shape for the visual representation.
-   * @param location Map location
+   *
    * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
-   * @param tooltip A short text message shown as tooltip or menu item text
-   */
-  public ShapedLayerItem(Point location, Viewable viewable, String message, String tooltip)
-  {
-    this(location, viewable, message, tooltip, null);
-  }
-
-  /**
-   * Initialize object with a specific map location, associated Viewable, an additional text message
-   * and a shape for the visual representation.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
    * @param tooltip A short text message shown as tooltip or menu item text
    * @param shape The shape to display
    */
-  public ShapedLayerItem(Point location, Viewable viewable, String message, String tooltip, Shape shape)
+  public ShapedLayerItem(Viewable viewable, String tooltip, Shape shape)
   {
-    this(location, viewable, message, tooltip, shape, null);
-  }
-
-  /**
-   * Initialize object with a specific map location, associated Viewable, an additional text message,
-   * a shape for the visual representation and a locical center position within the shape.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
-   * @param tooltip A short text message shown as tooltip or menu item text
-   * @param shape The shape to display
-   * @param center Logical center position within the shape
-   */
-  public ShapedLayerItem(Point location, Viewable viewable, String message, String tooltip,
-                         Shape shape, Point center)
-  {
-    super(location, viewable, message, tooltip);
-    strokeColors = new EnumMap<ItemState, Color>(ItemState.class);
-    strokePen = new EnumMap<ItemState, BasicStroke>(ItemState.class);
-    fillColors = new EnumMap<ItemState, Color>(ItemState.class);
+    super(viewable, tooltip);
     setLayout(new BorderLayout());
     label = new ShapeLabel(this);
     label.setHorizontalAlignment(SwingConstants.CENTER);
     label.setVerticalAlignment(SwingConstants.CENTER);
     add(label, BorderLayout.CENTER);
     setShape(shape);
-    setCenterPosition(center);
+    setCenterPosition(null);
     addLayerItemListener(this);
-  }
-
-  /**
-   * Returns the associated shape object.
-   * @return The associated shape object.
-   */
-  public Shape getShape()
-  {
-    return shape;
   }
 
   /**
@@ -175,15 +95,7 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
     if (state == null) {
       state = ItemState.NORMAL;
     }
-    switch (state) {
-      case HIGHLIGHTED:
-        if (strokeColors.containsKey(ItemState.HIGHLIGHTED))
-          return strokeColors.get(ItemState.HIGHLIGHTED);
-      case NORMAL:
-        if (strokeColors.containsKey(ItemState.NORMAL))
-          return strokeColors.get(ItemState.NORMAL);
-    }
-    return DefaultColor;
+    return strokeColors.containsKey(state) ? strokeColors.get(state) : DEFAULT_COLOR;
   }
 
   /**
@@ -244,15 +156,7 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
     if (state == null) {
       state = ItemState.NORMAL;
     }
-    switch (state) {
-      case HIGHLIGHTED:
-        if (fillColors.containsKey(ItemState.HIGHLIGHTED))
-          return fillColors.get(ItemState.HIGHLIGHTED);
-      case NORMAL:
-        if (fillColors.containsKey(ItemState.NORMAL))
-          return fillColors.get(ItemState.NORMAL);
-    }
-    return DefaultColor;
+    return fillColors.containsKey(state) ? fillColors.get(state) : DEFAULT_COLOR;
   }
 
   /**
@@ -314,7 +218,7 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
   }
 
 
-  // Returns whether the mouse cursor is over the relevant part of the component
+  /** Returns whether the mouse cursor is over the relevant part of the component. */
   @Override
   protected boolean isMouseOver(Point pt)
   {
@@ -336,14 +240,13 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
     }
   }
 
-  // Recreates polygons
+  /** Recreates polygons. */
   private void updateShape()
   {
     label.repaint();
   }
 
-//--------------------- Begin Interface LayerItemListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="LayerItemListener">
   @Override
   public void layerItemChanged(LayerItemEvent event)
   {
@@ -351,12 +254,11 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
       updateShape();
     }
   }
-
-//--------------------- End Interface LayerItemListener ---------------------
+  //</editor-fold>
 
 //----------------------------- INNER CLASSES -----------------------------
 
-  // Extended JLabel to draw shapes on the fly
+  /** Extended JLabel to draw shapes on the fly. */
   private static class ShapeLabel extends JLabel
   {
     private final ShapedLayerItem parent;

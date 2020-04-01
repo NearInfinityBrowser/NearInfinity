@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Locale;
 
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
@@ -18,37 +17,27 @@ import org.infinity.util.IdsMapEntry;
 
 public final class ProRef extends ResourceBitmap
 {
-  private static final ArrayList<RefEntry> proMissileList = new ArrayList<RefEntry>();
-  private static final ArrayList<RefEntry> proList = new ArrayList<RefEntry>();
+  private static final ArrayList<RefEntry> proMissileList = new ArrayList<>();
+  private static final ArrayList<RefEntry> proList = new ArrayList<>();
 
   public ProRef(ByteBuffer buffer, int offset, String name)
   {
-    this(null, buffer, offset, 2, name, true);
+    this(buffer, offset, 2, name, true);
   }
 
   public ProRef(ByteBuffer buffer, int offset, String name, boolean useMissile)
   {
-    this(null, buffer, offset, 2, name, useMissile);
-  }
-
-  public ProRef(StructEntry parent, ByteBuffer buffer, int offset, String name)
-  {
-    this(parent, buffer, offset, 2, name, true);
-  }
-
-  public ProRef(StructEntry parent, ByteBuffer buffer, int offset, String name, boolean useMissile)
-  {
-    this(parent, buffer, offset, 2, name, useMissile);
+    this(buffer, offset, 2, name, useMissile);
   }
 
   public ProRef(ByteBuffer buffer, int offset, int size, String name)
   {
-    this(null, buffer, offset, size, name, true);
+    this(buffer, offset, size, name, true);
   }
 
-  public ProRef(StructEntry parent, ByteBuffer buffer, int offset, int size, String name, boolean useMissile)
+  public ProRef(ByteBuffer buffer, int offset, int size, String name, boolean useMissile)
   {
-    super(parent, buffer, offset, size, name, createRefList(useMissile), null, useMissile ? FMT_NAME_REF_VALUE : FMT_REF_VALUE);
+    super(buffer, offset, size, name, createRefList(useMissile), null, useMissile ? FMT_NAME_REF_VALUE : FMT_REF_VALUE);
   }
 
   public ResourceEntry getSelectedEntry()
@@ -93,7 +82,7 @@ public final class ProRef extends ResourceBitmap
         long k = key.longValue();
         IdsMapEntry mslEntry = mslMap.get(k);
         IdsMapEntry proEntry = proMap.get(k - 1L);
-        RefEntry entry = null;
+        final RefEntry entry;
         if (proEntry != null) {
           entry = new RefEntry(k, proEntry.getSymbol().toUpperCase(Locale.ENGLISH) + ".PRO",
                                mslEntry.getSymbol());
@@ -117,10 +106,10 @@ public final class ProRef extends ResourceBitmap
       }
 
       for (final IdsMapEntry e: proMap.getAllValues()) {
-        proList.add(new RefEntry(e.getID(), e.getSymbol().toUpperCase(Locale.ENGLISH) + ".PRO"));
+        proList.add(new RefEntry(e.getID(), e.getSymbol().toUpperCase(Locale.ENGLISH) + ".PRO",
+                                 e.getSymbol()));
       }
     }
     return proList;
   }
 }
-

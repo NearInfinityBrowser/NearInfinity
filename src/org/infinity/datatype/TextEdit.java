@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.EnumMap;
+import java.util.Objects;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -28,10 +29,19 @@ import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.StructEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * <h2>Bean property</h2>
+ * When this field is child of {@link AbstractStruct}, then changes of its internal
+ * value reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent}
+ * struct.
+ * <ul>
+ * <li>Property name: {@link #getName() name} of this field</li>
+ * <li>Property type: {@link String}</li>
+ * </ul>
+ */
 public final class TextEdit extends Datatype implements Editable, IsTextual
 {
   public static enum EOLType {
@@ -42,45 +52,25 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
     LEFT, RIGHT, TOP, BOTTOM
   }
 
-  private static final EnumMap<EOLType, String> EOL = new EnumMap<EOLType, String>(EOLType.class);
+  private static final EnumMap<EOLType, String> EOL = new EnumMap<>(EOLType.class);
   static {
     EOL.put(EOLType.UNIX, "\n");
     EOL.put(EOLType.WINDOWS, "\r\n");
   }
 
   private InfinityTextArea textArea;
-  private Align buttonAlign;
-  private ByteBuffer buffer;
+  private final ByteBuffer buffer;
   private String text;
-  private EOLType eolType;
-  private Charset charset;
-  private boolean terminateString, editable;
+  private EOLType eolType = EOLType.UNIX;
+  private Charset charset = Charset.defaultCharset();
+  private boolean terminateString;
+  private boolean editable = true;
 
   public TextEdit(ByteBuffer buffer, int offset, int length, String name)
   {
-    this(null, buffer, offset, length, name, Align.RIGHT);
-  }
-
-  public TextEdit(ByteBuffer buffer, int offset, int length, String name, Align buttonAlignment)
-  {
-    this(null, buffer, offset, length, name, buttonAlignment);
-  }
-
-  public TextEdit(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
-  {
-    this(parent, buffer, offset, length, name, Align.RIGHT);
-  }
-
-  public TextEdit(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, Align buttonAlignment)
-  {
-    super(parent, offset, length, name);
+    super(offset, length, name);
     this.buffer = StreamUtils.getByteBuffer(getSize());
     read(buffer, offset);
-    this.eolType = EOLType.UNIX;
-    this.charset = Charset.defaultCharset();
-    this.terminateString = false;
-    this.editable = true;
-    this.buttonAlign = (buttonAlignment != null) ? buttonAlignment : Align.RIGHT;
   }
 
   // --------------------- Begin Interface Editable ---------------------
@@ -115,34 +105,13 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
 
     int curGridX = 0;
     int curGridY = 0;
-    if (buttonAlign == Align.TOP) {
-      gbc = ViewerUtil.setGBC(gbc, curGridX, curGridY, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
-                              GridBagConstraints.NONE, new Insets(4, 0, 6, 0), 0, 0);
-      panel.add(bUpdate, gbc);
-      curGridY++;
-    }
-    if (buttonAlign == Align.LEFT) {
-      gbc = ViewerUtil.setGBC(gbc, curGridX, curGridY, 1, 1, 0.0, 1.0, GridBagConstraints.CENTER,
-                              GridBagConstraints.NONE, new Insets(0, 0, 0, 6), 0, 0);
-      panel.add(bUpdate, gbc);
-      curGridX++;
-    }
-
     gbc = ViewerUtil.setGBC(gbc, curGridX, curGridY, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
                             GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     panel.add(scroll, gbc);
 
-    if (buttonAlign == Align.RIGHT) {
-      gbc = ViewerUtil.setGBC(gbc, curGridX + 1, curGridY, 1, 1, 0.0, 1.0, GridBagConstraints.CENTER,
-                              GridBagConstraints.NONE, new Insets(0, 6, 0, 0), 0, 0);
-      panel.add(bUpdate, gbc);
-    }
-
-    if (buttonAlign == Align.BOTTOM) {
-      gbc = ViewerUtil.setGBC(gbc, curGridX, curGridY + 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
-                              GridBagConstraints.NONE, new Insets(6, 0, 4, 0), 0, 0);
-      panel.add(bUpdate, gbc);
-    }
+    gbc = ViewerUtil.setGBC(gbc, curGridX + 1, curGridY, 1, 1, 0.0, 1.0, GridBagConstraints.CENTER,
+                            GridBagConstraints.NONE, new Insets(0, 6, 0, 0), 0, 0);
+    panel.add(bUpdate, gbc);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_BROAD));
     panel.setPreferredSize(Misc.getScaledDimension(DIM_BROAD));
@@ -157,7 +126,7 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
-    text = textArea.getText();
+    setValue(textArea.getText());
 
     // notifying listeners
     fireValueUpdated(new UpdateEvent(this, struct));
@@ -292,6 +261,14 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
       return s;
   }
 
+  private void setValue(String newValue)
+  {
+    final String oldValue = getText();
+    text = newValue;
+    if (!Objects.equals(oldValue, newValue)) {
+      firePropertyChange(oldValue, newValue);
+    }
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 

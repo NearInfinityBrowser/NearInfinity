@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui.layeritem;
@@ -29,107 +29,48 @@ import org.infinity.resource.graphics.ColorConvert;
  */
 public class IconLayerItem extends AbstractLayerItem implements LayerItemListener
 {
-  private static final Image DefaultImage = ColorConvert.createCompatibleImage(1, 1, true);
+  private static final Image DEFAULT_IMAGE = ColorConvert.createCompatibleImage(1, 1, true);
   private static final Color COLOR_BG_NORMAL = new Color(0x80ffffff, true);
   private static final Color COLOR_BG_HIGHLIGHTED = new Color(0xc0ffffff, true);
 
-  private EnumMap<ItemState, Image> images;
-  private EnumMap<ItemState, FrameInfo> frames;
+  private final EnumMap<ItemState, Image> images = new EnumMap<>(ItemState.class);
+  private final EnumMap<ItemState, FrameInfo> frames = new EnumMap<>(ItemState.class);
   private RenderCanvas rcCanvas;
   private JLabel label;
 
   /**
-   * Initialize object with default settings.
-   */
-  public IconLayerItem()
-  {
-    this(null);
-  }
-
-  /**
-   * Initialize object with the specified map location.
-   * @param location Map location
-   */
-  public IconLayerItem(Point location)
-  {
-    this(location, null);
-  }
-
-  /**
-   * Initialize object with a specific map location and an associated viewable object.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   */
-  public IconLayerItem(Point location, Viewable viewable)
-  {
-    this(location, viewable, null);
-  }
-
-  /**
-   * Initialize object with a specific map location, associated Viewable and an additional text message.
-   * @param location Map location
+   * Initialize object with an associated Viewable and an additional text message.
+   *
    * @param viewable Associated Viewable object
    * @param message An arbitrary text message
    */
-  public IconLayerItem(Point location, Viewable viewable, String message)
+  public IconLayerItem(Viewable viewable, String message)
   {
-    this(location, viewable, message, message);
+    this(viewable, message, null, null);
   }
 
   /**
-   * Initialize object with a specific map location, associated Viewable, an additional text message
-   * and an image for the visual representation.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
-   * @param tooltip A short text message shown as tooltip or menu item text
-   */
-  public IconLayerItem(Point location, Viewable viewable, String message, String tooltip)
-  {
-    this(location, viewable, message, tooltip, null);
-  }
-
-  /**
-   * Initialize object with a specific map location, associated Viewable, an additional text message
-   * and an image for the visual representation.
-   * @param location Map location
-   * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
-   * @param tooltip A short text message shown as tooltip or menu item text
-   * @param image The image to display
-   */
-  public IconLayerItem(Point location, Viewable viewable, String message, String tooltip, Image image)
-  {
-    this(location, viewable, message, tooltip, image, null);
-  }
-
-  /**
-   * Initialize object with a specific map location, associated Viewable, an additional text message,
+   * Initialize object with an associated Viewable, an additional text message,
    * an image for the visual representation and a locical center position within the icon.
-   * @param location Map location
+   *
    * @param viewable Associated Viewable object
-   * @param message An arbitrary text message
    * @param tooltip A short text message shown as tooltip or menu item text
    * @param image The image to display
    * @param center Logical center position within the icon
    */
-  public IconLayerItem(Point location, Viewable viewable, String message, String tooltip,
+  public IconLayerItem(Viewable viewable, String tooltip,
                        Image image, Point center)
   {
-    super(location, viewable, message, tooltip);
+    super(viewable, tooltip);
     setLayout(new BorderLayout());
     // preparing icon
-    images = new EnumMap<ItemState, Image>(ItemState.class);
-    frames = new EnumMap<ItemState, FrameInfo>(ItemState.class);
     rcCanvas = new FrameCanvas(this);
 //    rcCanvas.setBorder(BorderFactory.createLineBorder(Color.RED));  // DEBUG
     rcCanvas.setHorizontalAlignment(SwingConstants.CENTER);
     rcCanvas.setVerticalAlignment(SwingConstants.CENTER);
     add(rcCanvas, BorderLayout.CENTER);
     // preparing icon label
-    String msg = (tooltip != null && !tooltip.isEmpty()) ? tooltip : message;
-    if (msg == null) { msg = ""; }
-    label = new JLabel(msg);
+    label = new JLabel(tooltip);
     label.setHorizontalAlignment(SwingConstants.CENTER);
     label.setVerticalAlignment(SwingConstants.CENTER);
     label.setIconTextGap(2);
@@ -163,15 +104,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
     if (state == null) {
       state = ItemState.NORMAL;
     }
-    switch (state) {
-      case HIGHLIGHTED:
-        if (images.containsKey(ItemState.HIGHLIGHTED))
-          return images.get(ItemState.HIGHLIGHTED);
-      case NORMAL:
-        if (images.containsKey(ItemState.NORMAL))
-          return images.get(ItemState.NORMAL);
-    }
-    return DefaultImage;
+    return images.containsKey(state) ? images.get(state) : DEFAULT_IMAGE;
   }
 
   /**
@@ -275,15 +208,6 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
 
   /**
    * Sets the logical center of the icon.
-   * @return The logical center of the icon.
-   */
-  public Point getCenterPosition()
-  {
-    return getLocationOffset();
-  }
-
-  /**
-   * Sets the logical center of the icon.
    * @param center The center position within the icon.
    */
   public void setCenterPosition(Point center)
@@ -302,19 +226,13 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
     }
   }
 
-  public boolean isLabelEnabled()
-  {
-    return label.isVisible();
-  }
-
   public void setLabelEnabled(boolean set)
   {
     label.setVisible(set);
     validate();
   }
 
-//--------------------- Begin Interface LayerItemListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="LayerItemListener">
   @Override
   public void layerItemChanged(LayerItemEvent event)
   {
@@ -322,10 +240,9 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
       setCurrentImage(getItemState());
     }
   }
+  //</editor-fold>
 
-//--------------------- End Interface LayerItemListener ---------------------
-
-  // Returns whether the mouse cursor is over the relevant part of the component
+  /** Returns whether the mouse cursor is over the relevant part of the component. */
   @Override
   protected boolean isMouseOver(Point pt)
   {
@@ -402,7 +319,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
 
 //----------------------------- INNER CLASSES -----------------------------
 
-  // Extended JLabel to add the feature to show a frame around the component
+  /** Extended JLabel to add the feature to show a frame around the component. */
   private static class FrameCanvas extends RenderCanvas
   {
     private final IconLayerItem parent;
@@ -431,7 +348,7 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
     }
   }
 
-  // Stores information required to draw a customized frame around the component
+  /** Stores information required to draw a customized frame around the component. */
   private static class FrameInfo
   {
     private boolean enabled;
@@ -492,5 +409,4 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
       return stroke;
     }
   }
-
 }

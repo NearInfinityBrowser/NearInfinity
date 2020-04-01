@@ -39,7 +39,14 @@
            debug="false"
            debuglevel="lines,vars,source"
            classpath="${classpath}:${jorbis.file}:${rsyntaxtextarea.file}:${jhexview.file}:${montemedia.file}">
-      <!--<compilerarg value="-Xlint:unchecked"/>-->
+      <!-- Various debugging options: -->
+      <!-- <compilerarg value="-Xlint:cast"/> -->
+      <!-- <compilerarg value="-Xlint:deprecation"/> -->
+      <!-- <compilerarg value="-Xlint:empty"/> -->
+      <!-- <compilerarg value="-Xlint:finally"/> -->
+      <!-- <compilerarg value="-Xlint:overrides"/> -->
+      <!-- <compilerarg value="-Xlint:path"/> -->
+      <compilerarg value="-Xlint:unchecked"/>
     </javac>
 
     <copy todir="${build.path}">

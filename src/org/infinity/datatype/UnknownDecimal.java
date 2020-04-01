@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -7,18 +7,25 @@ package org.infinity.datatype;
 import java.nio.ByteBuffer;
 
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.StructEntry;
 
+/**
+ * Field that represents binary data in decimal format in their editor.
+ *
+ * <h2>Bean property</h2>
+ * When this field is child of {@link AbstractStruct}, then changes of its internal
+ * value reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent}
+ * struct.
+ * <ul>
+ * <li>Property name: {@link #getName() name} of this field</li>
+ * <li>Property type: {@code byte[]}</li>
+ * <li>Value meaning: raw bytes of this field</li>
+ * </ul>
+ */
 public final class UnknownDecimal extends Unknown
 {
   public UnknownDecimal(ByteBuffer buffer, int offset, int length, String name)
   {
-    this(null, buffer, offset, length, name);
-  }
-
-  public UnknownDecimal(StructEntry parent, ByteBuffer buffer, int offset, int length, String name)
-  {
-    super(parent, buffer, offset, length, name);
+    super(buffer, offset, length, name);
   }
 
 // --------------------- Begin Interface Editable ---------------------
@@ -43,8 +50,7 @@ public final class UnknownDecimal extends Unknown
         index = value.indexOf((int)' ');
       }
       if (counter == newdata.length) {
-        buffer.position(0);
-        buffer.put(newdata);
+        setValue(newdata);
         return true;
       }
     } catch (NumberFormatException e) {
@@ -59,7 +65,7 @@ public final class UnknownDecimal extends Unknown
   public String toString()
   {
     if (buffer.limit() > 0) {
-      StringBuffer sb = new StringBuffer(4 * buffer.limit() + 1);
+      final StringBuilder sb = new StringBuilder(4 * buffer.limit() + 1);
       buffer.position(0);
       while (buffer.remaining() > 0) {
         int v = buffer.get() & 0xff;
@@ -75,4 +81,3 @@ public final class UnknownDecimal extends Unknown
       return "";
   }
 }
-

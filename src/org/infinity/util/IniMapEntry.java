@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.util;
@@ -10,6 +10,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.infinity.datatype.StringRef;
+
 public class IniMapEntry
 {
   /** Regular expression that can be used to split position values in {@link #splitValues(String, String)}. */
@@ -17,8 +19,10 @@ public class IniMapEntry
   /** Regular expression that can be used to split object values in {@link #splitValues(String, String)}. */
   public static final String REGEX_OBJECT = "\\[(-?\\d+\\.?)+\\]";
 
-  private String key, value;
-  private int line;   // line number of ini entry
+  private final String key;
+  private final String value;
+  /** Line number of ini entry. */
+  private final int line;
 
   public IniMapEntry(String key, String value, int line)
   {
@@ -32,6 +36,13 @@ public class IniMapEntry
 
   public boolean hasValue() { return value != null; }
   public String getValue() { return value; }
+
+  public Integer getIntValue() { return value == null ? null : Integer.valueOf(value); }
+  public int getIntValue(int defValue) { return value == null ? defValue : Integer.valueOf(value); }
+
+  public StringRef getStringRefValue() {
+    return value == null ? null : new StringRef(key, Integer.valueOf(value));
+  }
 
   public int getLine() { return line; }
 

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -27,7 +26,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.ProgressMonitor;
 
 import org.infinity.datatype.StringRef;
 import org.infinity.gui.Center;
@@ -43,15 +41,10 @@ import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.Debugging;
-import org.infinity.util.Misc;
 
-public final class DialogSearcher implements Runnable, ActionListener
+public final class DialogSearcher extends AbstractSearcher implements Runnable, ActionListener
 {
-  private static final String FMT_PROGRESS = "Processing resource %d/%d";
-
   private final ChildFrame inputFrame;
-  private final Component parent;
   private final JButton bsearch = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_AGAIN_16));
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
   private final JCheckBox cbcase = new JCheckBox("Match case");
@@ -60,15 +53,13 @@ public final class DialogSearcher implements Runnable, ActionListener
   private final JTextField tfinput = new JTextField("", 15);
   private final List<ResourceEntry> files;
 
-  private ProgressMonitor progress;
-  private int progressIndex;
   private Pattern regPattern;
   private ReferenceHitFrame resultFrame;
 
   public DialogSearcher(List<ResourceEntry> files, Component parent)
   {
+    super(SEARCH_ONE_TYPE_FORMAT, parent);
     this.files = files;
-    this.parent = parent;
     String title = "Find: DLG files";
     if (files.size() == 1)
       title = "Find: " + files.get(0).toString();
@@ -146,7 +137,7 @@ public final class DialogSearcher implements Runnable, ActionListener
   {
     String term = tfinput.getText();
     if (!cbregex.isSelected()) {
-      term = term.replaceAll("(\\W)", "\\\\$1");
+      term = Pattern.quote(term);
     }
     if (cbwhole.isSelected()) {
       term = ".*\\b" + term + "\\b.*";
@@ -168,63 +159,73 @@ public final class DialogSearcher implements Runnable, ActionListener
 
     try {
       // executing multithreaded search
-      boolean isCancelled = false;
       inputFrame.setVisible(false);
       resultFrame = new ReferenceHitFrame(term, parent);
-      ThreadPoolExecutor executor = Misc.createThreadPool();
-      progressIndex = 0;
-      progress = new ProgressMonitor(parent, "Searching...",
-                                     String.format(FMT_PROGRESS, files.size(), files.size()),
-                                     0, files.size());
-      progress.setNote(String.format(FMT_PROGRESS, progressIndex, files.size()));
-      progress.setMillisToDecideToPopup(100);
-      Debugging.timerReset();
-      for (int i = 0; i < files.size(); i++) {
-        Misc.isQueueReady(executor, true, -1);
-        executor.execute(new Worker(files.get(i)));
-        if (progress.isCanceled()) {
-          isCancelled = true;
-          break;
-        }
-      }
-
-      // enforcing thread termination if process has been cancelled
-      if (isCancelled) {
-        executor.shutdownNow();
-      } else {
-        executor.shutdown();
-      }
-
-      // waiting for pending threads to terminate
-      while (!executor.isTerminated()) {
-        if (!isCancelled && progress.isCanceled()) {
-          executor.shutdownNow();
-          isCancelled = true;
-        }
-        try { Thread.sleep(1); } catch (InterruptedException e) {}
-      }
-
-      if (isCancelled) {
+      if (runSearch("Searching", files)) {
         resultFrame.close();
-        JOptionPane.showMessageDialog(parent, "Search cancelled", "Info", JOptionPane.INFORMATION_MESSAGE);
       } else {
         resultFrame.setVisible(true);
       }
     } finally {
-      advanceProgress(true);
       regPattern = null;
       resultFrame = null;
     }
-    Debugging.timerShow("Search completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
 
+  @Override
+  protected Runnable newWorker(ResourceEntry entry)
+  {
+    return () -> {
+      final Resource resource = ResourceFactory.getResource(entry);
+      if (resource instanceof AbstractStruct) {
+        final Map<StructEntry, StructEntry> searchMap = makeSearchMap((AbstractStruct)resource);
+        for (final Map.Entry<StructEntry, StructEntry> e : searchMap.entrySet()) {
+          final StructEntry searchEntry = e.getKey();
+          String s = null;
+          if (searchEntry instanceof StringRef) {
+            s = searchEntry.toString();
+          } else if (searchEntry instanceof AbstractCode) {
+            try {
+              final AbstractCode code = (AbstractCode)searchEntry;
+              final ScriptType type = searchEntry instanceof Action ? ScriptType.ACTION : ScriptType.TRIGGER;
+              final Compiler compiler = new Compiler(code.getText(), type);
+
+              if (compiler.getErrors().isEmpty()) {
+                final Decompiler decompiler = new Decompiler(compiler.getCode(), type, false);
+                decompiler.setGenerateComments(false);
+                decompiler.setGenerateResourcesUsed(false);
+                s = decompiler.getSource();
+              } else {
+                synchronized (System.err) {
+                  System.err.println("Error(s) compiling " + entry.toString() + " - " + searchEntry.getName());
+                }
+              }
+            } catch (Exception ex) {
+              synchronized (System.err) {
+                System.err.println("Exception (de)compiling " + entry.toString() + " - " + searchEntry.getName());
+                ex.printStackTrace();
+              }
+            }
+            if (s == null) {
+              s = "";
+            }
+          }
+          final Matcher matcher = regPattern.matcher(s);
+          if (matcher.matches()) {
+            addResult(entry, e.getValue().getName(), searchEntry);
+          }
+        }
+      }
+      advanceProgress();
+    };
+  }
+
   private Map<StructEntry, StructEntry> makeSearchMap(AbstractStruct struct)
   {
-    SortedMap<StructEntry, StructEntry> map = new TreeMap<StructEntry, StructEntry>();
-    for (int i = 0; i < struct.getFieldCount(); i++) {
-      StructEntry entry = struct.getField(i);
+    final SortedMap<StructEntry, StructEntry> map = new TreeMap<>();
+    for (final StructEntry entry : struct.getFields()) {
       if (entry instanceof AbstractStruct)
         map.putAll(makeSearchMap((AbstractStruct)entry));
       else if (cbsearchcode.isSelected() && entry instanceof AbstractCode)
@@ -235,97 +236,10 @@ public final class DialogSearcher implements Runnable, ActionListener
     return map;
   }
 
-  private synchronized void advanceProgress(boolean finished)
-  {
-    if (progress != null) {
-      if (finished) {
-        progressIndex = 0;
-        progress.close();
-        progress = null;
-      } else {
-        progressIndex++;
-        if (progressIndex % 100 == 0) {
-          progress.setNote(String.format(FMT_PROGRESS, progressIndex, files.size()));
-        }
-        progress.setProgress(progressIndex);
-      }
-    }
-  }
-
   private synchronized void addResult(ResourceEntry entry, String line, StructEntry ref)
   {
     if (resultFrame != null) {
       resultFrame.addHit(entry, line, ref);
     }
   }
-
-  private Pattern getPattern()
-  {
-    return regPattern;
-  }
-
-//-------------------------- INNER CLASSES --------------------------
-
-  private class Worker implements Runnable
-  {
-    private final ResourceEntry entry;
-
-    public Worker(ResourceEntry entry)
-    {
-      this.entry = entry;
-    }
-
-    @Override
-    public void run()
-    {
-      if (entry != null) {
-        Resource resource = ResourceFactory.getResource(entry);
-        if (resource != null) {
-          Map<StructEntry, StructEntry> searchMap = makeSearchMap((AbstractStruct)resource);
-          for (final StructEntry searchEntry : searchMap.keySet()) {
-            String s = null;
-            if (searchEntry instanceof StringRef) {
-              s = searchEntry.toString();
-            } else if (searchEntry instanceof AbstractCode) {
-              try {
-                Compiler compiler = new Compiler(searchEntry.toString(),
-                                                   (searchEntry instanceof Action) ? ScriptType.ACTION :
-                                                                                     ScriptType.TRIGGER);
-                String code = compiler.getCode();
-                if (compiler.getErrors().size() == 0) {
-                  Decompiler decompiler = new Decompiler(code, false);
-                  decompiler.setGenerateComments(false);
-                  decompiler.setGenerateResourcesUsed(false);
-                  if (searchEntry instanceof Action) {
-                    decompiler.setScriptType(ScriptType.ACTION);
-                  } else {
-                    decompiler.setScriptType(ScriptType.TRIGGER);
-                  }
-                  s = decompiler.getSource();
-                } else {
-                  synchronized (System.out) {
-                    System.out.println("Error(s) compiling " + entry.toString() + " - " + searchEntry.getName());
-                  }
-                }
-              } catch (Exception e) {
-                synchronized (System.out) {
-                  System.out.println("Exception (de)compiling " + entry.toString() + " - " + searchEntry.getName());
-                }
-                e.printStackTrace();
-              }
-              if (s == null) {
-                s = "";
-              }
-            }
-            Matcher matcher = getPattern().matcher(s);
-            if (matcher.matches()) {
-              addResult(entry, searchMap.get(searchEntry).getName(), searchEntry);
-            }
-          }
-        }
-      }
-      advanceProgress(false);
-    }
-  }
 }
-

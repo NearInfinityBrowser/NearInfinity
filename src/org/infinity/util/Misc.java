@@ -6,6 +6,8 @@ package org.infinity.util;
 
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.nio.charset.Charset;
 import java.util.Comparator;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -311,6 +313,24 @@ public class Misc
       d.width = c.getFontMetrics(c.getFont()).stringWidth(prototype);
     }
     return d;
+  }
+
+  /**
+   * Returns height of a font for the graphics context g.
+   * @param g The graphics context. Specify {@code null} to use graphics context of main window.
+   * @param font The font to use. Specify {@code null} to use current font of the specified graphics context.
+   * @return Font height in pixels.
+   */
+  public static int getFontHeight(Graphics g, Font font) {
+    if (g == null)
+      g = NearInfinity.getInstance().getGraphics();
+    if (g != null) {
+      FontMetrics m = g.getFontMetrics((font != null) ? font : g.getFont());
+      if (m != null) {
+        return m.getHeight();
+      }
+    }
+    return 0;
   }
 
   /**

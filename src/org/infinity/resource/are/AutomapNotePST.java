@@ -14,6 +14,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
 
+/** These are textual notes which are entered automatically (PST). */
 public final class AutomapNotePST extends AbstractStruct implements AddRemovable
 {
   // ARE/Automap Notes-specific field labels
@@ -30,9 +31,9 @@ public final class AutomapNotePST extends AbstractStruct implements AddRemovable
     super(null, ARE_AUTOMAP, StreamUtils.getByteBuffer(532), 0);
   }
 
-  AutomapNotePST(AbstractStruct superStruct, ByteBuffer buffer, int offset, int number) throws Exception
+  AutomapNotePST(AbstractStruct area, ByteBuffer buffer, int offset, int number) throws Exception
   {
-    super(superStruct, ARE_AUTOMAP + " " + number, buffer, offset);
+    super(area, ARE_AUTOMAP + " " + number, buffer, offset);
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

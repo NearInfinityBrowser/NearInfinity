@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.search;
@@ -15,7 +15,6 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
@@ -27,7 +26,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.swing.ProgressMonitor;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.gui.Center;
@@ -39,15 +37,10 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.Debugging;
-import org.infinity.util.Misc;
 
-public final class AttributeSearcher implements Runnable, ActionListener
+public final class AttributeSearcher extends AbstractSearcher implements Runnable, ActionListener
 {
-  private static final String FMT_PROGRESS = "Processing resource %d/%d";
-
   private final ChildFrame inputFrame;
-  private final Component parent;
   private final JButton bsearch = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_AGAIN_16));
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
   private final JCheckBox cbcase = new JCheckBox("Match case");
@@ -62,18 +55,14 @@ public final class AttributeSearcher implements Runnable, ActionListener
   private ReferenceHitFrame resultFrame;
   private Pattern regPattern;
   private int searchNumber;
-  private int progressIndex;
-  private ProgressMonitor progress;
 
   public AttributeSearcher(AbstractStruct struct, StructEntry structEntry, Component parent)
   {
+    super(SEARCH_ONE_TYPE_FORMAT, parent);
     this.structEntry = structEntry;
-    this.parent = parent;
-    while (struct.getSuperStruct() != null)
-      struct = struct.getSuperStruct();
-    String filename = struct.getResourceEntry().toString();
-    files =
-    ResourceFactory.getResources(filename.substring(filename.lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH));
+    while (struct.getParent() != null)
+      struct = struct.getParent();
+    files = ResourceFactory.getResources(struct.getResourceEntry().getExtension());
     inputFrame = new ChildFrame("Find: " + structEntry.getName(), true);
     inputFrame.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
     inputFrame.getRootPane().setDefaultButton(bsearch);
@@ -187,7 +176,7 @@ public final class AttributeSearcher implements Runnable, ActionListener
     if (structEntry instanceof DecNumber) {
       // decimal and hexadecimal notation is supported
       String s = term.toLowerCase(Locale.ENGLISH);
-      int radix = 0;
+      final int radix;
       if (s.length() > 1 && s.charAt(s.length() - 1) == 'h') {
         s = s.substring(0, s.length() - 1).trim();
         radix = 16;
@@ -222,73 +211,81 @@ public final class AttributeSearcher implements Runnable, ActionListener
     }
 
     try {
-      boolean isCancelled = false;
       inputFrame.setVisible(false);
       resultFrame = new ReferenceHitFrame(title, parent);
-      ThreadPoolExecutor executor = Misc.createThreadPool();
-      progressIndex = 0;
-      progress = new ProgressMonitor(parent, "Searching...",
-                                     String.format(FMT_PROGRESS, files.size(), files.size()),
-                                     0, files.size());
-      progress.setMillisToDecideToPopup(100);
-      Debugging.timerReset();
-      for (int i = 0; i < files.size(); i++) {
-        Misc.isQueueReady(executor, true, -1);
-        executor.execute(new Worker(files.get(i)));
-        if (progress.isCanceled()) {
-          isCancelled = true;
-          break;
-        }
-      }
 
-      // enforcing thread termination if process has been cancelled
-      if (isCancelled) {
-        executor.shutdownNow();
-      } else {
-        executor.shutdown();
-      }
-
-      // waiting for pending threads to terminate
-      while (!executor.isTerminated()) {
-        if (!isCancelled && progress.isCanceled()) {
-          executor.shutdownNow();
-          isCancelled = true;
-        }
-        try { Thread.sleep(1); } catch (InterruptedException e) {}
-      }
-
-      if (isCancelled) {
+      if (runSearch("Searching", files)) {
         resultFrame.close();
-        JOptionPane.showMessageDialog(parent, "Search cancelled", "Info", JOptionPane.INFORMATION_MESSAGE);
       } else {
         resultFrame.setVisible(true);
       }
     } finally {
-      advanceProgress(true);
       regPattern = null;
       searchNumber = 0;
       resultFrame = null;
     }
-    Debugging.timerShow("Search completed", Debugging.TimeFormat.MILLISECONDS);
   }
 
 // --------------------- End Interface Runnable ---------------------
 
-  private synchronized void advanceProgress(boolean finished)
+  @Override
+  protected Runnable newWorker(ResourceEntry entry)
   {
-    if (progress != null) {
-      if (finished) {
-        progressIndex = 0;
-        progress.close();
-        progress = null;
-      } else {
-        progressIndex++;
-        if (progressIndex % 100 == 0) {
-          progress.setNote(String.format(FMT_PROGRESS, progressIndex, files.size()));
+    return () -> {
+      final Resource resource = ResourceFactory.getResource(entry);
+      if (resource instanceof AbstractStruct) {
+        final AbstractStruct struct = (AbstractStruct)resource;
+        for (final StructEntry searchEntry : struct.getFlatFields()) {
+          // skipping fields located in different parent structures
+          if (structEntry.getParent().getClass() != searchEntry.getParent().getClass()) {
+            continue;
+          }
+
+          if (structEntry instanceof AbstractCode && structEntry.getClass() == searchEntry.getClass() ||
+              searchEntry.getName().equalsIgnoreCase(structEntry.getName())) {
+            boolean hit = false;
+            if (rbexact.isSelected()) {
+              hit = regPattern.matcher(searchEntry.toString()).matches();
+            } else if (rbless.isSelected()) {
+              hit = searchNumber > ((DecNumber)searchEntry).getValue();
+            } else if (rbgreater.isSelected()) {
+              hit = searchNumber < ((DecNumber)searchEntry).getValue();
+            }
+
+            if (cbnot.isSelected()) {
+              hit = !hit;
+            }
+
+            if (hit) {
+              AbstractStruct superStruct = struct.getSuperStruct(searchEntry);
+              if (superStruct instanceof Resource || superStruct == null) {
+                addHit(entry, entry.getSearchString(), searchEntry);
+              } else {
+                // creating a path of structures
+                final ArrayList<String> list = new ArrayList<>();
+                while (superStruct != null) {
+                  if (superStruct.getParent() != null) {
+                    list.add(0, superStruct.getName());
+                  }
+                  superStruct = superStruct.getParent();
+                }
+                list.add(0, entry.getSearchString());
+
+                final StringBuilder sb = new StringBuilder();
+                for (int k = 0; k < list.size(); k++) {
+                  if (k > 0) {
+                    sb.append(" -> ");
+                  }
+                  sb.append(list.get(k));
+                }
+                addHit(entry, sb.toString(), searchEntry);
+              }
+            }
+          }
         }
-        progress.setProgress(progressIndex);
       }
-    }
+      advanceProgress();
+    };
   }
 
   private synchronized void addHit(ResourceEntry entry, String name, StructEntry ref)
@@ -297,89 +294,4 @@ public final class AttributeSearcher implements Runnable, ActionListener
       resultFrame.addHit(entry, name, ref);
     }
   }
-
-  private Pattern getPattern()
-  {
-    return regPattern;
-  }
-
-  private int getSearchNumber()
-  {
-    return searchNumber;
-  }
-
-//-------------------------- INNER CLASSES --------------------------
-
-  private class Worker implements Runnable
-  {
-    private final ResourceEntry entry;
-
-    public Worker(ResourceEntry entry)
-    {
-      this.entry = entry;
-    }
-
-    @Override
-    public void run()
-    {
-      if (entry != null) {
-        AbstractStruct resource = (AbstractStruct)ResourceFactory.getResource(entry);
-        if (resource != null) {
-          List<StructEntry> flatList = resource.getFlatList();
-          for (int j = 0; j < flatList.size(); j++) {
-            StructEntry searchEntry = (StructEntry)flatList.get(j);
-
-            // skipping fields located in different parent structures
-            if (structEntry.getParent().getClass() != searchEntry.getParent().getClass()) {
-              continue;
-            }
-
-            if (structEntry instanceof AbstractCode && structEntry.getClass() == searchEntry.getClass() ||
-                searchEntry.getName().equalsIgnoreCase(structEntry.getName())) {
-              boolean hit = false;
-              if (rbexact.isSelected()) {
-                hit = getPattern().matcher(searchEntry.toString()).matches();
-              } else if (rbless.isSelected()) {
-                hit = getSearchNumber() > ((DecNumber)searchEntry).getValue();
-              } else if (rbgreater.isSelected()) {
-                hit = getSearchNumber() < ((DecNumber)searchEntry).getValue();
-              }
-
-              if (cbnot.isSelected()) {
-                hit = !hit;
-              }
-
-              if (hit) {
-                AbstractStruct superStruct = resource.getSuperStruct(searchEntry);
-                if (superStruct instanceof Resource || superStruct == null) {
-                  addHit(entry, entry.getSearchString(), searchEntry);
-                } else {
-                  // creating a path of structures
-                  List<String> list = new ArrayList<String>();
-                  while (superStruct != null) {
-                    if (superStruct.getSuperStruct() != null) {
-                      list.add(0, superStruct.getName());
-                    }
-                    superStruct = superStruct.getSuperStruct();
-                  }
-                  list.add(0, entry.getSearchString());
-
-                  StringBuilder sb = new StringBuilder();
-                  for (int k = 0; k < list.size(); k++) {
-                    if (k > 0) {
-                      sb.append(" -> ");
-                    }
-                    sb.append(list.get(k));
-                  }
-                  addHit(entry, sb.toString(), searchEntry);
-                }
-              }
-            }
-          }
-        }
-      }
-      advanceProgress(false);
-    }
-  }
 }
-

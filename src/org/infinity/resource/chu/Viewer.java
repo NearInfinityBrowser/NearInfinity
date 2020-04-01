@@ -886,6 +886,10 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       Dimension dim = getDimension();
       dim.width += p.x;
       dim.height += p.y;
+      if (Profile.getGame() == Profile.Game.IWD2) {
+        dim.width = Math.max(800, dim.width);
+        dim.height = Math.max(600, dim.height);
+      }
       return dim;
     }
 

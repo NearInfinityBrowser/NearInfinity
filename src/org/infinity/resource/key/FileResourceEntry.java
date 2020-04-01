@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.key;
@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 
 import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.BrowserMenuBar.OverrideMode;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.io.ByteBufferInputStream;
@@ -41,7 +42,7 @@ public final class FileResourceEntry extends ResourceEntry
   @Override
   public String toString()
   {
-    return file.getFileName().toString().toUpperCase(Locale.ENGLISH);
+    return getResourceName().toUpperCase(Locale.ENGLISH);
   }
 
   public void deleteFile() throws IOException
@@ -70,7 +71,7 @@ public final class FileResourceEntry extends ResourceEntry
   public String getExtension()
   {
     String name = file.getFileName().toString();
-    return name.substring(name.lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH);
+    return name.substring(name.lastIndexOf('.') + 1).toUpperCase(Locale.ENGLISH);
   }
 
   @Override
@@ -106,12 +107,14 @@ public final class FileResourceEntry extends ResourceEntry
   public String getTreeFolderName()
   {
     if (BrowserMenuBar.getInstance() != null) {
-      int mode = BrowserMenuBar.getInstance().getOverrideMode();
-      if (ResourceFactory.getKeyfile().getExtensionType(getExtension()) != -1) {
-        if (mode == BrowserMenuBar.OVERRIDE_IN_THREE) {
+      final OverrideMode mode = BrowserMenuBar.getInstance().getOverrideMode();
+      final Keyfile keyfile = ResourceFactory.getKeyfile();
+
+      if (keyfile.getExtensionType(getExtension()) != -1) {
+        if (mode == OverrideMode.InTree) {
           return getExtension();
-        } else if (mode == BrowserMenuBar.OVERRIDE_SPLIT &&
-                   ResourceFactory.getKeyfile().getResourceEntry(getResourceName()) != null) {
+        } else if (mode == OverrideMode.Split &&
+                   keyfile.getResourceEntry(getResourceName()) != null) {
           return getExtension();
         }
       }
@@ -137,7 +140,7 @@ public final class FileResourceEntry extends ResourceEntry
         int endIndex = file.getNameCount() - 1; // exlude filename
         Path subPath = file.subpath(startIndex, endIndex);
 
-        retVal = (ResourceTreeFolder)ResourceFactory.getResourceTreeModel().getRoot();
+        retVal = ResourceFactory.getResourceTreeModel().getRoot();
         for (int idx = 0, cnt = subPath.getNameCount(); idx < cnt && retVal != null; idx++) {
           String name = subPath.getName(idx).toString();
           List<ResourceTreeFolder> folders = retVal.getFolders();
@@ -177,4 +180,3 @@ public final class FileResourceEntry extends ResourceEntry
     file = Files.move(file, basePath.resolve(newName), options);
   }
 }
-

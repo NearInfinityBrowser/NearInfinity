@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.other;
@@ -23,6 +23,18 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
 
+/**
+ * This resource describes an effect (opcode) and its parameters. The resource of
+ * version 1 is only ever found embedded in other files, but resource of version 2
+ * is an extended version of that found embedded in creatures, items and spells,
+ * and is a replacement for the version 1 embedded effects used in BG1.
+ * <p>
+ * The engine appears to roll a probability for each valid target type, rather than
+ * one probability per attack.
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/eff_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/eff_v1.htm</a>
+ */
 public final class EffResource extends AbstractStruct implements Resource, HasViewerTabs
 {
   // EFF-specific field labels
@@ -45,13 +57,13 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
     addField(new TextString(buffer, offset + 12, 4, EFF_VERSION_2));
     EffectType type = new EffectType(buffer, offset + 16, 4);
     addField(type);
-    List<StructEntry> list = new ArrayList<StructEntry>();
+    List<StructEntry> list = new ArrayList<>();
     offset = type.readAttributes(buffer, offset + 20, list);
-    addToList(getList().size() - 1, list);
+    addFields(getFields().size() - 1, list);
 
     list.clear();
     Effect2.readCommon(list, buffer, offset);
-    addToList(getList().size() - 1, list);
+    addFields(getFields().size() - 1, list);
 
     return offset + 216;
   }
@@ -93,8 +105,10 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
     viewer.addTabChangeListener(hexViewer);
   }
 
-  // Called by "Extended Search"
-  // Checks whether the specified resource entry matches all available search options.
+  /**
+   * Called by "Extended Search"
+   * Checks whether the specified resource entry matches all available search options.
+   */
   public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
   {
     if (entry != null && searchOptions != null) {
@@ -168,6 +182,4 @@ public final class EffResource extends AbstractStruct implements Resource, HasVi
     }
     return false;
   }
-
 }
-

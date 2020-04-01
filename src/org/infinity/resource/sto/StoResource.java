@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2018 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.sto;
@@ -37,6 +37,13 @@ import org.infinity.search.SearchOptions;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * These resource contains a description of the types of items and services
+ * available for sale in a given store, inn, tavern, or temple.
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/sto_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/sto_v1.htm</a>
+ */
 public final class StoResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
 {
   // STO-specific field labels
@@ -73,10 +80,10 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
 //                                          "Can steal", "Can buy cures", "Can donate",
 //                                          "Can buy drinks", "", "", "Quality Bit 0 (BAM)", "Quality Bit 1 (BAM)"};
   public static final String[] s_flag_bg2 = {"Can only rest", "Can buy", "Can sell", "Can identify",
-                                              "Can steal", "Can donate", "Can buy cures",
-                                              "Can buy drinks", "", "", "Tavern quality 1", "Tavern quality 2",
-                                              "", "Fence", "EE: Ignore reputation", "Ex: Toggle recharge",
-                                              "EE: Can sell critical"};
+                                              "Can steal", "Can donate;Unused in Enhanced Editions", "Can buy cures",
+                                              "Can buy drinks", null, "EE: Disable donation screen;Disables donation screen in temple stores",
+                                              "Tavern quality 1", "Tavern quality 2", null, "Fence", "EE: Ignore reputation",
+                                              "Ex: Toggle recharge", "EE: Can sell critical"};
   public static final String[] s_rooms = {"No rooms available", "Peasant", "Merchant", "Noble", "Royal"};
 
   private StructHexViewer hexViewer;
@@ -286,8 +293,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     }
 
     int endoffset = offset;
-    for (int i = 0; i < getFieldCount(); i++) {
-      StructEntry entry = getField(i);
+    for (final StructEntry entry : getFields()) {
       if (entry.getOffset() + entry.getSize() > endoffset)
         endoffset = entry.getOffset() + entry.getSize();
     }
@@ -334,8 +340,10 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     }
   }
 
-  // Called by "Extended Search"
-  // Checks whether the specified resource entry matches all available search options.
+  /**
+   * Checks whether the specified resource entry matches all available search options.
+   * Called by "Extended Search"
+   */
   public static boolean matchSearchOptions(ResourceEntry entry, SearchOptions searchOptions)
   {
     if (entry != null && searchOptions != null) {
@@ -483,4 +491,3 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     return false;
   }
 }
-

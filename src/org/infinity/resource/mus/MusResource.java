@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.mus;
@@ -14,8 +14,7 @@ import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,7 +22,6 @@ import java.util.regex.Pattern;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.event.CaretListener;
@@ -32,25 +30,136 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 
 import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.BrowserMenuBar.ViewMode;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.resource.Closeable;
-import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
-import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SongReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
-import org.infinity.util.Misc;
-import org.infinity.util.io.FileManager;
+import org.infinity.util.Table2da;
 import org.infinity.util.io.StreamUtils;
 
+/**
+ * This resource acts as a playlist for ACM files, determining loops and "interrupt state"
+ * effects. An "interrupt state effect" controls the music (usually a fadeout effect)
+ * to play when another ACM file is interrupted by a special condition (end of combat,
+ * start of romance music, etc.).
+ * <p>
+ * MUS files are simple ASCII files that can be edited by any text editor. The files
+ * are always located in the music folder in the main game folder and any paths inside
+ * MUS files are relative. The BG2 file {@code BC1.mus} will be used to describe the
+ * file format:
+ * <code><pre>
+ * BC1
+ * 10
+ * A1                 @TAG ZA
+ * B1                 @TAG ZA
+ * C1                 @TAG ZA
+ * D1                 @TAG ZD
+ * E1                 @TAG ZD
+ * E2                 @TAG ZD
+ * F1                 @TAG ZD
+ * G1                 @TAG ZG
+ * H1                 @TAG ZH
+ * J1        B1       @TAG ZJ
+ * # B1B is loop
+ * </pre></code>
+ * This file will be examined line by line below.
+ *
+ * <h3>Line 1</h3>
+ * This line indicates the subfolder (within the music directory) that files used
+ * in MUS can be found.
+ *
+ * <h3>Line 2</h3>
+ * This line reports the amount of ACM files in the main playlist. Interrupt state
+ * ACMs are not included in this count.
+ *
+ * <h3>Lines 3-11</h3>
+ * This line is the first line of the actual playlist. It consists of the characters
+ * {@code A1}, 18 spaces and a string {@code "@TAG ZA"}. The first part, {@code A1},
+ * means play the file {@code BC1A1.acm} under the {@code BC1} subdirectory of the
+ * music. The spaces are used as a delimiter to seperate the playlist ACM and the
+ * interrupt state ACM. The amount of spaces is determined as:
+ * <code><pre>
+ * AmountOfSpaces = 20 - AmountOfCharactersInMainPlaylistEntry
+ * </pre></code>
+ * The third part ({@code @TAG ZA}) determines the interrupt state ACM. This entry is
+ * composed of a {@code @TAG}, a single space, and the name of the interrupt state ACM.
+ * This means "Play {@code BC1A1.acm}". If the music should be stopped while this sound
+ * clip is playing, play {@code "BC1ZA.acm"} after {@code "BC1A1.acm"} has finished
+ * and then stop. If the music should continue, go to the next line of the play list.
+ *
+ * <h3>Line 12</h3>
+ * The last entry in the playlist, in addition to normal ACM entry and interrupt
+ * state ACM entry, also includes an "End of File Loop" entry. If no loop is
+ * specified and no interupt occurs the game automatically loops to the start of
+ * the MUS file. This line consists of {@code J1}, 8 spaces, {@code B1}, 8 spaces
+ * and a string {@code "@TAG ZJ"}. The first entry ({@code J1}) is the usual playlist
+ * entry ({@code BC1J1.ACM}). The amount of spaces following is calculated as:
+ * <code><pre>
+ * AmountOfSpaces = 10 - AmountOfCharsInPlaylistEntry
+ * </pre></code>
+ *
+ * The next part ({@code BC1}) is the "End of File Loop" entry. The loop line tells
+ * the engine to switch to another playlist when the current playlist is completed.
+ * In the example file, the engine will move to {@code BC1B1.acm} when {@code BC1.mus}
+ * is complete. The following spaces are calculated as:
+ * <code><pre>
+ * AmountOfSpaces = 10 - AmountOfCharsInEndOfFileLoopEntry
+ * </pre></code>
+ * The last part ({@code TAG @ZJ}) is a standard interrupt state, as detailed above.
+ *
+ * <p>
+ * Each IE game includes a silent ACM file which can be used in playlists as shown
+ * in {@code Tav1.mus} from BG2:
+ * <code><pre>
+ * TAV1
+ * 6
+ * SPC1
+ * A
+ * SPC1
+ * SPC1
+ * SPC1
+ * SPC1    TAV1 A
+ * </pre></code>
+ *
+ * The playlist indicates to the engine to play 62 seconds of silence, then sound
+ * "A" then 4 silence files (248 seconds), then to repeat the playlist.
+ * <p>
+ * The name of the silent ACM file varies between games:
+ * <ul>
+ * <li>PST - SPC.acm /Music/</li>
+ * <li>BG2, PST - SPC1.acm /Music/</li>
+ * <li>IWD2 - MX0000A.acm /Music/MX0000</li>
+ * <li>IWD - MX9000A.acm /Music/MX9000A</li>
+ * </ul>
+ *
+ * <h3>Additional remarks:</h3>
+ * Songs are linked to areas and scripts via a {@link Table2da 2da file}. MUS files
+ * must be added to the relevant 2da file before they can be used (by their index number):
+ * <ul>
+ * <li>BG1: Hard-coded</li>
+ * <li>BG2: songlist.2da</li>
+ * <li>PST: Unknown</li>
+ * <li>IWD: music.2da</li>
+ * <li>IWD2: music.2da</li>
+ * </ul>
+ *
+ * <h3>Location</h3>
+ * MUS files are normally located in the music directory in the game directory.
+ * The MUS files are attached/linked to areas or romances by their index number.
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mus.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mus.htm</a>
+ */
 public final class MusResource implements Closeable, TextResource, ActionListener, Writeable, ItemListener,
                                           DocumentListener
 {
@@ -74,8 +183,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     resourceChanged = false;
   }
 
-// --------------------- Begin Interface ActionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -89,43 +197,23 @@ public final class MusResource implements Closeable, TextResource, ActionListene
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface ActionListener ---------------------
-
-
-// --------------------- Begin Interface Closeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Closeable">
   @Override
   public void close() throws Exception
   {
     lastIndex = tabbedPane.getSelectedIndex();
     if (resourceChanged) {
-      Path output;
-      if (entry instanceof BIFFResourceEntry) {
-        output = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(), entry.toString());
-      } else {
-        output = entry.getActualPath();
-      }
-      String options[] = {"Save changes", "Discard changes", "Cancel"};
-      int result = JOptionPane.showOptionDialog(panel, "Save changes to " + output + '?', "Resource changed",
-                                                JOptionPane.YES_NO_CANCEL_OPTION,
-                                                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-      if (result == 0) {
-        ResourceFactory.saveResource(this, panel.getTopLevelAncestor());
-      } else if (result != 1) {
-        throw new Exception("Save aborted");
-      }
+      ResourceFactory.closeResource(this, entry, panel);
     }
     if (viewer != null) {
       viewer.close();
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface Closeable ---------------------
-
-
-// --------------------- Begin Interface DocumentListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="DocumentListener">
   @Override
   public void insertUpdate(DocumentEvent event)
   {
@@ -143,47 +231,35 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   {
     setDocumentModified(true);
   }
+  //</editor-fold>
 
-// --------------------- End Interface DocumentListener ---------------------
-
-
-// --------------------- Begin Interface ItemListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ItemListener">
   @Override
   public void itemStateChanged(ItemEvent event)
   {
     if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU) == event.getSource()) {
       ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
       if (bpmFind.getSelectedItem() == ifindall) {
-        String type = entry.toString().substring(entry.toString().indexOf(".") + 1);
-        List<ResourceEntry> files = ResourceFactory.getResources(type);
+        final List<ResourceEntry> files = ResourceFactory.getResources(entry.getExtension());
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
-        List<ResourceEntry> files = new ArrayList<ResourceEntry>();
-        files.add(entry);
-        new TextResourceSearcher(files, panel.getTopLevelAncestor());
+        new TextResourceSearcher(Arrays.asList(entry), panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindreference) {
         new SongReferenceSearcher(entry, panel.getTopLevelAncestor());
       }
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface ItemListener ---------------------
-
-
-// --------------------- Begin Interface Resource ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Resource">
   @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
   }
+  //</editor-fold>
 
-// --------------------- End Interface Resource ---------------------
-
-
-// --------------------- Begin Interface TextResource ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="TextResource">
   @Override
   public String getText()
   {
@@ -223,12 +299,9 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     } catch (IllegalArgumentException e) {
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface TextResource ---------------------
-
-
-// --------------------- Begin Interface Viewable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Viewable">
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
@@ -242,7 +315,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
       panel.add(tabbedPane, BorderLayout.CENTER);
       if (lastIndex != -1) {
         tabbedPane.setSelectedIndex(lastIndex);
-      } else if (BrowserMenuBar.getInstance().getDefaultStructView() == BrowserMenuBar.DEFAULT_EDIT) {
+      } else if (BrowserMenuBar.getInstance().getDefaultStructView() == ViewMode.Edit) {
         tabbedPane.setSelectedIndex(1);
       }
       WindowBlocker.blockWindow(false);
@@ -251,12 +324,9 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     }
     return panel;
   }
+  //</editor-fold>
 
-// --------------------- End Interface Viewable ---------------------
-
-
-// --------------------- Begin Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
@@ -266,8 +336,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
       StreamUtils.writeString(os, editor.getText(), editor.getText().length());
     }
   }
-
-// --------------------- End Interface Writeable ---------------------
+  //</editor-fold>
 
   public Viewer getViewer()
   {
@@ -276,8 +345,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
 
   private JComponent getEditor(CaretListener caretListener)
   {
-    ifindall =
-        new JMenuItem("in all " + entry.toString().substring(entry.toString().indexOf(".") + 1) + " files");
+    ifindall  = new JMenuItem("in all " + entry.getExtension() + " files");
     ifindthis = new JMenuItem("in this file only");
     ifindreference = new JMenuItem("references to this file");
     ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FIND_MENU);
@@ -286,7 +354,6 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     editor = new InfinityTextArea(text, true);
     editor.discardAllEdits();
     editor.addCaretListener(caretListener);
-    editor.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     editor.setMargin(new Insets(3, 3, 3, 3));
     editor.setCaretPosition(0);
     editor.setLineWrap(false);
@@ -321,4 +388,3 @@ public final class MusResource implements Closeable, TextResource, ActionListene
     }
   }
 }
-

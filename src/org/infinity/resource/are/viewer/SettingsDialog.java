@@ -43,7 +43,6 @@ import javax.swing.event.ListSelectionListener;
 
 import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
-import org.infinity.resource.are.viewer.Settings;
 import org.infinity.util.SimpleListModel;
 
 /**

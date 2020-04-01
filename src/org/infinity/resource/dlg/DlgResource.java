@@ -1,9 +1,10 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
 
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -11,20 +12,17 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.JTabbedPane;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.DecNumber;
@@ -38,7 +36,8 @@ import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.gui.StructViewer;
-import org.infinity.gui.WindowBlocker;
+import org.infinity.gui.hexview.BasicColorMap;
+import org.infinity.gui.hexview.StructHexViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasAddRemovable;
@@ -47,14 +46,53 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
-import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.updater.Utils;
 import org.infinity.util.StringTable;
+import org.infinity.util.io.StreamUtils;
 
-
+/**
+ * DLG resource contains the structure of conversation, in what is effectievly
+ * a state machine. Dialogs contains string references into the {@link StringTable TLK}
+ * file that make up the actual words of the conversation. Dialogs bear similarities
+ * to scripts; each {@link State state} may have a series of {@link StateTrigger trigger}
+ * conditions, and effect a series of {@link Action actions}. If the any of the
+ * triggers for a state evaluate to {@code false}, the state is skipped and the
+ * triggers in the next state are evaluated - this occurs when entering into
+ * a dialog state, and when presenting a list of {@link Transition responses}.
+ *
+ * <code><pre>
+ * state 0:
+ *    trigger: NumTimesTalkedTo(0)
+ *    Text: "Hello, sailor!"
+ *
+ * state 1:
+ *    trigger: NumTimesTalkedToGT(5)
+ *    Text: "Go away, already!"
+ *
+ * state 2:
+ *    Text: "Hail and well met, yada yada yada."
+ * </pre></code>
+ *
+ * Dialog always attempt to start at state 0. The first time this sample dialog is
+ * entered the trigger in state 0 is {@code true}, hence the character responds
+ * {@code "Hello, sailor!"}. Subsequent times the dialog is entered the trigger
+ * in state 0 will be {@code false}, and state 1 is evaluated - this trigger also
+ * fails and so state 2 is evaluated. This state evaluates {@code true}, and get
+ * the associated message is displayed.
+ * <p>
+ * If the dialog is initiaed five or more times, the trigger in state 1 will evaluate
+ * to {@code true} and the message associated with that state will be displayed.
+ * <p>
+ * In addition to the triggers outlined above, states present a list of responses
+ * (aka {@link Transition transitions}). Each response may have a series of behaviours
+ * associated with it; the response text, a journal entry or an {@link Action action}.
+ *
+ * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/dlg_v1.htm">
+ * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/dlg_v1.htm</a>
+ */
 public final class DlgResource extends AbstractStruct
-    implements Resource, HasAddRemovable, HasViewerTabs, ChangeListener, ActionListener
+    implements Resource, HasAddRemovable, HasViewerTabs, ActionListener
 {
   // DLG-specific field labels
   public static final String DLG_OFFSET_STATES            = "States offset";
@@ -77,48 +115,12 @@ public final class DlgResource extends AbstractStruct
   private JMenuItem miExport, miExportWeiDUDialog;
   private Viewer detailViewer;
   private TreeViewer treeViewer;
+  private StructHexViewer hexViewer;
 
   public DlgResource(ResourceEntry entry) throws Exception
   {
     super(entry);
   }
-
-//--------------------- Begin Interface Viewable ---------------------
-
-  @Override
-  public JComponent makeViewer(ViewableContainer container)
-  {
-    JComponent retVal = super.makeViewer(container);
-
-    if (retVal instanceof StructViewer) {
-      // replacing original Export button with button menu
-      StructViewer view = (StructViewer)retVal;
-      ButtonPanel panel = view.getButtonPanel();
-
-      JButton b = (JButton)panel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON);
-      if (b != null) {
-        for (final ActionListener l: b.getActionListeners()) {
-          b.removeActionListener(l);
-        }
-        int position = panel.getControlPosition(b);
-        panel.removeControl(position);
-
-        ButtonPopupMenu bpmExport = new ButtonPopupMenu(b.getText());
-        bpmExport.setIcon(b.getIcon());
-
-        miExport = new JMenuItem("as DLG file");
-        miExport.addActionListener(this);
-        miExportWeiDUDialog = new JMenuItem("as WeiDU dialog file");
-        miExportWeiDUDialog.addActionListener(this);
-        bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportWeiDUDialog}, false);
-        panel.addControl(position, bpmExport);
-      }
-    }
-
-    return retVal;
-  }
-
-//--------------------- End Interface Viewable ---------------------
 
 // --------------------- Begin Interface HasAddRemovable ---------------------
 
@@ -149,7 +151,7 @@ public final class DlgResource extends AbstractStruct
   @Override
   public int getViewerTabCount()
   {
-    return 2;
+    return 3;
   }
 
   @Override
@@ -158,6 +160,7 @@ public final class DlgResource extends AbstractStruct
     switch (index) {
       case 0: return StructViewer.TAB_VIEW;
       case 1: return TAB_TREE;
+      case 2: return StructViewer.TAB_RAW;
     }
     return null;
   }
@@ -174,6 +177,11 @@ public final class DlgResource extends AbstractStruct
         if (treeViewer == null)
           treeViewer = new TreeViewer(this);
         return treeViewer;
+      case 2:
+        if (hexViewer == null) {
+          hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
+        }
+        return hexViewer;
     }
     return null;
   }
@@ -191,24 +199,23 @@ public final class DlgResource extends AbstractStruct
   @Override
   public void write(OutputStream os) throws IOException
   {
+    final List<StructEntry> fields = getFields();
     offsetState.setValue(0x30);
-    if (getFieldCount() >= 13 && getField(12).getName().equalsIgnoreCase(DLG_THREAT_RESPONSE))
+    if (fields.size() > 12 && fields.get(12).getName().equalsIgnoreCase(DLG_THREAT_RESPONSE))
       offsetState.setValue(0x34);
     offsetTrans.setValue(offsetState.getValue() + 0x10 * countState.getValue());
     offsetStaTri.setValue(offsetTrans.getValue() + 0x20 * countTrans.getValue());
     offsetTranTri.setValue(offsetStaTri.getValue() + 0x8 * countStaTri.getValue());
     offsetAction.setValue(offsetTranTri.getValue() + 0x8 * countTranTri.getValue());
     int stringoff = offsetAction.getValue() + 0x8 * countAction.getValue();
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : fields) {
       if (o instanceof AbstractCode) {
         stringoff += ((AbstractCode)o).updateOffset(stringoff);
       }
     }
     super.write(os);
 
-    for (int i = 0; i < getFieldCount(); i++) {
-      Object o = getField(i);
+    for (final StructEntry o : fields) {
       if (o instanceof AbstractCode) {
         ((AbstractCode)o).writeString(os);
       }
@@ -225,33 +232,10 @@ public final class DlgResource extends AbstractStruct
     if (e.getSource() == miExport) {
       ResourceFactory.exportResource(getResourceEntry(), getViewer().getTopLevelAncestor());
     } else if (e.getSource() == miExportWeiDUDialog) {
-      JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
-      fc.setDialogTitle("Export WeiDU dialog");
-      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      fc.setSelectedFile(new File(fc.getCurrentDirectory(), getResourceEntry().toString().replace(".DLG", ".D")));
-
-      FileFilter[] filters = fc.getChoosableFileFilters();
-      FileFilter filterAll = null;
-      for (final FileFilter f: filters) {
-        if (filterAll == null) { filterAll = f; }
-        fc.removeChoosableFileFilter(f);
-      }
-      fc.addChoosableFileFilter(new FileNameExtensionFilter("WeiDU D files (*.d)", "D"));
-      if (filterAll != null) {
-        fc.addChoosableFileFilter(filterAll);
-      }
-      fc.setFileFilter(fc.getChoosableFileFilters()[0]);
-
-      if (fc.showSaveDialog(getViewer().getTopLevelAncestor()) == JFileChooser.APPROVE_OPTION) {
-        File file = fc.getSelectedFile();
-        if (Files.exists(file.toPath())) {
-          final String options[] = {"Overwrite", "Cancel"};
-          if (JOptionPane.showOptionDialog(getViewer().getTopLevelAncestor(), file + " exists. Overwrite?",
-                                           "Export resource", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-                                           null, options, options[0]) != 0) {
-            return;
-          }
-        }
+      final String fileName = StreamUtils.replaceFileExtension(getResourceEntry().getResourceName(), "D");
+      final Path path = ResourceFactory.getExportFileDialog(getViewer().getTopLevelAncestor(), fileName, false);
+      if (path != null) {
+        File file = path.toFile();
         try (PrintWriter writer = new PrintWriter(file, BrowserMenuBar.getInstance().getSelectedCharset())) {
           if (!exportDlgAsText(writer)) {
             throw new Exception();
@@ -271,27 +255,30 @@ public final class DlgResource extends AbstractStruct
 
 // --------------------- End Interface ActionListener ---------------------
 
-// --------------------- Begin Interface ChangeListener ---------------------
-
-  @Override
-  public void stateChanged(ChangeEvent event)
-  {
-    if (getViewer() != null) {
-      if (getViewer().isTabSelected(getViewer().getTabIndex(TAB_TREE))) {
-        initTreeView();
-      }
-    }
-  }
-
-// --------------------- End Interface ChangeListener ---------------------
-
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
-    if (viewer.isTabSelected(getViewer().getTabIndex(TAB_TREE))) {
-      initTreeView();
+    // replacing original Export button with button menu
+    final ButtonPanel panel = viewer.getButtonPanel();
+
+    final JButton b = (JButton)panel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON);
+    if (b != null) {
+      for (final ActionListener l: b.getActionListeners()) {
+        b.removeActionListener(l);
+      }
+      int position = panel.getControlPosition(b);
+      panel.removeControl(position);
+
+      ButtonPopupMenu bpmExport = new ButtonPopupMenu(b.getText());
+      bpmExport.setIcon(b.getIcon());
+
+      miExport = new JMenuItem("as DLG file");
+      miExport.addActionListener(this);
+      miExportWeiDUDialog = new JMenuItem("as WeiDU dialog file");
+      miExportWeiDUDialog.addActionListener(this);
+      bpmExport.setMenuItems(new JMenuItem[]{miExport, miExportWeiDUDialog}, false);
+      panel.addControl(position, bpmExport);
     }
-    viewer.addTabChangeListener(this);
   }
 
   @Override
@@ -383,25 +370,114 @@ public final class DlgResource extends AbstractStruct
     return offset + textSize;
   }
 
-  // sorry for this (visibility)
-  public void showStateWithStructEntry(StructEntry entry) {
-    if (detailViewer == null) {
-      getViewerTab(0);
-    }
-    detailViewer.showStateWithStructEntry(entry);
-  }
-
-  private void initTreeView()
+  /**
+   * Returns state with specified number from this dialog.
+   *
+   * @param stateIdx State number
+   * @return State with specified number or {@code null}, if such transition not exist
+   */
+  public State getState(int stateIdx)
   {
-    WindowBlocker.blockWindow(NearInfinity.getInstance(), true);
-    try {
-      treeViewer.init();
-    } finally {
-      WindowBlocker.blockWindow(NearInfinity.getInstance(), false);
+    return (State)getAttribute(State.DLG_STATE + " " + stateIdx);
+  }
+
+  /**
+   * Returns transition with specified number from this dialog.
+   *
+   * @param transIdx Transition number
+   * @return Transition with specified number or {@code null}, if such transition not exist
+   */
+  public Transition getTransition(int transIdx)
+  {
+    return (Transition)getAttribute(Transition.DLG_TRANS + " " + transIdx);
+  }
+
+  // sorry for this (visibility)
+  public void selectInEdit(StructEntry entry) {
+    final Viewer view = ((Viewer)getViewerTab(0));
+    view.select(entry);
+    final Container parent = view.getParent();
+    if (parent instanceof JTabbedPane) {
+      final JTabbedPane panned = (JTabbedPane)parent;
+      panned.setSelectedIndex(panned.indexOfComponent(view));
     }
   }
 
-  // Updates trigger/action references in states and responses
+  public void selectInTree(TreeItemEntry entry)
+  {
+    final TreeViewer view = ((TreeViewer)getViewerTab(1));
+    if (view.select(entry)) {
+      final Container parent = view.getParent();
+      if (parent instanceof JTabbedPane) {
+        final JTabbedPane panned = (JTabbedPane)parent;
+        panned.setSelectedIndex(panned.indexOfComponent(view));
+      }
+    } else {
+      JOptionPane.showMessageDialog(view,
+              entry.getName() + " is unattainable from the dialogue root.\n"
+                              + "It may be referenced by an external dialogue.",
+              entry.getName() + " not found in dialogue tree",
+              JOptionPane.INFORMATION_MESSAGE);
+    }
+  }
+
+  /**
+   * Searches the specified {@code state} among transitions of this dialog.
+   *
+   * @param state State for search. Must not be {@code null}
+   * @param action Action for execution if match is found. Must not be {@code null}
+   *
+   * @return {@code true} if at least one match if found, {@code false} otherwise
+   */
+  public boolean findUsages(State state, Consumer<? super Transition> action)
+  {
+    final int number = state.getNumber();
+    final DlgResource dlg = state.getParent();
+    final String name = dlg.getResourceEntry().getResourceName();
+
+    boolean found = false;
+    for (final StructEntry e : getFields()) {
+      if (!(e instanceof Transition)) continue;
+
+      final Transition t = (Transition)e;
+      if (t.getNextDialogState() == number
+       && t.getNextDialog().getResourceName().equalsIgnoreCase(name)
+      ) {
+        action.accept(t);
+        found = true;
+      }
+    }
+    return found;
+  }
+
+  /**
+   * Searches the specified transition among states of this dialog.
+   *
+   * @param trans Transition for search. Must not be {@code null}
+   * @param action Action for execution if match is found. Must not be {@code null}
+   *
+   * @return {@code true} if at least one match if found, {@code false} otherwise
+   */
+  public boolean findUsages(Transition trans, Consumer<? super State> action)
+  {
+    final int number = trans.getNumber();
+
+    boolean found = false;
+    for (final StructEntry e : getFields()) {
+      if (!(e instanceof State)) continue;
+
+      final State s = (State)e;
+      final int start = s.getFirstTrans();
+      final int count = s.getTransCount();
+      if (start <= number && number < start + count) {
+        action.accept(s);
+        found = true;
+      }
+    }
+    return found;
+  }
+
+  /** Updates trigger/action references in states and responses. */
   private void updateReferences(AddRemovable datatype, boolean added)
   {
     if (datatype instanceof StateTrigger) {
@@ -502,7 +578,7 @@ public final class DlgResource extends AbstractStruct
     }
   }
 
-  // Exports DLG resource as WeiDU D file
+  /** Exports DLG resource as WeiDU D file. */
   private boolean exportDlgAsText(PrintWriter writer)
   {
     boolean retVal = false;
@@ -553,12 +629,7 @@ public final class DlgResource extends AbstractStruct
       ArrayList<DlgState> statesList = new ArrayList<>();
       int numStates = ((IsNumeric)getAttribute(DLG_NUM_STATES)).getValue();
       for (int idx = 0; idx < numStates; idx++) {
-        entry = getAttribute(State.DLG_STATE + " " + idx);
-        if (entry instanceof State) {
-          statesList.add(new DlgState((State)entry));
-        } else {
-          break;
-        }
+        statesList.add(new DlgState(getState(idx)));
       }
 
       // scanning for state origins and weight information
@@ -609,114 +680,8 @@ public final class DlgResource extends AbstractStruct
 
       // traversing through state list to generate script blocks
       for (int idx = 0; idx < statesList.size(); idx++) {
-        DlgState state = statesList.get(idx);
-
-        writer.println();
-        writer.print("IF ");
-
-        // optional weight information
-        if (state.triggerIndex >= 0 && weighted) {
-          writer.print("WEIGHT #" + state.triggerIndex + " ");
-
-          if (!state.cmtWeight.isEmpty()) {
-            String cmtWeight = "/* Triggers after states #:";
-            for (final String s: state.cmtWeight.split(":")) {
-              cmtWeight += " " + s;
-            }
-            cmtWeight += " even though they appear after this state */";
-            writer.println(cmtWeight);
-          }
-        }
-
-        // state trigger
-        writer.print("~" + state.trigger + "~");
-        writer.print(" THEN BEGIN " + idx);
-
-        // state origins
-        writer.print(" // from:");
-        for (final String s: state.cmtFrom.split(":")) {
-          writer.print(" " + s);
-        }
-        writer.println();
-
-        String indent = "  ";
-
-        // state text
-        writer.print(indent + "SAY #" + state.strref);
-        writer.print(" /* ");
-        writer.print("~" + StringTable.getStringRef(state.strref, StringTable.Format.NONE) + "~");
-        String wav = StringTable.getSoundResource(state.strref);
-        if (!wav.isEmpty()) {
-          writer.print(" [" + wav + "]");
-        }
-        writer.println(" */");
-
-        // responses
-        for (int idx2 = 0; idx2 < state.responses.size(); idx2++) {
-          DlgResponse response = state.responses.get(idx2);
-
-          writer.print(indent + "IF ");
-          // response trigger
-          writer.print("~" + response.trigger + "~");
-          writer.print(" THEN");
-
-          // reply
-          if ((response.flags & 0x01) != 0) {
-            writer.print(" REPLY #" + response.strref);
-            writer.print(" /* ");
-            writer.print("~" + StringTable.getStringRef(response.strref, StringTable.Format.NONE) + "~");
-            wav = StringTable.getSoundResource(response.strref);
-            if (!wav.isEmpty()) {
-              writer.print(" [" + wav + "]");
-            }
-            writer.print(" */");
-          }
-
-          // response action
-          if ((response.flags & 0x04) != 0) {
-            writer.print(" DO ");
-            writer.print("~" + response.action + "~");
-          }
-
-          // journal entry
-          if ((response.flags & 0x10) != 0) {
-            String keyJournal = "";
-            if ((response.flags & 0x40) != 0) {
-              keyJournal = "UNSOLVED_JOURNAL";
-            } else if ((response.flags & 0x100) != 0) {
-              keyJournal = "SOLVED_JOURNAL";
-            } else {
-              keyJournal = "JOURNAL";
-            }
-
-            writer.print(" " + keyJournal + " #" + response.strrefJournal);
-            writer.print(" /* ");
-            writer.print("~" + StringTable.getStringRef(response.strrefJournal, StringTable.Format.NONE) + "~");
-            wav = StringTable.getSoundResource(response.strrefJournal);
-            if (!wav.isEmpty()) {
-              writer.print(" [" + wav + "]");
-            }
-            writer.print(" */");
-          }
-
-          // transition
-          if ((response.flags & 0x08) != 0) {
-            // terminating
-            writer.print(" EXIT");
-          } else {
-            if (dlgResRef.equalsIgnoreCase(response.nextStateDlg)) {
-              // internal transition
-              writer.print(" GOTO ");
-            } else {
-              // external transition
-              writer.print(" EXTERN ~" + response.nextStateDlg + "~ ");
-            }
-            writer.print(response.nextStateIndex);
-          }
-          writer.println();
-        }
-
-        writer.println("END");
+        final DlgState state = statesList.get(idx);
+        state.write(writer, dlgResRef, idx, weighted);
       }
 
       retVal = true;
@@ -725,19 +690,35 @@ public final class DlgResource extends AbstractStruct
     return retVal;
   }
 
+  private static void writeStrRef(PrintWriter writer, String key, int strref)
+  {
+    writer.print(key + " #" + strref);
+    writer.print(" /* ");
+    writer.print("~" + StringTable.getStringRef(strref, StringTable.Format.NONE) + "~");
+    final String wav = StringTable.getSoundResource(strref);
+    if (!wav.isEmpty()) {
+      writer.print(" [" + wav + "]");
+    }
+    writer.print(" */");
+  }
 //-------------------------- INNER CLASSES --------------------------
 
-  // Used by WeiDU D export routine
-  private class DlgState
+  /** Used by WeiDU D export routine. */
+  private final class DlgState
   {
-    // contains correctly ordered list of responses
+    /** Contains correctly ordered list of responses. */
     public final ArrayList<DlgResponse> responses = new ArrayList<>();
 
-    public String cmtFrom;      // colon-separated list of transition origins for this state
-    public String cmtWeight;    // colon-separated list of states that are processed before this state
-    public int triggerIndex;    // used for weight
-    public int strref;          // strref of state
-    public String trigger;      // trigger text
+    /** Space-separated list of transition origins for this state. */
+    private String cmtFrom;
+    /** Space-separated list of states that are processed before this state. */
+    private String cmtWeight;
+    /** Used for weight. */
+    public int triggerIndex;
+    /** Strref of state. */
+    private int strref;
+    /** Trigger text. */
+    private String trigger;
 
     public DlgState(State state)
     {
@@ -759,10 +740,7 @@ public final class DlgResource extends AbstractStruct
       int numResponses = ((IsNumeric)state.getAttribute(State.DLG_STATE_NUM_RESPONSES)).getValue();
       if (numResponses > 0) {
         for (int idx = 0; idx < numResponses; idx++) {
-          StructEntry e = getAttribute(Transition.DLG_TRANS + " " + (responseIndex + idx));
-          if (e instanceof Transition) {
-            responses.add(new DlgResponse((Transition)e));
-          }
+          responses.add(new DlgResponse(getTransition(responseIndex + idx)));
         }
       }
     }
@@ -770,38 +748,78 @@ public final class DlgResource extends AbstractStruct
     public void addStateOrigin(int stateIndex, int triggerIndex)
     {
       if (stateIndex >= 0 && triggerIndex >= 0) {
-        if (!cmtFrom.isEmpty()) { cmtFrom += ":"; }
-        cmtFrom += stateIndex + "." + triggerIndex;
+        cmtFrom += " " + stateIndex + "." + triggerIndex;
       }
     }
 
-    // Add subsequent state indices with trigger indices less than current index
+    /** Add subsequent state indices with trigger indices less than current index. */
     public void addWeightState(int stateIndex)
     {
       if (stateIndex > 0) {
-        if (!cmtWeight.isEmpty()) { cmtWeight += ":"; }
-        cmtWeight += stateIndex;
+        cmtWeight += " " + stateIndex;
       }
+    }
+
+    public void write(PrintWriter writer, String dlgResRef, int idx, boolean weighted)
+    {
+      writer.println();
+      writer.print("IF ");
+
+      // optional weight information
+      if (triggerIndex >= 0 && weighted) {
+        writer.print("WEIGHT #" + triggerIndex + " ");
+
+        if (!cmtWeight.isEmpty()) {
+          writer.print("/* Triggers after states #:");
+          writer.print(cmtWeight);
+          writer.println(" even though they appear after this state */");
+        }
+      }
+
+      // state trigger
+      writer.print("~" + trigger + "~");
+      writer.print(" THEN BEGIN " + idx);
+
+      // state origins
+      writer.print(" // from:");
+      writer.print(cmtFrom);
+      writer.println();
+
+      final String indent = "  ";
+
+      // state text
+      writeStrRef(writer, indent + "SAY", strref);
+      writer.println();
+
+      // responses
+      for (DlgResponse response : responses) {
+        response.write(writer, dlgResRef, indent);
+      }
+
+      writer.println("END");
     }
   }
 
-  // Used by WeiDU D export routine
-  private class DlgResponse
+  /** Used by WeiDU D export routine. */
+  private final class DlgResponse
   {
-    public int flags;           // response flags
-    public int strref;          // response text
-    public int strrefJournal;   // journal text
-    public String trigger;      // the trigger code
-    public String action;       // the action code
-    public String nextStateDlg; // resref to DLG (or null if dialog terminates)
-    public int nextStateIndex;  // state index in external DLG (or -1 if dialog terminates)
+    /** Response flags. */
+    private final int flags;
+    /** Response text. */
+    private int strref;
+    /** Journal text. */
+    private int strrefJournal;
+    /** The trigger code. */
+    private String trigger;
+    /** The action code. */
+    private String action;
+    /** Resref to DLG (or null if dialog terminates). */
+    public String nextStateDlg;
+    /** State index in external DLG (or -1 if dialog terminates). */
+    public int nextStateIndex;
 
     public DlgResponse(Transition trans)
     {
-      if (trans == null) {
-        throw new NullPointerException();
-      }
-
       strref = strrefJournal = nextStateIndex = -1;
       trigger = action = "";
       nextStateDlg = null;
@@ -815,7 +833,6 @@ public final class DlgResource extends AbstractStruct
       }
       if ((flags & 0x02) != 0) {
         int index = ((IsNumeric)trans.getAttribute(Transition.DLG_TRANS_TRIGGER_INDEX)).getValue();
-        trigger = "";
         StructEntry e = getAttribute(ResponseTrigger.DLG_RESPONSETRIGGER + " " + index);
         if (e instanceof AbstractCode) {
           trigger = ((AbstractCode)e).getText();
@@ -823,7 +840,6 @@ public final class DlgResource extends AbstractStruct
       }
       if ((flags & 0x04) != 0) {
         int index = ((IsNumeric)trans.getAttribute(Transition.DLG_TRANS_ACTION_INDEX)).getValue();
-        action = "";
         StructEntry e = getAttribute(Action.DLG_ACTION + " " + index);
         if (e instanceof AbstractCode) {
           action = ((AbstractCode)e).getText();
@@ -834,6 +850,54 @@ public final class DlgResource extends AbstractStruct
         nextStateIndex = ((IsNumeric)trans.getAttribute(Transition.DLG_TRANS_NEXT_DIALOG_STATE)).getValue();
       }
     }
+
+    public void write(PrintWriter writer, String dlgResRef, String indent)
+    {
+      writer.print(indent + "IF ");
+      // response trigger
+      writer.print("~" + trigger + "~");
+      writer.print(" THEN");
+
+      // reply
+      if ((flags & 0x01) != 0) {
+        writeStrRef(writer, " REPLY", strref);
+      }
+
+      // response action
+      if ((flags & 0x04) != 0) {
+        writer.print(" DO ");
+        writer.print("~" + action + "~");
+      }
+
+      // journal entry
+      if ((flags & 0x10) != 0) {
+        final String keyJournal;
+        if ((flags & 0x40) != 0) {
+          keyJournal = " UNSOLVED_JOURNAL";
+        } else if ((flags & 0x100) != 0) {
+          keyJournal = " SOLVED_JOURNAL";
+        } else {
+          keyJournal = " JOURNAL";
+        }
+
+        writeStrRef(writer, keyJournal, strrefJournal);
+      }
+
+      // transition
+      if ((flags & 0x08) != 0) {
+        // terminating
+        writer.print(" EXIT");
+      } else {
+        if (dlgResRef.equalsIgnoreCase(nextStateDlg)) {
+          // internal transition
+          writer.print(" GOTO ");
+        } else {
+          // external transition
+          writer.print(" EXTERN ~" + nextStateDlg + "~ ");
+        }
+        writer.print(nextStateIndex);
+      }
+      writer.println();
+    }
   }
 }
-

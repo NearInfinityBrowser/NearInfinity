@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -7,7 +7,6 @@ package org.infinity.resource.dlg;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -19,18 +18,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Stack;
 
 import javax.swing.BorderFactory;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -40,385 +30,78 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.JViewport;
-import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.infinity.NearInfinity;
-import org.infinity.datatype.Flag;
-import org.infinity.datatype.ResourceRef;
-import org.infinity.datatype.SectionCount;
-import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.LinkButton;
 import org.infinity.gui.ScriptTextArea;
+import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
-import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
-import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
 
 /** Show dialog content as tree structure. */
 final class TreeViewer extends JPanel implements ActionListener, TreeSelectionListener,
-                                                 TableModelListener, PropertyChangeListener
+                                                 PropertyChangeListener
 {
   private final JPopupMenu pmTree = new JPopupMenu();
-  private final JMenuItem miExpandAll = new JMenuItem("Expand all nodes");
-  private final JMenuItem miExpand = new JMenuItem("Expand selected node");
-  private final JMenuItem miCollapseAll = new JMenuItem("Collapse all nodes");
-  private final JMenuItem miCollapse = new JMenuItem("Collapse selected nodes");
-  private final JMenuItem miEditEntry = new JMenuItem("Edit selected entry");
 
-  // caches ViewFrame instances used to display external dialog entries
-  private final HashMap<String, ViewFrame> mapViewer = new HashMap<String, ViewFrame>();
+  private final JMenuItem miExpandAll   = new JMenuItem("Expand all nodes",        Icons.getIcon(Icons.ICON_EXPAND_ALL_24));
+  private final JMenuItem miExpand      = new JMenuItem("Expand selected node",    Icons.getIcon(Icons.ICON_EXPAND_16));
+  private final JMenuItem miCollapseAll = new JMenuItem("Collapse all nodes",      Icons.getIcon(Icons.ICON_COLLAPSE_ALL_24));
+  private final JMenuItem miCollapse    = new JMenuItem("Collapse selected nodes", Icons.getIcon(Icons.ICON_COLLAPSE_16));
+  private final JMenuItem miEditEntry   = new JMenuItem("Edit selected entry",     Icons.getIcon(Icons.ICON_EDIT_16));
+
+  /** Caches ViewFrame instances used to display external dialog entries. */
+  private final HashMap<DlgResource, ViewFrame> mapViewer = new HashMap<>();
 
   private final DlgResource dlg;
   private final JTree dlgTree;
   private final ItemInfo dlgInfo;
 
-  private DlgTreeModel dlgModel;
-  private JScrollPane spInfo, spTree;
+  private final DlgTreeModel dlgModel;
+  private final JScrollPane spInfo;
+  private final JScrollPane spTree;
   private TreeWorker worker;
   private WindowBlocker blocker;
-
 
   TreeViewer(DlgResource dlg)
   {
     super(new BorderLayout());
     this.dlg = dlg;
-    this.dlg.addTableModelListener(this);
-    dlgModel = null;
-    dlgTree = new JTree((TreeModel)null);
+    dlgModel = new DlgTreeModel(dlg);
+    dlgTree = new JTree((TreeModel)dlgModel);
     dlgTree.addTreeSelectionListener(this);
+    // Expand first dialog first level
+    dlgTree.expandPath(dlgModel.getMainDlgPath());
     dlgInfo = new ItemInfo();
-    initControls();
-  }
 
-//--------------------- Begin Interface ActionListener ---------------------
-
-  @Override
-  public void actionPerformed(ActionEvent e)
-  {
-    if (e.getSource() == miEditEntry) {
-      TreePath path = dlgTree.getSelectionPath();
-      if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-        if (node.getUserObject() instanceof ItemBase) {
-          ItemBase item = (ItemBase)node.getUserObject();
-          boolean isExtern = (!item.getDialogName().equals(dlg.getResourceEntry().getResourceName()));
-          if (isExtern) {
-            ViewFrame vf = mapViewer.get(item.getDialogName().toUpperCase(Locale.ENGLISH));
-            // reuseing external dialog window if possible
-            if (vf != null && vf.isVisible()) {
-              vf.toFront();
-            } else {
-              vf = new ViewFrame(this, item.getDialog());
-              mapViewer.put(item.getDialogName().toUpperCase(Locale.ENGLISH), vf);
-            }
-          }
-
-          if (item.getDialog().getViewer() != null) {
-            // selecting table entry
-            Viewer viewer = (Viewer)item.getDialog().getViewerTab(0);
-            if (node.getUserObject() instanceof RootItem) {
-              item.getDialog().getViewer().selectEntry(0);
-            } else if (node.getUserObject() instanceof StateItem) {
-              int stateIdx = ((StateItem)item).getState().getNumber();
-              item.getDialog().getViewer().selectEntry(State.DLG_STATE + " " + stateIdx);
-              viewer.showStateWithStructEntry(((StateItem)item).getState());
-            } else if (node.getUserObject() instanceof TransitionItem) {
-              int transIdx = ((TransitionItem)item).getTransition().getNumber();
-              item.getDialog().getViewer().selectEntry(Transition.DLG_TRANS + " " + transIdx);
-              viewer.showStateWithStructEntry(((TransitionItem)item).getTransition());
-            }
-            item.getDialog().selectEditTab();
-          }
-        }
-      }
-    } else if (e.getSource() == miExpandAll) {
-      if (worker == null) {
-        worker = new TreeWorker(this, TreeWorker.Type.EXPAND, new TreePath(dlgModel.getRoot()));
-        worker.addPropertyChangeListener(this);
-        blocker = new WindowBlocker(NearInfinity.getInstance());
-        blocker.setBlocked(true);
-        worker.execute();
-      }
-    } else if (e.getSource() == miCollapseAll) {
-      if (worker == null) {
-        worker = new TreeWorker(this, TreeWorker.Type.COLLAPSE, new TreePath(dlgModel.getRoot()));
-        worker.addPropertyChangeListener(this);
-        blocker = new WindowBlocker(NearInfinity.getInstance());
-        blocker.setBlocked(true);
-        worker.execute();
-      }
-    } else if (e.getSource() == miExpand) {
-      if (worker == null) {
-        worker = new TreeWorker(this, TreeWorker.Type.EXPAND, dlgTree.getSelectionPath());
-        worker.addPropertyChangeListener(this);
-        blocker = new WindowBlocker(NearInfinity.getInstance());
-        blocker.setBlocked(true);
-        worker.execute();
-      }
-    } else if (e.getSource() == miCollapse) {
-      if (worker == null) {
-        worker = new TreeWorker(this, TreeWorker.Type.COLLAPSE, dlgTree.getSelectionPath());
-        worker.addPropertyChangeListener(this);
-        blocker = new WindowBlocker(NearInfinity.getInstance());
-        blocker.setBlocked(true);
-        worker.execute();
-      }
-    }
-  }
-
-//--------------------- End Interface ActionListener ---------------------
-
-//--------------------- Begin Interface TreeSelectionListener ---------------------
-
-  @Override
-  public void valueChanged(TreeSelectionEvent e)
-  {
-    if (e.getSource() == dlgTree) {
-      Object node = dlgTree.getLastSelectedPathComponent();
-      if (node instanceof DefaultMutableTreeNode) {
-        Object data = ((DefaultMutableTreeNode)node).getUserObject();
-        if (data instanceof StateItem) {
-          // dialog state found
-          updateStateInfo((StateItem)data);
-        } else if (data instanceof TransitionItem) {
-          // dialog response found
-          updateTransitionInfo((TransitionItem)data);
-        } else {
-          // no valid type found
-          dlgInfo.showPanel(ItemInfo.CARD_EMPTY);
-        }
-      } else {
-        // no node selected
-        dlgInfo.showPanel(ItemInfo.CARD_EMPTY);
-      }
-    }
-  }
-
-//--------------------- End Interface TreeSelectionListener ---------------------
-
-//--------------------- Begin Interface TableModelListener ---------------------
-
- @Override
- public void tableChanged(TableModelEvent e)
- {
-   // Insertion or removal of nodes not yet supported
-   if (e.getType() == TableModelEvent.UPDATE) {
-     if (dlgModel != null) {
-       if (e.getSource() instanceof State) {
-         State state = (State)e.getSource();
-         dlgModel.updateState(state);
-       } else if (e.getSource() instanceof Transition) {
-         Transition trans = (Transition)e.getSource();
-         dlgModel.updateTransition(trans);
-       } else if (e.getSource() instanceof DlgResource) {
-         dlgModel.updateRoot();
-       }
-     }
-   }
- }
-
-//--------------------- End Interface TableModelListener ---------------------
-
-//--------------------- Begin Interface PropertyChangeListener ---------------------
-
- @Override
- public void propertyChange(PropertyChangeEvent event)
- {
-   if (event.getSource() == worker) {
-     if ("state".equals(event.getPropertyName()) &&
-         TreeWorker.StateValue.DONE == event.getNewValue()) {
-       if (blocker != null) {
-         blocker.setBlocked(false);
-         blocker = null;
-       }
-       worker = null;
-     }
-   }
- }
-
-//--------------------- End Interface PropertyChangeListener ---------------------
-
-  /** Initializes the actual dialog content. */
-  public void init()
-  {
-    if (dlgModel == null) {
-      dlgModel = new DlgTreeModel(this.dlg);
-      dlgTree.setModel(dlgModel);
-    }
-  }
-
-  private void updateStateInfo(StateItem si)
-  {
-    if (si != null && si.getDialog() != null && si.getState() != null) {
-      DlgResource curDlg = si.getDialog();
-      State state = si.getState();
-
-      // updating info box title
-      StringBuilder sb = new StringBuilder(state.getName() + ", ");
-      if (curDlg != dlg) {
-        sb.append(String.format("Dialog: %s, ", curDlg.getResourceEntry().getResourceName()));
-      }
-      sb.append(String.format("Responses: %d", state.getTransCount()));
-      if (state.getTriggerIndex() >= 0) {
-        sb.append(String.format(", Weight: %d", state.getTriggerIndex()));
-      }
-      dlgInfo.updateControlBorder(ItemInfo.Type.STATE, sb.toString());
-
-      // updating state text
-      dlgInfo.showControl(ItemInfo.Type.STATE_TEXT, true);
-      dlgInfo.updateControlText(ItemInfo.Type.STATE_TEXT, StringTable.getStringRef(state.getResponse().getValue()));
-
-      // updating state WAV Res
-      String responseText = StringTable.getSoundResource(state.getResponse().getValue());
-      if (!responseText.isEmpty()) {
-        dlgInfo.showControl(ItemInfo.Type.STATE_WAV, true);
-        dlgInfo.updateControlText(ItemInfo.Type.STATE_WAV, responseText + ".WAV");
-      } else {
-        dlgInfo.showControl(ItemInfo.Type.STATE_WAV, false);
-      }
-
-      // updating state triggers
-      if (state.getTriggerIndex() >= 0) {
-        dlgInfo.showControl(ItemInfo.Type.STATE_TRIGGER, true);
-        StructEntry entry = curDlg.getAttribute(StateTrigger.DLG_STATETRIGGER + " " + state.getTriggerIndex());
-        if (entry instanceof StateTrigger) {
-          dlgInfo.updateControlText(ItemInfo.Type.STATE_TRIGGER, ((StateTrigger)entry).toString());
-        } else {
-          dlgInfo.updateControlText(ItemInfo.Type.STATE_TRIGGER, "");
-        }
-      } else {
-        dlgInfo.showControl(ItemInfo.Type.STATE_TRIGGER, false);
-      }
-
-      dlgInfo.showPanel(ItemInfo.CARD_STATE);
-
-      // jumping to top of scroll area
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() { spInfo.getVerticalScrollBar().setValue(0); }
-      });
-    } else {
-      dlgInfo.showPanel(ItemInfo.CARD_EMPTY);
-    }
-  }
-
-  private void updateTransitionInfo(TransitionItem ti)
-  {
-    if (ti != null && ti.getDialog() != null && ti.getTransition() != null) {
-      DlgResource curDlg = ti.getDialog();
-      Transition trans = ti.getTransition();
-      StructEntry entry;
-
-      // updating info box title
-      StringBuilder sb = new StringBuilder(trans.getName());
-      if (curDlg != dlg) {
-        sb.append(String.format(", Dialog: %s", curDlg.getResourceEntry().getResourceName()));
-      }
-      dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE, sb.toString());
-
-      // updating flags
-      dlgInfo.showControl(ItemInfo.Type.RESPONSE_FLAGS, true);
-      dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_FLAGS, trans.getFlag().toString());
-
-      // updating response text
-      if (trans.getFlag().isFlagSet(0)) {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_TEXT, true);
-        dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TEXT,
-                                  StringTable.getStringRef(trans.getAssociatedText().getValue()));
-      } else {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_TEXT, false);
-      }
-
-      // updating journal entry
-      if (trans.getFlag().isFlagSet(4)) {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_JOURNAL, true);
-        dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_JOURNAL,
-                                  StringTable.getStringRef(trans.getJournalEntry().getValue()));
-      } else {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_JOURNAL, false);
-      }
-
-      // updating response trigger
-      if (trans.getFlag().isFlagSet(1)) {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_TRIGGER, true);
-        entry = curDlg.getAttribute(ResponseTrigger.DLG_RESPONSETRIGGER + " " + trans.getTriggerIndex());
-        if (entry instanceof ResponseTrigger) {
-          dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TRIGGER, ((ResponseTrigger)entry).toString());
-        } else {
-          dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TRIGGER, "");
-        }
-      } else {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_TRIGGER, false);
-      }
-
-      // updating action
-      if (trans.getFlag().isFlagSet(2)) {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_ACTION, true);
-        entry = curDlg.getAttribute(Action.DLG_ACTION + " " + trans.getActionIndex());
-        if (entry instanceof Action) {
-          dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_ACTION, ((Action)entry).toString());
-        } else {
-          dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_ACTION, "");
-        }
-      } else {
-        dlgInfo.showControl(ItemInfo.Type.RESPONSE_ACTION, false);
-      }
-
-      dlgInfo.showPanel(ItemInfo.CARD_RESPONSE);
-
-      // jumping to top of scroll area
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() { spInfo.getVerticalScrollBar().setValue(0); }
-      });
-    } else {
-      dlgInfo.showPanel(ItemInfo.CARD_EMPTY);
-    }
-  }
-
-  private void initControls()
-  {
     // initializing info component
     spInfo = new JScrollPane(dlgInfo, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                              JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    spInfo.getViewport().addChangeListener(new ChangeListener() {
-      @Override
-      public void stateChanged(ChangeEvent e)
-      {
-        // never scroll horizontally
-        JViewport vp = (JViewport)e.getSource();
-        if (vp != null) {
-          Dimension d = vp.getExtentSize();
-          if (d.width != vp.getView().getWidth()) {
-            d.height = vp.getView().getHeight();
-            vp.getView().setSize(d);
-          }
+    spInfo.getViewport().addChangeListener((ChangeEvent e) -> {
+      // never scroll horizontally
+      JViewport vp = (JViewport)e.getSource();
+      if (vp != null) {
+        Dimension d = vp.getExtentSize();
+        if (d.width != vp.getView().getWidth()) {
+          d.height = vp.getView().getHeight();
+          vp.getView().setSize(d);
         }
       }
     });
@@ -439,49 +122,23 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     dlgTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     dlgTree.setRootVisible(true);
     dlgTree.setEditable(false);
-    DefaultTreeCellRenderer tcr = (DefaultTreeCellRenderer)dlgTree.getCellRenderer();
-    tcr.setLeafIcon(null);
-    tcr.setOpenIcon(null);
-    tcr.setClosedIcon(null);
 
-    // drawing custom icons for each node type
-    dlgTree.setCellRenderer(new DefaultTreeCellRenderer() {
-      @Override
-      public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
-                                                    boolean expanded, boolean leaf, int row,
-                                                    boolean focused)
-      {
-        Component c = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, focused);
-        if (value instanceof DefaultMutableTreeNode) {
-          Object data = ((DefaultMutableTreeNode)value).getUserObject();
-          if (data instanceof ItemBase) {
-            setIcon(((ItemBase)data).getIcon());
-          } else {
-            setIcon(null);
-          }
-        }
-        return c;
-      }
-    });
+    dlgTree.setCellRenderer(new DlgTreeCellRenderer(dlg));
 
     // preventing root node from collapsing
     dlgTree.addTreeWillExpandListener(new TreeWillExpandListener() {
       @Override
-      public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException
-      {
-      }
+      public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {}
 
       @Override
       public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException
       {
-        if (event.getPath().getLastPathComponent() == dlgModel.getRoot()) {
+        final JTree tree = (JTree)event.getSource();
+        if (event.getPath().getLastPathComponent() == tree.getModel().getRoot()) {
           throw new ExpandVetoException(event);
         }
       }
     });
-
-    // setting model AFTER customizing visual appearance of the tree control
-//    dlgTree.setModel(dlgModel);
 
     // initializing popup menu
     miEditEntry.addActionListener(this);
@@ -501,6 +158,28 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     dlgTree.addMouseListener(new MouseAdapter()
     {
       @Override
+      public void mouseClicked(MouseEvent e)
+      {
+        if (e.getClickCount() != 2) { return; }
+
+        final JTree tree = (JTree)e.getSource();
+        final TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+        if (path == null) { return; }
+
+        final Object last = path.getLastPathComponent();
+        if (!(last instanceof ItemBase)) { return; }
+
+        // If item can have children (if infinity tree option is on) or clicked
+        // item is main element, then do nothing, otherwise go to main item
+        final ItemBase item = (ItemBase)last;
+        if (item.getAllowsChildren() || item.getMain() == null) { return; }
+
+        final TreePath target = item.getMain().getPath();
+        tree.setSelectionPath(target);
+        tree.scrollPathToVisible(target);
+      }
+
+      @Override
       public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
 
       @Override
@@ -508,16 +187,17 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 
       private void maybeShowPopup(MouseEvent e)
       {
-        if (e.getSource() == dlgTree && e.isPopupTrigger()) {
-          miEditEntry.setEnabled(!dlgTree.isSelectionEmpty());
-          miExpand.setEnabled(!dlgTree.isSelectionEmpty() &&
-                              !isNodeExpanded(dlgTree.getSelectionPath()) &&
-                              dlgTree.getSelectionPath().getPathCount() > 1);
-          miCollapse.setEnabled(!dlgTree.isSelectionEmpty() &&
-                                !isNodeCollapsed(dlgTree.getSelectionPath()) &&
-                                dlgTree.getSelectionPath().getPathCount() > 1);
+        if (e.isPopupTrigger()) {
+          final JTree tree = (JTree)e.getSource();
+          final TreePath path = tree.getClosestPathForLocation(e.getX(), e.getY());
+          tree.setSelectionPath(path);
+          final boolean isNonRoot = path != null && path.getLastPathComponent() instanceof ItemBase;
 
-          pmTree.show(dlgTree, e.getX(), e.getY());
+          miEditEntry.setEnabled(isNonRoot && !(path.getLastPathComponent() instanceof BrokenReference));
+          miExpand.setEnabled(isNonRoot && !isNodeExpanded(path));
+          miCollapse.setEnabled(isNonRoot && !isNodeCollapsed(path));
+
+          pmTree.show(tree, e.getX(), e.getY());
         }
       }
     });
@@ -528,128 +208,302 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     add(splitv, BorderLayout.CENTER);
   }
 
-  // Checks whether given path contains a node with the specified item object
-  private boolean nodeExists(TreePath path, Object item)
+  //<editor-fold defaultstate="collapsed" desc="ActionListener">
+  @Override
+  public void actionPerformed(ActionEvent e)
   {
-    if (path != null && item != null) {
-      final Object[] nodes = path.getPath();
-      if (nodes != null) {
-        for (int i = 1; i < nodes.length; i++) {
-          if (nodes[i] instanceof DefaultMutableTreeNode) {
-            final Object curItem = ((DefaultMutableTreeNode)nodes[i]).getUserObject();
-            if (item.equals(curItem)) {
-              return true;
-            }
+    if (e.getSource() == miEditEntry) {
+      final TreePath path = dlgTree.getSelectionPath();
+      if (path != null) {
+        final ItemBase item = (ItemBase)path.getLastPathComponent();
+        final DlgResource curDlg = item.getDialog();
+        if (curDlg != dlg) {
+          ViewFrame vf = mapViewer.get(curDlg);
+          // reuseing external dialog window if possible
+          if (vf != null && vf.isVisible()) {
+            vf.toFront();
+          } else {
+            vf = new ViewFrame(this, curDlg);
+            mapViewer.put(curDlg, vf);
           }
         }
+
+        final StructViewer viewer = curDlg.getViewer();
+        if (viewer != null) {
+          // selecting table entry
+          final Viewer tab = (Viewer)curDlg.getViewerTab(0);
+          if (item instanceof DlgItem) {
+            viewer.selectEntry(0);
+          } else
+          if (!(item instanceof BrokenReference)) {
+            final TreeItemEntry s = item.getEntry();
+            viewer.selectEntry(s.getName());
+            tab.select(s);
+          }
+          curDlg.selectEditTab();
+        }
       }
+    } else if (e.getSource() == miExpandAll) {
+      if (worker == null) {
+        worker = new TreeWorker(dlgTree, new TreePath(dlgTree.getModel().getRoot()), true);
+        worker.addPropertyChangeListener(this);
+        blocker = new WindowBlocker(NearInfinity.getInstance());
+        blocker.setBlocked(true);
+        worker.execute();
+      }
+    } else if (e.getSource() == miCollapseAll) {
+      if (worker == null) {
+        worker = new TreeWorker(dlgTree, new TreePath(dlgTree.getModel().getRoot()), false);
+        worker.addPropertyChangeListener(this);
+        blocker = new WindowBlocker(NearInfinity.getInstance());
+        blocker.setBlocked(true);
+        worker.execute();
+      }
+    } else if (e.getSource() == miExpand) {
+      if (worker == null) {
+        worker = new TreeWorker(dlgTree, dlgTree.getSelectionPath(), true);
+        worker.addPropertyChangeListener(this);
+        blocker = new WindowBlocker(NearInfinity.getInstance());
+        blocker.setBlocked(true);
+        worker.execute();
+      }
+    } else if (e.getSource() == miCollapse) {
+      if (worker == null) {
+        worker = new TreeWorker(dlgTree, dlgTree.getSelectionPath(), false);
+        worker.addPropertyChangeListener(this);
+        blocker = new WindowBlocker(NearInfinity.getInstance());
+        blocker.setBlocked(true);
+        worker.execute();
+      }
+    }
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="TreeSelectionListener">
+  @Override
+  public void valueChanged(TreeSelectionEvent e)
+  {
+    if (e.getSource() == dlgTree) {
+      final Object data = e.getPath().getLastPathComponent();
+      if (data instanceof StateItem) {
+        // dialog state found
+        updateStateInfo((StateItem)data);
+      } else if (data instanceof TransitionItem) {
+        // dialog response found
+        updateTransitionInfo((TransitionItem)data);
+      } else {
+        // no valid type found
+        dlgInfo.showPanel(ItemInfo.CARD_EMPTY);
+      }
+    }
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="PropertyChangeListener">
+  @Override
+  public void propertyChange(PropertyChangeEvent event)
+  {
+    if (event.getSource() == worker) {
+      if ("state".equals(event.getPropertyName()) &&
+          TreeWorker.StateValue.DONE == event.getNewValue()) {
+        if (blocker != null) {
+          blocker.setBlocked(false);
+          blocker = null;
+        }
+        worker = null;
+      }
+    }
+  }
+  //</editor-fold>
+
+  /**
+   * Selects specified dialog state or transition in the tree. If such entry not
+   * exist in the dialog, returns {@code false}. Such situation say that specified
+   * entry not unattainable from a dialogue root. Possibly, it is continuation
+   * from other dialogue.
+   * <p>
+   * Always selects selects main state/transition.
+   *
+   * @param entry Child struct of the dialog for search
+   * @return {@code true} If dialog item found in the tree, {@code false} otherwise
+   */
+  public boolean select(TreeItemEntry entry)
+  {
+    ItemBase item = dlgModel.map(entry);
+    if (item == null) {
+      item = dlgModel.addToRoot(entry);
+    }
+    if (item != null) {
+      //TODO: After introducing proxy filtered tree this will require path item mapping
+      final TreePath path = item.getPath();
+      dlgTree.addSelectionPath(path);
+      dlgTree.scrollPathToVisible(path);
+      return true;
     }
     return false;
   }
 
-  // Expands all children and their children of the given path
-  private void expandNode(TreePath path)
+  private void updateStateInfo(StateItem si)
   {
-    final TreePath curPath = path;
-    if (worker != null && worker.userCancelled()) return;
-    if (path != null) {
-      TreeNode node = (TreeNode)path.getLastPathComponent();
+    final DlgResource curDlg = si.getDialog();
 
-      final Object item = ((DefaultMutableTreeNode)node).getUserObject();
-      if (item instanceof StateItem) {
-        if (nodeExists(path.getParentPath(), item)) {
-          return;
-        }
-      }
-
-      if (worker != null) { worker.advanceProgress(); }
-      if (!dlgTree.isExpanded(path)) {
-        try {
-          SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() { dlgTree.expandPath(curPath); }
-          });
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        } catch (InvocationTargetException e) {
-          e.printStackTrace();
-        }
-      }
-
-      for (int i = 0, count = node.getChildCount(); i < count; i++) {
-        expandNode(curPath.pathByAddingChild(node.getChildAt(i)));
-        if (worker != null && worker.userCancelled()) return;
-      }
+    // updating info box title
+    final StringBuilder sb = new StringBuilder(si.getName());
+    if (curDlg != dlg) {
+      sb.append(String.format(", Dialog: %s", curDlg.getResourceEntry().getResourceName()));
     }
+
+    final State state = si.getEntry();
+    if (state != null) {
+      sb.append(String.format(", Responses: %d", state.getTransCount()));
+      if (state.getTriggerIndex() >= 0) {
+        sb.append(String.format(", Weight: %d", state.getTriggerIndex()));
+      }
+      dlgInfo.updateControlBorder(ItemInfo.Type.STATE, sb.toString());
+
+      final int strRef = state.getAssociatedText().getValue();
+      // updating state text
+      dlgInfo.showControl(ItemInfo.Type.STATE_TEXT, true);
+      dlgInfo.updateControlText(ItemInfo.Type.STATE_TEXT, StringTable.getStringRef(strRef));
+
+      // updating state WAV Res
+      final String responseText = StringTable.getSoundResource(strRef);
+      if (!responseText.isEmpty()) {
+        dlgInfo.showControl(ItemInfo.Type.STATE_WAV, true);
+        dlgInfo.updateControlText(ItemInfo.Type.STATE_WAV, responseText + ".WAV");
+      } else {
+        dlgInfo.showControl(ItemInfo.Type.STATE_WAV, false);
+      }
+    } else {
+      dlgInfo.showControl(ItemInfo.Type.STATE_TEXT, false);
+      dlgInfo.showControl(ItemInfo.Type.STATE_WAV, false);
+      dlgInfo.updateControlBorder(ItemInfo.Type.STATE, sb.toString());
+    }
+
+    // updating state triggers
+    if (state != null && state.getTriggerIndex() >= 0) {
+      dlgInfo.showControl(ItemInfo.Type.STATE_TRIGGER, true);
+      final String attrName = StateTrigger.DLG_STATETRIGGER + " " + state.getTriggerIndex();
+      final StructEntry entry = curDlg.getAttribute(attrName);
+      final String text = entry instanceof StateTrigger ? ((StateTrigger)entry).getText() : "";
+      dlgInfo.updateControlText(ItemInfo.Type.STATE_TRIGGER, text);
+      dlgInfo.updateControlBorder(ItemInfo.Type.STATE_TRIGGER, attrName);
+    } else {
+      dlgInfo.showControl(ItemInfo.Type.STATE_TRIGGER, false);
+    }
+
+    dlgInfo.showPanel(ItemInfo.CARD_STATE);
+
+    // jumping to top of scroll area
+    SwingUtilities.invokeLater(() -> spInfo.getVerticalScrollBar().setValue(0));
   }
 
-  // Collapses all children and their children of the given path
-  private void collapseNode(TreePath path)
+  private void updateTransitionInfo(TransitionItem ti)
   {
-    final TreePath curPath = path;
-    if (worker != null && worker.userCancelled()) return;
-    if (path != null) {
-      TreeNode node = (TreeNode)path.getLastPathComponent();
+    final DlgResource curDlg = ti.getDialog();
 
-      for (int i = 0; i < node.getChildCount(); i++) {
-        collapseNode(curPath.pathByAddingChild(node.getChildAt(i)));
-        if (worker != null && worker.userCancelled()) return;
-      }
-
-      if (worker != null) { worker.advanceProgress(); }
-      if (!dlgTree.isCollapsed(path)) {
-        try {
-          SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() { dlgTree.collapsePath(curPath); }
-          });
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        } catch (InvocationTargetException e) {
-          e.printStackTrace();
-        }
-      }
+    // updating info box title
+    final StringBuilder sb = new StringBuilder(ti.getName());
+    if (curDlg != dlg) {
+      sb.append(String.format(", Dialog: %s", curDlg.getResourceEntry().getResourceName()));
     }
+    dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE, sb.toString());
+
+    final Transition trans = ti.getEntry();
+    // updating flags
+    dlgInfo.showControl(ItemInfo.Type.RESPONSE_FLAGS, trans != null);
+    if (trans != null) {
+      dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_FLAGS, trans.getFlag().toString());
+    }
+
+    // updating response text
+    if (trans != null && trans.getFlag().isFlagSet(0)) {
+      final int strRef = trans.getAssociatedText().getValue();
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_TEXT, true);
+      dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TEXT,
+                                StringTable.getStringRef(strRef, StringTable.Format.NONE));
+      dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE_TEXT,
+                                  StringTable.Format.STRREF_SUFFIX.format(Transition.DLG_TRANS_TEXT, strRef));
+    } else {
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_TEXT, false);
+    }
+
+    // updating journal entry
+    if (trans != null && trans.getFlag().isFlagSet(4)) {
+      final int strRef = trans.getJournalEntry().getValue();
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_JOURNAL, true);
+      dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_JOURNAL,
+                                StringTable.getStringRef(strRef, StringTable.Format.NONE));
+      dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE_JOURNAL,
+                                  StringTable.Format.STRREF_SUFFIX.format(Transition.DLG_TRANS_JOURNAL_ENTRY, strRef));
+    } else {
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_JOURNAL, false);
+    }
+
+    // updating response trigger
+    if (trans != null && trans.getFlag().isFlagSet(1)) {
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_TRIGGER, true);
+      final String attrName = ResponseTrigger.DLG_RESPONSETRIGGER + " " + trans.getTriggerIndex();
+      final StructEntry entry = curDlg.getAttribute(attrName);
+      final String text = entry instanceof ResponseTrigger ? ((ResponseTrigger)entry).getText() : "";
+      dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_TRIGGER, text);
+      dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE_TRIGGER, attrName);
+    } else {
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_TRIGGER, false);
+    }
+
+    // updating action
+    if (trans != null && trans.getFlag().isFlagSet(2)) {
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_ACTION, true);
+      final String attrName = Action.DLG_ACTION + " " + trans.getActionIndex();
+      final StructEntry entry = curDlg.getAttribute(attrName);
+      final String text = entry instanceof Action ? ((Action)entry).getText() : "";
+      dlgInfo.updateControlText(ItemInfo.Type.RESPONSE_ACTION, text);
+      dlgInfo.updateControlBorder(ItemInfo.Type.RESPONSE_ACTION, attrName);
+    } else {
+      dlgInfo.showControl(ItemInfo.Type.RESPONSE_ACTION, false);
+    }
+
+    dlgInfo.showPanel(ItemInfo.CARD_RESPONSE);
+
+    // jumping to top of scroll area
+    SwingUtilities.invokeLater(() -> spInfo.getVerticalScrollBar().setValue(0));
   }
 
-  // Returns true if the given path contains expanded nodes
+  /** Returns true if the given path contains expanded nodes. */
   private boolean isNodeExpanded(TreePath path)
   {
-    boolean retVal = true;
-    if (path != null) {
-      // evaluating current node
-      TreeNode node = (TreeNode)path.getLastPathComponent();
-      if (!node.isLeaf()) {
-        retVal = dlgTree.isExpanded(path);
+    final ItemBase node = (ItemBase)path.getLastPathComponent();
+    // Use access via model because it properly initializes items
+    final TreeModel model = dlgTree.getModel();
+    // Treat non-main nodes as leafs - check of their childs can lead to infinity recursion
+    if (node.getMain() != null || model.isLeaf(node)) return true;
+    if (!dlgTree.isExpanded(path)) return false;
 
-        // traversing child nodes
-        if (retVal) {
-          for (int i = 0; i < node.getChildCount(); i++) {
-            retVal = isNodeExpanded(path.pathByAddingChild(node.getChildAt(i)));
-            if (!retVal) break;
-          }
-        }
+    for (int i = 0, count = model.getChildCount(node); i < count; ++i) {
+      final TreePath childPath = path.pathByAddingChild(model.getChild(node, i));
+      if (!isNodeExpanded(childPath)) {
+        return false;
       }
     }
-    return retVal;
+    return true;
   }
 
-  // Returns true if the given path contains collapsed nodes
+  /** Returns true if the given path contains collapsed nodes. */
   private boolean isNodeCollapsed(TreePath path)
   {
-    boolean retVal = true;
-    if (path != null) {
-      // evaluating current node
-      TreeNode node = (TreeNode)path.getLastPathComponent();
-      if (!node.isLeaf()) {
-        retVal = dlgTree.isCollapsed(path);
+    final ItemBase node = (ItemBase)path.getLastPathComponent();
+    // Use access via model because it properly initializes items
+    final TreeModel model = dlgTree.getModel();
+    if (model.isLeaf(node)) return true;
 
-        // traversing child nodes
-        if (retVal) {
-          for (int i = 0; i < node.getChildCount(); i++) {
-            retVal = isNodeCollapsed(path.pathByAddingChild(node.getChildAt(i)));
-            if (retVal) break;
-          }
+    final boolean retVal = dlgTree.isCollapsed(path);
+    // Do not traverse child nodes of non-main items because this can lead to infinity recursion
+    if (retVal && node.getMain() == null) {
+      for (int i = 0, count = model.getChildCount(node); i < count; ++i) {
+        final TreePath childPath = path.pathByAddingChild(model.getChild(node, i));
+        if (!isNodeCollapsed(childPath)) {
+          return false;
         }
       }
     }
@@ -657,902 +511,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
   }
 
 //-------------------------- INNER CLASSES --------------------------
-
-  // Applies expand or collapse operations on a set of dialog tree nodes in a background task
-  private static class TreeWorker extends SwingWorker<Void, Void>
-  {
-    // Supported operations
-    public enum Type { EXPAND, COLLAPSE }
-
-    private final TreeViewer instance;
-    private final Type type;
-    private final TreePath path;
-
-    private ProgressMonitor progress;
-
-    public TreeWorker(TreeViewer instance, Type type, TreePath path)
-    {
-      this.instance = instance;
-      this.type = type;
-      this.path = path;
-
-      String msg;
-      switch (getType()) {
-        case EXPAND:
-          msg = "Expanding nodes";
-          break;
-        case COLLAPSE:
-          msg = "Collapsing nodes";
-          break;
-        default:
-          msg = "";
-      }
-      progress = new ProgressMonitor(this.instance, msg, "This may take a while...", 0, 1);
-      progress.setMillisToDecideToPopup(250);
-      progress.setMillisToPopup(1000);
-      progress.setProgress(0);
-    }
-
-    @Override
-    protected Void doInBackground() throws Exception
-    {
-      try {
-        switch (getType()) {
-          case EXPAND:
-            instance.expandNode(path);
-            break;
-          case COLLAPSE:
-            instance.collapseNode(path);
-            break;
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      return null;
-    }
-
-    @Override
-    protected void done()
-    {
-      if (progress != null) {
-        progress.close();
-        progress = null;
-      }
-    }
-
-    /** Current operation type. */
-    public Type getType()
-    {
-      return type;
-    }
-
-    /** Advances the progress bar by one unit. May display a short notice after a while. */
-    public void advanceProgress()
-    {
-      if (progress != null) {
-        progress.setMaximum(progress.getMaximum() + 1);
-        if ((progress.getMaximum() - 1) % 100 == 0) {
-          progress.setNote(String.format("Processing node %d", progress.getMaximum() - 1));
-        }
-        progress.setProgress(progress.getMaximum() - 1);
-      }
-    }
-
-    /** Returns true if the user cancelled the operation. */
-    public boolean userCancelled()
-    {
-      if (progress != null) {
-        return progress.isCanceled();
-      }
-      return false;
-    }
-  }
-
-  // Common base class for node type specific classes
-  private static abstract class ItemBase
-  {
-     private final DlgResource dlg;
-     private final boolean showStrrefs;
-     private final boolean showIcons;
-
-     public ItemBase(DlgResource dlg)
-     {
-       this.dlg = dlg;
-       this.showStrrefs = BrowserMenuBar.getInstance().showStrrefs();
-       this.showIcons = BrowserMenuBar.getInstance().showDlgTreeIcons();
-     }
-
-     /** Returns the dialog resource object. */
-     public DlgResource getDialog()
-     {
-       return dlg;
-     }
-
-     /** Returns the dialog resource name. */
-     public String getDialogName()
-     {
-       if (dlg != null) {
-         return dlg.getResourceEntry().getResourceName();
-       } else {
-         return "";
-       }
-     }
-
-     /** Returns the icon associated with the item type. */
-     public abstract Icon getIcon();
-
-     /** Returns whether to show the Strref value next to the string. */
-     protected boolean showStrrefs() { return showStrrefs; }
-
-     /** Returns whether to display icons in front of the nodes. */
-     protected boolean showIcons() { return showIcons; }
-  }
-
-  // Meta class for identifying root node
-  private static final class RootItem extends ItemBase
-  {
-    private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16);
-
-    private final ArrayList<StateItem> states = new ArrayList<StateItem>();
-    private final ImageIcon icon;
-
-    private int numStates, numTransitions, numStateTriggers, numResponseTriggers, numActions;
-    private String flags;
-
-    public RootItem(DlgResource dlg)
-    {
-      super(dlg);
-
-      this.icon = showIcons() ? ICON : null;
-
-      if (getDialog() != null) {
-        StructEntry entry = getDialog().getAttribute(DlgResource.DLG_NUM_STATES);
-        if (entry instanceof SectionCount) {
-          numStates = ((SectionCount)entry).getValue();
-        }
-        entry = getDialog().getAttribute(DlgResource.DLG_NUM_RESPONSES);
-        if (entry instanceof SectionCount) {
-          numTransitions = ((SectionCount)entry).getValue();
-        }
-        entry = getDialog().getAttribute(DlgResource.DLG_NUM_STATE_TRIGGERS);
-        if (entry instanceof SectionCount) {
-          numStateTriggers = ((SectionCount)entry).getValue();
-        }
-        entry = getDialog().getAttribute(DlgResource.DLG_NUM_RESPONSE_TRIGGERS);
-        if (entry instanceof SectionCount) {
-          numResponseTriggers = ((SectionCount)entry).getValue();
-        }
-        entry = getDialog().getAttribute(DlgResource.DLG_NUM_ACTIONS);
-        if (entry instanceof SectionCount) {
-          numActions = ((SectionCount)entry).getValue();
-        }
-        entry = getDialog().getAttribute(DlgResource.DLG_THREAT_RESPONSE);
-        if (entry instanceof Flag) {
-          flags = ((Flag)entry).toString();
-        }
-
-        // finding and storing initial states (sorted by trigger index in ascending order)
-        int count = 0;
-        for (StructEntry e: getDialog().getList()) {
-          if (e instanceof State) {
-            ++count;
-            if (((State)e).getTriggerIndex() >= 0) {
-              states.add(new StateItem(getDialog(), (State)e));
-            }
-            if (count >= numStates) {
-              break;
-            }
-          }
-        }
-        Collections.sort(states, new Comparator<StateItem>() {
-          @Override
-          public int compare(StateItem o1, StateItem o2)
-          {
-            return o1.getState().getTriggerIndex() - o2.getState().getTriggerIndex();
-          }
-        });
-      }
-    }
-
-    /** Returns number of available initial states. */
-    public int getInitialStateCount()
-    {
-      return states.size();
-    }
-
-    /** Returns the StateItem at the given index or null on error. */
-    public StateItem getInitialState(int index)
-    {
-      if (index >= 0 && index < states.size()) {
-        return states.get(index);
-      }
-      return null;
-    }
-
-    @Override
-    public Icon getIcon()
-    {
-      return icon;
-    }
-
-    @Override
-    public String toString()
-    {
-      StringBuilder sb = new StringBuilder();
-      if (!getDialogName().isEmpty()) {
-        sb.append(getDialogName());
-      } else {
-        sb.append("(Invalid DLG resource)");
-      }
-      sb.append(" (states: ").append(Integer.toString(numStates));
-      sb.append(", responses: ").append(Integer.toString(numTransitions));
-      sb.append(", state triggers: ").append(Integer.toString(numStateTriggers));
-      sb.append(", response triggers: ").append(Integer.toString(numResponseTriggers));
-      sb.append(", actions: ").append(Integer.toString(numActions));
-      if (flags != null) {
-        sb.append(", flags: ").append(flags);
-      }
-      sb.append(")");
-
-      return sb.toString();
-    }
-  }
-
-
-  // Encapsulates a dialog state entry
-  private static final class StateItem extends ItemBase
-  {
-    private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_STOP_16);
-    private static final int MAX_LENGTH = 100;    // max. string length to display
-
-    private final ImageIcon icon;
-
-    private State state;
-
-    public StateItem(DlgResource dlg, State state)
-    {
-      super(dlg);
-      this.icon = showIcons() ? ICON : null;
-      this.state = state;
-    }
-
-    public State getState()
-    {
-      return state;
-    }
-
-    public void setState(State state)
-    {
-      if (state != null) {
-        this.state = state;
-      }
-    }
-
-    @Override
-    public Icon getIcon()
-    {
-      return icon;
-    }
-
-    @Override
-    public String toString()
-    {
-      if (state != null) {
-        String text = StringTable.getStringRef(state.getResponse().getValue(),
-                                               showStrrefs() ? StringTable.Format.STRREF_PREFIX : StringTable.Format.NONE);
-        if (text.length() > MAX_LENGTH) {
-          text = text.substring(0, MAX_LENGTH) + "...";
-        }
-        return String.format("%s: %s", state.getName(), text);
-      } else {
-        return "(Invalid state)";
-      }
-    }
-  }
-
-
-  // Encapsulates a dialog transition entry
-  private static final class TransitionItem extends ItemBase
-  {
-    private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_PLAY_16);
-    private static final int MAX_LENGTH = 100;    // max. string length to display
-
-    private final ImageIcon icon;
-
-    private Transition trans;
-
-    public TransitionItem(DlgResource dlg, Transition trans)
-    {
-      super(dlg);
-      this.icon = showIcons() ? ICON : null;
-      this.trans = trans;
-    }
-
-    public Transition getTransition()
-    {
-      return trans;
-    }
-
-    public void setTransition(Transition trans)
-    {
-      if (trans != null) {
-        this.trans = trans;
-      }
-    }
-
-    @Override
-    public Icon getIcon()
-    {
-      return icon;
-    }
-
-    @Override
-    public String toString()
-    {
-      if (trans != null) {
-        if (trans.getFlag().isFlagSet(0)) {
-          // Transition contains text
-          String text = StringTable.getStringRef(trans.getAssociatedText().getValue(),
-                                                 showStrrefs() ? StringTable.Format.STRREF_PREFIX : StringTable.Format.NONE);
-          if (text.length() > MAX_LENGTH) {
-            text = text.substring(0, MAX_LENGTH) + "...";
-          }
-          String dlg = getDialog().getResourceEntry().getResourceName();
-          if (trans.getNextDialog().isEmpty() ||
-              trans.getNextDialog().getResourceName().equalsIgnoreCase(dlg)) {
-            return String.format("%s: %s", trans.getName(), text);
-          } else {
-            return String.format("%s: %s [%s]",
-                                 trans.getName(), text, trans.getNextDialog().getResourceName());
-          }
-        } else {
-          // Transition contains no text
-          String dlg = getDialog().getResourceEntry().getResourceName();
-          if (trans.getNextDialog().isEmpty() ||
-              trans.getNextDialog().getResourceName().equalsIgnoreCase(dlg)) {
-            return String.format("%s: (No text)", trans.getName());
-          } else {
-            return String.format("%s: (No text) [%s]",
-                                 trans.getName(), trans.getNextDialog().getResourceName());
-          }
-        }
-      } else {
-        return "(Invalid response)";
-      }
-    }
-  }
-
-
-  // Creates and manages the dialog tree structure
-  private static final class DlgTreeModel implements TreeModel
-  {
-    private final ArrayList<TreeModelListener> listeners = new ArrayList<TreeModelListener>();
-    // maps dialog resources to tables of state index/item pairs
-    private final HashMap<String, HashMap<Integer, StateItem>> mapState = new HashMap<String, HashMap<Integer, StateItem>>();
-    // maps dialog resources to tables of transition index/item pairs
-    private final HashMap<String, HashMap<Integer, TransitionItem>> mapTransition = new HashMap<String, HashMap<Integer, TransitionItem>>();
-
-    private RootItem root;
-    private DlgResource dlg;
-    private DefaultMutableTreeNode nodeRoot;
-
-    public DlgTreeModel(DlgResource dlg)
-    {
-      reset(dlg);
-    }
-
-  //--------------------- Begin Interface TreeModel ---------------------
-
-    @Override
-    public Object getRoot()
-    {
-      return updateNodeChildren(nodeRoot);
-    }
-
-    @Override
-    public Object getChild(Object parent, int index)
-    {
-      DefaultMutableTreeNode node = null;
-      if (parent instanceof DefaultMutableTreeNode) {
-        DefaultMutableTreeNode nodeParent = (DefaultMutableTreeNode)parent;
-        nodeParent = updateNodeChildren(nodeParent);
-        if (index >= 0 && index < nodeParent.getChildCount()) {
-          node = (DefaultMutableTreeNode)nodeParent.getChildAt(index);
-        }
-      }
-      return updateNodeChildren(node);
-    }
-
-    @Override
-    public int getChildCount(Object parent)
-    {
-      if (parent instanceof DefaultMutableTreeNode) {
-        DefaultMutableTreeNode nodeParent = (DefaultMutableTreeNode)parent;
-        nodeParent = updateNodeChildren(nodeParent);
-        return nodeParent.getChildCount();
-      }
-      return 0;
-    }
-
-    @Override
-    public boolean isLeaf(Object node)
-    {
-      if (node instanceof DefaultMutableTreeNode) {
-        return ((DefaultMutableTreeNode)node).isLeaf();
-      }
-      return false;
-    }
-
-    @Override
-    public void valueForPathChanged(TreePath path, Object newValue)
-    {
-      // immutable
-    }
-
-    @Override
-    public int getIndexOfChild(Object parent, Object child)
-    {
-      if (parent instanceof DefaultMutableTreeNode && child instanceof DefaultMutableTreeNode) {
-        DefaultMutableTreeNode nodeParent = (DefaultMutableTreeNode)parent;
-        for (int i = 0; i < nodeParent.getChildCount(); i++) {
-          TreeNode nodeChild = nodeParent.getChildAt(i);
-          if (nodeChild == child) {
-            return i;
-          }
-        }
-      }
-      return -1;
-    }
-
-    @Override
-    public void addTreeModelListener(TreeModelListener l)
-    {
-      if (l != null && !listeners.contains(l)) {
-        listeners.add(l);
-      }
-    }
-
-    @Override
-    public void removeTreeModelListener(TreeModelListener l)
-    {
-      if (l != null) {
-        int idx = listeners.indexOf(l);
-        if (idx >= 0) {
-          listeners.remove(idx);
-        }
-      }
-    }
-
-  //--------------------- End Interface TreeModel ---------------------
-
-    public void nodeChanged(TreeNode node)
-    {
-      if (node != null) {
-        if (node.getParent() == null) {
-          fireTreeNodesChanged(this, null, null, null);
-        } else {
-          fireTreeNodesChanged(this, createNodePath(node.getParent()),
-                               new int[]{getChildNodeIndex(node)}, new Object[]{node});
-        }
-      }
-    }
-
-    public void nodeStructureChanged(TreeNode node)
-    {
-      if (node.getParent() == null) {
-        fireTreeStructureChanged(this, null, null, null);
-      } else {
-        fireTreeStructureChanged(this, createNodePath(node.getParent()),
-                                 new int[getChildNodeIndex(node)], new Object[]{node});
-      }
-    }
-
-    /** Removes any old content and re-initializes the model with the data from the given dialog resource. */
-    public void reset(DlgResource dlg)
-    {
-      // clearing maps
-      Iterator<String> iter = mapState.keySet().iterator();
-      while (iter.hasNext()) {
-        HashMap<Integer, StateItem> map = mapState.get(iter.next());
-        if (map != null) {
-          map.clear();
-        }
-      }
-      mapState.clear();
-
-      iter = mapTransition.keySet().iterator();
-      while (iter.hasNext()) {
-        HashMap<Integer, TransitionItem> map = mapTransition.get(iter.next());
-        if (map != null) {
-          map.clear();
-        }
-      }
-      mapTransition.clear();
-
-      root = null;
-      nodeRoot = null;
-
-      this.dlg = dlg;
-
-      root = new RootItem(dlg);
-      for (int i = 0; i < root.getInitialStateCount(); i++) {
-        initState(root.getInitialState(i));
-      }
-      nodeRoot = new DefaultMutableTreeNode(root, true);
-
-      // notifying listeners
-      nodeStructureChanged((DefaultMutableTreeNode)getRoot());
-    }
-
-    public void updateState(State state)
-    {
-      if (state != null) {
-        int stateIdx = state.getNumber();
-        HashMap<Integer, StateItem> map = getStateTable(dlg.getResourceEntry().getResourceName());
-        if (map != null) {
-          Iterator<Integer> iter = map.keySet().iterator();
-          while (iter.hasNext()) {
-            StateItem item = map.get(iter.next());
-            if (item != null && item.getState().getNumber() == stateIdx) {
-              item.setState(state);
-              triggerNodeChanged((DefaultMutableTreeNode)getRoot(), item);
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    public void updateTransition(Transition trans)
-    {
-      if (trans != null) {
-        int transIdx = trans.getNumber();
-        HashMap<Integer, TransitionItem> map = getTransitionTable(dlg.getResourceEntry().getResourceName());
-        if (map != null) {
-          Iterator<Integer> iter = map.keySet().iterator();
-          while (iter.hasNext()) {
-            TransitionItem item = map.get(iter.next());
-            if (item != null && item.getTransition().getNumber() == transIdx) {
-              item.setTransition(trans);
-              triggerNodeChanged((DefaultMutableTreeNode)getRoot(), item);
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    public void updateRoot()
-    {
-      root = new RootItem(dlg);
-      nodeRoot.setUserObject(root);
-      nodeChanged(nodeRoot);
-    }
-
-    // Recursively parses the tree and triggers a nodeChanged event for each node containing data.
-    private void triggerNodeChanged(DefaultMutableTreeNode node, Object data)
-    {
-      if (node != null && data != null) {
-        if (node.getUserObject() == data) {
-          nodeChanged(node);
-        }
-        for (int i = 0; i < node.getChildCount(); i++) {
-          triggerNodeChanged((DefaultMutableTreeNode)node.getChildAt(i), data);
-        }
-      }
-    }
-
-    // Generates an array of TreeNode objects from root to specified node
-    private Object[] createNodePath(TreeNode node)
-    {
-      Object[] retVal;
-      if (node != null) {
-        Stack<TreeNode> stack = new Stack<TreeNode>();
-        while (node != null) {
-          stack.push(node);
-          node = node.getParent();
-        }
-        retVal = new Object[stack.size()];
-        for (int i = 0; i < retVal.length; i++) {
-          retVal[i] = stack.pop();
-        }
-        return retVal;
-      } else {
-        retVal = new Object[0];
-      }
-      return retVal;
-    }
-
-    // Determines the child index based on the specified node's parent
-    private int getChildNodeIndex(TreeNode node)
-    {
-      int retVal = 0;
-      if (node != null && node.getParent() != null) {
-        TreeNode parent = node.getParent();
-        for (int i = 0; i < parent.getChildCount(); i++) {
-          if (parent.getChildAt(i) == node) {
-            retVal = i;
-            break;
-          }
-        }
-      }
-      return retVal;
-    }
-
-    private void fireTreeNodesChanged(Object source, Object[] path, int[] childIndices,
-                                      Object[] children)
-    {
-      if (!listeners.isEmpty()) {
-        TreeModelEvent event;
-        if (path == null || path.length == 0) {
-          event = new TreeModelEvent(source, (TreePath)null);
-        } else {
-          event = new TreeModelEvent(source, path, childIndices, children);
-        }
-        for (int i = listeners.size()-1; i >= 0; i--) {
-          TreeModelListener tml = listeners.get(i);
-          tml.treeNodesChanged(event);
-        }
-      }
-    }
-
-//    private void fireTreeNodesInserted(Object source, Object[] path, int[] childIndices,
-//                                       Object[] children)
-//    {
-//      if (!listeners.isEmpty()) {
-//        TreeModelEvent event;
-//        if (path == null || path.length == 0) {
-//          event = new TreeModelEvent(source, (TreePath)null);
-//        } else {
-//          event = new TreeModelEvent(source, path, childIndices, children);
-//        }
-//        for (int i = listeners.size()-1; i >= 0; i--) {
-//          TreeModelListener tml = listeners.get(i);
-//          tml.treeNodesInserted(event);
-//        }
-//      }
-//    }
-
-//    private void fireTreeNodesRemoved(Object source, Object[] path, int[] childIndices,
-//                                       Object[] children)
-//    {
-//      if (!listeners.isEmpty()) {
-//        TreeModelEvent event;
-//        if (path == null || path.length == 0) {
-//          event = new TreeModelEvent(source, (TreePath)null);
-//        } else {
-//          event = new TreeModelEvent(source, path, childIndices, children);
-//        }
-//        for (int i = listeners.size()-1; i >= 0; i--) {
-//          TreeModelListener tml = listeners.get(i);
-//          tml.treeNodesRemoved(event);
-//        }
-//      }
-//    }
-
-    private void fireTreeStructureChanged(Object source, Object[] path, int[] childIndices,
-                                       Object[] children)
-    {
-      if (!listeners.isEmpty()) {
-        TreeModelEvent event;
-        if (path == null || path.length == 0) {
-          event = new TreeModelEvent(source, (TreePath)null);
-        } else {
-          event = new TreeModelEvent(source, path, childIndices, children);
-        }
-        for (int i = listeners.size()-1; i >= 0; i--) {
-          TreeModelListener tml = listeners.get(i);
-          tml.treeStructureChanged(event);
-        }
-      }
-    }
-
-    private void initState(StateItem state)
-    {
-      if (state != null) {
-        DlgResource dlg = state.getDialog();
-        HashMap<Integer, StateItem> map = getStateTable(dlg.getResourceEntry().getResourceName());
-        if (map == null) {
-          map = new HashMap<Integer, StateItem>();
-          setStateTable(dlg.getResourceEntry().getResourceName(), map);
-        }
-
-        if (!map.containsKey(Integer.valueOf(state.getState().getNumber()))) {
-          map.put(Integer.valueOf(state.getState().getNumber()), state);
-
-          for (int i = 0; i < state.getState().getTransCount(); i++) {
-            int transIdx = state.getState().getFirstTrans() + i;
-            StructEntry entry = dlg.getAttribute(Transition.DLG_TRANS + " " + transIdx);
-            if (entry instanceof Transition) {
-              initTransition(new TransitionItem(dlg, (Transition)entry));
-            }
-          }
-        }
-      }
-    }
-
-    private void initTransition(TransitionItem trans)
-    {
-      if (trans != null) {
-        DlgResource dlg = trans.getDialog();
-        HashMap<Integer, TransitionItem> map = getTransitionTable(dlg.getResourceEntry().getResourceName());
-        if (map == null) {
-          map = new HashMap<Integer, TransitionItem>();
-          setTransitionTable(dlg.getResourceEntry().getResourceName(), map);
-        }
-
-        if (!map.containsKey(Integer.valueOf(trans.getTransition().getNumber()))) {
-          map.put(Integer.valueOf(trans.getTransition().getNumber()), trans);
-
-          if (!trans.getTransition().getFlag().isFlagSet(3)) {
-            // dialog continues
-            ResourceRef dlgRef = trans.getTransition().getNextDialog();
-            int stateIdx = trans.getTransition().getNextDialogState();
-            dlg = getDialogResource(dlgRef.getResourceName());
-            if (dlg != null && stateIdx >= 0) {
-              StructEntry entry = dlg.getAttribute(State.DLG_STATE + " " + stateIdx);
-              if (entry instanceof State) {
-                initState(new StateItem(dlg, (State)entry));
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Returns a dialog resource object based on the specified resource name
-    // Reuses exising DlgResource objects if available
-    private DlgResource getDialogResource(String dlgName)
-    {
-      if (dlgName != null) {
-        if (containsStateTable(dlgName)) {
-          HashMap<Integer, StateItem> map = getStateTable(dlgName);
-          if (!map.keySet().isEmpty()) {
-            return map.get(map.keySet().iterator().next()).getDialog();
-          }
-        } else if (containsTransitionTable(dlgName)) {
-          HashMap<Integer, TransitionItem> map = getTransitionTable(dlgName);
-          if (!map.keySet().isEmpty()) {
-            return map.get(map.keySet().iterator().next()).getDialog();
-          }
-        } else if (ResourceFactory.resourceExists(dlgName)) {
-          try {
-            return new DlgResource(ResourceFactory.getResourceEntry(dlgName));
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
-      }
-      return null;
-    }
-
-    // Adds all available child nodes to the given parent node
-    private DefaultMutableTreeNode updateNodeChildren(DefaultMutableTreeNode parent)
-    {
-      if (parent != null) {
-        if (parent.getUserObject() instanceof StateItem) {
-          return updateStateNodeChildren(parent);
-        } else if (parent.getUserObject() instanceof TransitionItem) {
-          return updateTransitionNodeChildren(parent);
-        } else if (parent.getUserObject() instanceof RootItem) {
-          return updateRootNodeChildren(parent);
-        }
-      }
-      return parent;
-    }
-
-    // Adds all available transition child nodes to the given parent state node
-    private DefaultMutableTreeNode updateStateNodeChildren(DefaultMutableTreeNode parent)
-    {
-      if (parent != null && parent.getUserObject() instanceof StateItem) {
-        StateItem state = (StateItem)parent.getUserObject();
-        String dlgName = state.getDialog().getResourceEntry().getResourceName();
-        int count = state.getState().getTransCount();
-        while (parent.getChildCount() < count) {
-          int transIdx = state.getState().getFirstTrans() + parent.getChildCount();
-          TransitionItem child = getTransitionTable(dlgName).get(Integer.valueOf(transIdx));
-          boolean allowChildren = !child.getTransition().getFlag().isFlagSet(3);
-          DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, allowChildren);
-          parent.add(nodeChild);
-        }
-      }
-      return parent;
-    }
-
-    // Adds all available state child nodes to the given parent transition node
-    private DefaultMutableTreeNode updateTransitionNodeChildren(DefaultMutableTreeNode parent)
-    {
-      if (parent != null && parent.getUserObject() instanceof TransitionItem) {
-        // transitions only allow a single state as child
-        if (parent.getChildCount() < 1) {
-          TransitionItem trans = (TransitionItem)parent.getUserObject();
-          ResourceRef dlgRef = trans.getTransition().getNextDialog();
-          if (!dlgRef.isEmpty()) {
-            String dlgName = dlgRef.getResourceName();
-            int stateIdx = trans.getTransition().getNextDialogState();
-            StateItem child = getStateTable(dlgName).get(Integer.valueOf(stateIdx));
-            DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, true);
-            parent.add(nodeChild);
-          }
-        }
-      }
-      return parent;
-    }
-
-    // Adds all available initial state child nodes to the given parent root node
-    private DefaultMutableTreeNode updateRootNodeChildren(DefaultMutableTreeNode parent)
-    {
-      if (parent != null && parent.getUserObject() instanceof RootItem) {
-        RootItem root = (RootItem)parent.getUserObject();
-        while (parent.getChildCount() < root.getInitialStateCount()) {
-          int stateIdx = parent.getChildCount();
-          StateItem child = root.getInitialState(stateIdx);
-          DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child, true);
-          parent.add(nodeChild);
-        }
-      }
-      return parent;
-    }
-
-    // Returns the state table of the specified dialog resource
-    private HashMap<Integer, StateItem> getStateTable(String dlgName)
-    {
-      if (dlgName != null) {
-        return mapState.get(dlgName.toUpperCase(Locale.ENGLISH));
-      } else {
-        return null;
-      }
-    }
-
-    // Adds or replaces a dialog resource entry with its associated state table
-    private void setStateTable(String dlgName, HashMap<Integer, StateItem> map)
-    {
-      if (dlgName != null) {
-        mapState.put(dlgName.toUpperCase(Locale.ENGLISH), map);
-      }
-    }
-
-    // Returns whether the specified dialog resource has been mapped
-    private boolean containsStateTable(String dlgName)
-    {
-      if (dlgName != null) {
-        return mapState.containsKey(dlgName.toUpperCase(Locale.ENGLISH));
-      } else {
-        return false;
-      }
-    }
-
-    // Returns the transition table of the specified dialog resource
-    private HashMap<Integer, TransitionItem> getTransitionTable(String dlgName)
-    {
-      if (dlgName != null) {
-        return mapTransition.get(dlgName.toUpperCase(Locale.ENGLISH));
-      } else {
-        return null;
-      }
-    }
-
-    // Adds or replaces a dialog resource entry with its associated transition table
-    private void setTransitionTable(String dlgName, HashMap<Integer, TransitionItem> map)
-    {
-      if (dlgName != null) {
-        mapTransition.put(dlgName.toUpperCase(Locale.ENGLISH), map);
-      }
-    }
-
-    // Returns whether the specified dialog resource has been mapped
-    private boolean containsTransitionTable(String dlgName)
-    {
-      if (dlgName != null) {
-        return mapTransition.containsKey(dlgName.toUpperCase(Locale.ENGLISH));
-      } else {
-        return false;
-      }
-    }
-  }
-
-
-  // Panel for displaying information about the current dialog state or trigger
+  /** Panel for displaying information about the current dialog state or trigger. */
   private static final class ItemInfo extends JPanel
   {
     /** Identifies the respective controls for displaying information. */
@@ -1612,10 +571,9 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       pStateWAV.add(lbStateWAV, gbc);
 
       taStateTrigger = createScriptTextArea(true);
-      taStateTrigger.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       taStateTrigger.setMargin(new Insets(0, 4, 0, 4));
       pStateTrigger = new JPanel(new BorderLayout());
-      pStateTrigger.setBorder(createTitledBorder("State trigger", Font.BOLD, false));
+      pStateTrigger.setBorder(createTitledBorder(StateTrigger.DLG_STATETRIGGER, Font.BOLD, false));
       pStateTrigger.add(taStateTrigger, BorderLayout.CENTER);
 
       gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
@@ -1640,33 +598,31 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       tfResponseFlags = createReadOnlyTextField();
       tfResponseFlags.setMargin(new Insets(0, 4, 0, 4));
       pResponseFlags = new JPanel(new BorderLayout());
-      pResponseFlags.setBorder(createTitledBorder("Flags", Font.BOLD, false));
+      pResponseFlags.setBorder(createTitledBorder(Transition.DLG_TRANS_FLAGS, Font.BOLD, false));
       pResponseFlags.add(tfResponseFlags, BorderLayout.CENTER);
 
       taResponseText = createReadOnlyTextArea();
       taResponseText.setMargin(new Insets(0, 4, 0, 4));
       pResponseText = new JPanel(new BorderLayout());
-      pResponseText.setBorder(createTitledBorder("Associated text", Font.BOLD, false));
+      pResponseText.setBorder(createTitledBorder(Transition.DLG_TRANS_TEXT, Font.BOLD, false));
       pResponseText.add(taResponseText, BorderLayout.CENTER);
 
       taResponseJournal = createReadOnlyTextArea();
       taResponseJournal.setMargin(new Insets(0, 4, 0, 4));
       pResponseJournal = new JPanel(new BorderLayout());
-      pResponseJournal.setBorder(createTitledBorder("Journal entry", Font.BOLD, false));
+      pResponseJournal.setBorder(createTitledBorder(Transition.DLG_TRANS_JOURNAL_ENTRY, Font.BOLD, false));
       pResponseJournal.add(taResponseJournal, BorderLayout.CENTER);
 
       taResponseTrigger = createScriptTextArea(true);
-      taResponseTrigger.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       taResponseTrigger.setMargin(new Insets(0, 4, 0, 4));
       pResponseTrigger = new JPanel(new BorderLayout());
-      pResponseTrigger.setBorder(createTitledBorder("Response trigger", Font.BOLD, false));
+      pResponseTrigger.setBorder(createTitledBorder(ResponseTrigger.DLG_RESPONSETRIGGER, Font.BOLD, false));
       pResponseTrigger.add(taResponseTrigger, BorderLayout.CENTER);
 
       taResponseAction = createScriptTextArea(true);
-      taResponseAction.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
       taResponseAction.setMargin(new Insets(0, 4, 0, 4));
       pResponseAction = new JPanel(new BorderLayout());
-      pResponseAction.setBorder(createTitledBorder("Action", Font.BOLD, false));
+      pResponseAction.setBorder(createTitledBorder(Action.DLG_ACTION, Font.BOLD, false));
       pResponseAction.add(taResponseAction, BorderLayout.CENTER);
 
       gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
@@ -1743,7 +699,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     }
 
 
-    // Returns the given control
+    /** Returns the given control. */
     private JPanel getControl(Type type)
     {
       switch (type) {
@@ -1761,7 +717,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       return new JPanel();
     }
 
-    // Clears and disables controls in the specified panel
+    /** Clears and disables controls in the specified panel. */
     private void clearCard(String cardName)
     {
       if (cardName != null) {
@@ -1787,7 +743,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     }
 
-    // Helper method for creating a read-only textarea component
+    /** Helper method for creating a read-only textarea component. */
     private JTextArea createReadOnlyTextArea()
     {
       JTextArea ta = new JTextArea();
@@ -1800,7 +756,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       return ta;
     }
 
-    // Helper method for creating a ScriptTextArea component
+    /** Helper method for creating a ScriptTextArea component. */
     private ScriptTextArea createScriptTextArea(boolean readOnly)
     {
       ScriptTextArea ta = new ScriptTextArea();
@@ -1809,13 +765,14 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
         ta.setHighlightCurrentLine(false);
       }
       ta.setEditable(!readOnly);
-      ta.setWrapStyleWord(true);
-      ta.setLineWrap(true);
+      // TODO: setLineWrap() appears to put a high load on CPU and/or GFX; disabling for now
+//      ta.setWrapStyleWord(true);
+//      ta.setLineWrap(true);
 
       return ta;
     }
 
-    // Helper method for creating a read-only textfield component
+    /** Helper method for creating a read-only textfield component. */
     private JTextField createReadOnlyTextField()
     {
       JTextField tf = new JTextField();
@@ -1827,7 +784,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       return tf;
     }
 
-    // Returns a modified TitledBorder object
+    /** Returns a modified TitledBorder object. */
     private TitledBorder createTitledBorder(String title, int fontStyle, boolean isTitle)
     {
       if(title == null) title = "";

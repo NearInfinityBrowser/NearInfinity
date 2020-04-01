@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.datatype;
@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -24,38 +25,44 @@ import org.infinity.gui.StructViewer;
 import org.infinity.gui.TextListPanel;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.StructEntry;
 import org.infinity.util.Misc;
 
+/**
+ * Field that represents an integer enumeration of some values.
+ *
+ * <h2>Bean property</h2>
+ * When this field is child of {@link AbstractStruct}, then changes of its internal
+ * value reported as {@link PropertyChangeEvent}s of the {@link #getParent() parent}
+ * struct.
+ * <ul>
+ * <li>Property name: {@link #getName() name} of this field</li>
+ * <li>Property type: {@code int}</li>
+ * <li>Value meaning: value of the enumeration</li>
+ * </ul>
+ */
 public class Bitmap extends Datatype implements Editable, IsNumeric
 {
   private final String[] table;
 
-  private TextListPanel list;
+  private TextListPanel<String> list;
   private int value;
 
   public Bitmap(ByteBuffer buffer, int offset, int length, String name, String[] table)
   {
-    this(null, buffer, offset, length, name, table);
-  }
-
-  public Bitmap(StructEntry parent, ByteBuffer buffer, int offset, int length, String name, String[] table)
-  {
-    super(parent, offset, length, name);
+    super(offset, length, name);
     this.table = table;
     read(buffer, offset);
   }
 
-// --------------------- Begin Interface Editable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Editable">
   @Override
   public JComponent edit(final ActionListener container)
   {
-    List<String> values = new ArrayList<String>(Math.max(table.length, value + 1));
+    final List<String> values = new ArrayList<>(Math.max(table.length, value + 1));
     for (int i = 0; i < Math.max(table.length, value + 1); i++) {
       values.add(toString(i));
     }
-    list = new TextListPanel(values, false);
+    list = new TextListPanel<>(values, false);
     list.addMouseListener(new MouseAdapter()
     {
       @Override
@@ -95,7 +102,6 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
     panel.add(bUpdate);
 
     panel.setMinimumSize(Misc.getScaledDimension(DIM_MEDIUM));
-    panel.setPreferredSize(Misc.getScaledDimension(DIM_MEDIUM));
     return panel;
   }
 
@@ -109,33 +115,24 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
   public boolean updateValue(AbstractStruct struct)
   {
     // updating value
-    String svalue = (String)list.getSelectedValue();
-    value = 0;
-    while (!svalue.equals(toString(value))) {
-      value++;
-    }
+    setValue(calcValue());
 
     // notifying listeners
     fireValueUpdated(new UpdateEvent(this, struct));
 
     return true;
   }
+  //</editor-fold>
 
-// --------------------- End Interface Editable ---------------------
-
-
-// --------------------- Begin Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Writeable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     writeInt(os, value);
   }
+  //</editor-fold>
 
-// --------------------- End Interface Writeable ---------------------
-
-//--------------------- Begin Interface Readable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -156,11 +153,9 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
 
     return offset + getSize();
   }
+  //</editor-fold>
 
-//--------------------- End Interface Readable ---------------------
-
-//--------------------- Begin Interface IsNumeric ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="IsNumeric">
   @Override
   public long getLongValue()
   {
@@ -172,8 +167,7 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
   {
     return value;
   }
-
-//--------------------- End Interface IsNumeric ---------------------
+  //</editor-fold>
 
   @Override
   public String toString()
@@ -190,18 +184,37 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
     return null;
   }
 
-  // Returns a formatted description of the specified value.
+  /** Returns a formatted description of the specified value. */
   private String toString(int nr)
   {
     if (nr >= table.length) {
       return "Unknown (" + nr + ')';
     } else if (nr < 0) {
       return "Error (" + nr + ')';
-    } else if (table[nr] == null || table[nr].equals("")) {
+    } else if (table[nr] == null || table[nr].isEmpty()) {
       return "Unknown (" + nr + ')';
     } else {
-      return new StringBuffer(table[nr]).append(" (").append(nr).append(')').toString();
+      return table[nr] + " (" + nr + ')';
     }
   }
-}
 
+  private void setValue(int newValue)
+  {
+    final int oldValue = value;
+    value = newValue;
+    if (oldValue != newValue) {
+      firePropertyChange(oldValue, newValue);
+    }
+  }
+
+  private int calcValue()
+  {
+    final String svalue = list.getSelectedValue();
+    int val = 0;
+    //FIXME: Ineffective code
+    while (!svalue.equals(toString(val))) {
+      val++;
+    }
+    return val;
+  }
+}
