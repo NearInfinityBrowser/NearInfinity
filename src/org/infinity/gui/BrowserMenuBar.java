@@ -90,6 +90,7 @@ import org.infinity.search.DialogSearcher;
 import org.infinity.search.SearchFrame;
 import org.infinity.search.SearchResource;
 import org.infinity.search.TextResourceSearcher;
+import org.infinity.search.advanced.AdvancedSearch;
 import org.infinity.updater.UpdateCheck;
 import org.infinity.updater.UpdateInfo;
 import org.infinity.updater.Updater;
@@ -1298,7 +1299,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   private static final class SearchMenu extends JMenu implements ActionListener
   {
     private final String TEXTSEARCH[] = {"2DA", "BCS", "DLG", "IDS", "INI", "LUA"};
-    private final JMenuItem searchString, searchFile, searchResource;
+    private final JMenuItem searchString, searchFile, searchResource, advancedSearch;
     private final JMenu textSearchMenu;
 
     private SearchMenu()
@@ -1312,10 +1313,22 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       searchFile =
           makeMenuItem("CRE/ITM/SPL/STO...", KeyEvent.VK_C, Icons.getIcon(Icons.ICON_FIND_16), KeyEvent.VK_F, this);
       add(searchFile);
+
+      JMenu menuAdvanced = new JMenu("Advanced Search");
+      menuAdvanced.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
+      menuAdvanced.setMnemonic('a');
+      add(menuAdvanced);
+
+      advancedSearch =
+          makeMenuItem("Advanced search...", KeyEvent.VK_A, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+      advancedSearch.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, CTRL_MASK | ALT_MASK));
+      advancedSearch.setToolTipText("A powerful and highly flexible search for structured resources of all kinds.");
+      menuAdvanced.add(advancedSearch);
       searchResource =
-          makeMenuItem("Extended search...", KeyEvent.VK_X, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+          makeMenuItem("Legacy extended search...", KeyEvent.VK_X, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
       searchResource.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, CTRL_MASK | ALT_MASK));
-      add(searchResource);
+      searchResource.setToolTipText("The original \"Extended Search\".");
+      menuAdvanced.add(searchResource);
 
       textSearchMenu = new JMenu("Text Search");
       textSearchMenu.setIcon(Icons.getIcon(Icons.ICON_EDIT_16));
@@ -1354,6 +1367,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       }
       else if (event.getSource() == searchResource) {
         ChildFrame.show(SearchResource.class, () -> new SearchResource());
+      }
+      else if (event.getSource() == advancedSearch) {
+        ChildFrame.show(AdvancedSearch.class, () -> new AdvancedSearch());
       }
       else {
         for (final String type : TEXTSEARCH) {
