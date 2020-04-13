@@ -90,6 +90,9 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     MatchOne,
   }
 
+  // Wiki link to "Advanced Search" documentation
+  private static final String URL_WIKI_HELP = "https://github.com/NearInfinityBrowser/NearInfinity/wiki/Documentation-Advanced-Search";
+
   // Cardlayout identifiers for status bar components
   private static final String STATUS_BUTTONS  = "buttons";
   private static final String STATUS_PROGRESS = "progress";
@@ -192,11 +195,6 @@ public class AdvancedSearch extends ChildFrame implements Runnable
 
     GridBagConstraints c = new GridBagConstraints();
 
-    // clickable help link
-    String url = "https://github.com/NearInfinityBrowser/NearInfinity/wiki/Documentation-Search-Advanced";
-    JLabel lDocLink = ViewerUtil.createUrlLabel("Help", url);
-    lDocLink.setToolTipText(url);
-
     // preparing popup menu for the filter list
     menuFilters = new JPopupMenu();
     menuFilters.addPopupMenuListener(listeners);
@@ -243,6 +241,10 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     pFilterSettings.add(pResourceTypes, c);
     c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(0, 16, 0, 0), 0, 0);
     pFilterSettings.add(pFilterMode, c);
+
+    // clickable help link
+    JLabel lDocLink = ViewerUtil.createUrlLabel("Help", URL_WIKI_HELP);
+    lDocLink.setToolTipText(URL_WIKI_HELP);
 
     JLabel lFilterList = new JLabel("Filter list:");
     JPanel pFilterListTitle = new JPanel(new GridBagLayout());
