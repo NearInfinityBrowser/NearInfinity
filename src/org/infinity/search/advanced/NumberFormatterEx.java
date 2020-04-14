@@ -154,6 +154,10 @@ public class NumberFormatterEx extends AbstractFormatter
   /** A helper function that returns the last number entered into the text field associated with this formatter. */
   public long getNumericValue()
   {
+    try {
+      return getNumericValue(getFormattedTextField().getText());
+    } catch (Exception e) {
+    }
     return currentValue;
   }
 
