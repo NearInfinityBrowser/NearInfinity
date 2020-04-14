@@ -5,6 +5,7 @@
 package org.infinity.resource.bcs;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -50,6 +51,7 @@ import org.infinity.gui.ViewFrame;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Referenceable;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.ViewableContainer;
@@ -328,7 +330,7 @@ import org.infinity.util.io.StreamUtils;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/bcs.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/bcs.htm</a>
  */
-public final class BcsResource implements TextResource, Writeable, Closeable, ActionListener, ItemListener,
+public final class BcsResource implements TextResource, Writeable, Closeable, Referenceable, ActionListener, ItemListener,
                                           DocumentListener
 {
   // for decompile panel
@@ -407,6 +409,21 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
 
 // --------------------- End Interface Closeable ---------------------
 
+// --------------------- Begin Interface Referenceable ---------------------
+
+  @Override
+  public boolean isReferenceable()
+  {
+    return true;
+  }
+
+  @Override
+  public void searchReferences(Component parent)
+  {
+    new ScriptReferenceSearcher(entry, parent);
+  }
+
+// --------------------- End Interface Referenceable ---------------------
 
 // --------------------- Begin Interface DocumentListener ---------------------
 
@@ -473,8 +490,9 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Ac
         List<ResourceEntry> files = new ArrayList<ResourceEntry>(1);
         files.add(entry);
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
-      } else if (bpmFind.getSelectedItem() == ifindusage)
-        new ScriptReferenceSearcher(entry, panel.getTopLevelAncestor());
+      } else if (bpmFind.getSelectedItem() == ifindusage) {
+        searchReferences(panel.getTopLevelAncestor());
+      }
     } else if (buttonPanel.getControlByType(CtrlUses) == event.getSource()) {
       ButtonPopupMenu bpmUses = (ButtonPopupMenu)event.getSource();
       JMenuItem item = bpmUses.getSelectedItem();

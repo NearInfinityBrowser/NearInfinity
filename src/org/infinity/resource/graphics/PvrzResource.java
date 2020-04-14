@@ -5,6 +5,7 @@
 package org.infinity.resource.graphics;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -29,6 +30,7 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
@@ -53,7 +55,7 @@ import org.infinity.util.io.StreamUtils;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pvrz.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pvrz.htm</a>
  */
-public class PvrzResource implements Resource, ActionListener, Closeable
+public class PvrzResource implements Resource, ActionListener, Closeable, Referenceable
 {
   private static final ButtonPanel.Control Properties = ButtonPanel.Control.CUSTOM_1;
 
@@ -75,7 +77,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable
   public void actionPerformed(ActionEvent event)
   {
     if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
-      new ReferenceSearcher(entry, new String[]{"BAM", "MOS", "TIS"}, panel.getTopLevelAncestor());
+      searchReferences(panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(Properties) == event.getSource()) {
       showProperties();
     } else if (event.getSource() == miExport) {
@@ -142,6 +144,22 @@ public class PvrzResource implements Resource, ActionListener, Closeable
   }
 
 //--------------------- End Interface Closeable ---------------------
+
+//--------------------- Begin Interface Referenceable ---------------------
+
+  @Override
+  public boolean isReferenceable()
+  {
+    return true;
+  }
+
+  @Override
+  public void searchReferences(Component parent)
+  {
+    new ReferenceSearcher(entry, new String[]{"BAM", "MOS", "TIS"}, parent);
+  }
+
+//--------------------- End Interface Referenceable ---------------------
 
 //--------------------- Begin Interface Viewable ---------------------
 

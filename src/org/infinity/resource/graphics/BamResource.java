@@ -69,6 +69,7 @@ import org.infinity.gui.hexview.GenericHexViewer;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
@@ -106,7 +107,7 @@ import org.infinity.util.io.StreamUtils;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/bam_v1.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/bam_v1.htm</a>
  */
-public class BamResource implements Resource, Closeable, Writeable, ActionListener,
+public class BamResource implements Resource, Closeable, Writeable, Referenceable, ActionListener,
                                     PropertyChangeListener, ChangeListener, IDataChangedListener
 {
   private static final Color TransparentColor = new Color(0, true);
@@ -184,6 +185,22 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
 
 //--------------------- End Interface Writeable ---------------------
 
+//--------------------- Begin Interface Referenceable ---------------------
+
+ @Override
+ public boolean isReferenceable()
+ {
+   return true;
+ }
+
+ @Override
+ public void searchReferences(Component parent)
+ {
+   new ReferenceSearcher(entry, parent);
+ }
+
+//--------------------- End Interface Referenceable ---------------------
+
 //--------------------- Begin Interface ActionListener ---------------------
 
   @Override
@@ -229,7 +246,7 @@ public class BamResource implements Resource, Closeable, Writeable, ActionListen
         }
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
-      new ReferenceSearcher(entry, panelMain.getTopLevelAncestor());
+      searchReferences(panelMain.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.SAVE) == event.getSource()) {
       if (ResourceFactory.saveResource(this, panelMain.getTopLevelAncestor())) {
         setRawModified(false);

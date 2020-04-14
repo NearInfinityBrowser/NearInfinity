@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
@@ -142,6 +143,112 @@ public final class ResourceFactory implements FileWatchListener
     return getInstance().getExportFilePathInternal();
   }
 
+  public static Class<? extends Resource> getResourceType(ResourceEntry entry)
+  {
+    return getResourceType(entry, null);
+  }
+
+  public static Class<? extends Resource> getResourceType(ResourceEntry entry, String forcedExtension)
+  {
+    Class<? extends Resource> cls = null;
+    if (entry != null) {
+      String ext = ((forcedExtension != null) ? forcedExtension : entry.getExtension()).toUpperCase();
+      if (ext.equals("BAM")) {
+        cls = BamResource.class;
+      } else if (ext.equals("TIS")) {
+        cls = TisResource.class;
+      } else if (ext.equals("BMP") || ext.equals("PNG")) {
+        cls = GraphicsResource.class;
+      } else if (ext.equals("MOS")) {
+        cls = MosResource.class;
+      } else if (ext.equals("WAV") || ext.equals("ACM")) {
+        cls = SoundResource.class;
+      } else if (ext.equals("MUS")) {
+        cls = MusResource.class;
+      } else if (ext.equals("IDS") || ext.equals("2DA") ||
+                 ext.equals("BIO") || ext.equals("RES") ||
+                 ext.equals("TXT") ||
+                 ext.equals("LOG") ||// WeiDU log files
+                 (ext.equals("SRC") && Profile.getEngine() == Profile.Engine.IWD2) ||
+                 (Profile.isEnhancedEdition() && (ext.equals("SQL") ||
+                                                  ext.equals("GUI") ||
+                                                  ext.equals("LUA") ||
+                                                  ext.equals("MENU") ||
+                                                  ext.equals("GLSL")))) {
+        cls = PlainTextResource.class;
+      } else if (ext.equals("INI")) {
+        final boolean isPST = Profile.getEngine() == Profile.Engine.PST;
+        cls = isPST && QuestsResource.RESOURCE_NAME.equals(entry.getResourceName())
+            ? QuestsResource.class
+            : PlainTextResource.class;
+      } else if (ext.equals("MVE")) {
+        cls = MveResource.class;
+      } else if (ext.equals("WBM")) {
+        cls = WbmResource.class;
+      } else if (ext.equals("PLT") && ext.equals(forcedExtension)) {
+        cls = PltResource.class;
+      } else if (ext.equals("BCS") || ext.equals("BS")) {
+        cls = BcsResource.class;
+      } else if (ext.equals("ITM")) {
+        cls = ItmResource.class;
+      } else if (ext.equals("EFF")) {
+        cls = EffResource.class;
+      } else if (ext.equals("VEF")) {
+        cls = VefResource.class;
+      } else if (ext.equals("VVC")) {
+        cls = VvcResource.class;
+      } else if (ext.equals("SRC")) {
+        cls = SrcResource.class;
+      } else if (ext.equals("DLG")) {
+        cls = DlgResource.class;
+      } else if (ext.equals("SPL")) {
+        cls = SplResource.class;
+      } else if (ext.equals("STO")) {
+        cls = StoResource.class;
+      } else if (ext.equals("WMP")) {
+        cls = WmpResource.class;
+      } else if (ext.equals("CHU")) {
+        cls = ChuResource.class;
+      } else if (ext.equals("CRE") || ext.equals("CHR")) {
+        cls = CreResource.class;
+      } else if (ext.equals("ARE")) {
+        cls = AreResource.class;
+      } else if (ext.equals("WFX")) {
+        cls = WfxResource.class;
+      } else if (ext.equals("PRO")) {
+        cls = ProResource.class;
+      } else if (ext.equals("WED")) {
+        cls = WedResource.class;
+      } else if (ext.equals("GAM")) {
+        cls = GamResource.class;
+      } else if (ext.equals("SAV")) {
+        cls = SavResource.class;
+      } else if (ext.equals("VAR")) {
+        cls = VarResource.class;
+      } else if (ext.equals("BAF")) {
+        cls = BafResource.class;
+      } else if (ext.equals("TOH")) {
+        cls = TohResource.class;
+      } else if (ext.equals("TOT")) {
+        cls = TotResource.class;
+      } else if (ext.equals("PVRZ")) {
+        cls = Profile.isEnhancedEdition() ? PvrzResource.class : UnknownResource.class;
+      } else if (ext.equals("FNT")) {
+        cls = Profile.isEnhancedEdition() ? FntResource.class : UnknownResource.class;
+      } else if (ext.equals("TTF")) {
+        cls = Profile.isEnhancedEdition() ? TtfResource.class : UnknownResource.class;
+      } else if (ext.equals("MAZE")) {
+        cls = (Profile.getGame() == Profile.Game.PSTEE) ? MazeResource.class : UnknownResource.class;
+      } else {
+        cls = detectResourceType(entry);
+        if (cls == null) {
+          cls = UnknownResource.class;
+        }
+      }
+    }
+    return cls;
+  }
+
   public static Resource getResource(ResourceEntry entry)
   {
     return getResource(entry, null);
@@ -151,99 +258,11 @@ public final class ResourceFactory implements FileWatchListener
   {
     Resource res = null;
     try {
-      String ext = (forcedExtension != null) ? forcedExtension : entry.getExtension();
-      if (ext.equalsIgnoreCase("BAM")) {
-        res = new BamResource(entry);
-      } else if (ext.equalsIgnoreCase("TIS")) {
-        res = new TisResource(entry);
-      } else if (ext.equalsIgnoreCase("BMP") || ext.equalsIgnoreCase("PNG")) {
-        res = new GraphicsResource(entry);
-      } else if (ext.equalsIgnoreCase("MOS")) {
-        res = new MosResource(entry);
-      } else if (ext.equalsIgnoreCase("WAV") || ext.equalsIgnoreCase("ACM")) {
-        res = new SoundResource(entry);
-      } else if (ext.equalsIgnoreCase("MUS")) {
-        res = new MusResource(entry);
-      } else if (ext.equalsIgnoreCase("IDS") || ext.equalsIgnoreCase("2DA") ||
-                 ext.equalsIgnoreCase("BIO") || ext.equalsIgnoreCase("RES") ||
-                 ext.equalsIgnoreCase("TXT") ||
-                 ext.equalsIgnoreCase("LOG") ||// WeiDU log files
-                 (ext.equalsIgnoreCase("SRC") && Profile.getEngine() == Profile.Engine.IWD2) ||
-                 (Profile.isEnhancedEdition() && (ext.equalsIgnoreCase("SQL") ||
-                                                  ext.equalsIgnoreCase("GUI") ||
-                                                  ext.equalsIgnoreCase("LUA") ||
-                                                  ext.equalsIgnoreCase("MENU") ||
-                                                  ext.equalsIgnoreCase("GLSL")))) {
-        res = new PlainTextResource(entry);
-      } else if (ext.equalsIgnoreCase("INI")) {
-        final boolean isPST = Profile.getEngine() == Profile.Engine.PST;
-
-        res = isPST && QuestsResource.RESOURCE_NAME.equalsIgnoreCase(entry.getResourceName())
-            ? new QuestsResource(entry)
-            : new PlainTextResource(entry);
-      } else if (ext.equalsIgnoreCase("MVE")) {
-        res = new MveResource(entry);
-      } else if (ext.equalsIgnoreCase("WBM")) {
-        res = new WbmResource(entry);
-      } else if (ext.equalsIgnoreCase("PLT") && ext.equals(forcedExtension)) {
-        res = new PltResource(entry);
-      } else if (ext.equalsIgnoreCase("BCS") || ext.equalsIgnoreCase("BS")) {
-        res = new BcsResource(entry);
-      } else if (ext.equalsIgnoreCase("ITM")) {
-        res = new ItmResource(entry);
-      } else if (ext.equalsIgnoreCase("EFF")) {
-        res = new EffResource(entry);
-      } else if (ext.equalsIgnoreCase("VEF")) {
-          res = new VefResource(entry);
-      } else if (ext.equalsIgnoreCase("VVC")) {
-        res = new VvcResource(entry);
-      } else if (ext.equalsIgnoreCase("SRC")) {
-        res = new SrcResource(entry);
-      } else if (ext.equalsIgnoreCase("DLG")) {
-        res = new DlgResource(entry);
-      } else if (ext.equalsIgnoreCase("SPL")) {
-        res = new SplResource(entry);
-      } else if (ext.equalsIgnoreCase("STO")) {
-        res = new StoResource(entry);
-      } else if (ext.equalsIgnoreCase("WMP")) {
-        res = new WmpResource(entry);
-      } else if (ext.equalsIgnoreCase("CHU")) {
-        res = new ChuResource(entry);
-      } else if (ext.equalsIgnoreCase("CRE") || ext.equalsIgnoreCase("CHR")) {
-        res = new CreResource(entry);
-      } else if (ext.equalsIgnoreCase("ARE")) {
-        res = new AreResource(entry);
-      } else if (ext.equalsIgnoreCase("WFX")) {
-        res = new WfxResource(entry);
-      } else if (ext.equalsIgnoreCase("PRO")) {
-        res = new ProResource(entry);
-      } else if (ext.equalsIgnoreCase("WED")) {
-        res = new WedResource(entry);
-      } else if (ext.equalsIgnoreCase("GAM")) {
-        res = new GamResource(entry);
-      } else if (ext.equalsIgnoreCase("SAV")) {
-        res = new SavResource(entry);
-      } else if (ext.equalsIgnoreCase("VAR")) {
-        res = new VarResource(entry);
-      } else if (ext.equalsIgnoreCase("BAF")) {
-        res = new BafResource(entry);
-      } else if (ext.equalsIgnoreCase("TOH")) {
-        res = new TohResource(entry);
-      } else if (ext.equalsIgnoreCase("TOT")) {
-        res = new TotResource(entry);
-      } else if (ext.equalsIgnoreCase("PVRZ")) {
-        res = Profile.isEnhancedEdition() ? new PvrzResource(entry) : new UnknownResource(entry);
-      } else if (ext.equalsIgnoreCase("FNT")) {
-        res = Profile.isEnhancedEdition() ? new FntResource(entry) : new UnknownResource(entry);
-      } else if (ext.equalsIgnoreCase("TTF")) {
-        res = Profile.isEnhancedEdition() ? new TtfResource(entry) : new UnknownResource(entry);
-      } else if (ext.equalsIgnoreCase("MAZE")) {
-        res = (Profile.getGame() == Profile.Game.PSTEE) ? new MazeResource(entry) : new UnknownResource(entry);
-      } else {
-        res = detectResource(entry);
-        if (res == null) {
-          res = new UnknownResource(entry);
-        }
+      Class<? extends Resource> cls = getResourceType(entry, forcedExtension);
+      if (cls != null) {
+        Constructor<? extends Resource> con = cls.getConstructor(ResourceEntry.class);
+        if (con != null)
+          res = (Resource)con.newInstance(entry);
       }
     } catch (Exception e) {
       if (NearInfinity.getInstance() != null && !BrowserMenuBar.getInstance().ignoreReadErrors()) {
@@ -263,16 +282,19 @@ public final class ResourceFactory implements FileWatchListener
 
   /**
    * Attempts to detect the resource type from the data itself
-   * and returns the respective resource class instance, or {@code null} on failure.
+   * and returns the respective resource class type, or {@code null} on failure.
+   *
+   * @param entry {@code ResourceEntry} instance of the undetermined resource.
+   * @return The class type of the specified resource, or {@code null} if type could not be determined.
    */
-  public static Resource detectResource(ResourceEntry entry)
+  public static Class<? extends Resource> detectResourceType(ResourceEntry entry)
   {
-    Resource res = null;
+    Class<? extends Resource> cls = null;
     if (entry != null) {
       try {
         int[] info = entry.getResourceInfo();
         if (info.length == 2) {
-          res = getResource(entry, "TIS");
+          cls = getResourceType(entry, "TIS");
         } else if (info.length == 1) {
           if (info[0] > 4) {
             byte[] data = new byte[Math.min(info[0], 24)];
@@ -281,74 +303,74 @@ public final class ResourceFactory implements FileWatchListener
             }
             String sig = DynamicArray.getString(data, 0, 4);
             if ("2DA ".equalsIgnoreCase(sig)) {
-              res = getResource(entry, "2DA");
+              cls = getResourceType(entry, "2DA");
             } else if ("ARE ".equals(sig)) {
-              res = getResource(entry, "ARE");
+              cls = getResourceType(entry, "ARE");
             } else if ("BAM ".equals(sig) || "BAMC".equals(sig)) {
-              res = getResource(entry, "BAM");
+              cls = getResourceType(entry, "BAM");
             } else if ("CHR ".equals(sig)) {
-              res = getResource(entry, "CHR");
+              cls = getResourceType(entry, "CHR");
             } else if ("CHUI".equals(sig)) {
-              res = getResource(entry, "CHU");
+              cls = getResourceType(entry, "CHU");
             } else if ("CRE ".equals(sig)) {
-              res = getResource(entry, "CRE");
+              cls = getResourceType(entry, "CRE");
             } else if ("DLG ".equals(sig)) {
-              res = getResource(entry, "DLG");
+              cls = getResourceType(entry, "DLG");
             } else if ("EFF ".equals(sig)) {
-              res = getResource(entry, "EFF");
+              cls = getResourceType(entry, "EFF");
             } else if ("GAME".equals(sig)) {
-              res = getResource(entry, "GAM");
+              cls = getResourceType(entry, "GAM");
             } else if ("IDS ".equalsIgnoreCase(sig)) {
-              res = getResource(entry, "IDS");
+              cls = getResourceType(entry, "IDS");
             } else if ("ITM ".equals(sig)) {
-              res = getResource(entry, "ITM");
+              cls = getResourceType(entry, "ITM");
             } else if ("MAZE".equals(sig)) {
-              res = getResource(entry, "MAZE");
+              cls = getResourceType(entry, "MAZE");
             } else if ("MOS ".equals(sig) || "MOSC".equals(sig)) {
-              res = getResource(entry, "MOS");
+              cls = getResourceType(entry, "MOS");
             } else if ("PLT ".equals(sig)) {
-              res = getResource(entry, "PLT");
+              cls = getResourceType(entry, "PLT");
             } else if ("PRO ".equals(sig)) {
-              res = getResource(entry, "PRO");
+              cls = getResourceType(entry, "PRO");
             } else if ("SAV ".equals(sig)) {
-              res = getResource(entry, "SAV");
+              cls = getResourceType(entry, "SAV");
             } else if ("SPL ".equals(sig)) {
-              res = getResource(entry, "SPL");
+              cls = getResourceType(entry, "SPL");
             } else if ("STOR".equals(sig)) {
-              res = getResource(entry, "STO");
+              cls = getResourceType(entry, "STO");
             } else if ("TIS ".equals(sig)) {
-              res = getResource(entry, "TIS");
+              cls = getResourceType(entry, "TIS");
             } else if ("VEF ".equals(sig)) {
-              res = getResource(entry, "VEF");
+              cls = getResourceType(entry, "VEF");
             } else if ("VVC ".equals(sig)) {
-              res = getResource(entry, "VVC");
+              cls = getResourceType(entry, "VVC");
             } else if ("WAVC".equals(sig) || "RIFF".equals(sig) || "OggS".equals(sig)) {
-              res = getResource(entry, "WAV");
+              cls = getResourceType(entry, "WAV");
             } else if ("WED ".equals(sig)) {
-              res = getResource(entry, "WED");
+              cls = getResourceType(entry, "WED");
             } else if ("WFX ".equals(sig)) {
-              res = getResource(entry, "WFX");
+              cls = getResourceType(entry, "WFX");
             } else if ("WMAP".equals(sig)) {
-              res = getResource(entry, "WMP");
+              cls = getResourceType(entry, "WMP");
             } else {
               if ((Arrays.equals(new byte[]{0x53, 0x43, 0x0a}, Arrays.copyOfRange(data, 0, 3)) ||  // == "SC\n"
                    Arrays.equals(new byte[]{0x53, 0x43, 0x0d, 0x0a}, Arrays.copyOfRange(data, 0, 4)))) { // == "SC\r\n"
-                res = getResource(entry, "BCS");
+                cls = getResourceType(entry, "BCS");
               } else if (data.length > 6 && "BM".equals(new String(data, 0, 2)) &&
                          DynamicArray.getInt(data, 2) == info[0]) {
-                res = getResource(entry, "BMP");
+                cls = getResourceType(entry, "BMP");
               } else if (data.length > 18 && "Interplay MVE File".equals(new String(data, 0, 18))) {
-                res = getResource(entry, "MVE");
+                cls = getResourceType(entry, "MVE");
               } else if (Arrays.equals(new byte[]{(byte)0x1a, (byte)0x45, (byte)0xdf, (byte)0xa3},
                                        Arrays.copyOfRange(data, 0, 4))) {
-                res = getResource(entry, "WBM");
+                cls = getResourceType(entry, "WBM");
               } else if (data.length > 6 && data[3] == 0 && data[4] == 0x78) {  // just guessing...
-                res = getResource(entry, "PVRZ");
+                cls = getResourceType(entry, "PVRZ");
               } else if (data.length > 4 && data[0] == 0x89 &&
                          data[1] == 0x50 && data[2] == 0x4e && data[3] == 0x47) {
-                res = getResource(entry, "PNG");
+                cls = getResourceType(entry, "PNG");
               } else if (DynamicArray.getInt(data, 0) == 0x00000100) {  // wild guess...
-                res = getResource(entry, "TTF");
+                cls = getResourceType(entry, "TTF");
               }
             }
           }
@@ -359,7 +381,7 @@ public final class ResourceFactory implements FileWatchListener
         e.printStackTrace();
       }
     }
-    return res;
+    return cls;
   }
 
   public static void exportResource(ResourceEntry entry, Component parent)

@@ -77,6 +77,7 @@ import org.infinity.gui.converter.ConvertToTis;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -1162,7 +1163,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     };
 
     private final JMenu newFileMenu;
-    private final JMenuItem fileOpenNew, fileExport, fileAddCopy, fileRename, fileDelete, fileRestore;
+    private final JMenuItem fileOpenNew, fileReference, fileExport, fileAddCopy, fileRename, fileDelete, fileRestore;
 
     private FileMenu()
     {
@@ -1176,6 +1177,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       fileOpenNew = makeMenuItem("Open in New Window", KeyEvent.VK_W, Icons.getIcon(Icons.ICON_OPEN_16), -1, this);
       fileOpenNew.setEnabled(false);
       add(fileOpenNew);
+      fileReference = makeMenuItem("Find references...", KeyEvent.VK_F, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+      fileReference.setEnabled(false);
+      add(fileReference);
       fileExport = makeMenuItem("Export...", KeyEvent.VK_E, Icons.getIcon(Icons.ICON_EXPORT_16), -1, this);
       fileExport.setEnabled(false);
       add(fileExport);
@@ -1215,10 +1219,21 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == fileOpenNew) {
-        Resource res = ResourceFactory.getResource(
-                NearInfinity.getInstance().getResourceTree().getSelected());
+        Resource res = ResourceFactory.getResource(NearInfinity.getInstance().getResourceTree().getSelected());
         if (res != null)
           new ViewFrame(NearInfinity.getInstance(), res);
+      } else if (event.getSource() == fileReference) {
+        Resource res = ResourceFactory.getResource(NearInfinity.getInstance().getResourceTree().getSelected());
+        if (res instanceof Referenceable) {
+          if (((Referenceable)res).isReferenceable()) {
+            ((Referenceable)res).searchReferences(NearInfinity.getInstance());
+          } else {
+            JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                          "Finding references is not supported for " +
+                                              NearInfinity.getInstance().getResourceTree().getSelected() + ".",
+                                          "Error", JOptionPane.ERROR_MESSAGE);
+          }
+        }
       } else if (event.getSource() == fileExport) {
         ResourceFactory.exportResource(NearInfinity.getInstance().getResourceTree().getSelected(),
                                        NearInfinity.getInstance());
@@ -1244,6 +1259,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private void resourceEntrySelected(ResourceEntry entry)
     {
       fileOpenNew.setEnabled(entry != null);
+      Class<? extends Resource> cls = ResourceFactory.getResourceType(entry);
+      fileReference.setEnabled(cls != null && Referenceable.class.isAssignableFrom(cls));
       fileExport.setEnabled(entry != null);
       fileAddCopy.setEnabled(entry != null);
       fileRename.setEnabled(entry instanceof FileResourceEntry);
