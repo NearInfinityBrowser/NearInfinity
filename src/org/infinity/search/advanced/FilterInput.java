@@ -184,8 +184,6 @@ public class FilterInput extends ChildFrame
     resourceType = "";
     setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
 
-    GridBagConstraints c = new GridBagConstraints();
-
     // preparing popup menus for formatted text fields
     menuFieldOffset = new JPopupMenu();
     menuValueNumberMin = new JPopupMenu();
@@ -200,7 +198,65 @@ public class FilterInput extends ChildFrame
       menu.addPopupMenuListener(listeners);
     }
 
-    // structure selection
+    // preparing subsections
+    pStructure = initStructureLevel();
+    JPanel pField = initFieldInput();
+    JPanel pValue = initValueInput();
+
+    // Invert match option
+    cbInvertMatch = new JCheckBox("Invert match");
+    cbInvertMatch.setToolTipText("Add to result on mismatch");
+
+    // dialog button bar
+    bInputReset = new JButton("Reset");
+    bInputReset.addActionListener(listeners);
+    bInputApply = new JButton("Add");
+    bInputApply.addActionListener(listeners);
+    bInputClose = new JButton("Close");
+    bInputClose.addActionListener(listeners);
+
+    JPanel pButtons = new JPanel(new GridBagLayout());
+    GridBagConstraints c = new GridBagConstraints();
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    pButtons.add(bInputReset, c);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    pButtons.add(new JPanel(), c);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    pButtons.add(bInputApply, c);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    pButtons.add(bInputClose, c);
+
+    // put everything together
+    JPanel pFilterMain = new JPanel(new GridBagLayout());
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 1, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    pFilterMain.add(pStructure, c);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    pFilterMain.add(pField, c);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    pFilterMain.add(pValue, c);
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
+    pFilterMain.add(cbInvertMatch, c);
+
+    JPanel pMain = new JPanel(new GridBagLayout());
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 1, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
+    pMain.add(pFilterMain, c);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(16, 8, 8, 8), 0, 0);
+    pMain.add(pButtons, c);
+
+    getContentPane().setLayout(new BorderLayout());
+    getContentPane().add(pMain, BorderLayout.CENTER);
+    getRootPane().setDefaultButton(bInputApply);
+
+    pack();
+    setMinimumSize(new Dimension(getPreferredSize()));
+    setLocationRelativeTo(getParent());
+    setVisible(true);
+  }
+
+  // Initializes the structure level section
+  private JPanel initStructureLevel()
+  {
+    GridBagConstraints c = new GridBagConstraints();
     treeStructure = new JTree(new DefaultMutableTreeNode("[root]"));
     treeStructure.setRootVisible(true);
     treeStructure.setShowsRootHandles(false);
@@ -251,14 +307,20 @@ public class FilterInput extends ChildFrame
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pStructureButtonPanel.add(pStructureOptionsPanel, c);
 
-    pStructure = new JPanel(new GridBagLayout());
+    JPanel pStructure = new JPanel(new GridBagLayout());
     pStructure.setBorder(BorderFactory.createTitledBorder("Structure level: "));
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, new Insets(4, 8, 0, 8), 0, 0);
     pStructure.add(scrollTree, c);
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
     pStructure.add(pStructureButtonPanel, c);
 
-    // field input
+    return pStructure;
+  }
+
+  // Initializes the field input section
+  private JPanel initFieldInput()
+  {
+    GridBagConstraints c = new GridBagConstraints();
     JLabel lFieldType = new JLabel("Search field by:");
     cbFieldType = new JComboBox<>(new ObjectString[] {
         new ObjectString("Name", SearchOptions.FieldMode.ByName, "%s"),
@@ -313,7 +375,13 @@ public class FilterInput extends ChildFrame
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(8, 8, 8, 8), 0, 0);
     pField.add(pFieldInput, c);
 
-    // value input
+    return pField;
+  }
+
+  // Initializes the value input section
+  private JPanel initValueInput()
+  {
+    GridBagConstraints c = new GridBagConstraints();
     JLabel lValueType = new JLabel("Value type:");
     cbValueType = new JComboBox<>(new ObjectString[] {
         new ObjectString("Text", SearchOptions.ValueType.Text, "%s"),
@@ -418,51 +486,7 @@ public class FilterInput extends ChildFrame
     c = ViewerUtil.setGBC(c, 0, 2, 2, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(4, 8, 8, 8), 0, 0);
     pValue.add(pValueInput, c);
 
-    // Invert match
-    cbInvertMatch = new JCheckBox("Invert match");
-    cbInvertMatch.setToolTipText("Add to result on mismatch");
-
-    // dialog
-    bInputReset = new JButton("Reset");
-    bInputReset.addActionListener(listeners);
-    bInputApply = new JButton("Add");
-    bInputApply.addActionListener(listeners);
-    bInputClose = new JButton("Close");
-    bInputClose.addActionListener(listeners);
-    JPanel pButtons = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
-    pButtons.add(bInputReset, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-    pButtons.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
-    pButtons.add(bInputApply, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
-    pButtons.add(bInputClose, c);
-
-    JPanel pFilterMain = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 1, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
-    pFilterMain.add(pStructure, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    pFilterMain.add(pField, c);
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    pFilterMain.add(pValue, c);
-    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE, new Insets(4, 4, 0, 0), 0, 0);
-    pFilterMain.add(cbInvertMatch, c);
-
-    JPanel pMain = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1, 1, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.BOTH, new Insets(8, 8, 0, 8), 0, 0);
-    pMain.add(pFilterMain, c);
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1, 0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(16, 8, 8, 8), 0, 0);
-    pMain.add(pButtons, c);
-
-    getContentPane().setLayout(new BorderLayout());
-    getContentPane().add(pMain, BorderLayout.CENTER);
-    getRootPane().setDefaultButton(bInputApply);
-
-    pack();
-    setMinimumSize(new Dimension(getPreferredSize()));
-    setLocationRelativeTo(getParent());
-    setVisible(true);
+    return pValue;
   }
 
   /** Helper method: Enables or disables all components of the structure subpanel. */
