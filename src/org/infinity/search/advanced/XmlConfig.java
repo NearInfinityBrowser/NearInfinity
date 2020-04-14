@@ -47,14 +47,14 @@ public class XmlConfig
       "<!ELEMENT mode (#PCDATA)>\n" +
       "<!ELEMENT filter (structure, field, pattern, invert)>\n" +
       "<!ELEMENT structure (child*)>\n" +
-      "<!ATTLIST structure group (0|1) #IMPLIED>\n" +     // use "1" by default
-      "<!ATTLIST structure recursive (0|1) #IMPLIED>\n" + // use "0" by default
-      "<!ATTLIST structure regex (0|1) #IMPLIED>\n" +     // use "0" by default
+      "<!ATTLIST structure group (0|1) \"1\">\n" +
+      "<!ATTLIST structure recursive (0|1) \"0\">\n" +
+      "<!ATTLIST structure regex (0|1) \"0\">\n" +
       "<!ELEMENT child (#PCDATA)>\n" +
       "<!ELEMENT field (input+)>\n" +
       "<!ATTLIST field type (name|ofsrel|ofsabs) #REQUIRED>\n" +
       "<!ELEMENT input (#PCDATA)>\n" +
-      "<!ATTLIST input type (value|case|regex|min|max|ext|mode) #IMPLIED>\n" + // use "value" by default
+      "<!ATTLIST input type (value|case|regex|min|max|ext|mode) \"value\">\n" +
       "<!ELEMENT pattern (input+)>\n" +
       "<!ATTLIST pattern type (text|number|resource|bitfield) #REQUIRED>\n" +
       "<!ELEMENT invert (#PCDATA)>\n" +
