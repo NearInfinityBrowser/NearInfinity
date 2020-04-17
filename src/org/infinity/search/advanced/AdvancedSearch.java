@@ -140,7 +140,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable
   private ButtonGroup bgFilterMode;
   private JList<SearchOptions> filterList;
   private JButton bFilterSave, bFilterLoad;
-  private JButton bFilterAdd, bFilterEdit, bFilterRemove, bFilterRemoveAll;
+  private JButton bFilterAdd, bFilterClone, bFilterEdit, bFilterRemove, bFilterRemoveAll;
   private JButton bSearch, bOpen, bOpenNew, bSave;
   private SortableTable listResults;
   private JLabel lResultsStatus;
@@ -272,15 +272,23 @@ public class AdvancedSearch extends ChildFrame implements Runnable
 
     bFilterAdd = new JButton("Add...");
     bFilterAdd.addActionListener(listeners);
+    bFilterAdd.setToolTipText("Add a new filter");
+    bFilterClone = new JButton("Clone...");
+    bFilterClone.addActionListener(listeners);
+    bFilterClone.setEnabled(false);
+    bFilterClone.setToolTipText("Add a copy of the selected filter");
     bFilterEdit = new JButton("Edit...");
     bFilterEdit.setEnabled(false);
     bFilterEdit.addActionListener(listeners);
+    bFilterEdit.setToolTipText("Edit the selected filter");
     bFilterRemove = new JButton("Remove");
     bFilterRemove.setEnabled(false);
     bFilterRemove.addActionListener(listeners);
+    bFilterRemove.setToolTipText("Remove the selected filter");
     bFilterRemoveAll = new JButton("Clear");
     bFilterRemoveAll.setEnabled(false);
     bFilterRemoveAll.addActionListener(listeners);
+    bFilterRemoveAll.setToolTipText("Remove all filters");
 
     bSearch = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
     bSearch.setEnabled(false);
@@ -334,12 +342,14 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pFilterButtons.add(bFilterAdd, c);
     c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
-    pFilterButtons.add(bFilterEdit, c);
+    pFilterButtons.add(bFilterClone, c);
     c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
-    pFilterButtons.add(bFilterRemove, c);
+    pFilterButtons.add(bFilterEdit, c);
     c = ViewerUtil.setGBC(c, 6, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    pFilterButtons.add(bFilterRemove, c);
+    c = ViewerUtil.setGBC(c, 7, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pFilterButtons.add(bFilterRemoveAll, c);
-    c = ViewerUtil.setGBC(c, 7, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 8, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
     pFilterButtons.add(bSearch, c);
 
     // whole filter section
@@ -679,6 +689,12 @@ public class AdvancedSearch extends ChildFrame implements Runnable
         FilterInput dlg = ChildFrame.show(FilterInput.class, () -> new FilterInput());
         if (dlg != null)
           dlg.setOptions(AdvancedSearch.this, cbResourceTypes.getSelectedItem().toString(), null);
+      } else if (event.getSource() == bFilterClone) {
+        // create duplicate of existing filter entry
+        FilterInput dlg = ChildFrame.show(FilterInput.class, () -> new FilterInput());
+        if (dlg != null)
+          dlg.setOptions(AdvancedSearch.this, cbResourceTypes.getSelectedItem().toString(),
+                         new SearchOptions(filterList.getSelectedValue()), true);
       } else if (event.getSource() == bFilterEdit) {
         // edit existing filter entry
         FilterInput dlg = ChildFrame.show(FilterInput.class, () -> new FilterInput());
@@ -743,13 +759,8 @@ public class AdvancedSearch extends ChildFrame implements Runnable
             actionPerformed(new ActionEvent(bFilterAdd, 0, null));
             break;
           case MENU_FILTER_CLONE:
-          {
-            FilterInput dlg = ChildFrame.show(FilterInput.class, () -> new FilterInput());
-            if (dlg != null)
-              dlg.setOptions(AdvancedSearch.this, cbResourceTypes.getSelectedItem().toString(),
-                             new SearchOptions(filterList.getSelectedValue()), true);
+            actionPerformed(new ActionEvent(bFilterClone, 0, null));
             break;
-          }
           case MENU_FILTER_EDIT:
             actionPerformed(new ActionEvent(bFilterEdit, 0, null));
             break;
@@ -817,6 +828,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     public void valueChanged(ListSelectionEvent event)
     {
       if (event.getSource() == filterList) {
+        bFilterClone.setEnabled(filterList.getSelectedIndex() != -1);
         bFilterEdit.setEnabled(filterList.getSelectedIndex() != -1);
         bFilterRemove.setEnabled(filterList.getSelectedIndex() != -1);
       } else if (listResults.getSelectionModel() == event.getSource()) {
