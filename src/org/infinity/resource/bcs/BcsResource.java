@@ -290,7 +290,7 @@ import org.infinity.util.io.StreamUtils;
  * <p>This field is fairly obvious. The high nybble is the Chaotic-Lawful axis, and
  * the low nybble is the Good-Evil axis. The values for this are specified in
  * {@code ALIGNMEN.IDS}. The only nuance to this is that there are several values
- * {@code MASK_CHAOTIC}, {@code MASK_LCNEUTRAL}, [@code MASK_LAWFUL}, {@code MASK_EVIL},
+ * {@code MASK_CHAOTIC}, {@code MASK_LCNEUTRAL}, {@code MASK_LAWFUL}, {@code MASK_EVIL},
  * {@code MASK_GENEUTRAL}, {@code MASK_GOOD} which are wildcards, meaning, respectively,
  * all chaotic objects, all neutral (on the lawful-chaotic axis) objects, all lawful
  * objects, all evil objects, all neutral (good-evil axis) objects, and all good objects</li>
