@@ -40,7 +40,7 @@ import org.infinity.resource.key.ResourceEntry;
 public class TtfResource implements Resource, DocumentListener, ActionListener
 {
   private static final String DEFAULT_STRING = "The quick brown fox jumps over the lazy dog.  1234567890";
-  private static final int[] FONT_SIZE = { 12, 18, 24, 36, 48, 60, 72, 96 };
+  private static final int[] FONT_SIZE = { 12, 18, 24, 36, 48, 60, 72, 96, 128, 192 };
 
   private static String CURRENT_STRING = DEFAULT_STRING;
 
