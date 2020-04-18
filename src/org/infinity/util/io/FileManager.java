@@ -436,7 +436,7 @@ public class FileManager implements FileWatchListener
             }
           }
         } catch (Exception e) {
-          e.printStackTrace();
+//          e.printStackTrace();
         }
       }
     } catch (Throwable t) {
