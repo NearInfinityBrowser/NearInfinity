@@ -5,6 +5,7 @@
 package org.infinity.resource.sound;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -28,6 +29,7 @@ import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Closeable;
+import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
@@ -38,7 +40,7 @@ import org.infinity.util.io.StreamUtils;
 /**
  * Handles all kinds of supported single track audio files.
  */
-public class SoundResource implements Resource, ActionListener, ItemListener, Closeable, Runnable
+public class SoundResource implements Resource, ActionListener, ItemListener, Closeable, Referenceable, Runnable
 {
   private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
@@ -71,7 +73,7 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
       player.stopPlay();
       bPlay.setEnabled(true);
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
-      new WavReferenceSearcher(entry, panel.getTopLevelAncestor());
+      searchReferences(panel.getTopLevelAncestor());
     }
   }
 
@@ -121,6 +123,22 @@ public class SoundResource implements Resource, ActionListener, ItemListener, Cl
   }
 
 //--------------------- End Interface Resource ---------------------
+
+//--------------------- Begin Interface Referenceable ---------------------
+
+  @Override
+  public boolean isReferenceable()
+  {
+    return isReference;
+  }
+
+  @Override
+  public void searchReferences(Component parent)
+  {
+    new WavReferenceSearcher(entry, parent);
+  }
+
+//--------------------- End Interface Referenceable ---------------------
 
 //--------------------- Begin Interface Runnable ---------------------
 

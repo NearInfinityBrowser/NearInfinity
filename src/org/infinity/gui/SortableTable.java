@@ -5,6 +5,7 @@
 package org.infinity.gui;
 
 import java.awt.Component;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.BufferedWriter;
@@ -128,6 +129,20 @@ public final class SortableTable extends JTable implements MouseListener
         ex.printStackTrace();
       }
     }
+  }
+
+  /**
+   * Scrolls the table within an enclosing viewport to make the specified row completely visible. This calls
+   * {@code scrollRectToVisible} with the bounds of the specified row. For this method to work, the {@code JTable}
+   * must be within a JViewport.
+   * If the given index is outside the table's range of rows, this method results in nothing.
+   * @param index the index of the row to make visible.
+   */
+  public void ensureIndexIsVisible(int index)
+  {
+    Rectangle rect = getCellRect(index, 0, true);
+    if (rect != null)
+      scrollRectToVisible(rect);
   }
 
   @Override

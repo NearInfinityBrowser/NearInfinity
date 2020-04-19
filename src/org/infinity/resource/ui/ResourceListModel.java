@@ -50,4 +50,30 @@ public class ResourceListModel extends AbstractListModel<ResourceEntry>
   {
     return index == 0 ? null : resources.get(index - 1);
   }
+
+  /**
+   * Returns the index-position of the specified object in the list.
+   * @param anObject element to search for.
+   * @return an {@code int} representing the index position, where 0 is the first position.
+   *         Returns -1 if this list does not contain the element.
+   */
+  public int getIndexOf(Object anObject)
+  {
+    if (anObject == null || anObject.toString().isEmpty())
+      return 0;
+
+    if (anObject instanceof ResourceEntry) {
+      ResourceEntry entry = (ResourceEntry)anObject;
+      int idx = resources.indexOf(entry);
+      if (idx >= 0)
+        return idx + 1;  // account for implicit empty item at index 0
+    } else {
+      String entry = anObject.toString();
+      for (int idx = 0, cnt = resources.size(); idx < cnt; idx++) {
+        if (resources.get(idx).getResourceName().compareToIgnoreCase(entry) == 0)
+          return idx + 1;   // account for implicit empty item at index 0
+      }
+    }
+    return -1;
+  }
 }

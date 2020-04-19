@@ -63,7 +63,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
     fileInfo.put("PRO", new StructInfo("PRO ", new String[]{"V1.0"}));
     fileInfo.put("SPL", new StructInfo("SPL ", new String[]{"V1  ", "V2.0"}));
     fileInfo.put("STO", new StructInfo("STOR", new String[]{"V1.0", "V1.1", "V9.0"}));
-    fileInfo.put("VEF", new StructInfo("VEF ", new String[]{"V1.0"}));
+    fileInfo.put("VEF", new StructInfo("VEF ", new String[]{"V1.0", ""}));
     fileInfo.put("VVC", new StructInfo("VVC ", new String[]{"V1.0"}));
     fileInfo.put("WED", new StructInfo("WED ", new String[]{"V1.3"}));
     fileInfo.put("WMP", new StructInfo("WMAP", new String[]{"V1.0"}));

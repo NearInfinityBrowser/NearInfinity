@@ -202,13 +202,14 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
 
 // -------------------------- INNER CLASSES --------------------------
 
-  private static final class ReferenceHit implements TableItem
+  /** Stores a reference to a specific resource field. */
+  public static final class ReferenceHit implements TableItem, Comparable<ReferenceHit>
   {
     private final ResourceEntry entry;
     private final String name;
     private final StructEntry ref;
 
-    private ReferenceHit(ResourceEntry entry, String name, StructEntry ref)
+    public ReferenceHit(ResourceEntry entry, String name, StructEntry ref)
     {
       this.entry = entry;
       this.name = name;
@@ -240,6 +241,16 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
       }
     }
 
+    public ResourceEntry getResource()
+    {
+      return entry;
+    }
+
+    public String getName()
+    {
+      return name;
+    }
+
     public StructEntry getStructEntry()
     {
       return ref;
@@ -255,6 +266,50 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
       if (ref != null)
         buf.append(", Attribute: ").append(ref.getName()).append('=').append(ref);
       return buf.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+      if (obj instanceof ReferenceHit) {
+        ReferenceHit rh = (ReferenceHit)obj;
+        if (entry == null && rh.entry != null || !entry.equals(rh.entry))
+          return false;
+        if (name == null && rh.name != null || !name.equalsIgnoreCase(rh.name))
+          return false;
+        if (ref == null && rh.ref != null || !ref.equals(rh.ref))
+          return false;
+        return true;
+      }
+      return super.equals(obj);
+    }
+
+    @Override
+    public int compareTo(ReferenceHit rh)
+    {
+      if (rh == null)
+        throw new NullPointerException();
+
+      if (entry == null) {
+        if (rh.entry == null)
+          return 0;
+        else
+          return 1;
+      }
+
+      int retVal = entry.compareTo(rh.entry);
+      if (retVal == 0) {
+        if (name != null) {
+          retVal = name.compareToIgnoreCase(rh.name);
+          if (retVal == 0) {
+            if (ref != null) {
+              retVal = ref.compareTo(rh.ref);
+            }
+          }
+        }
+      }
+
+      return retVal;
     }
   }
 }

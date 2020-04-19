@@ -5,6 +5,7 @@
 package org.infinity.resource.video;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -41,6 +42,7 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
@@ -61,7 +63,7 @@ import org.monte.media.math.Rational;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mve.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mve.htm</a>
  */
-public class MveResource implements Resource, ActionListener, ItemListener, Closeable, Runnable
+public class MveResource implements Resource, ActionListener, ItemListener, Closeable, Referenceable, Runnable
 {
   private static final int VIDEO_BUFFERS = 3;
 
@@ -107,7 +109,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES)) {
-      new ReferenceSearcher(entry, panel.getTopLevelAncestor());
+      searchReferences(panel.getTopLevelAncestor());
     } else if (miExport == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (miExportAvi == event.getSource()) {
@@ -192,6 +194,22 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
   }
 
 //--------------------- End Interface Closeable ---------------------
+
+//--------------------- Begin Interface Referenceable ---------------------
+
+  @Override
+  public boolean isReferenceable()
+  {
+    return true;
+  }
+
+  @Override
+  public void searchReferences(Component parent)
+  {
+    new ReferenceSearcher(entry, parent);
+  }
+
+//--------------------- End Interface Referenceable ---------------------
 
 //--------------------- Begin Interface Runnable ---------------------
 

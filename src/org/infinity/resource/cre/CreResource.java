@@ -548,7 +548,7 @@ public final class CreResource extends AbstractStruct
           scriptName = StreamUtils.readString(buffer, offset + 804, 32);
         } else if (version.equalsIgnoreCase("V2.2")) {
           scriptName = StreamUtils.readString(buffer, offset + 916, 32);
-        } else if (version.equalsIgnoreCase("V9.0")) {
+        } else if (version.equalsIgnoreCase("V9.0") || version.equalsIgnoreCase("V9.1")) {
           scriptName = StreamUtils.readString(buffer, offset + 744, 32);
         }
         if (scriptName.equals("") || scriptName.equalsIgnoreCase("None")) {
@@ -1545,7 +1545,7 @@ public final class CreResource extends AbstractStruct
       addField(new MultiNumber(buffer, offset + 107, 1, CRE_PROFICIENCY_BOW, 3, 2, s_profLabels));
       addField(new Unknown(buffer, offset + 108, 14));
     }
-    else if (version.equalsIgnoreCase("V9.0")) {
+    else if (version.equalsIgnoreCase("V9.0") || version.equalsIgnoreCase("V9.1")) {
       addField(new MultiNumber(buffer, offset + 102, 1, CRE_PROFICIENCY_LARGE_SWORD, 3, 2, s_profLabels));
       addField(new MultiNumber(buffer, offset + 103, 1, CRE_PROFICIENCY_SMALL_SWORD, 3, 2, s_profLabels));
       addField(new MultiNumber(buffer, offset + 104, 1, CRE_PROFICIENCY_BOW, 3, 2, s_profLabels));
@@ -1687,7 +1687,7 @@ public final class CreResource extends AbstractStruct
       addField(new IdsBitmap(buffer, offset + 779, 1, CRE_FACTION, "FACTION.IDS"));
       offset += 164;
     }
-    else if (version.equalsIgnoreCase("V9.0")) {
+    else if (version.equalsIgnoreCase("V9.0") || version.equalsIgnoreCase("V9.1")) {
       addField(new Bitmap(buffer, offset + 616, 1, CRE_DEFAULT_VISIBILITY, s_visible));
       addField(new Bitmap(buffer, offset + 617, 1, CRE_SET_EXTRA_DEATH_VAR, s_noyes));
       addField(new Bitmap(buffer, offset + 618, 1, CRE_INCREMENT_KILL_COUNT, s_noyes));

@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -185,8 +187,10 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       if (Profile.isEnhancedEdition() && ResourceFactory.resourceExists("BGEE.LUA")) {
         // Enhanced Edition 2.0+ map names
         try {
-          // getting all cheatAreas* tables from BGEE.LUA
-          LuaEntry entries = LuaParser.Parse(ResourceFactory.getResourceEntry("BGEE.LUA"), "cheatAreas\\w*", false);
+          // getting all cheatAreas* tables from BGEE.LUA and the various L_xx_YY.LUA files
+          List<ResourceEntry> luaFiles = ResourceFactory.getResources(Pattern.compile("L_.*\\.LUA"));
+          luaFiles.add(ResourceFactory.getResourceEntry("BGEE.LUA"));
+          LuaEntry entries = LuaParser.Parse(luaFiles, "cheatAreas\\w*", false);
           mapNames = createMapNamesFromLua(entries);
         } catch (Exception e) {
           e.printStackTrace();

@@ -33,6 +33,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -44,6 +46,7 @@ import org.infinity.NearInfinity;
 import org.infinity.gui.BrowserMenuBar.OverrideMode;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.BIFFResourceEntry;
@@ -617,10 +620,11 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     }
   }
 
-  private final class TreePopupMenu extends JPopupMenu implements ActionListener
+  private final class TreePopupMenu extends JPopupMenu implements ActionListener, PopupMenuListener
   {
     private final JMenuItem mi_open = new JMenuItem("Open");
     private final JMenuItem mi_opennew = new JMenuItem("Open in new window");
+    private final JMenuItem mi_reference = new JMenuItem("Find references");
     private final JMenuItem mi_export = new JMenuItem("Export");
     private final JMenuItem mi_addcopy = new JMenuItem("Add copy of");
     private final JMenuItem mi_rename = new JMenuItem("Rename");
@@ -630,68 +634,32 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
 
     TreePopupMenu()
     {
-      add(mi_open);
-      add(mi_opennew);
-      add(mi_export);
+      mi_reference.setEnabled(false);
       mi_zip.setToolTipText("Create a zip archive out of the selected saved game.");
-      add(mi_zip);
-      add(mi_addcopy);
-      add(mi_rename);
-      add(mi_delete);
-      add(mi_restore);
-      mi_open.addActionListener(this);
-      mi_opennew.addActionListener(this);
-      mi_export.addActionListener(this);
-      mi_zip.addActionListener(this);
-      mi_addcopy.addActionListener(this);
-      mi_rename.addActionListener(this);
-      mi_delete.addActionListener(this);
-      mi_restore.addActionListener(this);
-      mi_opennew.setFont(mi_opennew.getFont().deriveFont(Font.PLAIN));
-      mi_export.setFont(mi_opennew.getFont());
-      mi_addcopy.setFont(mi_opennew.getFont());
-      mi_rename.setFont(mi_opennew.getFont());
-      mi_delete.setFont(mi_opennew.getFont());
-      mi_restore.setFont(mi_opennew.getFont());
-      mi_zip.setFont(mi_opennew.getFont());
+      Font fnt = mi_open.getFont().deriveFont(Font.PLAIN);
+      for (JMenuItem mi : new JMenuItem[] {mi_open, mi_opennew, mi_reference, mi_export,
+                                           mi_zip, mi_addcopy, mi_rename, mi_delete, mi_restore}) {
+        add(mi);
+        mi.addActionListener(this);
+        mi.setFont(fnt);
+      }
+      addPopupMenuListener(this);
     }
 
-    @Override
-    public void show(Component invoker, int x, int y)
+    private ResourceEntry getResourceEntry()
     {
-      super.show(invoker, x, y);
-      mi_rename.setEnabled(tree.getLastSelectedPathComponent() instanceof FileResourceEntry);
+      ResourceEntry entry = null;
       if (tree.getLastSelectedPathComponent() instanceof ResourceEntry) {
-        ResourceEntry entry = (ResourceEntry)tree.getLastSelectedPathComponent();
-        mi_delete.setEnabled(entry != null && entry.hasOverride() || entry instanceof FileResourceEntry);
-        mi_restore.setEnabled(isBackupAvailable(entry));
-        mi_zip.setEnabled(entry instanceof FileResourceEntry && Profile.isSaveGame(entry.getActualPath()));
+        entry = (ResourceEntry)tree.getLastSelectedPathComponent();
       }
-      else {
-        mi_delete.setEnabled(false);
-        mi_restore.setEnabled(false);
-        if (tree.getLastSelectedPathComponent() instanceof ResourceTreeFolder) {
-          ResourceTreeFolder folder = (ResourceTreeFolder)tree.getLastSelectedPathComponent();
-          String path = "";
-          while (folder != null && !folder.folderName().isEmpty()) {
-            path = folder.folderName() + "/" + path;
-            folder = folder.getParentFolder();
-          }
-          mi_zip.setEnabled(Profile.isSaveGame(FileManager.resolve(path)));
-        } else {
-          mi_zip.setEnabled(false);
-        }
-      }
+      return entry;
     }
 
     @Override
     public void actionPerformed(ActionEvent event)
     {
       showresource = true;
-      ResourceEntry node = null;
-      if (tree.getLastSelectedPathComponent() instanceof ResourceEntry) {
-        node = (ResourceEntry)tree.getLastSelectedPathComponent();
-      }
+      ResourceEntry node = getResourceEntry();
       if (event.getSource() == mi_open && node != null) {
         if (prevnextnode != null)
           prevstack.push(prevnextnode);
@@ -706,6 +674,18 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         Resource res = ResourceFactory.getResource(node);
         if (res != null)
           new ViewFrame(NearInfinity.getInstance(), res);
+      }
+      else if (event.getSource() == mi_reference && node != null) {
+        Resource res = ResourceFactory.getResource(node);
+        if (res != null && res instanceof Referenceable) {
+          if (((Referenceable)res).isReferenceable()) {
+            ((Referenceable)res).searchReferences(NearInfinity.getInstance());
+          } else {
+            JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                          "Finding references is not supported for " + node + ".",
+                                          "Error", JOptionPane.ERROR_MESSAGE);
+          }
+        }
       }
       else if (event.getSource() == mi_export && node != null) {
         ResourceFactory.exportResource(node, NearInfinity.getInstance());
@@ -746,6 +726,39 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
                                         "Error", JOptionPane.ERROR_MESSAGE);
         }
       }
+    }
+
+    @Override
+    public void popupMenuWillBecomeVisible(PopupMenuEvent event)
+    {
+      ResourceEntry entry = getResourceEntry();
+      Class<? extends Resource> cls = ResourceFactory.getResourceType(entry);
+      mi_reference.setEnabled(cls != null && Referenceable.class.isAssignableFrom(cls));
+      mi_rename.setEnabled(entry instanceof FileResourceEntry);
+
+      mi_delete.setEnabled(entry != null && entry.hasOverride() || entry instanceof FileResourceEntry);
+      mi_restore.setEnabled(isBackupAvailable(entry));
+      mi_zip.setEnabled(entry instanceof FileResourceEntry && Profile.isSaveGame(entry.getActualPath()));
+
+      String path = "";
+      if (tree.getLastSelectedPathComponent() instanceof ResourceTreeFolder) {
+        ResourceTreeFolder folder = (ResourceTreeFolder)tree.getLastSelectedPathComponent();
+        while (folder != null && !folder.folderName().isEmpty()) {
+          path = folder.folderName() + "/" + path;
+          folder = folder.getParentFolder();
+        }
+      }
+      mi_zip.setEnabled(!path.isEmpty() && Profile.isSaveGame(FileManager.resolve(path)));
+    }
+
+    @Override
+    public void popupMenuWillBecomeInvisible(PopupMenuEvent event)
+    {
+    }
+
+    @Override
+    public void popupMenuCanceled(PopupMenuEvent event)
+    {
     }
   }
 

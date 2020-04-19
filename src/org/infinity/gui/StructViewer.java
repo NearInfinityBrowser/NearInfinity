@@ -92,7 +92,6 @@ import org.infinity.resource.dlg.TreeItemEntry;
 import org.infinity.search.AttributeSearcher;
 import org.infinity.search.DialogItemRefSearcher;
 import org.infinity.search.DialogStateReferenceSearcher;
-import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.Pair;
 import org.infinity.util.StructClipboard;
@@ -636,7 +635,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           new AttributeSearcher(struct, (StructEntry)table.getValueAt(table.getSelectedRow(), 1),
                                 getTopLevelAncestor());
         } else if (item == miFindReferences) {
-          new ReferenceSearcher(struct.getResourceEntry(), getTopLevelAncestor());
+          struct.searchReferences(getTopLevelAncestor());
         } else if (item == miFindStateReferences) {
           State state = (State)table.getValueAt(table.getSelectedRow(), 1);
           new DialogStateReferenceSearcher(struct.getResourceEntry(), state, getTopLevelAncestor());

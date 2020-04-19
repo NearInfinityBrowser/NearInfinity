@@ -5,6 +5,7 @@
 package org.infinity.resource.text;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -39,6 +40,7 @@ import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Referenceable;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.ViewableContainer;
@@ -51,7 +53,7 @@ import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
 public class PlainTextResource implements TextResource, Writeable, ActionListener, ItemListener,
-                                          DocumentListener, Closeable
+                                          DocumentListener, Closeable, Referenceable
 {
   private final ResourceEntry entry;
   protected final String text;
@@ -89,7 +91,7 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
       if (ResourceFactory.saveResource(this, panel.getTopLevelAncestor()))
         resourceChanged = false;
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
-      new ReferenceSearcher(entry, panel.getTopLevelAncestor());
+      searchReferences(panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.TRIM_SPACES) == event.getSource()) {
@@ -118,6 +120,21 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
 
 // --------------------- End Interface Closeable ---------------------
 
+//--------------------- Begin Interface Referenceable ---------------------
+
+  @Override
+  public boolean isReferenceable()
+  {
+    return true;
+  }
+
+  @Override
+  public void searchReferences(Component parent)
+  {
+    new ReferenceSearcher(entry, parent);
+  }
+
+//--------------------- End Interface Referenceable ---------------------
 
 // --------------------- Begin Interface DocumentListener ---------------------
 
