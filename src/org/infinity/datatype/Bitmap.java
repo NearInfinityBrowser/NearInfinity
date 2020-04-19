@@ -45,11 +45,13 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
   private final String[] table;
 
   private TextListPanel<String> list;
+  private int base; // numeric value of first item index
   private int value;
 
   public Bitmap(ByteBuffer buffer, int offset, int length, String name, String[] table)
   {
     super(offset, length, name);
+    this.base = 0;
     this.table = table;
     read(buffer, offset);
   }
@@ -58,9 +60,17 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
   @Override
   public JComponent edit(final ActionListener container)
   {
-    final List<String> values = new ArrayList<>(Math.max(table.length, value + 1));
-    for (int i = 0; i < Math.max(table.length, value + 1); i++) {
-      values.add(toString(i));
+    base = 0;
+    int capacity = table.length;
+    if (value < 0) {
+      capacity += Math.abs(value);
+      base = value;
+    } else if (value >= table.length) {
+      capacity = value + 1;
+    }
+    final List<String> values = new ArrayList<>(capacity);
+    for (int i = 0; i < capacity; i++) {
+      values.add(toString(base + i));
     }
     list = new TextListPanel<>(values, false);
     list.addMouseListener(new MouseAdapter()
@@ -73,7 +83,7 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
         }
       }
     });
-    if (value >= 0 && value < list.getModel().getSize()) {
+    if (value >= base && value < list.getModel().getSize() + base) {
       int index = 0;
       while (!list.getModel().getElementAt(index).equals(toString(value))) {
         index++;
@@ -187,10 +197,8 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
   /** Returns a formatted description of the specified value. */
   private String toString(int nr)
   {
-    if (nr >= table.length) {
+    if (nr < 0 || nr >= table.length) {
       return "Unknown (" + nr + ')';
-    } else if (nr < 0) {
-      return "Error (" + nr + ')';
     } else if (table[nr] == null || table[nr].isEmpty()) {
       return "Unknown (" + nr + ')';
     } else {
@@ -210,7 +218,7 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
   private int calcValue()
   {
     final String svalue = list.getSelectedValue();
-    int val = 0;
+    int val = base;
     //FIXME: Ineffective code
     while (!svalue.equals(toString(val))) {
       val++;

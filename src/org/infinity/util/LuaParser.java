@@ -6,6 +6,8 @@ package org.infinity.util;
 
 import java.nio.CharBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,7 +21,7 @@ import org.infinity.resource.text.PlainTextResource;
 public class LuaParser
 {
   private enum Token {
-    None, Key, Value, ValueString, ValueNumber, ValueHexNumber, ValueBoolean, Comment,
+    None, Key, Index, Value, ValueString, ValueNumber, ValueHexNumber, ValueBoolean, Comment,
   }
 
   /**
@@ -38,10 +40,33 @@ public class LuaParser
    */
   public static LuaEntry Parse(ResourceEntry entry, String name, boolean exactMatch) throws Exception
   {
-    if (entry == null)
+    return Parse(Arrays.asList(entry), name, exactMatch);
+  }
+
+  /**
+   * Attempts to retrieve a Lua table structure from the specified Lua resource.
+   *
+   * @param entries
+   *          Array of Lua resource entries.
+   * @param name
+   *          Name of the Lua table structure to retrieve.
+   * @param exactMatch
+   *          Whether the specified name is matched case-by-case ({@code true}) or as a regular expression
+   *          ({@code false}).
+   * @return All LuaEntry structures matching the specified structure name, listed inside a root LuaEntry container
+   *         labeled as key="0".
+   * @throws Exception
+   */
+  public static LuaEntry Parse(List<ResourceEntry> entries, String name, boolean exactMatch) throws Exception
+  {
+    if (entries == null || entries.size() == 0)
       return null;
 
-    return Parse(new PlainTextResource(entry).getText(), name, exactMatch);
+    StringBuilder sb = new StringBuilder();
+    for (ResourceEntry entry : entries)
+      sb.append((new PlainTextResource(entry)).getText());
+
+    return Parse(sb.toString(), name, exactMatch);
   }
 
   /**
@@ -64,16 +89,40 @@ public class LuaParser
 
     if (exactMatch)
       name = Pattern.quote(name);
-    Pattern p = Pattern.compile(String.format("\\b%s\\s*=", name));
-    Matcher m = p.matcher(data);
 
     LuaEntry root = new LuaEntry(0);
     root.children = new ArrayList<LuaEntry>();
 
+    // search for table definitions
+    // Example: mytable = {"value1", "value2"}
+    String pattern = String.format("^[ \t]*(%s)\\s*=", name);
+    Pattern p = Pattern.compile(pattern, Pattern.MULTILINE);
+    Matcher m = p.matcher(data);
+
     while (m.find()) {
-      LuaEntry retVal = ParseElement((CharBuffer) CharBuffer.wrap(data).position(m.start()), root);
+      LuaEntry retVal = ParseElement((CharBuffer) CharBuffer.wrap(data).position(m.start(1)), root);
       if (retVal != null)
         root.children.add(retVal);
+    }
+
+    // search for table additions
+    // Example: mytable[#mytable+1] = {"value1", "value2"}
+    pattern = String.format("^[ \t]*(%1$s)[ \t]*\\[#%1$s[ \\t]*\\+[ \\t]*1\\]\\s*=", name);
+    p = Pattern.compile(pattern, Pattern.MULTILINE);
+    m = p.matcher(data);
+
+    while (m.find()) {
+      String exactName = m.group(1);
+      LuaEntry child = root.findChild(exactName, false);
+      if (child != null) {
+        LuaEntry retVal = ParseElement((CharBuffer) CharBuffer.wrap(data).position(m.start(1)), child);
+        if (retVal != null) {
+          if (child.children == null)
+            child.children = new ArrayList<>();
+          retVal.key = Integer.toString(child.children.size());
+          child.children.add(retVal);
+        }
+      }
     }
 
     return root;
@@ -122,6 +171,9 @@ public class LuaParser
         case Key:
           if (ch >= '0' && ch <= '9' || ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z' || ch == '_') {
             key.append(ch);
+          } else if (ch == '[') {
+            prevToken = curToken;
+            curToken = Token.Index;
           } else if (ch == '=') {
             prevToken = curToken;
             curToken = Token.Value;
@@ -141,6 +193,10 @@ public class LuaParser
             prevToken = curToken;
             curToken = Token.Comment;
           }
+          break;
+        case Index: // simplified index parsing (content is ignored)
+          if (ch == ']')
+            curToken = prevToken; // restore previous state
           break;
         case Value:
           if (ch == '\'' || ch == '"' || ch == '[') {

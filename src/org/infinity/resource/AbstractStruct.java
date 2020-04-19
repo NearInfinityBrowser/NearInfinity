@@ -4,6 +4,7 @@
 
 package org.infinity.resource;
 
+import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -35,11 +36,12 @@ import org.infinity.resource.are.Actor;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
 
 public abstract class AbstractStruct extends AbstractTableModel implements StructEntry, Viewable, Closeable,
-        PropertyChangeListener
+        Referenceable, PropertyChangeListener
 {
   // Commonly used field labels
   public static final String COMMON_SIGNATURE     = "Signature";
@@ -174,6 +176,20 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     if (viewer != null) {
       viewer.close();
     }
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="Referenceable">
+  @Override
+  public boolean isReferenceable()
+  {
+    return true;
+  }
+
+  @Override
+  public void searchReferences(Component parent)
+  {
+    new ReferenceSearcher(getResourceEntry(), parent);
   }
   //</editor-fold>
 

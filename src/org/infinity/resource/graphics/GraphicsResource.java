@@ -5,6 +5,7 @@
 package org.infinity.resource.graphics;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -19,6 +20,7 @@ import javax.swing.JScrollPane;
 
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.RenderCanvas;
+import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
@@ -26,7 +28,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.io.StreamUtils;
 
-public final class GraphicsResource implements Resource, ActionListener
+public final class GraphicsResource implements Resource, Referenceable, ActionListener
 {
   private final ResourceEntry entry;
   private final ButtonPanel buttonPanel = new ButtonPanel();
@@ -47,7 +49,7 @@ public final class GraphicsResource implements Resource, ActionListener
   public void actionPerformed(ActionEvent event)
   {
     if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
-      new ReferenceSearcher(entry, panel.getTopLevelAncestor());
+      searchReferences(panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     }
@@ -66,6 +68,21 @@ public final class GraphicsResource implements Resource, ActionListener
 
 // --------------------- End Interface Resource ---------------------
 
+//--------------------- Begin Interface Referenceable ---------------------
+
+  @Override
+  public boolean isReferenceable()
+  {
+    return true;
+  }
+
+  @Override
+  public void searchReferences(Component parent)
+  {
+    new ReferenceSearcher(entry, parent);
+  }
+
+//--------------------- End Interface Referenceable ---------------------
 
 // --------------------- Begin Interface Viewable ---------------------
 

@@ -5,6 +5,7 @@
 package org.infinity.resource.mus;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -37,6 +38,7 @@ import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.resource.Closeable;
+import org.infinity.resource.Referenceable;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.ViewableContainer;
@@ -160,7 +162,7 @@ import org.infinity.util.io.StreamUtils;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mus.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mus.htm</a>
  */
-public final class MusResource implements Closeable, TextResource, ActionListener, Writeable, ItemListener,
+public final class MusResource implements Closeable, Referenceable, TextResource, ActionListener, Writeable, ItemListener,
                                           DocumentListener
 {
   private static int lastIndex = -1;
@@ -213,6 +215,20 @@ public final class MusResource implements Closeable, TextResource, ActionListene
   }
   //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="Referenceable">
+  @Override
+  public boolean isReferenceable()
+  {
+    return true;
+  }
+
+  @Override
+  public void searchReferences(Component parent)
+  {
+    new SongReferenceSearcher(entry, parent);
+  }
+  //</editor-fold>
+
   //<editor-fold defaultstate="collapsed" desc="DocumentListener">
   @Override
   public void insertUpdate(DocumentEvent event)
@@ -245,7 +261,7 @@ public final class MusResource implements Closeable, TextResource, ActionListene
       } else if (bpmFind.getSelectedItem() == ifindthis) {
         new TextResourceSearcher(Arrays.asList(entry), panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindreference) {
-        new SongReferenceSearcher(entry, panel.getTopLevelAncestor());
+        searchReferences(panel.getTopLevelAncestor());
       }
     }
   }

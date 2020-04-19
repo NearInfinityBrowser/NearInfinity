@@ -36,6 +36,29 @@ public class LuaEntry
     this.children = null;
   }
 
+  /**
+   * Return child LuaEntry matching the specified key.
+   *
+   * @param key
+   *          The case-sensitive key string.
+   * @param recursive
+   *          Whether the search should be done recursively un subchilds as well.
+   * @return The first LuaEntry item matching the specified parameter, {@code null} otherwise.
+   */
+  public LuaEntry findChild(String key, boolean recursive)
+  {
+    if (children != null) {
+      for (LuaEntry le : children) {
+        if (le.key.equals(key))
+          return le;
+        LuaEntry retVal = le.findChild(key, recursive);
+        if (retVal != null)
+          return retVal;
+      }
+    }
+    return null;
+  }
+
   @Override
   public String toString()
   {

@@ -165,7 +165,8 @@ public class ViewerMap extends JPanel
           mapScroll.setBorder(BorderFactory.createEmptyBorder());
 
           JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapScroll, listPanel);
-          split.setDividerLocation(NearInfinity.getInstance().getWidth() - 475);
+          int viewerWidth = NearInfinity.getInstance().getWidth() - NearInfinity.getInstance().getResourceTree().getWidth();
+          split.setDividerLocation(viewerWidth - viewerWidth / 4);  // have area list occupy ca. 25% of resource view width
           setLayout(new BorderLayout());
           add(split, BorderLayout.CENTER);
 

@@ -436,6 +436,7 @@ public class FileManager implements FileWatchListener
             }
           }
         } catch (Exception e) {
+//          e.printStackTrace();
         }
       }
     } catch (Throwable t) {
@@ -561,7 +562,7 @@ public class FileManager implements FileWatchListener
       if (list == null) {
         list = _cacheDirectory(folder, false);
       }
-      if (!list.contains(retVal)) {
+      if (list == null || !list.contains(retVal)) {
         retVal = null;
       }
     }

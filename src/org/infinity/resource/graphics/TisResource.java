@@ -70,6 +70,7 @@ import org.infinity.gui.converter.ConvertToPvrz;
 import org.infinity.gui.converter.ConvertToTis;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
@@ -123,7 +124,7 @@ import org.infinity.util.io.StreamUtils;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/tis_v1.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/tis_v1.htm</a>
  */
-public class TisResource implements Resource, Closeable, ActionListener, ChangeListener,
+public class TisResource implements Resource, Closeable, Referenceable, ActionListener, ChangeListener,
                                      ItemListener, KeyListener, PropertyChangeListener
 {
   private enum Status { SUCCESS, CANCELLED, ERROR, UNSUPPORTED }
@@ -161,7 +162,7 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
   public void actionPerformed(ActionEvent event)
   {
     if (event.getSource() == buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES)) {
-      new ReferenceSearcher(entry, panel.getTopLevelAncestor());
+      searchReferences(panel.getTopLevelAncestor());
     } else if (event.getSource() == miExport) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (event.getSource() == miExportPaletteTis) {
@@ -402,6 +403,21 @@ public class TisResource implements Resource, Closeable, ActionListener, ChangeL
 
 //--------------------- End Interface Resource ---------------------
 
+//--------------------- Begin Interface Referenceable ---------------------
+
+  @Override
+  public boolean isReferenceable()
+  {
+    return true;
+  }
+
+  @Override
+  public void searchReferences(Component parent)
+  {
+    new ReferenceSearcher(entry, parent);
+  }
+
+//--------------------- End Interface Referenceable ---------------------
 
 //--------------------- Begin Interface Viewable ---------------------
 

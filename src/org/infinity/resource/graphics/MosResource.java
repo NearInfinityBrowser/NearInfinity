@@ -5,6 +5,7 @@
 package org.infinity.resource.graphics;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Transparency;
@@ -44,6 +45,7 @@ import org.infinity.gui.RenderCanvas;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
@@ -60,7 +62,7 @@ import org.infinity.util.io.StreamUtils;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mos_v1.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/mos_v1.htm</a>
  */
-public class MosResource implements Resource, ActionListener, PropertyChangeListener
+public class MosResource implements Resource, Referenceable, ActionListener, PropertyChangeListener
 {
   private static final ButtonPanel.Control Properties = ButtonPanel.Control.CUSTOM_1;
 
@@ -101,7 +103,7 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
         WindowBlocker.blockWindow(false);
       }
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_REFERENCES) == event.getSource()) {
-      new ReferenceSearcher(entry, panel.getTopLevelAncestor());
+      searchReferences(panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(Properties) == event.getSource()) {
       showProperties();
     } else if (event.getSource() == miExport) {
@@ -227,6 +229,22 @@ public class MosResource implements Resource, ActionListener, PropertyChangeList
   }
 
 //--------------------- End Interface Resource ---------------------
+
+//--------------------- Begin Interface Referenceable ---------------------
+
+  @Override
+  public boolean isReferenceable()
+  {
+    return true;
+  }
+
+  @Override
+  public void searchReferences(Component parent)
+  {
+    new ReferenceSearcher(entry, parent);
+  }
+
+//--------------------- End Interface Referenceable ---------------------
 
 //--------------------- Begin Interface Viewable ---------------------
 

@@ -1298,11 +1298,11 @@ public final class EffectFactory
             "Tracking", "Immunity to tracking", "Set local variable",
             // 310..319
             "Immunity to time stop", "Wish", "Immunity to sequester", "High-level ability",
-            "Stoneskin protection", "Remove animation", "Rest", "Haste 2", "Protection from spell",
+            "Stoneskin protection", "Remove animation", "Rest", "Haste 2", "Protection from resource",
             "Restrict item",
             // 320..329
             "Change weather", "Remove effects by resource", "AoE evade check (deprecated)",
-            "Turn undead level", "Immunity to spell and message", "All saving throws bonus",
+            "Turn undead level", "Immunity to resource and message", "All saving throws bonus",
             "Apply effects list", "Show visual effect", "Set spell state", "Slow poison",
             // 330..339
             "Float text", "Summon creatures 2", "Attack damage type bonus", "Static charge",
@@ -3771,7 +3771,7 @@ public final class EffectFactory
           SpellProtType param2 = new SpellProtType(buffer, offset + 4, 4);
           s.add(param2.createCreatureValueFromType(buffer, offset));
           s.add(param2);
-          restype = "ITM:SPL";
+          restype = "EFF:ITM:SPL";
         } else if (isTobEx) {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new IdsBitmap(buffer, offset + 4, 2, "Stat opcode", "STATS.IDS"));
@@ -3789,7 +3789,7 @@ public final class EffectFactory
           SpellProtType param2 = new SpellProtType(buffer, offset + 4, 4);
           s.add(param2.createCreatureValueFromType(buffer, offset));
           s.add(param2);
-          restype = (effectType == 324) ? "ITM:SPL" : "SPL";
+          restype = (effectType == 324) ? "EFF:ITM:SPL" : "SPL";
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }

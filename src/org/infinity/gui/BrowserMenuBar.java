@@ -77,6 +77,7 @@ import org.infinity.gui.converter.ConvertToTis;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
+import org.infinity.resource.Referenceable;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -90,6 +91,7 @@ import org.infinity.search.DialogSearcher;
 import org.infinity.search.SearchFrame;
 import org.infinity.search.SearchResource;
 import org.infinity.search.TextResourceSearcher;
+import org.infinity.search.advanced.AdvancedSearch;
 import org.infinity.updater.UpdateCheck;
 import org.infinity.updater.UpdateInfo;
 import org.infinity.updater.Updater;
@@ -104,7 +106,7 @@ import org.infinity.util.io.FileManager;
 
 public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 {
-  public static final String VERSION = "v2.1-20200401";
+  public static final String VERSION = "v2.1-20200419";
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
 
@@ -1161,7 +1163,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     };
 
     private final JMenu newFileMenu;
-    private final JMenuItem fileOpenNew, fileExport, fileAddCopy, fileRename, fileDelete, fileRestore;
+    private final JMenuItem fileOpenNew, fileReference, fileExport, fileAddCopy, fileRename, fileDelete, fileRestore;
 
     private FileMenu()
     {
@@ -1175,6 +1177,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       fileOpenNew = makeMenuItem("Open in New Window", KeyEvent.VK_W, Icons.getIcon(Icons.ICON_OPEN_16), -1, this);
       fileOpenNew.setEnabled(false);
       add(fileOpenNew);
+      fileReference = makeMenuItem("Find references...", KeyEvent.VK_F, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+      fileReference.setEnabled(false);
+      add(fileReference);
       fileExport = makeMenuItem("Export...", KeyEvent.VK_E, Icons.getIcon(Icons.ICON_EXPORT_16), -1, this);
       fileExport.setEnabled(false);
       add(fileExport);
@@ -1214,10 +1219,21 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == fileOpenNew) {
-        Resource res = ResourceFactory.getResource(
-                NearInfinity.getInstance().getResourceTree().getSelected());
+        Resource res = ResourceFactory.getResource(NearInfinity.getInstance().getResourceTree().getSelected());
         if (res != null)
           new ViewFrame(NearInfinity.getInstance(), res);
+      } else if (event.getSource() == fileReference) {
+        Resource res = ResourceFactory.getResource(NearInfinity.getInstance().getResourceTree().getSelected());
+        if (res instanceof Referenceable) {
+          if (((Referenceable)res).isReferenceable()) {
+            ((Referenceable)res).searchReferences(NearInfinity.getInstance());
+          } else {
+            JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                          "Finding references is not supported for " +
+                                              NearInfinity.getInstance().getResourceTree().getSelected() + ".",
+                                          "Error", JOptionPane.ERROR_MESSAGE);
+          }
+        }
       } else if (event.getSource() == fileExport) {
         ResourceFactory.exportResource(NearInfinity.getInstance().getResourceTree().getSelected(),
                                        NearInfinity.getInstance());
@@ -1243,6 +1259,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private void resourceEntrySelected(ResourceEntry entry)
     {
       fileOpenNew.setEnabled(entry != null);
+      Class<? extends Resource> cls = ResourceFactory.getResourceType(entry);
+      fileReference.setEnabled(cls != null && Referenceable.class.isAssignableFrom(cls));
       fileExport.setEnabled(entry != null);
       fileAddCopy.setEnabled(entry != null);
       fileRename.setEnabled(entry instanceof FileResourceEntry);
@@ -1298,7 +1316,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   private static final class SearchMenu extends JMenu implements ActionListener
   {
     private final String TEXTSEARCH[] = {"2DA", "BCS", "DLG", "IDS", "INI", "LUA"};
-    private final JMenuItem searchString, searchFile, searchResource;
+    private final JMenuItem searchString, searchFile, searchResource, advancedSearch;
     private final JMenu textSearchMenu;
 
     private SearchMenu()
@@ -1312,10 +1330,22 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       searchFile =
           makeMenuItem("CRE/ITM/SPL/STO...", KeyEvent.VK_C, Icons.getIcon(Icons.ICON_FIND_16), KeyEvent.VK_F, this);
       add(searchFile);
+
+      JMenu menuAdvanced = new JMenu("Advanced Search");
+      menuAdvanced.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
+      menuAdvanced.setMnemonic('a');
+      add(menuAdvanced);
+
+      advancedSearch =
+          makeMenuItem("Advanced search...", KeyEvent.VK_A, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+      advancedSearch.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, CTRL_MASK | ALT_MASK));
+      advancedSearch.setToolTipText("A powerful and highly flexible search for structured resources of all kinds.");
+      menuAdvanced.add(advancedSearch);
       searchResource =
-          makeMenuItem("Extended search...", KeyEvent.VK_X, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+          makeMenuItem("Legacy extended search...", KeyEvent.VK_X, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
       searchResource.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, CTRL_MASK | ALT_MASK));
-      add(searchResource);
+      searchResource.setToolTipText("The original \"Extended Search\".");
+      menuAdvanced.add(searchResource);
 
       textSearchMenu = new JMenu("Text Search");
       textSearchMenu.setIcon(Icons.getIcon(Icons.ICON_EDIT_16));
@@ -1354,6 +1384,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       }
       else if (event.getSource() == searchResource) {
         ChildFrame.show(SearchResource.class, () -> new SearchResource());
+      }
+      else if (event.getSource() == advancedSearch) {
+        ChildFrame.show(AdvancedSearch.class, () -> new AdvancedSearch());
       }
       else {
         for (final String type : TEXTSEARCH) {
