@@ -81,6 +81,7 @@ import javax.swing.tree.TreePath;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionOffset;
 import org.infinity.gui.ButtonPopupWindow;
@@ -289,7 +290,7 @@ public class AreaViewer extends ChildFrame
 
     // Creating main view area
     pCanvas = new JPanel(new GridBagLayout());
-    rcCanvas = new TilesetRenderer();
+    rcCanvas = new TilesetRenderer(map.getOverlayTransparency());
     rcCanvas.addComponentListener(getListeners());
     rcCanvas.addMouseListener(getListeners());
     rcCanvas.addMouseMotionListener(getListeners());
@@ -865,7 +866,7 @@ public class AreaViewer extends ChildFrame
           initProgressMonitor(this, "Loading tileset...", null, 1, 0, 0);
         }
         if (!rcCanvas.isMapLoaded() || rcCanvas.getWed() != map.getWed(ViewerConstants.AREA_DAY)) {
-          rcCanvas.loadMap(map.getWed(ViewerConstants.AREA_DAY));
+          rcCanvas.loadMap(map.getOverlayTransparency(), map.getWed(ViewerConstants.AREA_DAY));
           reloadWedLayers(true);
         }
         rcCanvas.setLighting(index);
@@ -875,7 +876,7 @@ public class AreaViewer extends ChildFrame
           initProgressMonitor(this, "Loading tileset...", null, 1, 0, 0);
         }
         if (!rcCanvas.isMapLoaded() || rcCanvas.getWed() != map.getWed(ViewerConstants.AREA_DAY)) {
-          rcCanvas.loadMap(map.getWed(ViewerConstants.AREA_DAY));
+          rcCanvas.loadMap(map.getOverlayTransparency(), map.getWed(ViewerConstants.AREA_DAY));
           reloadWedLayers(true);
         }
         rcCanvas.setLighting(index);
@@ -886,7 +887,7 @@ public class AreaViewer extends ChildFrame
         }
         if (!rcCanvas.isMapLoaded() || map.hasExtendedNight()) {
           if (rcCanvas.getWed() != map.getWed(ViewerConstants.AREA_NIGHT)) {
-            rcCanvas.loadMap(map.getWed(ViewerConstants.AREA_NIGHT));
+            rcCanvas.loadMap(map.getOverlayTransparency(), map.getWed(ViewerConstants.AREA_NIGHT));
             reloadWedLayers(true);
           }
         }
@@ -2506,6 +2507,7 @@ public class AreaViewer extends ChildFrame
     private final GraphicsResource[] mapLight = new GraphicsResource[]{null, null};
 
     private final AreResource are;
+    private int overlayTransparency;
     private boolean hasDayNight, hasExtendedNight;
     private AbstractLayerItem areItem, songItem, restItem;
     private GraphicsResource mapSearch, mapHeight;
@@ -2727,6 +2729,15 @@ public class AreaViewer extends ChildFrame
       return hasExtendedNight;
     }
 
+    /**
+     * Returns the alpha blending strength of overlays in the range [0, 255]
+     * where 0 is fully opaque and 255 is fully transparent.
+     * Default for classic BG1: 0 (fully opaque); everything else: 128 (50% transparency) */
+    public int getOverlayTransparency()
+    {
+      return overlayTransparency;
+    }
+
     private static GraphicsResource loadMap(String mapName, GraphicsResource def)
     {
       try {
@@ -2738,7 +2749,7 @@ public class AreaViewer extends ChildFrame
 
     private void init()
     {
-      // fetching important flags
+      // fetching important options
       final Flag flags = (Flag)are.getAttribute(AreResource.ARE_LOCATION);
       if (flags != null) {
         if (Profile.getEngine() == Profile.Engine.PST) {
@@ -2748,6 +2759,13 @@ public class AreaViewer extends ChildFrame
           hasDayNight = flags.isFlagSet(1);
           hasExtendedNight = flags.isFlagSet(6);
         }
+      }
+      if (Profile.isEnhancedEdition()) {
+        overlayTransparency = ((IsNumeric)are.getAttribute(AreResource.ARE_OVERLAY_TRANSPARENCY)).getValue();
+        if (overlayTransparency == 0)
+          overlayTransparency = 128;
+      } else {
+        overlayTransparency = (Profile.getEngine() == Profile.Engine.BG1) ? 0 : 128;
       }
 
       // initializing pseudo layer items

@@ -43,20 +43,22 @@ public class TilesetRenderer extends RenderCanvas
 {
   public static final String[] LabelVisualStates = {"Day", "Twilight", "Night"};
 
-  // Rendering modes for tiles (affects how to render overlayed tiles)
-  public static final int MODE_AUTO = 0;    // mode based on current game id
-  public static final int MODE_BG1 = 1;     // forces BG1 rendering mode
-  public static final int MODE_BG2 = 2;     // forces BG2 rendering mode
+  /** Available rendering modes for tiles. Affects how overlays are rendered. */
+  public enum RenderMode {
+    /** Determine rendering mode based on detected game engine. */
+    Auto,
+    /** Masked overlays supported by original BG1 engine. */
+    Masked,
+    /** Blended overlays supported by IWD, BG2 and EE engines. */
+    Blended,
+  }
 
   private static final int MaxOverlays = 8;   // max. supported overlay entries
   private static final double MinZoomFactor = 1.0/64.0;   // lower zoom factor limit
   private static final double MaxZoomFactor = 16.0;       // upper zoom factor limit
 
   // Placeholder for missing tile data
-  private static final int[] DEFAULT_TILE_DATA = new int[64*64];
-  static {
-    initDefaultTile(DEFAULT_TILE_DATA);
-  }
+  private static final int[] DEFAULT_TILE_DATA = createDefaultTile();
 
   // Lighting adjustment for day/twilight/night times (multiplied by 10.24 for faster calculations)
   // Formula:
@@ -77,7 +79,8 @@ public class TilesetRenderer extends RenderCanvas
 
   private final BufferedImage workingTile = ColorConvert.createCompatibleImage(64, 64, true); // internally used for drawing tile graphics
   private WedResource wed;                // current wed resource
-  private int renderingMode = MODE_AUTO;  // the rendering mode to use for processing overlayed tiles
+  private int overlayTransparency;        // overlay transparency strength from 0 (opaque) to 255 (transparent)
+  private RenderMode renderingMode = RenderMode.Auto; // the rendering mode to use for processing overlayed tiles
   private boolean overlaysEnabled = true; // indicates whether to draw overlays
   private boolean blendedOverlays;        // indicates whether to blend overlays with tile graphics
   private boolean hasChangedMap, hasChangedAppearance, hasChangedOverlays, hasChangedDoorState;
@@ -98,15 +101,15 @@ public class TilesetRenderer extends RenderCanvas
     return LabelVisualStates.length;
   }
 
-  public TilesetRenderer()
+  public TilesetRenderer(int overlayTransparency)
   {
-    this(null);
+    this(overlayTransparency, null);
   }
 
-  public TilesetRenderer(WedResource wed)
+  public TilesetRenderer(int overlayTransparency, WedResource wed)
   {
     super();
-    init(wed);
+    init(overlayTransparency, wed);
   }
 
   /**
@@ -149,10 +152,10 @@ public class TilesetRenderer extends RenderCanvas
    * @param wed WED resource structure used to construct a map.
    * @return true if map has been initialized successfully, false otherwise.
    */
-  public boolean loadMap(WedResource wed)
+  public boolean loadMap(int defaultTransparency, WedResource wed)
   {
     if (this.wed != wed) {
-      return init(wed);
+      return init(defaultTransparency, wed);
     } else {
       return true;
     }
@@ -185,7 +188,7 @@ public class TilesetRenderer extends RenderCanvas
   /**
    * Returns the current mode for processing overlays.
    */
-  public int getRenderingMode()
+  public RenderMode getRenderingMode()
   {
     return renderingMode;
   }
@@ -194,9 +197,9 @@ public class TilesetRenderer extends RenderCanvas
    * Specify how to draw overlayed tiles. Possible choices are MODE_AUTO, MODE_BG1 and MODE_BG2.
    * @param mode The new rendering mode
    */
-  public void setRenderingMode(int mode)
+  public void setRenderingMode(RenderMode mode)
   {
-    if (mode < MODE_AUTO) mode = MODE_AUTO; else if (mode > MODE_BG2) mode = MODE_BG2;
+    if (mode == null) mode = RenderMode.Auto;
     if (mode != renderingMode) {
       renderingMode = mode;
       hasChangedOverlays = true;
@@ -561,19 +564,19 @@ public class TilesetRenderer extends RenderCanvas
     }
   }
 
-  private static void initDefaultTile(int[] buffer)
+  private static int[] createDefaultTile()
   {
-    if (buffer != null) {
-      BufferedImage image = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
-      Graphics2D g = image.createGraphics();
-      g.setColor(Color.GRAY);
-      g.fillRect(0, 0, image.getWidth(), image.getHeight());
-      g.dispose();
-      int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-      for (int i = 0, cnt = Math.min(buffer.length, pixels.length); i < cnt; i++) {
-        buffer[i] = pixels[i];
-      }
+    int[] buffer = new int[64*64];
+    BufferedImage image = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g = image.createGraphics();
+    g.setColor(Color.GRAY);
+    g.fillRect(0, 0, image.getWidth(), image.getHeight());
+    g.dispose();
+    int[] pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+    for (int i = 0, cnt = Math.min(buffer.length, pixels.length); i < cnt; i++) {
+      buffer[i] = pixels[i];
     }
+    return buffer;
   }
 
   // Resizes the current image or creates a new one if needed
@@ -591,15 +594,16 @@ public class TilesetRenderer extends RenderCanvas
   }
 
   // Initializes a new map
-  private boolean init(WedResource wed)
+  private boolean init(int overlayTransparency, WedResource wed)
   {
     release(false);
 
     // resetting states
-    blendedOverlays = Profile.getProperty(Profile.Key.IS_TILESET_STENCILED);
+    blendedOverlays = Profile.getEngine() != Profile.Engine.BG1;
     lighting = ViewerConstants.LIGHTING_DAY;
 
     // loading map data
+    this.overlayTransparency = overlayTransparency;
     if (wed != null) {
       if (initWed(wed)) {
         this.wed = wed;
@@ -787,6 +791,131 @@ public class TilesetRenderer extends RenderCanvas
     }
   }
 
+  // render tile graphics without overlays
+  private void drawTileSimple(int[] sourceTile, int[] renderTarget)
+  {
+    if (sourceTile != null) {
+      int pixel, fr, fg, fb;
+      for (int ofs = 0; ofs < 4096; ofs++) {
+        pixel = sourceTile[ofs];
+        fr = (pixel >>> 16) & 0xff;
+        fg = (pixel >>> 8) & 0xff;
+        fb = pixel & 0xff;
+
+        // applying lighting conditions
+        fr = (fr * LightingAdjustment[lighting][0]) >>> LightingAdjustmentShift;
+        fg = (fg * LightingAdjustment[lighting][1]) >>> LightingAdjustmentShift;
+        fb = (fb * LightingAdjustment[lighting][2]) >>> LightingAdjustmentShift;
+        renderTarget[ofs] = 0xff000000 | (fr << 16) | (fg << 8) | fb;
+      }
+    } else {
+      // no tile = transparent pixel data (work-around for faulty tiles in BG1's WEDs)
+      for (int ofs = 0; ofs < 4096; ofs++)
+        renderTarget[ofs] = 0;
+    }
+  }
+
+  // compose tile graphics in BG1 mode
+  private void drawTileMasked(int[] primaryTile, int[] secondaryTile, int[] overlayTile, int[] renderTarget, boolean isDoorTile, boolean isDoorClosed)
+  {
+    if (renderTarget != null) {
+      int[] src = (isDoorTile && isDoorClosed) ? secondaryTile : primaryTile;
+      int fr, fg, fb, pixel;
+      for (int ofs = 0; ofs < 4096; ofs++) {
+        // composing pixel data
+        if (src != null && (src[ofs] & 0xff000000) != 0)
+          pixel = src[ofs];
+        else if (overlayTile != null)
+          pixel = overlayTile[ofs];
+        else
+          pixel = 0;
+        fr = (pixel >>> 16) & 0xff;
+        fg = (pixel >>> 8) & 0xff;
+        fb = pixel & 0xff;
+
+        // applying lighting conditions
+        fr = (fr * LightingAdjustment[lighting][0]) >>> LightingAdjustmentShift;
+        fg = (fg * LightingAdjustment[lighting][1]) >>> LightingAdjustmentShift;
+        fb = (fb * LightingAdjustment[lighting][2]) >>> LightingAdjustmentShift;
+        renderTarget[ofs] = 0xff000000 | (fr << 16) | (fg << 8) | fb;
+      }
+    }
+  }
+
+  // compose tile graphics in BG2 mode
+  private void drawTileBlended(int[] primaryTile, int[] secondaryTile, int[] overlayTile, int[] renderTarget, boolean isPaletted)
+  {
+    if (renderTarget != null) {
+      int pixel, fr, fg, fb;
+      boolean pa = false, sa = false;
+      int pr = 0, pg = 0, pb = 0, sr = 0, sg = 0, sb = 0, or = 0, og = 0, ob = 0;
+      int alphaSrc = overlayTransparency, alphaDst = 255 - overlayTransparency;
+      for (int ofs = 0; ofs < 4096; ofs++) {
+        // getting source pixels
+        if (primaryTile != null) {
+          pixel = primaryTile[ofs];
+          pa = (pixel & 0xff000000) != 0;
+          pr = (pixel >>> 16) & 0xff;
+          pg = (pixel >>> 8) & 0xff;
+          pb = pixel & 0xff;
+        }
+
+        if (secondaryTile != null) {
+          pixel = secondaryTile[ofs];
+          sa = (pixel & 0xff000000) != 0;
+          sr = (pixel >>> 16) & 0xff;
+          sg = (pixel >>> 8) & 0xff;
+          sb = pixel & 0xff;
+        }
+
+        if (overlayTile != null) {
+          pixel = overlayTile[ofs];
+          or = (pixel >>> 16) & 0xff;
+          og = (pixel >>> 8) & 0xff;
+          ob = pixel & 0xff;
+        }
+
+        // composing pixel data
+        // blending modes depend on transparency states of primary and secondary pixels
+        if (pa && !sa) {
+          if (isPaletted) {
+            fr = (pr * alphaSrc) + (or * alphaDst) >>> 8;
+            fg = (pg * alphaSrc) + (og * alphaDst) >>> 8;
+            fb = (pb * alphaSrc) + (ob * alphaDst) >>> 8;
+          } else {
+            if (secondaryTile != null) {
+              fr = pr;
+              fg = pg;
+              fb = pb;
+            } else {
+              fr = (pr * alphaSrc) + (or * alphaDst) >>> 8;
+              fg = (pg * alphaSrc) + (og * alphaDst) >>> 8;
+              fb = (pb * alphaSrc) + (ob * alphaDst) >>> 8;
+            }
+          }
+        } else if (pa && sa) {
+          fr = (pr * alphaSrc) + (sr * alphaDst) >>> 8;
+          fg = (pg * alphaSrc) + (sg * alphaDst) >>> 8;
+          fb = (pb * alphaSrc) + (sb * alphaDst) >>> 8;
+        } else if (!pa && !sa) {
+          fr = or;
+          fg = og;
+          fb = ob;
+        } else {  // !pa && sa
+          fr = (sr * alphaSrc) + (or * alphaDst) >>> 8;
+          fg = (sg * alphaSrc) + (og * alphaDst) >>> 8;
+          fb = (sb * alphaSrc) + (ob * alphaDst) >>> 8;
+        }
+
+        // applying lighting conditions
+        fr = (fr * LightingAdjustment[lighting][0]) >>> LightingAdjustmentShift;
+        fg = (fg * LightingAdjustment[lighting][1]) >>> LightingAdjustmentShift;
+        fb = (fb * LightingAdjustment[lighting][2]) >>> LightingAdjustmentShift;
+        renderTarget[ofs] = 0xff000000 | (fr << 16) | (fg << 8) | fb;
+      }
+    }
+  }
+
   // draws the specified tile into the target graphics buffer
   private synchronized void drawTile(Tile tile, boolean isDoorTile)
   {
@@ -794,7 +923,6 @@ public class TilesetRenderer extends RenderCanvas
       boolean isDoorClosed = (Profile.getEngine() == Profile.Engine.PST) ? !isClosed : isClosed;
       int[] target = ((DataBufferInt)workingTile.getRaster().getDataBuffer()).getData();
 
-      int fa = 255, fr = 0, fg = 0, fb = 0;
       if (overlaysEnabled && tile.hasOverlay() && hasOverlay(tile.getOverlayIndex())) {   // overlayed tile
         // preparing graphics data
         int overlay = tile.getOverlayIndex();
@@ -816,92 +944,13 @@ public class TilesetRenderer extends RenderCanvas
           }
 
           // determining correct rendering mode
-          boolean blended = (renderingMode == MODE_AUTO && blendedOverlays) || (renderingMode == MODE_BG2);
+          boolean blended = (renderingMode == RenderMode.Auto && blendedOverlays) || (renderingMode == RenderMode.Blended);
 
           // drawing tile graphics
-          boolean pa, sa;
-          int pr, pg, pb, sr, sg, sb, or, og, ob;
-          for (int ofs = 0; ofs < 4096; ofs++) {
-            if (blended) {    // BG2/BGEE mode overlays
-              // extracting color components
-              if (srcPri != null) {
-                pa = (srcPri[ofs] & 0xff000000) != 0;
-                pr = (srcPri[ofs] >>> 16) & 0xff;
-                pg = (srcPri[ofs] >>> 8) & 0xff;
-                pb = srcPri[ofs] & 0xff;
-              } else {
-                pa = false;
-                pr = pg = pb = 0;
-              }
-              if (srcSec != null) {
-                sa = (srcSec[ofs] & 0xff000000) != 0;
-                sr = (srcSec[ofs] >>> 16) & 0xff;
-                sg = (srcSec[ofs] >>> 8) & 0xff;
-                sb = srcSec[ofs] & 0xff;
-              } else {
-                sa = false;
-                sr = sg = sb = 0;
-              }
-              if (srcOvl != null) {
-                or = (srcOvl[ofs] >>> 16) & 0xff;
-                og = (srcOvl[ofs] >>> 8) & 0xff;
-                ob = srcOvl[ofs] & 0xff;
-              } else {
-                or = og = ob = 0;
-              }
-
-              // blending modes depend on transparency states of primary and secondary pixels
-              if (pa && !sa) {
-                if (tile.isTisV1()) {
-                  fr = (pr + or) >>> 1;
-                  fg = (pg + og) >>> 1;
-                  fb = (pb + ob) >>> 1;
-                } else {
-                  if (srcSec != null) {
-                    fr = pr;
-                    fg = pg;
-                    fb = pb;
-                  } else {
-                    fr = (pr + or) >>> 1;
-                    fg = (pg + og) >>> 1;
-                    fb = (pb + ob) >>> 1;
-                  }
-                }
-              } else if (pa && sa) {
-                fr = (pr + sr) >>> 1;
-                fg = (pg + sg) >>> 1;
-                fb = (pb + sb) >>> 1;
-              } else if (!pa && !sa) {
-                fr = or;
-                fg = og;
-                fb = ob;
-              } else if (!pa && sa) {
-                fr = (sr + or) >>> 1;
-                fg = (sg + og) >>> 1;
-                fb = (sb + ob) >>> 1;
-              }
-            } else {    // BG1 mode overlays
-              int[] src = (isDoorTile && isDoorClosed) ? srcSec : srcPri;
-              if (src != null) {
-                if ((src[ofs] & 0xff000000) != 0 && src != null) {
-                  fr = (src[ofs] >>> 16) & 0xff;
-                  fg = (src[ofs] >>> 8) & 0xff;
-                  fb = src[ofs] & 0xff;
-                } else if (srcOvl != null) {
-                  fr = (srcOvl[ofs] >>> 16) & 0xff;
-                  fg = (srcOvl[ofs] >>> 8) & 0xff;
-                  fb = srcOvl[ofs] & 0xff;
-                }
-              } else {
-                fa = fr = fg = fb = 0;
-              }
-            }
-
-            // applying lighting conditions
-            fr = (fr * LightingAdjustment[lighting][0]) >>> LightingAdjustmentShift;
-            fg = (fg * LightingAdjustment[lighting][1]) >>> LightingAdjustmentShift;
-            fb = (fb * LightingAdjustment[lighting][2]) >>> LightingAdjustmentShift;
-            target[ofs] = (fa << 24) | (fr << 16) | (fg << 8) | fb;
+          if (blended) {
+            drawTileBlended(srcPri, srcSec, srcOvl, target, tile.isTisV1());
+          } else {
+            drawTileMasked(srcPri, srcSec, srcOvl, target, isDoorTile, isDoorClosed);
           }
           srcOvl = null;
           srcPri = null;
@@ -920,22 +969,7 @@ public class TilesetRenderer extends RenderCanvas
         }
 
         // drawing tile graphics
-        if (srcTile != null) {
-          for (int ofs = 0; ofs < 4096; ofs++) {
-            fr = (srcTile[ofs] >>> 16) & 0xff;
-            fg = (srcTile[ofs] >>> 8) & 0xff;
-            fb = srcTile[ofs] & 0xff;
-            fr = (fr * LightingAdjustment[lighting][0]) >>> LightingAdjustmentShift;
-            fg = (fg * LightingAdjustment[lighting][1]) >>> LightingAdjustmentShift;
-            fb = (fb * LightingAdjustment[lighting][2]) >>> LightingAdjustmentShift;
-            target[ofs] = 0xff000000 | (fr << 16) | (fg << 8) | fb;
-          }
-        } else {
-          // no tile = transparent pixel data (work-around for faulty tiles in BG1's WEDs)
-          for (int ofs = 0; ofs < 4096; ofs++) {
-            target[ofs] = 0;
-          }
-        }
+        drawTileSimple(srcTile, target);
         srcTile = null;
       }
 
@@ -1046,6 +1080,7 @@ public class TilesetRenderer extends RenderCanvas
     public final List<Tile> listOverlayTiles = new ArrayList<Tile>();
 
     public int tilesX, tilesY;    // stores number of tiles per row/column
+    public boolean isTisPalette;  // whether tileset is palette-based
 
     public Tileset(WedResource wed, Overlay ovl)
     {
@@ -1070,12 +1105,12 @@ public class TilesetRenderer extends RenderCanvas
     {
       if (wed != null && ovl != null) {
         // storing tile data
-        boolean isTilesetV1 = true;
+        isTisPalette = !Profile.isEnhancedEdition();    // choose sane default
         ResourceEntry tisEntry = getTisResource(wed, ovl);
         if (tisEntry != null) {
           try {
             TisDecoder decoder = TisDecoder.loadTis(tisEntry);
-            isTilesetV1 = decoder.getType() == TisDecoder.Type.PALETTE;
+            isTisPalette = decoder.getType() == TisDecoder.Type.PALETTE;
             BufferedImage tileImage = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
             for (int i = 0, tCount = decoder.getTileCount(); i < tCount; i++) {
               decoder.getTile(i, tileImage);
@@ -1133,7 +1168,7 @@ public class TilesetRenderer extends RenderCanvas
             Flag drawOverlays = (Flag)tile.getAttribute(Tilemap.WED_TILEMAP_DRAW_OVERLAYS);
             int flags = (int)drawOverlays.getValue() & 255;
 
-            listTiles.add(new Tile(x, y, count, tileIdx, tileIdx2, flags, isTilesetV1));
+            listTiles.add(new Tile(x, y, count, tileIdx, tileIdx2, flags, isTisPalette));
             curOfs += tile.getSize();
           } else {
             listTiles.add(new Tile(x, y, 0, new int[]{}, -1, 0, true));     // needed as placeholder
