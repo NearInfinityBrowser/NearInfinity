@@ -19,7 +19,7 @@ import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.HasViewerTabs;
 
-final class AreaEntry extends AbstractStruct implements HasViewerTabs
+final public class AreaEntry extends AbstractStruct implements HasViewerTabs
 {
   // WMP/AreaEntry-specific field labels
   public static final String WMP_AREA                   = "Area";

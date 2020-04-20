@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -742,6 +743,20 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public List<StructEntry> getFields()
   {
     return fields;
+  }
+
+  /**
+   * Returns an unmodifiable list of fields of this structure matching the specified structure type.
+   * @param type The class type to filter. Specify {@code null} to return all fields of this structure.
+   * @return Unmodifiable list of fields of {@code type}.
+   */
+  public List<StructEntry> getFields(Class<? extends StructEntry> type)
+  {
+    return Collections.unmodifiableList(
+        fields
+        .stream()
+        .filter(se -> type == null || type.isAssignableFrom(se.getClass()))
+        .collect(Collectors.toList()));
   }
 
   /**
