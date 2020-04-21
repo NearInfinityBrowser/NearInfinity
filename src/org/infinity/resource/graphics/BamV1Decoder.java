@@ -25,15 +25,6 @@ import org.infinity.util.io.StreamUtils;
  */
 public class BamV1Decoder extends BamDecoder
 {
-  /**
-   * Definitions on how to handle palette transparency:<br>
-   * {@code Normal} looks for the first entry containing RGB(0, 255, 0). It falls back to palette
-   * index 0 if no entry has been found.<br>
-   * {@code FirstIndexOnly} automatically uses palette index 0 without looking for entries
-   * containing RGB(0, 255, 0).
-   */
-  public enum TransparencyMode { NORMAL, FIRST_INDEX_ONLY }
-
   private final List<BamV1FrameEntry> listFrames = new ArrayList<BamV1FrameEntry>();
   private final List<CycleEntry> listCycles = new ArrayList<CycleEntry>();
   private final BamV1FrameEntry defaultFrameInfo = new BamV1FrameEntry(null, 0);
@@ -383,7 +374,6 @@ public class BamV1Decoder extends BamDecoder
   {
     private int[] currentPalette, externalPalette;
     private boolean transparencyEnabled;
-    private TransparencyMode transparencyMode;
     private int currentCycle, currentFrame;
 
     protected BamV1Control(BamV1Decoder decoder)
@@ -411,37 +401,14 @@ public class BamV1Decoder extends BamDecoder
       }
     }
 
-    /**
-     * Returns the currently used transparency mode for palettes.
-     */
-    public TransparencyMode getTransparencyMode()
-    {
-      return transparencyMode;
-    }
-
-    /**
-     * Sets the mode on how to handle transparency in palettes.
-     * @param transparencyMode The transparency mode to set.
-     */
-    public void setTransparencyMode(TransparencyMode transparencyMode)
-    {
-      if (transparencyMode != null) {
-        if (this.transparencyMode != transparencyMode) {
-          this.transparencyMode = transparencyMode;
-          preparePalette(externalPalette);
-        }
-      }
-    }
-
     /** Returns the transparency index of the current palette. */
     public int getTransparencyIndex()
     {
-      for (int i = 0; i < currentPalette.length; i++) {
-        if ((currentPalette[i] & 0xff000000) == 0) {
-          return i;
-        }
-      }
-      return 0;
+      int idx = currentPalette.length - 1;
+      for (; idx > 0; idx--)
+        if ((currentPalette[idx] & 0xff000000) == 0)
+          break;
+      return idx;
     }
 
     /** Returns whether the palette makes use of alpha transparency. */
@@ -653,11 +620,6 @@ public class BamV1Decoder extends BamDecoder
     private void init()
     {
       transparencyEnabled = true;
-      if (Profile.getEngine() == Profile.Engine.BG1 || Profile.getEngine() == Profile.Engine.PST) {
-        transparencyMode = TransparencyMode.NORMAL;
-      } else {
-        transparencyMode = TransparencyMode.FIRST_INDEX_ONLY;
-      }
       currentPalette = null;
       externalPalette = null;
       currentCycle = currentFrame = 0;
@@ -670,16 +632,15 @@ public class BamV1Decoder extends BamDecoder
     // Prepares the palette to be used for decoding BAM frames
     private void preparePalette(int[] externalPalette)
     {
-      if (currentPalette == null) {
+      if (currentPalette == null)
         currentPalette = new int[256];
-      }
 
       // some optimizations: don't prepare if the palette hasn't changed
-      boolean isNormalMode = (getTransparencyMode() == TransparencyMode.NORMAL);
       int idx = 0;
-      int transIndex = -1;
+      List<Integer> transIndices = new ArrayList<>(); // multiple transparent palette indices are supported
       int alphaMask = Profile.isEnhancedEdition() ? 0 : 0xff000000;
       boolean alphaUsed = false;  // determines whether alpha is actually used
+
       if (externalPalette != null) {
         // filling palette entries from external palette, as much as possible
         for (; idx < externalPalette.length && idx < 256; idx++) {
@@ -688,44 +649,37 @@ public class BamV1Decoder extends BamDecoder
             currentPalette[idx] |= alphaMask;
           }
           alphaUsed |= (currentPalette[idx] & 0xff000000) != 0;
-          if (isNormalMode && transIndex < 0 && (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
-            transIndex = idx;
-          }
+          if (idx == 0 || (currentPalette[idx] & 0x00ffffff) == 0x0000ff00)
+            transIndices.add(idx);
         }
       }
-      // filling remaining entries with BAM palette
+
       if (getDecoder().bamPalette != null) {
+        // filling remaining entries with BAM palette
         for (; idx < getDecoder().bamPalette.length; idx++) {
           currentPalette[idx] = getDecoder().bamPalette[idx];
           if ((currentPalette[idx] & 0xff000000) == 0) {
             currentPalette[idx] |= alphaMask;
           }
           alphaUsed |= (currentPalette[idx] & 0xff000000) != 0;
-          if (isNormalMode && transIndex < 0 && (currentPalette[idx] & 0x00ffffff) == 0x0000ff00) {
-            transIndex = idx;
-          }
+          if (idx == 0 || (currentPalette[idx] & 0x00ffffff) == 0x0000ff00)
+            transIndices.add(idx);
         }
       }
 
-      // removing alpha support if needed
       if (!alphaUsed) {
+        // discarding alpha
         for (int i = 0; i < currentPalette.length; i++) {
           currentPalette[i] |= 0xff000000;
         }
       }
 
-      // applying transparent index
-      if (isNormalMode && transIndex >= 0) {
-        if (transparencyEnabled) {
-          currentPalette[transIndex] = 0;
-        } else {
-          currentPalette[transIndex] |= 0xff000000;
-        }
-      }
-
-      // falling back to transparency at color index 0
-      if (transparencyEnabled && transIndex < 0) {
-        currentPalette[0] = 0;
+      // applying transparent indices
+      for (int i : transIndices) {
+        if (transparencyEnabled)
+          currentPalette[i] = 0;
+        else
+          currentPalette[i] |= 0xff000000;
       }
     }
   }

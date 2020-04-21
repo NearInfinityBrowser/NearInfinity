@@ -75,9 +75,6 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
     this.control = this.bam.createControl();
     this.control.setMode(BamDecoder.BamControl.Mode.INDIVIDUAL);
     this.control.setSharedPerCycle(!isMultiPart());
-    if (this.control instanceof BamV1Decoder.BamV1Control) {
-      ((BamV1Decoder.BamV1Control)this.control).setTransparencyMode(BamV1Decoder.TransparencyMode.NORMAL);
-    }
     resetFrame();
 
     updateCanvas();
