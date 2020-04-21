@@ -47,14 +47,12 @@ public final class Viewer extends JPanel
   public static String getSymbolicName(ResourceEntry entry, boolean formatted)
   {
     if (entry != null) {
-      String resName = entry.getResourceName().toUpperCase(Locale.ENGLISH);
-      int idx = resName.lastIndexOf('.');
-      String ext = (idx >= 0) ? resName.substring(idx+1) : "";
-      String name = (idx >= 0) ? resName.substring(0, idx) : resName;
+      String ext = entry.getExtension().toUpperCase(Locale.ENGLISH);
+      String name = entry.getResourceRef().toUpperCase(Locale.ENGLISH);
 
       if ("SPL".equals(ext) && name.length() >= 7) {
         // fetching spell type
-        String s = resName.substring(0, 4);
+        String s = name.substring(0, 4);
         int type = 0;
         if (SpellType.containsKey(s)) {
           type = SpellType.get(s).intValue();

@@ -54,15 +54,11 @@ public final class WavReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchText(ResourceEntry entry, PlainTextResource text)
   {
-    String name = getTargetEntry().getResourceName();
-    int idx = name.lastIndexOf('.');
-    if (idx > 0) {
-      String nameBase = name.substring(0, idx);
-      Pattern p = Pattern.compile("\\b" + nameBase + "\\b", Pattern.CASE_INSENSITIVE);
-      Matcher m = p.matcher(text.getText());
-      if (m.find()) {
-        addHit(entry, null, null);
-      }
+    String nameBase = getTargetEntry().getResourceRef();
+    Pattern p = Pattern.compile("\\b" + nameBase + "\\b", Pattern.CASE_INSENSITIVE);
+    Matcher m = p.matcher(text.getText());
+    if (m.find()) {
+      addHit(entry, null, null);
     }
   }
 }

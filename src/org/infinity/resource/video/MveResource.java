@@ -322,12 +322,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     if (inEntry != null) {
       JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
       fc.setDialogTitle("Export MVE as AVI");
-      String name = inEntry.getResourceName();
-      if (name.lastIndexOf('.') > 0) {
-        name = name.substring(0, name.lastIndexOf('.')) + ".avi";
-      } else {
-        name = name + ".avi";
-      }
+      String name = inEntry.getResourceRef() + ".avi";
       fc.setSelectedFile(new File(fc.getCurrentDirectory(), name));
       fc.setDialogType(JFileChooser.SAVE_DIALOG);
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);

@@ -1232,10 +1232,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     // Try to fetch the correct width from an associated WED if available
     if (entry != null) {
       try {
-        String tisNameBase = entry.getResourceName();
-        if (tisNameBase.lastIndexOf('.') > 0) {
-          tisNameBase = tisNameBase.substring(0, tisNameBase.lastIndexOf('.'));
-        }
+        String tisNameBase = entry.getResourceRef();
         ResourceEntry wedEntry = null;
         while (tisNameBase.length() >= 6) {
           String wedFileName = tisNameBase + ".WED";
