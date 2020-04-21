@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -292,6 +293,9 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
         int[] palette = null;
         if ("BM".equals(new String(signature, 0, 2))) {
           palette = ColorConvert.loadPaletteBMP(paletteFile);
+        } else if (Arrays.equals(Arrays.copyOfRange(signature, 0, 4),
+                                 new byte[]{(byte)0x89, 0x50, 0x4e, 0x47})) {
+          palette = ColorConvert.loadPalettePNG(paletteFile, ConvertToBam.getUseAlpha());
         } else if ("RIFF".equals(new String(signature, 0, 4))) {
           palette = ColorConvert.loadPalettePAL(paletteFile);
         } else {
@@ -299,7 +303,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
           String ver = new String(signature, 4, 4);
           if ("BAM ".equals(sig) || "BAMC".equals(sig)) {
             if ("V1  ".equals(ver)) {
-              palette = ColorConvert.loadPaletteBAM(paletteFile);
+              palette = ColorConvert.loadPaletteBAM(paletteFile, ConvertToBam.getUseAlpha());
             } else {
               throw new Exception(String.format("BAM file \"%s\" does not contain palette data.",
                                                 paletteFile.getFileName()));
