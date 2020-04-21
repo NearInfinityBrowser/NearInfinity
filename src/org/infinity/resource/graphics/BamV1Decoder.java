@@ -291,28 +291,34 @@ public class BamV1Decoder extends BamDecoder
         srcOfs = ofsData;
         dstOfs = 0;
       }
-      for (int y = 0; y < maxHeight; y++) {
-        for (int x = 0; x < srcWidth; x++, dstOfs++) {
-          if (count > 0) {
-            // writing remaining RLE compressed pixels
-            count--;
-            if (x < maxWidth) {
-              if (bufferB != null) bufferB[dstOfs] = pixel;
-              if (bufferI != null) bufferI[dstOfs] = color;
-            }
-          } else {
-            pixel = bamBuffer.get(srcOfs++);
-            color = palette[pixel & 0xff];
-            if (isCompressed && (pixel & 0xff) == rleIndex) {
-              count = bamBuffer.get(srcOfs++) & 0xff;
-            }
-            if (x < maxWidth) {
-              if (bufferB != null) bufferB[dstOfs] = pixel;
-              if (bufferI != null) bufferI[dstOfs] = color;
+      try {
+        for (int y = 0; y < maxHeight; y++) {
+          for (int x = 0; x < srcWidth; x++, dstOfs++) {
+            if (count > 0) {
+              // writing remaining RLE compressed pixels
+              count--;
+              if (x < maxWidth) {
+                if (bufferB != null) bufferB[dstOfs] = pixel;
+                if (bufferI != null) bufferI[dstOfs] = color;
+              }
+            } else {
+              pixel = bamBuffer.get(srcOfs++);
+              color = palette[pixel & 0xff];
+              if (isCompressed && (pixel & 0xff) == rleIndex) {
+                count = bamBuffer.get(srcOfs++) & 0xff;
+              }
+              if (x < maxWidth) {
+                if (bufferB != null) bufferB[dstOfs] = pixel;
+                if (bufferI != null) bufferI[dstOfs] = color;
+              }
             }
           }
+          dstOfs += dstWidth - srcWidth;
         }
-        dstOfs += dstWidth - srcWidth;
+      } catch (Exception e) {
+        System.err.printf("Error [%s]: input (offset=%d, size=%d), output (offset=%d, size=%d)\n",
+                          e.getClass().getName(), srcOfs, bamBuffer.limit(), dstOfs,
+                          bufferB != null ? bufferB.length : bufferI.length);
       }
       bufferB = null;
       bufferI = null;
