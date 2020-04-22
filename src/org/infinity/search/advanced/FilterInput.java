@@ -559,6 +559,7 @@ public class FilterInput extends ChildFrame
       cbFieldType.setSelectedIndex(idx);
 
       tfFieldName.setText(so.getSearchName());
+      cbFieldNameCase.setSelected(so.isSearchNameCaseSensitive());
       cbFieldNameRegex.setSelected(so.isSearchNameRegex());
       ftfFieldOffsetInput.setValue(Long.toString(so.getSearchOffset(), 16) + "h");
     }
@@ -577,6 +578,7 @@ public class FilterInput extends ChildFrame
       cbValueType.setSelectedIndex(idx);
 
       tfValueStringInput.setText(so.getValueText());
+      cbValueStringCase.setSelected(so.isValueTextCaseSensitive());
       cbValueStringRegex.setSelected(so.isValueTextRegex());
       ftfValueInputMin.setValue(so.getValueNumberMin());
       ftfValueInputMax.setValue(so.getValueNumberMax());
