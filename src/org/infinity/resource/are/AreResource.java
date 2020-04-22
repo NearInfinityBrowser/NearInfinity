@@ -705,10 +705,10 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new HexNumber(buffer, offset + 144, 4, ARE_OFFSET_OBJECT_FLAGS));
     addField(new ResourceRef(buffer, offset + 148, ARE_AREA_SCRIPT, "BCS"));
     SectionCount size_exploredbitmap = new SectionCount(buffer, offset + 156, 4, ARE_SIZE_EXPLORED_BITMAP,
-                                                        Unknown.class);
+                                                        Explored.class);
     addField(size_exploredbitmap);
     SectionOffset offset_exploredbitmap = new SectionOffset(buffer, offset + 160, ARE_OFFSET_EXPLORED_BITMAP,
-                                                            Unknown.class);
+                                                            Explored.class);
     addField(offset_exploredbitmap);
     SectionCount count_doors = new SectionCount(buffer, offset + 164, 4, ARE_NUM_DOORS,
                                                 Door.class);
@@ -829,7 +829,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
     offset = offset_exploredbitmap.getValue();
     if (size_exploredbitmap.getValue() > 0) {
-      addField(new Unknown(buffer, offset, size_exploredbitmap.getValue(), ARE_EXPLORED_BITMAP));
+      addField(new Explored(buffer, offset, size_exploredbitmap.getValue(), ARE_EXPLORED_BITMAP));
     }
 
     offset = offset_doors.getValue();
