@@ -5,6 +5,7 @@
 package org.infinity.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -65,6 +66,25 @@ import org.infinity.util.StringTable;
 
 public final class ViewerUtil
 {
+  /**
+   * A collection of pastel shaded colors that can be used to colorize the background of
+   * list, table or tree items.
+   */
+  public static final Color[] BACKGROUND_COLORS = {
+    new Color(0xd8d8ff),
+    new Color(0xb8ffb8),
+    new Color(0xffd0d0),
+    new Color(0xffc8ff),
+    new Color(0xffffa0),
+    new Color(0x85ffc2),
+    new Color(0xffd3a6),
+    new Color(0x99ccff),
+    new Color(0xffa3d1),
+    new Color(0xa3fff8),
+    new Color(0xb5a3ff),
+    new Color(0xe0e0e0),
+  };
+
   public static void addLabelFieldPair(JPanel panel, StructEntry entry, GridBagLayout gbl,
                                        GridBagConstraints gbc, boolean endline)
   {

@@ -29,6 +29,7 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -134,10 +135,12 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private static final String CARD_EDIT         = "Edit";
   private static final String CARD_TEXT         = "Text";
 
+
   private static Class<? extends StructEntry> lastNameStruct, lastIndexStruct;
   private static String lastName;
   private static int lastIndex;
   private final AbstractStruct struct;
+  private final Map<Class<? extends StructEntry>, Color> fieldColors = new HashMap<>();
   private final CardLayout cards = new CardLayout();
   private final JMenuItem miCopyValue = createMenuItem(CMD_COPYVALUE, "Copy value", Icons.getIcon(Icons.ICON_COPY_16), this);
   private final JMenuItem miPasteValue = createMenuItem(CMD_PASTEVALUE, "Replace value", Icons.getIcon(Icons.ICON_PASTE_16), this);
@@ -224,9 +227,12 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           Object selected = table.getModel().getValueAt(table.getSelectedRow(), 1);
           if (selected instanceof Viewable) {
             createViewFrame(table.getTopLevelAncestor(), (Viewable)selected);
-          } else
-          if (selected instanceof SectionOffset) {
-            selectOffset((SectionOffset)selected);
+          }
+          else if (selected instanceof SectionOffset) {
+            selectFirstEntryOfType(((SectionOffset)selected).getSection());
+          }
+          else if (selected instanceof SectionCount) {
+            selectFirstEntryOfType(((SectionCount)selected).getSection());
           }
         }
       }
@@ -239,9 +245,18 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                                                      int column)
       {
         final StructEntry field = (StructEntry)table.getModel().getValueAt(row, 1);
-        final boolean isColored = BrowserMenuBar.getInstance().getColoredOffsetsEnabled() &&
-                                  field instanceof SectionOffset;
-        setBackground(isColored ? Color.cyan : null);
+        Class<? extends StructEntry> cls = null;
+        if (BrowserMenuBar.getInstance().getColoredOffsetsEnabled()) {
+          if (field instanceof SectionOffset)
+            cls = ((SectionOffset)field).getSection();
+          else if (field instanceof SectionCount)
+            cls = ((SectionCount)field).getSection();
+          else if (field instanceof AbstractStruct)
+            cls = field.getClass();
+          else if (fieldColors.containsKey(field.getClass())) // consider only referenced simple field types
+            cls = field.getClass();
+        }
+        setBackground(getClassColor(cls));
 
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         if (column == 2)
@@ -565,7 +580,14 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     } else if (CMD_RESET.equals(cmd)) {
       convertAttribute(min, miReset);
     } else if (CMD_GOTO_OFFSET.equals(cmd)) {
-      selectOffset((SectionOffset)table.getValueAt(min, 1));
+      final StructEntry se = (StructEntry)table.getValueAt(min, 1);
+      Class<? extends StructEntry> cls = null;
+      if (se instanceof SectionOffset)
+        cls = ((SectionOffset)se).getSection();
+      else if (se instanceof SectionCount)
+        cls = ((SectionCount)se).getSection();
+      if (cls != null)
+        selectFirstEntryOfType(cls);
     } else if (CMD_SHOW_IN_TREE.equals(cmd)) {
       // this should only be available for DlgResources
       final DlgResource dlgRes = (DlgResource) struct;
@@ -765,7 +787,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miReset.setEnabled(isDataType && isReadable &&
                          getCachedStructEntry(((Datatype)selected).getOffset()) instanceof Readable &&
                          !(selected instanceof AbstractCode));
-      miGotoOffset.setEnabled(selected instanceof SectionOffset);
+      miGotoOffset.setEnabled(selected instanceof SectionOffset|| selected instanceof SectionCount);
       final boolean isSpecialDlgTreeItem = (selected instanceof State
                                          || selected instanceof Transition);
       final boolean isSpecialDlgStruct = isSpecialDlgTreeItem
@@ -1361,24 +1383,56 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     }
   }
 
+//  /**
+//   * Selects in the table field that corresponds to the specified offset entry
+//   * or opens new child structure viewer, if corresponding field not in this table
+//   *
+//   * @param entry Offset to show
+//   */
+//  private void selectOffset(SectionOffset entry)
+//  {
+//    // Select entry at offset
+//    final int offset = entry.getValue();
+//    final StructEntry field = struct.getAttribute(offset, entry.getSection());
+//    if (field != null) {
+//      final AbstractStruct parent = field.getParent();
+//      if (parent != struct) {
+//        new ViewFrame(this, parent);
+//      }
+//      parent.getViewer().select(field);
+//    }
+//  }
+
   /**
-   * Selects in the table field that corresponds to the specified offset entry
-   * or opens new child structure viewer, if corresponding field not in this table
-   *
-   * @param entry Offset to show
+   * Selects the first structure of the specified class type.
+   * @param cls Class of the structure to search.
    */
-  private void selectOffset(SectionOffset entry)
+  private void selectFirstEntryOfType(Class<? extends StructEntry> cls)
   {
-    // Select entry at offset
-    final int offset = entry.getValue();
-    final StructEntry field = struct.getAttribute(offset, entry.getSection());
-    if (field != null) {
-      final AbstractStruct parent = field.getParent();
-      if (parent != struct) {
-        new ViewFrame(this, parent);
+    if (cls != null) {
+      final StructEntry field = struct.getField(cls, 0);
+      if (field != null) {
+        final AbstractStruct parent = field.getParent();
+        if (parent != struct ) {
+          new ViewFrame(this, parent);
+        }
+        parent.getViewer().select(field);
       }
-      parent.getViewer().select(field);
     }
+  }
+
+  /**
+   * Returns the color associated with the specified class type. Returns Color.WHITE if no class type specified.
+   * @param cls The class associated with the field value.
+   * @return Color corresponding to the specified field class type. {@code Color.WHITE} by default.
+   */
+  private Color getClassColor(Class<? extends StructEntry> cls)
+  {
+    if (cls != null) {
+      return fieldColors.computeIfAbsent(cls,
+          c -> ViewerUtil.BACKGROUND_COLORS[fieldColors.size() % ViewerUtil.BACKGROUND_COLORS.length]);
+    }
+    return Color.WHITE;
   }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -1414,7 +1468,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) throws PrinterException
     {
       Graphics2D g2 = (Graphics2D)graphics;
-      g2.setColor(Color.black);
+      g2.setColor(Color.BLACK);
       int fontHeight = g2.getFontMetrics().getHeight();
       int fontDesent = g2.getFontMetrics().getDescent();
 

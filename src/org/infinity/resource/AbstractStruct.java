@@ -411,7 +411,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public String toString()
   {
     // limit text length to speed things up
-    int capacity = 160;
+    int capacity = 256;
     final StringBuilder sb = new StringBuilder(capacity);
     for (int i = 0, count = fields.size(); i < count; i++) {
       final StructEntry field = fields.get(i);
@@ -757,6 +757,21 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
         .stream()
         .filter(se -> type == null || type.isAssignableFrom(se.getClass()))
         .collect(Collectors.toList()));
+  }
+
+  /**
+   * Returns the first {@code StructEntry} object of the specified class type.
+   * @param type Class of the {@code StructEntry} object to return.
+   * @param offset Start offset to search {@code StructEntry} instances.
+   * @return First available {@code StructEntry} instance, {@code null} otherwise.
+   */
+  public StructEntry getField(Class<? extends StructEntry> type, int offset)
+  {
+    return fields
+        .stream()
+        .filter(se -> se.getOffset() >= offset && (type == null || type.isAssignableFrom(se.getClass())))
+        .findFirst()
+        .orElse(null);
   }
 
   /**

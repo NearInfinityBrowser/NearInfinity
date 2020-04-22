@@ -343,7 +343,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
   public boolean getColoredOffsetsEnabled()
   {
-    return optionsMenu.optionShowColoredOffsets.isSelected();
+    return optionsMenu.optionShowColoredStructures.isSelected();
   }
 
   public boolean getHexColorMapEnabled()
@@ -1756,7 +1756,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private static final String OPTION_CACHEOVERRIDE            = "CacheOverride";
     private static final String OPTION_MORECOMPILERWARNINGS     = "MoreCompilerWarnings";
     private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
-    private static final String OPTION_SHOWCOLOREDOFFSETS       = "ShowColoredOffsets";
+    private static final String OPTION_SHOWCOLOREDSTRUCTURES    = "ShowColoredStructures";
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
     private static final String OPTION_KEEPVIEWONCOPY           = "UpdateTreeOnCopy";
     private static final String OPTION_SHOWTREESEARCHNAMES      = "ShowTreeSearchNames";
@@ -1832,7 +1832,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride,
                               optionIgnoreReadErrors, optionCacheOverride, optionShowStrrefs,
-                              optionShowColoredOffsets, optionShowHexColored, optionShowUnknownResources,
+                              optionShowColoredStructures, optionShowHexColored, optionShowUnknownResources,
                               optionKeepViewOnCopy, optionTreeSearchNames,
                               optionHighlightOverridden;
 //                              optionMonitorFileChanges;
@@ -1900,9 +1900,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       optionShowStrrefs =
           new JCheckBoxMenuItem("Show Strrefs in View tabs", getPrefs().getBoolean(OPTION_SHOWSTRREFS, false));
       add(optionShowStrrefs);
-      optionShowColoredOffsets =
-          new JCheckBoxMenuItem("Show colored offset fields in Edit tabs", getPrefs().getBoolean(OPTION_SHOWCOLOREDOFFSETS, true));
-      add(optionShowColoredOffsets);
+      optionShowColoredStructures =
+          new JCheckBoxMenuItem("Show colored structures in Edit tabs", getPrefs().getBoolean(OPTION_SHOWCOLOREDSTRUCTURES, true));
+      add(optionShowColoredStructures);
       optionShowHexColored =
           new JCheckBoxMenuItem("Show colored blocks in Raw tabs", getPrefs().getBoolean(OPTION_SHOWHEXCOLORED, true));
       add(optionShowHexColored);
@@ -2523,7 +2523,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       getPrefs().putBoolean(OPTION_MORECOMPILERWARNINGS, optionMoreCompileWarnings.isSelected());
       getPrefs().putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
       dialogViewerMenu.storePreferences(getPrefs());
-      getPrefs().putBoolean(OPTION_SHOWCOLOREDOFFSETS, optionShowColoredOffsets.isSelected());
+      getPrefs().putBoolean(OPTION_SHOWCOLOREDSTRUCTURES, optionShowColoredStructures.isSelected());
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
       getPrefs().putBoolean(OPTION_KEEPVIEWONCOPY, optionKeepViewOnCopy.isSelected());
       getPrefs().putBoolean(OPTION_SHOWTREESEARCHNAMES, optionTreeSearchNames.isSelected());

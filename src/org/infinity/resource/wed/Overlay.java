@@ -63,7 +63,7 @@ public final class Overlay extends AbstractStruct // implements AddRemovable, Ha
     }
     final SectionOffset offset_tilemap = new SectionOffset(buffer, offset + 16, WED_OVERLAY_OFFSET_TILEMAP, Tilemap.class);
     addField(offset_tilemap);
-    final SectionOffset offset_tilelookup = new SectionOffset(buffer, offset + 20, WED_OVERLAY_OFFSET_TILEMAP_LOOKUP, DecNumber.class);
+    final SectionOffset offset_tilelookup = new SectionOffset(buffer, offset + 20, WED_OVERLAY_OFFSET_TILEMAP_LOOKUP, IndexNumber.class);
     addField(offset_tilelookup);
     int retoff = offset + 24;
 
@@ -82,7 +82,7 @@ public final class Overlay extends AbstractStruct // implements AddRemovable, Ha
     // readLookuptable
     offset = offset_tilelookup.getValue();
     for (int i = 0; i < lookuptablesize; i++) {
-      addField(new DecNumber(buffer, offset + i * 2, 2, WED_OVERLAY_TILEMAP_INDEX + " " + i));
+      addField(new IndexNumber(buffer, offset + i * 2, 2, WED_OVERLAY_TILEMAP_INDEX + " " + i));
     }
     return retoff;
   }
