@@ -1902,6 +1902,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       add(optionShowStrrefs);
       optionShowColoredStructures =
           new JCheckBoxMenuItem("Show colored structures in Edit tabs", getPrefs().getBoolean(OPTION_SHOWCOLOREDSTRUCTURES, true));
+      optionShowColoredStructures.setActionCommand("RefreshView");
+      optionShowColoredStructures.addActionListener(NearInfinity.getInstance());
       add(optionShowColoredStructures);
       optionShowHexColored =
           new JCheckBoxMenuItem("Show colored blocks in Raw tabs", getPrefs().getBoolean(OPTION_SHOWHEXCOLORED, true));

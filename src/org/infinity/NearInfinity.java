@@ -68,9 +68,11 @@ import org.infinity.gui.PopupWindowListener;
 import org.infinity.gui.QuickSearch;
 import org.infinity.gui.ResourceTree;
 import org.infinity.gui.StatusBar;
+import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
+import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Closeable;
 import org.infinity.resource.EffectFactory;
 import org.infinity.resource.Profile;
@@ -550,6 +552,15 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
+    } else if (event.getActionCommand().equals("RefreshView")) {
+      // repaint UI controls of current view
+      if (getViewable() instanceof AbstractStruct) {
+        StructViewer sv = ((AbstractStruct)getViewable()).getViewer();
+        if (sv != null)
+          SwingUtilities.updateComponentTreeUI(sv);
+      }
+      // repaint UI controls of child windows
+      ChildFrame.updateWindowGUIs();
     } else if (event.getActionCommand().equals("ChangeLook")) {
       try {
         LookAndFeelInfo info = BrowserMenuBar.getInstance().getLookAndFeel();
