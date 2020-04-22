@@ -29,7 +29,10 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -63,6 +66,8 @@ import org.infinity.datatype.EffectType;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HexNumber;
 import org.infinity.datatype.InlineEditable;
+import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.IsReference;
 import org.infinity.datatype.IsTextual;
 import org.infinity.datatype.Readable;
 import org.infinity.datatype.ResourceRef;
@@ -93,6 +98,8 @@ import org.infinity.resource.dlg.TreeItemEntry;
 import org.infinity.search.AttributeSearcher;
 import org.infinity.search.DialogItemRefSearcher;
 import org.infinity.search.DialogStateReferenceSearcher;
+import org.infinity.search.advanced.AdvancedSearch;
+import org.infinity.search.advanced.SearchOptions;
 import org.infinity.util.Misc;
 import org.infinity.util.Pair;
 import org.infinity.util.StructClipboard;
@@ -124,6 +131,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public static final String CMD_TORESLIST      = "ToResList";
   public static final String CMD_RESET          = "ResetType";
   public static final String CMD_GOTO_OFFSET    = "GotoOffset";
+  public static final String CMD_ADD_ADV_SEARCH = "AddAdvSearch";
   public static final String CMD_SHOW_IN_TREE   = "ShowInTree";
   public static final String CMD_SHOWVIEWER     = "ShowView";
   public static final String CMD_SHOWNEWVIEWER  = "ShowNewView";
@@ -155,6 +163,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final JMenuItem miToHexInt = createMenuItem(CMD_TOHEXINT, "Edit as hex number", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miToFlags = createMenuItem(CMD_TOFLAGS, "Edit as bit field", Icons.getIcon(Icons.ICON_REFRESH_16), this);
   private final JMenuItem miReset = createMenuItem(CMD_RESET, "Reset field type", Icons.getIcon(Icons.ICON_REFRESH_16), this);
+  private final JMenuItem miAddToAdvSearch = createMenuItem(CMD_ADD_ADV_SEARCH, "Add to Advanced Search", Icons.getIcon(Icons.ICON_FIND_16), this);
   private final JMenuItem miGotoOffset = createMenuItem(CMD_GOTO_OFFSET, "Go to offset", null, this);
   private final JMenuItem miShowInTree = createMenuItem(CMD_SHOW_IN_TREE, "Show in tree", Icons.getIcon(Icons.ICON_SELECT_IN_TREE_16), this);
   private final JMenuItem miShowViewer = createMenuItem(CMD_SHOWVIEWER, "Show in viewer", Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16), this);
@@ -272,6 +281,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     popupmenu.add(miCut);
     popupmenu.add(miCopy);
     popupmenu.add(miPaste);
+    popupmenu.addSeparator();
     popupmenu.add(miToHex);
     popupmenu.add(miToBin);
     popupmenu.add(miToDec);
@@ -281,6 +291,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     popupmenu.add(miToResref);
     popupmenu.add(miToString);
     popupmenu.add(miReset);
+    popupmenu.addSeparator();
+    popupmenu.add(miAddToAdvSearch);
     popupmenu.add(miGotoOffset);
     if (struct instanceof DlgResource) {
       popupmenu.add(miShowInTree);
@@ -303,6 +315,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     miToResref.setEnabled(false);
     miToString.setEnabled(false);
     miReset.setEnabled(false);
+    miAddToAdvSearch.setEnabled(false);
     miGotoOffset.setEnabled(false);
     miShowInTree.setEnabled(false);
     miShowViewer.setEnabled(false);
@@ -588,6 +601,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         cls = ((SectionCount)se).getSection();
       if (cls != null)
         selectFirstEntryOfType(cls);
+    } else if (CMD_ADD_ADV_SEARCH.equals(cmd)) {
+      addToAdvancedSearch((StructEntry)table.getValueAt(min, 1));
     } else if (CMD_SHOW_IN_TREE.equals(cmd)) {
       // this should only be available for DlgResources
       final DlgResource dlgRes = (DlgResource) struct;
@@ -706,6 +721,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miToResref.setEnabled(false);
       miToString.setEnabled(false);
       miReset.setEnabled(false);
+      miAddToAdvSearch.setEnabled(false);
       miGotoOffset.setEnabled(false);
       miShowInTree.setEnabled(false);
       miShowViewer.setEnabled(false);
@@ -787,6 +803,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       miReset.setEnabled(isDataType && isReadable &&
                          getCachedStructEntry(((Datatype)selected).getOffset()) instanceof Readable &&
                          !(selected instanceof AbstractCode));
+      miAddToAdvSearch.setEnabled(!(selected instanceof AbstractStruct || selected instanceof Unknown));
       miGotoOffset.setEnabled(selected instanceof SectionOffset|| selected instanceof SectionCount);
       final boolean isSpecialDlgTreeItem = (selected instanceof State
                                          || selected instanceof Transition);
@@ -1433,6 +1450,62 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           c -> ViewerUtil.BACKGROUND_COLORS[fieldColors.size() % ViewerUtil.BACKGROUND_COLORS.length]);
     }
     return Color.WHITE;
+  }
+
+  /**
+   * Creates an Advanced Search filter out of the specified {@code StructEntry} instance
+   * and adds it to the Advanced Search dialog.
+   */
+  private void addToAdvancedSearch(StructEntry entry)
+  {
+    if (entry == null || entry instanceof AbstractStruct)
+      return;
+
+    // setting search value
+    SearchOptions so = null;
+    if (entry instanceof Flag) {
+      so = new SearchOptions();
+      so.setValueBitfield(((Flag)entry).getValue(), SearchOptions.BitFieldMode.Exact);
+    } else if (entry instanceof IsReference) {
+      so = new SearchOptions();
+      so.setValueResource(((IsReference)entry).getResourceName());
+    } else if (entry instanceof IsNumeric) {
+      so = new SearchOptions();
+      so.setValueNumber(((IsNumeric)entry).getValue());
+    } else if (!(entry instanceof Unknown)) {
+      so = new SearchOptions();
+      so.setValueText(entry.toString(), false, false);
+    } else {
+      return;
+    }
+
+    // setting structure level and field name
+    List<String> structure = so.getStructure();
+    for (AbstractStruct struct = entry.getParent(); struct != null && struct.getParent() != null; struct = struct.getParent())
+      structure.add(0, getStrippedFieldName(struct.getName()));
+    so.setSearchName(entry.getName(), true, false);
+
+    // root structure of resource needed for resource name
+    AbstractStruct root = struct;
+    while (root.getParent() != null)
+      root = root.getParent();
+    if (root == null || root.getResourceEntry() == null)
+      return;
+
+    AdvancedSearch dlg = ChildFrame.show(AdvancedSearch.class, () -> new AdvancedSearch());
+    dlg.setResourceType(root.getResourceEntry().getExtension());
+    dlg.addFilter(so);
+  }
+
+  /** Strips numeric indices from the specified field name. */
+  private String getStrippedFieldName(String name)
+  {
+    Pattern p = Pattern.compile("(.+)\\s+\\d+");
+    Matcher m = p.matcher(name);
+    if (m.find())
+      return m.group(1);
+
+    return name;
   }
 
 // -------------------------- INNER CLASSES --------------------------
