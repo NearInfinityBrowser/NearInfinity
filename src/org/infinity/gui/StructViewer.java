@@ -444,7 +444,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           sViewer = struct.getParent().getParent().getViewer();
         }
         if (sViewer != null && sViewer.tabbedPane != null) {
-          tabbedPane.setSelectedIndex(sViewer.tabbedPane.getSelectedIndex());
+          // make sure tab index is within bounds
+          int idx = Math.max(Math.min(sViewer.tabbedPane.getSelectedIndex(), tabbedPane.getTabCount() - 1), 0);
+          tabbedPane.setSelectedIndex(idx);
         }
       } else if (lastIndexStruct == struct.getClass()) {
         tabbedPane.setSelectedIndex(lastIndex);
