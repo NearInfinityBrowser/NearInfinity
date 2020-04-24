@@ -2752,7 +2752,7 @@ public class AreaViewer extends ChildFrame
       // fetching important options
       final Flag flags = (Flag)are.getAttribute(AreResource.ARE_LOCATION);
       if (flags != null) {
-        if (Profile.getEngine() == Profile.Engine.PST) {
+        if (Profile.getEngine() == Profile.Engine.PST || Profile.getGame() == Profile.Game.PSTEE) {
           hasDayNight = flags.isFlagSet(10);
           hasExtendedNight = false;
         } else {
