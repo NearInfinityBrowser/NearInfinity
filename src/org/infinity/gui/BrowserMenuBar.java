@@ -1881,9 +1881,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           new JCheckBoxMenuItem("Show overridden files in bold in resource tree", getPrefs().getBoolean(OPTION_HIGHLIGHT_OVERRIDDEN, true));
       optionHighlightOverridden.setActionCommand("RefreshTree");
       optionHighlightOverridden.addActionListener(NearInfinity.getInstance());
-      optionHighlightOverridden.setToolTipText("If checked, files, that contains in game index (.key file) and located "
-              + "in the Override folder, will be shown in bold in the Resource Tree. "
-              + "This setting has no effect if override files are shown only in the Override folder");
+      optionHighlightOverridden.setToolTipText("<html>If checked, files that are listed in the chitin.key and are located in the Override folder, will be shown<br>" +
+          "in <b>bold</b> in the Resource Tree. This setting has no effect if override files are shown only in the Override folder.</html>");
       add(optionHighlightOverridden);
 //      optionMonitorFileChanges =
 //          new JCheckBoxMenuItem("Autoupdate resource tree", getPrefs().getBoolean(OPTION_MONITORFILECHANGES, true));
