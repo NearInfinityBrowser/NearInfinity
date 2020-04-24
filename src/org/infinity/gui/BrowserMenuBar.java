@@ -1861,22 +1861,24 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           new JCheckBoxMenuItem("Ignore Overrides", getPrefs().getBoolean(OPTION_IGNOREOVERRIDE, false));
       add(optionIgnoreOverride);
       optionIgnoreReadErrors =
-          new JCheckBoxMenuItem("Ignore Read Errors", getPrefs().getBoolean(OPTION_IGNOREREADERRORS, false));
+          new JCheckBoxMenuItem("Ignore read errors", getPrefs().getBoolean(OPTION_IGNOREREADERRORS, false));
       add(optionIgnoreReadErrors);
       optionShowUnknownResources =
-          new JCheckBoxMenuItem("Show Unknown Resource Types", getPrefs().getBoolean(OPTION_SHOWUNKNOWNRESOURCES, true));
+          new JCheckBoxMenuItem("Show unknown resource types", getPrefs().getBoolean(OPTION_SHOWUNKNOWNRESOURCES, true));
       optionShowUnknownResources.setActionCommand("Refresh");
       optionShowUnknownResources.addActionListener(NearInfinity.getInstance());
       optionShowUnknownResources.setToolTipText("Uncheck this option to hide unknown or unsupported resource types and invalid filenames.");
       add(optionShowUnknownResources);
       optionShowOffset =
-          new JCheckBoxMenuItem("Show Hex Offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETS, false));
+          new JCheckBoxMenuItem("Show hex offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETS, false));
       add(optionShowOffset);
-      optionTreeSearchNames = new JCheckBoxMenuItem("Show Search Names in Resource Tree", getPrefs().getBoolean(OPTION_SHOWTREESEARCHNAMES, true));
+      optionTreeSearchNames =
+          new JCheckBoxMenuItem("Show search names in resource tree", getPrefs().getBoolean(OPTION_SHOWTREESEARCHNAMES, true));
       optionTreeSearchNames.setActionCommand("RefreshTree");
       optionTreeSearchNames.addActionListener(NearInfinity.getInstance());
       add(optionTreeSearchNames);
-      optionHighlightOverridden = new JCheckBoxMenuItem("Show Overridden Files in Bold in Resource Tree", getPrefs().getBoolean(OPTION_HIGHLIGHT_OVERRIDDEN, true));
+      optionHighlightOverridden =
+          new JCheckBoxMenuItem("Show overridden files in bold in resource tree", getPrefs().getBoolean(OPTION_HIGHLIGHT_OVERRIDDEN, true));
       optionHighlightOverridden.setActionCommand("RefreshTree");
       optionHighlightOverridden.addActionListener(NearInfinity.getInstance());
       optionHighlightOverridden.setToolTipText("If checked, files, that contains in game index (.key file) and located "
