@@ -35,6 +35,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
+import org.infinity.resource.TextResource;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.dlg.DlgResource;
 import org.infinity.resource.key.FileResourceEntry;
@@ -64,7 +65,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     this.parent = parent;
     setIconImage(Icons.getIcon(Icons.ICON_HISTORY_16).getImage());
 
-    table = new SortableTable(new String[]{"File", "Name", "Attribute"},
+    table = new SortableTable(new String[]{"File", "Name/Text", "Attribute/Line"},
                               new Class<?>[]{ResourceEntry.class, String.class, String.class},
                               new Integer[]{100, 100, 300});
 
@@ -154,19 +155,20 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
   }
 
   private void showEntryInViewer(int row, Viewable viewable) {
+    ReferenceHit hit = (ReferenceHit)table.getTableItemAt(row);
     if (viewable instanceof DlgResource) {
       DlgResource dlgRes = (DlgResource) viewable;
       JComponent detailViewer = dlgRes.getViewerTab(0);
       JTabbedPane parent = (JTabbedPane) detailViewer.getParent();
-      dlgRes.selectInEdit(
-          ((ReferenceHit)table.getTableItemAt(row)).getStructEntry());
+      dlgRes.selectInEdit(hit.getStructEntry());
       // make sure we see the detail viewer
       parent.getModel().setSelectedIndex(parent.indexOfComponent(detailViewer));
-
     }
     else if (viewable instanceof AbstractStruct) {
-      ((AbstractStruct)viewable).getViewer().selectEntry(
-          ((ReferenceHit)table.getTableItemAt(row)).getStructEntry().getOffset());
+      ((AbstractStruct)viewable).getViewer().selectEntry(hit.getStructEntry().getOffset());
+    }
+    else if (viewable instanceof TextResource) {
+      ((TextResource)viewable).highlightText(hit.getLineNr(), hit.getLine());
     }
   }
 
@@ -200,20 +202,46 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     table.addTableItem(new ReferenceHit(entry, name, ref));
   }
 
+  public void addHit(ResourceEntry entry, String line, int lineNr)
+  {
+    table.addTableItem(new ReferenceHit(entry, line, lineNr));
+  }
+
 // -------------------------- INNER CLASSES --------------------------
 
   /** Stores a reference to a specific resource field. */
   public static final class ReferenceHit implements TableItem, Comparable<ReferenceHit>
   {
+    public enum Mode {
+      Struct,
+      Text,
+    }
+
+    private final Mode mode;
     private final ResourceEntry entry;
     private final String name;
     private final StructEntry ref;
+    private final String line;
+    private final int lineNr;
 
     public ReferenceHit(ResourceEntry entry, String name, StructEntry ref)
     {
+      this.mode = Mode.Struct;
       this.entry = entry;
       this.name = name;
       this.ref = ref;
+      this.line = "";
+      this.lineNr = 0;
+    }
+
+    public ReferenceHit(ResourceEntry entry, String line, int lineNr)
+    {
+      this.mode = Mode.Text;
+      this.entry = entry;
+      this.name = "";
+      this.ref = null;
+      this.line = line;
+      this.lineNr = lineNr;
     }
 
     @Override
@@ -223,22 +251,31 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
         case 0:
           return entry;
         case 1:
-          if (name != null) {
-            return name;
+          if (mode == Mode.Text) {
+            return line;
           } else {
-            if (entry instanceof FileResourceEntry) {
+            if (name != null) {
+              return name;
+            } else if (entry instanceof FileResourceEntry) {
               return entry.getActualPath().getParent().toString();
             } else {
               return "";
             }
           }
         default:
-          if (ref != null) {
-            return ref.getName() + '=' + ref;
+          if (mode == Mode.Text) {
+            return lineNr;
           } else {
+            if (ref != null)
+              return ref.getName() + '=' + ref;
             return null;
           }
       }
+    }
+
+    public Mode getMode()
+    {
+      return mode;
     }
 
     public ResourceEntry getResource()
@@ -256,16 +293,30 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
       return ref;
     }
 
+    public String getLine()
+    {
+      return line;
+    }
+
+    public int getLineNr()
+    {
+      return lineNr;
+    }
+
     @Override
     public String toString()
     {
-      final StringBuilder buf = new StringBuilder("File: ");
-      buf.append(entry.getResourceName());
-      if (name != null)
-        buf.append(", Name: ").append(name);
-      if (ref != null)
-        buf.append(", Attribute: ").append(ref.getName()).append('=').append(ref);
-      return buf.toString();
+      if (mode == Mode.Text) {
+        return String.format("File: %s, Line: %d, Text: %s", entry.getResourceName(), lineNr, line);
+      } else {
+        final StringBuilder buf = new StringBuilder("File: ");
+        buf.append(entry.getResourceName());
+        if (name != null)
+          buf.append(", Name: ").append(name);
+        if (ref != null)
+          buf.append(", Attribute: ").append(ref.getName()).append('=').append(ref);
+        return buf.toString();
+      }
     }
 
     @Override
