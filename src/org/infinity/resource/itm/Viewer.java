@@ -125,10 +125,7 @@ final class Viewer extends JPanel
     Table2da table = Table2daCache.get("itemdial.2da");
     if (table != null && table.getColCount() > 2) {
       // getting item resref
-      String resref = itm.getResourceEntry().getResourceName();
-      if (resref.lastIndexOf('.') > 0) {
-        resref = resref.substring(0, resref.lastIndexOf('.'));
-      }
+      String resref = itm.getResourceEntry().getResourceRef();
 
       // fetching item dialog file, if available
       if (resref != null) {

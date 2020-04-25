@@ -29,8 +29,6 @@ public final class ModronMaze extends AbstractStruct
   public static final String GAM_MAZE_MAZE_BLOCKER_MADE   = "Foyer maze blocker made";
   public static final String GAM_MAZE_ENGINE_BLOCKER_MADE = "Foyer engine blocker made";
 
-  private static final String[] s_noyes = {"No", "Yes"};
-
   public ModronMaze(AbstractStruct superStruct, ByteBuffer buffer, int offset) throws Exception
   {
     super(superStruct, GAM_MAZE, buffer, offset);
@@ -71,11 +69,11 @@ public final class ModronMaze extends AbstractStruct
     curOfs += 4;
     addField(new DecNumber(buffer, curOfs, 4, GAM_MAZE_NUM_TRAPS));
     curOfs += 4;
-    addField(new Bitmap(buffer, curOfs, 4, GAM_MAZE_INITIALIZED, s_noyes));
+    addField(new Bitmap(buffer, curOfs, 4, GAM_MAZE_INITIALIZED, OPTION_NOYES));
     curOfs += 4;
-    addField(new Bitmap(buffer, curOfs, 4, GAM_MAZE_MAZE_BLOCKER_MADE, s_noyes));
+    addField(new Bitmap(buffer, curOfs, 4, GAM_MAZE_MAZE_BLOCKER_MADE, OPTION_NOYES));
     curOfs += 4;
-    addField(new Bitmap(buffer, curOfs, 4, GAM_MAZE_ENGINE_BLOCKER_MADE, s_noyes));
+    addField(new Bitmap(buffer, curOfs, 4, GAM_MAZE_ENGINE_BLOCKER_MADE, OPTION_NOYES));
     curOfs += 4;
 
     return curOfs;

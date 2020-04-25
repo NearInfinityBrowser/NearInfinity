@@ -20,6 +20,7 @@ import org.infinity.datatype.Bestiary;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.HashBitmap;
 import org.infinity.datatype.HexNumber;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
@@ -61,7 +62,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   public static final String GAM_SELECTED_FORMATION               = "Selected formation";
   public static final String GAM_FORMATION_BUTTON_FMT             = "Formation button %d";
   public static final String GAM_PARTY_GOLD                       = "Party gold";
-  public static final String GAM_NUM_NPCS_IN_PARTY                = "# NPCs in party";
+  public static final String GAM_VIEW_PLAYER_AREA                 = "View area of party member at";
   public static final String GAM_WEATHER                          = "Weather";
   public static final String GAM_OFFSET_PARTY_MEMBERS             = "Party members offset";
   public static final String GAM_NUM_PARTY_MEMBERS                = "# party members";
@@ -104,7 +105,6 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
   public static final String GAM_UNKNOWN_STRUCTURE                = "Unknown structure";
   public static final String GAM_POCKET_PLANE                     = "Pocket plane";
 
-  public static final String[] s_noyes = {"No", "Yes"};
   public static final String[] s_formation = {"Button 1", "Button 2", "Button 3", "Button 4", "Button 5"};
   public static final String[] s_weather = {"No weather", "Raining", "Snowing", "Light weather",
                                             "Medium weather", "Light wind", "Medium wind", "Rare lightning",
@@ -312,7 +312,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       addField(new DecNumber(buffer, offset + 14 + (i * 2), 2, String.format(GAM_FORMATION_BUTTON_FMT, i+1)));
     }
     addField(new DecNumber(buffer, offset + 24, 4, GAM_PARTY_GOLD));
-    addField(new DecNumber(buffer, offset + 28, 2, GAM_NUM_NPCS_IN_PARTY));
+    addField(new HashBitmap(buffer, offset + 28, 2, GAM_VIEW_PLAYER_AREA, PartyNPC.m_partyOrder));
     addField(new Flag(buffer, offset + 30, 2, GAM_WEATHER, s_weather));
     SectionOffset offset_partynpc = new SectionOffset(buffer, offset + 32, GAM_OFFSET_PARTY_MEMBERS,
                                                       PartyNPC.class);
@@ -417,7 +417,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
       addField(numIWD2);
       offIWD2 = new SectionOffset(buffer, offset + 104, GAM_OFFSET_UNKNOWN, UnknownSection3.class);
       addField(offIWD2);
-      addField(new Bitmap(buffer, offset + 108, 4, GAM_NIGHTMARE_MODE, s_noyes));
+      addField(new Bitmap(buffer, offset + 108, 4, GAM_NIGHTMARE_MODE, OPTION_NOYES));
       addField(new Unknown(buffer, offset + 112, 68));
     }
 

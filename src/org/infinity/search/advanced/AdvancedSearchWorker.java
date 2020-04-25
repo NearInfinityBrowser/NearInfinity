@@ -6,8 +6,11 @@ package org.infinity.search.advanced;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.swing.JProgressBar;
@@ -58,28 +61,49 @@ public class AdvancedSearchWorker implements Runnable
     Resource res = ResourceFactory.getResource(entry);
     if (res instanceof AbstractStruct) {
       AbstractStruct structRoot = (AbstractStruct)res;
+      // storage for evaluated matches
       List<ReferenceHitFrame.ReferenceHit> entryMatches = new ArrayList<>();
-      Map<AbstractStruct, List<Class<? extends AbstractStruct>>> entryStructures = new HashMap<>();
+      // stores number of grouped filters applied per structure level
+      Map<List<String>, Integer> groupFilters = new HashMap<>();
+      // storage for potential grouped matches
+      Map<List<String>, Set<StructEntry>> groupCache = new HashMap<>();
 
       int matches = 0;
       for (int filterIdx = 0; filterIdx < searchOptions.size(); filterIdx++) {
         SearchOptions so = searchOptions.get(filterIdx);
 
+        // keep track of grouped filter count per structure
+        if (so.isStructureGroup()) {
+          Integer count = groupFilters.get(so.getStructure());
+          if (count == null)
+            count = Integer.valueOf(0);
+          groupFilters.put(so.getStructure(), Integer.valueOf(count.intValue() + 1));
+        }
+
         // list of structures to search
+        boolean isMatch = false;
         List<AbstractStruct> structs = collectStructures(structRoot, so, 0);
         for (AbstractStruct struct : structs) {
-          if (findMatches(entryMatches, struct, so) &&
-              isGroupedMatch(entryStructures, struct, so)) {
-            matches++;
-            break;
-          }
+          isMatch |= findMatches(entryMatches, groupCache, struct, so);
+        }
+        if (isMatch)
+          matches++;
+      }
+
+      // evaluating grouped matches
+      collapseGroupFilters(groupCache, groupFilters);
+      for (Set<StructEntry> set : groupCache.values()) {
+        // all StructEntry instances found in the map are considered valid matches
+        for (StructEntry ref : set) {
+          entryMatches.add(new ReferenceHitFrame.ReferenceHit(entry, entry.getSearchString(), ref));
+          matches++;
         }
       }
 
       // evaluating filter mode
       switch (filterOp) {
         case MatchAll:
-          if (matches == searchOptions.size())
+          if (matches >= searchOptions.size())
             matched.addAll(entryMatches);
           break;
         case MatchAny:
@@ -150,37 +174,65 @@ public class AdvancedSearchWorker implements Runnable
     return list;
   }
 
-  // Return if a group match exists
-  private boolean isGroupedMatch(Map<AbstractStruct, List<Class<? extends AbstractStruct>>> mapCache, AbstractStruct struct, SearchOptions so)
+  // Remove all incomplete group matches from the map
+  private void collapseGroupFilters(Map<List<String>, Set<StructEntry>> groupCache, Map<List<String>, Integer> groupFilters)
   {
-    boolean retVal = true;
-    if (so.isStructureGroup()) {
-      // getting current struct chain
-      List<Class<? extends AbstractStruct>> curPath = new ArrayList<>();
-      for (AbstractStruct as = struct; as != null; as = as.getParent()) {
-        curPath.add(0, (Class<? extends AbstractStruct>)as.getClass());
-      }
+    Iterator<Map.Entry<List<String>, Set<StructEntry>>> iter = groupCache.entrySet().iterator();
+    while (iter.hasNext()) {
+      Map.Entry<List<String>, Set<StructEntry>> entry = iter.next();
+      Integer count = groupFilters.get(entry.getKey());
+      if (count != null) {
+        // grouping entries of the current structure level in a temporary map
+        Set<StructEntry> groupSet = entry.getValue();
+        Map<AbstractStruct, Set<StructEntry>> structureMap = new HashMap<>();
+        for (StructEntry se : groupSet) {
+          Set<StructEntry> structureSet = structureMap.computeIfAbsent(se.getParent(), e -> new HashSet<StructEntry>());
+          structureSet.add(se);
+        }
 
-      // getting mapped struct chain
-      for (AbstractStruct as : mapCache.keySet()) {
-        if (as.getClass().equals(struct.getClass())) {
-          List<Class<? extends AbstractStruct>> existingPath = mapCache.get(as);
-          // checking group
-          if (curPath.equals(existingPath) && !struct.equals(as)) {
-            retVal = false;
-            break;
+        // removing entries of incomplete group matches
+        for (AbstractStruct as : structureMap.keySet()) {
+          Set<StructEntry> structureSet = structureMap.get(as);
+          if (structureSet != null) {
+            switch (filterOp) {
+              case MatchAll:
+                if (structureSet.size() < count)
+                  groupSet.removeAll(structureSet);
+                break;
+              case MatchAny:
+                if (structureSet.size() == 0)
+                  groupSet.removeAll(structureSet);
+                break;
+              case MatchOne:
+                if (structureSet.size() != 1)
+                  groupSet.removeAll(structureSet);
+                break;
+            }
           }
         }
-      }
 
-      // adding current struct chain to map
-      mapCache.put(struct, curPath);
+        // structure level entry can be removed if it contains no matches
+        if (groupSet.size() == 0) {
+          iter.remove();
+        }
+      } else {
+        System.err.println("Skipping unidentified group match");
+        iter.remove();
+      }
     }
-    return retVal;
+  }
+
+  // Collect filters grouped by structure
+  private void addGroupFilter(Map<List<String>, Set<StructEntry>> groupCache, StructEntry se, SearchOptions so)
+  {
+    Set<StructEntry> set = groupCache.computeIfAbsent(so.getStructure(), s -> new HashSet<StructEntry>());
+    set.add(se);
   }
 
   // Search for matching fields in specified structure
-  private boolean findMatches(List<ReferenceHitFrame.ReferenceHit> matchList, AbstractStruct struct, SearchOptions so)
+  private boolean findMatches(List<ReferenceHitFrame.ReferenceHit> matchList,
+                              Map<List<String>, Set<StructEntry>> groupCache,
+                              AbstractStruct struct, SearchOptions so)
   {
     if (struct != null && so != null) {
       if (so.getSearchType() == SearchOptions.FieldMode.ByName) {
@@ -195,7 +247,7 @@ public class AdvancedSearchWorker implements Runnable
         boolean result = false;
         for (final StructEntry se : struct.getFields()) {
           if (pattern.matcher(se.getName()).find()) {
-            result |= isMatch(matchList, se, so);
+            result |= isMatch(matchList, groupCache, se, so);
           }
         }
         return result;
@@ -205,14 +257,15 @@ public class AdvancedSearchWorker implements Runnable
         if (so.getSearchType() == SearchOptions.FieldMode.ByRelativeOffset) {
           offset += struct.getOffset();
         }
-        return isMatch(matchList, struct.getAttribute(offset), so);
+        return isMatch(matchList, groupCache, struct.getAttribute(offset), so);
       }
     }
     return false;
   }
 
   // Match value against search options
-  private boolean isMatch(List<ReferenceHitFrame.ReferenceHit> matchList, StructEntry se, SearchOptions so)
+  private boolean isMatch(List<ReferenceHitFrame.ReferenceHit> matchList, Map<List<String>, Set<StructEntry>> groupCache,
+                          StructEntry se, SearchOptions so)
   {
     boolean retVal = false;
     if (se != null && so != null) {
@@ -232,10 +285,18 @@ public class AdvancedSearchWorker implements Runnable
       }
 
       if (so.isInvertMatch())
-          retVal = !retVal;
+        retVal = !retVal;
 
-      if (retVal)
-        matchList.add(new ReferenceHitFrame.ReferenceHit(entry, entry.getSearchString(), se));
+      if (retVal) {
+        if (so.isStructureGroup()) {
+          // grouped matches are evaluated later
+          addGroupFilter(groupCache, se, so);
+          retVal = false;
+        } else {
+          // add ungrouped matches directly to the results list
+          matchList.add(new ReferenceHitFrame.ReferenceHit(entry, entry.getSearchString(), se));
+        }
+      }
     }
     return retVal;
   }

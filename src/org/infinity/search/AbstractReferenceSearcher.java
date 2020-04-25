@@ -139,13 +139,25 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
   /**
    * Registers match hit.
    *
-   * @param entry Pointer to resource in which match found
-   * @param name Localized name of the matched resource
-   * @param ref Field in the matched resource that contains founded object
+   * @param entry Resource in which match is found.
+   * @param name Localized name of the matched resource.
+   * @param ref Field in the matched resource that contains found object.
    */
   synchronized void addHit(ResourceEntry entry, String name, StructEntry ref)
   {
     hitFrame.addHit(entry, name, ref);
+  }
+
+  /**
+   * Registers textual match hit.
+   *
+   * @param entry Resource in which match is found.
+   * @param line Text content of line where match is found.
+   * @param lineNr Line number of the match.
+   */
+  synchronized void addHit(ResourceEntry entry, String line, int lineNr)
+  {
+    hitFrame.addHit(entry, line, lineNr);
   }
 
   /**

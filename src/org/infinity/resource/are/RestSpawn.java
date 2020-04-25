@@ -54,7 +54,7 @@ public final class RestSpawn extends AbstractStruct
     addField(new DecNumber(buffer, offset + 160, 2, ARE_RESTSPAWN_WANDER_DISTANCE));
     addField(new DecNumber(buffer, offset + 162, 2, ARE_RESTSPAWN_FOLLOW_DISTANCE));
     addField(new DecNumber(buffer, offset + 164, 2, ARE_RESTSPAWN_MAX_CREATURES));
-    addField(new Bitmap(buffer, offset + 166, 2, ARE_RESTSPAWN_ACTIVE, new String[]{"No", "Yes"}));
+    addField(new Bitmap(buffer, offset + 166, 2, ARE_RESTSPAWN_ACTIVE, OPTION_NOYES));
     addField(new DecNumber(buffer, offset + 168, 2, ARE_RESTSPAWN_PROBABILITY_DAY));
     addField(new DecNumber(buffer, offset + 170, 2, ARE_RESTSPAWN_PROBABILITY_NIGHT));
     addField(new Unknown(buffer, offset + 172, 56));

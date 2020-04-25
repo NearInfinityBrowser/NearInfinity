@@ -167,11 +167,9 @@ public class TisV2Decoder extends TisDecoder
         }
         tisBuffer = getResourceEntry().getResourceBuffer();
 
-        String name = getResourceEntry().getResourceName();
-        int idx = name.lastIndexOf('.');
-        if (idx < 0) idx = name.length();
+        String name = getResourceEntry().getResourceRef();
         pvrzNameBase = getResourceEntry().getResourceName().substring(0, 1) +
-                       getResourceEntry().getResourceName().substring(2, idx);
+                       getResourceEntry().getResourceName().substring(2, name.length());
 
         setType(Type.PVRZ);
 

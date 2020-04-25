@@ -26,8 +26,6 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
   public static final String CRE_MEMORIZATION_SPELL_TABLE_INDEX       = "Spell table index";
   public static final String CRE_MEMORIZATION_SPELL_COUNT             = "Spell count";
 
-  private static final String[] s_spelltype = {"Priest", "Wizard", "Innate"};
-
   SpellMemorization() throws Exception
   {
     super(null, CRE_MEMORIZATION, StreamUtils.getByteBuffer(16), 0);
@@ -91,7 +89,7 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
     addField(new DecNumber(buffer, offset, 2, CRE_MEMORIZATION_LEVEL));
     addField(new DecNumber(buffer, offset + 2, 2, CRE_MEMORIZATION_NUM_MEMORIZABLE_TOTAL));
     addField(new DecNumber(buffer, offset + 4, 2, CRE_MEMORIZATION_NUM_MEMORIZABLE_CURRENT));
-    addField(new Bitmap(buffer, offset + 6, 2, CRE_MEMORIZATION_TYPE, s_spelltype));
+    addField(new Bitmap(buffer, offset + 6, 2, CRE_MEMORIZATION_TYPE, KnownSpells.s_spelltype));
     addField(new DecNumber(buffer, offset + 8, 4, CRE_MEMORIZATION_SPELL_TABLE_INDEX));
     addField(new DecNumber(buffer, offset + 12, 4, CRE_MEMORIZATION_SPELL_COUNT));
     return offset + 16;

@@ -241,6 +241,12 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
   }
 
   @Override
+  public String getResourceRef()
+  {
+    return resourceName;
+  }
+
+  @Override
   public String getTreeFolderName()
   {
     final BrowserMenuBar options = BrowserMenuBar.getInstance();

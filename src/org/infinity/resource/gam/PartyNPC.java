@@ -10,6 +10,7 @@ import javax.swing.JComponent;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.Flag;
 import org.infinity.datatype.HashBitmap;
 import org.infinity.datatype.HexNumber;
 import org.infinity.datatype.IdsBitmap;
@@ -25,7 +26,6 @@ import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
-import org.infinity.resource.are.Actor;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.io.StreamUtils;
@@ -85,23 +85,24 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
   public static final String GAM_NPC_STAT_FAV_WEAPON_FMT        = "Favorite weapon %d";
   public static final String GAM_NPC_STAT_FAV_WEAPON_COUNT_FMT  = "Favorite weapon counter %d";
 
-  private static final LongIntegerHashMap<String> partyOrder = new LongIntegerHashMap<String>();
-  private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<String>();
-  private static final String s_noyes[] = {"No", "Yes"};
+  public static final LongIntegerHashMap<String> m_partyOrder = new LongIntegerHashMap<String>();
+//  private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<String>();
+
+  private static final String[] s_selected = {"Not selected", "Selected", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Dead" };
 
   static {
-    partyOrder.put(0L, "Slot 1");
-    partyOrder.put(1L, "Slot 2");
-    partyOrder.put(2L, "Slot 3");
-    partyOrder.put(3L, "Slot 4");
-    partyOrder.put(4L, "Slot 5");
-    partyOrder.put(5L, "Slot 6");
+    m_partyOrder.put(0L, "Slot 1");
+    m_partyOrder.put(1L, "Slot 2");
+    m_partyOrder.put(2L, "Slot 3");
+    m_partyOrder.put(3L, "Slot 4");
+    m_partyOrder.put(4L, "Slot 5");
+    m_partyOrder.put(5L, "Slot 6");
 //    partyOrder.put(0x8000L, "In party, dead");
-    partyOrder.put(0xffffL, "Not in party");
+    m_partyOrder.put(0xffffL, "Not in party");
 
-    m_selected.put(0L, "Not selected");
-    m_selected.put(1L, "Selected");
-    m_selected.put(0x8000L, "Dead");
+//    m_selected.put(0L, "Not selected");
+//    m_selected.put(1L, "Selected");
+//    m_selected.put(0x8000L, "Dead");
   }
 
   PartyNPC() throws Exception
@@ -216,8 +217,8 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
-    addField(new HashBitmap(buffer, offset, 2, GAM_NPC_SELECTION_STATE, m_selected));
-    addField(new HashBitmap(buffer, offset + 2, 2, GAM_NPC_PARTY_POSITION, partyOrder));
+    addField(new Flag(buffer, offset, 2, GAM_NPC_SELECTION_STATE, s_selected));
+    addField(new HashBitmap(buffer, offset + 2, 2, GAM_NPC_PARTY_POSITION, m_partyOrder));
     HexNumber creOffset = new HexNumber(buffer, offset + 4, 4, GAM_NPC_OFFSET_CRE);
     addField(creOffset);
     addField(new DecNumber(buffer, offset + 8, 4, GAM_NPC_CRE_SIZE));
@@ -226,7 +227,7 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
     } else {
       addField(new ResourceRef(buffer, offset + 12, GAM_NPC_CHARACTER, "CRE"));
     }
-    addField(new Bitmap(buffer, offset + 20, 4, GAM_NPC_ORIENTATION, Actor.s_orientation));
+    addField(new Bitmap(buffer, offset + 20, 4, GAM_NPC_ORIENTATION, OPTION_ORIENTATION));
     addField(new ResourceRef(buffer, offset + 24, GAM_NPC_CURRENT_AREA, "ARE"));
     addField(new DecNumber(buffer, offset + 32, 2, GAM_NPC_LOCATION_X));
     addField(new DecNumber(buffer, offset + 34, 2, GAM_NPC_LOCATION_Y));
@@ -433,7 +434,7 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
     addField(new DecNumber(buffer, offset + 4, 4, GAM_NPC_STAT_XP_FOE_VANQUISHED));
     addField(new DecNumber(buffer, offset + 8, 4, GAM_NPC_STAT_TIME_IN_PARTY));
     addField(new DecNumber(buffer, offset + 12, 4, GAM_NPC_STAT_JOIN_TIME));
-    addField(new Bitmap(buffer, offset + 16, 1, GAM_NPC_STAT_IN_PARTY, s_noyes));
+    addField(new Bitmap(buffer, offset + 16, 1, GAM_NPC_STAT_IN_PARTY, OPTION_NOYES));
     addField(new Unknown(buffer, offset + 17, 2));
     addField(new TextString(buffer, offset + 19, 1, GAM_NPC_STAT_INITIAL_CHAR));
     addField(new DecNumber(buffer, offset + 20, 4, GAM_NPC_STAT_KILLS_XP_CHAPTER));

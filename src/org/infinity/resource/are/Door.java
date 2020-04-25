@@ -74,7 +74,6 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
   public static final String ARE_DOOR_SPEAKER_NAME                      = "Speaker name";
   public static final String ARE_DOOR_DIALOG                            = "Dialogue";
 
-  public static final String[] s_noyes = {"No", "Yes"};
   public static final String[] s_flag = {"No flags set", "Door open", "Door locked", "Trap resets",
                                          "Detectable trap", "Door forced", "Cannot close", "Door located",
                                          "Door secret", "Secret door detected", "Can be looked through",
@@ -246,8 +245,8 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     addField(new DecNumber(buffer, offset + 104, 4, ARE_DOOR_CURSOR_INDEX));
     addField(new DecNumber(buffer, offset + 108, 2, ARE_DOOR_TRAP_DETECTION_DIFFICULTY));
     addField(new DecNumber(buffer, offset + 110, 2, ARE_DOOR_TRAP_REMOVAL_DIFFICULTY));
-    addField(new Bitmap(buffer, offset + 112, 2, ARE_DOOR_TRAPPED, s_noyes));
-    addField(new Bitmap(buffer, offset + 114, 2, ARE_DOOR_TRAP_DETECTED, s_noyes));
+    addField(new Bitmap(buffer, offset + 112, 2, ARE_DOOR_TRAPPED, OPTION_NOYES));
+    addField(new Bitmap(buffer, offset + 114, 2, ARE_DOOR_TRAP_DETECTED, OPTION_NOYES));
     addField(new DecNumber(buffer, offset + 116, 2, ARE_DOOR_LAUNCH_POINT_X));
     addField(new DecNumber(buffer, offset + 118, 2, ARE_DOOR_LAUNCH_POINT_Y));
     addField(new ResourceRef(buffer, offset + 120, ARE_DOOR_KEY, "ITM"));

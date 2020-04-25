@@ -33,8 +33,6 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
   public static final String WED_DOOR_OFFSET_POLYGONS_CLOSED  = "Polygons closed offset";
   public static final String WED_DOOR_TILEMAP_INDEX           = "Tilemap index";
 
-  public static final String[] s_noyes = {"No", "Yes"};
-
   public Door() throws Exception
   {
     super(null, WED_DOOR, StreamUtils.getByteBuffer(26), 0);
@@ -130,7 +128,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, offset, 8, WED_DOOR_NAME));
-    addField(new Bitmap(buffer, offset + 8, 2, WED_DOOR_IS_DOOR, s_noyes));
+    addField(new Bitmap(buffer, offset + 8, 2, WED_DOOR_IS_DOOR, OPTION_NOYES));
     DecNumber indexTileCell = new DecNumber(buffer, offset + 10, 2, WED_DOOR_TILEMAP_LOOKUP_INDEX);
     addField(indexTileCell);
     SectionCount countTileCell = new SectionCount(buffer, offset + 12, 2, WED_DOOR_NUM_TILEMAP_INDICES,

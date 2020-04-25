@@ -458,7 +458,7 @@ public class ColorConvert
             is.read(palette);
             int[] retVal = new int[colorCount];
             for (int i =0; i < colorCount; i++) {
-              retVal[i] = DynamicArray.getInt(palette, i << 2) & 0x00ffffff;
+              retVal[i] = 0xff000000 | (DynamicArray.getInt(palette, i << 2) & 0x00ffffff);
             }
             return retVal;
           } else {
@@ -479,10 +479,11 @@ public class ColorConvert
   /**
    * Attempts to load a palette from the specified PNG file.
    * @param file The PNG file to extract the palette from.
+   * @param preserveAlpha Whether to preserve original alpha transparency of the palette.
    * @return The palette as ARGB integers.
    * @throws Exception on error.
    */
-  public static int[] loadPalettePNG(Path file) throws Exception
+  public static int[] loadPalettePNG(Path file, boolean preserveAlpha) throws Exception
   {
     if (file != null && Files.isRegularFile(file)) {
       try (InputStream is = StreamUtils.getInputStream(file)) {
@@ -491,9 +492,13 @@ public class ColorConvert
           IndexColorModel cm = (IndexColorModel)img.getColorModel();
           int[] retVal = new int[cm.getMapSize()];
           cm.getRGBs(retVal);
+          if (!preserveAlpha) {
+            for (int i = 0; i < retVal.length; i++)
+              retVal[i] |= 0xff000000;
+          }
           return retVal;
         } else {
-          throw new Exception("Error loading palette from PNG fille " + file.getFileName());
+          throw new Exception("Error loading palette from PNG file " + file.getFileName());
         }
       } catch (IOException e) {
         e.printStackTrace();
@@ -505,7 +510,7 @@ public class ColorConvert
   }
 
   /**
-   * Attempts to load a palette from the specified Windows PAL file.
+   * Attempts to load a palette from the specified Windows PAL file. Does not support alpha transparency.
    * @param file The Windows PAL file to load.
    * @return The palette as ARGB integers.
    * @throws Exception on error.
@@ -514,30 +519,35 @@ public class ColorConvert
   {
     if (file != null && Files.isRegularFile(file)) {
       try (InputStream is = StreamUtils.getInputStream(file)) {
-        byte[] signature = new byte[8];
-        is.read(signature);
-        if ("RIFF".equals(new String(signature, 0, 4))) {
-          // extracting palette from Windows palette file
+        byte[] signature = new byte[12];
+        boolean eof = is.read(signature) != signature.length;
+        if ("RIFF".equals(new String(signature, 0, 4)) && "PAL ".equals(new String(signature, 8, 4))) {
           byte[] signature2 = new byte[8];
-          is.read(signature2);
-          if ("PAL data".equals(new String(signature2))) {
-            byte[] header = new byte[8];
-            is.read(header);
-            int numColors = DynamicArray.getUnsignedShort(header, 6);
-            if (numColors >= 2 && numColors <= 256) {
-              byte[] palData = new byte[numColors << 2];
-              is.read(palData);
-              int[] retVal = new int[numColors];
-              for (int i = 0; i < numColors; i++) {
-                int col = DynamicArray.getInt(palData, i << 2);
-                retVal[i] = ((col << 16) & 0xff0000) | (col & 0x00ff00) | ((col >> 16) & 0x0000ff);
-              }
-              return retVal;
-            } else {
-              throw new Exception("Invalid number of color entries in Windows palette file " + file.getFileName());
+
+          // find palette data block
+          eof = is.read(signature2) != signature2.length;
+          while (!eof && !"data".equals(new String(signature2, 0, 4))) {
+            is.skip(DynamicArray.getInt(signature2, 4) - 4);
+            eof = is.read(signature2) != signature2.length;
+          }
+          if (eof)
+            throw new Exception();
+
+          // extracting palette from Windows palette file
+          byte[] header = new byte[4];
+          is.read(header);
+          int numColors = DynamicArray.getUnsignedShort(header, 2);
+          if (numColors >= 2 && numColors <= 256) {
+            byte[] palData = new byte[numColors << 2];
+            is.read(palData);
+            int[] retVal = new int[numColors];
+            for (int i = 0; i < numColors; i++) {
+              int col = DynamicArray.getInt(palData, i << 2);
+              retVal[i] = 0xff000000 | ((col << 16) & 0xff0000) | (col & 0x00ff00) | ((col >> 16) & 0x0000ff);
             }
+            return retVal;
           } else {
-            throw new Exception("Error loading palette from Windows palette file " + file.getFileName());
+            throw new Exception("Invalid number of color entries in Windows palette file " + file.getFileName());
           }
         } else {
           throw new Exception("Invalid Windows palette file " + file.getFileName());
@@ -552,7 +562,7 @@ public class ColorConvert
   }
 
   /**
-   * Attempts to load a palette from the specified Adobe Color Table file.
+   * Attempts to load a palette from the specified Adobe Color Table file. Does not support alpha transparency.
    * @param file The Adobe Color Table file to load.
    * @return The palette as ARGB integers.
    * @throws Exception on error.
@@ -576,7 +586,7 @@ public class ColorConvert
             if (i == transColor) {
               retVal[i] = 0x00ff00;
             } else {
-              retVal[i] = ((palData[ofs] & 0xff) << 16) | ((palData[ofs+1] & 0xff) << 8) | (palData[ofs+2] & 0xff);
+              retVal[i] = 0xff000000 | ((palData[ofs] & 0xff) << 16) | ((palData[ofs+1] & 0xff) << 8) | (palData[ofs+2] & 0xff);
             }
           }
           return retVal;
@@ -595,10 +605,11 @@ public class ColorConvert
   /**
    * Attempts to load a palette from the specified BAM file.
    * @param file The BAM file to extract the palette from.
+   * @param preserveAlpha Whether to preserve original alpha transparency of the BAM palette.
    * @return The palette as ARGB integers.
    * @throws Exception on error.
    */
-  public static int[] loadPaletteBAM(Path file) throws Exception
+  public static int[] loadPaletteBAM(Path file, boolean preserveAlpha) throws Exception
   {
     if (file != null && Files.isRegularFile(file)) {
       try (InputStream is = StreamUtils.getInputStream(file)) {
@@ -617,7 +628,10 @@ public class ColorConvert
           if (ofs >= 0x18 && ofs < bamData.length - 1024) {
             int[] retVal = new int[256];
             for (int i = 0; i < 256; i++) {
-              retVal[i] = DynamicArray.getInt(bamData, ofs+(i << 2)) & 0x00ffffff;
+              retVal[i] = DynamicArray.getInt(bamData, ofs+(i << 2));
+              // backwards compatibility with non-EE BAM files
+              if (!preserveAlpha || (retVal[i] & 0xff000000) == 0)
+                retVal[i] |= 0xff000000;
             }
             return retVal;
           } else {

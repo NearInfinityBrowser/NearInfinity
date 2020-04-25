@@ -103,6 +103,15 @@ public final class FileResourceEntry extends ResourceEntry
     return file.getFileName().toString();
   }
 
+  public String getResourceRef()
+  {
+    String fileName = file.getFileName().toString();
+    int pos = fileName.lastIndexOf('.');
+    if (pos >= 0)
+      fileName = fileName.substring(0, pos);
+    return fileName;
+  }
+
   @Override
   public String getTreeFolderName()
   {

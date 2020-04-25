@@ -371,7 +371,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       if (ok)
         boxes[level - 1].setSelected(true);
       else
-        boxes[level - 1].setForeground(Color.red);
+        boxes[level - 1].setForeground(Color.RED);
       bok.setEnabled(level == boxes.length || !ok);
     }
 

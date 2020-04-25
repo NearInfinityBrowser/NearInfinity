@@ -79,6 +79,16 @@ public class SavResourceEntry extends ResourceEntry implements Writeable
   }
 
   @Override
+  public String getResourceRef()
+  {
+    int pos = fileName.lastIndexOf('.');
+    if (pos >= 0)
+      return fileName.substring(0, pos);
+    else
+      return fileName;
+  }
+
+  @Override
   public String getExtension()
   {
     return fileName.substring(fileName.lastIndexOf('.') + 1).toUpperCase(Locale.ENGLISH);

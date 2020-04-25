@@ -154,7 +154,6 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       bamControl.setMode(BamDecoder.BamControl.Mode.SHARED);
       if (bamControl instanceof BamV1Decoder.BamV1Control) {
         ((BamV1Decoder.BamV1Control)bamControl).setTransparencyEnabled(transparencyEnabled);
-        ((BamV1Decoder.BamV1Control)bamControl).setTransparencyMode(BamV1Decoder.TransparencyMode.NORMAL);
       }
     } catch (Throwable t) {
       t.printStackTrace();

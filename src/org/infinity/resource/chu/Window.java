@@ -38,7 +38,6 @@ final class Window extends AbstractStruct // implements AddRemovable
   public static final String CHU_WINDOW_FIRST_CONTROL_INDEX = "First control index";
   public static final String CHU_WINDOW_FLAGS               = "Flags";
 
-  private static final String hasb[] = {"No", "Yes"};
   private static final String s_flag[] = {"No flags set", "Don't dim background"};
 
   Window() throws Exception
@@ -168,7 +167,7 @@ final class Window extends AbstractStruct // implements AddRemovable
     addField(new DecNumber(buffer, offset + 6, 2, CHU_WINDOW_POSITION_Y));
     addField(new DecNumber(buffer, offset + 8, 2, CHU_WINDOW_WIDTH));
     addField(new DecNumber(buffer, offset + 10, 2, CHU_WINDOW_HEIGHT));
-    addField(new Bitmap(buffer, offset + 12, 2, CHU_WINDOW_HAS_BACKGROUND, hasb));
+    addField(new Bitmap(buffer, offset + 12, 2, CHU_WINDOW_HAS_BACKGROUND, OPTION_NOYES));
     addField(new UnsignDecNumber(buffer, offset + 14, 2, CHU_WINDOW_NUM_CONTROLS));
     addField(new ResourceRef(buffer, offset + 16, CHU_WINDOW_BACKGROUND, "MOS"));
     addField(new UnsignDecNumber(buffer, offset + 24, 2, CHU_WINDOW_FIRST_CONTROL_INDEX));

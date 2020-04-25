@@ -41,7 +41,6 @@ public final class SpawnPoint extends AbstractStruct implements AddRemovable
   public static final String ARE_SPAWN_COUNTDOWN            = "Countdown";
   public static final String ARE_SPAWN_WEIGHT_FMT           = "Spawn weight %d";
 
-  public static final String[] s_noyes = { "No", "Yes" };
   public static final String[] s_method = {"No flags set", "Spawn until paused",
                                            "Disable after spawn", "Spawn paused"};
 
@@ -83,8 +82,8 @@ public final class SpawnPoint extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 128, 2, ARE_SPAWN_WANDER_DISTANCE));
     addField(new DecNumber(buffer, offset + 130, 2, ARE_SPAWN_FOLLOW_DISTANCE));
     addField(new DecNumber(buffer, offset + 132, 2, ARE_SPAWN_MAX_CREATURES));
-    addField(new Bitmap(buffer, offset + 134, 2, ARE_SPAWN_ACTIVE, s_noyes));
-    addField(new Flag(buffer, offset + 136, 4, ARE_SPAWN_ACTIVE_AT, Actor.s_schedule));
+    addField(new Bitmap(buffer, offset + 134, 2, ARE_SPAWN_ACTIVE, OPTION_NOYES));
+    addField(new Flag(buffer, offset + 136, 4, ARE_SPAWN_ACTIVE_AT, OPTION_SCHEDULE));
     addField(new DecNumber(buffer, offset + 140, 2, ARE_SPAWN_PROBABILITY_DAY));
     addField(new DecNumber(buffer, offset + 142, 2, ARE_SPAWN_PROBABILITY_NIGHT));
     if (Profile.isEnhancedEdition()) {

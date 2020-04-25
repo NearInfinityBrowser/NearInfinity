@@ -35,8 +35,6 @@ import org.infinity.resource.sav.SavResource;
  */
 public class MazeResource extends AbstractStruct implements Resource, HasViewerTabs
 {
-  private static final String[] s_noyes = {"No", "Yes"};
-
   private StructHexViewer hexViewer;
 
   public MazeResource(ResourceEntry entry) throws Exception
@@ -83,11 +81,11 @@ public class MazeResource extends AbstractStruct implements Resource, HasViewerT
     curOfs += 4;
     addField(new DecNumber(buffer, curOfs, 4, ModronMaze.GAM_MAZE_NUM_TRAPS));
     curOfs += 4;
-    addField(new Bitmap(buffer, curOfs, 4, ModronMaze.GAM_MAZE_INITIALIZED, s_noyes));
+    addField(new Bitmap(buffer, curOfs, 4, ModronMaze.GAM_MAZE_INITIALIZED, OPTION_NOYES));
     curOfs += 4;
-    addField(new Bitmap(buffer, curOfs, 4, ModronMaze.GAM_MAZE_MAZE_BLOCKER_MADE, s_noyes));
+    addField(new Bitmap(buffer, curOfs, 4, ModronMaze.GAM_MAZE_MAZE_BLOCKER_MADE, OPTION_NOYES));
     curOfs += 4;
-    addField(new Bitmap(buffer, curOfs, 4, ModronMaze.GAM_MAZE_ENGINE_BLOCKER_MADE, s_noyes));
+    addField(new Bitmap(buffer, curOfs, 4, ModronMaze.GAM_MAZE_ENGINE_BLOCKER_MADE, OPTION_NOYES));
     curOfs += 4;
 
     return curOfs;

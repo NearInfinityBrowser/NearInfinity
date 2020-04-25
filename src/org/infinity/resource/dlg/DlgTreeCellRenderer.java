@@ -12,6 +12,7 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
 import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.ViewerUtil;
 
 /**
  * Renderer for dialogue tree, drawing elements of each dialog with its own color
@@ -25,23 +26,6 @@ import org.infinity.gui.BrowserMenuBar;
  */
 final class DlgTreeCellRenderer extends DefaultTreeCellRenderer
 {
-  /**
-   * This array contains background colors for other dialogs to which viewed dialog
-   * refers. Colors are assigned to other resources from this array on rotation basis.
-   */
-  private static final Color[] OTHER_DIALOG_COLORS = {
-    new Color(0xd8d8ff),
-    new Color(0xb8ffb8),
-    new Color(0xffd0d0),
-    new Color(0xffc8ff),
-    new Color(0xffffa0),
-    new Color(0xe0e0e0),
-    new Color(0x85ffc2),
-    new Color(0xffd3a6),
-    new Color(0x99ccff),
-    new Color(0xffa3d1),
-  };
-
   /** Background colors for text in dialogs to that can refer main dialog. */
   private final HashMap<DlgResource, Color> dialogColors = new HashMap<>();
   /** Main dialogue that shown in the tree. */
@@ -91,7 +75,7 @@ final class DlgTreeCellRenderer extends DefaultTreeCellRenderer
       return null;
     }
     return dialogColors.computeIfAbsent(dialog,
-        d -> OTHER_DIALOG_COLORS[dialogColors.size() % OTHER_DIALOG_COLORS.length]
+        d -> ViewerUtil.BACKGROUND_COLORS[dialogColors.size() % ViewerUtil.BACKGROUND_COLORS.length]
     );
   }
 }
