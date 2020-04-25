@@ -29,7 +29,6 @@ public final class ItemSale11 extends AbstractStruct implements AddRemovable
   public static final String STO_SALE_TRIGGER         = "Sale trigger";
 
   public static final String[] s_itemflag = {"No flags set", "Identified", "Not stealable", "Stolen"};
-  public static final String[] s_noyes = { "No", "Yes" };
 
   ItemSale11() throws Exception
   {
@@ -61,7 +60,7 @@ public final class ItemSale11 extends AbstractStruct implements AddRemovable
     }
     addField(new Flag(buffer, offset + 16, 4, STO_SALE_FLAGS, s_itemflag));
     addField(new DecNumber(buffer, offset + 20, 4, STO_SALE_NUM_IN_STOCK));
-    addField(new Bitmap(buffer, offset + 24, 4, STO_SALE_INFINITE_SUPPLY, s_noyes));
+    addField(new Bitmap(buffer, offset + 24, 4, STO_SALE_INFINITE_SUPPLY, OPTION_NOYES));
     addField(new StringRef(buffer, offset + 28, STO_SALE_TRIGGER));
     addField(new Unknown(buffer, offset + 32, 56));
     return offset + 88;

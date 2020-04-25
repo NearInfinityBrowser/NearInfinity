@@ -22,7 +22,6 @@ public final class ModronMazeEntry extends AbstractStruct
   public static final String GAM_MAZE_ENTRY_EXITS       = "Exits";
   public static final String GAM_MAZE_ENTRY_POLULATED   = "Populated";
 
-  private static final String[] s_noyes = {"No", "Yes"};
   private static final String[] s_traps = {"TrapA", "TrapB", "TrapC"};
   private static final String[] s_walls = {"None", "East", "West", "North", "South"};
 
@@ -34,13 +33,13 @@ public final class ModronMazeEntry extends AbstractStruct
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
-    addField(new Bitmap(buffer, offset, 4, GAM_MAZE_ENTRY_USED, s_noyes));
-    addField(new Bitmap(buffer, offset + 4, 4, GAM_MAZE_ENTRY_ACCESSIBLE, s_noyes));
-    addField(new Bitmap(buffer, offset + 8, 4, GAM_MAZE_ENTRY_IS_VALID, s_noyes));
-    addField(new Bitmap(buffer, offset + 12, 4, GAM_MAZE_ENTRY_IS_TRAPPED, s_noyes));
+    addField(new Bitmap(buffer, offset, 4, GAM_MAZE_ENTRY_USED, OPTION_NOYES));
+    addField(new Bitmap(buffer, offset + 4, 4, GAM_MAZE_ENTRY_ACCESSIBLE, OPTION_NOYES));
+    addField(new Bitmap(buffer, offset + 8, 4, GAM_MAZE_ENTRY_IS_VALID, OPTION_NOYES));
+    addField(new Bitmap(buffer, offset + 12, 4, GAM_MAZE_ENTRY_IS_TRAPPED, OPTION_NOYES));
     addField(new Bitmap(buffer, offset + 16, 4, GAM_MAZE_ENTRY_TRAP_TYPE, s_traps));
     addField(new Flag(buffer, offset + 20, 2, GAM_MAZE_ENTRY_EXITS, s_walls));
-    addField(new Bitmap(buffer, offset + 22, 4, GAM_MAZE_ENTRY_POLULATED, s_noyes));
+    addField(new Bitmap(buffer, offset + 22, 4, GAM_MAZE_ENTRY_POLULATED, OPTION_NOYES));
     return offset + 26;
   }
 }

@@ -59,7 +59,6 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 
   public static final String[] s_type = { "", "Bag", "Chest", "Drawer", "Pile", "Table", "Shelf",
                                           "Altar", "Non-visible", "Spellbook", "Body", "Barrel", "Crate"};
-  public static final String[] s_noyes = {"No", "Yes"};
   public static final String[] s_flag = { "No flags set", "Locked", "Disable if no owner", "Magical lock",
                                           "Trap resets", "Remove only", "Disabled", "EE: Don't clear" };
 
@@ -225,8 +224,8 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     addField(new Flag(buffer, offset + 40, 4, ARE_CONTAINER_FLAGS, s_flag));
     addField(new DecNumber(buffer, offset + 44, 2, ARE_CONTAINER_TRAP_DETECTION_DIFFICULTY));
     addField(new DecNumber(buffer, offset + 46, 2, ARE_CONTAINER_TRAP_REMOVAL_DIFFICULTY));
-    addField(new Bitmap(buffer, offset + 48, 2, ARE_CONTAINER_TRAPPED, s_noyes));
-    addField(new Bitmap(buffer, offset + 50, 2, ARE_CONTAINER_TRAP_DETECTED, s_noyes));
+    addField(new Bitmap(buffer, offset + 48, 2, ARE_CONTAINER_TRAPPED, OPTION_NOYES));
+    addField(new Bitmap(buffer, offset + 50, 2, ARE_CONTAINER_TRAP_DETECTED, OPTION_NOYES));
     addField(new DecNumber(buffer, offset + 52, 2, ARE_CONTAINER_LAUNCH_POINT_X));
     addField(new DecNumber(buffer, offset + 54, 2, ARE_CONTAINER_LAUNCH_POINT_Y));
     addField(new DecNumber(buffer, offset + 56, 2, ARE_CONTAINER_BOUNDING_BOX_LEFT));

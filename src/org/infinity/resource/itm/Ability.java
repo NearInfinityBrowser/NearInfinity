@@ -47,7 +47,6 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
   public static final String ITM_ABIL_IS_BOLT             = "Is bolt?";
   public static final String ITM_ABIL_IS_BULLET           = "Is bullet?";
 
-  public static final String[] s_noyes = {"No", "Yes"};
   public static final String[] s_launcher = {"None", "Bow", "Crossbow", "Sling"};
   public static final String[] s_abilityuse = {"", "Weapon", "Spell", "Item", "Ability", "reserved"};
   public static final String[] s_recharge = {
@@ -182,9 +181,9 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
     addField(new DecNumber(buffer, offset + 44, 2, ITM_ABIL_ANIM_OVERHAND));
     addField(new DecNumber(buffer, offset + 46, 2, ITM_ABIL_ANIM_BACKHAND));
     addField(new DecNumber(buffer, offset + 48, 2, ITM_ABIL_ANIM_THRUST));
-    addField(new Bitmap(buffer, offset + 50, 2, ITM_ABIL_IS_ARROW, s_noyes));
-    addField(new Bitmap(buffer, offset + 52, 2, ITM_ABIL_IS_BOLT, s_noyes));
-    addField(new Bitmap(buffer, offset + 54, 2, ITM_ABIL_IS_BULLET, s_noyes));
+    addField(new Bitmap(buffer, offset + 50, 2, ITM_ABIL_IS_ARROW, OPTION_NOYES));
+    addField(new Bitmap(buffer, offset + 52, 2, ITM_ABIL_IS_BOLT, OPTION_NOYES));
+    addField(new Bitmap(buffer, offset + 54, 2, ITM_ABIL_IS_BULLET, OPTION_NOYES));
 
     return offset + 56;
   }

@@ -51,6 +51,20 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public static final String COMMON_UNUSED        = "Unused";
   public static final String COMMON_UNUSED_BYTES  = "Unused bytes?";
 
+  // Commonly used string arrays
+  public static final String[] OPTION_NOYES       = {"No", "Yes"};
+  public static final String[] OPTION_YESNO       = {"Yes", "No"};
+  public static final String[] OPTION_SCHEDULE    = {"Not active",
+                                                     "00:30-01:29", "01:30-02:29", "02:30-03:29", "03:30-04:29",
+                                                     "04:30-05:29", "05:30-06:29", "06:30-07:29", "07:30-08:29",
+                                                     "08:30-09:29", "09:30-10:29", "10:30-11:29", "11:30-12:29",
+                                                     "12:30-13:29", "13:30-14:29", "14:30-15:29", "15:30-16:29",
+                                                     "16:30-17:29", "17:30-18:29", "18:30-19:29", "19:30-20:29",
+                                                     "20:30-21:29", "21:30-22:29", "22:30-23:29", "23:30-00:29"};
+  public static final String[] OPTION_ORIENTATION = { "South", "SSW", "SW", "WSW", "West", "WNW", "NW", "NNW",
+                                                      "North", "NNE", "NE", "ENE", "East", "ESE", "SE", "SSE" };
+
+
   /** Identifies the intention to removal of rows or columns. */
   public static final int WILL_BE_DELETE = -2;
 

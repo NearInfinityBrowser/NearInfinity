@@ -68,7 +68,7 @@ public final class Animation extends AbstractStruct implements AddRemovable
     addField(new TextString(buffer, offset, 32, ARE_ANIMATION_NAME));
     addField(new DecNumber(buffer, offset + 32, 2, ARE_ANIMATION_LOCATION_X));
     addField(new DecNumber(buffer, offset + 34, 2, ARE_ANIMATION_LOCATION_Y));
-    addField(new Flag(buffer, offset + 36, 4, ARE_ANIMATION_ACTIVE_AT, Actor.s_schedule));
+    addField(new Flag(buffer, offset + 36, 4, ARE_ANIMATION_ACTIVE_AT, OPTION_SCHEDULE));
     if (Profile.isEnhancedEdition()) {
       addField(new ResourceRef(buffer, offset + 40, ARE_ANIMATION_RESREF, "BAM", "WBM", "PVRZ"));
     } else {

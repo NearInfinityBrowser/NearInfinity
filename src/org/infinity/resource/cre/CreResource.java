@@ -465,7 +465,6 @@ public final class CreResource extends AbstractStruct
   public static final String[] s_attributes_iwd2 = {"No flags set", "Mental fortitude", "Critical hit immunity",
                                                     "Cannot be paladin", "Cannot be monk"};
   public static final String[] s_attacks = {"0", "1", "2", "3", "4", "5", "1/2", "3/2", "5/2", "7/2", "9/2"};
-  public static final String[] s_noyes = {"No", "Yes"};
   public static final String[] s_visible = {"Shown", "Hidden"};
   public static final String[] s_profLabels = {"Active class", "Original class"};
   public static final String[] s_effversion = {"Version 1", "Version 2"};
@@ -1175,15 +1174,15 @@ public final class CreResource extends AbstractStruct
     addField(new ResourceRef(buffer, offset + 644, CRE_SCRIPT_SPECIAL_3, "BCS"));
     addField(new ResourceRef(buffer, offset + 652, CRE_SCRIPT_MOVEMENT, "BCS"));
     addField(new Bitmap(buffer, offset + 660, 1, CRE_DEFAULT_VISIBILITY, s_visible));
-    addField(new Bitmap(buffer, offset + 661, 1, CRE_SET_EXTRA_DEATH_VAR, s_noyes));
-    addField(new Bitmap(buffer, offset + 662, 1, CRE_INCREMENT_KILL_COUNT, s_noyes));
+    addField(new Bitmap(buffer, offset + 661, 1, CRE_SET_EXTRA_DEATH_VAR, OPTION_NOYES));
+    addField(new Bitmap(buffer, offset + 662, 1, CRE_INCREMENT_KILL_COUNT, OPTION_NOYES));
     addField(new Unknown(buffer, offset + 663, 1));
     for (int i = 0; i < 5; i++) {
       addField(new DecNumber(buffer, offset + 664 + (i * 2), 2, String.format(CRE_INTERNAL_FMT, i+1)));
     }
     addField(new TextString(buffer, offset + 674, 32, CRE_DEATH_VAR_SET));
     addField(new TextString(buffer, offset + 706, 32, CRE_DEATH_VAR_INC));
-    addField(new Bitmap(buffer, offset + 738, 2, CRE_LOCATION_SAVED, s_noyes));
+    addField(new Bitmap(buffer, offset + 738, 2, CRE_LOCATION_SAVED, OPTION_NOYES));
     addField(new DecNumber(buffer, offset + 740, 2, CRE_SAVED_LOCATION_X));
     addField(new DecNumber(buffer, offset + 742, 2, CRE_SAVED_LOCATION_Y));
     addField(new DecNumber(buffer, offset + 744, 2, CRE_SAVED_ORIENTATION));
@@ -1522,7 +1521,7 @@ public final class CreResource extends AbstractStruct
         } else {
           addField(new Unknown(buffer, offset + 110, 7));
         }
-        addField(new Bitmap(buffer, offset + 117, 1, CRE_NIGHTMARE_MODE, s_noyes));
+        addField(new Bitmap(buffer, offset + 117, 1, CRE_NIGHTMARE_MODE, OPTION_NOYES));
         addField(new UnsignDecNumber(buffer, offset + 118, 1, CRE_TRANSLUCENCY));
         if (Profile.getGame() == Profile.Game.PSTEE) {
           addField(new DecNumber(buffer, offset + 119, 1, CRE_MURDER_INC));
@@ -1689,15 +1688,15 @@ public final class CreResource extends AbstractStruct
     }
     else if (version.equalsIgnoreCase("V9.0") || version.equalsIgnoreCase("V9.1")) {
       addField(new Bitmap(buffer, offset + 616, 1, CRE_DEFAULT_VISIBILITY, s_visible));
-      addField(new Bitmap(buffer, offset + 617, 1, CRE_SET_EXTRA_DEATH_VAR, s_noyes));
-      addField(new Bitmap(buffer, offset + 618, 1, CRE_INCREMENT_KILL_COUNT, s_noyes));
+      addField(new Bitmap(buffer, offset + 617, 1, CRE_SET_EXTRA_DEATH_VAR, OPTION_NOYES));
+      addField(new Bitmap(buffer, offset + 618, 1, CRE_INCREMENT_KILL_COUNT, OPTION_NOYES));
       addField(new Unknown(buffer, offset + 619, 1));
       for (int i = 0; i < 5; i++) {
         addField(new DecNumber(buffer, offset + 620 + (i * 2), 2, String.format(CRE_INTERNAL_FMT, i+1)));
       }
       addField(new TextString(buffer, offset + 630, 32, CRE_DEATH_VAR_SET));
       addField(new TextString(buffer, offset + 662, 32, CRE_DEATH_VAR_INC));
-      addField(new Bitmap(buffer, offset + 694, 2, CRE_LOCATION_SAVED, s_noyes));
+      addField(new Bitmap(buffer, offset + 694, 2, CRE_LOCATION_SAVED, OPTION_NOYES));
       addField(new DecNumber(buffer, offset + 696, 2, CRE_SAVED_LOCATION_X));
       addField(new DecNumber(buffer, offset + 698, 2, CRE_SAVED_LOCATION_Y));
       addField(new DecNumber(buffer, offset + 700, 2, CRE_SAVED_ORIENTATION));

@@ -11,8 +11,8 @@ import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.icon.Icons;
+import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Viewable;
-import org.infinity.resource.are.Actor;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.Entrance;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
@@ -40,9 +40,9 @@ public class LayerObjectEntrance extends LayerObject
       location.x = ((IsNumeric)entrance.getAttribute(Entrance.ARE_ENTRANCE_LOCATION_X)).getValue();
       location.y = ((IsNumeric)entrance.getAttribute(Entrance.ARE_ENTRANCE_LOCATION_Y)).getValue();
       int o = ((IsNumeric)entrance.getAttribute(Entrance.ARE_ENTRANCE_ORIENTATION)).getValue();
-      if (o < 0) o = 0; else if (o >= Actor.s_orientation.length) o = Actor.s_orientation.length - 1;
+      if (o < 0) o = 0; else if (o >= AbstractStruct.OPTION_ORIENTATION.length) o = AbstractStruct.OPTION_ORIENTATION.length - 1;
       final String name = entrance.getAttribute(Entrance.ARE_ENTRANCE_NAME).toString();
-      msg = String.format("%s (%s)", name, Actor.s_orientation[o]);
+      msg = String.format("%s (%s)", name, AbstractStruct.OPTION_ORIENTATION[o]);
     } catch (Exception e) {
       e.printStackTrace();
     }

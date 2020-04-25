@@ -25,7 +25,6 @@ import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
-import org.infinity.resource.are.Actor;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.io.StreamUtils;
@@ -87,7 +86,6 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
 
   private static final LongIntegerHashMap<String> partyOrder = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<String>();
-  private static final String s_noyes[] = {"No", "Yes"};
 
   static {
     partyOrder.put(0L, "Slot 1");
@@ -226,7 +224,7 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
     } else {
       addField(new ResourceRef(buffer, offset + 12, GAM_NPC_CHARACTER, "CRE"));
     }
-    addField(new Bitmap(buffer, offset + 20, 4, GAM_NPC_ORIENTATION, Actor.s_orientation));
+    addField(new Bitmap(buffer, offset + 20, 4, GAM_NPC_ORIENTATION, OPTION_ORIENTATION));
     addField(new ResourceRef(buffer, offset + 24, GAM_NPC_CURRENT_AREA, "ARE"));
     addField(new DecNumber(buffer, offset + 32, 2, GAM_NPC_LOCATION_X));
     addField(new DecNumber(buffer, offset + 34, 2, GAM_NPC_LOCATION_Y));
@@ -433,7 +431,7 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
     addField(new DecNumber(buffer, offset + 4, 4, GAM_NPC_STAT_XP_FOE_VANQUISHED));
     addField(new DecNumber(buffer, offset + 8, 4, GAM_NPC_STAT_TIME_IN_PARTY));
     addField(new DecNumber(buffer, offset + 12, 4, GAM_NPC_STAT_JOIN_TIME));
-    addField(new Bitmap(buffer, offset + 16, 1, GAM_NPC_STAT_IN_PARTY, s_noyes));
+    addField(new Bitmap(buffer, offset + 16, 1, GAM_NPC_STAT_IN_PARTY, OPTION_NOYES));
     addField(new Unknown(buffer, offset + 17, 2));
     addField(new TextString(buffer, offset + 19, 1, GAM_NPC_STAT_INITIAL_CHAR));
     addField(new DecNumber(buffer, offset + 20, 4, GAM_NPC_STAT_KILLS_XP_CHAPTER));
