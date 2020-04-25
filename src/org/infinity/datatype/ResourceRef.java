@@ -126,7 +126,7 @@ public class ResourceRef extends Datatype
         //FIXME: ResRefChecker check only that point is exist, so this must be
         // the same check or this check must be inside isLegalEntry(...)
         // There only 2 places where isLegalEntry is called: this and ResRefChecker
-        if (isLegalEntry(entry) && entry.getResourceName().lastIndexOf('.') <= 8) {
+        if (isLegalEntry(entry) && entry.getResourceRef().length() <= 8) {
           values.add(new ResourceRefEntry(entry));
         }
       }
@@ -226,19 +226,17 @@ public class ResourceRef extends Datatype
     if (entry == null) {
       setValue(selected.name);
     } else {
-      int i = -1;
+      boolean found = false;
       for (final String type : types) {
-        //TODO: It seems that instead of toString getExtension must be used
-        i = entry.getResourceName().indexOf('.' + type.toUpperCase(Locale.ENGLISH));
-        if (i != -1) {
+        found = entry.getExtension().equalsIgnoreCase(type);
+        if (found) {
           this.type = type;
-          setValue(entry.getResourceName().substring(0, i));
+          setValue(entry.getResourceRef());
           break;
         }
       }
-      if (i == -1) {
+      if (!found)
         return false;
-      }
     }
 
     // notifying listeners

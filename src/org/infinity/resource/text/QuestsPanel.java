@@ -157,7 +157,7 @@ public final class QuestsPanel extends JPanel implements ListSelectionListener
     protected void setupCompleted(boolean isSelected)
     {
       if (!isSelected) {
-        setBackground(Color.cyan);
+        setBackground(Color.CYAN);
       }
       final Font font = getFont();
       // Because of capture (symbol ?) in type signature raw type usage is required...
@@ -189,7 +189,7 @@ public final class QuestsPanel extends JPanel implements ListSelectionListener
           final QuestsModel model = (QuestsModel)table.getModel();
           final Quest quest = model.quests.get(row);
           switch (quest.evaluate(vars)) {
-            case Unassigned: setForeground(Color.gray); break;
+            case Unassigned: setForeground(Color.GRAY); break;
             case Completed: setupCompleted(isSelected); break;
             default:
               break;

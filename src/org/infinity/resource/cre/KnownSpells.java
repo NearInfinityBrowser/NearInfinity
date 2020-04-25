@@ -21,7 +21,7 @@ public final class KnownSpells extends AbstractStruct implements AddRemovable
   public static final String CRE_KNOWN_LEVEL  = "Level";
   public static final String CRE_KNOWN_TYPE   = "Type";
 
-  private static final String[] s_spelltype = {"Priest", "Wizard", "Innate"};
+  public static final String[] s_spelltype = {"Priest", "Wizard", "Innate"};
 
   KnownSpells() throws Exception
   {

@@ -112,10 +112,7 @@ final class ViewerAbility extends JPanel
     Table2da table = Table2daCache.get("tooltip.2da");
     if (table != null) {
       // getting parent item resref
-      String resref = ability.getParent().getResourceEntry().getResourceName();
-      if (resref.lastIndexOf('.') > 0) {
-        resref = resref.substring(0, resref.lastIndexOf('.'));
-      }
+      String resref = ability.getParent().getResourceEntry().getResourceRef();
 
       // fetching tooltip label for ability, if available
       if (resref != null) {

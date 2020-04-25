@@ -167,18 +167,12 @@ public final class WbmResource implements Resource, Closeable, Referenceable, Ac
       retVal = ((FileResourceEntry)entry).getActualPath();
       isTempFile = false;
     } else {
-      String fileName = entry.getResourceName();
-      String fileBase, fileExt;
-      int p = fileName.lastIndexOf('.');
-      if (p > 0) {
-        fileBase = fileName.substring(0, p);
-        fileExt = fileName.substring(p);
-      } else {
-        fileBase = fileName;
-        fileExt = ".wbm";
-      }
+      String fileBase = entry.getResourceRef();
+      String fileExt = entry.getExtension();
+      if (fileExt.isEmpty())
+        fileExt = "wbm";
       try {
-        Path outFile = Files.createTempFile(fileBase + "-", fileExt);
+        Path outFile = Files.createTempFile(fileBase + "-", "." + fileExt);
         if (Files.isRegularFile(outFile)) {
           try (InputStream is = entry.getResourceDataAsStream()) {
             try (OutputStream os = StreamUtils.getOutputStream(outFile, true)) {

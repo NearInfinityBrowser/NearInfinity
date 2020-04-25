@@ -20,7 +20,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 
-final class MapEntry extends AbstractStruct implements HasViewerTabs
+final public class MapEntry extends AbstractStruct implements HasViewerTabs
 {
   // WMP/MapEntry-specific field labels
   public static final String WMP_MAP                    = "Map";

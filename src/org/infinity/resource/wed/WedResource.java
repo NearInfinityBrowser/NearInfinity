@@ -259,7 +259,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
                                                        Wallgroup.class);
     addField(offsetWallgroups);
     SectionOffset offsetPolytable = new SectionOffset(buffer, offset + 16, WED_OFFSET_WALL_POLYGON_LOOKUP,
-                                                      RemovableDecNumber.class);
+                                                      IndexNumber.class);
     addField(offsetPolytable);
 
     HexNumber offsets[] = new HexNumber[]{offsetOverlays, offsetHeader2, offsetDoors, offsetDoortile,
@@ -306,7 +306,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
 
     offset = offsetPolytable.getValue();
     for (int i = 0; i < countPolytable; i++) {
-      addField(new DecNumber(buffer, offset + i * 2, 2, WED_WALL_POLYGON_INDEX + " " + i));
+      addField(new IndexNumber(buffer, offset + i * 2, 2, WED_WALL_POLYGON_INDEX + " " + i));
     }
 
     int endoffset = offset;

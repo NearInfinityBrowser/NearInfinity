@@ -8,6 +8,7 @@ import java.awt.Component;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -20,6 +21,8 @@ import javax.swing.JScrollPane;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HexNumber;
+import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.IsReference;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -40,6 +43,8 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.viewer.AreaViewer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.vertex.Vertex;
+import org.infinity.resource.wmp.AreaEntry;
+import org.infinity.resource.wmp.WmpResource;
 import org.infinity.search.SearchOptions;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.LuaEntry;
@@ -198,6 +203,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       } else if (ResourceFactory.resourceExists("MAPNAME.2DA")) {
         // PST map names
         mapNames = createMapNamesFromTable();
+      } else {
+        // try getting map names from worldmaps
+        mapNames = createMapNamesFromWorldmap();
       }
     }
   }
@@ -245,6 +253,49 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
         }
         if (resref != table.getDefaultValue() && desc != null) {
           retVal.put(resref.toUpperCase(), desc);
+        }
+      }
+    }
+    return retVal;
+  }
+
+  // Collect area names from worldmaps
+  private static HashMap<String, String> createMapNamesFromWorldmap()
+  {
+    HashMap<String, String> retVal = new HashMap<>();
+    List<ResourceEntry> wmpList = ResourceFactory.getResources("WMP", Collections.emptyList());
+    if (wmpList != null) {
+      for (ResourceEntry wmpEntry : wmpList) {
+        try {
+          WmpResource wmp = (WmpResource)ResourceFactory.getResource(wmpEntry);
+          if (wmp != null) {
+            List<StructEntry> mapList = wmp.getFields(org.infinity.resource.wmp.MapEntry.class);
+            for (StructEntry mapEntry : mapList) {
+              List<StructEntry> areaList = ((AbstractStruct)mapEntry).getFields(AreaEntry.class);
+              for (StructEntry areaEntry : areaList) {
+                AreaEntry area = (AreaEntry)areaEntry;
+
+                String resref = ((IsReference)area.getAttribute(AreaEntry.WMP_AREA_CURRENT)).getResourceName();
+                if (resref == null || resref.isEmpty())
+                  continue;
+                int pos = resref.lastIndexOf('.');
+                if (pos > 0)
+                  resref = resref.substring(0, pos);
+                resref = resref.toUpperCase();
+
+                int strref = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_TOOLTIP)).getValue();
+                if (!StringTable.isValidStringRef(strref))
+                  strref = ((IsNumeric)area.getAttribute(AreaEntry.WMP_AREA_NAME)).getValue();
+                if (StringTable.isValidStringRef(strref)) {
+                  String name = StringTable.getStringRef(strref);
+                  if (name != null && !name.isEmpty())
+                    retVal.put(resref, name);
+                }
+              }
+            }
+          }
+        } catch (Exception e) {
+          // no need to report anything
         }
       }
     }
@@ -654,10 +705,10 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     addField(new HexNumber(buffer, offset + 144, 4, ARE_OFFSET_OBJECT_FLAGS));
     addField(new ResourceRef(buffer, offset + 148, ARE_AREA_SCRIPT, "BCS"));
     SectionCount size_exploredbitmap = new SectionCount(buffer, offset + 156, 4, ARE_SIZE_EXPLORED_BITMAP,
-                                                        Unknown.class);
+                                                        Explored.class);
     addField(size_exploredbitmap);
     SectionOffset offset_exploredbitmap = new SectionOffset(buffer, offset + 160, ARE_OFFSET_EXPLORED_BITMAP,
-                                                            Unknown.class);
+                                                            Explored.class);
     addField(offset_exploredbitmap);
     SectionCount count_doors = new SectionCount(buffer, offset + 164, 4, ARE_NUM_DOORS,
                                                 Door.class);
@@ -778,7 +829,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
     offset = offset_exploredbitmap.getValue();
     if (size_exploredbitmap.getValue() > 0) {
-      addField(new Unknown(buffer, offset, size_exploredbitmap.getValue(), ARE_EXPLORED_BITMAP));
+      addField(new Explored(buffer, offset, size_exploredbitmap.getValue(), ARE_EXPLORED_BITMAP));
     }
 
     offset = offset_doors.getValue();

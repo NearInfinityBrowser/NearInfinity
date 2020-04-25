@@ -23,8 +23,6 @@ public class AbstractComponent extends AbstractStruct implements AddRemovable
   public static final String VEF_COMP_TICKS_LOOP  = "Ticks until loop";
   public static final String VEF_COMP_CONTINUOUS  = "Continuous cycles?";
 
-  public static final String[] s_noyes = {"No", "Yes"};
-
   protected AbstractComponent(String label) throws Exception
   {
     super(null, label, StreamUtils.getByteBuffer(224), 0);
@@ -58,7 +56,7 @@ public class AbstractComponent extends AbstractStruct implements AddRemovable
     offset = type.readAttributes(buffer, offset + 16, list);
     addFields(getFields().size() - 1, list);
 
-    addField(new Bitmap(buffer, offset, 4, VEF_COMP_CONTINUOUS, s_noyes));
+    addField(new Bitmap(buffer, offset, 4, VEF_COMP_CONTINUOUS, OPTION_NOYES));
     addField(new Unknown(buffer, offset + 4, 196));
     offset += 200;
     return offset;

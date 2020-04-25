@@ -170,6 +170,28 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     chooser.setFileFilter(new FileNameExtensionFilter("XML Configuration (*.xml)", "xml"));
   }
 
+  /** Returns the currently selected resource type. */
+  public String getResourceType()
+  {
+    return cbResourceTypes.getSelectedItem().toString();
+  }
+
+  /** Sets the specified resource type if available. Returns success state. */
+  public boolean setResourceType(String type)
+  {
+    if (type == null)
+      return false;
+
+    type = type.toUpperCase();
+    for (int i = 0, cnt = cbResourceTypes.getModel().getSize(); i < cnt; i++) {
+      if (cbResourceTypes.getModel().getElementAt(i).equals(type)) {
+        cbResourceTypes.setSelectedIndex(i);
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Adds the specified SearchOptions instance to the filter list.
    * If the specified filter already exists it will be updated instead.
@@ -187,6 +209,48 @@ public class AdvancedSearch extends ChildFrame implements Runnable
       }
       filterList.setSelectedIndex(idx);
     }
+  }
+
+  /** Returns the number of defined filters. */
+  public int getFilterCount()
+  {
+    return filterList.getModel().getSize();
+  }
+
+  /** Returns the filter instance at the specified index. */
+  public SearchOptions getFilter(int index)
+  {
+    if (index >= 0 && index < filterList.getModel().getSize())
+      return filterList.getModel().getElementAt(index);
+    return null;
+  }
+
+  /**
+   * Removes the filter at the specified index from the filter list.
+   * Optionally selects the next available entry in the list.
+   */
+  public boolean removeFilter(int idx, boolean autoSelect)
+  {
+    SimpleListModel<SearchOptions> model = (SimpleListModel<SearchOptions>)filterList.getModel();
+    if (idx >= 0 && idx < model.getSize()) {
+      model.remove(idx);
+      if (autoSelect) {
+        if (idx >= model.getSize())
+          idx--;
+        if (idx >= 0)
+          filterList.setSelectedIndex(idx);
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  /** Removes all filters from the filter list. */
+  private void removeAllFilters()
+  {
+    SimpleListModel<SearchOptions> model = (SimpleListModel<SearchOptions>)filterList.getModel();
+    model.clear();
   }
 
   private void init() throws Exception
@@ -555,31 +619,6 @@ public class AdvancedSearch extends ChildFrame implements Runnable
         b.setSelected(mode.equals(((ToggleButtonDataModel)b.getModel()).getData()));
       }
     }
-  }
-
-  /** Removes the filter at the specified index from the filter list. Optionally selects the next available entry in the list. */
-  private boolean removeFilter(int idx, boolean autoSelect)
-  {
-    SimpleListModel<SearchOptions> model = (SimpleListModel<SearchOptions>)filterList.getModel();
-    if (idx >= 0 && idx < model.getSize()) {
-      model.remove(idx);
-      if (autoSelect) {
-        if (idx >= model.getSize())
-          idx--;
-        if (idx >= 0)
-          filterList.setSelectedIndex(idx);
-      }
-      return true;
-    }
-
-    return false;
-  }
-
-  /** Removes all filters from the filter list. */
-  private void removeAllFilters()
-  {
-    SimpleListModel<SearchOptions> model = (SimpleListModel<SearchOptions>)filterList.getModel();
-    model.clear();
   }
 
   /** Imports a new search configuration from the specified xml file. */

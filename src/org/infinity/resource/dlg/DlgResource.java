@@ -609,11 +609,7 @@ public final class DlgResource extends AbstractStruct
       writer.println();
 
       // *** start of WeiDU D script ***
-      String dlgResRef = getResourceEntry().getResourceName();
-      int p = dlgResRef.lastIndexOf('.');
-      if (p >= 0) {
-        dlgResRef = dlgResRef.substring(0, p);
-      }
+      String dlgResRef = getResourceEntry().getResourceRef();
 
       writer.print("BEGIN ~" + dlgResRef + "~");
       StructEntry entry = getAttribute(DLG_THREAT_RESPONSE);

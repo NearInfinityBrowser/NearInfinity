@@ -118,7 +118,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     IWD,
     /** Includes IWD2. */
     IWD2,
-    /** Includes BG1EE, BG1SoD, BG2EE, IWDEE and EET. */
+    /** Includes BG1EE, BG1SoD, BG2EE, IWDEE, PSTEE and EET. */
     EE,
   }
 

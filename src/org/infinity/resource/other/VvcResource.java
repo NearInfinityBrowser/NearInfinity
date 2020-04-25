@@ -98,7 +98,6 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
       "Purgeable", "Not covered by wall", "Mid-level brighten", "High-level brighten"};
   public static final String[] s_face = {"Use current", "Face target", "Follow target", "Follow path",
                                          "Lock orientation"};
-  public static final String[] s_noyes = {"No", "Yes"};
 
   private StructHexViewer hexViewer;
 
@@ -121,7 +120,7 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
     addField(new Unknown(buffer, offset + 36, 4));
     addField(new DecNumber(buffer, offset + 40, 4, VVC_POSITION_X));
     addField(new DecNumber(buffer, offset + 44, 4, VVC_POSITION_Y));
-    addField(new Bitmap(buffer, offset + 48, 4, VVC_DRAW_ORIENTED, s_noyes));
+    addField(new Bitmap(buffer, offset + 48, 4, VVC_DRAW_ORIENTED, OPTION_NOYES));
     addField(new DecNumber(buffer, offset + 52, 4, VVC_FRAME_RATE));
     addField(new DecNumber(buffer, offset + 56, 4, VVC_NUM_ORIENTATIONS));
     addField(new DecNumber(buffer, offset + 60, 4, VVC_PRIMARY_ORIENTATION));
@@ -136,7 +135,7 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
     addField(new DecNumber(buffer, offset + 104, 4, VVC_FIRST_ANIMATION_INDEX));
     addField(new DecNumber(buffer, offset + 108, 4, VVC_SECOND_ANIMATION_INDEX));
     addField(new DecNumber(buffer, offset + 112, 4, VVC_CURRENT_ANIMATION_INDEX));
-    addField(new Bitmap(buffer, offset + 116, 4, VVC_CONTINUOUS_PLAYBACK, s_noyes));
+    addField(new Bitmap(buffer, offset + 116, 4, VVC_CONTINUOUS_PLAYBACK, OPTION_NOYES));
     addField(new ResourceRef(buffer, offset + 120, VVC_SOUND_STARTING, "WAV"));
     addField(new ResourceRef(buffer, offset + 128, VVC_SOUND_DURATION, "WAV"));
     addField(new ResourceRef(buffer, offset + 136, VVC_ALPHA_MASK, "BAM"));

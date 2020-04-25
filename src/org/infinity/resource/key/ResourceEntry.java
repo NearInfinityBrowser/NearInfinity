@@ -254,7 +254,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
     // 1. Options->Show Unknown Resource Types == true OR resource type is supported
     // 2. NOT Resource type part of skippedExtensions
     // 3. Filename length is valid
-    int resLen = getResourceName().lastIndexOf('.');
+    int resLen = getResourceRef().length();
     boolean bRet = (BrowserMenuBar.getInstance() != null && BrowserMenuBar.getInstance().showUnknownResourceTypes()) ||
                    Profile.isResourceTypeSupported(getExtension()) &&
                    !skippedExtensions.contains(getExtension().toUpperCase(Locale.ENGLISH)) &&
@@ -266,6 +266,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
 
   public abstract long getResourceSize(boolean ignoreOverride);
 
+  /** Returns the type of the resource (extension without leading dot). */
   public abstract String getExtension();
 
   public abstract ByteBuffer getResourceBuffer(boolean ignoreOverride) throws Exception;
@@ -274,7 +275,11 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
 
   public abstract int[] getResourceInfo(boolean ignoreOverride) throws Exception;
 
+  /** Returns the full resource name (name dot extension) */
   public abstract String getResourceName();
+
+  /** Returns the resource name without extension. */
+  public abstract String getResourceRef();
 
   /** Returns name of folder in the resource tree in which this entry appears. */
   public abstract String getTreeFolderName();

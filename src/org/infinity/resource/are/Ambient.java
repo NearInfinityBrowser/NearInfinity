@@ -75,7 +75,7 @@ public final class Ambient extends AbstractStruct implements AddRemovable
     addField(new Unknown(buffer, offset + 130, 2));
     addField(new DecNumber(buffer, offset + 132, 4, ARE_AMBIENT_INTERVAL_BASE));
     addField(new DecNumber(buffer, offset + 136, 4, ARE_AMBIENT_INTERVAL_VARIATION));
-    addField(new Flag(buffer, offset + 140, 4, ARE_AMBIENT_ACTIVE_AT, Actor.s_schedule));
+    addField(new Flag(buffer, offset + 140, 4, ARE_AMBIENT_ACTIVE_AT, OPTION_SCHEDULE));
     addField(new Flag(buffer, offset + 144, 4, ARE_AMBIENT_FLAGS, s_flag));
     addField(new Unknown(buffer, offset + 148, 64));
     return offset + 212;

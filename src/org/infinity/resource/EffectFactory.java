@@ -34,7 +34,6 @@ import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnsignDecNumber;
 import org.infinity.datatype.UpdateListener;
-import org.infinity.resource.are.Actor;
 import org.infinity.resource.itm.ItmResource;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.LongIntegerHashMap;
@@ -129,8 +128,6 @@ public final class EffectFactory
   public static final LongIntegerHashMap<String> m_colorloc = new LongIntegerHashMap<String>();
   public static final LongIntegerHashMap<String> m_proj_iwd = new LongIntegerHashMap<String>();
   public static final String[] s_inctype = {"Increment", "Set", "Set % of"};
-  public static final String[] s_yesno = {"Yes", "No"};
-  public static final String[] s_noyes = {"No", "Yes"};
 
   public static final String[] s_visuals = {
     // 0..9
@@ -940,7 +937,7 @@ public final class EffectFactory
           StructEntry newEntry = null;
           switch (param2) {
             case 1:
-              newEntry = new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Enabled?", s_noyes);
+              newEntry = new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Enabled?", AbstractStruct.OPTION_NOYES);
               break;
             case 2:
               newEntry = new ColorValue(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Color");
@@ -2029,7 +2026,7 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.PST) {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         } else {
-          s.add(new Bitmap(buffer, offset, 4, "Display text?", s_yesno));
+          s.add(new Bitmap(buffer, offset, 4, "Display text?", AbstractStruct.OPTION_YESNO));
         }
         final String[] s_type;
         if (Profile.getEngine() == Profile.Engine.BG1) {
@@ -2209,7 +2206,7 @@ public final class EffectFactory
       case 32: // Raise dead
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.isEnhancedEdition()) {
-          s.add(new Bitmap(buffer, offset + 4, 4, "Restore creature animation?", s_noyes));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Restore creature animation?", AbstractStruct.OPTION_NOYES));
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
@@ -2246,7 +2243,7 @@ public final class EffectFactory
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 ||
             Profile.isEnhancedEdition()) {
-          s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", s_yesno));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", AbstractStruct.OPTION_YESNO));
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
@@ -2410,7 +2407,7 @@ public final class EffectFactory
         break;
 
       case 68: // Unsummon creature
-        s.add(new Bitmap(buffer, offset, 4, "Display text?", s_noyes));
+        s.add(new Bitmap(buffer, offset, 4, "Display text?", AbstractStruct.OPTION_NOYES));
         s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.isEnhancedEdition()) {
           restype = "VEF:VVC:BAM";
@@ -2851,7 +2848,7 @@ public final class EffectFactory
                            new String[]{"Cast normally", "Cast instantly (ignore level)",
                                         "Cast instantly (at level)"}));
         } else {
-          s.add(new Bitmap(buffer, offset + 4, 4, "Cast instantly?", s_noyes));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Cast instantly?", AbstractStruct.OPTION_NOYES));
         }
         restype = "SPL";
         break;
@@ -3051,7 +3048,7 @@ public final class EffectFactory
           makeEffectParamsDefault(buffer, offset, s);
         } else {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Pass walls?", s_yesno));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Pass walls?", AbstractStruct.OPTION_YESNO));
         }
         break;
 
@@ -3141,14 +3138,14 @@ public final class EffectFactory
         if (Profile.isEnhancedEdition() && ResourceFactory.resourceExists("DIR.IDS")) {
           s.add(new IdsBitmap(buffer, offset + 4, 4, "Orientation", "DIR.IDS"));
         } else {
-          s.add(new Bitmap(buffer, offset + 4, 4, "Orientation", Actor.s_orientation));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Orientation", AbstractStruct.OPTION_ORIENTATION));
         }
         restype = "ARE";
         break;
 
       case 188: // Increase spells cast per round
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", s_noyes));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", AbstractStruct.OPTION_NOYES));
         break;
 
       case 189: // Increase casting speed factor
@@ -3313,7 +3310,7 @@ public final class EffectFactory
       case 218: // Stoneskin effect
         s.add(new DecNumber(buffer, offset, 4, "# skins"));
         if (Profile.isEnhancedEdition()) {
-          s.add(new Bitmap(buffer, offset + 4, 4, "Use dice?", s_noyes));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Use dice?", AbstractStruct.OPTION_NOYES));
         } else {
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         }
@@ -3471,7 +3468,7 @@ public final class EffectFactory
 
       case 239: // Farsight
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Can view unexplored?", s_noyes));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Can view unexplored?", AbstractStruct.OPTION_NOYES));
         break;
 
       case 240: // Remove portrait icon
@@ -3500,7 +3497,7 @@ public final class EffectFactory
       }
 
       case 243: // Drain item charges
-        s.add(new Bitmap(buffer, offset, 4, "Include weapons?", s_noyes));
+        s.add(new Bitmap(buffer, offset, 4, "Include weapons?", AbstractStruct.OPTION_NOYES));
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset + 4, 4, "# to drain"));
         } else {
@@ -3578,7 +3575,7 @@ public final class EffectFactory
 
       case 264: // Drop item
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Only quick weapons?", s_noyes));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Only quick weapons?", AbstractStruct.OPTION_NOYES));
         break;
 
       case 265: // Set global variable
@@ -3704,7 +3701,7 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset, 4, "Store party location", new String[]{
               "Use pocket plane field", "Use party location field", "Do not store"
           }));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Use custom script?", s_noyes));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Use custom script?", AbstractStruct.OPTION_NOYES));
           restype = "BCS";
         } else {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
@@ -4021,7 +4018,7 @@ public final class EffectFactory
                                   new String[]{"Unknown", "Body heat", "Blood color", "Unknown",
                                                "Personal space"});
           switch (bmp.getValue()) {
-            case 1:  s.add(new Bitmap(buffer, offset, 4, "Enabled?", s_noyes)); break;
+            case 1:  s.add(new Bitmap(buffer, offset, 4, "Enabled?", AbstractStruct.OPTION_NOYES)); break;
             case 2:  s.add(new ColorValue(buffer, offset, 4, "Color")); break;
             default: s.add(new DecNumber(buffer, offset, 4, "Value"));
           }
@@ -4179,7 +4176,7 @@ public final class EffectFactory
       case 361: // Cast spell on critical miss
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Current weapon only?", s_noyes));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Current weapon only?", AbstractStruct.OPTION_NOYES));
           restype = "SPL";
         } else {
           makeEffectParamsDefault(buffer, offset, s);
@@ -4189,7 +4186,7 @@ public final class EffectFactory
       case 362: // Critical miss bonus
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Current weapon only?", s_noyes));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Current weapon only?", AbstractStruct.OPTION_NOYES));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -4206,8 +4203,8 @@ public final class EffectFactory
 
       case 365: // Make unselectable
         if (Profile.isEnhancedEdition()) {
-          s.add(new Bitmap(buffer, offset, 4, "Disable dialogue?", s_yesno));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Disable AI?", s_yesno));
+          s.add(new Bitmap(buffer, offset, 4, "Disable dialogue?", AbstractStruct.OPTION_YESNO));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Disable AI?", AbstractStruct.OPTION_YESNO));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -4226,7 +4223,7 @@ public final class EffectFactory
       case 367: // Minimum base stats
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Enabled?", s_noyes));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Enabled?", AbstractStruct.OPTION_NOYES));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -4482,7 +4479,7 @@ public final class EffectFactory
 
       case 188: // Increase spells cast per round
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", s_noyes));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", AbstractStruct.OPTION_NOYES));
         break;
 
       case 189: // Increase casting speed factor
@@ -4717,7 +4714,7 @@ public final class EffectFactory
 
       case 285: // Force sleep
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", s_yesno));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", AbstractStruct.OPTION_YESNO));
         break;
 
       case 288: // Set spell state
@@ -4757,7 +4754,7 @@ public final class EffectFactory
 
       case 188: // Increase spells cast per round
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", s_noyes));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Cleanse aura?", AbstractStruct.OPTION_NOYES));
         break;
 
       case 189: // Increase casting speed factor
@@ -4833,7 +4830,7 @@ public final class EffectFactory
 
       case 193: // Invisibility detection
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Ignore visibility?", s_noyes));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Ignore visibility?", AbstractStruct.OPTION_NOYES));
         break;
 
       case 206: // Protection from spell
@@ -4975,7 +4972,7 @@ public final class EffectFactory
       case 285: // Force sleep
       case 419: // Unconsciousness
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", s_yesno));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Wake on damage?", AbstractStruct.OPTION_YESNO));
         break;
 
       case 288: // Set spell state
@@ -5260,7 +5257,7 @@ public final class EffectFactory
           break;
 
         case 145: // Disable spellcasting
-          s.add(new Bitmap(buffer, offset, 4, "Display message?", s_yesno));
+          s.add(new Bitmap(buffer, offset, 4, "Display message?", AbstractStruct.OPTION_YESNO));
           break;
 
         case 178: // THAC0 vs. type bonus
@@ -5349,7 +5346,7 @@ public final class EffectFactory
           break;
 
         case 365: // Make unselectable
-          s.add(new Bitmap(buffer, offset, 4, "Use purple selection color?", s_yesno));
+          s.add(new Bitmap(buffer, offset, 4, "Use purple selection color?", AbstractStruct.OPTION_YESNO));
           break;
 
         case 366: // Apply spell on movement

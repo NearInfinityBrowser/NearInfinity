@@ -106,7 +106,7 @@ import org.infinity.util.io.FileManager;
 
 public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 {
-  public static final String VERSION = "v2.1-20200419";
+  public static final String VERSION = "v2.1-20200425";
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
 
@@ -343,7 +343,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
   public boolean getColoredOffsetsEnabled()
   {
-    return optionsMenu.optionShowColoredOffsets.isSelected();
+    return optionsMenu.optionShowColoredStructures.isSelected();
   }
 
   public boolean getHexColorMapEnabled()
@@ -1756,7 +1756,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private static final String OPTION_CACHEOVERRIDE            = "CacheOverride";
     private static final String OPTION_MORECOMPILERWARNINGS     = "MoreCompilerWarnings";
     private static final String OPTION_SHOWSTRREFS              = "ShowStrrefs";
-    private static final String OPTION_SHOWCOLOREDOFFSETS       = "ShowColoredOffsets";
+    private static final String OPTION_SHOWCOLOREDSTRUCTURES    = "ShowColoredStructures";
     private static final String OPTION_SHOWHEXCOLORED           = "ShowHexColored";
     private static final String OPTION_KEEPVIEWONCOPY           = "UpdateTreeOnCopy";
     private static final String OPTION_SHOWTREESEARCHNAMES      = "ShowTreeSearchNames";
@@ -1832,7 +1832,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
     private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride,
                               optionIgnoreReadErrors, optionCacheOverride, optionShowStrrefs,
-                              optionShowColoredOffsets, optionShowHexColored, optionShowUnknownResources,
+                              optionShowColoredStructures, optionShowHexColored, optionShowUnknownResources,
                               optionKeepViewOnCopy, optionTreeSearchNames,
                               optionHighlightOverridden;
 //                              optionMonitorFileChanges;
@@ -1861,27 +1861,28 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           new JCheckBoxMenuItem("Ignore Overrides", getPrefs().getBoolean(OPTION_IGNOREOVERRIDE, false));
       add(optionIgnoreOverride);
       optionIgnoreReadErrors =
-          new JCheckBoxMenuItem("Ignore Read Errors", getPrefs().getBoolean(OPTION_IGNOREREADERRORS, false));
+          new JCheckBoxMenuItem("Ignore read errors", getPrefs().getBoolean(OPTION_IGNOREREADERRORS, false));
       add(optionIgnoreReadErrors);
       optionShowUnknownResources =
-          new JCheckBoxMenuItem("Show Unknown Resource Types", getPrefs().getBoolean(OPTION_SHOWUNKNOWNRESOURCES, true));
+          new JCheckBoxMenuItem("Show unknown resource types", getPrefs().getBoolean(OPTION_SHOWUNKNOWNRESOURCES, true));
       optionShowUnknownResources.setActionCommand("Refresh");
       optionShowUnknownResources.addActionListener(NearInfinity.getInstance());
       optionShowUnknownResources.setToolTipText("Uncheck this option to hide unknown or unsupported resource types and invalid filenames.");
       add(optionShowUnknownResources);
       optionShowOffset =
-          new JCheckBoxMenuItem("Show Hex Offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETS, false));
+          new JCheckBoxMenuItem("Show hex offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETS, false));
       add(optionShowOffset);
-      optionTreeSearchNames = new JCheckBoxMenuItem("Show Search Names in Resource Tree", getPrefs().getBoolean(OPTION_SHOWTREESEARCHNAMES, true));
+      optionTreeSearchNames =
+          new JCheckBoxMenuItem("Show search names in resource tree", getPrefs().getBoolean(OPTION_SHOWTREESEARCHNAMES, true));
       optionTreeSearchNames.setActionCommand("RefreshTree");
       optionTreeSearchNames.addActionListener(NearInfinity.getInstance());
       add(optionTreeSearchNames);
-      optionHighlightOverridden = new JCheckBoxMenuItem("Show Overridden Files in Bold in Resource Tree", getPrefs().getBoolean(OPTION_HIGHLIGHT_OVERRIDDEN, true));
+      optionHighlightOverridden =
+          new JCheckBoxMenuItem("Show overridden files in bold in resource tree", getPrefs().getBoolean(OPTION_HIGHLIGHT_OVERRIDDEN, true));
       optionHighlightOverridden.setActionCommand("RefreshTree");
       optionHighlightOverridden.addActionListener(NearInfinity.getInstance());
-      optionHighlightOverridden.setToolTipText("If checked, files, that contains in game index (.key file) and located "
-              + "in the Override folder, will be shown in bold in the Resource Tree. "
-              + "This setting has no effect if override files are shown only in the Override folder");
+      optionHighlightOverridden.setToolTipText("<html>If checked, files that are listed in the chitin.key and are located in the Override folder, will be shown<br>" +
+          "in <b>bold</b> in the Resource Tree. This setting has no effect if override files are shown only in the Override folder.</html>");
       add(optionHighlightOverridden);
 //      optionMonitorFileChanges =
 //          new JCheckBoxMenuItem("Autoupdate resource tree", getPrefs().getBoolean(OPTION_MONITORFILECHANGES, true));
@@ -1900,9 +1901,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       optionShowStrrefs =
           new JCheckBoxMenuItem("Show Strrefs in View tabs", getPrefs().getBoolean(OPTION_SHOWSTRREFS, false));
       add(optionShowStrrefs);
-      optionShowColoredOffsets =
-          new JCheckBoxMenuItem("Show colored offset fields in Edit tabs", getPrefs().getBoolean(OPTION_SHOWCOLOREDOFFSETS, true));
-      add(optionShowColoredOffsets);
+      optionShowColoredStructures =
+          new JCheckBoxMenuItem("Show colored structures in Edit tabs", getPrefs().getBoolean(OPTION_SHOWCOLOREDSTRUCTURES, true));
+      optionShowColoredStructures.setActionCommand("RefreshView");
+      optionShowColoredStructures.addActionListener(NearInfinity.getInstance());
+      add(optionShowColoredStructures);
       optionShowHexColored =
           new JCheckBoxMenuItem("Show colored blocks in Raw tabs", getPrefs().getBoolean(OPTION_SHOWHEXCOLORED, true));
       add(optionShowHexColored);
@@ -2523,7 +2526,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       getPrefs().putBoolean(OPTION_MORECOMPILERWARNINGS, optionMoreCompileWarnings.isSelected());
       getPrefs().putBoolean(OPTION_SHOWSTRREFS, optionShowStrrefs.isSelected());
       dialogViewerMenu.storePreferences(getPrefs());
-      getPrefs().putBoolean(OPTION_SHOWCOLOREDOFFSETS, optionShowColoredOffsets.isSelected());
+      getPrefs().putBoolean(OPTION_SHOWCOLOREDSTRUCTURES, optionShowColoredStructures.isSelected());
       getPrefs().putBoolean(OPTION_SHOWHEXCOLORED, optionShowHexColored.isSelected());
       getPrefs().putBoolean(OPTION_KEEPVIEWONCOPY, optionKeepViewOnCopy.isSelected());
       getPrefs().putBoolean(OPTION_SHOWTREESEARCHNAMES, optionTreeSearchNames.isSelected());

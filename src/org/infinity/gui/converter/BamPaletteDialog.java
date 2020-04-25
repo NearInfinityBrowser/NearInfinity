@@ -264,13 +264,13 @@ class BamPaletteDialog extends JDialog
       } else if (Arrays.equals(Arrays.copyOfRange(signature, 0, 4),
                                new byte[]{(byte)0x89, 0x50, 0x4e, 0x47})) {
         // PNG supports palette with alpha channel
-        palette = ColorConvert.loadPalettePNG(paletteFile);
+        palette = ColorConvert.loadPalettePNG(paletteFile, ConvertToBam.getUseAlpha());
       } else if ("RIFF".equals(new String(signature, 0, 4))) {
         palette = ColorConvert.loadPalettePAL(paletteFile);
       } else {
         String s = new String(signature);
         if ("BAM V1  ".equals(s) || "BAMCV1  ".equals(s)) {
-          palette = ColorConvert.loadPaletteBAM(paletteFile);
+          palette = ColorConvert.loadPaletteBAM(paletteFile, ConvertToBam.getUseAlpha());
         } else {
           // Photoshop ACT files don't have a header
           palette = ColorConvert.loadPaletteACT(paletteFile);

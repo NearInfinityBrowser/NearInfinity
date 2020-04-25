@@ -65,7 +65,6 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
                                          "Trap set off by enemy", "Tutorial trigger", "Trap set off by NPC", "Trigger silent",
                                          "Trigger deactivated", "Cannot be passed by NPC", "Use activation point",
                                          "Connected to door"};
-  public static final String[] s_noyes = {"No", "Yes"};
 
   public ITEPoint() throws Exception
   {
@@ -174,8 +173,8 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     addField(new StringRef(buffer, offset + 100, ARE_TRIGGER_INFO_POINT_TEXT));
     addField(new DecNumber(buffer, offset + 104, 2, ARE_TRIGGER_TRAP_DETECTION_DIFFICULTY));
     addField(new DecNumber(buffer, offset + 106, 2, ARE_TRIGGER_TRAP_REMOVAL_DIFFICULTY));
-    addField(new Bitmap(buffer, offset + 108, 2, ARE_TRIGGER_TRAPPED, s_noyes));
-    addField(new Bitmap(buffer, offset + 110, 2, ARE_TRIGGER_TRAP_DETECTED, s_noyes));
+    addField(new Bitmap(buffer, offset + 108, 2, ARE_TRIGGER_TRAPPED, OPTION_NOYES));
+    addField(new Bitmap(buffer, offset + 110, 2, ARE_TRIGGER_TRAP_DETECTED, OPTION_NOYES));
     addField(new DecNumber(buffer, offset + 112, 2, ARE_TRIGGER_LAUNCH_POINT_X));
     addField(new DecNumber(buffer, offset + 114, 2, ARE_TRIGGER_LAUNCH_POINT_Y));
     addField(new ResourceRef(buffer, offset + 116, ARE_TRIGGER_KEY, "ITM"));

@@ -79,11 +79,7 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchText(ResourceEntry entry, String text)
   {
-    String name = targetEntry.getResourceName();
-    int idx = name.lastIndexOf('.');//TODO: add special method to get name without extension
-    if (idx > 0) {
-      name = name.substring(0, idx);
-    }
+    String name = targetEntry.getResourceRef();
     final Pattern p = Pattern.compile("\\b" + name + "\\b", Pattern.CASE_INSENSITIVE);
     final Matcher m = p.matcher(text);
     if (m.find()) {
@@ -93,11 +89,7 @@ public final class ScriptReferenceSearcher extends AbstractReferenceSearcher
 
   private void searchScript(ResourceEntry entry, String script, StructEntry ref)
   {
-    String name = targetEntry.getResourceName();
-    int idx = name.lastIndexOf('.');//TODO: add special method to get name without extension
-    if (idx > 0) {
-      name = name.substring(0, idx);
-    }
+    String name = targetEntry.getResourceRef();
     final Pattern p = Pattern.compile("\"" + name + "\"", Pattern.CASE_INSENSITIVE);
     final Matcher m = p.matcher(script);
     if (m.find()) {
