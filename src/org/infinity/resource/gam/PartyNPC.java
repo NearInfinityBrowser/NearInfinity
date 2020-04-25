@@ -10,6 +10,7 @@ import javax.swing.JComponent;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.Flag;
 import org.infinity.datatype.HashBitmap;
 import org.infinity.datatype.HexNumber;
 import org.infinity.datatype.IdsBitmap;
@@ -84,22 +85,24 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
   public static final String GAM_NPC_STAT_FAV_WEAPON_FMT        = "Favorite weapon %d";
   public static final String GAM_NPC_STAT_FAV_WEAPON_COUNT_FMT  = "Favorite weapon counter %d";
 
-  private static final LongIntegerHashMap<String> partyOrder = new LongIntegerHashMap<String>();
-  private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<String>();
+  public static final LongIntegerHashMap<String> m_partyOrder = new LongIntegerHashMap<String>();
+//  private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<String>();
+
+  private static final String[] s_selected = {"Not selected", "Selected", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Dead" };
 
   static {
-    partyOrder.put(0L, "Slot 1");
-    partyOrder.put(1L, "Slot 2");
-    partyOrder.put(2L, "Slot 3");
-    partyOrder.put(3L, "Slot 4");
-    partyOrder.put(4L, "Slot 5");
-    partyOrder.put(5L, "Slot 6");
+    m_partyOrder.put(0L, "Slot 1");
+    m_partyOrder.put(1L, "Slot 2");
+    m_partyOrder.put(2L, "Slot 3");
+    m_partyOrder.put(3L, "Slot 4");
+    m_partyOrder.put(4L, "Slot 5");
+    m_partyOrder.put(5L, "Slot 6");
 //    partyOrder.put(0x8000L, "In party, dead");
-    partyOrder.put(0xffffL, "Not in party");
+    m_partyOrder.put(0xffffL, "Not in party");
 
-    m_selected.put(0L, "Not selected");
-    m_selected.put(1L, "Selected");
-    m_selected.put(0x8000L, "Dead");
+//    m_selected.put(0L, "Not selected");
+//    m_selected.put(1L, "Selected");
+//    m_selected.put(0x8000L, "Dead");
   }
 
   PartyNPC() throws Exception
@@ -214,8 +217,8 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
-    addField(new HashBitmap(buffer, offset, 2, GAM_NPC_SELECTION_STATE, m_selected));
-    addField(new HashBitmap(buffer, offset + 2, 2, GAM_NPC_PARTY_POSITION, partyOrder));
+    addField(new Flag(buffer, offset, 2, GAM_NPC_SELECTION_STATE, s_selected));
+    addField(new HashBitmap(buffer, offset + 2, 2, GAM_NPC_PARTY_POSITION, m_partyOrder));
     HexNumber creOffset = new HexNumber(buffer, offset + 4, 4, GAM_NPC_OFFSET_CRE);
     addField(creOffset);
     addField(new DecNumber(buffer, offset + 8, 4, GAM_NPC_CRE_SIZE));
