@@ -11,6 +11,7 @@ import org.infinity.datatype.Flag;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
+import org.infinity.datatype.UnsignDecNumber;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
@@ -38,7 +39,7 @@ public final class Animation extends AbstractStruct implements AddRemovable
 
   public static final String[] s_flag =
     {"Not shown", "Is shown", "No shadow", "Not light source", "Partial animation",
-     "Synchronized draw", "Random start","Not covered by wall", "Static animation",
+     "Synchronized draw", "Random start","Not covered by wall", "Disable on slow machines",
      "Draw as background", "Play all frames", "Recolored by palette", "Mirror Y axis",
      "Don't remove in combat", "EE: Use WBM", "EE: Draw stenciled", "EE: Use PVRZ"};
 
@@ -81,7 +82,7 @@ public final class Animation extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 58, 2, ARE_ANIMATION_TRANSLUCENCY));
     addField(new DecNumber(buffer, offset + 60, 2, ARE_ANIMATION_START_RANGE));
     addField(new DecNumber(buffer, offset + 62, 1, ARE_ANIMATION_LOOP_PROBABILITY));
-    addField(new DecNumber(buffer, offset + 63, 1, ARE_ANIMATION_START_DELAY));
+    addField(new UnsignDecNumber(buffer, offset + 63, 1, ARE_ANIMATION_START_DELAY));
     if (Profile.getEngine() == Profile.Engine.BG2 ||
         Profile.getEngine() == Profile.Engine.IWD2 ||
         Profile.isEnhancedEdition()) {
