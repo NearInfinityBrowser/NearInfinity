@@ -5,6 +5,7 @@
 package org.infinity.datatype;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
@@ -19,6 +20,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
 
 import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
@@ -91,10 +93,14 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
   public JComponent edit(ActionListener container)
   {
     this.container = container;
+    Color colBright = (Color)UIManager.get("Label.disabledForeground");
+    if (colBright == null)
+      colBright = Color.GRAY;
     checkBoxes = new JCheckBox[table.length];
     for (int i = 0; i < table.length; i++) {
       if (table[i] == null || table[i].isEmpty()) {
         checkBoxes[i] = new JCheckBox("Unknown (" + i + ')');
+        checkBoxes[i].setForeground(colBright);
       } else {
         checkBoxes[i] = new JCheckBox(table[i] + " (" + i + ')');
       }
