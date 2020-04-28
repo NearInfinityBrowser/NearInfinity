@@ -270,7 +270,7 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
    *
    * @param desc If {@code null}, then {@link #DESC_NONE} will be used as description
    */
-  protected final void setEmptyDesc(String desc)
+  public void setEmptyDesc(String desc)
   {
     nodesc = (desc != null) ? desc : DESC_NONE;
   }
@@ -285,7 +285,7 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
    *        labels and tooltips
    * @param startOfs Offset to {@code stable} from which data begins
    */
-  protected final void setFlagDescriptions(int size, String[] stable, int startOfs)
+  public void setFlagDescriptions(int size, String[] stable, int startOfs)
   {
     table = new String[8*size];
     toolTable = new String[8*size];

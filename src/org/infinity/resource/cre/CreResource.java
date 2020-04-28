@@ -1021,7 +1021,7 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 12, 4, CRE_XP_VALUE));
     addField(new DecNumber(buffer, offset + 16, 4, CRE_XP));
     addField(new DecNumber(buffer, offset + 20, 4, CRE_GOLD));
-    addField(new IdsFlag(buffer, offset + 24, 4, CRE_STATUS, "STATE.IDS"));
+    addField(uniqueIdsFlag(new IdsFlag(buffer, offset + 24, 4, CRE_STATUS, "STATE.IDS"), "STATE.IDS", '_'));
     addField(new DecNumber(buffer, offset + 28, 2, CRE_HP_CURRENT));
     addField(new DecNumber(buffer, offset + 30, 2, CRE_HP_MAX));
     addField(new IdsBitmap(buffer, offset + 32, 4, CRE_ANIMATION, "ANIMATE.IDS"));
@@ -1435,7 +1435,7 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 12, 4, CRE_XP_VALUE));
     addField(new DecNumber(buffer, offset + 16, 4, CRE_XP));
     addField(new DecNumber(buffer, offset + 20, 4, CRE_GOLD));
-    addField(new IdsFlag(buffer, offset + 24, 4, CRE_STATUS, "STATE.IDS"));
+    addField(uniqueIdsFlag(new IdsFlag(buffer, offset + 24, 4, CRE_STATUS, "STATE.IDS"), "STATE.IDS", '_'));
     addField(new DecNumber(buffer, offset + 28, 2, CRE_HP_CURRENT));
     addField(new DecNumber(buffer, offset + 30, 2, CRE_HP_MAX));
     final AnimateBitmap animate = new AnimateBitmap(buffer, offset + 32, 4, CRE_ANIMATION);
@@ -2011,6 +2011,54 @@ public final class CreResource extends AbstractStruct
     }
 
     return startOffset;
+  }
+
+  // Removes characters from flag descriptions which are shared by all relevant ids entries.
+  private IdsFlag uniqueIdsFlag(IdsFlag field, String idsFile, char separatorChar)
+  {
+    if (field == null)
+      return field;
+    IdsMap map = IdsMapCache.get(idsFile);
+    if (map == null)
+      return field;
+
+    String[] table = new String[field.getSize() * 8];
+    // determine longest common prefix
+    IdsMapEntry entry = map.get(0L);
+    String prefix = (entry != null) ? entry.getSymbol() : null;
+    for (int i = 0; i < table.length; i++) {
+      entry = map.get(1L << i);
+      if (entry != null) {
+        if (prefix == null) {
+          prefix = entry.getSymbol();
+        } else {
+          String name = entry.getSymbol();
+          for (int j = 0, jmax = Math.min(prefix.length(), name.length()); j < jmax; j++) {
+            if (Character.toUpperCase(prefix.charAt(j)) != Character.toUpperCase(name.charAt(j))) {
+              prefix = prefix.substring(0, j);
+              break;
+            }
+          }
+        }
+      }
+    }
+    if (prefix == null)
+      prefix = "";
+
+    // cut off prefix after last matching separator character
+    if (separatorChar != 0)
+      prefix = prefix.substring(0, prefix.lastIndexOf(separatorChar) + 1);
+
+    // update flag descriptions
+    entry = map.get(0L);
+    field.setEmptyDesc((entry != null) ? entry.getSymbol().substring(prefix.length()) : null);
+    for (int i = 0; i < table.length; i++) {
+      entry = map.get(1L << i);
+      table[i] = (entry != null) ? entry.getSymbol().substring(prefix.length()) : null;
+    }
+    field.setFlagDescriptions(field.getSize(), table, 0);
+
+    return field;
   }
 
   //--------------------- Begin Interface ItemListener ---------------------
