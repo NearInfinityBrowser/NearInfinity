@@ -116,6 +116,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private static final String LAST_GAMEDIR        = "LastGameDir";
   private static final String TABLE_WIDTH_ATTR    = "TableColWidthAttr";
   private static final String TABLE_WIDTH_OFS     = "TableColWidthOfs";
+  private static final String TABLE_WIDTH_SIZE    = "TableColWidthSize";
   private static final String TABLE_PANEL_HEIGHT  = "TablePanelHeight";
   private static final String OPTION_GLOBAL_FONT_SIZE = "GlobalFontSize";
 
@@ -129,7 +130,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   private final StatusBar statusBar;
   private final WindowBlocker blocker = new WindowBlocker(this);
   // stores table column widths for "Attribute", "Value" and "Offset"
-  private final int[] tableColumnWidth = { -1, -1, -1 };
+  private final int[] tableColumnWidth = { -1, -1, -1, -1 };
 
   private Viewable viewable;
   private ButtonPopupWindow bpwQuickSearch;
@@ -474,6 +475,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     tableColumnWidth[0] = Math.max(15, prefs.getInt(TABLE_WIDTH_ATTR, 300));
     tableColumnWidth[1] = 0;
     tableColumnWidth[2] = Math.max(15, prefs.getInt(TABLE_WIDTH_OFS, 100));
+    tableColumnWidth[3] = Math.max(15, prefs.getInt(TABLE_WIDTH_SIZE, 75));
     tablePanelHeight = Math.max(50, prefs.getInt(TABLE_PANEL_HEIGHT, 250));
 
     // enabling file drag and drop for whole window
@@ -648,7 +650,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       }
       viewable = newViewable;
       tree.select(resource.getResourceEntry());
-      BrowserMenuBar.getInstance().resourceShown(resource);
       statusBar.setMessage(resource.getResourceEntry().getActualPath().toString());
       containerpanel.removeAll();
       containerpanel.add(viewable.makeViewer(this), BorderLayout.CENTER);
@@ -703,7 +704,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       }
     }
     viewable = null;
-    BrowserMenuBar.getInstance().resourceShown(null);
     tree.select(null);
     containerpanel.removeAll();
     containerpanel.revalidate();
@@ -783,11 +783,11 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   /**
    * Returns the current column width for tables of structured resources.
-   * @param index The column index (0 = Attribute, 1 = Value and, optionally, 2 = Offset)
+   * @param index The column index (0 = Attribute, 1 = Value and, optionally, 2 = Offset, 3 = Size)
    */
   public int getTableColumnWidth(int index)
   {
-    index = Math.min(Math.max(0, index), 2);
+    index = Math.min(Math.max(0, index), tableColumnWidth.length - 1);
     if (tableColumnWidth[index] < 0) {
       switch (index) {
         case 0: // "Attribute" column
@@ -799,6 +799,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         case 2: // optional "Offset" column
           tableColumnWidth[index] = 100;
           break;
+        case 3: // optional "Size" column
+          tableColumnWidth[index] = 75;
+          break;
       }
     }
     return tableColumnWidth[index];
@@ -806,13 +809,13 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   /**
    * Updates the current default column width for tables of structured resources.
-   * @param index     The column index (0 = Attribute, 1 = Value and, optionally, 2 = Offset)
+   * @param index     The column index (0 = Attribute, 1 = Value and, optionally, 2 = Offset, 3 = Size)
    * @param newValue  New width in pixels for the specified column
    * @return          Old column width
    */
   public int updateTableColumnWidth(int index, int newValue)
   {
-    index = Math.min(Math.max(0, index), 2);
+    index = Math.min(Math.max(0, index), tableColumnWidth.length - 1);
     int retVal = tableColumnWidth[index];
     tableColumnWidth[index] = Math.max(15, newValue);
     return retVal;
@@ -930,6 +933,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     prefs.put(LAST_GAMEDIR, Profile.getGameRoot().toString());
     prefs.putInt(TABLE_WIDTH_ATTR, getTableColumnWidth(0));
     prefs.putInt(TABLE_WIDTH_OFS, getTableColumnWidth(2));
+    prefs.putInt(TABLE_WIDTH_SIZE, getTableColumnWidth(3));
     prefs.putInt(TABLE_PANEL_HEIGHT, getTablePanelHeight());
     prefs.putInt(OPTION_GLOBAL_FONT_SIZE, BrowserMenuBar.getInstance().getGlobalFontSize());
     BrowserMenuBar.getInstance().storePreferences();

@@ -281,81 +281,97 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     toolsMenu.setShowDebugExtraInfo(show);
   }
 
+  /** Returns whether scripts are automatically scanned for compile errors. */
   public boolean autocheckBCS()
   {
     return optionsMenu.optionAutocheckBCS.isSelected();
   }
 
+  /** Returns whether helpful comments are generated for decompiled scripts. */
   public boolean autogenBCSComments()
   {
     return optionsMenu.optionAutogenBCSComments.isSelected();
   }
 
+  /** Returns whether search names are displayed alongside resource names in the resource tree. */
   public boolean showTreeSearchNames()
   {
     return optionsMenu.optionTreeSearchNames.isSelected();
   }
 
+  /** Returns whether overridden files are displayed in bold in the resource tree. */
   public boolean highlightOverridden()
   {
     return optionsMenu.optionHighlightOverridden.isSelected();
   }
 
+  /** Returns whether extended compiler warnings are shown for scripts. */
   public boolean showMoreCompileWarnings()
   {
     return optionsMenu.optionMoreCompileWarnings.isSelected();
   }
 
+  /** Returns whether string references are shown alongside strings. */
   public boolean showStrrefs()
   {
     return optionsMenu.optionShowStrrefs.isSelected();
   }
 
+  /** Returns whether the dialog tree viewer shows icons in front of state and response entries. */
   public boolean showDlgTreeIcons()
   {
     return optionsMenu.dialogViewerMenu.showIcons.isSelected();
   }
 
+  /** Returns whether state 0 is always shown as a root node in the dialog tree viewer. */
   public boolean alwaysShowState0()
   {
     return optionsMenu.dialogViewerMenu.alwaysShowState0.isSelected();
   }
 
+  /** Returns whether external dialog references are shown with a colored background in the dialog tree viewer. */
   public boolean colorizeOtherDialogs()
   {
     return optionsMenu.dialogViewerMenu.colorizeOtherDialogs.isSelected();
   }
 
+  /** Returns whether duplicate states are combined and only shown once to break infinite loops in the dialog tree viewer. */
   public boolean breakCyclesInDialogs()
   {
     return optionsMenu.dialogViewerMenu.breakCyclesInDialogs.isSelected();
   }
 
+  /** Returns whether response entries in the dialog tree viewer are shown with a colored background. */
   public boolean useDifferentColorForResponses()
   {
     return optionsMenu.dialogViewerMenu.differentColorForResponses.isSelected();
   }
 
+  /** Returns whether additional information about the dialog is shown in the dialog tree viewer. */
   public boolean showDlgTechInfo()
   {
     return optionsMenu.dialogViewerMenu.showTechInfo.isSelected();
   }
 
+  /** Returns whether substructures and their related offset and count fields are colorized for structured resources. */
   public boolean getColoredOffsetsEnabled()
   {
     return optionsMenu.optionShowColoredStructures.isSelected();
   }
 
+  /** Returns whether substructures are colorized in the raw tab of structured resources. */
   public boolean getHexColorMapEnabled()
   {
     return optionsMenu.optionShowHexColored.isSelected();
   }
 
+  /** Returns whether the "Add copy of" operation keeps the original resource selected. */
   public boolean getKeepViewOnCopy()
   {
     return optionsMenu.optionKeepViewOnCopy.isSelected();
   }
 
+  /** Returns whether file changes in override folders are tracked at real time and reflected in the resource tree. (not yet implemented) */
   public boolean getMonitorFileChanges()
   {
 //    return optionsMenu.optionMonitorFileChanges.isSelected();
@@ -507,31 +523,37 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     return optionsMenu.getBcsIndent();
   }
 
+  /** Returns the initially selected view tab for structured resources. */
   public ViewMode getDefaultStructView()
   {
     return optionsMenu.getDefaultStructView();
   }
 
+  /** Returns the L&F theme of the app. */
   public LookAndFeelInfo getLookAndFeel()
   {
     return optionsMenu.getLookAndFeel();
   }
 
+  /** Returns the global font size override in percent. */
   public int getGlobalFontSize()
   {
     return optionsMenu.getGlobalFontSize();
   }
 
+  /** Returns how overridden resources are displayed in the resource tree. */
   public OverrideMode getOverrideMode()
   {
     return optionsMenu.getOverrideMode();
   }
 
+  /** Returns how resource names and their associated search names are displayed. */
   public ResRefMode getResRefMode()
   {
     return optionsMenu.getResRefMode();
   }
 
+  /** Returns the font of scripts. */
   public Font getScriptFont()
   {
     for (int i = 0; i < OptionsMenu.FONTS.length; i++)
@@ -540,44 +562,64 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     return OptionsMenu.FONTS[0];
   }
 
+  /** Returns the character encoding of the string table. */
   public String getSelectedCharset()
   {
     return optionsMenu.charsetName(optionsMenu.getSelectedButtonData(), true);
   }
 
+  /** Returns whether a backup is created when resources are modified. */
   public boolean backupOnSave()
   {
     return optionsMenu.optionBackupOnSave.isSelected();
   }
 
+  /** Returns whether override files are ignored in the resource tree. */
   public boolean ignoreOverrides()
   {
     return optionsMenu.optionIgnoreOverride.isSelected();
   }
 
+  /** Returns if read errors are shown in the status bar instead of a dialog prompt. */
   public boolean ignoreReadErrors()
   {
     return optionsMenu.optionIgnoreReadErrors.isSelected();
   }
 
+  /** Returns whether unknown or unrecognized resources are displayed in the resource tree. */
   public boolean showUnknownResourceTypes()
   {
     return optionsMenu.optionShowUnknownResources.isSelected();
   }
 
+  /** Called whenever a resource is selected in the resource tree to update related controls. */
   public void resourceEntrySelected(ResourceEntry entry)
   {
     fileMenu.resourceEntrySelected(entry);
   }
 
-  public void resourceShown(Resource res)
-  {
-    fileMenu.resourceShown(res);
-  }
-
-  public boolean showOffsets()
+  /** Returns whether offset column is shown for structured resources. */
+  public boolean showTableOffsets()
   {
     return optionsMenu.optionShowOffset.isSelected();
+  }
+
+  /** Returns whether relative offsets are shown for fields in substructures. */
+  public boolean showTableOffsetsRelative()
+  {
+    return optionsMenu.optionOffsetRelative.isSelected();
+  }
+
+  /** Returns whether size column is shown for structured resources. */
+  public boolean showTableSize()
+  {
+    return optionsMenu.optionShowSize.isSelected();
+  }
+
+  /** Returns whether size column is shown in hex (or decimal) for structured resources. */
+  public boolean showTableSizeInHex()
+  {
+    return optionsMenu.optionSizeInHex.isSelected();
   }
 
   /**
@@ -1267,11 +1309,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       fileDelete.setEnabled((entry != null && entry.hasOverride()) || entry instanceof FileResourceEntry);
       fileRestore.setEnabled(ResourceTree.isBackupAvailable(entry));
     }
-
-    private void resourceShown(Resource res)
-    {
-      // not used anymore
-    }
   }
 
   ///////////////////////////////
@@ -1747,6 +1784,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     }
 
     private static final String OPTION_SHOWOFFSETS              = "ShowOffsets";
+    private static final String OPTION_SHOWOFFSETSRELATIVE      = "ShowOffsetsRelative";
+    private static final String OPTION_SHOWSIZE                 = "ShowSize";
+    private static final String OPTION_SHOWSIZEHEX              = "ShowSizeHex";
     private static final String OPTION_BACKUPONSAVE             = "BackupOnSave";
     private static final String OPTION_IGNOREOVERRIDE           = "IgnoreOverride";
     private static final String OPTION_IGNOREREADERRORS         = "IgnoreReadErrors";
@@ -1830,8 +1870,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
     private DialogViewerMenu dialogViewerMenu;
 
-    private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionIgnoreOverride,
-                              optionIgnoreReadErrors, optionCacheOverride, optionShowStrrefs,
+    private JCheckBoxMenuItem optionBackupOnSave, optionShowOffset, optionShowSize, optionSizeInHex, optionOffsetRelative,
+                              optionIgnoreOverride, optionIgnoreReadErrors, optionCacheOverride, optionShowStrrefs,
                               optionShowColoredStructures, optionShowHexColored, optionShowUnknownResources,
                               optionKeepViewOnCopy, optionTreeSearchNames,
                               optionHighlightOverridden;
@@ -1869,9 +1909,31 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       optionShowUnknownResources.addActionListener(NearInfinity.getInstance());
       optionShowUnknownResources.setToolTipText("Uncheck this option to hide unknown or unsupported resource types and invalid filenames.");
       add(optionShowUnknownResources);
+
+      JMenu tableMenu = new JMenu("Show table columns");
+      add(tableMenu);
       optionShowOffset =
-          new JCheckBoxMenuItem("Show hex offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETS, false));
-      add(optionShowOffset);
+          new JCheckBoxMenuItem("Show field offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETS, true));
+      optionShowOffset.setToolTipText("If checked, absolute field offsets are shown in a separate \"Offset\" column in structured resources.");
+      optionShowOffset.addActionListener(this);
+      tableMenu.add(optionShowOffset);
+      optionOffsetRelative =
+          new JCheckBoxMenuItem("Show relative field offsets", getPrefs().getBoolean(OPTION_SHOWOFFSETSRELATIVE, false));
+      optionOffsetRelative.setToolTipText("If checked, offsets relative to the parent structure are additionally shown " +
+                                          "in parentheses in the \"Offset\" column for fields in substructures.");
+      optionOffsetRelative.setEnabled(optionShowOffset.isSelected());
+      tableMenu.add(optionOffsetRelative);
+      optionShowSize =
+          new JCheckBoxMenuItem("Show field sizes", getPrefs().getBoolean(OPTION_SHOWSIZE, true));
+      optionShowSize.setToolTipText("If checked, field sizes in bytes are shown in a separate \"Size\" column in structured resources.");
+      optionShowSize.addActionListener(this);
+      tableMenu.add(optionShowSize);
+      optionSizeInHex =
+          new JCheckBoxMenuItem("Field size as hex number", getPrefs().getBoolean(OPTION_SHOWSIZEHEX, true));
+      optionSizeInHex.setToolTipText("If checked, field sizes are shown in hexadecimal notation.");
+      optionSizeInHex.setEnabled(optionShowSize.isSelected());
+      tableMenu.add(optionSizeInHex);
+
       optionTreeSearchNames =
           new JCheckBoxMenuItem("Show search names in resource tree", getPrefs().getBoolean(OPTION_SHOWTREESEARCHNAMES, true));
       optionTreeSearchNames.setActionCommand("RefreshTree");
@@ -2516,6 +2578,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private void storePreferences()
     {
       getPrefs().putBoolean(OPTION_SHOWOFFSETS, optionShowOffset.isSelected());
+      getPrefs().putBoolean(OPTION_SHOWOFFSETSRELATIVE, optionOffsetRelative.isSelected());
+      getPrefs().putBoolean(OPTION_SHOWSIZE, optionShowSize.isSelected());
+      getPrefs().putBoolean(OPTION_SHOWSIZEHEX, optionSizeInHex.isSelected());
       getPrefs().putBoolean(OPTION_BACKUPONSAVE, optionBackupOnSave.isSelected());
       getPrefs().putBoolean(OPTION_IGNOREOVERRIDE, optionIgnoreOverride.isSelected());
       getPrefs().putBoolean(OPTION_IGNOREREADERRORS, optionIgnoreReadErrors.isSelected());
@@ -2909,7 +2974,13 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 //          FileWatcher.getInstance().stop();
 //        }
 //      } else if (event.getSource() == selectFont[selectFont.length - 1]) {
-      if (event.getActionCommand().equals("TextFont")) {
+      if (event.getSource() == optionShowOffset) {
+        optionOffsetRelative.setEnabled(optionShowOffset.isSelected());
+      }
+      else if (event.getSource() == optionShowSize) {
+        optionSizeInHex.setEnabled(optionShowSize.isSelected());
+      }
+      else if (event.getActionCommand().equals("TextFont")) {
         int index = FONTS.length - 1;
         FontChooser fc = new FontChooser();
         if (FONTS[index] != null) {
