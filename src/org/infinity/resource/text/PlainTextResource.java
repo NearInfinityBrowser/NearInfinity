@@ -45,10 +45,14 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.TextResource;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.Writeable;
+import org.infinity.resource.are.AreResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.StaticSimpleXorDecryptor;
+import org.infinity.util.IdsMap;
+import org.infinity.util.IdsMapCache;
+import org.infinity.util.IdsMapEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.io.StreamUtils;
 
@@ -65,6 +69,34 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
   protected InfinityTextArea editor;
   private boolean resourceChanged;
   private int highlightedLine = -1;
+
+  /** Returns description for INI resources linked to ARE resources or listed in ANIMATE.IDS. */
+  public static String getSearchString(ResourceEntry entry)
+  {
+    String retVal = null;
+    if (entry != null && "INI".equalsIgnoreCase(entry.getExtension())) {
+      try {
+        // try animation id first
+        int animId = Integer.parseInt(entry.getResourceRef(), 16);
+        if (animId >= 0 && animId <= 0xffff) {
+          IdsMap idsMap = IdsMapCache.get("ANIMATE.IDS");
+          if (idsMap != null) {
+            IdsMapEntry idsEntry = idsMap.get(animId);
+            if (idsEntry != null)
+              retVal = idsEntry.getSymbol();
+          }
+        }
+      } catch (NumberFormatException e) {
+      }
+
+      if (retVal == null) {
+        ResourceEntry areEntry = ResourceFactory.getResourceEntry(entry.getResourceRef() + ".ARE");
+        if (areEntry != null)
+          retVal = AreResource.getSearchString(areEntry);
+      }
+    }
+    return retVal;
+  }
 
   public PlainTextResource(ResourceEntry entry) throws Exception
   {
