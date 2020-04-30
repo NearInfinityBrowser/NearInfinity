@@ -144,45 +144,44 @@ public class ViewerMap extends JPanel
           }
         }
 
-        if (ResourceFactory.resourceExists(((ResourceRef)wmpMap.getAttribute(MapEntry.WMP_MAP_RESREF)).getResourceName())) {
-          mapOrig = loadMap();
-          rcMap = new RenderCanvas(ColorConvert.cloneImage(mapOrig));
-          rcMap.addMouseListener(listeners);
-          rcMap.addMouseMotionListener(listeners);
+        mapOrig = loadMap();
 
-          int mapTargetWidth = ((IsNumeric)mapEntry.getAttribute(MapEntry.WMP_MAP_WIDTH)).getValue();
-          if (mapTargetWidth <= 0) { mapTargetWidth = mapOrig.getWidth(); }
-          int mapTargetHeight = ((IsNumeric)mapEntry.getAttribute(MapEntry.WMP_MAP_HEIGHT)).getValue();
-          if (mapTargetHeight <= 0) { mapTargetHeight = mapOrig.getHeight(); }
-          mapScaleX = (float)mapOrig.getWidth() / (float)mapTargetWidth;
-          mapScaleY = (float)mapOrig.getHeight() / (float)mapTargetHeight;
+        int mapTargetWidth = ((IsNumeric)mapEntry.getAttribute(MapEntry.WMP_MAP_WIDTH)).getValue();
+        if (mapTargetWidth <= 0) { mapTargetWidth = (mapOrig != null) ? mapOrig.getWidth() : 640; }
+        int mapTargetHeight = ((IsNumeric)mapEntry.getAttribute(MapEntry.WMP_MAP_HEIGHT)).getValue();
+        if (mapTargetHeight <= 0) { mapTargetHeight = (mapOrig != null) ? mapOrig.getHeight() : 480; }
 
-          listPanel = (StructListPanel)ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class, AreaEntry.WMP_AREA_CURRENT,
-                                                                new WmpAreaListRenderer(mapIcons), listeners);
-          JScrollPane mapScroll = new JScrollPane(rcMap);
-          mapScroll.getVerticalScrollBar().setUnitIncrement(16);
-          mapScroll.getHorizontalScrollBar().setUnitIncrement(16);
-          mapScroll.setBorder(BorderFactory.createEmptyBorder());
+        if (mapOrig == null)
+          mapOrig = ColorConvert.createCompatibleImage(mapTargetWidth, mapTargetHeight, false);
 
-          JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapScroll, listPanel);
-          int viewerWidth = NearInfinity.getInstance().getWidth() - NearInfinity.getInstance().getResourceTree().getWidth();
-          split.setDividerLocation(viewerWidth - viewerWidth / 4);  // have area list occupy ca. 25% of resource view width
-          setLayout(new BorderLayout());
-          add(split, BorderLayout.CENTER);
+        rcMap = new RenderCanvas(ColorConvert.cloneImage(mapOrig));
+        rcMap.addMouseListener(listeners);
+        rcMap.addMouseMotionListener(listeners);
 
-          JPanel pInfo = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 0));
-          lInfoSize = new JLabel(String.format("Worldmap size: %d x %d pixels", mapOrig.getWidth(), mapOrig.getHeight()));
-          lInfoSize.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-          lInfoPos = new JLabel();
-          lInfoPos.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-          pInfo.add(lInfoSize);
-          pInfo.add(lInfoPos);
-          add(pInfo, BorderLayout.SOUTH);
+        mapScaleX = (float)mapOrig.getWidth() / (float)mapTargetWidth;
+        mapScaleY = (float)mapOrig.getHeight() / (float)mapTargetHeight;
 
-        } else {
-          rcMap = null;
-          mapOrig = null;
-        }
+        listPanel = (StructListPanel)ViewerUtil.makeListPanel("Areas", wmpMap, AreaEntry.class, AreaEntry.WMP_AREA_CURRENT,
+                                                              new WmpAreaListRenderer(mapIcons), listeners);
+        JScrollPane mapScroll = new JScrollPane(rcMap);
+        mapScroll.getVerticalScrollBar().setUnitIncrement(16);
+        mapScroll.getHorizontalScrollBar().setUnitIncrement(16);
+        mapScroll.setBorder(BorderFactory.createEmptyBorder());
+
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapScroll, listPanel);
+        int viewerWidth = NearInfinity.getInstance().getWidth() - NearInfinity.getInstance().getResourceTree().getWidth();
+        split.setDividerLocation(viewerWidth - viewerWidth / 4);  // have area list occupy ca. 25% of resource view width
+        setLayout(new BorderLayout());
+        add(split, BorderLayout.CENTER);
+
+        JPanel pInfo = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 0));
+        lInfoSize = new JLabel(String.format("Worldmap size: %d x %d pixels", mapOrig.getWidth(), mapOrig.getHeight()));
+        lInfoSize.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        lInfoPos = new JLabel();
+        lInfoPos.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        pInfo.add(lInfoSize);
+        pInfo.add(lInfoPos);
+        add(pInfo, BorderLayout.SOUTH);
       } catch (Throwable t) {
         t.printStackTrace();
       }
