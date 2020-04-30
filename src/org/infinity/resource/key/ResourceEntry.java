@@ -201,6 +201,8 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
           }
         } else if (extension.equals("ARE")) {
           searchString = AreResource.getSearchString(this);
+        } else if (extension.equals("PRO")) {
+          searchString = ProResource.getSearchString(this);
         }
       } catch (Exception e) {
         if ((NearInfinity.getInstance() != null) &&
