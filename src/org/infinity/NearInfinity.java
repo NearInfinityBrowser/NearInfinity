@@ -52,6 +52,7 @@ import javax.swing.JToolBar;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.filechooser.FileFilter;
@@ -281,6 +282,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     browser = this;
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     setAppIcon();
+
+    // setting more reasonable tooltip timings
+    ToolTipManager.sharedInstance().setDismissDelay(8000);
 
     // FileDeletionHook provides a way to delete files when the Java Virtual Machine shuts down
     Runtime.getRuntime().addShutdownHook(FileDeletionHook.getInstance());
