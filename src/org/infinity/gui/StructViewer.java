@@ -570,7 +570,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     } else if (CMD_PASTEVALUE.equals(cmd)) {
       final int changed = StructClipboard.getInstance().pasteValue(struct, min);
       if (changed == 0)
-        JOptionPane.showMessageDialog(this, "Attributes doesn't match!", "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Attribute doesn't match!", "Error", JOptionPane.ERROR_MESSAGE);
       else {
         struct.fireTableRowsUpdated(min, min + changed);
         struct.setStructChanged(true);
