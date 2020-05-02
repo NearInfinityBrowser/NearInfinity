@@ -64,6 +64,11 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public static final String[] OPTION_ORIENTATION = { "South", "SSW", "SW", "WSW", "West", "WNW", "NW", "NNW",
                                                       "North", "NNE", "NE", "ENE", "East", "ESE", "SE", "SSE" };
 
+  // Table column names
+  public static final String COLUMN_ATTRIBUTE = "Attribute";
+  public static final String COLUMN_VALUE     = "Value";
+  public static final String COLUMN_OFFSET    = "Offset";
+  public static final String COLUMN_SIZE      = "Size";
 
   /** Identifies the intention to removal of rows or columns. */
   public static final int WILL_BE_DELETE = -2;
@@ -340,19 +345,31 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   @Override
   public int getColumnCount()
   {
-    if (BrowserMenuBar.getInstance().showOffsets())
-      return 3;
-    return 2;
+    int retVal = 2;
+    if (BrowserMenuBar.getInstance().showTableOffsets())
+      retVal++;
+    if (BrowserMenuBar.getInstance().showTableSize())
+      retVal++;
+    return retVal;
   }
 
   @Override
   public String getColumnName(int columnIndex)
   {
-    if (columnIndex == 0)
-      return "Attribute";
-    if (columnIndex == 1)
-      return "Value";
-    return "Offset";
+    switch (columnIndex) {
+      case 0:
+        return COLUMN_ATTRIBUTE;
+      case 1:
+        return COLUMN_VALUE;
+      case 2:
+      case 3:
+        if (columnIndex == 2 && BrowserMenuBar.getInstance().showTableOffsets())
+          return COLUMN_OFFSET;
+        else if (BrowserMenuBar.getInstance().showTableSize())
+          return COLUMN_SIZE;
+        break;
+    }
+    return "";
   }
 
   @Override
@@ -371,13 +388,25 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   {
     if (row >= 0 && row < fields.size()) {
       final StructEntry data = fields.get(row);
-      switch (column) {
-        case 0:
+      switch (getColumnName(column)) {
+        case COLUMN_ATTRIBUTE:
           return data.getName();
-        case 1:
+        case COLUMN_VALUE:
           return data;
-        case 2:
-          return Integer.toHexString(data.getOffset()) + " h";
+        case COLUMN_OFFSET:
+        {
+          String s = Integer.toHexString(data.getOffset()) + " h";
+          if (BrowserMenuBar.getInstance().showTableOffsetsRelative() &&
+              data.getParent() != null && data.getParent().getParent() != null) {
+            s += " (" + Integer.toHexString(data.getOffset() - data.getParent().getOffset()) + " h)";
+          }
+          return s;
+        }
+        case COLUMN_SIZE:
+          if (BrowserMenuBar.getInstance().showTableSizeInHex())
+            return Integer.toHexString(data.getSize()) + " h";
+          else
+            return Integer.toString(data.getSize());
       }
     }
     return "Unknown datatype";

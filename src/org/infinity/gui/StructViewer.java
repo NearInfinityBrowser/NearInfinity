@@ -268,7 +268,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         setBackground(getClassColor(cls));
 
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        if (column == 2)
+        if (column >= 2)
           setHorizontalAlignment(JLabel.TRAILING);
         else
           setHorizontalAlignment(JLabel.LEADING);
@@ -332,10 +332,21 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     table.getTableHeader().setReorderingAllowed(false);
     table.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
     table.addComponentListener(this);
-    table.getColumnModel().getColumn(0).setPreferredWidth(NearInfinity.getInstance().getTableColumnWidth(0));
-    table.getColumnModel().getColumn(1).setPreferredWidth(NearInfinity.getInstance().getTableColumnWidth(1));
-    if (table.getColumnCount() == 3) {
-      table.getColumnModel().getColumn(2).setPreferredWidth(NearInfinity.getInstance().getTableColumnWidth(2));
+    for (int column = 0, colCount = table.getColumnModel().getColumnCount(); column < colCount; column++) {
+      switch (table.getColumnName(column)) {
+        case AbstractStruct.COLUMN_ATTRIBUTE:
+          table.getColumnModel().getColumn(column).setPreferredWidth(NearInfinity.getInstance().getTableColumnWidth(0));
+          break;
+        case AbstractStruct.COLUMN_VALUE:
+          table.getColumnModel().getColumn(column).setPreferredWidth(NearInfinity.getInstance().getTableColumnWidth(1));
+          break;
+        case AbstractStruct.COLUMN_OFFSET:
+          table.getColumnModel().getColumn(column).setPreferredWidth(NearInfinity.getInstance().getTableColumnWidth(2));
+          break;
+        case AbstractStruct.COLUMN_SIZE:
+          table.getColumnModel().getColumn(column).setPreferredWidth(NearInfinity.getInstance().getTableColumnWidth(3));
+          break;
+      }
     }
 
     lowerpanel.add(scroll, CARD_TEXT);
@@ -559,7 +570,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     } else if (CMD_PASTEVALUE.equals(cmd)) {
       final int changed = StructClipboard.getInstance().pasteValue(struct, min);
       if (changed == 0)
-        JOptionPane.showMessageDialog(this, "Attributes doesn't match!", "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Attribute doesn't match!", "Error", JOptionPane.ERROR_MESSAGE);
       else {
         struct.fireTableRowsUpdated(min, min + changed);
         struct.setStructChanged(true);
@@ -884,13 +895,16 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       // ensure fixed "Attribute" and "Offset" column widths
       int w = table.getWidth();
       int w0 = table.getColumnModel().getColumn(0).getPreferredWidth();
-      int w2 = (table.getColumnCount() == 3) ? table.getColumnModel().getColumn(2).getPreferredWidth() : 0;
-      int w1 = w - (w0 + w2);
+      int w2 = (table.getColumnCount() > 2) ? table.getColumnModel().getColumn(2).getPreferredWidth() : 0;
+      int w3 = (table.getColumnCount() > 3) ? table.getColumnModel().getColumn(3).getPreferredWidth() : 0;
+      int w1 = w - (w0 + w2 + w3);
 
       table.getColumnModel().getColumn(0).setPreferredWidth(w0);
       table.getColumnModel().getColumn(1).setPreferredWidth(w1);
-      if (table.getColumnCount() == 3) {
+      if (table.getColumnCount() > 2) {
         table.getColumnModel().getColumn(2).setPreferredWidth(w2);
+        if (table.getColumnCount() > 3)
+          table.getColumnModel().getColumn(3).setPreferredWidth(w3);
       }
     }
   }
@@ -943,10 +957,21 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public void close()
   {
     // storing current table column widths and divider location
-    NearInfinity.getInstance().updateTableColumnWidth(0, table.getColumnModel().getColumn(0).getPreferredWidth());
-    NearInfinity.getInstance().updateTableColumnWidth(1, table.getColumnModel().getColumn(1).getPreferredWidth());
-    if (table.getColumnCount() == 3) {
-      NearInfinity.getInstance().updateTableColumnWidth(2, table.getColumnModel().getColumn(2).getPreferredWidth());
+    for (int col = 0, colCount = table.getColumnCount(); col < colCount; col++) {
+      switch (table.getColumnName(col)) {
+        case AbstractStruct.COLUMN_ATTRIBUTE:
+          NearInfinity.getInstance().updateTableColumnWidth(0, table.getColumnModel().getColumn(col).getPreferredWidth());
+          break;
+        case AbstractStruct.COLUMN_VALUE:
+          NearInfinity.getInstance().updateTableColumnWidth(1, table.getColumnModel().getColumn(col).getPreferredWidth());
+          break;
+        case AbstractStruct.COLUMN_OFFSET:
+          NearInfinity.getInstance().updateTableColumnWidth(2, table.getColumnModel().getColumn(col).getPreferredWidth());
+          break;
+        case AbstractStruct.COLUMN_SIZE:
+          NearInfinity.getInstance().updateTableColumnWidth(3, table.getColumnModel().getColumn(col).getPreferredWidth());
+          break;
+      }
     }
     if (splitterSet) {
       NearInfinity.getInstance().updateTablePanelHeight(splitv.getHeight() - splitv.getDividerLocation());

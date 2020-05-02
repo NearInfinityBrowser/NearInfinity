@@ -14,6 +14,8 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HashBitmap;
 import org.infinity.datatype.IdsTargetType;
+import org.infinity.datatype.ProRef;
+import org.infinity.datatype.ResourceBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SpellProtType;
 import org.infinity.datatype.StringRef;
@@ -30,6 +32,7 @@ import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
+import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.SearchOptions;
@@ -101,6 +104,27 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   }
 
   private StructHexViewer hexViewer;
+
+  /** Returns associated projectile description based on MISSILE.IDS or PROJECTL.IDS entries. */
+  public static String getSearchString(ResourceEntry entry)
+  {
+    String retVal = null;
+    if (entry != null) {
+      ResourceBitmap.RefEntry re = ProRef.createRefList(ResourceFactory.resourceExists("MISSILE.IDS"))
+                                  .stream()
+                                  .filter(e -> entry.getResourceName().equalsIgnoreCase(e.getResourceName()))
+                                  .findFirst()
+                                  .orElse(null);
+      if (re != null &&
+          !entry.getResourceRef().equalsIgnoreCase(re.getSearchString()) &&
+          !"unnamed".equalsIgnoreCase(re.getSearchString())) {
+        retVal = re.getSearchString();
+        if (retVal != null)
+          retVal = retVal.replace('_', ' ');  // "beautify" search string
+      }
+    }
+    return retVal;
+  }
 
   public ProResource(ResourceEntry entry) throws Exception
   {
