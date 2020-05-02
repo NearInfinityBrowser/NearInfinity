@@ -29,6 +29,7 @@ import org.infinity.resource.other.VvcResource;
 import org.infinity.resource.pro.ProResource;
 import org.infinity.resource.spl.SplResource;
 import org.infinity.resource.sto.StoResource;
+import org.infinity.resource.text.PlainTextResource;
 import org.infinity.search.SearchOptions;
 import org.infinity.util.io.StreamUtils;
 
@@ -201,6 +202,10 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
           }
         } else if (extension.equals("ARE")) {
           searchString = AreResource.getSearchString(this);
+        } else if (extension.equals("PRO")) {
+          searchString = ProResource.getSearchString(this);
+        } else if (extension.equals("INI")) {
+          searchString = PlainTextResource.getSearchString(this);
         }
       } catch (Exception e) {
         if ((NearInfinity.getInstance() != null) &&

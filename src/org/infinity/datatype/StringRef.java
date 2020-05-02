@@ -115,20 +115,19 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    final int newvalue = getValueFromEditor();
     if (event.getSource() == bUpdate) {
-      taRefText.setText(StringTable.getStringRef(newvalue));
-      enablePlay(newvalue);
+      taRefText.setText(StringTable.getStringRef(value));
+      enablePlay(value);
     }
     else if (event.getSource() == bEdit) {
       StringEditor.edit(value);
     }
     else if (event.getSource() == bPlay) {
-      final ResourceEntry entry = ResourceFactory.getResourceEntry(StringTable.getSoundResource(newvalue) + ".WAV");
+      final ResourceEntry entry = ResourceFactory.getResourceEntry(StringTable.getSoundResource(value) + ".WAV");
       new ViewFrame(bPlay.getTopLevelAncestor(), ResourceFactory.getResource(entry));
     }
     else if (event.getSource() == bSearch) {
-      new StringReferenceSearcher(newvalue, bSearch.getTopLevelAncestor());
+      new StringReferenceSearcher(value, bSearch.getTopLevelAncestor());
     }
   }
 
@@ -139,9 +138,9 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   @Override
   public void stateChanged(ChangeEvent e)
   {
-    final int newvalue = getValueFromEditor();
-    taRefText.setText(StringTable.getStringRef(newvalue));
-    enablePlay(newvalue);
+    value = getValueFromEditor();
+    taRefText.setText(StringTable.getStringRef(value));
+    enablePlay(value);
   }
 
 // --------------------- End Interface ChangeListener ---------------------

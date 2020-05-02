@@ -33,6 +33,7 @@ import javax.swing.event.TableModelListener;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.StringRef;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
@@ -343,102 +344,86 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   /** For quickly jump to the corresponding state while only having a StructEntry. */
   public void select(StructEntry entry)
   {
-    int stateNrToShow = -1;
-    int transNrToShow = -1;
+    try {
+      int stateNrToShow = -1;
+      int transNrToShow = -1;
 
-    // we can have states, triggers, transitions and actions
-    if (entry instanceof State) {
-      stateNrToShow = ((State) entry).getNumber();
-      transNrToShow = ((State) entry).getFirstTrans();
-    }
-    else if (entry instanceof Transition) {
-      int transnr = ((Transition) entry).getNumber();
-      stateNrToShow = findStateForTrans(transnr);
-      transNrToShow = transnr;
-    }
-    else if (entry instanceof StateTrigger) {
-      int triggerOffset = entry.getOffset();
-      int nr = 0;
-      for (StateTrigger trig : staTriList) {
-        if (trig.getOffset() == triggerOffset) {
-          break;
-        }
-        nr++;
+      StructEntry dlgEntry = null;
+      for (StructEntry ref = entry; ref != null; ref = ref.getParent())
+        if (ref instanceof DlgResource)
+          dlgEntry = ref;
+      if (dlgEntry == null || !dlg.getResourceEntry().equals(((DlgResource)dlgEntry).getResourceEntry())) {
+        throw new Exception("Source and target resource don't match.");
       }
 
-      for (State state : stateList) {
-        if (state.getTriggerIndex() == nr) {
+      // we can have states, triggers, transitions and actions
+      if (entry instanceof State) {
+        stateNrToShow = ((State) entry).getNumber();
+        transNrToShow = ((State) entry).getFirstTrans();
+      }
+      else if (entry instanceof Transition) {
+        int transnr = ((Transition) entry).getNumber();
+        stateNrToShow = findStateForTrans(transnr);
+        transNrToShow = transnr;
+      }
+      else if (entry instanceof StateTrigger) {
+        int triggerIndex = ((StateTrigger)entry).getNumber();
+        State state = stateList
+                      .stream()
+                      .filter(s -> ((IsNumeric)s.getAttribute(State.DLG_STATE_TRIGGER_INDEX)).getValue() == triggerIndex)
+                      .findFirst()
+                      .orElse(null);
+        if (state != null) {
           stateNrToShow = state.getNumber();
           transNrToShow = state.getFirstTrans();
-          break;
         }
       }
-    }
-    else if (entry instanceof ResponseTrigger) {
-      int triggerOffset = entry.getOffset();
-      int nr = 0;
-      for (ResponseTrigger trig : transTriList) {
-        if (trig.getOffset() == triggerOffset) {
-          break;
-        }
-        nr++;
-      }
-
-      for (Transition trans : transList) {
-        if (trans.getTriggerIndex() == nr) {
+      else if (entry instanceof ResponseTrigger) {
+        int triggerIndex = ((ResponseTrigger)entry).getNumber();
+        Transition trans = transList
+                           .stream()
+                           .filter(t -> ((Flag)t.getAttribute(Transition.DLG_TRANS_FLAGS)).isFlagSet(1) &&
+                                        ((IsNumeric)t.getAttribute(Transition.DLG_TRANS_TRIGGER_INDEX)).getValue() == triggerIndex)
+                           .findFirst()
+                           .orElse(null);
+        if (trans != null) {
           transNrToShow = trans.getNumber();
           stateNrToShow = findStateForTrans(transNrToShow);
         }
       }
-    }
-    else if (entry instanceof Action) {
-      int actionOffset = entry.getOffset();
-      int nr = 0;
-      for (Action action : actionList) {
-        if (action.getOffset() == actionOffset) {
-          break;
-        }
-        nr++;
-      }
-
-      for (Transition trans : transList) {
-        if (trans.getActionIndex() == nr) {
+      else if (entry instanceof Action) {
+        int actionIndex = ((Action)entry).getNumber();
+        Transition trans = transList
+                           .stream()
+                           .filter(t -> ((Flag)t.getAttribute(Transition.DLG_TRANS_FLAGS)).isFlagSet(2) &&
+                                        ((IsNumeric)t.getAttribute(Transition.DLG_TRANS_ACTION_INDEX)).getValue() == actionIndex)
+                           .findFirst()
+                           .orElse(null);
+        if (trans != null) {
           transNrToShow = trans.getNumber();
           stateNrToShow = findStateForTrans(transNrToShow);
         }
       }
-    }
-    else if (entry instanceof StringRef) {
-      // this can happen with the dlg search
-      // check all states and transitions
-      int strref = ((StringRef) entry).getValue();
-      boolean found = false;
-      for (State state : stateList) {
-        if (state.getAssociatedText().getValue() == strref) {
-          stateNrToShow = state.getNumber();
-          transNrToShow = state.getFirstTrans();
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        for (Transition trans : transList) {
-          if (trans.getAssociatedText().getValue() == strref) {
-            transNrToShow = trans.getNumber();
-            stateNrToShow = findStateForTrans(transNrToShow);
+      else if (entry instanceof StringRef) {
+        // can be a child element of a state or transition
+        for (StructEntry ref = entry; ref != null; ref = ref.getParent()) {
+          if (ref instanceof State) {
+            stateNrToShow = ((State)ref).getNumber();
+            transNrToShow = ((State)ref).getFirstTrans();
             break;
-          }
-          else if (trans.getJournalEntry().getValue() == strref) {
-            transNrToShow = trans.getNumber();
+          } else if (ref instanceof Transition) {
+            transNrToShow = ((Transition)ref).getNumber();
             stateNrToShow = findStateForTrans(transNrToShow);
             break;
           }
         }
       }
-    }
 
-    showState(stateNrToShow);
-    showTransition(transNrToShow);
+      showState(stateNrToShow);
+      showTransition(transNrToShow);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   private int findStateForTrans(int transnr)

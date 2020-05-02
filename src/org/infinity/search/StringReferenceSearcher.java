@@ -20,6 +20,8 @@ import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.dlg.Action;
 import org.infinity.resource.dlg.DlgResource;
+import org.infinity.resource.dlg.State;
+import org.infinity.resource.dlg.Transition;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sav.SavResource;
 import org.infinity.resource.text.PlainTextResource;
@@ -76,7 +78,15 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
   {
     for (final StructEntry o : dialog.getFields()) {
       if (o instanceof StringRef && ((StringRef)o).getValue() == searchvalue) {
-        addHit(entry, entry.getSearchString(), o);
+        // show name of associated state or transition element
+        String name = entry.getSearchString();
+        for (StructEntry ref = o.getParent(); ref != null; ref = ref.getParent()) {
+          if (ref instanceof State || ref instanceof Transition) {
+            name = ref.getName();
+            break;
+          }
+        }
+        addHit(entry, name, o);
       } else if (o instanceof AbstractCode) {
         final AbstractCode sourceCode = (AbstractCode)o;
         try {
@@ -89,7 +99,7 @@ public final class StringReferenceSearcher extends AbstractReferenceSearcher
             decompiler.decompile();
             for (final Integer stringRef : decompiler.getStringRefsUsed()) {
               if (stringRef.intValue() == searchvalue) {
-                addHit(entry, entry.getSearchString(), sourceCode);
+                addHit(entry, sourceCode.getName(), sourceCode);
               }
             }
           }

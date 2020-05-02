@@ -52,7 +52,8 @@ public final class ProRef extends ResourceBitmap
     proList.clear();
   }
 
-  private static List<RefEntry> createRefList(boolean useMissile)
+  /** Returns a list of projectiles with associated indices and search names. */
+  public static List<RefEntry> createRefList(boolean useMissile)
   {
     if (useMissile) {
       return createProMissileRefList();
