@@ -64,6 +64,7 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private JMenuItem ifindall, ifindthis;
+  private JMenuItem miFormatTrim, miFormatAlign;
   private JPanel panel;
   /** Text editor for editing resource. Created after calling {@link #makeViewer}. */
   protected InfinityTextArea editor;
@@ -127,13 +128,7 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     } else if (buttonPanel.getControlByType(ButtonPanel.Control.TRIM_SPACES) == event.getSource()) {
-      final StringBuilder newText = new StringBuilder(editor.getText().length());
-      StringTokenizer st = new StringTokenizer(editor.getText(), "\n");
-      while (st.hasMoreTokens()) {
-        newText.append(st.nextToken().trim()).append('\n');
-      }
-      editor.setText(newText.toString());
-      editor.setCaretPosition(0);
+      trimSpaces();
     }
   }
 
@@ -197,12 +192,19 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
   public void itemStateChanged(ItemEvent event)
   {
     ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU);
+    ButtonPopupMenu bpmFormat = (ButtonPopupMenu)buttonPanel.getControlByType(ButtonPanel.Control.CUSTOM_1);
     if (event.getSource() == bpmFind) {
       if (bpmFind.getSelectedItem() == ifindall) {
         final List<ResourceEntry> files = ResourceFactory.getResources(entry.getExtension());
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
         new TextResourceSearcher(Arrays.asList(entry), panel.getTopLevelAncestor());
+      }
+    } else if (event.getSource() == bpmFormat) {
+      if (bpmFormat.getSelectedItem() == miFormatTrim) {
+        trimSpaces();
+      } else if (bpmFormat.getSelectedItem() == miFormatAlign) {
+        alignTableColumns(2, true);
       }
     }
   }
@@ -289,7 +291,16 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
     ButtonPopupMenu bpmFind = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.FIND_MENU);
     bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis});
     bpmFind.addItemListener(this);
-    ((JButton)buttonPanel.addControl(ButtonPanel.Control.TRIM_SPACES)).addActionListener(this);
+    if ("2DA".equals(ext)) {
+      miFormatTrim = new JMenuItem("Trim spaces");
+      miFormatAlign = new JMenuItem("Align table");
+      miFormatAlign.setToolTipText("Align table columns to improve readability.");
+      ButtonPopupMenu bpmFormat = new ButtonPopupMenu("Format...", new JMenuItem[]{miFormatTrim, miFormatAlign});
+      bpmFormat.addItemListener(this);
+      buttonPanel.addControl(bpmFormat, ButtonPanel.Control.CUSTOM_1);
+    } else {
+      ((JButton)buttonPanel.addControl(ButtonPanel.Control.TRIM_SPACES)).addActionListener(this);
+    }
     if ("2DA".equals(ext)) {
       ((JButton)buttonPanel.addControl(ButtonPanel.Control.FIND_REFERENCES)).addActionListener(this);
     }
@@ -351,6 +362,101 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
     while (st.hasMoreTokens())
       strings.add(st.nextToken().toUpperCase(Locale.ENGLISH));
     return strings;
+  }
+
+  /**
+   * Removes trailing whitespace from every line of the text. Ensures that text ends with a newline.
+   */
+  public void trimSpaces()
+  {
+    String input = editor.getText();
+    String[] lines = input.split("\n");
+    StringBuilder newText = new StringBuilder();
+    for (int i = 0; i < lines.length; i++)
+      newText.append(Misc.trimEnd(lines[i])).append('\n');
+    String output = newText.toString();
+
+    if (input.compareTo(output) != 0) {
+      editor.setText(output);
+      editor.setCaretPosition(0);
+    }
+  }
+
+  /**
+   * Aligns table columns to improve readability.
+   * @param spaces Min. number of spaces between columns.
+   * @param alignPerColumn specify {@code true} to calculate max width on a per column basis,
+   *                       or {@code false} to calculate for the whole table.
+   */
+  public void alignTableColumns(int spaces, boolean alignPerColumn)
+  {
+    spaces = Math.max(1, spaces);
+
+    // splitting text into lines
+    String input = editor.getText();
+    String[] lines = input.split("\n");
+
+    // splitting lines into tokens
+    int maxCols = 0;
+    int maxTokenLength = 0;
+    List<List<String>> matrix = new ArrayList<>(lines.length);
+    for (int i = 0; i < lines.length; i++) {
+      String[] tokens = lines[i].split("\\s+");
+      if (tokens.length > 0) {
+        matrix.add(new ArrayList<>(tokens.length));
+        if (matrix.size() == 3) matrix.get(matrix.size() - 1).add("");
+        for (int j = 0; j < tokens.length; j++) {
+          if (!tokens[j].isEmpty())
+            matrix.get(i).add(tokens[j]);
+        }
+        if (matrix.size() > 2) {
+          maxCols = Math.max(maxCols, matrix.get(matrix.size() - 1).size());
+          for (int j = 0; j < tokens.length; j++)
+            maxTokenLength = Math.max(maxTokenLength, tokens[j].length());
+        }
+      }
+    }
+
+    // calculating column sizes
+    int[] columns = new int[maxCols];
+    for (int col = 0; col < maxCols; col++) {
+      int maxLen = 0;
+      if (alignPerColumn) {
+        for (int row = 2; row < matrix.size(); row++) {
+          if (col < matrix.get(row).size())
+            maxLen = Math.max(maxLen, matrix.get(row).get(col).length());
+        }
+      } else {
+        maxLen = maxTokenLength;
+      }
+      columns[col] = maxLen + spaces;
+    }
+
+    // normalizing data
+    StringBuilder newText = new StringBuilder();
+    String blank = new String(new char[maxTokenLength + spaces]).replace('\0', ' ');
+    for (int row = 0, rows = matrix.size(); row < rows; row++) {
+      StringBuilder sb = new StringBuilder();
+      for (int col = 0, cols = matrix.get(row).size(); col < cols; col++) {
+        String token = matrix.get(row).get(col);
+        sb.append(token);
+        if (col < cols - 1) {
+          if (row < 2) {
+            sb.append(' ');
+          } else {
+            int end = columns[col] - token.length();
+            sb.append((end < blank.length()) ? blank.substring(0, end) : blank);
+          }
+        }
+      }
+      newText.append(sb.toString()).append('\n');
+    }
+    String output = newText.toString();
+
+    if (input.compareTo(output) != 0) {
+      editor.setText(newText.toString());
+      editor.setCaretPosition(0);
+    }
   }
 
   private void setSyntaxHighlightingEnabled(InfinityTextArea edit, InfinityScrollPane pane)

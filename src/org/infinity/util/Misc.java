@@ -436,6 +436,101 @@ public class Misc
     return symbol;
   }
 
+  /**
+   * This method removes all leading occurences of whitespace from the specified string.
+   * @param s The string to trim.
+   * @return The trimmed string. Returns {@code null} if no valid string is specified.
+   */
+  public static String trimStart(String s)
+  {
+    return trimStart(s, null);
+  }
+
+  /**
+   * This method removes all leading occurences of whitespace or specified characters from the specified string.
+   * @param s The string to trim.
+   * @param trimChars Array of characters to trim in addition to whitespace.
+   * @return The trimmed string. Returns {@code null} if no valid string is specified.
+   */
+  public static String trimStart(String s, char[] trimChars)
+  {
+    if (s != null && !s.isEmpty()) {
+      int start = 0;
+      int len = s.length();
+      String trimS = (trimChars != null) ? new String(trimChars) : "";
+      while (start < len) {
+        char ch = s.charAt(start);
+        if (ch > ' ' && trimS.indexOf(ch) == -1)
+          break;
+        start++;
+      }
+      return (start > 0) ? s.substring(start) : s;
+    }
+    return s;
+  }
+
+  /**
+   * This method removes all trailing occurences of whitespace from the specified string.
+   * @param s The string to trim.
+   * @return The trimmed string. Returns {@code null} if no valid string is specified.
+   */
+  public static String trimEnd(String s)
+  {
+    return trimEnd(s, null);
+  }
+
+  /**
+   * This method removes all trailing occurences of whitespace or specified characters from the specified string.
+   * @param s The string to trim.
+   * @param trimChars Array of characters to trim in addition to whitespace.
+   * @return The trimmed string. Returns {@code null} if no valid string is specified.
+   */
+  public static String trimEnd(String s, char[] trimChars)
+  {
+    if (s != null && !s.isEmpty()) {
+      int len = s.length();
+      String trimS = (trimChars != null) ? new String(trimChars) : "";
+      while (len > 0) {
+        char ch = s.charAt(len - 1);
+        if (ch > ' ' && trimS.indexOf(ch) == -1)
+          break;
+        len--;
+      }
+      return (len < s.length()) ? s.substring(0, len) : s;
+    }
+    return s;
+  }
+
+  /**
+   * This method removes all occurences of whitespace or specified characters from the start or end of the specified string.
+   * @param s The string to trim.
+   * @param trimChars Array of characters to trim in addition to whitespace.
+   * @return The trimmed string. Returns {@code null} if no valid string is specified.
+   */
+  public static String trim(String s, char[] trimChars)
+  {
+    if (s != null && !s.isEmpty()) {
+      int start = 0;
+      int len = s.length();
+      String trimS = (trimChars != null) ? new String(trimChars) : "";
+      char ch;
+      while (start < len) {
+        ch = s.charAt(start);
+        if (ch > ' ' && trimS.indexOf(ch) == -1)
+          break;
+        start++;
+      }
+      while (len > start) {
+        ch = s.charAt(len - 1);
+        if (ch > ' ' && trimS.indexOf(ch) == -1)
+          break;
+        len--;
+      }
+      return (start > 0 ||  len < s.length()) ? s.substring(start, len) : s;
+    }
+    return s;
+  }
+
   // Contains static functions only
   private Misc() {}
 }
