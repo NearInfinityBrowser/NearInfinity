@@ -123,7 +123,7 @@ public final class Viewer extends JPanel
     JPanel fieldPanel = new JPanel(gbl);
 
     gbc.insets = new Insets(3, 3, 3, 3);
-    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute(SplResource.SPL_NAME), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute(SplResource.SPL_NAME), gbl, gbc, true, 100);
     String s = getSymbolicName(spl.getResourceEntry(), true);
     ViewerUtil.addLabelFieldPair(fieldPanel, "Symbolic name", (s != null) ? s : "n/a", gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, spl.getAttribute(SplResource.SPL_TYPE), gbl, gbc, true);

@@ -46,7 +46,7 @@ final class ViewerNPC extends JPanel
 
     gbc.insets = new Insets(3, 3, 3, 3);
     if (npc.getAttribute(PartyNPC.GAM_NPC_NAME) != null) {
-      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_NAME), gbl, gbc, true);
+      ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_NAME), gbl, gbc, true, 100);
       ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_CURRENT_AREA), gbl, gbc, true);
 
       StructEntry s1 = npc.getAttribute(PartyNPC.GAM_NPC_LOCATION_X);
@@ -68,7 +68,7 @@ final class ViewerNPC extends JPanel
     ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_SELECTION_STATE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_PARTY_POSITION), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_STAT_FOE_VANQUISHED), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_STAT_XP_FOE_VANQUISHED), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_STAT_XP_FOE_VANQUISHED), gbl, gbc, true, 100);
     ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_STAT_KILLS_XP_CHAPTER), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_STAT_KILLS_XP_GAME), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, npc.getAttribute(PartyNPC.GAM_NPC_STAT_NUM_KILLS_CHAPTER), gbl, gbc, true);

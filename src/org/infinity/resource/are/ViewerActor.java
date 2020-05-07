@@ -82,7 +82,7 @@ public final class ViewerActor extends JPanel
     JPanel fieldPanel = new JPanel(gbl);
 
     gbc.insets = new Insets(3, 3, 3, 3);
-    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_NAME), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_NAME), gbl, gbc, true, 100);
     ViewerUtil.addLabelFieldPair(fieldPanel, actor.getAttribute(Actor.ARE_ACTOR_CHARACTER), gbl, gbc, true);
 
     StructEntry s1 = actor.getAttribute(Actor.ARE_ACTOR_POS_X);

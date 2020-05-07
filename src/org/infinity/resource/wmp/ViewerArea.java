@@ -36,7 +36,7 @@ final class ViewerArea extends JPanel implements ActionListener
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel panel = new JPanel(gbl);
     gbc.insets = new Insets(3, 3, 3, 3);
-    ViewerUtil.addLabelFieldPair(panel, areaEntry.getAttribute(AreaEntry.WMP_AREA_NAME), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, areaEntry.getAttribute(AreaEntry.WMP_AREA_NAME), gbl, gbc, true, 100);
     ViewerUtil.addLabelFieldPair(panel, areaEntry.getAttribute(AreaEntry.WMP_AREA_CURRENT), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, areaEntry.getAttribute(AreaEntry.WMP_AREA_LOADING_IMAGE), gbl, gbc, true);
     return panel;

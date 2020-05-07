@@ -92,59 +92,83 @@ public final class ViewerUtil
   public static void addLabelFieldPair(JPanel panel, StructEntry entry, GridBagLayout gbl,
                                        GridBagConstraints gbc, boolean endline)
   {
+    addLabelFieldPair(panel, entry, gbl, gbc, endline, 0);
+  }
+
+  public static void addLabelFieldPair(JPanel panel, StructEntry entry, GridBagLayout gbl,
+                                       GridBagConstraints gbc, boolean endline, int maxLength)
+  {
     if (entry == null)
       return;
     JLabel label = new JLabel(entry.getName());
-    JComponent text;
+    JComponent text = null;
     if (entry instanceof ResourceRef) {
-      text = new LinkButton((ResourceRef)entry);
-    } else {
-      if (entry instanceof StringRef) {
-        StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
-                                                                            : StringTable.Format.NONE;
-        text = new JLabel(((StringRef)entry).toString(fmt));
-      } else {
-        text = new JLabel(entry.toString());
+      text = new LinkButton((ResourceRef) entry);
+    } else if (entry instanceof StringRef) {
+      StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+                                                                          : StringTable.Format.NONE;
+      String s = ((StringRef)entry).toString(fmt);
+      String help = null;
+      if (maxLength > 0 && s.length() > maxLength) {
+        help = s;
+        s = s.substring(0, maxLength) + "...";
       }
-      text.setFont(text.getFont().deriveFont(Font.PLAIN));
+      text = new JLabel(s);
+      if (help != null)
+        text.setToolTipText(help);
+    } else {
+      text = new JLabel(entry.toString());
     }
-
-    gbc.weightx = 0.0;
-    gbc.fill = GridBagConstraints.NONE;
-    gbc.gridwidth = 1;
-    gbc.anchor = GridBagConstraints.WEST;
-    gbl.setConstraints(label, gbc);
-    panel.add(label);
-
-    gbc.weightx = 1.0;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    if (endline)
-      gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbl.setConstraints(text, gbc);
-    panel.add(text);
+    addLabelFieldPair(panel, label, text, gbl, gbc, endline);
   }
 
   public static void addLabelFieldPair(JPanel panel, String name, String field, GridBagLayout gbl,
                                        GridBagConstraints gbc, boolean endline)
   {
+    addLabelFieldPair(panel, name, field, gbl, gbc, endline, 0);
+  }
+
+  public static void addLabelFieldPair(JPanel panel, String name, String field, GridBagLayout gbl,
+                                       GridBagConstraints gbc, boolean endline, int maxLength)
+  {
     if (name != null) {
       JLabel label = new JLabel(name);
+      String s = (field != null) ? field : "";
+      String help = null;
+      if (maxLength > 0 && s.length() > maxLength) {
+        help = s;
+        s = s.substring(0, maxLength) + "...";
+      }
       JComponent text = new JLabel((field != null) ? field : "");
-      text.setFont(text.getFont().deriveFont(Font.PLAIN));
+      if (help != null)
+        text.setToolTipText(help);
+      addLabelFieldPair(panel, label, text, gbl, gbc, endline);
+    }
+  }
+
+  public static void addLabelFieldPair(JPanel panel, JLabel name, JComponent value, GridBagLayout gbl,
+                                       GridBagConstraints gbc, boolean endline)
+  {
+    if (name != null) {
+      if (value == null)
+        value = new JLabel();
+
+      if (!(value instanceof LinkButton))
+        value.setFont(value.getFont().deriveFont(Font.PLAIN));
 
       gbc.weightx = 0.0;
       gbc.fill = GridBagConstraints.NONE;
       gbc.gridwidth = 1;
       gbc.anchor = GridBagConstraints.WEST;
-      gbl.setConstraints(label, gbc);
-      panel.add(label);
+      gbl.setConstraints(name, gbc);
+      panel.add(name);
 
       gbc.weightx = 1.0;
       gbc.fill = GridBagConstraints.HORIZONTAL;
       if (endline)
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-      gbl.setConstraints(text, gbc);
-      panel.add(text);
+      gbl.setConstraints(value, gbc);
+      panel.add(value);
     }
   }
 
