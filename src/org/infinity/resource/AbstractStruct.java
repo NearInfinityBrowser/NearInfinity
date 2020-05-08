@@ -1072,6 +1072,28 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return countmap.get(cls);
   }
 
+  /** Updates class mapping of the SectionOffset instance associated with the specified class type. */
+  public SectionOffset updateSectionOffset(Class<? extends StructEntry> cls)
+  {
+    SectionOffset so = offsetmap.getOrDefault(cls, null);
+    if (so != null && !so.getSection().equals(cls)) {
+      offsetmap.remove(cls);
+      offsetmap.put(so.getSection(), so);
+    }
+    return so;
+  }
+
+  /** Updates class mapping of the SectionCount instance associated with the specified class type. */
+  public SectionCount updateSectionCount(Class<? extends StructEntry> cls)
+  {
+    SectionCount sc = countmap.getOrDefault(cls, null);
+    if (sc != null && !sc.getSection().equals(cls)) {
+      countmap.remove(cls);
+      countmap.put(sc.getSection(), sc);
+    }
+    return sc;
+  }
+
   private void fillFlatFields(List<StructEntry> flatList)
   {
     for (final StructEntry e : fields) {
