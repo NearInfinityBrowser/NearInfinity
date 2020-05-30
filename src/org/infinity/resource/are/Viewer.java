@@ -35,11 +35,11 @@ final class Viewer extends JPanel implements ActionListener
     JPanel fieldPanel = new JPanel(gbl);
     fieldBasePanel.add(fieldPanel, BorderLayout.CENTER);
 
-    gbc.insets = new Insets(3, 3, 3, 3);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_NORTH), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_EAST), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_SOUTH), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_WEST), gbl, gbc, true);
+    gbc.insets = new Insets(4, 4, 4, 16);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_NORTH), gbl, gbc, true, 80);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_EAST), gbl, gbc, true, 80);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_SOUTH), gbl, gbc, true, 80);
+    ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_WEST), gbl, gbc, true, 80);
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_WED_RESOURCE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_PROBABILITY_RAIN), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_PROBABILITY_SNOW), gbl, gbc, true);
@@ -69,14 +69,20 @@ final class Viewer extends JPanel implements ActionListener
     JPanel itePanel = ViewerUtil.makeListPanel("Points of interest", are,
                                                ITEPoint.class, ITEPoint.ARE_TRIGGER_NAME);
 
-    setLayout(new GridLayout(2, 3, 3, 3));
-    add(fieldPanel);
-    add(actorPanel);
-    add(containerPanel);
-    add(boxPanel);
-    add(doorPanel);
-    add(itePanel);
-    setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    JPanel pLeft = new JPanel(new GridLayout(2, 1, 4, 4));
+    pLeft.add(fieldPanel);
+    pLeft.add(boxPanel);
+
+    JPanel pRight = new JPanel(new GridLayout(2, 2, 4, 4));
+    pRight.add(actorPanel);
+    pRight.add(containerPanel);
+    pRight.add(doorPanel);
+    pRight.add(itePanel);
+
+    setLayout(new BorderLayout(4, 0));
+    add(pLeft, BorderLayout.WEST);
+    add(pRight, BorderLayout.CENTER);
+    setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
   }
 
 //--------------------- Begin Interface ActionListener ---------------------
