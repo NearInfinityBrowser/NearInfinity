@@ -274,9 +274,6 @@ public final class EffectFactory
                                                 "Quick skill 0", "Quick skill 1", "Quick skill 2",
                                                 "Quick skill 3", "Quick skill 4", "Quick skill 5",
                                                 "Quick skill 6", "Quick skill 7", "Quick skill 8"};
-  public static final String[] s_school = {"None", "Abjuration", "Conjuration", "Divination",
-                                           "Enchantment", "Illusion", "Evocation",
-                                           "Necromancy", "Alteration", "Generalist"};
   public static final String[] s_attacks = {"0 attacks per round", "1 attack per round",
                                             "2 attacks per round", "3 attacks per round",
                                             "4 attacks per round", "5 attacks per round",
@@ -3241,7 +3238,7 @@ public final class EffectFactory
       case 202: // Reflect spell school
       case 204: // Protection from spell school
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
+        s.add(new PriTypeBitmap(buffer, offset + 4, 4, "Spell school"));
         break;
 
       case 203: // Reflect spell type
@@ -3335,7 +3332,7 @@ public final class EffectFactory
       case 220: // Remove spell school protections
       case 229: // Remove protection by school
         s.add(new DecNumber(buffer, offset, 4, "Maximum level"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
+        s.add(new PriTypeBitmap(buffer, offset + 4, 4, "Spell school"));
         break;
 
       case 221: // Remove spell type protections
@@ -3352,7 +3349,7 @@ public final class EffectFactory
       case 223: // Spell school deflection
       case 227: // Spell school turning
         s.add(new DecNumber(buffer, offset, 4, "# levels"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
+        s.add(new PriTypeBitmap(buffer, offset + 4, 4, "Spell school"));
         if (Profile.isEnhancedEdition()) { restype = "SPL"; }
         break;
 
