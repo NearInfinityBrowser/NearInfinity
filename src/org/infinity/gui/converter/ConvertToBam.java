@@ -1863,6 +1863,9 @@ public class ConvertToBam extends ChildFrame
     bpmFramesRemove.setEnabled(miFramesRemove.isEnabled() || miFramesRemoveAll.isEnabled() ||
                                miFramesDropUnused.isEnabled());
 
+    // updating frame info box
+    updateFrameInfo(listFrames.getSelectedIndices());
+
     // updating palette
     paletteDialog.setPaletteModified();
 
@@ -5452,7 +5455,7 @@ public class ConvertToBam extends ChildFrame
         // preparing cycle definitions
         final HashMap<Integer, int[]> cycles = new HashMap<>();
         int maxCycle = -1;
-        for (final IniMapEntry entry : sectionCenter) {
+        for (final IniMapEntry entry : sectionCycles) {
           int cycleIndex = Misc.toNumber(entry.getKey(), -1);
           if (cycleIndex >= 0) {
             String value = entry.getValue().trim();
