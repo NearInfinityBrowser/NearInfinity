@@ -31,7 +31,7 @@ public class Platform
    * Determines the current operating system.
    */
   public static OS getPlatform() {
-    String osName = System.getProperty("os.name");
+    String osName = System.getProperty("os.name").toLowerCase();
     if (osName.contains("mac") || osName.contains("darwin")) {
       return OS.MacOS;
     } else if (osName.contains("nix") || osName.contains("nux") || osName.contains("aix")) {
