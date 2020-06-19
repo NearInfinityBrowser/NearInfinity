@@ -49,6 +49,8 @@ public final class EffectFactory
   public static final String EFFECT_PARAMETER_1           = "Parameter 1";
   public static final String EFFECT_PARAMETER_2           = "Parameter 2";
   public static final String EFFECT_SPECIAL               = "Special";
+  public static final String EFFECT_IDENTIFIER            = "Identifier";
+  public static final String EFFECT_PREFIX                = "Prefix";
   public static final String EFFECT_TIMING_MODE           = "Timing mode";
   public static final String EFFECT_DURATION              = "Duration";
   public static final String EFFECT_PROBABILITY_1         = "Probability 1";
@@ -301,7 +303,8 @@ public final class EffectFactory
                                                    "Petrify/Polymorph", null, null, null,
                                                    null, null, null, null,
                                                    null, null, null, null, null, null, null, null, null, null, null, null,
-                                                   "EE/Ex: Bypass mirror image", "Ex: Limit stacking"};
+                                                   "EE/Ex: Bypass mirror image", "Ex: Limit stacking",
+                                                   "Ex: Suspend effect application (internal)"};
   public static final String[] s_savetype2 = {"No save", null, null, "Fortitude", "Reflex", "Will"};
   public static final String[] s_spellstate = {"Chaotic Command", "Miscast Magic", "Pain",
                                                "Greater Malison", "Blood Rage", "Cat's Grace",
@@ -5356,7 +5359,13 @@ public final class EffectFactory
       }
     } else if (Profile.getEngine() == Profile.Engine.BG2 ||
                Profile.getEngine() == Profile.Engine.IWD2) {
-      s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
+      if (((Boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX))) {
+        // related to effect stacking behavior
+        s.add(new DecNumber(buffer, offset, 2, EFFECT_IDENTIFIER));
+        s.add(new TextString(buffer, offset + 2, 2, EFFECT_PREFIX));
+      } else {
+        s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
+      }
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       switch (effectType) {
         case 12:  // Damage
