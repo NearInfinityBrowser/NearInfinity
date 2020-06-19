@@ -666,7 +666,7 @@ public final class CreResource extends AbstractStruct
     offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, Item.class);
 
     itemslots_offset.setValue(offsetStructs);
-    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, DecNumber.class);
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, IndexNumber.class);
     copyStruct(fields, newlist, indexStructs, offsetStructs, Unknown.class);
 
     fields.clear();
