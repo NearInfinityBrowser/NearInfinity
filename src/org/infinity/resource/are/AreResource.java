@@ -29,6 +29,7 @@ import org.infinity.datatype.SectionOffset;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnsignDecNumber;
+import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
@@ -164,8 +165,11 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   public static String getSearchString(ResourceEntry entry)
   {
     String retVal = null;
-    if (entry != null)
+    if (entry != null &&
+        BrowserMenuBar.getInstance() != null &&
+        BrowserMenuBar.getInstance().showTreeSearchNames()) {
       retVal = getMapName(entry.getResourceName());
+    }
     return retVal;
   }
 

@@ -97,6 +97,7 @@ import org.infinity.util.FileDeletionHook;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.Misc;
+import org.infinity.util.Platform;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.DlcManager;
@@ -472,7 +473,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setExtendedState(prefs.getInt(WINDOW_STATE, NORMAL));
 
     // XXX: Workaround to trigger standard window closing callback on OSX when using command-Q
-    if (System.getProperty("os.name").startsWith("Mac OS X")) {
+    if (Platform.IS_MACOS) {
       enableOSXQuitStrategy();
     }
 

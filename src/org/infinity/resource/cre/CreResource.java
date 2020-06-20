@@ -666,7 +666,7 @@ public final class CreResource extends AbstractStruct
     offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, Item.class);
 
     itemslots_offset.setValue(offsetStructs);
-    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, DecNumber.class);
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, IndexNumber.class);
     copyStruct(fields, newlist, indexStructs, offsetStructs, Unknown.class);
 
     fields.clear();
@@ -1033,6 +1033,7 @@ public final class CreResource extends AbstractStruct
     addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR));
     addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
     Bitmap effect_version = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
+    effect_version.addUpdateListener(this);
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BMP"));
     addField(new DecNumber(buffer, offset + 60, 1, CRE_REPUTATION));
@@ -1456,6 +1457,7 @@ public final class CreResource extends AbstractStruct
       addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
     }
     Bitmap effect_version = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
+    effect_version.addUpdateListener(this);
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
     if (version.equalsIgnoreCase("V1.2") || version.equalsIgnoreCase("V1.1")) {
       addField(new ResourceRef(buffer, offset + 52, CRE_PORTRAIT_LARGE, "BAM"));
@@ -2061,6 +2063,83 @@ public final class CreResource extends AbstractStruct
     return field;
   }
 
+  /**
+   * Converts effect structures to the specified EFF version.
+   * @param version Effect version (0=V1, 1=V2)
+   * @param so  Associated section offset instance.
+   * @param sc  Associated section count instance.
+   * @return whether effect entries have been converted.
+   */
+  private boolean convertEffects(int version, SectionOffset so, SectionCount sc)
+  {
+    boolean retVal = false;
+    if (so != null && sc != null) {
+      if (version == 0 && so.getSection().equals(Effect2.class)) {
+        // converting Effect structures V2 -> V1
+        List<Effect2> oldEntries = new ArrayList<>();
+
+        // removing old entries from structure
+        while (sc.getValue() > 0) {
+          Effect2 eff = getAttribute(so.getValue(), Effect2.class);
+          if (eff != null) {
+            oldEntries.add(eff);
+            removeDatatype(eff, true);
+          } else {
+            throw new NullPointerException("Effect structure is null");
+          }
+        }
+
+        // switching to Effect type
+        so.setSection(Effect.class);
+        sc.setSection(Effect.class);
+
+        // adding converted entries
+        while (!oldEntries.isEmpty()) {
+          Effect2 oldEff = oldEntries.remove(0);
+          try {
+            Effect newEff = (Effect)oldEff.clone(true);
+            addDatatype(newEff);
+            retVal |= true;
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+      } else if (version == 1 && so.getSection().equals(Effect.class)) {
+        // converting Effect structures V1 -> V2
+        List<Effect> oldEntries = new ArrayList<>();
+
+        // removing old entries from structure
+        while (sc.getValue() > 0) {
+          Effect eff = getAttribute(so.getValue(), Effect.class);
+          if (eff != null) {
+            oldEntries.add(eff);
+            removeDatatype(eff, true);
+          } else {
+            throw new NullPointerException("Effect structure is null");
+          }
+        }
+
+        // switching to Effect2 type
+        so.setSection(Effect2.class);
+        sc.setSection(Effect2.class);
+
+        // adding converted entries
+        while (!oldEntries.isEmpty()) {
+          Effect oldEff = oldEntries.remove(0);
+          try {
+            Effect2 newEff = (Effect2)oldEff.clone(true);
+            addDatatype(newEff);
+            retVal |= true;
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+
+      }
+    }
+    return retVal;
+  }
+
   //--------------------- Begin Interface ItemListener ---------------------
 
   @Override
@@ -2083,13 +2162,23 @@ public final class CreResource extends AbstractStruct
   @Override
   public boolean valueUpdated(UpdateEvent event)
   {
-    // TODO: Listener queue fills with duplicate entries with each click on AnimateBitmap's "Update" button
-//    boolean retVal = false;
-//    if (event.getSource() instanceof AnimateBitmap) {
-//      AnimateBitmap animate = (AnimateBitmap)event.getSource();
-//      retVal = setColorFieldsPSTEE(animate.getValue(), null, 0x2c, true) > 0;
-//    }
-//    return retVal;
+    if (event.getSource() instanceof StructEntry) {
+      StructEntry se = (StructEntry)event.getSource();
+      if (se.getName().equals(CRE_EFFECT_VERSION)) {
+        int version = ((IsNumeric)se).getValue();
+        SectionCount cnt = (SectionCount)getAttribute(CRE_NUM_EFFECTS);
+        SectionOffset ofs = (SectionOffset)getAttribute(CRE_OFFSET_EFFECTS);
+        return convertEffects(version, ofs, cnt);
+//      } else if (se.getName().equals(CRE_ANIMATION)) {
+//        // TODO: Listener queue fills with duplicate entries with each click on AnimateBitmap's "Update" button
+//        boolean retVal = false;
+//        if (event.getSource() instanceof AnimateBitmap) {
+//          AnimateBitmap animate = (AnimateBitmap)event.getSource();
+//          retVal = setColorFieldsPSTEE(animate.getValue(), null, 0x2c, true) > 0;
+//        }
+//        return retVal;
+      }
+    }
     return false;
   }
 

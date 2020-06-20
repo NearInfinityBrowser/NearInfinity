@@ -49,6 +49,8 @@ public final class EffectFactory
   public static final String EFFECT_PARAMETER_1           = "Parameter 1";
   public static final String EFFECT_PARAMETER_2           = "Parameter 2";
   public static final String EFFECT_SPECIAL               = "Special";
+  public static final String EFFECT_IDENTIFIER            = "Identifier";
+  public static final String EFFECT_PREFIX                = "Prefix";
   public static final String EFFECT_TIMING_MODE           = "Timing mode";
   public static final String EFFECT_DURATION              = "Duration";
   public static final String EFFECT_PROBABILITY_1         = "Probability 1";
@@ -274,9 +276,6 @@ public final class EffectFactory
                                                 "Quick skill 0", "Quick skill 1", "Quick skill 2",
                                                 "Quick skill 3", "Quick skill 4", "Quick skill 5",
                                                 "Quick skill 6", "Quick skill 7", "Quick skill 8"};
-  public static final String[] s_school = {"None", "Abjuration", "Conjuration", "Divination",
-                                           "Enchantment", "Illusion", "Evocation",
-                                           "Necromancy", "Alteration", "Generalist"};
   public static final String[] s_attacks = {"0 attacks per round", "1 attack per round",
                                             "2 attacks per round", "3 attacks per round",
                                             "4 attacks per round", "5 attacks per round",
@@ -304,7 +303,8 @@ public final class EffectFactory
                                                    "Petrify/Polymorph", null, null, null,
                                                    null, null, null, null,
                                                    null, null, null, null, null, null, null, null, null, null, null, null,
-                                                   "EE/Ex: Bypass mirror image", "Ex: Limit stacking"};
+                                                   "EE/Ex: Bypass mirror image", "Ex: Limit stacking",
+                                                   "Ex: Suspend effect application (internal)"};
   public static final String[] s_savetype2 = {"No save", null, null, "Fortitude", "Reflex", "Will"};
   public static final String[] s_spellstate = {"Chaotic Command", "Miscast Magic", "Pain",
                                                "Greater Malison", "Blood Rage", "Cat's Grace",
@@ -3241,7 +3241,7 @@ public final class EffectFactory
       case 202: // Reflect spell school
       case 204: // Protection from spell school
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
+        s.add(new PriTypeBitmap(buffer, offset + 4, 4, "Spell school"));
         break;
 
       case 203: // Reflect spell type
@@ -3335,7 +3335,7 @@ public final class EffectFactory
       case 220: // Remove spell school protections
       case 229: // Remove protection by school
         s.add(new DecNumber(buffer, offset, 4, "Maximum level"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
+        s.add(new PriTypeBitmap(buffer, offset + 4, 4, "Spell school"));
         break;
 
       case 221: // Remove spell type protections
@@ -3352,7 +3352,7 @@ public final class EffectFactory
       case 223: // Spell school deflection
       case 227: // Spell school turning
         s.add(new DecNumber(buffer, offset, 4, "# levels"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Spell school", s_school));
+        s.add(new PriTypeBitmap(buffer, offset + 4, 4, "Spell school"));
         if (Profile.isEnhancedEdition()) { restype = "SPL"; }
         break;
 
@@ -5359,7 +5359,13 @@ public final class EffectFactory
       }
     } else if (Profile.getEngine() == Profile.Engine.BG2 ||
                Profile.getEngine() == Profile.Engine.IWD2) {
-      s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
+      if (((Boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX))) {
+        // related to effect stacking behavior
+        s.add(new DecNumber(buffer, offset, 2, EFFECT_IDENTIFIER));
+        s.add(new TextString(buffer, offset + 2, 2, EFFECT_PREFIX));
+      } else {
+        s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
+      }
     } else if (Profile.getEngine() == Profile.Engine.PST) {
       switch (effectType) {
         case 12:  // Damage

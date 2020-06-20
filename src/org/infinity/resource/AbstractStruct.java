@@ -36,7 +36,9 @@ import org.infinity.gui.StructViewer;
 import org.infinity.resource.are.Actor;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.dlg.AbstractCode;
+import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.resource.spl.SplResource;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
@@ -119,6 +121,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   private static void adjustSectionOffsets(AbstractStruct superStruct, AddRemovable datatype, int amount)
   {
+    boolean sectionMatch = false;
     for (final StructEntry e : superStruct.fields) {
       if (e instanceof SectionOffset) {
         final SectionOffset so = (SectionOffset)e;
@@ -126,10 +129,11 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
           so.incValue(amount);
         }
         else if (so.getValue() + superStruct.getExtraOffset() == datatype.getOffset()) {
+          sectionMatch |= so.getSection().equals(datatype.getClass());
           if (amount > 0 &&
-              !(so.getSection() == datatype.getClass() ||
-                Profile.getEngine() == Profile.Engine.IWD2 &&
-                superStruct instanceof CreResource)) {
+              !(so.getSection().equals(datatype.getClass()) ||
+                  (Profile.getEngine() == Profile.Engine.IWD2 && superStruct instanceof CreResource) ||
+                  ((superStruct instanceof ItmResource || superStruct instanceof SplResource) && !sectionMatch))) {
             so.incValue(amount);
           }
         }
@@ -1066,6 +1070,28 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public SectionCount getSectionCount(Class<? extends StructEntry> cls)
   {
     return countmap.get(cls);
+  }
+
+  /** Updates class mapping of the SectionOffset instance associated with the specified class type. */
+  public SectionOffset updateSectionOffset(Class<? extends StructEntry> cls)
+  {
+    SectionOffset so = offsetmap.getOrDefault(cls, null);
+    if (so != null && !so.getSection().equals(cls)) {
+      offsetmap.remove(cls);
+      offsetmap.put(so.getSection(), so);
+    }
+    return so;
+  }
+
+  /** Updates class mapping of the SectionCount instance associated with the specified class type. */
+  public SectionCount updateSectionCount(Class<? extends StructEntry> cls)
+  {
+    SectionCount sc = countmap.getOrDefault(cls, null);
+    if (sc != null && !sc.getSection().equals(cls)) {
+      countmap.remove(cls);
+      countmap.put(sc.getSection(), sc);
+    }
+    return sc;
   }
 
   private void fillFlatFields(List<StructEntry> flatList)

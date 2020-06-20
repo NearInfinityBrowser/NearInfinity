@@ -735,7 +735,7 @@ public class StringEditor extends ChildFrame implements SearchClient
             if (!Files.isDirectory(outPath)) {
               outPath = outPath.getParent();
             }
-            outFile = outPath.resolve(StringTable.getPath(StringTable.Type.MALE).getFileName());
+            outFile = outPath.resolve(StringTable.getPath(StringTable.Type.MALE).getFileName().toString());
           } else {
             JOptionPane.showMessageDialog(this, "Operation cancelled.", "Information",
                                           JOptionPane.INFORMATION_MESSAGE);
@@ -770,6 +770,8 @@ public class StringEditor extends ChildFrame implements SearchClient
         JOptionPane.showMessageDialog(this, "File(s) written successfully.", "Save complete",
                                       JOptionPane.INFORMATION_MESSAGE);
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     } finally {
       bSync.setEnabled(isSync);
       bAdd.setEnabled(isAdd);
