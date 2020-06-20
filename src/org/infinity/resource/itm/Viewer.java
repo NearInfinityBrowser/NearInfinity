@@ -76,8 +76,8 @@ final class Viewer extends JPanel
     JPanel fieldPanel = new JPanel(gbl);
 
     gbc.insets = new Insets(3, 3, 3, 3);
-    ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute(ItmResource.ITM_NAME_GENERAL), gbl, gbc, true);
-    ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute(ItmResource.ITM_NAME_IDENTIFIED), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute(ItmResource.ITM_NAME_GENERAL), gbl, gbc, true, 100);
+    ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute(ItmResource.ITM_NAME_IDENTIFIED), gbl, gbc, true, 100);
     ViewerUtil.addLabelFieldPair(fieldPanel, itm.getAttribute(ItmResource.ITM_CATEGORY), gbl, gbc, true);
     StructEntry s1 = itm.getAttribute(ItmResource.ITM_MIN_STRENGTH);
     StructEntry s2 = itm.getAttribute(ItmResource.ITM_MIN_STRENGTH_BONUS);

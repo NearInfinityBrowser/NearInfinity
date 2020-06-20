@@ -121,6 +121,8 @@ public final class Viewer extends JPanel
     JTabbedPane tabs = new JTabbedPane();
     JScrollPane scroll = new JScrollPane(makeMainPanel(cre));
     scroll.setBorder(BorderFactory.createEmptyBorder());
+    scroll.getVerticalScrollBar().setUnitIncrement(32);
+    scroll.getHorizontalScrollBar().setUnitIncrement(32);
     tabs.addTab("Stats", scroll);
     StructEntry version = cre.getAttribute(AbstractStruct.COMMON_VERSION);
     if (version.toString().equalsIgnoreCase("V2.2")) {
@@ -176,10 +178,10 @@ public final class Viewer extends JPanel
     IsNumeric effectVersion = (IsNumeric)cre.getAttribute(CreResource.CRE_EFFECT_VERSION);
     if (effectVersion == null) {
       return new JPanel();
-    } else if (effectVersion.getValue() == 1) {
-      effectPanel = ViewerUtil.makeListPanel("Effects", cre, Effect2.class, EffectType.EFFECT_TYPE);
     } else {
-      effectPanel = ViewerUtil.makeListPanel("Effects", cre, Effect.class, EffectType.EFFECT_TYPE);
+      effectPanel = ViewerUtil.makeListPanel("Effects", cre,
+                                            (effectVersion.getValue() == 1) ? Effect2.class : Effect.class,
+                                            EffectType.EFFECT_TYPE);
     }
     ResourceRef imageRef = (ResourceRef)cre.getAttribute(CreResource.CRE_PORTRAIT_LARGE);
     JComponent imagePanel;
@@ -253,7 +255,7 @@ public final class Viewer extends JPanel
     JPanel panel = new JPanel(gbl);
 
     gbc.insets = new Insets(2, 6, 3, 0);
-    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_NAME), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_NAME), gbl, gbc, true, 100);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_XP), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_XP_VALUE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GOLD), gbl, gbc, true);

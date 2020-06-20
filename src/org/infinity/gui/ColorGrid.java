@@ -30,6 +30,8 @@ import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.infinity.util.Platform;
+
 /**
  * Implements a grid of selectable color indices.
  */
@@ -729,9 +731,25 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
         int x = gapX + col*(gapX + colorSize.width);
         int y = gapY + row*(gapY + colorSize.height);
 
-        g2d.setPaint(BackgroundPattern);
-        g2d.fillRect(x, y, colorSize.width, colorSize.height);
-        g2d.setPaint(null);
+        if (Platform.IS_UNIX) {
+          // XXX: Workaround for issue: java.lang.InternalError "Surface not cachable"
+          g2d.setColor(new Color(0xffffff));
+          g2d.fillRect(x, y, colorSize.width, colorSize.height);
+          g2d.setColor(new Color(0xc0c0c0));
+          for (int ofsY = 0; ofsY < colorSize.height; ofsY += 4) {
+            for (int ofsX = 0; ofsX < colorSize.width; ofsX += 4) {
+              if ((ofsY & 0x4) != (ofsX & 0x4)) {
+                int boxH = Math.min(4, colorSize.height - ofsY);
+                int boxW = Math.min(4, colorSize.width - ofsX);
+                g2d.fillRect(x + ofsX, y + ofsY, boxW, boxH);
+              }
+            }
+          }
+        } else {
+          g2d.setPaint(BackgroundPattern);
+          g2d.fillRect(x, y, colorSize.width, colorSize.height);
+          g2d.setPaint(null);
+        }
 
         boolean alpha = (i != 0); // Color at index 0 is implicitly treated as transparent
         g.setColor(new Color(listColors.get(i).getRGB(), alpha));

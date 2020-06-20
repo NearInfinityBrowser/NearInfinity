@@ -11,7 +11,7 @@ import org.infinity.resource.StructEntry;
 
 public final class SectionCount extends DecNumber
 {
-  private final Class<? extends StructEntry> section;
+  private Class<? extends StructEntry> section;
 
   public SectionCount(ByteBuffer buffer, int offset, int length, String desc,
                       Class<? extends StructEntry> section)
@@ -34,5 +34,15 @@ public final class SectionCount extends DecNumber
   public Class<? extends StructEntry> getSection()
   {
     return section;
+  }
+
+  public void setSection(Class<? extends StructEntry> section)
+  {
+    if (!this.section.equals(section)) {
+      Class<? extends StructEntry> cls = this.section;
+      this.section = Objects.requireNonNull(section, "Class for SectionCount must not be null");
+      if (getParent() != null)
+        getParent().updateSectionCount(cls);
+    }
   }
 }

@@ -43,9 +43,19 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
    */
   public LinkButton(ResourceRef resourceRef)
   {
+    this(resourceRef, 0);
+  }
+
+  /**
+   * Creates a link button which points to an internal game resource as specified by the argument.
+   * @param resourceRef The game resource as ResourceRef object.
+   * @param maxLength Max. number of characters displayed in the label text. Full string is displayed as tooltip instead.
+   */
+  public LinkButton(ResourceRef resourceRef, int maxLength)
+  {
     super();
     setHorizontalAlignment(SwingConstants.LEFT);
-    setResource(resourceRef);
+    setResource(resourceRef, maxLength);
   }
 
   /**
@@ -54,9 +64,19 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
    */
   public LinkButton(String resourceName)
   {
+    this(resourceName, 0);
+  }
+
+  /**
+   * Creates a link button which points to an internal game resource as specified by the argument.
+   * @param resourceName The game resource as string.
+   * @param maxLength Max. number of characters displayed in the label text. Full string is displayed as tooltip instead.
+   */
+  public LinkButton(String resourceName, int maxLength)
+  {
     super();
     setHorizontalAlignment(SwingConstants.LEFT);
-    setResource(resourceName);
+    setResource(resourceName, maxLength);
   }
 
   /**
@@ -66,52 +86,80 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
    */
   public LinkButton(String text, String url)
   {
+    this(text, url, 0);
+  }
+
+  /**
+   * Creates a link button which points to an external URL.
+   * @param text The display name of the link.
+   * @param url The actual URL of the link.
+   * @param maxLength Max. number of characters displayed in the label text. Full string is displayed as tooltip instead.
+   */
+  public LinkButton(String text, String url, int maxLength)
+  {
     super();
     setHorizontalAlignment(SwingConstants.LEFT);
-    setUrl(text, url);
+    setUrl(text, url, maxLength);
   }
 
   /** Creates a link from the specified resource reference. */
   public void setResource(ResourceRef resourceRef)
   {
+    setResource(resourceRef, 0);
+  }
+
+  /** Creates a link from the specified resource reference. */
+  public void setResource(ResourceRef resourceRef, int maxLength)
+  {
     if (resourceRef != null) {
-      setResource(ResourceFactory.getResourceEntry(resourceRef.getResourceName()), resourceRef.toString());
+      setResource(ResourceFactory.getResourceEntry(resourceRef.getResourceName()), resourceRef.toString(), maxLength);
     } else {
-      setResource(null, null);
+      setResource(null, null, maxLength);
     }
   }
 
   /** Attempts to create a link from the specified resource name. */
   public void setResource(String resourceName)
   {
-    setResource(ResourceFactory.getResourceEntry(resourceName), resourceName);
+    setResource(ResourceFactory.getResourceEntry(resourceName), resourceName, 0);
   }
 
-  private void setResource(ResourceEntry entry, String resourceName)
+  /** Attempts to create a link from the specified resource name. */
+  public void setResource(String resourceName, int maxLength)
+  {
+    setResource(ResourceFactory.getResourceEntry(resourceName), resourceName, maxLength);
+  }
+
+  private void setResource(ResourceEntry entry, String resourceName, int maxLength)
   {
     isResource = true;
     removeActionListener(this);
     this.entry = entry;
     if (entry != null) {
       addActionListener(this);
-      setLink(resourceName, entry.getResourceName(), true);
+      setLink(resourceName, entry.getResourceName(), true, maxLength);
       setEnabled(true);
-      setToolTipText(null);
+      // setToolTipText(null);
     } else {
-      setLink(resourceName, null, false);
+      setLink(resourceName, null, false, maxLength);
       setEnabled(false);
       setToolTipText("Resource not found");
     }
   }
 
   /** Sets link or label text, depending on arguments. */
-  private void setLink(String text, String resource, boolean asLink)
+  private void setLink(String text, String resource, boolean asLink, int maxLength)
   {
     removeMouseListener(this);
     setCursor(null);
 
     if (text == null) {
       text = resource;
+    }
+    String toolTip = null;
+    if (maxLength > 0 && text != null && text.length() > maxLength) {
+      toolTip = text;
+      text = text.substring(0, maxLength) + "...";
     }
 
     if (!asLink) {
@@ -123,10 +171,19 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
     } else {
       setText("");
     }
+
+    if (toolTip != null)
+      setToolTipText(toolTip);
   }
 
   /** Creates a link to an external URL. */
   public void setUrl(String text, String url)
+  {
+    setUrl(text, url, 0);
+  }
+
+  /** Creates a link to an external URL. */
+  public void setUrl(String text, String url, int maxLength)
   {
     isResource = false;
     if (url == null || url.isEmpty()) {
@@ -137,7 +194,7 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
     }
     this.url = url;
     addActionListener(this);
-    setLink(text, url, true);
+    setLink(text, url, true, maxLength);
     setEnabled(true);
   }
 
