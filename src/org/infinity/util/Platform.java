@@ -5,8 +5,7 @@
 package org.infinity.util;
 
 /**
- * This class can be used to determine the  operating system where this Java application is running.
- * Determines
+ * This class can be used to determine the operating system where this Java application is running.
  */
 public class Platform
 {
