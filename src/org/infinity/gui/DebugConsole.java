@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.swing.JButton;
@@ -90,8 +91,9 @@ final class DebugConsole extends ChildFrame implements ActionListener
           bw.write(NearInfinity.getConsoleText().getText()); bw.newLine();
           bw.newLine();
           Properties props = System.getProperties();
-          for (Object key : props.keySet()) {
-            bw.write(key + "=" + props.get(key)); bw.newLine();
+          for (Map.Entry<Object, Object> entry : props.entrySet()) {
+            bw.write(entry.getKey() + "=" + entry.getValue());
+            bw.newLine();
           }
           JOptionPane.showMessageDialog(this, "Console saved to " + output, "Save complete",
                                         JOptionPane.INFORMATION_MESSAGE);

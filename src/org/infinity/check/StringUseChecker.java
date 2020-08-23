@@ -333,7 +333,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
     @Override
     public String toString()
     {
-      return "StringRef: " + strRef + " /* " + string.replaceAll("\r\n", Misc.LINE_SEPARATOR) + " */";
+      return "StringRef: " + strRef + " /* " + string.replace("\r\n", Misc.LINE_SEPARATOR) + " */";
     }
   }
 }

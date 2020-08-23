@@ -508,10 +508,10 @@ public class ScriptInfo
     this((objectSpecifierIds != null) ? objectSpecifierIds : obj.OBJECT_SPECIFIER_IDS, obj.SCOPES);
     this.FUNCTION_RESTYPE.putAll(obj.FUNCTION_RESTYPE);
     this.FUNCTION_CONCAT.putAll(obj.FUNCTION_CONCAT);
-    for (final Function.FunctionType ft: obj.FUNCTION_SIGNATURES.keySet()) {
-      List<String> oldList = obj.FUNCTION_SIGNATURES.get(ft);
+    for (final Map.Entry<Function.FunctionType, List<String>> entry : obj.FUNCTION_SIGNATURES.entrySet()) {
+      List<String> oldList = entry.getValue();
       if (oldList != null) {
-        this.FUNCTION_SIGNATURES.put(ft, new ArrayList<String>(oldList));
+        this.FUNCTION_SIGNATURES.put(entry.getKey(), new ArrayList<String>(oldList));
       }
     }
     this.FUNCTION_PARAM_COMMENT.putAll(obj.FUNCTION_PARAM_COMMENT);

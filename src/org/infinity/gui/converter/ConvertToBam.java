@@ -46,6 +46,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -5477,8 +5478,8 @@ public class ConvertToBam extends ChildFrame
 
         // post-processing
         int[][] cycleArray = new int[maxCycle + 1][];
-        for (Integer idx : cycles.keySet()) {
-          cycleArray[idx] = cycles.get(idx);
+        for (Map.Entry<Integer, int[]> entry : cycles.entrySet()) {
+          cycleArray[entry.getKey()] = entry.getValue();
         }
 
         bam.filterRemoveAll();
@@ -5549,13 +5550,13 @@ public class ConvertToBam extends ChildFrame
 
         // post-processing data
         Config[] configArray = new Config[maxIndex + 1];
-        for (Integer idx : filterMap.keySet()) {
-          Config config = filterMap.get(idx);
+        for (Map.Entry<Integer, Config> entry : filterMap.entrySet()) {
+          final Config config = entry.getValue();
           if (config.name != null) {
             if (config.param == null) {
               config.param = "";
             }
-            configArray[idx] = config;
+            configArray[entry.getKey()] = config;
           }
         }
 
