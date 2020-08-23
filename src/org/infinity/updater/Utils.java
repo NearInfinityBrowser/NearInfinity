@@ -23,7 +23,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownServiceException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -87,7 +86,7 @@ public class Utils
       if (url != null) {
         try {
           Path file = Paths.get(url.toURI());
-          if (Files.exists(file)) {
+          if (file.toFile().exists()) {
             return file.toString();
           }
         } catch (URISyntaxException e) {

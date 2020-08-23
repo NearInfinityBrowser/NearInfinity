@@ -33,7 +33,7 @@ public class FileDeletionHook extends Thread
   {
     synchronized (listFilesToDelete) {
       for (final Path file: listFilesToDelete) {
-        if (file != null && Files.exists(file)) {
+        if (file != null && file.toFile().exists()) {
           try {
             Files.delete(file);
           } catch (Throwable t) {

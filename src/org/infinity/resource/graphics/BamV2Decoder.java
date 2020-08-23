@@ -11,7 +11,6 @@ import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -250,7 +249,7 @@ public class BamV2Decoder extends BamDecoder
       if (bamPath != null) {
         // preferring PVRZ files from the BAM's base path
         Path pvrzFile = FileManager.resolve(bamPath.resolve(name));
-        if (Files.isRegularFile(pvrzFile)) {
+        if (pvrzFile.toFile().isFile()) {
           entry = new FileResourceEntry(pvrzFile);
         }
       }

@@ -166,7 +166,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     for (final ResourceEntry entry : tobif) {
       Path file = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(),
                                     entry.getResourceName());
-      if (file != null && Files.isRegularFile(file)) {
+      if (file != null && file.toFile().isFile()) {
         try {
           Files.delete(file);
         } catch (IOException e) {

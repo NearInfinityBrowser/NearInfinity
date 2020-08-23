@@ -10,7 +10,6 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.jar.JarFile;
@@ -190,7 +189,7 @@ public class Updater
     String path = Utils.getJarFileName(NearInfinity.class);
     if (path != null && !path.isEmpty()) {
       Path jarPath = FileManager.resolve(path);
-      if (Files.isRegularFile(jarPath)) {
+      if (jarPath.toFile().isFile()) {
         try {
           return Utils.generateMD5Hash(new FileInputStream(path));
         } catch (IOException e) {

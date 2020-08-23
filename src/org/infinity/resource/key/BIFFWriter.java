@@ -121,7 +121,7 @@ public final class BIFFWriter
   public void write() throws Exception
   {
     Path biffPath = FileManager.query(Profile.getGameRoot(), "data");
-    if (biffPath == null || !Files.isDirectory(biffPath)) {
+    if (biffPath == null || !biffPath.toFile().isDirectory()) {
       throw new Exception("No BIFF folder found.");
     }
     Path dummyFile = Files.createTempFile(biffPath, "_dummy", ".bif");
@@ -136,7 +136,7 @@ public final class BIFFWriter
         if (realFile == null) {
           realFile = FileManager.query(Profile.getGameRoot(), bifEntry.getFileName());
         }
-        if (Files.isRegularFile(realFile)) {
+        if (realFile.toFile().isFile()) {
           Files.delete(realFile);
         }
         Files.move(dummyFile, realFile);
@@ -149,7 +149,7 @@ public final class BIFFWriter
         if (realFile == null) {
           realFile = FileManager.query(Profile.getGameRoot(), bifEntry.getFileName());
         }
-        if (Files.isRegularFile(realFile)) {
+        if (realFile.toFile().isFile()) {
           Files.delete(realFile);
         }
         Files.move(compressedFile, realFile);
@@ -162,19 +162,19 @@ public final class BIFFWriter
         if (realFile == null) {
           realFile = FileManager.query(Profile.getRootFolders(), bifEntry.getFileName());
         }
-        if (Files.isRegularFile(realFile)) {
+        if (realFile.toFile().isFile()) {
           Files.delete(realFile);
         }
         Files.move(compressedFile, realFile);
       }
     } finally {
-      if (dummyFile != null && Files.isRegularFile(dummyFile)) {
+      if (dummyFile != null && dummyFile.toFile().isFile()) {
         try {
           Files.delete(dummyFile);
         } catch (IOException e) {
         }
       }
-      if (compressedFile != null && Files.isRegularFile(compressedFile)) {
+      if (compressedFile != null && compressedFile.toFile().isFile()) {
         try {
           Files.delete(compressedFile);
         } catch (IOException e) {

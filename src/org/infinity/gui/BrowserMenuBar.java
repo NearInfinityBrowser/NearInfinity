@@ -26,7 +26,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1050,7 +1049,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         }
         if (selected != -1) {
           Path keyFile = FileManager.resolve(bookmarkList.get(selected).getPath());
-          if (!Files.isRegularFile(keyFile)) {
+          if (!keyFile.toFile().isFile()) {
             JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                                           bookmarkList.get(selected).getPath() + " could not be found",
                                           "Open game failed", JOptionPane.ERROR_MESSAGE);
@@ -1069,7 +1068,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         }
         if (selected != -1) {
           Path keyFile = FileManager.resolve(recentList.get(selected).getPath());
-          if (!Files.isRegularFile(keyFile)) {
+          if (!keyFile.toFile().isFile()) {
             JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                                           recentList.get(selected).getPath() + " could not be found",
                                           "Open game failed", JOptionPane.ERROR_MESSAGE);
@@ -3558,7 +3557,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     public JMenuItem getMenuItem() { return item; }
 
     /** Returns whether the bookmark points to an existing game installation. */
-    public boolean isEnabled() { return (Files.isRegularFile(FileManager.resolve(path))); }
+    public boolean isEnabled() { return (FileManager.resolve(path).toFile().isFile()); }
 
     /** Returns ActionListener used by the associated menu item. */
     public ActionListener getActionListener() { return listener; }
@@ -3654,7 +3653,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     public RecentGame(Profile.Game game, String path, int index, ActionListener listener)
     {
       if (game == null || game == Profile.Game.Unknown ||
-          path == null || !Files.isRegularFile(FileManager.resolve(path))) {
+          path == null || !FileManager.resolve(path).toFile().isFile()) {
         throw new NullPointerException();
       }
       this.game = game;

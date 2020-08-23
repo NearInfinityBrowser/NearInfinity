@@ -22,7 +22,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -240,7 +239,7 @@ public final class OpenFileFrame extends ChildFrame implements ActionListener
   /** Attempts to open the specified external game resource. */
   public static void openExternalFile(Component parent, Path file)
   {
-    if (!Files.exists(file)) {
+    if (file != null && !file.toFile().exists()) {
       JOptionPane.showMessageDialog(parent, '\"' + file.toString() + "\" not found",
                                     "Error", JOptionPane.ERROR_MESSAGE);
     } else {

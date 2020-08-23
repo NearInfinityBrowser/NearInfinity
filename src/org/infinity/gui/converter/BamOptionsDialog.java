@@ -17,7 +17,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.io.IOError;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -161,7 +160,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
   {
     bamVersion = Math.min(Math.max(bamVersion, ConvertToBam.VERSION_BAMV1), ConvertToBam.VERSION_BAMV2);
     if (path == null) path = DEFAULT_PATH;
-    if (!path.isEmpty() && !(Files.isDirectory(FileManager.resolve(path)))) path = DEFAULT_PATH;
+    if (!path.isEmpty() && !FileManager.resolve(path).toFile().isDirectory()) path = DEFAULT_PATH;
     transparencyThreshold = Math.min(Math.max(transparencyThreshold, 0), 100);
     useAlpha = Math.min(Math.max(useAlpha, ConvertToBam.ALPHA_AUTO), ConvertToBam.ALPHA_NEVER);
 
@@ -249,7 +248,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
           value = value.trim();
           if (!finished && !value.isEmpty()) {
             Path path = Paths.get(value);
-            if (Files.isRegularFile(path)) {
+            if (path.toFile().isFile()) {
               recentSessions.add(path);
             }
           }
@@ -292,7 +291,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
   {
     if (event.getSource() == miPathSet) {
       Path path = FileManager.resolve(tfPath.getText());
-      if (!Files.isDirectory(path)) {
+      if (!path.toFile().isDirectory()) {
         path = Profile.getGameRoot();
       }
       Path rootPath = ConvertToBam.getOpenPathName(this, "Select initial directory", path);
@@ -335,7 +334,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
   {
     if (event.getSource() == tfPath) {
       String path = tfPath.getText();
-      if (!path.isEmpty() && !Files.isDirectory(FileManager.resolve(path))) {
+      if (!path.isEmpty() && !FileManager.resolve(path).toFile().isDirectory()) {
         tfPath.setText(path);
       }
     }

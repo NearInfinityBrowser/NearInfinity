@@ -90,7 +90,7 @@ public class DlcManager
 
   private FileSystem _getDlc(Path dlcFile)
   {
-    if (dlcFile != null && Files.isRegularFile(dlcFile)) {
+    if (dlcFile != null && dlcFile.toFile().isFile()) {
       return fileSystems.get(dlcFile);
     }
     return null;
@@ -107,7 +107,7 @@ public class DlcManager
       if (fs != null) {
         for (final String keyFile: KEY_FILES) {
           Path key = fs.getPath(keyFile);
-          if (key != null && Files.isRegularFile(key)) {
+          if (key != null && key.toFile().isFile()) {
             try (InputStream is = StreamUtils.getInputStream(key)) {
               String sig = StreamUtils.readString(is, 8);
               if ("KEY V1  ".equals(sig)) {
@@ -126,7 +126,7 @@ public class DlcManager
 
   private FileSystem _validateDlc(Path dlcFile) throws IOException
   {
-    if (dlcFile == null || !Files.isRegularFile(dlcFile)) {
+    if (dlcFile == null || !dlcFile.toFile().isFile()) {
       return null;
     }
 

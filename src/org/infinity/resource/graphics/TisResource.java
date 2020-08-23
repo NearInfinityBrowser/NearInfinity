@@ -567,7 +567,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         } else {
           repeat = false;
         }
-        if (Files.exists(retVal)) {
+        if (retVal.toFile().exists()) {
           final String options[] = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(parent, retVal + " exists. Overwrite?", "Export resource",
                                            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
@@ -596,7 +596,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     fc.setSelectedFile(new File(fc.getCurrentDirectory(), getResourceEntry().getResourceName().toUpperCase(Locale.ENGLISH).replace(".TIS", ".PNG")));
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       retVal = fc.getSelectedFile().toPath();
-      if (Files.exists(retVal)) {
+      if (retVal.toFile().exists()) {
         final String options[] = {"Overwrite", "Cancel"};
         if (JOptionPane.showOptionDialog(parent, retVal + " exists. Overwrite?", "Export resource",
                                          JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
@@ -744,7 +744,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
             progress = null;
           }
         }
-        if (retVal != Status.SUCCESS && Files.isRegularFile(output)) {
+        if (retVal != Status.SUCCESS && output.toFile().isFile()) {
           try {
             Files.delete(output);
           } catch (IOException e) {
@@ -980,7 +980,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
         retVal = Status.ERROR;
         e.printStackTrace();
       }
-      if (retVal != Status.SUCCESS && Files.isRegularFile(output)) {
+      if (retVal != Status.SUCCESS && output.toFile().isFile()) {
         try {
           Files.delete(output);
         } catch (IOException e) {
@@ -1038,7 +1038,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
             progress = null;
           }
         }
-        if (retVal != Status.SUCCESS && Files.isRegularFile(output)) {
+        if (retVal != Status.SUCCESS && output.toFile().isFile()) {
           try {
             Files.delete(output);
           } catch (IOException e) {
@@ -1133,7 +1133,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       if (retVal != Status.SUCCESS) {
         for (int i = 0; i < pageList.size(); i++) {
           Path pvrzFile = generatePvrzFileName(tisFile, i);
-          if (pvrzFile != null && Files.isRegularFile(pvrzFile)) {
+          if (pvrzFile != null && pvrzFile.toFile().isFile()) {
             try {
               Files.delete(pvrzFile);
             } catch (IOException e) {

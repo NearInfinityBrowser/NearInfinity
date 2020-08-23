@@ -6,7 +6,6 @@ package org.infinity.resource.are.viewer;
 
 import java.awt.Image;
 import java.awt.Point;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.infinity.datatype.IsNumeric;
@@ -65,7 +64,7 @@ public class LayerObjectAutomap extends LayerObject
           if (Profile.isEnhancedEdition()) {
             // processing new TOH structure
             Path tohFile = FileManager.resolve(path, "DEFAULT.TOH");
-            if (Files.exists(tohFile)) {
+            if (tohFile.toFile().exists()) {
               FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
               TohResource toh = new TohResource(tohEntry);
               SectionOffset so = (SectionOffset)toh.getAttribute(TohResource.TOH_OFFSET_ENTRIES);
@@ -92,7 +91,7 @@ public class LayerObjectAutomap extends LayerObject
             // processing legacy TOH/TOT structures
             Path tohFile = FileManager.resolve(path, "DEFAULT.TOH");
             Path totFile = FileManager.resolve(path, "DEFAULT.TOT");
-            if (Files.exists(tohFile) && Files.exists(totFile)) {
+            if (tohFile.toFile().exists() && totFile.toFile().exists()) {
               FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
               FileResourceEntry totEntry = new FileResourceEntry(totFile);
               TohResource toh = new TohResource(tohEntry);

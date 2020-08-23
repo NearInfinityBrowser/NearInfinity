@@ -98,7 +98,7 @@ public class ConvertToBmp extends ChildFrame
     }
     Path file = FileManager.resolve(rootPath);
     JFileChooser fc = new JFileChooser(file.toFile());
-    if (!Files.isDirectory(file)) {
+    if (!file.toFile().isDirectory()) {
         fc.setSelectedFile(file.toFile());
     }
     if (title == null) {
@@ -520,7 +520,7 @@ public class ConvertToBmp extends ChildFrame
       rootPath = FileManager.resolve(modelInputFiles.get(modelInputFiles.size() - 1));
     }
     Path path = getOpenPathName(this, "Choose folder", rootPath);
-    if (path != null && Files.isDirectory(path)) {
+    if (path != null && path.toFile().isDirectory()) {
       // adding all files in the directory
       FileNameExtensionFilter[] filters = getGraphicsFilters();
       List<String> skippedFiles = new ArrayList<String>();
@@ -528,7 +528,7 @@ public class ConvertToBmp extends ChildFrame
       try (DirectoryStream<Path> dstream = Files.newDirectoryStream(path)) {
         for (final Path file: dstream) {
           for (final FileNameExtensionFilter filter: filters) {
-            if (Files.isRegularFile(file) && filter.accept(file.toFile())) {
+            if (file.toFile().isFile() && filter.accept(file.toFile())) {
               if (isValidInput(file)) {
                 modelInputFiles.addElement(file.toString());
                 idx++;
@@ -633,7 +633,7 @@ public class ConvertToBmp extends ChildFrame
         // 1. prepare data
         Path inFile = FileManager.resolve(modelInputFiles.get(i));
         Path outFile = FileManager.resolve(outPath, StreamUtils.replaceFileExtension(inFile.getFileName().toString(), "BMP"));
-        if (Files.exists(outFile)) {
+        if (outFile.toFile().exists()) {
           if (cbOverwrite.getSelectedIndex() == 0) {          // ask
             String msg = String.format("File %s already exists. Overwrite?", outFile.getFileName());
             int ret = JOptionPane.showConfirmDialog(this, msg, "Overwrite?", JOptionPane.YES_NO_CANCEL_OPTION);

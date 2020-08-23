@@ -362,7 +362,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
     if (resourceEntry != null) {
       Path output = handler.getTempFolder().resolve(resourceEntry.getResourceName());
       try {
-        if (Files.exists(output)) {
+        if (output.toFile().exists()) {
           String msg = "File " + resourceEntry.getResourceName() + " already exists. Overwrite?";
           int ret = JOptionPane.showConfirmDialog(panel.getTopLevelAncestor(),
                                                   msg, "Overwrite file?", JOptionPane.YES_NO_OPTION,
@@ -410,7 +410,7 @@ public final class SavResource implements Resource, Closeable, Writeable,
     if (entryIndex >= 0 && entryIndex < entries.size()) {
       ResourceEntry resourceEntry = entries.get(entryIndex);
       Path file = resourceEntry.getActualPath();
-      if (Files.exists(file)) {
+      if (file.toFile().exists()) {
         try {
           Files.delete(file);
         } catch (IOException e) {

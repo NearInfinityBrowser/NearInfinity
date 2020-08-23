@@ -21,7 +21,6 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.IndexColorModel;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
@@ -281,7 +280,7 @@ public class BamFilterColorReplace extends BamFilterBaseColor implements ActionL
     /** Loads the palette from the specified file resource into the color grid component. */
     public void loadPalette(Path paletteFile) throws Exception
     {
-      if (paletteFile != null && Files.isRegularFile(paletteFile)) {
+      if (paletteFile != null && paletteFile.toFile().isFile()) {
         byte[] signature = new byte[8];
         try (InputStream is = StreamUtils.getInputStream(paletteFile)) {
           is.read(signature);
