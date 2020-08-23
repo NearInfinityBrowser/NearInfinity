@@ -24,6 +24,7 @@ import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -543,7 +544,7 @@ public class ConvertToMos extends ChildFrame
             file = FileManager.resolve(tfOutputV2.getText());
           }
           if (file != null) {
-            if (!file.toFile().exists() ||
+            if (!Files.exists(file) ||
                 JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
                                                                         JOptionPane.YES_NO_OPTION,
                                                                         JOptionPane.QUESTION_MESSAGE)) {
@@ -905,7 +906,7 @@ public class ConvertToMos extends ChildFrame
     boolean ret = false;
     if (!tfInputV1.getText().isEmpty() && !tfOutputV1.getText().isEmpty()) {
       Path file = FileManager.resolve(tfInputV1.getText());
-      ret = file.toFile().isFile();
+      ret = Files.isRegularFile(file);
     }
     return ret;
   }
@@ -974,7 +975,7 @@ public class ConvertToMos extends ChildFrame
 
     // validating input file
     Path inFile = FileManager.resolve(tfInputV1.getText());
-    if (!inFile.toFile().isFile()) {
+    if (!Files.isRegularFile(inFile)) {
       result.add(null);
       result.add(String.format("Input file \"%s\" does not exist.", tfInputV1.getText()));
       return result;

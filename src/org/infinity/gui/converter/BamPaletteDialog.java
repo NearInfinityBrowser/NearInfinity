@@ -20,6 +20,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -248,7 +249,7 @@ class BamPaletteDialog extends JDialog
     }
 
     // fetching file signature
-    if (paletteFile != null && paletteFile.toFile().isFile()) {
+    if (paletteFile != null && Files.isRegularFile(paletteFile)) {
       byte[] signature = new byte[8];
       try (InputStream is = StreamUtils.getInputStream(paletteFile)) {
         is.read(signature);

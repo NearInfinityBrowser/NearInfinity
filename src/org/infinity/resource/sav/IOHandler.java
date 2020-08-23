@@ -63,7 +63,7 @@ public final class IOHandler implements Writeable
 
   public void close()
   {
-    if (tempFolder != null && tempFolder.toFile().isDirectory()) {
+    if (tempFolder != null && Files.isDirectory(tempFolder)) {
       try (DirectoryStream<Path> dstream = Files.newDirectoryStream(tempFolder)) {
         for (final Path file: dstream) {
           try {
@@ -128,7 +128,7 @@ public final class IOHandler implements Writeable
   {
     for (int idx = 0; idx < Integer.MAX_VALUE; idx++) {
       Path path = Profile.getHomeRoot().resolve(String.format("%s.%03d", entry.getTreeFolderName(), idx));
-      if (!path.toFile().exists()) {
+      if (!Files.exists(path)) {
         return path;
       }
     }

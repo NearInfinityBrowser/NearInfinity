@@ -113,7 +113,7 @@ public final class ResourceTreeModel implements TreeModel
       if (iter.hasNext()) {
         final ResourceTreeFolder folder = addFolder(parentFolder, directory.getFileName().toString());
         iter.forEachRemaining((path) -> {
-          if (path.toFile().isDirectory()) {
+          if (Files.isDirectory(path)) {
             addDirectory(folder, path, overwrite);
           } else {
             folder.addResourceEntry(new FileResourceEntry(path), overwrite);

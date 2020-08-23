@@ -107,7 +107,7 @@ public final class SortableTable extends JTable implements MouseListener
     chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "result.txt"));
     if (chooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       final Path output = chooser.getSelectedFile().toPath();
-      if (output.toFile().exists()) {
+      if (Files.exists(output)) {
         final String[] options = {"Overwrite", "Cancel"};
         if (JOptionPane.showOptionDialog(parent, output + " exists. Overwrite?",
                                          dialogTitle, JOptionPane.YES_NO_OPTION,

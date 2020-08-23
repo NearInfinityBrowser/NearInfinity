@@ -77,7 +77,7 @@ final class DebugConsole extends ChildFrame implements ActionListener
       chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "nidebuglog.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         Path output = chooser.getSelectedFile().toPath();
-        if (output.toFile().exists()) {
+        if (Files.exists(output)) {
           String options[] = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?", "Save debug log", JOptionPane.YES_NO_OPTION,
                                            JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)

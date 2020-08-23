@@ -386,7 +386,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private void exportDecompiledScript(ResourceEntry entry, Path output) throws Exception
   {
     output = output.getParent().resolve(StreamUtils.replaceFileExtension(output.getFileName().toString(), "BAF"));
-    if (output.toFile().exists() && !cbOverwrite.isSelected()) {
+    if (Files.exists(output) && !cbOverwrite.isSelected()) {
       return;
     }
     ByteBuffer bb = entry.getResourceBuffer();
@@ -434,7 +434,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     if (entry != null && entry.getExtension().equalsIgnoreCase("MOS")) {
       output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.getResourceName(), "PNG"));
-      if (output.toFile().exists() && !cbOverwrite.isSelected()) {
+      if (Files.exists(output) && !cbOverwrite.isSelected()) {
         return;
       }
 
@@ -459,7 +459,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     if (entry != null && entry.getExtension().equalsIgnoreCase("PVRZ")) {
       output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.getResourceName(), "PNG"));
-      if (output.toFile().exists() && !cbOverwrite.isSelected()) {
+      if (Files.exists(output) && !cbOverwrite.isSelected()) {
         return;
       }
 
@@ -481,7 +481,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     if (entry != null && entry.getExtension().equalsIgnoreCase("TIS")) {
       output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.getResourceName(), "PNG"));
-      if (output.toFile().exists() && !cbOverwrite.isSelected()) {
+      if (Files.exists(output) && !cbOverwrite.isSelected()) {
         return;
       }
 
@@ -531,7 +531,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
     // creating subfolder for frames
     Path path = filePath.resolve(fileBase);
-    if (!path.toFile().exists()) {
+    if (!Files.exists(path)) {
       try {
         Files.createDirectory(path);
       } catch (IOException e) {
@@ -541,7 +541,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Error", JOptionPane.ERROR_MESSAGE);
         return;
       }
-    } else if (!path.toFile().isDirectory()) {
+    } else if (!Files.isDirectory(path)) {
       String msg = String.format("Folder \"%s\" can not be created. Skipping file \"%s\".",
                                  fileBase, fileName);
       System.err.println(msg);
@@ -557,7 +557,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private void chrToCre(ResourceEntry entry, Path output) throws Exception
   {
     output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.getResourceName(), "CRE"));
-    if (output.toFile().exists() && !cbOverwrite.isSelected()) {
+    if (Files.exists(output) && !cbOverwrite.isSelected()) {
       return;
     }
     CreResource crefile = new CreResource(entry);
@@ -612,7 +612,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     try {
       Path output = outputPath.resolve(entry.getResourceName());
-      if (output.toFile().exists() && !cbOverwrite.isSelected()) {
+      if (Files.exists(output) && !cbOverwrite.isSelected()) {
         return;
       }
       if ((entry.getExtension().equalsIgnoreCase("IDS") ||
@@ -658,7 +658,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       }
       else if (entry.getExtension().equalsIgnoreCase("MVE") && cbExportMVEasAVI.isSelected()) {
         output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.getResourceName(), "avi"));
-        if (output.toFile().exists() && !cbOverwrite.isSelected()) {
+        if (Files.exists(output) && !cbOverwrite.isSelected()) {
           return;
         }
         MveResource.convertAvi(entry, output, null, true);

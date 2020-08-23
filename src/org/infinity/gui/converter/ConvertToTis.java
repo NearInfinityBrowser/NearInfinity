@@ -24,6 +24,7 @@ import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -591,7 +592,7 @@ public class ConvertToTis extends ChildFrame
             file = FileManager.resolve(tfOutput.getText());
           }
           if (file != null) {
-            if (!file.toFile().exists() ||
+            if (!Files.exists(file) ||
                 JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
                                                                         JOptionPane.YES_NO_OPTION,
                                                                         JOptionPane.QUESTION_MESSAGE)) {
@@ -649,7 +650,7 @@ public class ConvertToTis extends ChildFrame
       String fileName = tfOutput.getText();
       if (fileName.isEmpty() && !tfInput.getText().isEmpty()) {
         Path f = FileManager.resolve(tfInput.getText());
-        if (f.toFile().isFile()) {
+        if (Files.isRegularFile(f)) {
           fileName = createValidTisName(tfInput.getText(), getTisVersion());
         }
       }
@@ -975,7 +976,7 @@ public class ConvertToTis extends ChildFrame
     boolean ret = false;
     if (!getInputFile().isEmpty()) {
       Path f = FileManager.resolve(getInputFile());
-      ret = f.toFile().isFile();
+      ret = Files.isRegularFile(f);
     }
     return ret;
   }
@@ -1031,7 +1032,7 @@ public class ConvertToTis extends ChildFrame
     inFileName = inputFile;
     if (inFileName != null && !inFileName.isEmpty()) {
       Path f = FileManager.resolve(inFileName);
-      if (f.toFile().isFile()) {
+      if (Files.isRegularFile(f)) {
         Dimension dimImage = ColorConvert.getImageDimension(f);
         if (dimImage.width >= 0 && (dimImage.width % 64) == 0 &&
             dimImage.height >= 0 && (dimImage.height % 64) == 0) {
@@ -1071,7 +1072,7 @@ public class ConvertToTis extends ChildFrame
 
     // validating input file
     Path inFile = FileManager.resolve(inFileName);
-    if (!inFile.toFile().isFile()) {
+    if (!Files.isRegularFile(inFile)) {
       ret.add(null);
       ret.add(String.format("Input file \"%s\" does not exist.", inFileName));
       return ret;

@@ -107,7 +107,7 @@ public final class WbmResource implements Resource, Closeable, Referenceable, Ac
   {
     try {
       // first attempt to delete temporary video file
-      if (videoFile != null && videoFile.toFile().isFile() && isTempFile) {
+      if (videoFile != null && Files.isRegularFile(videoFile) && isTempFile) {
         Files.delete(videoFile);
       }
     } catch (Exception e) {
@@ -173,7 +173,7 @@ public final class WbmResource implements Resource, Closeable, Referenceable, Ac
         fileExt = "wbm";
       try {
         Path outFile = Files.createTempFile(fileBase + "-", "." + fileExt);
-        if (outFile.toFile().isFile()) {
+        if (Files.isRegularFile(outFile)) {
           try (InputStream is = entry.getResourceDataAsStream()) {
             try (OutputStream os = StreamUtils.getOutputStream(outFile, true)) {
               byte[] buffer = new byte[8192];

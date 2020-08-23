@@ -1341,11 +1341,11 @@ public class StringTable
 
       // 1. backing up current string table file if needed
       Path pathBackup = null;
-      if (tlkPath.toFile().isFile()) {
+      if (Files.isRegularFile(tlkPath)) {
         String name = tlkPath.getFileName().toString();
         for (int i = 0; i < 999; i++) {
           Path path = tlkPath.getParent().resolve(name + "-" + i);
-          if (!path.toFile().exists()) {
+          if (!Files.exists(path)) {
             pathBackup = path;
             break;
           }

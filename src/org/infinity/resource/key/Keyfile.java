@@ -112,7 +112,7 @@ public class Keyfile
     if (keyFile == null) {
       throw new NullPointerException("No keyfile specified");
     }
-    if (!keyFile.toFile().isFile()) {
+    if (!Files.isRegularFile(keyFile)) {
       throw new FileNotFoundException("Keyfile " + keyFile + " not found or is not regular file");
     }
 
@@ -461,7 +461,7 @@ public class Keyfile
           biffList.forEach((entry) -> {
             if (entry != null) {
               Path biffPath = entry.getPath();
-              if (biffPath != null && biffPath.toFile().isFile()) {
+              if (biffPath != null && Files.isRegularFile(biffPath)) {
                 try {
                   AbstractBIFFReader.open(biffPath);
                 } catch (Exception e) {
@@ -481,7 +481,7 @@ public class Keyfile
 //    if (keyFile == null) {
 //      throw new NullPointerException();
 //    }
-//    if (!keyFile.toFile().isFile()) {
+//    if (!Files.isRegularFile(keyFile)) {
 //      throw new IOException("Key file not found: " + keyFile);
 //    }
 //
@@ -515,11 +515,11 @@ public class Keyfile
     if (getKeyfile() == null) {
       throw new NullPointerException();
     }
-    if (!getKeyfile().toFile().isFile()) {
+    if (!Files.isRegularFile(getKeyfile())) {
       throw new IOException("Key file not found: " + getKeyfile());
     }
     for (final Path file: keyList) {
-      if (file != null && !file.toFile().isFile()) {
+      if (file != null && !Files.isRegularFile(file)) {
         throw new IOException("Key file not found: " + file);
       }
     }

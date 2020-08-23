@@ -101,7 +101,7 @@ public class DlcFileSystem extends FileSystem
     this.readOnly = true;
     this.provider = provider;
     this.dfpath = dfpath;
-    if (!this.dfpath.toFile().exists()) {
+    if (Files.notExists(this.dfpath)) {
       throw new FileSystemNotFoundException(this.dfpath.toString());
     }
     this.dfpath.getFileSystem().provider().checkAccess(this.dfpath, AccessMode.READ);

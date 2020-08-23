@@ -324,7 +324,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     if (component == compZone) {
       for (File f : files) {
         Path file = f.toPath();
-        if (file.toFile().isDirectory()) {
+        if (Files.isDirectory(file)) {
           try (DirectoryStream<Path> dstream = Files.newDirectoryStream(file)) {
             for (final Path p: dstream) {
               files.add(p.toFile());
@@ -356,7 +356,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     else if (component == decompZone) {
       for (File f : files) {
         final Path file = f.toPath();
-        if (file.toFile().isDirectory()) {
+        if (Files.isDirectory(file)) {
           try (final DirectoryStream<Path> dstream = Files.newDirectoryStream(file)) {
             for (final Path p: dstream) {
               files.add(p.toFile());

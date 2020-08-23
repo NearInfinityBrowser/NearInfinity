@@ -476,7 +476,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
               writer.close();
               writer = null;
             }
-            if (outFile.toFile().isFile()) {
+            if (Files.isRegularFile(outFile)) {
               try {
                 Files.delete(outFile);
               } catch (IOException e) {

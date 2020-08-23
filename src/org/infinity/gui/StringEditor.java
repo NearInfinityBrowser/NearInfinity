@@ -14,6 +14,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Locale;
@@ -731,7 +732,7 @@ public class StringEditor extends ChildFrame implements SearchClient
           int ret = fc.showSaveDialog(this);
           if (ret == JFileChooser.APPROVE_OPTION) {
             outPath = fc.getSelectedFile().toPath();
-            if (!outPath.toFile().isDirectory()) {
+            if (!Files.isDirectory(outPath)) {
               outPath = outPath.getParent();
             }
             outFile = outPath.resolve(StringTable.getPath(StringTable.Type.MALE).getFileName().toString());

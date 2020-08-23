@@ -480,7 +480,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
   // checks graphics input file properties
   private static boolean isValidGraphicsInput(Path inFile)
   {
-    boolean result = (inFile != null && inFile.toFile().isFile());
+    boolean result = (inFile != null && Files.isRegularFile(inFile));
     if (result) {
       Dimension d = ColorConvert.getImageDimension(inFile);
       if (d == null || d.width <= 0 || d.width > 1024 || d.height <= 0 || d.height > 1024) {
@@ -493,7 +493,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
   // checks PVR input file properties
   private static boolean isValidPVRInput(Path inFile)
   {
-    boolean result = (inFile != null && inFile.toFile().isFile());
+    boolean result = (inFile != null && Files.isRegularFile(inFile));
     if (result) {
       try (InputStream is = StreamUtils.getInputStream(inFile)) {
         String sig = StreamUtils.readString(is, 4);
@@ -540,7 +540,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     if (tfTargetDir.getText() != null && !tfTargetDir.getText().isEmpty()) {
       targetPath = FileManager.resolve(tfTargetDir.getText());
     }
-    if (!targetPath.toFile().isDirectory()) {
+    if (!Files.isDirectory(targetPath)) {
       List<String> l = new Vector<String>(2);
       l.add(null);
       l.add("Invalid target directory specified. No conversion takes place.");
@@ -594,7 +594,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
         Path outFile = targetPath.resolve(outFileName);
 
         // handling overwrite existing file
-        if (outFile.toFile().exists()) {
+        if (Files.exists(outFile)) {
           if (skip) {
             skippedFiles++;
             continue;

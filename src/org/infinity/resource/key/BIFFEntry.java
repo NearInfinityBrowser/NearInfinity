@@ -7,6 +7,7 @@ package org.infinity.resource.key;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -124,7 +125,7 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry>
   /** Returns whether the referenced BIFF file exists in the game. */
   public boolean exists()
   {
-    return (biffFile != null && biffFile.toFile().isFile());
+    return (biffFile != null && Files.isRegularFile(biffFile));
   }
 
   /** Returns the absolute path to the BIFF file if it exists. */
@@ -240,7 +241,7 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry>
         final String[] baseFolders = { "", "cache", "cd1", "cd2", "cd3", "cd4", "cd5", "cd6", "cd7", "cdall" };
         for (final String folderName: baseFolders) {
           Path path = FileManager.resolve(root.resolve(folderName));
-          if (path.toFile().isDirectory()) {
+          if (Files.isDirectory(path)) {
             biffFolders.add(path);
           }
         }

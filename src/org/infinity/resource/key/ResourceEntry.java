@@ -47,7 +47,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
 
   static int[] getLocalFileInfo(Path file)
   {
-    if (file != null && file.toFile().isFile()) {
+    if (file != null && Files.isRegularFile(file)) {
       try (SeekableByteChannel ch = Files.newByteChannel(file, StandardOpenOption.READ)) {
         ByteBuffer bb = StreamUtils.getByteBuffer((int)ch.size());
         if (ch.read(bb) < ch.size()) {

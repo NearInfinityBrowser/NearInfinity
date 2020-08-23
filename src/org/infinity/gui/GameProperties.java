@@ -18,6 +18,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -248,7 +249,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
     pIni.add(tf, gbc);
     bEdit.setMargin(new Insets(2, 4, 2, 4));
     bEdit.addActionListener(this);
-    bEdit.setEnabled(iniFile != null && iniFile.toFile().isFile());
+    bEdit.setEnabled(iniFile != null && Files.isRegularFile(iniFile));
     gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pIni.add(bEdit, gbc);
