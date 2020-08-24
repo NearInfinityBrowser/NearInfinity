@@ -18,7 +18,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,6 +42,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.Pair;
+import org.infinity.util.io.FileEx;
 
 /**
  * Display verbose information about the currently selected game.
@@ -249,7 +249,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
     pIni.add(tf, gbc);
     bEdit.setMargin(new Insets(2, 4, 2, 4));
     bEdit.addActionListener(this);
-    bEdit.setEnabled(iniFile != null && Files.isRegularFile(iniFile));
+    bEdit.setEnabled(iniFile != null && FileEx.create(iniFile).isFile());
     gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pIni.add(bEdit, gbc);

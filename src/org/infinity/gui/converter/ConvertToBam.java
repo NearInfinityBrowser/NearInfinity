@@ -117,6 +117,7 @@ import org.infinity.util.IniMapSection;
 import org.infinity.util.Misc;
 import org.infinity.util.Pair;
 import org.infinity.util.SimpleListModel;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -303,7 +304,7 @@ public class ConvertToBam extends ChildFrame
       rootPath = currentPath;
     }
     JFileChooser fc = new JFileChooser(rootPath.toFile());
-    if (!Files.isDirectory(rootPath)) {
+    if (!FileEx.create(rootPath).isDirectory()) {
         fc.setSelectedFile(rootPath.toFile());
     }
     if (title == null) {
@@ -370,7 +371,7 @@ public class ConvertToBam extends ChildFrame
       rootPath = currentPath;
     }
     JFileChooser fc = new JFileChooser(rootPath.toFile());
-    if (!Files.isDirectory(rootPath)) {
+    if (!FileEx.create(rootPath).isDirectory()) {
         fc.setSelectedFile(rootPath.toFile());
     }
     if (title == null) {
@@ -517,7 +518,7 @@ public class ConvertToBam extends ChildFrame
         do {
           file = setBamOutput();
           if (file != null) {
-            if (!Files.exists(file) ||
+            if (!FileEx.create(file).exists() ||
                 JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
                                                                         JOptionPane.YES_NO_OPTION,
                                                                         JOptionPane.QUESTION_MESSAGE)) {
@@ -2750,13 +2751,13 @@ public class ConvertToBam extends ChildFrame
 
   public void framesAddFolder(Path path)
   {
-    if (path != null && Files.isDirectory(path)) {
+    if (path != null && FileEx.create(path).isDirectory()) {
       // preparing list of valid files
       FileNameExtensionFilter filters = getGraphicsFilters()[0];
       List<Path> validFiles = new ArrayList<>();
       try (DirectoryStream<Path> dstream = Files.newDirectoryStream(path)) {
         for (final Path file: dstream) {
-          if (Files.isRegularFile(file) && filters.accept(file.toFile())) {
+          if (FileEx.create(file).isFile() && filters.accept(file.toFile())) {
             validFiles.add(file);
           }
         }
@@ -5069,7 +5070,7 @@ public class ConvertToBam extends ChildFrame
       Path[] files = getOpenFileName(bam, "Import BAM session", null, false,
                                      new FileNameExtensionFilter[]{getIniFilter()}, 0);
       if (files != null && files.length > 0) {
-        if (!Files.isRegularFile(files[0])) {
+        if (!FileEx.create(files[0]).isFile()) {
           files[0] = StreamUtils.replaceFileExtension(files[0], "ini");
         }
         if (loadData(files[0], silent)) {
@@ -5190,7 +5191,7 @@ public class ConvertToBam extends ChildFrame
             }
           } else {
             Path file = FileManager.resolve(value);
-            if (!Files.isRegularFile(file)) {
+            if (!FileEx.create(file).isFile()) {
               throw new Exception("Frame source path not found at line " + (entry.getLine() + 1));
             }
           }
@@ -5376,7 +5377,7 @@ public class ConvertToBam extends ChildFrame
             }
           } else {
             Path file = FileManager.resolve(value);
-            if (Files.isRegularFile(file)) {
+            if (FileEx.create(file).isFile()) {
               resource = new FileResourceEntry(file);
             }
           }

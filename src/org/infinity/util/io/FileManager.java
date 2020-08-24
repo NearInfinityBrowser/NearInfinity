@@ -430,7 +430,7 @@ public class FileManager implements FileWatchListener
             }
           } else {
             curPath = _resolve(curRoot.resolve(relPath));
-            if (curPath != null && Files.exists(curPath)) {
+            if (curPath != null && FileEx.create(curPath).exists()) {
               exists = true;
               break;
             }
@@ -460,7 +460,7 @@ public class FileManager implements FileWatchListener
   public void fileChanged(FileWatchEvent e)
   {
     if (e.getKind() == StandardWatchEventKinds.ENTRY_CREATE) {
-      if (Files.isDirectory(e.getPath())) {
+      if (FileEx.create(e.getPath()).isDirectory()) {
         // load whole directory into cache
         _cacheDirectory(e.getPath(), true);
       } else {
@@ -484,7 +484,7 @@ public class FileManager implements FileWatchListener
   private static Path _resolve(Path path)
   {
     Path retVal = path;
-    if (path != null && isFileSystemCaseSensitive(path.getFileSystem())) {
+    if (path != null && isFileSystemCaseSensitive(path.getFileSystem()) && !FileEx.create(path).exists()) {
       boolean found = false;
       Path curPath = path.normalize().toAbsolutePath();
       Path dir = curPath.getRoot();
@@ -566,7 +566,7 @@ public class FileManager implements FileWatchListener
         retVal = null;
       }
     }
-//    if (retVal != null && !Files.exists(retVal)) {
+//    if (retVal != null && !FileEx.fromPath(retVal).exists()) {
 //      retVal = null;
 //    }
     return retVal;
@@ -575,7 +575,7 @@ public class FileManager implements FileWatchListener
   private static HashSet<Path> _cacheDirectory(Path path, boolean force)
   {
     HashSet<Path> retVal = null;
-    if (path != null && Files.isDirectory(path)) {
+    if (path != null && FileEx.create(path).isDirectory()) {
       if (force) {
         pathCache.remove(path);
       }

@@ -68,6 +68,7 @@ import org.infinity.resource.graphics.TisResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.AudioFactory;
 import org.infinity.resource.video.MveResource;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -386,7 +387,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private void exportDecompiledScript(ResourceEntry entry, Path output) throws Exception
   {
     output = output.getParent().resolve(StreamUtils.replaceFileExtension(output.getFileName().toString(), "BAF"));
-    if (Files.exists(output) && !cbOverwrite.isSelected()) {
+    if (FileEx.create(output).exists() && !cbOverwrite.isSelected()) {
       return;
     }
     ByteBuffer bb = entry.getResourceBuffer();
@@ -434,7 +435,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     if (entry != null && entry.getExtension().equalsIgnoreCase("MOS")) {
       output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.getResourceName(), "PNG"));
-      if (Files.exists(output) && !cbOverwrite.isSelected()) {
+      if (FileEx.create(output).exists() && !cbOverwrite.isSelected()) {
         return;
       }
 
@@ -459,7 +460,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     if (entry != null && entry.getExtension().equalsIgnoreCase("PVRZ")) {
       output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.getResourceName(), "PNG"));
-      if (Files.exists(output) && !cbOverwrite.isSelected()) {
+      if (FileEx.create(output).exists() && !cbOverwrite.isSelected()) {
         return;
       }
 
@@ -481,7 +482,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     if (entry != null && entry.getExtension().equalsIgnoreCase("TIS")) {
       output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.getResourceName(), "PNG"));
-      if (Files.exists(output) && !cbOverwrite.isSelected()) {
+      if (FileEx.create(output).exists() && !cbOverwrite.isSelected()) {
         return;
       }
 
@@ -531,7 +532,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
 
     // creating subfolder for frames
     Path path = filePath.resolve(fileBase);
-    if (!Files.exists(path)) {
+    if (!FileEx.create(path).exists()) {
       try {
         Files.createDirectory(path);
       } catch (IOException e) {
@@ -541,7 +542,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Error", JOptionPane.ERROR_MESSAGE);
         return;
       }
-    } else if (!Files.isDirectory(path)) {
+    } else if (!FileEx.create(path).isDirectory()) {
       String msg = String.format("Folder \"%s\" can not be created. Skipping file \"%s\".",
                                  fileBase, fileName);
       System.err.println(msg);
@@ -557,7 +558,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   private void chrToCre(ResourceEntry entry, Path output) throws Exception
   {
     output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.getResourceName(), "CRE"));
-    if (Files.exists(output) && !cbOverwrite.isSelected()) {
+    if (FileEx.create(output).exists() && !cbOverwrite.isSelected()) {
       return;
     }
     CreResource crefile = new CreResource(entry);
@@ -612,7 +613,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
   {
     try {
       Path output = outputPath.resolve(entry.getResourceName());
-      if (Files.exists(output) && !cbOverwrite.isSelected()) {
+      if (FileEx.create(output).exists() && !cbOverwrite.isSelected()) {
         return;
       }
       if ((entry.getExtension().equalsIgnoreCase("IDS") ||
@@ -658,7 +659,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
       }
       else if (entry.getExtension().equalsIgnoreCase("MVE") && cbExportMVEasAVI.isSelected()) {
         output = outputPath.resolve(StreamUtils.replaceFileExtension(entry.getResourceName(), "avi"));
-        if (Files.exists(output) && !cbOverwrite.isSelected()) {
+        if (FileEx.create(output).exists() && !cbOverwrite.isSelected()) {
           return;
         }
         MveResource.convertAvi(entry, output, null, true);

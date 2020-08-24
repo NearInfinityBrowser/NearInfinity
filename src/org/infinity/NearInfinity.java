@@ -30,7 +30,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -101,6 +100,7 @@ import org.infinity.util.Platform;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.DlcManager;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 
 public final class NearInfinity extends JFrame implements ActionListener, ViewableContainer
@@ -247,10 +247,10 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       } else {
         // Override game folder via application parameter
         Path f = FileManager.resolve(args[idx]);
-        if (Files.isRegularFile(f)) {
+        if (FileEx.create(f).isFile()) {
           f = f.getParent();
         }
-        if (Files.isDirectory(f)) {
+        if (FileEx.create(f).isDirectory()) {
           gameOverride = f;
           break;
         }
@@ -304,7 +304,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     setJMenuBar(menu);
 
     final String lastDir;
-    if (gameOverride != null && Files.isDirectory(gameOverride)) {
+    if (gameOverride != null && FileEx.create(gameOverride).isDirectory()) {
       lastDir = gameOverride.toString();
     } else {
       lastDir = prefs.get(LAST_GAMEDIR, null);
@@ -312,9 +312,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
     final Path keyFile;
     Path path;
-    if (Files.isRegularFile(path = FileManager.resolve(KEYFILENAME))) {
+    if (FileEx.create(path = FileManager.resolve(KEYFILENAME)).isFile()) {
       keyFile = path;
-    } else if (lastDir != null && Files.isRegularFile(path = FileManager.resolve(lastDir, KEYFILENAME))) {
+    } else if (lastDir != null && FileEx.create(path = FileManager.resolve(lastDir, KEYFILENAME)).isFile()) {
       keyFile = path;
     } else {
       keyFile = findKeyfile();
@@ -355,11 +355,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         @Override
         public void windowClosing(WindowEvent event)
         {
-          if (removeViewable()) {
-            storePreferences();
-            ChildFrame.closeWindows();
-            System.exit(0);
-          }
+          quit();
         }
       });
       try {
@@ -774,7 +770,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     boolean retVal = false;
     Path iniFile = Profile.getProperty(Profile.Key.GET_GAME_INI_FILE);
     try {
-      if (iniFile != null && Files.isRegularFile(iniFile)) {
+      if (iniFile != null && FileEx.create(iniFile).isFile()) {
         new ViewFrame(parent, new PlainTextResource(new FileResourceEntry(iniFile)));
       } else {
         throw new Exception();
@@ -1109,7 +1105,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       event.dropComplete(true);
       if (files != null && files.size() == 1) {
         Path path = files.get(0).toPath();
-        if (path != null && Files.isRegularFile(path) &&
+        if (path != null && FileEx.create(path).isFile() &&
             path.getFileName().toString().toUpperCase(Locale.ENGLISH).endsWith(".KEY")) {
           Path curFile = Profile.getChitinKey();
           if (!path.equals(curFile)) {
@@ -1133,7 +1129,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       if (files != null) {
         files.forEach((file) -> {
           Path path = file.toPath();
-          if (Files.isRegularFile(path)) {
+          if (FileEx.create(path).isFile()) {
             OpenFileFrame.openExternalFile(NearInfinity.getInstance(), path);
           }
         });

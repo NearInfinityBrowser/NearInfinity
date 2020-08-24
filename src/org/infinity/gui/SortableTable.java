@@ -33,6 +33,7 @@ import javax.swing.table.TableModel;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.util.ArrayUtil;
+import org.infinity.util.io.FileEx;
 
 public final class SortableTable extends JTable implements MouseListener
 {
@@ -107,7 +108,7 @@ public final class SortableTable extends JTable implements MouseListener
     chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "result.txt"));
     if (chooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       final Path output = chooser.getSelectedFile().toPath();
-      if (Files.exists(output)) {
+      if (FileEx.create(output).exists()) {
         final String[] options = {"Overwrite", "Cancel"};
         if (JOptionPane.showOptionDialog(parent, output + " exists. Overwrite?",
                                          dialogTitle, JOptionPane.YES_NO_OPTION,

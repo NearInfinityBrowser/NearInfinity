@@ -21,6 +21,7 @@ import org.infinity.resource.Writeable;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.FileDeletionHook;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 
 public final class IOHandler implements Writeable
@@ -63,7 +64,7 @@ public final class IOHandler implements Writeable
 
   public void close()
   {
-    if (tempFolder != null && Files.isDirectory(tempFolder)) {
+    if (tempFolder != null && FileEx.create(tempFolder).isDirectory()) {
       try (DirectoryStream<Path> dstream = Files.newDirectoryStream(tempFolder)) {
         for (final Path file: dstream) {
           try {
@@ -128,7 +129,7 @@ public final class IOHandler implements Writeable
   {
     for (int idx = 0; idx < Integer.MAX_VALUE; idx++) {
       Path path = Profile.getHomeRoot().resolve(String.format("%s.%03d", entry.getTreeFolderName(), idx));
-      if (!Files.exists(path)) {
+      if (!FileEx.create(path).exists()) {
         return path;
       }
     }

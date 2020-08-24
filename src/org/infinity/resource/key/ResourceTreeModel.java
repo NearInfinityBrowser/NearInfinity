@@ -24,6 +24,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 import org.infinity.util.Misc;
+import org.infinity.util.io.FileEx;
 
 public final class ResourceTreeModel implements TreeModel
 {
@@ -113,7 +114,7 @@ public final class ResourceTreeModel implements TreeModel
       if (iter.hasNext()) {
         final ResourceTreeFolder folder = addFolder(parentFolder, directory.getFileName().toString());
         iter.forEachRemaining((path) -> {
-          if (Files.isDirectory(path)) {
+          if (FileEx.create(path).isDirectory()) {
             addDirectory(folder, path, overwrite);
           } else {
             folder.addResourceEntry(new FileResourceEntry(path), overwrite);

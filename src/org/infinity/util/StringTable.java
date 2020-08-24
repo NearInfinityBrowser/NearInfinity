@@ -27,6 +27,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.updater.Utils;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -1341,11 +1342,11 @@ public class StringTable
 
       // 1. backing up current string table file if needed
       Path pathBackup = null;
-      if (Files.isRegularFile(tlkPath)) {
+      if (FileEx.create(tlkPath).isFile()) {
         String name = tlkPath.getFileName().toString();
         for (int i = 0; i < 999; i++) {
           Path path = tlkPath.getParent().resolve(name + "-" + i);
-          if (!Files.exists(path)) {
+          if (!FileEx.create(path).exists()) {
             pathBackup = path;
             break;
           }

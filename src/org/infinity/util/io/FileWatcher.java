@@ -177,7 +177,7 @@ public class FileWatcher implements Runnable
   public void register(Path dir, boolean recursive, boolean notifyCreate, boolean notifyDelete, boolean notifyModify)
   {
     dir = FileManager.resolve(dir);
-    if (dir != null && Files.isDirectory(dir)) {
+    if (dir != null && FileEx.create(dir).isDirectory()) {
       if (recursive) {
         try {
           Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {

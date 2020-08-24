@@ -17,6 +17,7 @@ import java.util.StringTokenizer;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.sound.AudioBuffer;
 import org.infinity.resource.sound.AudioFactory;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -175,13 +176,13 @@ public class Entry
   {
     // audio file can reside in a number of different locations
     Path acmFile = FileManager.query(entry.getActualPath().getParent(), dir, dir + fileName + ".acm");
-    if (!Files.isRegularFile(acmFile)) {
+    if (!FileEx.create(acmFile).isFile()) {
       acmFile = FileManager.query(entry.getActualPath().getParent(), fileName + ".acm");
     }
-    if (!Files.isRegularFile(acmFile) && fileName.toUpperCase(Locale.ENGLISH).startsWith("MX")) {
+    if (!FileEx.create(acmFile).isFile() && fileName.toUpperCase(Locale.ENGLISH).startsWith("MX")) {
       acmFile = FileManager.query(entry.getActualPath().getParent(), fileName.substring(0, 6), fileName + ".acm");
     }
-    if (!Files.isRegularFile(acmFile)) {
+    if (!FileEx.create(acmFile).isFile()) {
       throw new IOException("Could not find " + fileName);
     }
 

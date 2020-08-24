@@ -24,7 +24,6 @@ import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +59,7 @@ import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.util.BinPack2D;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IntegerHashMap;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -544,7 +544,7 @@ public class ConvertToMos extends ChildFrame
             file = FileManager.resolve(tfOutputV2.getText());
           }
           if (file != null) {
-            if (!Files.exists(file) ||
+            if (!FileEx.create(file).exists() ||
                 JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
                                                                         JOptionPane.YES_NO_OPTION,
                                                                         JOptionPane.QUESTION_MESSAGE)) {
@@ -906,7 +906,7 @@ public class ConvertToMos extends ChildFrame
     boolean ret = false;
     if (!tfInputV1.getText().isEmpty() && !tfOutputV1.getText().isEmpty()) {
       Path file = FileManager.resolve(tfInputV1.getText());
-      ret = Files.isRegularFile(file);
+      ret = FileEx.create(file).isFile();
     }
     return ret;
   }
@@ -975,7 +975,7 @@ public class ConvertToMos extends ChildFrame
 
     // validating input file
     Path inFile = FileManager.resolve(tfInputV1.getText());
-    if (!Files.isRegularFile(inFile)) {
+    if (!FileEx.create(inFile).isFile()) {
       result.add(null);
       result.add(String.format("Input file \"%s\" does not exist.", tfInputV1.getText()));
       return result;

@@ -26,6 +26,7 @@ import org.infinity.NearInfinity;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.util.Misc;
+import org.infinity.util.io.FileEx;
 
 final class DebugConsole extends ChildFrame implements ActionListener
 {
@@ -77,7 +78,7 @@ final class DebugConsole extends ChildFrame implements ActionListener
       chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "nidebuglog.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         Path output = chooser.getSelectedFile().toPath();
-        if (Files.exists(output)) {
+        if (FileEx.create(output).exists()) {
           String options[] = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?", "Save debug log", JOptionPane.YES_NO_OPTION,
                                            JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
