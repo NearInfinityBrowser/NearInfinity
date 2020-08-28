@@ -53,6 +53,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
+import javax.swing.LookAndFeel;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
@@ -2255,6 +2256,14 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           dbmi = new DataRadioButtonMenuItem(info[i].getName(),
                                              selectedLF.equalsIgnoreCase(info[i].getClassName()),
                                              info[i]);
+          try {
+            // L&F description is only available from class instance
+            Class<?> cls = Class.forName(info[i].getClassName());
+            Object o = cls.newInstance();
+            if (o instanceof LookAndFeel)
+              dbmi.setToolTipText(((LookAndFeel)o).getDescription());
+          } catch (Exception ex) {
+          }
           lookAndFeel.add(dbmi);
           bg.add(dbmi);
         }
