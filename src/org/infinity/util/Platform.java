@@ -26,6 +26,12 @@ public class Platform
   /** Whether this a Sun OS or Solaris system. */
   public final static boolean IS_SOLARIS  = (getPlatform() == OS.Solaris);
 
+  /** Returns the symbol used to separate individual path strings from each other for the current platform. */
+  public final static String PATH_SEPARATOR = System.getProperty("path.separator");
+
+  /** Returns the system-dependent name-separator character as string for the current platform. */
+  public final static String SEPARATOR = System.getProperty("file.separator");
+
   /**
    * Determines the current operating system.
    */

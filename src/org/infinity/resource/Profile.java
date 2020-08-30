@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -31,6 +31,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.ObjectString;
+import org.infinity.util.Platform;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.DlcManager;
@@ -409,6 +410,8 @@ public final class Profile implements FileWatcher.FileWatchListener
   // Set of resource extensions supported by Infinity Engine games
   private static final HashSet<String> SUPPORTED_RESOURCE_TYPES = new HashSet<>();
   private static final HashMap<String, String> KNOWN_EQUIPPED_APPEARANCE = new HashMap<>();
+  // A list of potential game executable filenames for each game
+  private static final EnumMap<Game, EnumMap<Platform.OS, List<String>>> DEFAULT_GAME_BINARIES = new EnumMap<>(Game.class);
 
   // Using the singleton approach
   private static Profile instance = null;
@@ -563,6 +566,9 @@ public final class Profile implements FileWatcher.FileWatchListener
     KNOWN_EQUIPPED_APPEARANCE.put("WH", "War hammer");
     KNOWN_EQUIPPED_APPEARANCE.put("YW", "Wings (male)");
     KNOWN_EQUIPPED_APPEARANCE.put("ZW", "Wings (female)");
+
+    // initializing potential game executable filenames
+    initDefaultGameBinaries();
 
     // static properties are always available
     initStaticProperties();
@@ -1139,6 +1145,71 @@ public final class Profile implements FileWatcher.FileWatchListener
     return retVal;
   }
 
+  /**
+   * Returns a list of potential game binary filenames for the current game and platform.
+   * Returned list can be empty but is never {@code null}.
+   */
+  public static List<String> getGameBinaries()
+  {
+    return getGameBinaries(null, null);
+  }
+
+  /**
+   * Returns a list of potential game binary filenames for the specified game and platform.
+   * Returned list can be empty but is never {@code null}.
+   */
+  public static List<String> getGameBinaries(Game game, Platform.OS os)
+  {
+    List<String> list = null;
+
+    if (game == null)
+      game = getGame();
+    if (os == null)
+      os = Platform.getPlatform();
+
+    EnumMap<Platform.OS, List<String>> osMap = DEFAULT_GAME_BINARIES.get(game);
+    if (osMap != null)
+      list = osMap.get(os);
+
+    return Collections.unmodifiableList((list != null) ? list : new ArrayList<>(1));
+  }
+
+  /** Returns a list of paths for existing game binaries associated with the current game and platform. */
+  public static List<Path> getGameBinaryPaths()
+  {
+    return getGameBinaryPaths(null, null);
+  }
+
+  /** Returns a list of existing game binary paths associated with the specified game and platform. */
+  public static List<Path> getGameBinaryPaths(Game game, Platform.OS os)
+  {
+    List<Path> list = new ArrayList<>();
+
+    if (game == null)
+      game = getGame();
+    if (os == null)
+      os = Platform.getPlatform();
+
+    List<String> listNames = getGameBinaries(game, os);
+    Path root = getGameRoot();
+    for (String name : listNames) {
+      Path path = FileManager.queryExisting(root, name);
+      if (path != null) {
+        if (os == Platform.OS.MacOS &&
+            path.toString().toLowerCase(Locale.ENGLISH).endsWith(".app") &&
+            Files.isDirectory(path)) {
+          if (!list.contains(path))
+            list.add(path);
+        } else if (Files.isRegularFile(path)) {
+          if (!list.contains(path))
+            list.add(path);
+        }
+      }
+    }
+
+    return list;
+  }
+
   // Returns the Property object assigned to the given key.
   private static Property getEntry(Key  key)
   {
@@ -1187,6 +1258,202 @@ public final class Profile implements FileWatcher.FileWatchListener
     // setting dialog.tlk file names
     addEntry(Key.GET_GLOBAL_DIALOG_NAME, Type.STRING, "dialog.tlk");
     addEntry(Key.GET_GLOBAL_DIALOG_NAME_FEMALE, Type.STRING, "dialogf.tlk");
+  }
+
+  // Initializes a list of potential executable filenames for each game and platform
+  private static void initDefaultGameBinaries()
+  {
+    DEFAULT_GAME_BINARIES.clear();
+    EnumMap<Platform.OS, List<String>> osMap;
+    List<String> emptyList = new ArrayList<>();;
+    List<String> list;
+
+    // BG1 & BG1TotSC (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.Unix, emptyList);
+    osMap.put(Platform.OS.MacOS, emptyList);
+    list = new ArrayList<>();
+    list.add("bgmain2.exe");
+    list.add("bgmain.exe");
+    list.add("baldur.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.BG1, osMap);
+    DEFAULT_GAME_BINARIES.put(Game.BG1TotSC, osMap);
+
+    // Tutu (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.Unix, emptyList);
+    osMap.put(Platform.OS.MacOS, emptyList);
+    list = new ArrayList<>();
+    list.add("bgmain.exe");
+    list.add("baldur.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.Tutu, osMap);
+
+    // BG2SoA & BG2ToB (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.Unix, emptyList);
+    osMap.put(Platform.OS.MacOS, emptyList);
+    list = new ArrayList<>();
+    list.add("bgmain.exe");
+    list.add("baldur.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.BG2SoA, osMap);
+    DEFAULT_GAME_BINARIES.put(Game.BG2ToB, osMap);
+
+    // BGT (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.Unix, emptyList);
+    osMap.put(Platform.OS.MacOS, emptyList);
+    list = new ArrayList<>();
+    list.add("bgmain.exe");
+    list.add("baldur.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.BGT, osMap);
+
+    // PST (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.Unix, emptyList);
+    osMap.put(Platform.OS.MacOS, emptyList);
+    list = new ArrayList<>();
+    list.add("torment.exe");
+    list.add("pst.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.PST, osMap);
+
+    // IWD & IWDHoW & IWDHowTotLM (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.Unix, emptyList);
+    osMap.put(Platform.OS.MacOS, emptyList);
+    list = new ArrayList<>();
+    list.add("idmain.exe");
+    list.add("icewind.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.IWD, osMap);
+    DEFAULT_GAME_BINARIES.put(Game.IWDHoW, osMap);
+    DEFAULT_GAME_BINARIES.put(Game.IWDHowTotLM, osMap);
+
+    // IWD2 (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.Unix, emptyList);
+    osMap.put(Platform.OS.MacOS, emptyList);
+    list = new ArrayList<>();
+    list.add("iwd2.exe");
+    list.add("icewind2.exe");
+    list.add("icewind.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.IWD2, osMap);
+
+    // BG1EE (Linux, macOS, Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    list = new ArrayList<>();
+    list.add("baldursgate64");
+    list.add("baldursgate");
+    list.add("baldur");
+    osMap.put(Platform.OS.Unix, list);
+    list = new ArrayList<>();
+    list.add("Baldur's Gate - Enhanced Edition.app");
+    list.add("Baldur's Gate - Enhanced Edition.app/Contents/MacOS/Baldur's Gate - Enhanced Edition");
+    list.add("Baldur's Gate - Enhanced Edition");
+    osMap.put(Platform.OS.MacOS, list);
+    list = new ArrayList<>();
+    list.add("Baldur.exe");
+    list.add("BGEE.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.BG1EE, osMap);
+
+    // BG1BG1SoD (Linux, macOS, Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    list = new ArrayList<>();
+    list.add("SiegeOfDragonspear64");
+    list.add("SiegeOfDragonspear");
+    list.add("BaldursGate64");
+    list.add("BaldursGate");
+    list.add("Baldur");
+    list.add("siegeofdragonspear64");
+    list.add("siegeofdragonspear");
+    list.add("baldursgate64");
+    list.add("baldursgate");
+    list.add("baldur");
+    osMap.put(Platform.OS.Unix, list);
+    list = new ArrayList<>();
+    list.add("Baldur's Gate - Enhanced Edition.app");
+    list.add("Baldur's Gate - Enhanced Edition.app/Contents/MacOS/Baldur's Gate - Enhanced Edition");
+    list.add("Baldur's Gate - Enhanced Edition");
+    osMap.put(Platform.OS.MacOS, list);
+    list = new ArrayList<>();
+    list.add("SiegeOfDragonspear.exe");
+    list.add("SOD.exe");
+    list.add("Baldur.exe");
+    list.add("BGEE.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.BG1SoD, osMap);
+
+    // BG2EE & EET (Linux, macOS, Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    list = new ArrayList<>();
+    list.add("BaldursGateII64");
+    list.add("BaldursGateII");
+    list.add("Baldur");
+    list.add("baldursgateii64");
+    list.add("baldursgateii");
+    list.add("baldur");
+    osMap.put(Platform.OS.Unix, list);
+    list = new ArrayList<>();
+    list.add("BaldursGateIIEnhancedEdition.app");
+    list.add("BaldursGateIIEnhancedEdition.app/Contents/MacOS/BaldursGateIIEnhancedEdition");
+    list.add("BaldursGateIIEnhancedEdition");
+    list.add("Baldur's Gate II - Enhanced Edition.app");
+    list.add("Baldur's Gate II - Enhanced Edition.app/Contents/MacOS/Baldur's Gate II - Enhanced Edition");
+    list.add("Baldur's Gate II - Enhanced Edition");
+    osMap.put(Platform.OS.MacOS, list);
+    list = new ArrayList<>();
+    list.add("Baldur.exe");
+    list.add("BG2EE.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.BG2EE, osMap);
+    DEFAULT_GAME_BINARIES.put(Game.EET, osMap);
+
+    // IWDEE (Linux, macOS, Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    list = new ArrayList<>();
+    list.add("IcewindDale64");
+    list.add("IcewindDale");
+    list.add("Icewind");
+    list.add("icewinddale64");
+    list.add("icewinddale");
+    list.add("icewind");
+    osMap.put(Platform.OS.Unix, list);
+    list = new ArrayList<>();
+    list.add("IcewindDale.app");
+    list.add("IcewindDale.app/Contents/MacOS/IcewindDale");
+    list.add("Icewind Dale - Enhanced Edition.app");
+    list.add("Icewind Dale - Enhanced Edition.app/Contents/MacOS/Icewind Dale - Enhanced Edition");
+    osMap.put(Platform.OS.MacOS, list);
+    list = new ArrayList<>();
+    list.add("Icewind.exe");
+    list.add("IWD.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.IWDEE, osMap);
+
+    // PSTEE (Linux, macOS, Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    list = new ArrayList<>();
+    list.add("Torment64");
+    list.add("Torment");
+    list.add("torment64");
+    list.add("torment");
+    osMap.put(Platform.OS.Unix, list);
+    list = new ArrayList<>();
+    list.add("Planescape Torment - Enhanced Edition.app");
+    list.add("Planescape Torment - Enhanced Edition.app/Contents/MacOS/Planescape Torment - Enhanced Edition");
+    list.add("Planescape Torment - Enhanced Edition");
+    osMap.put(Platform.OS.MacOS, list);
+    list = new ArrayList<>();
+    list.add("Torment.exe");
+    list.add("PST.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.PSTEE, osMap);
   }
 
   // Attempts to determine home folder name from the game's "engine.lua" file if available
