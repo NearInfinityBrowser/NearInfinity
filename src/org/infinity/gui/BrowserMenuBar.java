@@ -737,7 +737,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   ///////////////////////////////
   private static final class GameMenu extends JMenu implements ActionListener
   {
-    private final JMenuItem gameOpenFile, gameOpenGame, gameRefresh, gameExit, gameCloseTLK,
+    private final JMenuItem gameOpenFile, gameOpenGame, gameRefresh, gameExit,
                             gameProperties, gameBookmarkAdd, gameBookmarkEdit, gameRecentClear;
 
     private final JMenu gameRecent = new JMenu("Recently opened games");
@@ -765,9 +765,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       gameRefresh.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
       gameRefresh.setActionCommand("Refresh");
       add(gameRefresh);
-      gameCloseTLK = makeMenuItem("Release Dialog.tlk Lock", KeyEvent.VK_D, Icons.getIcon(Icons.ICON_RELEASE_16),
-                                  -1, this);
-      add(gameCloseTLK);
 
       gameProperties = makeMenuItem("Game Properties...", KeyEvent.VK_P, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
       add(gameProperties);
@@ -1116,9 +1113,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
             NearInfinity.getInstance().openGame(keyFile);
           }
         }
-      } else if (event.getSource() == gameCloseTLK) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Read lock released",
-                                      "Release Dialog.tlk", JOptionPane.INFORMATION_MESSAGE);
       } else if (event.getSource() == gameProperties) {
         new GameProperties(NearInfinity.getInstance());
       } else if (event.getSource() == gameBookmarkAdd) {
