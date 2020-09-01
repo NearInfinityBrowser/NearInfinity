@@ -11,7 +11,6 @@ import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,6 +22,7 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -250,7 +250,7 @@ public class BamV2Decoder extends BamDecoder
       if (bamPath != null) {
         // preferring PVRZ files from the BAM's base path
         Path pvrzFile = FileManager.resolve(bamPath.resolve(name));
-        if (Files.isRegularFile(pvrzFile)) {
+        if (FileEx.create(pvrzFile).isFile()) {
           entry = new FileResourceEntry(pvrzFile);
         }
       }

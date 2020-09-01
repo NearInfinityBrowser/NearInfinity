@@ -51,6 +51,8 @@ public class Icons
   public static final String ICON_HISTORY_16          = "History16.gif";
   public static final String ICON_IMPORT_16           = "Import16.gif";
   public static final String ICON_INFORMATION_16      = "Information16.png";
+  public static final String ICON_LAUNCH_24           = "LaunchRed24.png";
+  public static final String ICON_LAUNCH_PLUS_24      = "LaunchRedPlus24.png";
   public static final String ICON_MAGNIFY_16          = "Magnify16.png";
   public static final String ICON_MOVIE_16            = "Movie16.gif";
   public static final String ICON_NEW_16              = "New16.gif";

@@ -375,13 +375,13 @@ public class ResourceBitmap extends Datatype
     @Override
     public boolean equals(Object o)
     {
-      return desc.equalsIgnoreCase(o.toString());
+      return desc.equalsIgnoreCase(Misc.safeToString(o));
     }
 
     @Override
     public int compareTo(RefEntry o)
     {
-      return desc.compareToIgnoreCase(o.toString());
+      return desc.compareToIgnoreCase(Misc.safeToString(o));
     }
 
     public boolean isResource() { return (entry != null); }

@@ -90,6 +90,7 @@ import org.infinity.util.CreMapCache;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.Misc;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.FileWatcher;
 import org.infinity.util.io.FileWatcher.FileWatchEvent;
@@ -499,7 +500,7 @@ public final class ResourceFactory implements FileWatchListener
         List<Path> extraFolders = Profile.getOverrideFolders(searchExtraDirs);
         if (extraFolders != null) {
           Path file = FileManager.query(extraFolders, resourceName);
-          if (file != null && Files.isRegularFile(file)) {
+          if (file != null && FileEx.create(file).isFile()) {
             entry = new FileResourceEntry(file);
           }
         }
@@ -508,7 +509,7 @@ public final class ResourceFactory implements FileWatchListener
       // checking custom folder list
       if (extraDirs != null && (entry == null)) {
         Path file = FileManager.query(extraDirs, resourceName);
-        if (file != null && Files.isRegularFile(file)) {
+        if (file != null && FileEx.create(file).isFile()) {
           entry = new FileResourceEntry(file);
         }
       }
@@ -710,12 +711,12 @@ public final class ResourceFactory implements FileWatchListener
 
     if (Profile.isEnhancedEdition()) {
       Path langPath = Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_BASE);
-      if (langPath != null && Files.isDirectory(langPath)) {
+      if (langPath != null && FileEx.create(langPath).isDirectory()) {
         try (DirectoryStream<Path> dstream = Files.newDirectoryStream(langPath,
             (Path entry) -> {
-              return Files.isDirectory(entry) &&
+              return FileEx.create(entry).isDirectory() &&
                      entry.getFileName().toString().matches("[a-z]{2}_[A-Z]{2}") &&
-                     Files.isRegularFile(FileManager.query(entry, Profile.getProperty(Profile.Key.GET_GLOBAL_DIALOG_NAME)));
+                     FileEx.create(FileManager.query(entry, Profile.getProperty(Profile.Key.GET_GLOBAL_DIALOG_NAME))).isFile();
               })) {
           dstream.forEach((path) -> list.add(path));
         } catch (IOException e) {
@@ -730,7 +731,7 @@ public final class ResourceFactory implements FileWatchListener
   public static String autodetectGameLanguage(Path iniFile)
   {
     final String langDefault = "en_US";   // using default language, if no language entry found
-    if (Profile.isEnhancedEdition() && iniFile != null && Files.isRegularFile(iniFile)) {
+    if (Profile.isEnhancedEdition() && iniFile != null && FileEx.create(iniFile).isFile()) {
       // Attempt to autodetect game language
       try (BufferedReader br = Files.newBufferedReader(iniFile, Misc.CHARSET_UTF8)) {
         String line;
@@ -743,7 +744,7 @@ public final class ResourceFactory implements FileWatchListener
               lang = lang.replaceFirst("'.*$", "");
               if (lang.matches("[A-Za-z]{2}_[A-Za-z]{2}")) {
                 Path path = FileManager.query(Profile.getGameRoot(), "lang", lang);
-                if (path != null && Files.isDirectory(path)) {
+                if (path != null && FileEx.create(path).isDirectory()) {
                   try {
                     // try to fetch the actual path name to ensure correct case
                     return path.toRealPath().getFileName().toString();
@@ -771,7 +772,7 @@ public final class ResourceFactory implements FileWatchListener
       final Path EE_DOC_ROOT = FileSystemView.getFileSystemView().getDefaultDirectory().toPath();
       final String EE_DIR = Profile.getProperty(Profile.Key.GET_GAME_HOME_FOLDER_NAME);
       Path userPath = FileManager.query(EE_DOC_ROOT, EE_DIR);
-      if (allowMissing || (userPath != null && Files.isDirectory(userPath))) {
+      if (allowMissing || (userPath != null && FileEx.create(userPath).isDirectory())) {
         return userPath;
       } else {
         // fallback solution
@@ -797,7 +798,7 @@ public final class ResourceFactory implements FileWatchListener
         } else if (osName.contains("nix") || osName.contains("nux") || osName.contains("bsd")) {
           userPath = FileManager.resolve(FileManager.resolve(userPrefix, ".local", "share", EE_DIR));
         }
-        if (allowMissing || (userPath != null && Files.isDirectory(userPath))) {
+        if (allowMissing || (userPath != null && FileEx.create(userPath).isDirectory())) {
           return userPath;
         }
       }
@@ -825,7 +826,7 @@ public final class ResourceFactory implements FileWatchListener
       // fetching the CD folders in a game installation
       Path iniFile = Profile.getProperty(Profile.Key.GET_GAME_INI_FILE);
       List<Path> rootFolders = Profile.getRootFolders();
-      if (iniFile != null && Files.isRegularFile(iniFile)) {
+      if (iniFile != null && FileEx.create(iniFile).isFile()) {
         try (BufferedReader br = Files.newBufferedReader(iniFile)) {
           String line;
           while ((line = br.readLine()) != null) {
@@ -845,7 +846,7 @@ public final class ResourceFactory implements FileWatchListener
                 Path path;
                 if (line.charAt(0) == '/') {  // absolute Unix path
                   path = FileManager.resolve(line);
-                  if (path == null || !Files.isDirectory(path)) { // try relative Unix path
+                  if (path == null || !FileEx.create(path).isDirectory()) { // try relative Unix path
                     path = FileManager.query(rootFolders, line);
                   }
                 } else if (line.indexOf(':') < 0) { // relative Unix path
@@ -853,7 +854,7 @@ public final class ResourceFactory implements FileWatchListener
                 } else {
                   path = FileManager.resolve(line);
                 }
-                if (Files.isDirectory(path)) {
+                if (FileEx.create(path).isDirectory()) {
                   dirList.add(path);
                 }
               }
@@ -871,13 +872,13 @@ public final class ResourceFactory implements FileWatchListener
         Path path;
         for (int i = 1; i < 7; i++) {
           path = FileManager.query(rootFolders, "CD" + i);
-          if (Files.isDirectory(path)) {
+          if (FileEx.create(path).isDirectory()) {
             dirList.add(path);
           }
         }
         // used in certain games
         path = FileManager.query(rootFolders, "CDALL");
-        if (Files.isDirectory(path)) {
+        if (FileEx.create(path).isDirectory()) {
           dirList.add(path);
         }
       }
@@ -890,7 +891,7 @@ public final class ResourceFactory implements FileWatchListener
   {
     final String langDefault = "en_US";   // using default language, if no language entry found
 
-    if (Profile.isEnhancedEdition() && iniFile != null && Files.isRegularFile(iniFile)) {
+    if (Profile.isEnhancedEdition() && iniFile != null && FileEx.create(iniFile).isFile()) {
       String lang = BrowserMenuBar.getInstance().getSelectedGameLanguage();
 
       if (lang == null || lang.isEmpty()) {
@@ -899,7 +900,7 @@ public final class ResourceFactory implements FileWatchListener
         // Using user-defined language
         if (lang.matches("[A-Za-z]{2}_[A-Za-z]{2}")) {
           Path path = FileManager.query(Profile.getGameRoot(), "lang", lang);
-          if (path != null && Files.isDirectory(path)) {
+          if (path != null && FileEx.create(path).isDirectory()) {
             String retVal;
             try {
               // try to fetch the actual path name to ensure correct case
@@ -1023,7 +1024,7 @@ public final class ResourceFactory implements FileWatchListener
     fc.setSelectedFile(new File(fc.getCurrentDirectory(), fileName));
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       path = fc.getSelectedFile().toPath();
-      if (!forceOverwrite && Files.exists(path)) {
+      if (!forceOverwrite && FileEx.create(path).exists()) {
         final String options[] = {"Overwrite", "Cancel"};
         if (JOptionPane.showOptionDialog(parent, path + " exists. Overwrite?", "Export resource",
                                          JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
@@ -1169,7 +1170,7 @@ public final class ResourceFactory implements FileWatchListener
         !Profile.isResourceTypeSupported(FileManager.getFileExtension(resource))) {
       return;
     }
-    if (resource == null || !Files.isRegularFile(resource)) {
+    if (resource == null || !FileEx.create(resource).isFile()) {
       return;
     }
 
@@ -1301,7 +1302,7 @@ public final class ResourceFactory implements FileWatchListener
     NearInfinity.advanceProgress("Loading extra resources...");
     List<Path> extraPaths = Profile.getProperty(Profile.Key.GET_GAME_EXTRA_FOLDERS);
     extraPaths.forEach((path) -> {
-      if (Files.isDirectory(path)) {
+      if (FileEx.create(path).isDirectory()) {
         treeModel.addDirectory(treeModel.getRoot(), path, false);
       }
     });
@@ -1312,10 +1313,10 @@ public final class ResourceFactory implements FileWatchListener
     String overrideFolder = Profile.getOverrideFolderName();
     List<Path> overridePaths = Profile.getOverrideFolders(false);
     for (final Path overridePath: overridePaths) {
-      if (Files.isDirectory(overridePath)) {
+      if (FileEx.create(overridePath).isDirectory()) {
         try (DirectoryStream<Path> dstream = Files.newDirectoryStream(overridePath)) {
           dstream.forEach((path) -> {
-            if (Files.isRegularFile(path)) {
+            if (FileEx.create(path).isFile()) {
               ResourceEntry entry = getResourceEntry(path.getFileName().toString());
               if (entry instanceof FileResourceEntry) {
                 treeModel.addResourceEntry(entry, entry.getTreeFolderName(), true);
@@ -1388,7 +1389,7 @@ public final class ResourceFactory implements FileWatchListener
    */
   private void addFileResource(Path path)
   {
-    if (path != null && Files.isRegularFile(path)) {
+    if (path != null && FileEx.create(path).isFile()) {
       treeModel.addResourceEntry(new FileResourceEntry(path), SPECIAL_CATEGORY, false);
     }
   }
@@ -1516,7 +1517,7 @@ public final class ResourceFactory implements FileWatchListener
       outFile = FileManager.query(Profile.getGameRoot(), "Scripts", fileName);
     }
 
-    if (Files.exists(outFile)) {
+    if (FileEx.create(outFile).exists()) {
       String options[] = {"Overwrite", "Cancel"};
       if (JOptionPane.showOptionDialog(NearInfinity.getInstance(), outFile + " exists. Overwrite?",
                                        "Confirm overwrite " + outFile, JOptionPane.YES_NO_OPTION,
@@ -1525,7 +1526,7 @@ public final class ResourceFactory implements FileWatchListener
     }
 
     // creating override folder in game directory if it doesn't exist
-    if (!Files.isDirectory(outPath)) {
+    if (!FileEx.create(outPath).isDirectory()) {
       try {
         Files.createDirectory(outPath);
       } catch (IOException e) {
@@ -1573,7 +1574,7 @@ public final class ResourceFactory implements FileWatchListener
     Path outPath;
     if (entry instanceof BIFFResourceEntry) {
       Path overridePath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName());
-      if (!Files.isDirectory(overridePath)) {
+      if (!FileEx.create(overridePath).isDirectory()) {
         try {
           Files.createDirectory(overridePath);
         } catch (IOException e) {
@@ -1590,7 +1591,7 @@ public final class ResourceFactory implements FileWatchListener
       // extra step for saving resources from a read-only medium (such as DLCs)
       if (!FileManager.isDefaultFileSystem(outPath)) {
         outPath = Profile.getGameRoot().resolve(outPath.subpath(0, outPath.getNameCount()).toString());
-        if (outPath != null && !Files.exists(outPath.getParent())) {
+        if (outPath != null && !FileEx.create(outPath.getParent()).exists()) {
           try {
             Files.createDirectories(outPath.getParent());
           } catch (IOException e) {
@@ -1602,7 +1603,7 @@ public final class ResourceFactory implements FileWatchListener
         }
       }
     }
-    if (Files.exists(outPath)) {
+    if (FileEx.create(outPath).exists()) {
       outPath = outPath.toAbsolutePath();
       String options[] = {"Overwrite", "Cancel"};
       if (JOptionPane.showOptionDialog(parent, outPath + " exists. Overwrite?", "Save resource",
@@ -1611,10 +1612,10 @@ public final class ResourceFactory implements FileWatchListener
         if (BrowserMenuBar.getInstance().backupOnSave()) {
           try {
             Path bakPath = outPath.getParent().resolve(outPath.getFileName() + ".bak");
-            if (Files.isRegularFile(bakPath)) {
+            if (FileEx.create(bakPath).isFile()) {
               Files.delete(bakPath);
             }
-            if (!Files.exists(bakPath)) {
+            if (!FileEx.create(bakPath).exists()) {
               Files.move(outPath, bakPath);
             }
           } catch (IOException e) {

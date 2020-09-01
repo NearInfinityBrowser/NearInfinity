@@ -131,7 +131,7 @@ public final class CreMapCache
   private static String normalized(String s)
   {
     if (s != null) {
-      return s.replaceAll(" ", "").toLowerCase(Locale.ENGLISH);
+      return s.replace(" ", "").toLowerCase(Locale.ENGLISH);
     } else {
       return "";
     }

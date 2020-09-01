@@ -54,6 +54,7 @@ import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -264,8 +265,8 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
     if (!filename.contains(".")) {
       filename = filename + '.' + entry.getExtension();
     }
-    if (Files.exists(entry.getActualPath().getParent().resolve(filename))
-     && JOptionPane.showConfirmDialog(NearInfinity.getInstance(),
+    if (FileEx.create(entry.getActualPath().getParent().resolve(filename)).exists() &&
+        JOptionPane.showConfirmDialog(NearInfinity.getInstance(),
                                       "File with name \"" + filename + "\" already exists! Overwrite?",
                                       "Confirm overwrite " + filename, JOptionPane.OK_CANCEL_OPTION,
                                       JOptionPane.QUESTION_MESSAGE) != JOptionPane.OK_OPTION
@@ -360,8 +361,8 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
           // .bak available -> restore .bak version
           Path curFile = getCurrentFile(entry);
           Path tmpFile = getTempFile(curFile);
-          if (curFile != null && Files.isRegularFile(curFile) &&
-              bakFile != null && Files.isRegularFile(bakFile)) {
+          if (curFile != null && FileEx.create(curFile).isFile() &&
+              bakFile != null && FileEx.create(bakFile).isFile()) {
             try {
               Files.move(curFile, tmpFile);
               try {
@@ -415,7 +416,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
 
   static void createZipFile(Path path)
   {
-    if (path != null && Files.isDirectory(path)) {
+    if (path != null && FileEx.create(path).isDirectory()) {
       JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
       fc.setDialogTitle("Save as");
       fc.setFileFilter(new FileNameExtensionFilter("Zip files (*.zip)", "zip"));
@@ -484,7 +485,7 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
         (entry instanceof BIFFResourceEntry && entry.hasOverride())) {
       if (file != null) {
         Path bakFile = file.getParent().resolve(file.getFileName().toString() + ".bak");
-        if (Files.isRegularFile(bakFile)) {
+        if (FileEx.create(bakFile).isFile()) {
           return bakFile;
         }
       }
@@ -509,13 +510,13 @@ public final class ResourceTree extends JPanel implements TreeSelectionListener,
   private static Path getTempFile(Path file)
   {
     Path retVal = null;
-    if (file != null && Files.isRegularFile(file)) {
+    if (file != null && FileEx.create(file).isFile()) {
       final String fmt = ".%03d";
       Path filePath = file.getParent();
       String fileName = file.getFileName().toString();
       for (int i = 0; i < 1000; i++) {
         Path tmp = filePath.resolve(fileName + String.format(fmt, i));
-        if (!Files.exists(tmp) && Files.notExists(tmp)) {
+        if (!FileEx.create(tmp).exists()) {
           retVal = tmp;
           break;
         }

@@ -555,7 +555,7 @@ public final class CreResource extends AbstractStruct
         // Apparently script name is the only thing that matters
   //        scriptName = entry.toString().substring(0, entry.toString().length() - 4);
         } else {
-          scriptName = scriptName.toLowerCase(Locale.ENGLISH).replaceAll(" ", "");
+          scriptName = scriptName.toLowerCase(Locale.ENGLISH).replace(" ", "");
           if (scriptNames.containsKey(scriptName)) {
             synchronized (scriptNames) {
               Set<ResourceEntry> entries = scriptNames.get(scriptName);

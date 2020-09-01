@@ -76,6 +76,7 @@ import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -263,7 +264,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       Path outPath;
       if (entry instanceof BIFFResourceEntry) {
         Path overridePath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName());
-        if (!Files.isDirectory(overridePath)) {
+        if (!FileEx.create(overridePath).isDirectory()) {
           try {
             Files.createDirectory(overridePath);
           } catch (IOException e) {
@@ -278,7 +279,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       } else {
         outPath = entry.getActualPath();
       }
-      if (Files.exists(outPath)) {
+      if (FileEx.create(outPath).exists()) {
         outPath = outPath.toAbsolutePath();
         String options[] = {"Overwrite", "Cancel"};
         if (JOptionPane.showOptionDialog(this, outPath + " exists. Overwrite?", "Save resource",
@@ -287,10 +288,10 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
           if (BrowserMenuBar.getInstance().backupOnSave()) {
             try {
               Path bakPath = outPath.getParent().resolve(outPath.getFileName() + ".bak");
-              if (Files.isRegularFile(bakPath)) {
+              if (FileEx.create(bakPath).isFile()) {
                 Files.delete(bakPath);
               }
-              if (!Files.exists(bakPath)) {
+              if (!FileEx.create(bakPath).exists()) {
                 Files.move(outPath, bakPath);
               }
             } catch (IOException e) {

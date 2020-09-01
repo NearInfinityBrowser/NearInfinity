@@ -59,6 +59,7 @@ import org.infinity.resource.bcs.ScriptMessage;
 import org.infinity.resource.bcs.ScriptType;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.util.Misc;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 
 final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelectionListener
@@ -324,7 +325,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     if (component == compZone) {
       for (File f : files) {
         Path file = f.toPath();
-        if (Files.isDirectory(file)) {
+        if (FileEx.create(file).isDirectory()) {
           try (DirectoryStream<Path> dstream = Files.newDirectoryStream(file)) {
             for (final Path p: dstream) {
               files.add(p.toFile());
@@ -356,7 +357,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
     else if (component == decompZone) {
       for (File f : files) {
         final Path file = f.toPath();
-        if (Files.isDirectory(file)) {
+        if (FileEx.create(file).isDirectory()) {
           try (final DirectoryStream<Path> dstream = Files.newDirectoryStream(file)) {
             for (final Path p: dstream) {
               files.add(p.toFile());

@@ -394,7 +394,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
         sb.append(br).append("Referenced PVRZ pages:").append(br);
         sb.append(pageList.toString()).append(br);
       }
-      sb.append("</code></html>");
+      sb.append("</div></html>");
       JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName,
                                     JOptionPane.INFORMATION_MESSAGE);
     } catch (Exception e) {

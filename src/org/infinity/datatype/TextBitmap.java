@@ -55,9 +55,9 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
       this.ids = new String[items.size()];
       this.names = new String[this.ids.length];
       int idx = 0;
-      for (final String key: items.keySet()) {
-        this.ids[idx] = key;
-        this.names[idx] = items.get(key);
+      for (final Map.Entry<String, String> entry : items.entrySet()) {
+        this.ids[idx] = entry.getKey();
+        this.names[idx] = entry.getValue();
         idx++;
       }
     } else {

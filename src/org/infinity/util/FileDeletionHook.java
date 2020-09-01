@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.infinity.util.io.FileEx;
+
 /**
  * Attempts to delete all registered files when the JVM terminates.
  */
@@ -33,7 +35,7 @@ public class FileDeletionHook extends Thread
   {
     synchronized (listFilesToDelete) {
       for (final Path file: listFilesToDelete) {
-        if (file != null && Files.exists(file)) {
+        if (file != null && FileEx.create(file).exists()) {
           try {
             Files.delete(file);
           } catch (Throwable t) {

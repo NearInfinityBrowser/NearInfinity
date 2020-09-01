@@ -42,6 +42,7 @@ import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.BIFFWriter;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -166,7 +167,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     for (final ResourceEntry entry : tobif) {
       Path file = FileManager.query(Profile.getRootFolders(), Profile.getOverrideFolderName(),
                                     entry.getResourceName());
-      if (file != null && Files.isRegularFile(file)) {
+      if (file != null && FileEx.create(file).isFile()) {
         try {
           Files.delete(file);
         } catch (IOException e) {
