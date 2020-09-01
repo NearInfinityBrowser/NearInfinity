@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -26,10 +26,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -54,6 +54,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
+import javax.swing.LookAndFeel;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
@@ -101,12 +102,14 @@ import org.infinity.util.MassExporter;
 import org.infinity.util.Misc;
 import org.infinity.util.ObjectString;
 import org.infinity.util.Pair;
+import org.infinity.util.Platform;
 import org.infinity.util.StringTable;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 
 public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 {
-  public static final String VERSION = "v2.1-20200620";
+  public static final String VERSION = "v2.1-20200901";
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
 
@@ -568,6 +571,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     return optionsMenu.charsetName(optionsMenu.getSelectedButtonData(), true);
   }
 
+  /** Returns whether launching game executables in NI is enabled. */
+  public boolean getLauncherEnabled()
+  {
+    return optionsMenu.optionLaunchGameAllowed.isSelected();
+  }
+
   /** Returns whether a backup is created when resources are modified. */
   public boolean backupOnSave()
   {
@@ -640,6 +649,16 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   {
     Bookmark bookmark = gameMenu.getBookmarkOf(keyFile);
     return (bookmark != null) ? bookmark.getName() : null;
+  }
+
+  /**
+   * Attempts to find and return a matching bookmark object.
+   * @param keyFile The path to the game's chitin.key used to determine the correct bookmark instance.
+   * @return The matching bookmark instance if available, {@code null} otherwise.
+   */
+  public Bookmark getBookmarkOf(Path keyFile)
+  {
+    return gameMenu.getBookmarkOf(keyFile);
   }
 
   public void storePreferences()
@@ -718,7 +737,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   ///////////////////////////////
   private static final class GameMenu extends JMenu implements ActionListener
   {
-    private final JMenuItem gameOpenFile, gameOpenGame, gameRefresh, gameExit, gameCloseTLK,
+    private final JMenuItem gameOpenFile, gameOpenGame, gameRefresh, gameExit,
                             gameProperties, gameBookmarkAdd, gameBookmarkEdit, gameRecentClear;
 
     private final JMenu gameRecent = new JMenu("Recently opened games");
@@ -746,9 +765,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       gameRefresh.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
       gameRefresh.setActionCommand("Refresh");
       add(gameRefresh);
-      gameCloseTLK = makeMenuItem("Release Dialog.tlk Lock", KeyEvent.VK_D, Icons.getIcon(Icons.ICON_RELEASE_16),
-                                  -1, this);
-      add(gameCloseTLK);
 
       gameProperties = makeMenuItem("Game Properties...", KeyEvent.VK_P, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
       add(gameProperties);
@@ -766,8 +782,18 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
                                                                           Profile.Game.Unknown.toString()));
         String gamePath = getPrefsProfiles().get(Bookmark.getPathKey(i), null);
         String gameName = getPrefsProfiles().get(Bookmark.getNameKey(i), null);
+        EnumMap<Platform.OS, List<String>> binPaths = null;
+        for (final Platform.OS os : Bookmark.getSupportedOS()) {
+          String path = getPrefsProfiles().get(Bookmark.getBinaryPathKey(os, i), null);
+          if (path != null) {
+            if (binPaths == null)
+              binPaths = new EnumMap<Platform.OS, List<String>>(Platform.OS.class);
+            List<String> list = Bookmark.unpackBinPaths(os, path);
+            binPaths.put(os, list);
+          }
+        }
         try {
-          Bookmark b = new Bookmark(gameName, game, gamePath, this);
+          Bookmark b = new Bookmark(gameName, game, gamePath, binPaths, this);
           addBookmarkedGame(bookmarkList.size(), b);
         } catch (NullPointerException e) {
           // skipping entry
@@ -995,6 +1021,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           getPrefsProfiles().remove(Bookmark.getNameKey(i));
           getPrefsProfiles().remove(Bookmark.getPathKey(i));
           getPrefsProfiles().remove(Bookmark.getGameKey(i));
+          for (final Platform.OS os : Bookmark.getSupportedOS()) {
+            getPrefsProfiles().remove(Bookmark.getBinaryPathKey(os, i));
+          }
         }
       }
       // 2. storing bookmarks in preferences
@@ -1004,6 +1033,13 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         getPrefsProfiles().put(Bookmark.getNameKey(i), bookmark.getName());
         getPrefsProfiles().put(Bookmark.getPathKey(i), bookmark.getPath());
         getPrefsProfiles().put(Bookmark.getGameKey(i), bookmark.getGame().toString());
+        for (final Platform.OS os : Bookmark.getSupportedOS()) {
+          String value = Bookmark.packBinPaths(os, bookmark.getBinaryPaths(os));
+          if (value.isEmpty())
+            getPrefsProfiles().remove(Bookmark.getBinaryPathKey(os, i));
+          else
+            getPrefsProfiles().put(Bookmark.getBinaryPathKey(os, i), value);
+        }
       }
 
       // storing recently used games
@@ -1050,7 +1086,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         }
         if (selected != -1) {
           Path keyFile = FileManager.resolve(bookmarkList.get(selected).getPath());
-          if (!Files.isRegularFile(keyFile)) {
+          if (!FileEx.create(keyFile).isFile()) {
             JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                                           bookmarkList.get(selected).getPath() + " could not be found",
                                           "Open game failed", JOptionPane.ERROR_MESSAGE);
@@ -1069,7 +1105,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         }
         if (selected != -1) {
           Path keyFile = FileManager.resolve(recentList.get(selected).getPath());
-          if (!Files.isRegularFile(keyFile)) {
+          if (!FileEx.create(keyFile).isFile()) {
             JOptionPane.showMessageDialog(NearInfinity.getInstance(),
                                           recentList.get(selected).getPath() + " could not be found",
                                           "Open game failed", JOptionPane.ERROR_MESSAGE);
@@ -1077,9 +1113,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
             NearInfinity.getInstance().openGame(keyFile);
           }
         }
-      } else if (event.getSource() == gameCloseTLK) {
-        JOptionPane.showMessageDialog(NearInfinity.getInstance(), "Read lock released",
-                                      "Release Dialog.tlk", JOptionPane.INFORMATION_MESSAGE);
       } else if (event.getSource() == gameProperties) {
         new GameProperties(NearInfinity.getInstance());
       } else if (event.getSource() == gameBookmarkAdd) {
@@ -1327,7 +1360,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       editString =
           makeMenuItem("String table", KeyEvent.VK_S, Icons.getIcon(Icons.ICON_EDIT_16), KeyEvent.VK_S, this);
       add(editString);
-      // TODO: reactive when fixed
+      // TODO: reactivate when fixed
       editBIFF = makeMenuItem("BIFF", KeyEvent.VK_B, Icons.getIcon(Icons.ICON_EDIT_16), KeyEvent.VK_E, this);
       editBIFF.setToolTipText("Temporarily disabled");
       editBIFF.setEnabled(false);
@@ -1790,6 +1823,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private static final String OPTION_BACKUPONSAVE             = "BackupOnSave";
     private static final String OPTION_IGNOREOVERRIDE           = "IgnoreOverride";
     private static final String OPTION_IGNOREREADERRORS         = "IgnoreReadErrors";
+    private static final String OPTION_LAUNCHGAMEALLOWED        = "LaunchGameAllowed";
     private static final String OPTION_SHOWUNKNOWNRESOURCES     = "ShowUnknownResources";
     private static final String OPTION_AUTOCHECK_BCS            = "AutocheckBCS";
     private static final String OPTION_AUTOGEN_BCS_COMMENTS     = "AutogenBCSComments";
@@ -1874,7 +1908,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
                               optionIgnoreOverride, optionIgnoreReadErrors, optionCacheOverride, optionShowStrrefs,
                               optionShowColoredStructures, optionShowHexColored, optionShowUnknownResources,
                               optionKeepViewOnCopy, optionTreeSearchNames,
-                              optionHighlightOverridden;
+                              optionHighlightOverridden, optionLaunchGameAllowed;
 //                              optionMonitorFileChanges;
     private final JMenu mCharsetMenu, mLanguageMenu;
     private ButtonGroup bgCharsetButtons;
@@ -1897,6 +1931,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       optionBackupOnSave.setToolTipText("Enable this option to automatically create a backup " +
                                         "of the resource you want to save.");
       add(optionBackupOnSave);
+      optionLaunchGameAllowed =
+          new JCheckBoxMenuItem("Allow launching games", getPrefs().getBoolean(OPTION_LAUNCHGAMEALLOWED, true));
+      optionLaunchGameAllowed.setToolTipText("Enabling this option allows you to launch the game executable " +
+                                             "associated with the current game from within Near Infinity.");
+      optionLaunchGameAllowed.addActionListener(this);
+      add(optionLaunchGameAllowed);
       optionIgnoreOverride =
           new JCheckBoxMenuItem("Ignore Overrides", getPrefs().getBoolean(OPTION_IGNOREOVERRIDE, false));
       add(optionIgnoreOverride);
@@ -2255,6 +2295,14 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           dbmi = new DataRadioButtonMenuItem(info[i].getName(),
                                              selectedLF.equalsIgnoreCase(info[i].getClassName()),
                                              info[i]);
+          try {
+            // L&F description is only available from class instance
+            Class<?> cls = Class.forName(info[i].getClassName());
+            Object o = cls.newInstance();
+            if (o instanceof LookAndFeel)
+              dbmi.setToolTipText(((LookAndFeel)o).getDescription());
+          } catch (Exception ex) {
+          }
           lookAndFeel.add(dbmi);
           bg.add(dbmi);
         }
@@ -2582,6 +2630,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       getPrefs().putBoolean(OPTION_SHOWSIZE, optionShowSize.isSelected());
       getPrefs().putBoolean(OPTION_SHOWSIZEHEX, optionSizeInHex.isSelected());
       getPrefs().putBoolean(OPTION_BACKUPONSAVE, optionBackupOnSave.isSelected());
+      getPrefs().putBoolean(OPTION_LAUNCHGAMEALLOWED, optionLaunchGameAllowed.isSelected());
       getPrefs().putBoolean(OPTION_IGNOREOVERRIDE, optionIgnoreOverride.isSelected());
       getPrefs().putBoolean(OPTION_IGNOREREADERRORS, optionIgnoreReadErrors.isSelected());
       getPrefs().putBoolean(OPTION_SHOWUNKNOWNRESOURCES, optionShowUnknownResources.isSelected());
@@ -2976,6 +3025,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 //      } else if (event.getSource() == selectFont[selectFont.length - 1]) {
       if (event.getSource() == optionShowOffset) {
         optionOffsetRelative.setEnabled(optionShowOffset.isSelected());
+      }
+      else if (event.getSource() == optionLaunchGameAllowed) {
+        NearInfinity.getInstance().updateLauncher();
       }
       else if (event.getSource() == optionShowSize) {
         optionSizeInHex.setEnabled(optionShowSize.isSelected());
@@ -3489,24 +3541,33 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   }
 
   /** Manages bookmarked game entries. */
-  static final class Bookmark implements Cloneable
+  public static final class Bookmark implements Cloneable
   {
     /** "Bookmarks" preferences entries (numbers are 1-based). */
     private static final String BOOKMARK_NUM_ENTRIES  = "BookmarkEntries";
     private static final String FMT_BOOKMARK_NAME     = "BookmarkName%d";
     private static final String FMT_BOOKMARK_ID       = "BookmarkID%d";
     private static final String FMT_BOOKMARK_PATH     = "BookmarkPath%d";
+    private static final String FMT_BOOKMARK_BIN_PATH = "BookmarkPath%s%d"; // %s: Platform.OS, %d: bookmark index
 
     private static final String MENUITEM_COMMAND      = "OpenBookmark";
 
+    private static final Platform.OS[] SUPPORTED_OS = { Platform.OS.Windows, Platform.OS.MacOS, Platform.OS.Unix };
+
     private final Profile.Game game;
     private final String path;
+    private final EnumMap<Platform.OS, List<String>> binPaths = new EnumMap<>(Platform.OS.class);
 
     private String name;
     private ActionListener listener;
     private JMenuItem item;
 
     public Bookmark(String name, Profile.Game game, String path, ActionListener listener)
+    {
+      this(name, game, path, null, listener);
+    }
+
+    public Bookmark(String name, Profile.Game game, String path, EnumMap<Platform.OS, List<String>> binPaths, ActionListener listener)
     {
       if (game == null || path == null) {
         throw new NullPointerException();
@@ -3518,6 +3579,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       this.game = game;
       this.path = path;
       this.listener = listener;
+      if (binPaths != null)
+        this.binPaths.putAll(binPaths);
       updateMenuItem();
     }
 
@@ -3530,9 +3593,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     @Override
     public Object clone() throws CloneNotSupportedException
     {
-      return new Bookmark(getName(), getGame(), getPath(), listener);
+      return new Bookmark(name, game, path, binPaths, listener);
     }
-
 
     /** Returns user-defined game name. */
     public String getName() { return name; }
@@ -3554,11 +3616,42 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     /** Returns game path (i.e. full path to the chitin.key). */
     public String getPath() { return path; }
 
+    /** Returns a list of available paths to executables for the current platform. */
+    public List<String> getBinaryPaths() { return getBinaryPaths(Platform.getPlatform()); }
+
+    /** Returns a list of available paths to executables for the given platform. */
+    public List<String> getBinaryPaths(Platform.OS os)
+    {
+      if (os == null)
+        os = Platform.getPlatform();
+      return Collections.unmodifiableList(binPaths.getOrDefault(os, new ArrayList<String>(1)));
+    }
+
+    /** Assigns a new list of executable paths to the specified platform. Returns the previous path list if available. */
+    public List<String> setBinaryPaths(Platform.OS os, List<String> pathList)
+    {
+      if (os == null)
+        os = Platform.getPlatform();
+      List<String> retVal = binPaths.get(os);
+
+      List<String> newList = new ArrayList<>();
+      if (pathList != null) {
+        for (String path : pathList) {
+          if (path != null && !(path = path.trim()).isEmpty()) {
+            newList.add(path);
+          }
+        }
+      }
+      binPaths.put(os, newList);
+
+      return retVal;
+    }
+
     /** Returns associated menu item. */
     public JMenuItem getMenuItem() { return item; }
 
     /** Returns whether the bookmark points to an existing game installation. */
-    public boolean isEnabled() { return (Files.isRegularFile(FileManager.resolve(path))); }
+    public boolean isEnabled() { return (FileEx.create(FileManager.resolve(path)).isFile()); }
 
     /** Returns ActionListener used by the associated menu item. */
     public ActionListener getActionListener() { return listener; }
@@ -3632,6 +3725,71 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         return null;
       }
     }
+
+    /** Returns the Preferences key for a specific BookmarkBinPath for the current platform. */
+    public static String getBinaryPathKey(int idx)
+    {
+      return getBinaryPathKey(Platform.getPlatform(), idx);
+    }
+
+    /** Returns the Preferences key for a specific BookmarkBinPath for the given platform. */
+    public static String getBinaryPathKey(Platform.OS os, int idx)
+    {
+      if (idx >= 0) {
+        return String.format(FMT_BOOKMARK_BIN_PATH, os.name().toUpperCase(Locale.ENGLISH), idx+1);
+      } else {
+        return null;
+      }
+    }
+
+    /**
+     * Constructs a Preferences string value out of the specified list of path strings.
+     * @param os Platform associated with the path strings. Needed to determine the correct path separator.
+     * @param binPaths List of path strings.
+     * @return A string consisting of concatenated path strings.
+     */
+    public static String packBinPaths(Platform.OS os, List<String> binPaths)
+    {
+      StringBuilder sb = new StringBuilder();
+      if (os != null && binPaths != null && !binPaths.isEmpty()) {
+        String sep = (os == Platform.OS.Windows) ? ";" : ":";
+        for (int i = 0; i < binPaths.size(); i++) {
+          String path = binPaths.get(i);
+          if (path != null && !(path = path.trim()).isEmpty()) {
+            path = path.replace(sep, "?");  // hack: avoid ambiguity with path separator char
+            if (sb.length() > 0)
+              sb.append(sep);
+            sb.append(path);
+          }
+        }
+      }
+      return sb.toString();
+    }
+
+    /**
+     * Splits all paths defined in the specified argument and returns them as a list.
+     */
+    public static List<String> unpackBinPaths(Platform.OS os, String paths)
+    {
+      List<String> list = new ArrayList<>();
+      if (os != null && paths != null) {
+        String sep = (os == Platform.OS.Windows) ? ";" : ":";
+        String[] items = paths.split(sep);
+        for (String item : items) {
+          item = item.replace("?", sep);  // hack: fix ambiguity with path separator char
+          item = item.trim();
+          if (!item.isEmpty())
+            list.add(item);
+        }
+      }
+      return list;
+    }
+
+    /** Returns an array containing all supported {@code Platform.OS} types. */
+    public static Platform.OS[] getSupportedOS()
+    {
+      return SUPPORTED_OS;
+    }
   }
 
   /** Manages individual "Recently used games" entries. */
@@ -3654,7 +3812,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     public RecentGame(Profile.Game game, String path, int index, ActionListener listener)
     {
       if (game == null || game == Profile.Game.Unknown ||
-          path == null || !Files.isRegularFile(FileManager.resolve(path))) {
+          path == null || !FileEx.create(FileManager.resolve(path)).isFile()) {
         throw new NullPointerException();
       }
       this.game = game;

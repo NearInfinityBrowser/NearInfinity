@@ -7,7 +7,6 @@ package org.infinity.resource;
 import java.awt.Window;
 import java.io.File;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -23,6 +22,7 @@ import org.infinity.gui.NewProSettings;
 import org.infinity.gui.NewResSettings;
 import org.infinity.util.Misc;
 import org.infinity.util.ResourceStructure;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -90,7 +90,7 @@ public final class StructureFactory
           roots.add(Profile.getGameRoot());
         }
         savePath = FileManager.query(roots, "Characters");
-        if (!Files.isDirectory(savePath)) {
+        if (!FileEx.create(savePath).isDirectory()) {
           savePath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName());
         }
         break;
@@ -99,7 +99,7 @@ public final class StructureFactory
         savePath = FileManager.query(Profile.getGameRoot(), Profile.getOverrideFolderName());
         break;
     }
-    if (savePath == null || !Files.isDirectory(savePath) ) {
+    if (savePath == null || !FileEx.create(savePath).isDirectory()) {
       savePath = Profile.getGameRoot();
     }
     JFileChooser fc = new JFileChooser(savePath.toFile());
@@ -110,7 +110,7 @@ public final class StructureFactory
     fc.setSelectedFile(new File(fc.getCurrentDirectory(), "UNTITLED." + resExt.get(type)));
     if (fc.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
       Path outFile = fc.getSelectedFile().toPath();
-      if (Files.exists(outFile)) {
+      if (FileEx.create(outFile).exists()) {
         final String options[] = {"Overwrite", "Cancel"};
         if (JOptionPane.showOptionDialog(parent, outFile + "exists. Overwrite?", title, JOptionPane.YES_NO_OPTION,
                                          JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)

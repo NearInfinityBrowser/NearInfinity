@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.swing.JButton;
@@ -25,6 +26,7 @@ import org.infinity.NearInfinity;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.util.Misc;
+import org.infinity.util.io.FileEx;
 
 final class DebugConsole extends ChildFrame implements ActionListener
 {
@@ -76,7 +78,7 @@ final class DebugConsole extends ChildFrame implements ActionListener
       chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "nidebuglog.txt"));
       if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         Path output = chooser.getSelectedFile().toPath();
-        if (Files.exists(output)) {
+        if (FileEx.create(output).exists()) {
           String options[] = {"Overwrite", "Cancel"};
           if (JOptionPane.showOptionDialog(this, output + " exists. Overwrite?", "Save debug log", JOptionPane.YES_NO_OPTION,
                                            JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 0)
@@ -90,8 +92,9 @@ final class DebugConsole extends ChildFrame implements ActionListener
           bw.write(NearInfinity.getConsoleText().getText()); bw.newLine();
           bw.newLine();
           Properties props = System.getProperties();
-          for (Object key : props.keySet()) {
-            bw.write(key + "=" + props.get(key)); bw.newLine();
+          for (Map.Entry<Object, Object> entry : props.entrySet()) {
+            bw.write(entry.getKey() + "=" + entry.getValue());
+            bw.newLine();
           }
           JOptionPane.showMessageDialog(this, "Console saved to " + output, "Save complete",
                                         JOptionPane.INFORMATION_MESSAGE);

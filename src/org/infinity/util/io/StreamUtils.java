@@ -800,7 +800,7 @@ public class StreamUtils
     try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zipFile))) {
       Path baseDir = includeFolder ? sourceDir.getParent() : sourceDir;
       Files.walk(sourceDir)
-        .filter(path -> !Files.isDirectory(path))
+        .filter(path -> !FileEx.create(path).isDirectory())
         .forEach(path -> {
           ZipEntry ze = new ZipEntry(baseDir.relativize(path).toString());
           try {

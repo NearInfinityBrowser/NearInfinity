@@ -254,7 +254,7 @@ public class IdsMapCache
     if (name == null || name.trim().isEmpty()) {
       return name;
     }
-    String retVal = name.replaceAll("_", " ").toLowerCase(Locale.ENGLISH);
+    String retVal = name.replace("_", " ").toLowerCase(Locale.ENGLISH);
     retVal = Character.toUpperCase(retVal.charAt(0)) + retVal.substring(1);
     return retVal;
   }

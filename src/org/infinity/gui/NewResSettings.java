@@ -293,7 +293,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     private void setText(String newText)
     {
       if (newText != null)
-        desc = newText.replaceAll("\r", "");    // not sure if CR is supported
+        desc = newText.replace("\r", "");    // not sure if CR is supported
       else
         desc = "";
     }

@@ -20,6 +20,7 @@ import java.util.zip.DeflaterOutputStream;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -121,7 +122,7 @@ public final class BIFFWriter
   public void write() throws Exception
   {
     Path biffPath = FileManager.query(Profile.getGameRoot(), "data");
-    if (biffPath == null || !Files.isDirectory(biffPath)) {
+    if (biffPath == null || !FileEx.create(biffPath).isDirectory()) {
       throw new Exception("No BIFF folder found.");
     }
     Path dummyFile = Files.createTempFile(biffPath, "_dummy", ".bif");
@@ -136,7 +137,7 @@ public final class BIFFWriter
         if (realFile == null) {
           realFile = FileManager.query(Profile.getGameRoot(), bifEntry.getFileName());
         }
-        if (Files.isRegularFile(realFile)) {
+        if (FileEx.create(realFile).isFile()) {
           Files.delete(realFile);
         }
         Files.move(dummyFile, realFile);
@@ -149,7 +150,7 @@ public final class BIFFWriter
         if (realFile == null) {
           realFile = FileManager.query(Profile.getGameRoot(), bifEntry.getFileName());
         }
-        if (Files.isRegularFile(realFile)) {
+        if (FileEx.create(realFile).isFile()) {
           Files.delete(realFile);
         }
         Files.move(compressedFile, realFile);
@@ -162,19 +163,19 @@ public final class BIFFWriter
         if (realFile == null) {
           realFile = FileManager.query(Profile.getRootFolders(), bifEntry.getFileName());
         }
-        if (Files.isRegularFile(realFile)) {
+        if (FileEx.create(realFile).isFile()) {
           Files.delete(realFile);
         }
         Files.move(compressedFile, realFile);
       }
     } finally {
-      if (dummyFile != null && Files.isRegularFile(dummyFile)) {
+      if (dummyFile != null && FileEx.create(dummyFile).isFile()) {
         try {
           Files.delete(dummyFile);
         } catch (IOException e) {
         }
       }
-      if (compressedFile != null && Files.isRegularFile(compressedFile)) {
+      if (compressedFile != null && FileEx.create(compressedFile).isFile()) {
         try {
           Files.delete(compressedFile);
         } catch (IOException e) {
@@ -201,11 +202,12 @@ public final class BIFFWriter
       StreamUtils.writeInt(os, 0x14);
       int offset = 20 + 16 * resources.size() + 20 * tileResources.size();
       int index = 0; // Non-tileset index starts at 0
-      for (final ResourceEntry resourceEntry : resources.keySet()) {
+      for (final Map.Entry<ResourceEntry, Boolean> entry : resources.entrySet()) {
+        final ResourceEntry resourceEntry = entry.getKey();
         BIFFResourceEntry newentry = reloadNode(resourceEntry, index);
         StreamUtils.writeInt(os, newentry.getLocator());
         StreamUtils.writeInt(os, offset); // Offset
-        int info[] = resourceEntry.getResourceInfo(resources.get(resourceEntry).booleanValue());
+        int info[] = resourceEntry.getResourceInfo(entry.getValue().booleanValue());
         offset += info[0];
         StreamUtils.writeInt(os, info[0]); // Size
         StreamUtils.writeShort(os, (short)ResourceFactory.getKeyfile().getExtensionType(resourceEntry.getExtension()));
@@ -213,11 +215,12 @@ public final class BIFFWriter
         index++;
       }
       index = 1; // Tileset index starts at 1
-      for (final ResourceEntry resourceEntry : tileResources.keySet()) {
+      for (final Map.Entry<ResourceEntry, Boolean> entry : tileResources.entrySet()) {
+        final ResourceEntry resourceEntry = entry.getKey();
         BIFFResourceEntry newentry = reloadNode(resourceEntry, index);
         StreamUtils.writeInt(os, newentry.getLocator());
         StreamUtils.writeInt(os, offset); // Offset
-        int info[] = resourceEntry.getResourceInfo(tileResources.get(resourceEntry).booleanValue());
+        int info[] = resourceEntry.getResourceInfo(entry.getValue().booleanValue());
         StreamUtils.writeInt(os, info[0]); // Number of tiles
         StreamUtils.writeInt(os, info[1]); // Size of each tile (in bytes)
         offset += info[0] * info[1];
@@ -225,12 +228,13 @@ public final class BIFFWriter
         StreamUtils.writeShort(os, (short)0); // Unknown
         index++;
       }
-      for (final ResourceEntry resourceEntry : resources.keySet()) {
-        StreamUtils.writeBytes(os, resourceEntry.getResourceBuffer(resources.get(resourceEntry).booleanValue()));
+      for (final Map.Entry<ResourceEntry, Boolean> entry : resources.entrySet()) {
+        StreamUtils.writeBytes(os, entry.getKey().getResourceBuffer(entry.getValue().booleanValue()));
       }
-      for (final ResourceEntry resourceEntry : tileResources.keySet()) {
-        ByteBuffer buffer = resourceEntry.getResourceBuffer(tileResources.get(resourceEntry).booleanValue());
-        int info[] = resourceEntry.getResourceInfo(tileResources.get(resourceEntry).booleanValue());
+      for (final Map.Entry<ResourceEntry, Boolean> entry : tileResources.entrySet()) {
+        final ResourceEntry resourceEntry = entry.getKey();
+        ByteBuffer buffer = resourceEntry.getResourceBuffer(entry.getValue().booleanValue());
+        int info[] = resourceEntry.getResourceInfo(entry.getValue().booleanValue());
         int size = info[0]*info[1];
         int toSkip = buffer.limit() - size;
         if (toSkip > 0) {

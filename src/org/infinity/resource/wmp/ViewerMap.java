@@ -9,6 +9,7 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Composite;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -588,7 +589,10 @@ public class ViewerMap extends JPanel
   {
     Graphics2D g = ((BufferedImage)rcMap.getImage()).createGraphics();
     try {
+      Composite comp = g.getComposite();
+      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
       g.drawImage(mapOrig, 0, 0, null);
+      g.setComposite(comp);
     } finally {
       g.dispose();
       g = null;

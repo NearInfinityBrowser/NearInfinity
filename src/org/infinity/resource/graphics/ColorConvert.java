@@ -34,6 +34,7 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
 import org.infinity.util.DynamicArray;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -437,7 +438,7 @@ public class ColorConvert
    */
   public static int[] loadPaletteBMP(Path file) throws Exception
   {
-    if (file != null && Files.isRegularFile(file)) {
+    if (file != null && FileEx.create(file).isFile()) {
       try (InputStream is = StreamUtils.getInputStream(file)) {
         byte[] signature = new byte[8];
         is.read(signature);
@@ -485,7 +486,7 @@ public class ColorConvert
    */
   public static int[] loadPalettePNG(Path file, boolean preserveAlpha) throws Exception
   {
-    if (file != null && Files.isRegularFile(file)) {
+    if (file != null && FileEx.create(file).isFile()) {
       try (InputStream is = StreamUtils.getInputStream(file)) {
         BufferedImage img = ImageIO.read(is);
         if (img.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
@@ -517,7 +518,7 @@ public class ColorConvert
    */
   public static int[] loadPalettePAL(Path file) throws Exception
   {
-    if (file != null && Files.isRegularFile(file)) {
+    if (file != null && FileEx.create(file).isFile()) {
       try (InputStream is = StreamUtils.getInputStream(file)) {
         byte[] signature = new byte[12];
         boolean eof = is.read(signature) != signature.length;
@@ -569,7 +570,7 @@ public class ColorConvert
    */
   public static int[] loadPaletteACT(Path file) throws Exception
   {
-    if (file != null && Files.isRegularFile(file)) {
+    if (file != null && FileEx.create(file).isFile()) {
       try (InputStream is = StreamUtils.getInputStream(file)) {
         int size = (int)Files.size(file);
         if (size >= 768) {
@@ -611,7 +612,7 @@ public class ColorConvert
    */
   public static int[] loadPaletteBAM(Path file, boolean preserveAlpha) throws Exception
   {
-    if (file != null && Files.isRegularFile(file)) {
+    if (file != null && FileEx.create(file).isFile()) {
       try (InputStream is = StreamUtils.getInputStream(file)) {
         byte[] signature = new byte[8];
         is.read(signature);

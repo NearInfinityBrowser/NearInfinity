@@ -212,6 +212,7 @@ public class SimpleListModel<E> extends AbstractListModel<E>
   public void removeElementAt(int index)
   {
     delegate.removeElementAt(index);
+    fireIntervalRemoved(this, index, index);
   }
 
   /** Inserts the specified object as a component in this list at the specified {@code index}. */

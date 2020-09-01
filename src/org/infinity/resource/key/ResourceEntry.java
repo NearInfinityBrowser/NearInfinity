@@ -31,6 +31,7 @@ import org.infinity.resource.spl.SplResource;
 import org.infinity.resource.sto.StoResource;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.search.SearchOptions;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 
 public abstract class ResourceEntry implements Comparable<ResourceEntry>
@@ -47,7 +48,7 @@ public abstract class ResourceEntry implements Comparable<ResourceEntry>
 
   static int[] getLocalFileInfo(Path file)
   {
-    if (file != null && Files.isRegularFile(file)) {
+    if (file != null && FileEx.create(file).isFile()) {
       try (SeekableByteChannel ch = Files.newByteChannel(file, StandardOpenOption.READ)) {
         ByteBuffer bb = StreamUtils.getByteBuffer((int)ch.size());
         if (ch.read(bb) < ch.size()) {

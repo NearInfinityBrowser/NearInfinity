@@ -49,6 +49,7 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.key.BIFFResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
+import org.infinity.util.io.FileEx;
 import org.monte.media.AudioFormatKeys;
 import org.monte.media.Format;
 import org.monte.media.FormatKeys;
@@ -476,7 +477,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
               writer.close();
               writer = null;
             }
-            if (Files.isRegularFile(outFile)) {
+            if (FileEx.create(outFile).isFile()) {
               try {
                 Files.delete(outFile);
               } catch (IOException e) {
