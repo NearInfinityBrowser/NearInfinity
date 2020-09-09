@@ -28,12 +28,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -338,6 +341,21 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       protected Void doInBackground() throws Exception
       {
         Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile), forcedGame);
+
+        // making sure vital game resources are accessible
+        Path tlkFile = Profile.getProperty(Profile.Key.GET_GAME_DIALOG_FILE);
+        try {
+          checkFileAccess(tlkFile);
+        } catch (Exception e) {
+          e.printStackTrace();
+          JOptionPane.showMessageDialog(NearInfinity.this,
+                                        String.format("Unable to open the game \"%s\".\n" +
+                                                        "The file \"%s\" is locked by another process.",
+                                                      Profile.getProperty(Profile.Key.GET_GAME_TITLE),
+                                                      tlkFile.getFileName().toString()),
+                                        "Near Infinity Error", JOptionPane.ERROR_MESSAGE);
+          System.exit(10);
+        }
 
         advanceProgress("Initializing GUI...");
         BrowserMenuBar.getInstance().gameLoaded(Profile.Game.Unknown, null);
@@ -727,11 +745,28 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     blocker.setBlocked(true);
     try {
       Profile.Game oldGame = Profile.getGame();
-      String oldFile = Profile.getChitinKey().toString();
+      Path oldKeyFile = Profile.getChitinKey();
       ChildFrame.closeWindows();
       clearCache(false);
       EffectFactory.init();
       Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
+
+      // making sure vital game resources are accessible
+      Path tlkPath = Profile.getProperty(Profile.Key.GET_GAME_DIALOG_FILE);
+      try {
+        checkFileAccess(tlkPath);
+      } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(NearInfinity.this,
+                                      String.format("The file \"%s\" of the game \"%s\"\n" +
+                                                      "is locked by another process. Reverting to the previous game.",
+                                                    tlkPath.getFileName().toString(),
+                                                    Profile.getProperty(Profile.Key.GET_GAME_TITLE)),
+                                      "Near Infinity Error", JOptionPane.ERROR_MESSAGE);
+        openGame(oldKeyFile);
+        return;
+      }
+
       CreMapCache.reset();
       removeViewable();
       ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
@@ -741,7 +776,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
                                        Profile.getProperty(Profile.Key.GET_GAME_TITLE),
                                        Profile.getGameRoot(), treemodel.size());
       statusBar.setMessage(msg);
-      BrowserMenuBar.getInstance().gameLoaded(oldGame, oldFile);
+      BrowserMenuBar.getInstance().gameLoaded(oldGame, oldKeyFile.toString());
       tree.setModel(treemodel);
       containerpanel.removeAll();
       containerpanel.revalidate();
@@ -1180,6 +1215,18 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       }
     }
     return retVal;
+  }
+
+  /**
+   * Checks read access of the specified file.
+   * @param path The file path to check.
+   * @throws IOException if specified path could not be opened for reading.
+   */
+  private void checkFileAccess(Path path) throws IOException
+  {
+    if (path != null) {
+      try (FileChannel ch = FileChannel.open(path, StandardOpenOption.READ)) { }
+    }
   }
 
 // -------------------------- INNER CLASSES --------------------------
