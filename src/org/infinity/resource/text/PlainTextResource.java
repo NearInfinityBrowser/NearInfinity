@@ -64,7 +64,7 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
   private final ButtonPanel buttonPanel = new ButtonPanel();
 
   private JMenuItem ifindall, ifindthis;
-  private JMenuItem miFormatTrim, miFormatAlign;
+  private JMenuItem miFormatTrim, miFormatAlign, miFormatSort;
   private JPanel panel;
   /** Text editor for editing resource. Created after calling {@link #makeViewer}. */
   protected InfinityTextArea editor;
@@ -205,6 +205,8 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
         trimSpaces();
       } else if (bpmFormat.getSelectedItem() == miFormatAlign) {
         alignTableColumns(2, true);
+      } else if (bpmFormat.getSelectedItem() == miFormatSort) {
+        sortTable(true);
       }
     }
   }
@@ -296,6 +298,13 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
       miFormatAlign = new JMenuItem("Align table");
       miFormatAlign.setToolTipText("Align table columns to improve readability.");
       ButtonPopupMenu bpmFormat = new ButtonPopupMenu("Format...", new JMenuItem[]{miFormatTrim, miFormatAlign});
+      bpmFormat.addItemListener(this);
+      buttonPanel.addControl(bpmFormat, ButtonPanel.Control.CUSTOM_1);
+    } else if ("IDS".equals(ext)) {
+      miFormatTrim = new JMenuItem("Trim spaces");
+      miFormatSort = new JMenuItem("Sort entries");
+      miFormatSort.setToolTipText("Sort entries in ascending order.");
+      ButtonPopupMenu bpmFormat = new ButtonPopupMenu("Format...", new JMenuItem[]{miFormatTrim, miFormatSort});
       bpmFormat.addItemListener(this);
       buttonPanel.addControl(bpmFormat, ButtonPanel.Control.CUSTOM_1);
     } else {
@@ -455,6 +464,76 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
 
     if (input.compareTo(output) != 0) {
       editor.setText(newText.toString());
+      editor.setCaretPosition(0);
+    }
+  }
+
+  /**
+   * Sorts IDS entries by key values. Special entry at line 1 is excluded.
+   * @param ascending {@code true} to sort in ascending order, {@code false} to sort in descending order.
+   */
+  public void sortTable(boolean ascending)
+  {
+    String input = editor.getText();
+    String[] lines = input.split("\n");
+
+    // dividing lines into fixed entries and (sortable) ids entries
+    List<String> header = new ArrayList<>();  // contains fixed lines to be placed at the top
+    List<String> entries = new ArrayList<>(); // contains ids entries
+    for (int i = 0, cnt = lines.length; i < cnt; i++) {
+      String[] items = lines[i].trim().split("\\s+", 2);
+      if (items.length < 2 || items[0].equalsIgnoreCase("IDS")) {
+        header.add(lines[i]);
+      } else {
+        entries.add(lines[i]);
+      }
+    }
+    if (entries.isEmpty())
+      return;
+
+    // sorting ids entries
+    final Pattern patKey = Pattern.compile("\\s*(\\S+).*");
+    entries.sort((c1, c2) -> {
+      int radix;
+      long v1 = Long.MAX_VALUE, v2 = Long.MAX_VALUE;
+      Matcher m;
+
+      m = patKey.matcher(c1);
+      if (m.find()) {
+        String s = m.groupCount() > 0 ? m.group(1) : "";
+        radix = (s.length() > 2 && (s.charAt(1) == 'x' || s.charAt(1) == 'X')) ? 16 : 10;
+        if (radix == 16)
+          s = s.substring(2);
+        try { v1 = Long.parseLong(s, radix); } catch (NumberFormatException ex) { }
+      }
+
+      m = patKey.matcher(c2);
+      if (m.find()) {
+        String s = m.groupCount() > 0 ? m.group(1) : "";
+        radix = (s.length() > 2 && (s.charAt(1) == 'x' || s.charAt(1) == 'X')) ? 16 : 10;
+        if (radix == 16)
+          s = s.substring(2);
+        try { v2 = Long.parseLong(s, radix); } catch (NumberFormatException ex) { }
+      }
+
+      int retVal = (v1 < v2) ? -1 : ((v1 > v2) ? 1 : 0);
+      if (!ascending)
+        retVal = -retVal;
+      return retVal;
+    });
+
+    // building output string
+    StringBuilder sb = new StringBuilder();
+    for (String s : header)
+      sb.append(s).append('\n');
+    for (String s : entries)
+      sb.append(s).append('\n');
+    if (input.charAt(input.length() - 1) != '\n')
+      sb.deleteCharAt(sb.length() - 1);
+
+    String output = sb.toString();
+    if (!input.equals(output)) {
+      editor.setText(output);
       editor.setCaretPosition(0);
     }
   }
