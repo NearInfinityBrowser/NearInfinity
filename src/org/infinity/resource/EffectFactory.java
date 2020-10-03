@@ -129,6 +129,7 @@ public final class EffectFactory
   public static final LongIntegerHashMap<String> m_duration = new LongIntegerHashMap<String>();
   public static final LongIntegerHashMap<String> m_colorloc = new LongIntegerHashMap<String>();
   public static final LongIntegerHashMap<String> m_proj_iwd = new LongIntegerHashMap<String>();
+  public static final LongIntegerHashMap<String> m_inctype = new LongIntegerHashMap<String>();
   public static final String[] s_inctype = {"Increment", "Set", "Set % of"};
 
   public static final String[] s_visuals = {
@@ -437,6 +438,12 @@ public final class EffectFactory
     m_proj_iwd.put(217L, "Icewind Magic Missile");
     m_proj_iwd.put(313L, "Modenkainen's Force Missiles");
     m_proj_iwd.put(345L, "Sekolah's Fire");
+
+    m_inctype.put(0L, "Increment");
+    m_inctype.put(1L, "Set");
+    m_inctype.put(2L, "Set % of");
+    m_inctype.put(5L, "Multiply %");
+
   }
 
   public static EffectFactory getFactory()
@@ -1981,7 +1988,6 @@ public final class EffectFactory
       case 104: // XP bonus
       case 105: // Remove gold
       case 106: // Morale break
-      case 126: // Movement rate bonus
       case 167: // Missile THAC0 bonus / Missile attack bonus
         s.add(new DecNumber(buffer, offset, 4, "Value"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
@@ -2668,6 +2674,15 @@ public final class EffectFactory
         }
         break;
 
+      case 126: // Movement rate bonus
+        s.add(new DecNumber(buffer, offset, 4, "Value"));
+        if (Profile.isEnhancedEdition()) {
+          s.add(new HashBitmap(buffer, offset + 4, 4, "Modifier type", m_inctype, false));
+        } else {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        }
+        break;
+
       case 127: // Summon monsters
         if (Profile.getEngine() == Profile.Engine.IWD2) {
           makeEffectParamsDefault(buffer, offset, s);
@@ -2975,7 +2990,11 @@ public final class EffectFactory
           makeEffectParamsDefault(buffer, offset, s);
         } else {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+          if (Profile.isEnhancedEdition()) {
+            s.add(new HashBitmap(buffer, offset + 4, 4, "Modifier type", m_inctype, false));
+          } else {
+            s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+          }
         }
         break;
 
