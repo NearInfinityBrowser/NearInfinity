@@ -516,9 +516,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
             Object entry = table.getModel().getValueAt(rows[i], 1);
             if (entry instanceof AddRemovable) {
               try {
-                if (((HasAddRemovable)struct).confirmRemoveEntry((AddRemovable)entry)) {
-                  struct.removeDatatype((AddRemovable)entry, true);
-                }
+                struct.removeDatatype((AddRemovable)entry, true);
               } catch (Exception e) {
                 e.printStackTrace();
               }

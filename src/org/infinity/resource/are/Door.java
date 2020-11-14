@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -94,8 +94,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     super(superStruct, ARE_DOOR + " " + nr, buffer, offset);
   }
 
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
@@ -108,29 +107,17 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
   {
     return entry;
   }
+  //</editor-fold>
 
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
-
-//--------------------- Begin Interface AddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
+  //</editor-fold>
 
-//--------------------- End Interface AddRemovable ---------------------
-
-
-// --------------------- Begin Interface HasVertices ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasVertices">
   @Override
   public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
@@ -181,9 +168,9 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     }
     return count;
   }
+  //</editor-fold>
 
-// --------------------- End Interface HasVertices ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
@@ -209,7 +196,9 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
       datatype.setOffset(offset + 4 * (index - 1));
     }
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -267,4 +256,5 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     addField(new Unknown(buffer, offset + 192, 8));
     return offset + 200;
   }
+  //</editor-fold>
 }

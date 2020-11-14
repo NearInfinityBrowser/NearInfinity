@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.wed;
@@ -37,8 +37,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
     super(superStruct, name, buffer, offset, 8);
   }
 
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
@@ -50,26 +49,17 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
   {
     return entry;
   }
+  //</editor-fold>
 
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
-
-//--------------------- Begin Interface AddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
+  //</editor-fold>
 
-//--------------------- End Interface AddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
@@ -84,6 +74,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
       ((AbstractStruct)datatype).realignStructOffsets();
     }
   }
+  //</editor-fold>
 
   public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
@@ -110,6 +101,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
     return count;
   }
 
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -123,4 +115,5 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
     addField(new DecNumber(buffer, offset + 16, 2, WED_POLY_MAX_COORD_Y));
     return offset + 18;
   }
+  //</editor-fold>
 }

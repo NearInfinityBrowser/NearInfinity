@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.sto;
@@ -99,8 +99,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     super(entry);
   }
 
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
@@ -116,18 +115,9 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
   {
     return entry;
   }
+  //</editor-fold>
 
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
-
-// --------------------- Begin Interface HasViewerTabs ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -172,9 +162,9 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
   {
     return (index == 0);
   }
+  //</editor-fold>
 
-// --------------------- End Interface HasViewerTabs ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -299,7 +289,9 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
     }
     return endoffset;
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -339,6 +331,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasAd
       hexViewer.dataModified();
     }
   }
+  //</editor-fold>
 
   /**
    * Checks whether the specified resource entry matches all available search options.

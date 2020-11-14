@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.wed;
@@ -43,8 +43,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
     super(superStruct, WED_DOOR + " " + number, buffer, offset);
   }
 
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
@@ -56,26 +55,17 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
   {
     return entry;
   }
+  //</editor-fold>
 
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
-
-//--------------------- Begin Interface AddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
+  //</editor-fold>
 
-//--------------------- End Interface AddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
@@ -85,6 +75,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
       datatype.setOffset(offset + index * 2);
     }
   }
+  //</editor-fold>
 
   public DecNumber getTilemapIndex()
   {
@@ -124,6 +115,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
     }
   }
 
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -164,4 +156,5 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
     }
     return offset + 26;
   }
+  //</editor-fold>
 }

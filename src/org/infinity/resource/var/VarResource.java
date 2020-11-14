@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.var;
@@ -38,8 +38,7 @@ public final class VarResource extends AbstractStruct implements Resource, HasAd
     super(entry);
   }
 
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
@@ -51,17 +50,9 @@ public final class VarResource extends AbstractStruct implements Resource, HasAd
   {
     return entry;
   }
+  //</editor-fold>
 
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
-//--------------------- Begin Interface HasViewerTabs ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -90,9 +81,9 @@ public final class VarResource extends AbstractStruct implements Resource, HasAd
   {
     return false;
   }
+  //</editor-fold>
 
-//--------------------- End Interface HasViewerTabs ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -101,7 +92,9 @@ public final class VarResource extends AbstractStruct implements Resource, HasAd
       addField(new Entry(this, buffer, offset + i * 44, i));
     return offset + count * 44;
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -141,4 +134,5 @@ public final class VarResource extends AbstractStruct implements Resource, HasAd
       hexViewer.dataModified();
     }
   }
+  //</editor-fold>
 }

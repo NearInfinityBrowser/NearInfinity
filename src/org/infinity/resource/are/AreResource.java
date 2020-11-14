@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -385,22 +385,19 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     super(entry);
   }
 
-//--------------------- Begin Interface Closeable ---------------------
+  //<editor-fold defaultstate="collapsed" desc="Closeable">
+  @Override
+  public void close() throws Exception
+  {
+    super.close();
+    if (areaViewer != null) {
+      areaViewer.close();
+      areaViewer = null;
+    }
+  }
+  //</editor-fold>
 
- @Override
- public void close() throws Exception
- {
-   super.close();
-   if (areaViewer != null) {
-     areaViewer.close();
-     areaViewer = null;
-   }
- }
-
-//--------------------- End Interface Closeable ---------------------
-
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
   public AddRemovable[] getAddRemovables() throws Exception
   {
@@ -428,18 +425,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   {
     return entry;
   }
+  //</editor-fold>
 
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
-
-// --------------------- Begin Interface HasViewerTabs ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -484,20 +472,17 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   {
     return (index == 0);
   }
+  //</editor-fold>
 
-// --------------------- End Interface HasViewerTabs ---------------------
-
-
-// --------------------- Begin Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Writeable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatFields(os);
   }
+  //</editor-fold>
 
-// --------------------- End Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -597,7 +582,9 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
       hexViewer.dataModified();
     }
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -918,6 +905,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
     }
     return endoffset;
   }
+  //</editor-fold>
 
   private void updateActorCREOffsets()
   {

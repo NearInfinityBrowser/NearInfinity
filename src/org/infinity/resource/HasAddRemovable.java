@@ -22,13 +22,4 @@ public interface HasAddRemovable
    *         May return {@code null} to cancel the operation.
    */
   AddRemovable confirmAddEntry(AddRemovable entry) throws Exception;
-
-  /**
-   * This method is called whenever an {@link AddRemovable} entry is about to be removed from the
-   * parent structure. It allows subclasses to cancel the operation.
-   * @param entry The {@link AddRemovable} entry to remove.
-   * @return {@code true} to continue the remove operation. {@code false} to cancel the
-   *         remove operation.
-   */
-  boolean confirmRemoveEntry(AddRemovable entry) throws Exception;
 }
