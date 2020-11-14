@@ -130,8 +130,6 @@ public final class StructClipboard
       } catch (Exception e) {
         return CLIPBOARD_EMPTY;
       }
-      if (targetClasses == null)
-        targetClasses = new AddRemovable[0];
       for (final StructEntry entry: contents) {
         if (entry instanceof AddRemovable) {
           if (canConvertToEffectV1(struct, (AddRemovable)entry) ||
@@ -176,7 +174,6 @@ public final class StructClipboard
           index += i;
         }
         if (pasteEntry instanceof HasAddRemovable) {
-          ((HasAddRemovable)pasteEntry).getAddRemovables();
           List<AddRemovable> substructures = ((AbstractStruct)pasteEntry).removeAllRemoveables();
           lastIndex = targetStruct.addDatatype(pasteEntry, index);
           pasteSubStructures((AbstractStruct)pasteEntry, substructures);

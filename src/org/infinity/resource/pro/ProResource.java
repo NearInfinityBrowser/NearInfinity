@@ -51,7 +51,7 @@ import org.infinity.util.LongIntegerHashMap;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pro_v1.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/pro_v1.htm</a>
  */
-public final class ProResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs, UpdateListener
+public final class ProResource extends AbstractStruct implements Resource, HasViewerTabs, UpdateListener
 {
   // PRO-specific field labels
   public static final String PRO_TYPE = "Projectile type";
@@ -130,26 +130,6 @@ public final class ProResource extends AbstractStruct implements Resource, HasAd
   {
     super(entry);
   }
-
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
-  @Override
-  public AddRemovable[] getAddRemovables() throws Exception
-  {
-    return null;
-  }
-
-  @Override
-  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
-  {
-    return entry;
-  }
-
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="UpdateListener">
   @Override

@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -8,7 +8,8 @@ public interface HasAddRemovable
 {
   /**
    * Returns an array of available {@link AddRemovable} prototype objects.
-   * @return An array of available {@link AddRemovable} objects.
+   *
+   * @return An array of available {@link AddRemovable} objects. Can't be {@code null}
    */
   AddRemovable[] getAddRemovables() throws Exception;
 
@@ -31,4 +32,3 @@ public interface HasAddRemovable
    */
   boolean confirmRemoveEntry(AddRemovable entry) throws Exception;
 }
-

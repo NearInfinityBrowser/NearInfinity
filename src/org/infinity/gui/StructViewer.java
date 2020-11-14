@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -361,8 +361,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
       } catch (Exception e) {
         e.printStackTrace();
       }
-      if (emptyTypes == null)
-        emptyTypes = new AddRemovable[0];
       JMenuItem menuItems[] = new JMenuItem[emptyTypes.length];
       for (int i = 0; i < menuItems.length; i++) {
         menuItems[i] = new JMenuItem(emptyTypes[i].getName());
