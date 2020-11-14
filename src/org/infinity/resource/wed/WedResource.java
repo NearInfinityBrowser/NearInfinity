@@ -24,7 +24,7 @@ import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
@@ -60,7 +60,7 @@ import org.infinity.util.Misc;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/wed_v1.3.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/wed_v1.3.htm</a>
  */
-public final class WedResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
+public final class WedResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs
 {
   // WED-specific field labels
   public static final String WED_NUM_OVERLAYS               = "# overlays";
@@ -83,7 +83,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasAd
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {

@@ -19,14 +19,14 @@ import org.infinity.datatype.Unknown;
 import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.util.io.StreamUtils;
 
 public final class Container extends AbstractStruct implements AddRemovable, HasVertices, HasViewerTabs,
-                                                               HasAddRemovable
+                                                               HasChildStructs
 {
   // ARE/Container-specific field labels
   public static final String ARE_CONTAINER                            = "Container";
@@ -72,7 +72,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     super(superStruct, ARE_CONTAINER + " " + nr, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {

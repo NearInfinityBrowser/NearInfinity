@@ -15,11 +15,11 @@ import org.infinity.datatype.SectionOffset;
 import org.infinity.datatype.TextString;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.io.StreamUtils;
 
-public final class Door extends AbstractStruct implements AddRemovable, HasAddRemovable
+public final class Door extends AbstractStruct implements AddRemovable, HasChildStructs
 {
   // WED/Door-specific field labels
   public static final String WED_DOOR                         = "Door";
@@ -43,7 +43,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasAddRe
     super(superStruct, WED_DOOR + " " + number, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {

@@ -16,13 +16,13 @@ import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.util.io.StreamUtils;
 
-public final class ITEPoint extends AbstractStruct implements AddRemovable, HasVertices, HasAddRemovable
+public final class ITEPoint extends AbstractStruct implements AddRemovable, HasVertices, HasChildStructs
 {
   // ARE/Trigger-specific field labels
   public static final String ARE_TRIGGER                            = "Trigger";
@@ -77,7 +77,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {

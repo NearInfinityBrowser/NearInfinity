@@ -11,11 +11,11 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.HexNumber;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.io.StreamUtils;
 
-public final class SpellMemorization extends AbstractStruct implements AddRemovable, HasAddRemovable
+public final class SpellMemorization extends AbstractStruct implements AddRemovable, HasChildStructs
 {
   // CRE/SpellMemorization-specific field labels
   public static final String CRE_MEMORIZATION                         = "Memorization info";
@@ -44,7 +44,7 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {

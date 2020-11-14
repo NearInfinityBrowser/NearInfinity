@@ -40,7 +40,7 @@ import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -92,7 +92,7 @@ import org.infinity.util.io.StreamUtils;
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/dlg_v1.htm</a>
  */
 public final class DlgResource extends AbstractStruct
-    implements Resource, HasAddRemovable, HasViewerTabs, ActionListener
+    implements Resource, HasChildStructs, HasViewerTabs, ActionListener
 {
   // DLG-specific field labels
   public static final String DLG_OFFSET_STATES            = "States offset";
@@ -122,7 +122,7 @@ public final class DlgResource extends AbstractStruct
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {

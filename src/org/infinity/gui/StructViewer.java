@@ -83,7 +83,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Closeable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -356,9 +356,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     lowerpanel.addComponentListener(this);
     cards.show(lowerpanel, CARD_EMPTY);
 
-    if (struct instanceof HasAddRemovable && !struct.getFields().isEmpty()) {
+    if (struct instanceof HasChildStructs && !struct.getFields().isEmpty()) {
       try {
-        prototypes = ((HasAddRemovable)struct).getPrototypes();
+        prototypes = ((HasChildStructs)struct).getPrototypes();
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -503,7 +503,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         Viewable selected = (Viewable)table.getModel().getValueAt(min, 1);
         createViewFrame(getTopLevelAncestor(), selected);
       } else if (buttonPanel.getControlByType(ButtonPanel.Control.REMOVE) == event.getSource()) {
-        if (!(struct instanceof HasAddRemovable)) {
+        if (!(struct instanceof HasChildStructs)) {
           return;
         }
         Window wnd = SwingUtilities.getWindowAncestor(this);
@@ -651,7 +651,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     if (event.getSource() instanceof ButtonPopupMenu &&
         buttonPanel.getControlPosition((JComponent)event.getSource()) >= 0) {
       if (buttonPanel.getControlByType(ButtonPanel.Control.ADD) == event.getSource()) {
-        if (!(struct instanceof HasAddRemovable)) {
+        if (!(struct instanceof HasChildStructs)) {
           return;
         }
         ButtonPopupMenu bpmAdd = (ButtonPopupMenu)event.getSource();
@@ -664,7 +664,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           }
         }
         try {
-          toadd = ((HasAddRemovable)struct).confirmAddEntry(toadd);
+          toadd = ((HasChildStructs)struct).confirmAddEntry(toadd);
           if (toadd != null) {
             toadd = (AddRemovable)toadd.clone();
           }

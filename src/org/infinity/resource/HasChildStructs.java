@@ -7,7 +7,7 @@ package org.infinity.resource;
 /**
  * Implementor of this interface can store fields, that can be added or removed.
  */
-public interface HasAddRemovable
+public interface HasChildStructs
 {
   /**
    * Returns an array of available {@link AddRemovable} prototype objects.

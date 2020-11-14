@@ -16,7 +16,7 @@ import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
@@ -33,7 +33,7 @@ import org.infinity.resource.key.ResourceEntry;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/vef_v1.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/vef_v1.htm</a>
  */
-public final class VefResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
+public final class VefResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs
 {
   // VEF-specific field labels
   public static final String VEF_OFFSET_COMPONENT_PRI = "Primary component offset";
@@ -48,7 +48,7 @@ public final class VefResource extends AbstractStruct implements Resource, HasAd
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {

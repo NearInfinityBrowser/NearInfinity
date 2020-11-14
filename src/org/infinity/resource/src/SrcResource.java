@@ -14,7 +14,7 @@ import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
 import org.infinity.resource.key.ResourceEntry;
@@ -31,7 +31,7 @@ import org.infinity.resource.key.ResourceEntry;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/src.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/src.htm</a>
  */
-public final class SrcResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
+public final class SrcResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs
 {
   // SRC-specific field labels
   public static final String SRC_NUM_ENTRIES  = "# entries";
@@ -43,7 +43,7 @@ public final class SrcResource extends AbstractStruct implements Resource, HasAd
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {

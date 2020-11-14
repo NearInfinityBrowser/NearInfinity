@@ -35,7 +35,7 @@ import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -64,7 +64,7 @@ import org.infinity.util.io.StreamUtils;
  * {@link Container container} is stored in the ARE file, however the files themselves are
  * not embedded in the ARE file.
  */
-public final class AreResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
+public final class AreResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs
 {
   // ARE-specific field labels
   public static final String ARE_WED_RESOURCE             = "WED resource";
@@ -397,7 +397,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {

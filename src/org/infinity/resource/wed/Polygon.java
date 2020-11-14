@@ -13,11 +13,11 @@ import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.vertex.Vertex;
 
-public abstract class Polygon extends AbstractStruct implements AddRemovable, HasAddRemovable
+public abstract class Polygon extends AbstractStruct implements AddRemovable, HasChildStructs
 {
   // WED/Polygon-specific field labels
   public static final String WED_POLY_VERTEX_INDEX  = "Vertex index";
@@ -37,7 +37,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
     super(superStruct, name, buffer, offset, 8);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {

@@ -9,9 +9,9 @@ import java.nio.ByteBuffer;
 import org.infinity.datatype.DecNumber;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 
-public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
+public final class Iwd2Struct extends AbstractStruct implements HasChildStructs
 {
   // CRE/Iwd2Struct-specific field labels
   public static final String CRE_STRUCT_NUM_MEMORIZABLE = "# memorizable (total)";
@@ -52,7 +52,7 @@ public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
     setOffset(offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {

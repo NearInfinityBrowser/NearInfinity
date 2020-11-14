@@ -33,7 +33,7 @@ import org.infinity.resource.AbstractAbility;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Effect;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -63,7 +63,7 @@ import org.infinity.util.io.StreamUtils;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/itm_v1.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/itm_v1.htm</a>
  */
-public final class ItmResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
+public final class ItmResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs
 {
   // ITM-specific field labels
   public static final String ITM_NAME_GENERAL           = "General name";
@@ -223,7 +223,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasAd
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {

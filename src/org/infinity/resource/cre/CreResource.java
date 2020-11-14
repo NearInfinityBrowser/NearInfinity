@@ -55,7 +55,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Effect;
 import org.infinity.resource.Effect2;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -97,7 +97,7 @@ import org.infinity.util.io.StreamUtils;
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/cre_v1.htm</a>
  */
 public final class CreResource extends AbstractStruct
-  implements Resource, HasAddRemovable, AddRemovable, HasViewerTabs, ItemListener, UpdateListener
+  implements Resource, HasChildStructs, AddRemovable, HasViewerTabs, ItemListener, UpdateListener
 {
   // CHR-specific field labels
   public static final String CHR_NAME                         = "Character name";
@@ -729,7 +729,7 @@ public final class CreResource extends AbstractStruct
     isChr = StreamUtils.readString(data, startoffset, 4).equalsIgnoreCase("CHR ");
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {

@@ -28,7 +28,7 @@ import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -154,7 +154,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
       HashBitmap proType = (HashBitmap)event.getSource();
       AbstractStruct struct = event.getStructure();
       // add/remove extended sections in the parent structure depending on the current value
-      if (struct instanceof Resource && struct instanceof HasAddRemovable) {
+      if (struct instanceof Resource && struct instanceof HasChildStructs) {
         if (proType.getValue() == 3L) {         // area of effect
           StructEntry entry = struct.getFields().get(struct.getFields().size() - 1);
           try {

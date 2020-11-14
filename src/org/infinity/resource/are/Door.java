@@ -17,7 +17,7 @@ import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.vertex.ClosedVertex;
@@ -27,7 +27,7 @@ import org.infinity.resource.vertex.OpenVertexImpeded;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.util.io.StreamUtils;
 
-public final class Door extends AbstractStruct implements AddRemovable, HasVertices, HasAddRemovable
+public final class Door extends AbstractStruct implements AddRemovable, HasVertices, HasChildStructs
 {
   // ARE/Door-specific field labels
   public static final String ARE_DOOR                                   = "Door";
@@ -94,7 +94,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     super(superStruct, ARE_DOOR + " " + nr, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {

@@ -20,13 +20,13 @@ import org.infinity.resource.AbstractAbility;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Effect;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.io.StreamUtils;
 
-public final class Ability extends AbstractAbility implements AddRemovable, HasAddRemovable, HasViewerTabs
+public final class Ability extends AbstractAbility implements AddRemovable, HasChildStructs, HasViewerTabs
 {
   // SPL/Ability-specific field labels (more fields defined in AbstractAbility)
   public static final String SPL_ABIL                     = "Spell ability";
@@ -43,7 +43,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
     super(superStruct, SPL_ABIL + " " + number, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
