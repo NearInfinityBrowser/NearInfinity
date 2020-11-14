@@ -178,8 +178,6 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final StructTable table = new StructTable();
   private final HashMap<Integer, StructEntry> entryMap = new HashMap<>();
   private final HashMap<Viewable, ViewFrame> viewMap = new HashMap<>();
-  /** Array of prototype objects, that can be children of {@link #struct}. */
-  private AddRemovable prototypes[];
   private JMenuItem miFindAttribute, miFindReferences, miFindStateReferences, miFindRefToItem;
   private Editable editable;
   private JTabbedPane tabbedPane;
@@ -358,21 +356,24 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
     if (struct instanceof HasChildStructs && !struct.getFields().isEmpty()) {
       try {
-        prototypes = ((HasChildStructs)struct).getPrototypes();
+        final AddRemovable[] prototypes = ((HasChildStructs)struct).getPrototypes();
+        if (prototypes.length > 0) {
+          final JMenuItem menuItems[] = new JMenuItem[prototypes.length];
+          for (int i = 0; i < prototypes.length; i++) {
+            final AddRemovable proto = prototypes[i];
+            final JMenuItem menu = new JMenuItem(proto.getName());
+            menu.putClientProperty("prototype", proto);
+            menuItems[i] = menu;
+          }
+          ButtonPopupMenu bpmAdd = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ADD);
+          bpmAdd.setMenuItems(menuItems);
+          bpmAdd.addItemListener(this);
+          JButton bRemove = (JButton)buttonPanel.addControl(ButtonPanel.Control.REMOVE);
+          bRemove.setEnabled(false);
+          bRemove.addActionListener(this);
+        }
       } catch (Exception e) {
         e.printStackTrace();
-      }
-      JMenuItem menuItems[] = new JMenuItem[prototypes.length];
-      for (int i = 0; i < menuItems.length; i++) {
-        menuItems[i] = new JMenuItem(prototypes[i].getName());
-      }
-      if (prototypes.length > 0) {
-        ButtonPopupMenu bpmAdd = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ADD);
-        bpmAdd.setMenuItems(menuItems);
-        bpmAdd.addItemListener(this);
-        JButton bRemove = (JButton)buttonPanel.addControl(ButtonPanel.Control.REMOVE);
-        bRemove.setEnabled(false);
-        bRemove.addActionListener(this);
       }
     }
 
@@ -648,48 +649,35 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   @Override
   public void itemStateChanged(ItemEvent event)
   {
-    if (event.getSource() instanceof ButtonPopupMenu &&
-        buttonPanel.getControlPosition((JComponent)event.getSource()) >= 0) {
-      if (buttonPanel.getControlByType(ButtonPanel.Control.ADD) == event.getSource()) {
-        if (!(struct instanceof HasChildStructs)) {
-          return;
-        }
-        ButtonPopupMenu bpmAdd = (ButtonPopupMenu)event.getSource();
-        JMenuItem item = bpmAdd.getSelectedItem();
-        AddRemovable toadd = null;
-        for (final AddRemovable proto : prototypes) {
-          if (proto.getName().equals(item.getText())) {
-            toadd = proto;
-            break;
-          }
-        }
-        try {
-          toadd = ((HasChildStructs)struct).confirmAddEntry(toadd);
-          if (toadd != null) {
-            toadd = (AddRemovable)toadd.clone();
-          }
-        } catch (Exception e) {
-          e.printStackTrace();
-          return;
+    final Object src = event.getSource();
+    if (src == buttonPanel.getControlByType(ButtonPanel.Control.ADD) && struct instanceof HasChildStructs) {
+      final JMenuItem item = ((ButtonPopupMenu)src).getSelectedItem();
+      AddRemovable toadd = (AddRemovable)item.getClientProperty("prototype");
+      try {
+        toadd = ((HasChildStructs)struct).confirmAddEntry(toadd);
+        if (toadd != null) {
+          toadd = (AddRemovable)toadd.clone();
         }
         int index = struct.addDatatype(toadd);
         table.getSelectionModel().setSelectionInterval(index, index);
         table.scrollRectToVisible(table.getCellRect(index, 1, true));
-      } else if (buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU) == event.getSource()) {
-        ButtonPopupMenu bpmFind = (ButtonPopupMenu)event.getSource();
-        JMenuItem item = bpmFind.getSelectedItem();
-        if (item == miFindAttribute) {
-          new AttributeSearcher(struct, (StructEntry)table.getValueAt(table.getSelectedRow(), 1),
-                                getTopLevelAncestor());
-        } else if (item == miFindReferences) {
-          struct.searchReferences(getTopLevelAncestor());
-        } else if (item == miFindStateReferences) {
-          State state = (State)table.getValueAt(table.getSelectedRow(), 1);
-          new DialogStateReferenceSearcher(struct.getResourceEntry(), state, getTopLevelAncestor());
-        } else if (item == miFindRefToItem) {
-          new DialogItemRefSearcher((DlgResource) struct, table.getValueAt(table.getSelectedRow(), 1),
-                                    getTopLevelAncestor());
-        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    } else
+    if (src == buttonPanel.getControlByType(ButtonPanel.Control.FIND_MENU)) {
+      final JMenuItem item = ((ButtonPopupMenu)src).getSelectedItem();
+      if (item == miFindAttribute) {
+        new AttributeSearcher(struct, (StructEntry)table.getValueAt(table.getSelectedRow(), 1),
+                              getTopLevelAncestor());
+      } else if (item == miFindReferences) {
+        struct.searchReferences(getTopLevelAncestor());
+      } else if (item == miFindStateReferences) {
+        State state = (State)table.getValueAt(table.getSelectedRow(), 1);
+        new DialogStateReferenceSearcher(struct.getResourceEntry(), state, getTopLevelAncestor());
+      } else if (item == miFindRefToItem) {
+        new DialogItemRefSearcher((DlgResource) struct, table.getValueAt(table.getSelectedRow(), 1),
+                                  getTopLevelAncestor());
       }
     }
   }
