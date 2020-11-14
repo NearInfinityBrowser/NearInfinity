@@ -156,7 +156,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
 
   //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     return new AddRemovable[]{new Ability(), new Effect()};
   }

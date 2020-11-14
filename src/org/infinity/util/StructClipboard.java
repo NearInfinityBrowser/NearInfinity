@@ -126,7 +126,7 @@ public final class StructClipboard
         return CLIPBOARD_ENTRIES;
       AddRemovable[] targetClasses;
       try {
-        targetClasses = ((HasAddRemovable)struct).getAddRemovables();
+        targetClasses = ((HasAddRemovable)struct).getPrototypes();
       } catch (Exception e) {
         return CLIPBOARD_EMPTY;
       }

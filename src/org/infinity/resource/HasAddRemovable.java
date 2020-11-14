@@ -4,14 +4,20 @@
 
 package org.infinity.resource;
 
+/**
+ * Implementor of this interface can store fields, that can be added or removed.
+ */
 public interface HasAddRemovable
 {
   /**
    * Returns an array of available {@link AddRemovable} prototype objects.
+   * Returned object will be {@link Object#clone cloned} when an editor needs to
+   * create the new element
    *
-   * @return An array of available {@link AddRemovable} objects. Can't be {@code null}
+   * @return An array of available {@link AddRemovable} objects.
+   *         Can't be {@code null} or contain {@code null}'s
    */
-  AddRemovable[] getAddRemovables() throws Exception;
+  AddRemovable[] getPrototypes() throws Exception;
 
   /**
    * This method is called whenever an {@link AddRemovable} entry is about to be added

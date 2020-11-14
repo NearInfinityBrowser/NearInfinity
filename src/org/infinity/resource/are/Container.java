@@ -74,7 +74,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 
   //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     return new AddRemovable[]{new Vertex(), new Item()};
   }

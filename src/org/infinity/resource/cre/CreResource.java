@@ -731,7 +731,7 @@ public final class CreResource extends AbstractStruct
 
   //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     IsNumeric effectVersion = (IsNumeric)getAttribute(CRE_EFFECT_VERSION);
     if (Profile.getEngine() == Profile.Engine.IWD2) {

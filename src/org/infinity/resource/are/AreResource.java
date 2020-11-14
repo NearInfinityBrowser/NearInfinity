@@ -399,7 +399,7 @@ public final class AreResource extends AbstractStruct implements Resource, HasAd
 
   //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     if (Profile.getEngine() == Profile.Engine.PST) {
       return new AddRemovable[]{new Actor(), new ITEPoint(), new SpawnPoint(),

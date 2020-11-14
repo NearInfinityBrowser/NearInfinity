@@ -96,7 +96,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
 
   //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     return new AddRemovable[]{new OpenVertex(), new ClosedVertex(), new ClosedVertexImpeded(),
                               new OpenVertexImpeded()};

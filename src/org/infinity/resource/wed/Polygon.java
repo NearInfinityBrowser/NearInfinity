@@ -39,7 +39,7 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
 
   //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     return new AddRemovable[]{new Vertex()};
   }

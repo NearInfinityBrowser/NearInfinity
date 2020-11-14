@@ -138,7 +138,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasAd
 
   //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     if (Profile.getEngine() == Profile.Engine.PST) {
       // TODO: missing CRE resource when adding PartyNPC structures

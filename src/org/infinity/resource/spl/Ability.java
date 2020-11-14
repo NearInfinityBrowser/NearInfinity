@@ -45,7 +45,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasA
 
   //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     return new AddRemovable[]{new Effect()};
   }

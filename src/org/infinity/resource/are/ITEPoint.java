@@ -79,7 +79,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
 
   //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     return new AddRemovable[]{new Vertex()};
   }

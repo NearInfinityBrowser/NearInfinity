@@ -46,7 +46,7 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
 
   //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     return new AddRemovable[]{new MemorizedSpells()};
   }

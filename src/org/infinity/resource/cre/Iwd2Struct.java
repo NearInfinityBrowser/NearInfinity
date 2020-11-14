@@ -54,7 +54,7 @@ public final class Iwd2Struct extends AbstractStruct implements HasAddRemovable
 
   //<editor-fold defaultstate="collapsed" desc="HasAddRemovable">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     switch (type) {
       case TYPE_SPELL:

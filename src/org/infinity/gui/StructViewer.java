@@ -178,7 +178,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final StructTable table = new StructTable();
   private final HashMap<Integer, StructEntry> entryMap = new HashMap<>();
   private final HashMap<Viewable, ViewFrame> viewMap = new HashMap<>();
-  private AddRemovable emptyTypes[];
+  /** Array of prototype objects, that can be children of {@link #struct}. */
+  private AddRemovable prototypes[];
   private JMenuItem miFindAttribute, miFindReferences, miFindStateReferences, miFindRefToItem;
   private Editable editable;
   private JTabbedPane tabbedPane;
@@ -357,15 +358,15 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
 
     if (struct instanceof HasAddRemovable && !struct.getFields().isEmpty()) {
       try {
-        emptyTypes = ((HasAddRemovable)struct).getAddRemovables();
+        prototypes = ((HasAddRemovable)struct).getPrototypes();
       } catch (Exception e) {
         e.printStackTrace();
       }
-      JMenuItem menuItems[] = new JMenuItem[emptyTypes.length];
+      JMenuItem menuItems[] = new JMenuItem[prototypes.length];
       for (int i = 0; i < menuItems.length; i++) {
-        menuItems[i] = new JMenuItem(emptyTypes[i].getName());
+        menuItems[i] = new JMenuItem(prototypes[i].getName());
       }
-      if (emptyTypes.length > 0) {
+      if (prototypes.length > 0) {
         ButtonPopupMenu bpmAdd = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.ADD);
         bpmAdd.setMenuItems(menuItems);
         bpmAdd.addItemListener(this);
@@ -656,9 +657,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         ButtonPopupMenu bpmAdd = (ButtonPopupMenu)event.getSource();
         JMenuItem item = bpmAdd.getSelectedItem();
         AddRemovable toadd = null;
-        for (final AddRemovable emptyType : emptyTypes) {
-          if (emptyType != null && emptyType.getName().equals(item.getText())) {
-            toadd = emptyType;
+        for (final AddRemovable proto : prototypes) {
+          if (proto.getName().equals(item.getText())) {
+            toadd = proto;
             break;
           }
         }
