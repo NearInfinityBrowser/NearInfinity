@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
@@ -40,7 +40,7 @@ import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -92,7 +92,7 @@ import org.infinity.util.io.StreamUtils;
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/dlg_v1.htm</a>
  */
 public final class DlgResource extends AbstractStruct
-    implements Resource, HasAddRemovable, HasViewerTabs, ActionListener
+    implements Resource, HasChildStructs, HasViewerTabs, ActionListener
 {
   // DLG-specific field labels
   public static final String DLG_OFFSET_STATES            = "States offset";
@@ -122,10 +122,9 @@ public final class DlgResource extends AbstractStruct
     super(entry);
   }
 
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     return new AddRemovable[]{new State(), new Transition(), new StateTrigger(),
                               new ResponseTrigger(), new Action()};
@@ -136,18 +135,9 @@ public final class DlgResource extends AbstractStruct
   {
     return entry;
   }
+  //</editor-fold>
 
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
-
-// --------------------- Begin Interface HasViewerTabs ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -191,11 +181,9 @@ public final class DlgResource extends AbstractStruct
   {
     return (index == 0);
   }
+  //</editor-fold>
 
-// --------------------- End Interface HasViewerTabs ---------------------
-
-// --------------------- Begin Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Writeable">
   @Override
   public void write(OutputStream os) throws IOException
   {
@@ -221,11 +209,9 @@ public final class DlgResource extends AbstractStruct
       }
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface Writeable ---------------------
-
-// --------------------- Begin Interface ActionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent e)
   {
@@ -252,9 +238,9 @@ public final class DlgResource extends AbstractStruct
       }
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface ActionListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -292,7 +278,9 @@ public final class DlgResource extends AbstractStruct
   {
     updateReferences(datatype, false);
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -369,6 +357,7 @@ public final class DlgResource extends AbstractStruct
     }
     return offset + textSize;
   }
+  //</editor-fold>
 
   /**
    * Returns state with specified number from this dialog.

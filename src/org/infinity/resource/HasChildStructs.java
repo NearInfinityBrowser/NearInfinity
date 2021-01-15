@@ -1,16 +1,23 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2005 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
 
-public interface HasAddRemovable
+/**
+ * Implementor of this interface can store fields, that can be added or removed.
+ */
+public interface HasChildStructs
 {
   /**
    * Returns an array of available {@link AddRemovable} prototype objects.
+   * Returned object will be {@link Object#clone cloned} when an editor needs to
+   * create the new element
+   *
    * @return An array of available {@link AddRemovable} objects.
+   *         Can't be {@code null} or contain {@code null}'s
    */
-  AddRemovable[] getAddRemovables() throws Exception;
+  AddRemovable[] getPrototypes() throws Exception;
 
   /**
    * This method is called whenever an {@link AddRemovable} entry is about to be added
@@ -21,14 +28,4 @@ public interface HasAddRemovable
    *         May return {@code null} to cancel the operation.
    */
   AddRemovable confirmAddEntry(AddRemovable entry) throws Exception;
-
-  /**
-   * This method is called whenever an {@link AddRemovable} entry is about to be removed from the
-   * parent structure. It allows subclasses to cancel the operation.
-   * @param entry The {@link AddRemovable} entry to remove.
-   * @return {@code true} to continue the remove operation. {@code false} to cancel the
-   *         remove operation.
-   */
-  boolean confirmRemoveEntry(AddRemovable entry) throws Exception;
 }
-
