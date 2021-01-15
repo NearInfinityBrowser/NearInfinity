@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.spl;
@@ -36,7 +36,7 @@ import org.infinity.resource.AbstractAbility;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Effect;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -62,7 +62,7 @@ import org.infinity.util.io.StreamUtils;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/spl_v1.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/spl_v1.htm</a>
  */
-public final class SplResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs,
+public final class SplResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs,
                                                                  UpdateListener
 {
   // SPL-specific field labels
@@ -154,10 +154,9 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
     super(entry);
   }
 
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     return new AddRemovable[]{new Ability(), new Effect()};
   }
@@ -167,18 +166,9 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
   {
     return entry;
   }
+  //</editor-fold>
 
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
-
-// --------------------- Begin Interface HasViewerTabs ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -223,12 +213,9 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
   {
     return (index == 0);
   }
+  //</editor-fold>
 
-// --------------------- End Interface HasViewerTabs ---------------------
-
-
-// --------------------- Begin Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
@@ -240,11 +227,9 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
       }
     }
   }
+  //</editor-fold>
 
-// --------------------- End Interface Writeable ---------------------
-
-// --------------------- Begin Interface UpdateListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="UpdateListener">
   @Override
   public boolean valueUpdated(UpdateEvent event)
   {
@@ -264,9 +249,9 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
     }
     return false;
   }
+  //</editor-fold>
 
-// --------------------- End Interface UpdateListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -334,7 +319,9 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
     super.datatypeRemovedInChild(child, datatype);
     incAbilityEffects(child, datatype, -1);
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -410,6 +397,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasAd
 
     return Math.max(offset, offset2);
   }
+  //</editor-fold>
 
   private void incAbilityEffects(StructEntry child, AddRemovable datatype, int value)
   {

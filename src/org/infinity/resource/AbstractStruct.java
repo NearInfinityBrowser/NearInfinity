@@ -155,7 +155,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     name = entry.getResourceName();
     ByteBuffer bb = entry.getResourceBuffer();
     endoffset = read(bb, 0);
-    if (this instanceof HasAddRemovable && !fields.isEmpty()) {// Is this enough?
+    if (this instanceof HasChildStructs && !fields.isEmpty()) {// Is this enough?
       Collections.sort(fields); // This way we can writeField out in the order in list - sorted by offset
       fixHoles((ByteBuffer)bb.position(0));
       initAddStructMaps();
@@ -182,7 +182,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   {
     this(superStruct, name, startoffset, listSize);
     endoffset = read(buffer, startoffset);
-    if (this instanceof HasAddRemovable) {
+    if (this instanceof HasChildStructs) {
       if (!(this instanceof Actor)) {  // Is this enough?
         Collections.sort(fields); // This way we can writeField out in the order in list - sorted by offset
       }
@@ -912,7 +912,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   public void removeDatatype(AddRemovable removedEntry, boolean removeRecurse)
   {
-    if (removeRecurse && removedEntry instanceof HasAddRemovable) { // Recusivly removeTableLine substructures first
+    if (removeRecurse && removedEntry instanceof HasChildStructs) { // Recusivly removeTableLine substructures first
       AbstractStruct removedStruct = (AbstractStruct)removedEntry;
       for (int i = 0; i < removedStruct.fields.size(); i++) {
         final StructEntry o = removedStruct.fields.get(i);

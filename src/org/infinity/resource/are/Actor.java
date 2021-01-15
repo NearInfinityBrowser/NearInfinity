@@ -19,14 +19,13 @@ import org.infinity.datatype.Unknown;
 import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.util.io.StreamUtils;
 
-public final class Actor extends AbstractStruct implements AddRemovable, HasViewerTabs, HasAddRemovable
+public final class Actor extends AbstractStruct implements AddRemovable, HasViewerTabs
 {
   // ARE/Actor-specific field labels
   public static final String ARE_ACTOR                      = "Actor";
@@ -90,30 +89,6 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
   }
 
 //--------------------- End Interface AddRemovable ---------------------
-
-
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
-  @Override
-  public AddRemovable[] getAddRemovables()
-  {
-    return new AddRemovable[]{};
-  }
-
-  @Override
-  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
-  {
-    return entry;
-  }
-
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
 
 // --------------------- Begin Interface HasViewerTabs ---------------------
 

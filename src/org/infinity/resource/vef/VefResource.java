@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2018 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.vef;
@@ -16,7 +16,7 @@ import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
 import org.infinity.resource.StructEntry;
@@ -33,7 +33,7 @@ import org.infinity.resource.key.ResourceEntry;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/vef_v1.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/vef_v1.htm</a>
  */
-public final class VefResource extends AbstractStruct implements Resource, HasAddRemovable, HasViewerTabs
+public final class VefResource extends AbstractStruct implements Resource, HasChildStructs, HasViewerTabs
 {
   // VEF-specific field labels
   public static final String VEF_OFFSET_COMPONENT_PRI = "Primary component offset";
@@ -48,11 +48,9 @@ public final class VefResource extends AbstractStruct implements Resource, HasAd
     super(entry);
   }
 
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
-
+  public AddRemovable[] getPrototypes() throws Exception
   {
     return new AddRemovable[]{new PrimaryComponent(), new SecondaryComponent()};
   }
@@ -62,46 +60,38 @@ public final class VefResource extends AbstractStruct implements Resource, HasAd
   {
     return entry;
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
+  public int getViewerTabCount()
   {
-    return true;
+    return 1;
   }
 
-// --------------------- End Interface HasAddRemovable ---------------------
+  @Override
+  public String getViewerTabName(int index)
+  {
+    return StructViewer.TAB_RAW;
+  }
 
-//--------------------- Begin Interface HasViewerTabs ---------------------
+  @Override
+  public JComponent getViewerTab(int index)
+  {
+    if (hexViewer == null) {
+      hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
+    }
+    return hexViewer;
+  }
 
- @Override
- public int getViewerTabCount()
- {
-   return 1;
- }
+  @Override
+  public boolean viewerTabAddedBefore(int index)
+  {
+    return false;
+  }
+  //</editor-fold>
 
- @Override
- public String getViewerTabName(int index)
- {
-   return StructViewer.TAB_RAW;
- }
-
- @Override
- public JComponent getViewerTab(int index)
- {
-   if (hexViewer == null) {
-     hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
-   }
-   return hexViewer;
- }
-
- @Override
- public boolean viewerTabAddedBefore(int index)
- {
-   return false;
- }
-
-//--------------------- End Interface HasViewerTabs ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -141,7 +131,9 @@ public final class VefResource extends AbstractStruct implements Resource, HasAd
     }
     return endoffset;
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -181,4 +173,5 @@ public final class VefResource extends AbstractStruct implements Resource, HasAd
       hexViewer.dataModified();
     }
   }
+  //</editor-fold>
 }
