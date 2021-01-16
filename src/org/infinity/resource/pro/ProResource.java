@@ -93,7 +93,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
     "Tinted trail puff VEF", "Multiple proj.", "Default spell on missed", "Falling path", "Comet",
     "Lined up AoE", "Rectangular AoE", "Draw behind target", "Casting glow fx", "Travel door",
     "Stop/fade after hit", "Display string", "Random path", "Start random seq.", "Color pulse on hit",
-    "Touch projectile", "Neg. IDS1", "Neg. IDS2", "Use either IDS", "Delayed payload",
+    "Touch projectile", "Negate IDS1", "Negate IDS2", "Use either IDS", "Delayed payload",
     "Limited path count", "IWD style check", "Caster affected"};
 
   public static final LongIntegerHashMap<String> m_projtype = new LongIntegerHashMap<String>();
