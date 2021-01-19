@@ -46,6 +46,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -116,6 +117,7 @@ import org.infinity.util.IniMapSection;
 import org.infinity.util.Misc;
 import org.infinity.util.Pair;
 import org.infinity.util.SimpleListModel;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -302,7 +304,7 @@ public class ConvertToBam extends ChildFrame
       rootPath = currentPath;
     }
     JFileChooser fc = new JFileChooser(rootPath.toFile());
-    if (!Files.isDirectory(rootPath)) {
+    if (!FileEx.create(rootPath).isDirectory()) {
         fc.setSelectedFile(rootPath.toFile());
     }
     if (title == null) {
@@ -369,7 +371,7 @@ public class ConvertToBam extends ChildFrame
       rootPath = currentPath;
     }
     JFileChooser fc = new JFileChooser(rootPath.toFile());
-    if (!Files.isDirectory(rootPath)) {
+    if (!FileEx.create(rootPath).isDirectory()) {
         fc.setSelectedFile(rootPath.toFile());
     }
     if (title == null) {
@@ -516,7 +518,7 @@ public class ConvertToBam extends ChildFrame
         do {
           file = setBamOutput();
           if (file != null) {
-            if (!Files.exists(file) ||
+            if (!FileEx.create(file).exists() ||
                 JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, msg, "Question",
                                                                         JOptionPane.YES_NO_OPTION,
                                                                         JOptionPane.QUESTION_MESSAGE)) {
@@ -1863,6 +1865,9 @@ public class ConvertToBam extends ChildFrame
     bpmFramesRemove.setEnabled(miFramesRemove.isEnabled() || miFramesRemoveAll.isEnabled() ||
                                miFramesDropUnused.isEnabled());
 
+    // updating frame info box
+    updateFrameInfo(listFrames.getSelectedIndices());
+
     // updating palette
     paletteDialog.setPaletteModified();
 
@@ -2746,13 +2751,13 @@ public class ConvertToBam extends ChildFrame
 
   public void framesAddFolder(Path path)
   {
-    if (path != null && Files.isDirectory(path)) {
+    if (path != null && FileEx.create(path).isDirectory()) {
       // preparing list of valid files
       FileNameExtensionFilter filters = getGraphicsFilters()[0];
       List<Path> validFiles = new ArrayList<>();
       try (DirectoryStream<Path> dstream = Files.newDirectoryStream(path)) {
         for (final Path file: dstream) {
-          if (Files.isRegularFile(file) && filters.accept(file.toFile())) {
+          if (FileEx.create(file).isFile() && filters.accept(file.toFile())) {
             validFiles.add(file);
           }
         }
@@ -5065,7 +5070,7 @@ public class ConvertToBam extends ChildFrame
       Path[] files = getOpenFileName(bam, "Import BAM session", null, false,
                                      new FileNameExtensionFilter[]{getIniFilter()}, 0);
       if (files != null && files.length > 0) {
-        if (!Files.isRegularFile(files[0])) {
+        if (!FileEx.create(files[0]).isFile()) {
           files[0] = StreamUtils.replaceFileExtension(files[0], "ini");
         }
         if (loadData(files[0], silent)) {
@@ -5186,7 +5191,7 @@ public class ConvertToBam extends ChildFrame
             }
           } else {
             Path file = FileManager.resolve(value);
-            if (!Files.isRegularFile(file)) {
+            if (!FileEx.create(file).isFile()) {
               throw new Exception("Frame source path not found at line " + (entry.getLine() + 1));
             }
           }
@@ -5372,7 +5377,7 @@ public class ConvertToBam extends ChildFrame
             }
           } else {
             Path file = FileManager.resolve(value);
-            if (Files.isRegularFile(file)) {
+            if (FileEx.create(file).isFile()) {
               resource = new FileResourceEntry(file);
             }
           }
@@ -5452,7 +5457,7 @@ public class ConvertToBam extends ChildFrame
         // preparing cycle definitions
         final HashMap<Integer, int[]> cycles = new HashMap<>();
         int maxCycle = -1;
-        for (final IniMapEntry entry : sectionCenter) {
+        for (final IniMapEntry entry : sectionCycles) {
           int cycleIndex = Misc.toNumber(entry.getKey(), -1);
           if (cycleIndex >= 0) {
             String value = entry.getValue().trim();
@@ -5474,8 +5479,8 @@ public class ConvertToBam extends ChildFrame
 
         // post-processing
         int[][] cycleArray = new int[maxCycle + 1][];
-        for (Integer idx : cycles.keySet()) {
-          cycleArray[idx] = cycles.get(idx);
+        for (Map.Entry<Integer, int[]> entry : cycles.entrySet()) {
+          cycleArray[entry.getKey()] = entry.getValue();
         }
 
         bam.filterRemoveAll();
@@ -5546,13 +5551,13 @@ public class ConvertToBam extends ChildFrame
 
         // post-processing data
         Config[] configArray = new Config[maxIndex + 1];
-        for (Integer idx : filterMap.keySet()) {
-          Config config = filterMap.get(idx);
+        for (Map.Entry<Integer, Config> entry : filterMap.entrySet()) {
+          final Config config = entry.getValue();
           if (config.name != null) {
             if (config.param == null) {
               config.param = "";
             }
-            configArray[idx] = config;
+            configArray[entry.getKey()] = config;
           }
         }
 

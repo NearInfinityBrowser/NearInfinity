@@ -23,7 +23,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownServiceException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -46,6 +45,8 @@ import java.util.zip.ZipInputStream;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLPeerUnverifiedException;
+
+import org.infinity.util.io.FileEx;
 
 import static org.infinity.util.Misc.toNumber;
 
@@ -87,7 +88,7 @@ public class Utils
       if (url != null) {
         try {
           Path file = Paths.get(url.toURI());
-          if (Files.exists(file)) {
+          if (FileEx.create(file).exists()) {
             return file.toString();
           }
         } catch (URISyntaxException e) {

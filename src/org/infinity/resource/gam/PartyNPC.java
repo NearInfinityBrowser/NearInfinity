@@ -22,7 +22,6 @@ import org.infinity.datatype.UnsignDecNumber;
 import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
@@ -30,7 +29,7 @@ import org.infinity.resource.cre.CreResource;
 import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.io.StreamUtils;
 
-public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRemovable, AddRemovable
+public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemovable
 {
   // GAM/PartyNPC-specific field labels
   public static final String GAM_NPC                            = "Party member";
@@ -119,29 +118,6 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, HasAddRem
   {
     super(superStruct, name, buffer, offset);
   }
-
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
-  @Override
-  public AddRemovable[] getAddRemovables() throws Exception
-  {
-    return new AddRemovable[]{};
-  }
-
-  @Override
-  public AddRemovable confirmAddEntry(AddRemovable struct) throws Exception
-  {
-    return struct;
-  }
-
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
 
 //--------------------- Begin Interface AddRemovable ---------------------
 

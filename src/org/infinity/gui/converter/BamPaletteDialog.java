@@ -20,7 +20,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -51,6 +50,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -249,7 +249,7 @@ class BamPaletteDialog extends JDialog
     }
 
     // fetching file signature
-    if (paletteFile != null && Files.isRegularFile(paletteFile)) {
+    if (paletteFile != null && FileEx.create(paletteFile).isFile()) {
       byte[] signature = new byte[8];
       try (InputStream is = StreamUtils.getInputStream(paletteFile)) {
         is.read(signature);

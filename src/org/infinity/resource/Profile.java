@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource;
@@ -31,9 +31,11 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.ObjectString;
+import org.infinity.util.Platform;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 import org.infinity.util.io.DlcManager;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.FileWatcher;
 import org.infinity.util.io.FileWatcher.FileWatchEvent;
@@ -410,6 +412,8 @@ public final class Profile implements FileWatcher.FileWatchListener
   // Set of resource extensions supported by Infinity Engine games
   private static final HashSet<String> SUPPORTED_RESOURCE_TYPES = new HashSet<>();
   private static final HashMap<String, String> KNOWN_EQUIPPED_APPEARANCE = new HashMap<>();
+  // A list of potential game executable filenames for each game
+  private static final EnumMap<Game, EnumMap<Platform.OS, List<String>>> DEFAULT_GAME_BINARIES = new EnumMap<>(Game.class);
 
   // Using the singleton approach
   private static Profile instance = null;
@@ -564,6 +568,9 @@ public final class Profile implements FileWatcher.FileWatchListener
     KNOWN_EQUIPPED_APPEARANCE.put("WH", "War hammer");
     KNOWN_EQUIPPED_APPEARANCE.put("YW", "Wings (male)");
     KNOWN_EQUIPPED_APPEARANCE.put("ZW", "Wings (female)");
+
+    // initializing potential game executable filenames
+    initDefaultGameBinaries();
 
     // static properties are always available
     initStaticProperties();
@@ -882,7 +889,7 @@ public final class Profile implements FileWatcher.FileWatchListener
           // updating dialog.tlks
           updateProperty(Key.GET_GAME_DIALOG_FILE, FileManager.query(langPath, getProperty(Key.GET_GLOBAL_DIALOG_NAME)));
           Path femaleTlkFile = FileManager.query(langPath, getProperty(Key.GET_GLOBAL_DIALOG_NAME_FEMALE));
-          if (Files.isRegularFile(femaleTlkFile)) {
+          if (FileEx.create(femaleTlkFile).isFile()) {
             addProperty(Key.GET_GAME_DIALOGF_FILE, Type.PATH, femaleTlkFile);
           } else {
             updateProperty(Key.GET_GAME_DIALOGF_FILE, null);
@@ -1140,6 +1147,71 @@ public final class Profile implements FileWatcher.FileWatchListener
     return retVal;
   }
 
+  /**
+   * Returns a list of potential game binary filenames for the current game and platform.
+   * Returned list can be empty but is never {@code null}.
+   */
+  public static List<String> getGameBinaries()
+  {
+    return getGameBinaries(null, null);
+  }
+
+  /**
+   * Returns a list of potential game binary filenames for the specified game and platform.
+   * Returned list can be empty but is never {@code null}.
+   */
+  public static List<String> getGameBinaries(Game game, Platform.OS os)
+  {
+    List<String> list = null;
+
+    if (game == null)
+      game = getGame();
+    if (os == null)
+      os = Platform.getPlatform();
+
+    EnumMap<Platform.OS, List<String>> osMap = DEFAULT_GAME_BINARIES.get(game);
+    if (osMap != null)
+      list = osMap.get(os);
+
+    return Collections.unmodifiableList((list != null) ? list : new ArrayList<>(1));
+  }
+
+  /** Returns a list of paths for existing game binaries associated with the current game and platform. */
+  public static List<Path> getGameBinaryPaths()
+  {
+    return getGameBinaryPaths(null, null);
+  }
+
+  /** Returns a list of existing game binary paths associated with the specified game and platform. */
+  public static List<Path> getGameBinaryPaths(Game game, Platform.OS os)
+  {
+    List<Path> list = new ArrayList<>();
+
+    if (game == null)
+      game = getGame();
+    if (os == null)
+      os = Platform.getPlatform();
+
+    List<String> listNames = getGameBinaries(game, os);
+    Path root = getGameRoot();
+    for (String name : listNames) {
+      Path path = FileManager.queryExisting(root, name);
+      if (path != null) {
+        if (os == Platform.OS.MacOS &&
+            path.toString().toLowerCase(Locale.ENGLISH).endsWith(".app") &&
+            Files.isDirectory(path)) {
+          if (!list.contains(path))
+            list.add(path);
+        } else if (Files.isRegularFile(path)) {
+          if (!list.contains(path))
+            list.add(path);
+        }
+      }
+    }
+
+    return list;
+  }
+
   // Returns the Property object assigned to the given key.
   private static Property getEntry(Key  key)
   {
@@ -1190,6 +1262,202 @@ public final class Profile implements FileWatcher.FileWatchListener
     addEntry(Key.GET_GLOBAL_DIALOG_NAME_FEMALE, Type.STRING, "dialogf.tlk");
   }
 
+  // Initializes a list of potential executable filenames for each game and platform
+  private static void initDefaultGameBinaries()
+  {
+    DEFAULT_GAME_BINARIES.clear();
+    EnumMap<Platform.OS, List<String>> osMap;
+    List<String> emptyList = new ArrayList<>();;
+    List<String> list;
+
+    // BG1 & BG1TotSC (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.Unix, emptyList);
+    osMap.put(Platform.OS.MacOS, emptyList);
+    list = new ArrayList<>();
+    list.add("bgmain2.exe");
+    list.add("bgmain.exe");
+    list.add("baldur.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.BG1, osMap);
+    DEFAULT_GAME_BINARIES.put(Game.BG1TotSC, osMap);
+
+    // Tutu (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.Unix, emptyList);
+    osMap.put(Platform.OS.MacOS, emptyList);
+    list = new ArrayList<>();
+    list.add("bgmain.exe");
+    list.add("baldur.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.Tutu, osMap);
+
+    // BG2SoA & BG2ToB (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.Unix, emptyList);
+    osMap.put(Platform.OS.MacOS, emptyList);
+    list = new ArrayList<>();
+    list.add("bgmain.exe");
+    list.add("baldur.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.BG2SoA, osMap);
+    DEFAULT_GAME_BINARIES.put(Game.BG2ToB, osMap);
+
+    // BGT (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.Unix, emptyList);
+    osMap.put(Platform.OS.MacOS, emptyList);
+    list = new ArrayList<>();
+    list.add("bgmain.exe");
+    list.add("baldur.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.BGT, osMap);
+
+    // PST (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.Unix, emptyList);
+    osMap.put(Platform.OS.MacOS, emptyList);
+    list = new ArrayList<>();
+    list.add("torment.exe");
+    list.add("pst.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.PST, osMap);
+
+    // IWD & IWDHoW & IWDHowTotLM (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.Unix, emptyList);
+    osMap.put(Platform.OS.MacOS, emptyList);
+    list = new ArrayList<>();
+    list.add("idmain.exe");
+    list.add("icewind.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.IWD, osMap);
+    DEFAULT_GAME_BINARIES.put(Game.IWDHoW, osMap);
+    DEFAULT_GAME_BINARIES.put(Game.IWDHowTotLM, osMap);
+
+    // IWD2 (Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    osMap.put(Platform.OS.Unix, emptyList);
+    osMap.put(Platform.OS.MacOS, emptyList);
+    list = new ArrayList<>();
+    list.add("iwd2.exe");
+    list.add("icewind2.exe");
+    list.add("icewind.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.IWD2, osMap);
+
+    // BG1EE (Linux, macOS, Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    list = new ArrayList<>();
+    list.add("baldursgate64");
+    list.add("baldursgate");
+    list.add("baldur");
+    osMap.put(Platform.OS.Unix, list);
+    list = new ArrayList<>();
+    list.add("Baldur's Gate - Enhanced Edition.app");
+    list.add("Baldur's Gate - Enhanced Edition.app/Contents/MacOS/Baldur's Gate - Enhanced Edition");
+    list.add("Baldur's Gate - Enhanced Edition");
+    osMap.put(Platform.OS.MacOS, list);
+    list = new ArrayList<>();
+    list.add("Baldur.exe");
+    list.add("BGEE.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.BG1EE, osMap);
+
+    // BG1BG1SoD (Linux, macOS, Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    list = new ArrayList<>();
+    list.add("SiegeOfDragonspear64");
+    list.add("SiegeOfDragonspear");
+    list.add("BaldursGate64");
+    list.add("BaldursGate");
+    list.add("Baldur");
+    list.add("siegeofdragonspear64");
+    list.add("siegeofdragonspear");
+    list.add("baldursgate64");
+    list.add("baldursgate");
+    list.add("baldur");
+    osMap.put(Platform.OS.Unix, list);
+    list = new ArrayList<>();
+    list.add("Baldur's Gate - Enhanced Edition.app");
+    list.add("Baldur's Gate - Enhanced Edition.app/Contents/MacOS/Baldur's Gate - Enhanced Edition");
+    list.add("Baldur's Gate - Enhanced Edition");
+    osMap.put(Platform.OS.MacOS, list);
+    list = new ArrayList<>();
+    list.add("SiegeOfDragonspear.exe");
+    list.add("SOD.exe");
+    list.add("Baldur.exe");
+    list.add("BGEE.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.BG1SoD, osMap);
+
+    // BG2EE & EET (Linux, macOS, Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    list = new ArrayList<>();
+    list.add("BaldursGateII64");
+    list.add("BaldursGateII");
+    list.add("Baldur");
+    list.add("baldursgateii64");
+    list.add("baldursgateii");
+    list.add("baldur");
+    osMap.put(Platform.OS.Unix, list);
+    list = new ArrayList<>();
+    list.add("BaldursGateIIEnhancedEdition.app");
+    list.add("BaldursGateIIEnhancedEdition.app/Contents/MacOS/BaldursGateIIEnhancedEdition");
+    list.add("BaldursGateIIEnhancedEdition");
+    list.add("Baldur's Gate II - Enhanced Edition.app");
+    list.add("Baldur's Gate II - Enhanced Edition.app/Contents/MacOS/Baldur's Gate II - Enhanced Edition");
+    list.add("Baldur's Gate II - Enhanced Edition");
+    osMap.put(Platform.OS.MacOS, list);
+    list = new ArrayList<>();
+    list.add("Baldur.exe");
+    list.add("BG2EE.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.BG2EE, osMap);
+    DEFAULT_GAME_BINARIES.put(Game.EET, osMap);
+
+    // IWDEE (Linux, macOS, Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    list = new ArrayList<>();
+    list.add("IcewindDale64");
+    list.add("IcewindDale");
+    list.add("Icewind");
+    list.add("icewinddale64");
+    list.add("icewinddale");
+    list.add("icewind");
+    osMap.put(Platform.OS.Unix, list);
+    list = new ArrayList<>();
+    list.add("IcewindDale.app");
+    list.add("IcewindDale.app/Contents/MacOS/IcewindDale");
+    list.add("Icewind Dale - Enhanced Edition.app");
+    list.add("Icewind Dale - Enhanced Edition.app/Contents/MacOS/Icewind Dale - Enhanced Edition");
+    osMap.put(Platform.OS.MacOS, list);
+    list = new ArrayList<>();
+    list.add("Icewind.exe");
+    list.add("IWD.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.IWDEE, osMap);
+
+    // PSTEE (Linux, macOS, Windows)
+    osMap = new EnumMap<>(Platform.OS.class);
+    list = new ArrayList<>();
+    list.add("Torment64");
+    list.add("Torment");
+    list.add("torment64");
+    list.add("torment");
+    osMap.put(Platform.OS.Unix, list);
+    list = new ArrayList<>();
+    list.add("Planescape Torment - Enhanced Edition.app");
+    list.add("Planescape Torment - Enhanced Edition.app/Contents/MacOS/Planescape Torment - Enhanced Edition");
+    list.add("Planescape Torment - Enhanced Edition");
+    osMap.put(Platform.OS.MacOS, list);
+    list = new ArrayList<>();
+    list.add("Torment.exe");
+    list.add("PST.exe");
+    osMap.put(Platform.OS.Windows, list);
+    DEFAULT_GAME_BINARIES.put(Game.PSTEE, osMap);
+  }
+
   // Attempts to determine home folder name from the game's "engine.lua" file if available
   private static String getLuaHomeFolderName(Game game)
   {
@@ -1213,7 +1481,7 @@ public final class Profile implements FileWatcher.FileWatchListener
   private static String getLuaValue(Path file, String key, String defaultValue, boolean ifLuaExists)
   {
     String retVal = ifLuaExists ? null : defaultValue;
-    if (file != null && Files.isRegularFile(file) && key != null && !key.trim().isEmpty()) {
+    if (file != null && FileEx.create(file).isFile() && key != null && !key.trim().isEmpty()) {
       retVal = defaultValue;
       try (Stream<String> lines = Files.lines(file, StandardCharsets.UTF_8)) {
         for (Iterator<String> iter = lines.iterator(); iter.hasNext();) {
@@ -1271,7 +1539,7 @@ public final class Profile implements FileWatcher.FileWatchListener
   {
     if (keyFile == null) {
       throw new Exception("No chitin.key specified");
-    } else if (!Files.isRegularFile(keyFile)) {
+    } else if (!FileEx.create(keyFile).isFile()) {
       throw new Exception(keyFile.toString() + " does not exist");
     }
 
@@ -1298,7 +1566,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     if (home != null) {
       addEntry(Key.GET_GAME_HOME_FOLDER_NAME, Type.STRING, home);
       homeDir = ResourceFactory.getHomeRoot(true);
-      if (homeDir != null && Files.isDirectory(homeDir)) {
+      if (homeDir != null && FileEx.create(homeDir).isDirectory()) {
         addEntry(Key.GET_GAME_HOME_FOLDER, Type.PATH, homeDir);
       }
     }
@@ -1329,85 +1597,85 @@ public final class Profile implements FileWatcher.FileWatchListener
     }
 
     if (game == Game.IWDEE ||
-        Files.isRegularFile(FileManager.query(gameRoots, "movies/howseer.wbm"))) {
+        FileEx.create(FileManager.query(gameRoots, "movies/howseer.wbm")).isFile()) {
       if (game == null) game = Game.IWDEE;
       // Note: baldur.ini is initialized later
     } else if (game == Game.PSTEE ||
-               (Files.isRegularFile(FileManager.query(gameRoots, "data/MrtGhost.bif")) &&
-                Files.isRegularFile(FileManager.query(gameRoots, "data/shaders.bif")) &&
+               (FileEx.create(FileManager.query(gameRoots, "data/MrtGhost.bif")).isFile() &&
+                   FileEx.create(FileManager.query(gameRoots, "data/shaders.bif")).isFile() &&
                 getLuaValue(FileManager.query(gameRoots, "engine.lua"), "engine_mode", "0", false).equals("3"))) {
       if (game == null) game = Game.PSTEE;
       // Note: baldur.ini is initialized later
     } else if (game == Game.EET || game == Game.BG2EE ||
-               Files.isRegularFile(FileManager.query(gameRoots, "movies/pocketzz.wbm"))) {
-      if ((Files.isRegularFile(FileManager.query(gameRoots, "override/EET.flag"))) ||
-          (Files.isRegularFile(FileManager.query(gameRoots, "data/eetTU00.bif")))) {
+        FileEx.create(FileManager.query(gameRoots, "movies/pocketzz.wbm")).isFile()) {
+      if ((FileEx.create(FileManager.query(gameRoots, "override/EET.flag")).isFile()) ||
+          (FileEx.create(FileManager.query(gameRoots, "data/eetTU00.bif")).isFile())) {
         if (game == null) game = Game.EET;
       } else {
         if (game == null) game = Game.BG2EE;
       }
       // Note: baldur.ini is initialized later
     } else if (game == Game.BG1SoD ||
-               Files.isRegularFile(FileManager.query(gameRoots, "movies/sodcin01.wbm"))) {
+        FileEx.create(FileManager.query(gameRoots, "movies/sodcin01.wbm")).isFile()) {
       if (game == null) game = Game.BG1SoD;
       // Note: baldur.ini is initialized later
     } else if (game == Game.BG1EE ||
-               Files.isRegularFile(FileManager.query(gameRoots, "movies/bgenter.wbm"))) {
+        FileEx.create(FileManager.query(gameRoots, "movies/bgenter.wbm")).isFile()) {
       if (game == null) game = Game.BG1EE;
       // Note: baldur.ini is initialized later
     } else if ((game == Game.PST ||
-               Files.isRegularFile(FileManager.query(gameRoots, "torment.exe"))) &&
-               (!Files.isRegularFile(FileManager.query(gameRoots, "movies/sigil.wbm")))) {
+        FileEx.create(FileManager.query(gameRoots, "torment.exe")).isFile()) &&
+               (!FileEx.create(FileManager.query(gameRoots, "movies/sigil.wbm")).isFile())) {
       if (game == null) game = Game.PST;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "torment.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
-      if (ini != null && Files.isRegularFile(ini)) {
+      if (ini != null && FileEx.create(ini).isFile()) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
     } else if (game == Game.IWD || game == Game.IWDHoW || game == Game.IWDHowTotLM ||
-               (Files.isRegularFile(FileManager.query(gameRoots, "idmain.exe"))) &&
-               (!Files.isRegularFile(FileManager.query(gameRoots, "movies/howseer.wbm")))) {
+               (FileEx.create(FileManager.query(gameRoots, "idmain.exe")).isFile()) &&
+               (!FileEx.create(FileManager.query(gameRoots, "movies/howseer.wbm")).isFile())) {
       if (game == null) game = Game.IWD;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "icewind.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
-      if (ini != null && Files.isRegularFile(ini)) {
+      if (ini != null && FileEx.create(ini).isFile()) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
     } else if (game == Game.IWD2 ||
-               (Files.isRegularFile(FileManager.query(gameRoots, "iwd2.exe"))) &&
-               (Files.isRegularFile(FileManager.query(gameRoots, "Data/Credits.mve")))) {
+               (FileEx.create(FileManager.query(gameRoots, "iwd2.exe")).isFile()) &&
+               (FileEx.create(FileManager.query(gameRoots, "Data/Credits.mve")).isFile())) {
       if (game == null) game = Game.IWD2;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "icewind2.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
-      if (ini != null && Files.isRegularFile(ini)) {
+      if (ini != null && FileEx.create(ini).isFile()) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
     } else if (game == Game.Tutu ||
-        Files.isRegularFile(FileManager.query(gameRoots, "bg1tutu.exe")) ||
-        Files.isRegularFile(FileManager.query(gameRoots, "bg1mov/MovieCD1.bif"))) {
+        FileEx.create(FileManager.query(gameRoots, "bg1tutu.exe")).isFile() ||
+        FileEx.create(FileManager.query(gameRoots, "bg1mov/MovieCD1.bif")).isFile()) {
       if (game == null) game = Game.Tutu;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
-      if (ini != null && Files.isRegularFile(ini)) {
+      if (ini != null && FileEx.create(ini).isFile()) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
     } else if (game == Game.BG2SoA || game == Game.BG2ToB || game == Game.BGT ||
-               (Files.isRegularFile(FileManager.query(gameRoots, "baldur.exe"))) &&
-               (Files.isRegularFile(FileManager.query(gameRoots, "BGConfig.exe")))) {
+               (FileEx.create(FileManager.query(gameRoots, "baldur.exe")).isFile()) &&
+               (FileEx.create(FileManager.query(gameRoots, "BGConfig.exe")).isFile())) {
       if (game == null) game = Game.BG2SoA;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
-      if (ini != null && Files.isRegularFile(ini)) {
+      if (ini != null && FileEx.create(ini).isFile()) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
     } else if (game == Game.BG1 || game == Game.BG1TotSC ||
-               (Files.isRegularFile(FileManager.query(gameRoots, "movies/graphsim.mov"))) || // Mac BG1 detection hack
-               ((Files.isRegularFile(FileManager.query(gameRoots, "baldur.exe"))) &&
-                (Files.isRegularFile(FileManager.query(gameRoots, "Config.exe"))))) {
+               (FileEx.create(FileManager.query(gameRoots, "movies/graphsim.mov")).isFile()) || // Mac BG1 detection hack
+               ((FileEx.create(FileManager.query(gameRoots, "baldur.exe")).isFile()) &&
+                (FileEx.create(FileManager.query(gameRoots, "Config.exe")).isFile()))) {
       if (game == null) game = Game.BG1;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
-      if (ini != null && Files.isRegularFile(ini)) {
+      if (ini != null && FileEx.create(ini).isFile()) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
     } else {
@@ -1416,7 +1684,7 @@ public final class Profile implements FileWatcher.FileWatchListener
       if (game == null) game = Game.Unknown;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
-      if (ini != null && Files.isRegularFile(ini)) {
+      if (ini != null && FileEx.create(ini).isFile()) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
     }
@@ -1433,7 +1701,7 @@ public final class Profile implements FileWatcher.FileWatchListener
 
     if (isEnhancedEdition()) {
       Path langDir = FileManager.query(gameRoots, "lang");
-      if (langDir != null && Files.isDirectory(langDir)) {
+      if (langDir != null && FileEx.create(langDir).isDirectory()) {
         addEntry(Key.GET_GAME_LANG_FOLDER_BASE, Type.PATH, langDir);
       }
     }
@@ -1458,11 +1726,11 @@ public final class Profile implements FileWatcher.FileWatchListener
 
     // initializing dialog.tlk and dialogf.tlk
     Path tlk = FileManager.query(getRootFolders(), getProperty(Key.GET_GLOBAL_DIALOG_NAME));
-    if (tlk != null && Files.isRegularFile(tlk)) {
+    if (tlk != null && FileEx.create(tlk).isFile()) {
       addEntry(Key.GET_GAME_DIALOG_FILE, Type.PATH, tlk);
     }
     Path tlkf = FileManager.query(getRootFolders(), getProperty(Key.GET_GLOBAL_DIALOG_NAME_FEMALE));
-    if (tlkf != null && Files.isRegularFile(tlkf)) {
+    if (tlkf != null && FileEx.create(tlkf).isFile()) {
       addEntry(Key.GET_GAME_DIALOGF_FILE, Type.PATH, tlkf);
     }
 
@@ -1554,7 +1822,7 @@ public final class Profile implements FileWatcher.FileWatchListener
       Path homeRoot = ResourceFactory.getHomeRoot(false);
       for (int i = 0; i < iniFiles.length; i++) {
         Path ini = FileManager.query(homeRoot, iniFiles[i]);
-        if (ini != null && Files.isRegularFile(ini)) {
+        if (ini != null && FileEx.create(ini).isFile()) {
           addEntry(Key.GET_GAME_INI_NAME, Type.STRING, iniFiles[i]);
           break;
         }
@@ -1576,7 +1844,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     if (homeRoot != null) {
       addEntry(Key.GET_GAME_HOME_FOLDER, Type.PATH, homeRoot);
       Path ini = FileManager.query(homeRoot, getProperty(Key.GET_GAME_INI_NAME));
-      if (ini != null && Files.isRegularFile(ini)) {
+      if (ini != null && FileEx.create(ini).isFile()) {
         addEntry(Key.GET_GAME_INI_FILE, Type.PATH, ini);
       }
       listRoots.add(homeRoot);
@@ -1596,7 +1864,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     roots.forEach((root) -> {
       // adding root of active language
       Path langRoot = FileManager.query(root, (String)getProperty(Key.GET_GLOBAL_LANG_NAME), language);
-      if (langRoot != null && Files.isDirectory(langRoot)) {
+      if (langRoot != null && FileEx.create(langRoot).isDirectory()) {
         addEntry(Key.GET_GAME_LANG_FOLDER_NAME, Type.STRING, language);
         addEntry(Key.GET_GAME_LANG_FOLDER, Type.PATH, langRoot);
         List<Path> langPaths = ResourceFactory.getAvailableGameLanguages();
@@ -1609,7 +1877,7 @@ public final class Profile implements FileWatcher.FileWatchListener
 
       // adding fallback language added if selected language is non-english
       Path langRootDef = FileManager.query((Path)getProperty(Key.GET_GAME_LANG_FOLDER_BASE), languageDef);
-      if (!languageDef.equals(language) && langRootDef != null && Files.isDirectory(langRootDef)) {
+      if (!languageDef.equals(language) && langRootDef != null && FileEx.create(langRootDef).isDirectory()) {
         listRoots.add(langRootDef);
       }
 
@@ -1632,7 +1900,7 @@ public final class Profile implements FileWatcher.FileWatchListener
       List<Path> list = new ArrayList<>(extraFolders.size());
       extraFolders.forEach((folder) -> {
         Path path = FileManager.query(root, folder);
-        if (path != null && Files.isDirectory(path)) {
+        if (path != null && FileEx.create(path).isDirectory()) {
           list.add(path);
         }
       });
@@ -1683,48 +1951,48 @@ public final class Profile implements FileWatcher.FileWatchListener
       // registering override paths
       for (final Path root: gameRoots) {
         Path path = FileManager.query(root, langFolder, "Movies");
-        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
         if (langFolderDef != null) {
           path = FileManager.query(root, langFolderDef, "Movies");
-          if (path != null && Files.isDirectory(path)) { list.add(path); }
+          if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
         }
         path = FileManager.query(root, "Movies");
-        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
         path = FileManager.query(root, "Characters");
-        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
         path = FileManager.query(root, "Portraits");
-        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
         path = FileManager.query(root, langFolder, "Sounds");
-        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
         if (langFolderDef != null) {
           path = FileManager.query(root, langFolderDef, "Sounds");
-          if (path != null && Files.isDirectory(path)) { list.add(path); }
+          if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
         }
         path = FileManager.query(root, langFolder, "Fonts");
-        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
         path = FileManager.query(root, "Sounds");
-        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
         path = FileManager.query(root, "Scripts");
-        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
         path = FileManager.query(root, langFolder, "Override");
-        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
         path = FileManager.query(root, "Override");
-        if (path != null && Files.isDirectory(path)) { list.add(path); }
+        if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
       }
     } else {
       Path root = getGameRoot();
       Path path = FileManager.query(root, "Movies");
-      if (path != null && Files.isDirectory(path)) { list.add(path); }
+      if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
       path = FileManager.query(root, "Characters");
-      if (path != null && Files.isDirectory(path)) { list.add(path); }
+      if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
       path = FileManager.query(root, "Portraits");
-      if (path != null && Files.isDirectory(path)) { list.add(path); }
+      if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
       path = FileManager.query(root, "Sounds");
-      if (path != null && Files.isDirectory(path)) { list.add(path); }
+      if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
       path = FileManager.query(root, "Scripts");
-      if (path != null && Files.isDirectory(path)) { list.add(path); }
+      if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
       path = FileManager.query(root, "Override");
-      if (path != null && Files.isDirectory(path)) { list.add(path); }
+      if (path != null && FileEx.create(path).isDirectory()) { list.add(path); }
     }
 
     list.forEach((path) -> { FileWatcher.getInstance().register(path, false); });
@@ -1907,7 +2175,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     // Has TobEx been installed?
     if (engine == Engine.BG2) {
       Path tobexIni = FileManager.query(getGameRoot(), "TobEx_ini/TobExCore.ini");
-      addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, Files.isRegularFile(tobexIni));
+      addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, FileEx.create(tobexIni).isFile());
     } else {
       addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, Boolean.FALSE);
     }
@@ -1990,7 +2258,7 @@ public final class Profile implements FileWatcher.FileWatchListener
         if (model != null) {
           List<Path> extraDirs = getProperty(Key.GET_GAME_EXTRA_FOLDERS);
           for (final Path path: extraDirs) {
-            if (Files.isDirectory(path)) {
+            if (FileEx.create(path).isDirectory()) {
               String folderName = path.getFileName().toString();
               if (model.getFolder(folderName) == null) {
                 model.addDirectory((ResourceTreeFolder)model.getRoot(), path, false);
@@ -2014,19 +2282,19 @@ public final class Profile implements FileWatcher.FileWatchListener
 
     List<ObjectString> gameFolders = new ArrayList<>();
     // Getting potential DLC folders (search order is important)
-    if (rootDir != null && Files.isDirectory(rootDir)) {
+    if (rootDir != null && FileEx.create(rootDir).isDirectory()) {
       gameFolders.add(new ObjectString("mod", rootDir.resolve("workshop")));
       gameFolders.add(new ObjectString("zip", rootDir.resolve("dlc")));
       gameFolders.add(new ObjectString("zip", rootDir));
     }
-    if (homeDir != null && Files.isDirectory(homeDir)) {
+    if (homeDir != null && FileEx.create(homeDir).isDirectory()) {
       gameFolders.add(new ObjectString("zip", homeDir));
     }
 
     for (final ObjectString root: gameFolders) {
       String ext = root.getString();
       Path dir = root.getObject();
-      if (dir != null && Files.isDirectory(dir)) {
+      if (dir != null && FileEx.create(dir).isDirectory()) {
         List<Path> list = new ArrayList<>();
         try (DirectoryStream<Path> dstream = Files.newDirectoryStream(dir)) {
           for (final Path file: dstream) {
@@ -2075,7 +2343,7 @@ public final class Profile implements FileWatcher.FileWatchListener
   private Path validateDlc(Path file, String ext) throws IOException
   {
     // is regular file?
-    if (file == null && !Files.isRegularFile(file)) {
+    if (file == null && !FileEx.create(file).isFile()) {
       return null;
     }
 
@@ -2108,7 +2376,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     if (e.getKind() == StandardWatchEventKinds.ENTRY_CREATE) {
       Path path = e.getPath();
 
-      if (Files.isDirectory(path)) {
+      if (FileEx.create(path).isDirectory()) {
         // Note: skipping extra folders because of issues on Windows systems
 //        List<Path> extraDirs = getProperty(Key.GET_GAME_EXTRA_FOLDERS);
 //        if (FileManager.containsPath(path, extraDirs)) {

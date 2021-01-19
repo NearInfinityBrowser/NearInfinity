@@ -13,11 +13,13 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.InputStream;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -32,6 +34,7 @@ import javax.swing.text.StyleConstants;
 
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ViewerUtil;
+import org.infinity.icon.Icons;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.ViewableContainer;
@@ -39,6 +42,8 @@ import org.infinity.resource.key.ResourceEntry;
 
 public class TtfResource implements Resource, DocumentListener, ActionListener
 {
+  private static final ButtonPanel.Control Properties = ButtonPanel.Control.CUSTOM_1;
+
   private static final String DEFAULT_STRING = "The quick brown fox jumps over the lazy dog.  1234567890";
   private static final int[] FONT_SIZE = { 12, 18, 24, 36, 48, 60, 72, 96, 128, 192 };
 
@@ -113,6 +118,9 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
     scroll.setBorder(BorderFactory.createLoweredBevelBorder());
 
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
+    JButton bProperties = new JButton("Properties...", Icons.getIcon(Icons.ICON_EDIT_16));
+    bProperties.addActionListener(this);
+    buttonPanel.addControl(bProperties, Properties);
 
     panel = new JPanel(new BorderLayout());
     panel.add(pInput, BorderLayout.NORTH);
@@ -131,6 +139,8 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
   {
     if (buttonPanel.getControlByType(ButtonPanel.Control.EXPORT_BUTTON) == event.getSource()) {
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
+    } else if (buttonPanel.getControlByType(Properties) == event.getSource()) {
+      showProperties();
     }
   }
 
@@ -214,5 +224,20 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
       }
       tpDisplay.setCaretPosition(0);
     }
+  }
+
+  // Shows message box about basic resource properties
+  private void showProperties()
+  {
+    String resName = entry.getResourceName().toUpperCase(Locale.ENGLISH);
+    String fontName = font.getFontName();
+    String fontFamily = font.getFamily();
+
+    StringBuilder sb = new StringBuilder("<html><table align=\"left\" border=\"0\">");
+    sb.append("<tr><td>Font name:</td><td>").append(fontName).append("</td></tr>");
+    sb.append("<tr><td>Font family:</td><td>").append(fontFamily).append("</td></tr>");
+    sb.append("</table></html>");
+    JOptionPane.showMessageDialog(panel, sb.toString(), "Properties of " + resName,
+                                  JOptionPane.INFORMATION_MESSAGE);
   }
 }

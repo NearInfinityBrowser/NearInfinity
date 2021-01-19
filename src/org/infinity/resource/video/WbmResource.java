@@ -36,6 +36,7 @@ import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ReferenceSearcher;
 import org.infinity.util.FileDeletionHook;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
 
@@ -107,7 +108,7 @@ public final class WbmResource implements Resource, Closeable, Referenceable, Ac
   {
     try {
       // first attempt to delete temporary video file
-      if (videoFile != null && Files.isRegularFile(videoFile) && isTempFile) {
+      if (videoFile != null && FileEx.create(videoFile).isFile() && isTempFile) {
         Files.delete(videoFile);
       }
     } catch (Exception e) {
@@ -173,7 +174,7 @@ public final class WbmResource implements Resource, Closeable, Referenceable, Ac
         fileExt = "wbm";
       try {
         Path outFile = Files.createTempFile(fileBase + "-", "." + fileExt);
-        if (Files.isRegularFile(outFile)) {
+        if (FileEx.create(outFile).isFile()) {
           try (InputStream is = entry.getResourceDataAsStream()) {
             try (OutputStream os = StreamUtils.getOutputStream(outFile, true)) {
               byte[] buffer = new byte[8192];

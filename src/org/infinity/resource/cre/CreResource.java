@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
@@ -55,7 +55,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Effect;
 import org.infinity.resource.Effect2;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Resource;
@@ -97,7 +97,7 @@ import org.infinity.util.io.StreamUtils;
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/cre_v1.htm</a>
  */
 public final class CreResource extends AbstractStruct
-  implements Resource, HasAddRemovable, AddRemovable, HasViewerTabs, ItemListener, UpdateListener
+  implements Resource, HasChildStructs, AddRemovable, HasViewerTabs, ItemListener, UpdateListener
 {
   // CHR-specific field labels
   public static final String CHR_NAME                         = "Character name";
@@ -555,7 +555,7 @@ public final class CreResource extends AbstractStruct
         // Apparently script name is the only thing that matters
   //        scriptName = entry.toString().substring(0, entry.toString().length() - 4);
         } else {
-          scriptName = scriptName.toLowerCase(Locale.ENGLISH).replaceAll(" ", "");
+          scriptName = scriptName.toLowerCase(Locale.ENGLISH).replace(" ", "");
           if (scriptNames.containsKey(scriptName)) {
             synchronized (scriptNames) {
               Set<ResourceEntry> entries = scriptNames.get(scriptName);
@@ -666,7 +666,7 @@ public final class CreResource extends AbstractStruct
     offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, Item.class);
 
     itemslots_offset.setValue(offsetStructs);
-    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, DecNumber.class);
+    offsetStructs = copyStruct(fields, newlist, indexStructs, offsetStructs, IndexNumber.class);
     copyStruct(fields, newlist, indexStructs, offsetStructs, Unknown.class);
 
     fields.clear();
@@ -729,10 +729,9 @@ public final class CreResource extends AbstractStruct
     isChr = StreamUtils.readString(data, startoffset, 4).equalsIgnoreCase("CHR ");
   }
 
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     IsNumeric effectVersion = (IsNumeric)getAttribute(CRE_EFFECT_VERSION);
     if (Profile.getEngine() == Profile.Engine.IWD2) {
@@ -756,28 +755,15 @@ public final class CreResource extends AbstractStruct
     return entry;
   }
 
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
-
-//--------------------- Begin Interface AddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
+  //</editor-fold>
 
-//--------------------- End Interface AddRemovable ---------------------
-
-
-// --------------------- Begin Interface HasViewerTabs ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -816,6 +802,7 @@ public final class CreResource extends AbstractStruct
   {
     return (index == 0);
   }
+  //</editor-fold>
 
   // Needed for embedded CRE resources
   private boolean showRawTab()
@@ -827,20 +814,15 @@ public final class CreResource extends AbstractStruct
     return hasRawTab.booleanValue();
   }
 
-// --------------------- End Interface HasViewerTabs ---------------------
-
-
-// --------------------- Begin Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatFields(os);
   }
+  //</editor-fold>
 
-
-// --------------------- End Interface Writeable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -908,7 +890,9 @@ public final class CreResource extends AbstractStruct
       hexViewer.dataModified();
     }
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -1008,6 +992,7 @@ public final class CreResource extends AbstractStruct
     }
     return readOther(version.toString(), buffer, offset);
   }
+  //</editor-fold>
 
   ////////////////////////
   // Icewind Dale 2
@@ -2140,8 +2125,7 @@ public final class CreResource extends AbstractStruct
     return retVal;
   }
 
-  //--------------------- Begin Interface ItemListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="ItemListener">
   @Override
   public void itemStateChanged(ItemEvent event)
   {
@@ -2154,11 +2138,9 @@ public final class CreResource extends AbstractStruct
       }
     }
   }
+  //</editor-fold>
 
-//--------------------- End Interface ItemListener ---------------------
-
-//--------------------- Begin Interface UpdateListener ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="UpdateListener">
   @Override
   public boolean valueUpdated(UpdateEvent event)
   {
@@ -2181,9 +2163,7 @@ public final class CreResource extends AbstractStruct
     }
     return false;
   }
-
-//--------------------- End Interface UpdateListener ---------------------
-
+  //</editor-fold>
 
   // Called by "Extended Search"
   // Checks whether the specified resource entry matches all available search options.

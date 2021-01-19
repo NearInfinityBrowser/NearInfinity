@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -766,7 +767,7 @@ public class FilterInput extends ChildFrame
       if (path != null) {
         DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
         Object node = path.getLastPathComponent();
-        if (node instanceof MutableTreeNode) {
+        if (node instanceof MutableTreeNode && ((MutableTreeNode)node).getParent() != null) {
           if (!prompt ||
               JOptionPane.showConfirmDialog(FilterInput.this, String.format("Remove substructure \"%s\"?",
                                             node.toString()), "Confirm removal",
@@ -1052,8 +1053,9 @@ public class FilterInput extends ChildFrame
       if (event.getSource() instanceof JFormattedTextField) {
         if (event.isPopupTrigger()) {
           // find popup menu associated with formatted text field and display it
-          for (final JPopupMenu menu : menuToTextFieldMap.keySet()) {
-            JFormattedTextField ftf = menuToTextFieldMap.get(menu);
+          for (final Map.Entry<JPopupMenu, JFormattedTextField> entry : menuToTextFieldMap.entrySet()) {
+            final JPopupMenu menu = entry.getKey();
+            final JFormattedTextField ftf = entry.getValue();
             if (ftf == event.getSource()) {
               if (!menu.isVisible())
                 menu.show(ftf, event.getX(), event.getY());
@@ -1070,8 +1072,9 @@ public class FilterInput extends ChildFrame
       if (event.getSource() instanceof JFormattedTextField) {
         if (event.isPopupTrigger()) {
           // find popup menu associated with formatted text field and display it
-          for (final JPopupMenu menu : menuToTextFieldMap.keySet()) {
-            JFormattedTextField ftf = menuToTextFieldMap.get(menu);
+          for (final Map.Entry<JPopupMenu, JFormattedTextField> entry : menuToTextFieldMap.entrySet()) {
+            final JPopupMenu menu = entry.getKey();
+            final JFormattedTextField ftf = entry.getValue();
             if (ftf == event.getSource()) {
               if (!menu.isVisible())
                 menu.show(ftf, event.getX(), event.getY());

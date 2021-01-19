@@ -14,7 +14,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Locale;
@@ -59,6 +58,7 @@ import org.infinity.search.SearchMaster;
 import org.infinity.search.StringReferenceSearcher;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 
 public class StringEditor extends ChildFrame implements SearchClient
@@ -732,10 +732,10 @@ public class StringEditor extends ChildFrame implements SearchClient
           int ret = fc.showSaveDialog(this);
           if (ret == JFileChooser.APPROVE_OPTION) {
             outPath = fc.getSelectedFile().toPath();
-            if (!Files.isDirectory(outPath)) {
+            if (!FileEx.create(outPath).isDirectory()) {
               outPath = outPath.getParent();
             }
-            outFile = outPath.resolve(StringTable.getPath(StringTable.Type.MALE).getFileName());
+            outFile = outPath.resolve(StringTable.getPath(StringTable.Type.MALE).getFileName().toString());
           } else {
             JOptionPane.showMessageDialog(this, "Operation cancelled.", "Information",
                                           JOptionPane.INFORMATION_MESSAGE);
@@ -770,6 +770,8 @@ public class StringEditor extends ChildFrame implements SearchClient
         JOptionPane.showMessageDialog(this, "File(s) written successfully.", "Save complete",
                                       JOptionPane.INFORMATION_MESSAGE);
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     } finally {
       bSync.setEnabled(isSync);
       bAdd.setEnabled(isAdd);

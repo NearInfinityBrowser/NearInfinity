@@ -27,6 +27,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.IntegerHashMap;
 import org.infinity.util.Misc;
+import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
 
 public class Keyfile
@@ -112,7 +113,7 @@ public class Keyfile
     if (keyFile == null) {
       throw new NullPointerException("No keyfile specified");
     }
-    if (!Files.isRegularFile(keyFile)) {
+    if (!FileEx.create(keyFile).isFile()) {
       throw new FileNotFoundException("Keyfile " + keyFile + " not found or is not regular file");
     }
 
@@ -461,7 +462,7 @@ public class Keyfile
           biffList.forEach((entry) -> {
             if (entry != null) {
               Path biffPath = entry.getPath();
-              if (biffPath != null && Files.isRegularFile(biffPath)) {
+              if (biffPath != null && FileEx.create(biffPath).isFile()) {
                 try {
                   AbstractBIFFReader.open(biffPath);
                 } catch (Exception e) {
@@ -481,7 +482,7 @@ public class Keyfile
 //    if (keyFile == null) {
 //      throw new NullPointerException();
 //    }
-//    if (!Files.isRegularFile(keyFile)) {
+//    if (!FileEx.fromPath(keyFile).isFile()) {
 //      throw new IOException("Key file not found: " + keyFile);
 //    }
 //
@@ -515,11 +516,11 @@ public class Keyfile
     if (getKeyfile() == null) {
       throw new NullPointerException();
     }
-    if (!Files.isRegularFile(getKeyfile())) {
+    if (!FileEx.create(getKeyfile()).isFile()) {
       throw new IOException("Key file not found: " + getKeyfile());
     }
     for (final Path file: keyList) {
-      if (file != null && !Files.isRegularFile(file)) {
+      if (file != null && !FileEx.create(file).isFile()) {
         throw new IOException("Key file not found: " + file);
       }
     }

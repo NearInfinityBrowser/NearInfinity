@@ -107,7 +107,7 @@ public class Song2daBitmap extends ResourceBitmap
         String name = e.getSymbol();
         long key = e.getID();
         name = Character.toUpperCase(name.charAt(0)) + name.substring(1);
-        String ref = name.replaceAll("_", "").toUpperCase(Locale.ENGLISH) + ".MUS";
+        String ref = name.replace("_", "").toUpperCase(Locale.ENGLISH) + ".MUS";
         if (key == 0L) {
           ref = name;
         }

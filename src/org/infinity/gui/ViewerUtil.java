@@ -103,12 +103,17 @@ public final class ViewerUtil
     JLabel label = new JLabel(entry.getName());
     JComponent text = null;
     if (entry instanceof ResourceRef) {
-      text = new LinkButton((ResourceRef) entry);
-    } else if (entry instanceof StringRef) {
-      StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
-                                                                          : StringTable.Format.NONE;
-      String s = ((StringRef)entry).toString(fmt);
+      text = new LinkButton((ResourceRef) entry, maxLength);
+    } else {
+      String s;
       String help = null;
+      if (entry instanceof StringRef) {
+        StringTable.Format fmt = BrowserMenuBar.getInstance().showStrrefs() ? StringTable.Format.STRREF_SUFFIX
+                                                                            : StringTable.Format.NONE;
+        s = ((StringRef)entry).toString(fmt);
+      } else {
+        s = entry.toString();
+      }
       if (maxLength > 0 && s.length() > maxLength) {
         help = s;
         s = s.substring(0, maxLength) + "...";
@@ -116,8 +121,6 @@ public final class ViewerUtil
       text = new JLabel(s);
       if (help != null)
         text.setToolTipText(help);
-    } else {
-      text = new JLabel(entry.toString());
     }
     addLabelFieldPair(panel, label, text, gbl, gbc, endline);
   }

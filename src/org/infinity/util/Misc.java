@@ -531,6 +531,15 @@ public class Misc
     return s;
   }
 
+  /**
+   * Returns a string representation of the specified object.
+   * Returns an empty string if the specified object is {@code null}.
+   */
+  public static String safeToString(Object o)
+  {
+    return (o != null) ? o.toString() : "";
+  }
+
   // Contains static functions only
   private Misc() {}
 }
