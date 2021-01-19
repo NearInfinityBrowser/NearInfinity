@@ -225,6 +225,8 @@ public final class Profile implements FileWatcher.FileWatchListener
     IS_ENHANCED_EDITION,
     /** Property: ({@code Boolean}) Has current game been enhanced by TobEx? */
     IS_GAME_TOBEX,
+    /** Property: ({@code Boolean}) Has current game been enhanced by EEex? */
+    IS_GAME_EEEX,
     /** Property: ({@code Boolean}) Has type of current game been forcibly set? */
     IS_FORCED_GAME,
 
@@ -1908,6 +1910,14 @@ public final class Profile implements FileWatcher.FileWatchListener
       addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, Files.isRegularFile(tobexIni));
     } else {
       addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, Boolean.FALSE);
+    }
+
+    // Has EEex been installed?
+    if (engine == Engine.EE) {
+      Path eeexDb = FileManager.query(getGameRoot(), "EEex.db");
+      addEntry(Key.IS_GAME_EEEX, Type.BOOLEAN, Files.isRegularFile(eeexDb));
+    } else {
+      addEntry(Key.IS_GAME_EEEX, Type.BOOLEAN, Boolean.FALSE);
     }
 
     // Add campaign-specific extra folders
