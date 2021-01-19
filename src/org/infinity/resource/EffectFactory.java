@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.ColorPicker;
@@ -106,10 +107,10 @@ public final class EffectFactory
     IDX_PARENTHIGHESTLEVEL,   OFS_PARENTHIGHESTLEVEL,
     IDX_PARAM3,               OFS_PARAM3,
     IDX_PARAM4,               OFS_PARAM4,
+    IDX_PARAM5,               OFS_PARAM5,
+    IDX_TIMEAPPLIED,          OFS_TIMEAPPLIED,
     IDX_RESOURCE2,            OFS_RESOURCE2,
     IDX_RESOURCE3,            OFS_RESOURCE3,
-    IDX_UNKNOWN068,           OFS_UNKNOWN068,
-    IDX_UNKNOWN06C,           OFS_UNKNOWN06C,
     IDX_CASTERX,              OFS_CASTERX,
     IDX_CASTERY,              OFS_CASTERY,
     IDX_TARGETX,              OFS_TARGETX,
@@ -454,7 +455,7 @@ public final class EffectFactory
     return efactory;
   }
 
-  public static void init()
+  public static void reset()
   {
     efactory = null;
   }
@@ -540,8 +541,16 @@ public final class EffectFactory
           map.put(EffectEntry.OFS_POWER, ofsOpcode + 0x08);
           map.put(EffectEntry.IDX_PARAM1, idxOpcode + 3);
           map.put(EffectEntry.OFS_PARAM1, ofsOpcode + 0x0C);
+          map.put(EffectEntry.IDX_PARAM1A, idxOpcode + 3);
+          map.put(EffectEntry.OFS_PARAM1A, ofsOpcode + 0x0C);
+          map.put(EffectEntry.IDX_PARAM1B, idxOpcode + 4);
+          map.put(EffectEntry.OFS_PARAM1B, ofsOpcode + 0x0E);
           map.put(EffectEntry.IDX_PARAM2, idxOpcode + 4);
           map.put(EffectEntry.OFS_PARAM2, ofsOpcode + 0x10);
+          map.put(EffectEntry.IDX_PARAM2A, idxOpcode + 4);
+          map.put(EffectEntry.OFS_PARAM2A, ofsOpcode + 0x10);
+          map.put(EffectEntry.IDX_PARAM2B, idxOpcode + 5);
+          map.put(EffectEntry.OFS_PARAM2B, ofsOpcode + 0x12);
           map.put(EffectEntry.IDX_TIMING, idxOpcode + 5);
           map.put(EffectEntry.OFS_TIMING, ofsOpcode + 0x14);
           map.put(EffectEntry.IDX_DURATION, idxOpcode + 6);
@@ -576,14 +585,14 @@ public final class EffectFactory
           map.put(EffectEntry.OFS_PARAM3, ofsOpcode + 0x50);
           map.put(EffectEntry.IDX_PARAM4, idxOpcode + 21);
           map.put(EffectEntry.OFS_PARAM4, ofsOpcode + 0x54);
-          map.put(EffectEntry.IDX_RESOURCE2, idxOpcode + 22);
-          map.put(EffectEntry.OFS_RESOURCE2, ofsOpcode + 0x58);
-          map.put(EffectEntry.IDX_RESOURCE3, idxOpcode + 23);
-          map.put(EffectEntry.OFS_RESOURCE3, ofsOpcode + 0x60);
-          map.put(EffectEntry.IDX_UNKNOWN068, idxOpcode + 24);
-          map.put(EffectEntry.OFS_UNKNOWN068, ofsOpcode + 0x68);
-          map.put(EffectEntry.IDX_UNKNOWN06C, idxOpcode + 25);
-          map.put(EffectEntry.OFS_UNKNOWN06C, ofsOpcode + 0x6C);
+          map.put(EffectEntry.IDX_PARAM5, idxOpcode + 22);
+          map.put(EffectEntry.OFS_PARAM5, ofsOpcode + 0x58);
+          map.put(EffectEntry.IDX_TIMEAPPLIED, idxOpcode + 23);
+          map.put(EffectEntry.OFS_TIMEAPPLIED, ofsOpcode + 0x5c);
+          map.put(EffectEntry.IDX_RESOURCE2, idxOpcode + 24);
+          map.put(EffectEntry.OFS_RESOURCE2, ofsOpcode + 0x60);
+          map.put(EffectEntry.IDX_RESOURCE3, idxOpcode + 25);
+          map.put(EffectEntry.OFS_RESOURCE3, ofsOpcode + 0x68);
           map.put(EffectEntry.IDX_CASTERX, idxOpcode + 26);
           map.put(EffectEntry.OFS_CASTERX, ofsOpcode + 0x70);
           map.put(EffectEntry.IDX_CASTERY, idxOpcode + 27);
@@ -1370,16 +1379,23 @@ public final class EffectFactory
             // 350..359
             "Unknown (350)", "Unknown (351)", "Change Background", "Tint screen", "Flash screen",
             "Soul exodus", "Stop all actions", "Set state", "Set AI script", "Unknown (359)",
-            // 360..369
+            // 360..367
             "Ignore reputation breaking point", "Cast spell on critical miss", "Critical miss bonus",
             "Movement check", "Unknown (364)", "Make unselectable", "Apply spell on movement",
-            "Minimum base stats", "Unknown (368)", "Play BAM file (single/dual)",
-            // 370..379
-            "Play BAM file", "Play BAM file 2", "Play BAM file 3", "Play BAM file 4",
-            "Special spell hit", "Play BAM with effects", "Detect evil", "Unknown (377)", "Prayer",
-            "Curse",
-            // 380..
-            "Embalm", "Induce hiccups", "Fist of iron", "Hit point transfer"};
+            "Minimum base stats"};
+        // add more game-specific types dynamically
+        if (Profile.getGame() == Profile.Game.PSTEE) {
+          String[] s_effname2 = new String[] {
+              // 368..369
+              "Unknown (368)", "Play BAM file (single/dual)",
+              // 370..379
+              "Play BAM file", "Play BAM file 2", "Play BAM file 3", "Play BAM file 4",
+              "Special spell hit", "Play BAM with effects", "Detect evil", "Unknown (377)", "Prayer",
+              "Curse",
+              // 380..
+              "Embalm", "Induce hiccups", "Fist of iron", "Hit point transfer"};
+          s_effname = Stream.of(s_effname, s_effname2).flatMap(Stream::of).toArray(String[]::new);
+        }
         break;
 
       case PST:
@@ -2649,7 +2665,7 @@ public final class EffectFactory
 
       case 101: // Immunity to effect
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", getEffectNameArray()));
         break;
 
       case 102: // Immunity to spell level
@@ -3321,7 +3337,7 @@ public final class EffectFactory
 
       case 198: // Reflect specified effect
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", getEffectNameArray()));
         break;
 
       case 199: // Reflect spell level
@@ -3598,7 +3614,7 @@ public final class EffectFactory
         if (Profile.getGame() == Profile.Game.BG2SoA) {
           s.add(new Bitmap(buffer, offset, 4, "Include weapons?", AbstractStruct.OPTION_NOYES));
         } else {
-          s.add(new DecNumber(buffer, offset + 4, 4, "# to drain"));
+          s.add(new DecNumber(buffer, offset, 4, "# to drain"));
           restype = "ITM";
         }
         s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
@@ -4079,7 +4095,7 @@ public final class EffectFactory
       case 337: // Remove effects by opcode
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset, 4, "Match 'Parameter 2' value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Effect", getEffectNameArray()));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -4795,7 +4811,7 @@ public final class EffectFactory
       case 261: // Immunity to effect and string
       case 276: // Remove effect by type
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", getEffectNameArray()));
         break;
 
       case 263: // Evil turn undead
@@ -5038,7 +5054,7 @@ public final class EffectFactory
 
       case 261: // Immunity to effect and resource
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", getEffectNameArray()));
         restype = "SPL";
         break;
 
@@ -5065,7 +5081,7 @@ public final class EffectFactory
 
       case 276: // Remove effect by type
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", s_effname));
+        s.add(new Bitmap(buffer, offset + 4, 4, "Effect", getEffectNameArray()));
         break;
 
       case 279: // Animal rage

@@ -748,7 +748,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       Path oldKeyFile = Profile.getChitinKey();
       ChildFrame.closeWindows();
       clearCache(false);
-      EffectFactory.init();
+      EffectFactory.reset();
       Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
 
       // making sure vital game resources are accessible
@@ -1013,7 +1013,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     clearCache(refreshOnly);
     Path keyFile = refreshOnly ? Profile.getChitinKey() : findKeyfile();
     if (keyFile != null) {
-      EffectFactory.init();
+      EffectFactory.reset();
       retVal = Profile.openGame(keyFile, BrowserMenuBar.getInstance().getBookmarkName(keyFile));
       if (retVal) {
         CreMapCache.reset();
