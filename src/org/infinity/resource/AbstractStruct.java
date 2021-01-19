@@ -121,7 +121,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
 
   private static void adjustSectionOffsets(AbstractStruct superStruct, AddRemovable datatype, int amount)
   {
-    boolean sectionMatch = false;
     for (final StructEntry e : superStruct.fields) {
       if (e instanceof SectionOffset) {
         final SectionOffset so = (SectionOffset)e;
@@ -129,12 +128,17 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
           so.incValue(amount);
         }
         else if (so.getValue() + superStruct.getExtraOffset() == datatype.getOffset()) {
-          sectionMatch |= so.getSection().equals(datatype.getClass());
-          if (amount > 0 &&
-              !(so.getSection().equals(datatype.getClass()) ||
-                  (Profile.getEngine() == Profile.Engine.IWD2 && superStruct instanceof CreResource) ||
-                  ((superStruct instanceof ItmResource || superStruct instanceof SplResource) && !sectionMatch))) {
-            so.incValue(amount);
+          if (amount > 0) {
+            if (superStruct instanceof ItmResource || superStruct instanceof SplResource) {
+              // ensure that effect structures are added after ability structures
+              if (datatype instanceof AbstractAbility && so.getSection().equals(Effect.class)) {
+                so.incValue(amount);
+              }
+            }
+            else if (!(so.getSection().equals(datatype.getClass()) ||
+                (Profile.getEngine() == Profile.Engine.IWD2 && superStruct instanceof CreResource))) {
+              so.incValue(amount);
+            }
           }
         }
       }
