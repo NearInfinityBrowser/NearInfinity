@@ -828,11 +828,13 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       if (removeViewable()) {
         ChildFrame.closeWindows();
         ResourceTreeModel treemodel = ResourceFactory.getResourceTreeModel();
+        updateWindowTitle();
         updateLauncher();
         final String msg = String.format(STATUSBAR_TEXT_FMT,
                                          Profile.getProperty(Profile.Key.GET_GAME_TITLE),
                                          Profile.getGameRoot(), treemodel.size());
         statusBar.setMessage(msg);
+        statusBar.invalidate();
         BrowserMenuBar.getInstance().gameLoaded(null, null);
         tree.setModel(treemodel);
         containerpanel.removeAll();
