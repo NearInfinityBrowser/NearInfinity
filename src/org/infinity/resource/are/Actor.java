@@ -58,6 +58,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
   public static final String ARE_ACTOR_SCRIPT_RACE          = "Race script";
   public static final String ARE_ACTOR_SCRIPT_DEFAULT       = "Default script";
   public static final String ARE_ACTOR_SCRIPT_SPECIFICS     = "Specifics script";
+  public static final String ARE_ACTOR_SCRIPT_AREA          = "EEex: Area script";
   public static final String ARE_ACTOR_CHARACTER            = "Character";
   public static final String ARE_ACTOR_OFFSET_CRE_STRUCTURE = "CRE structure offset";
   public static final String ARE_ACTOR_SIZE_CRE_STRUCTURE   = "CRE structure size";
@@ -209,18 +210,17 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
       addField(new ResourceRef(buffer, offset + 144, ARE_ACTOR_SCRIPT_SPECIAL_1, "BCS"));
       addField(new Unknown(buffer, offset + 152, 120));
     }
-    else {
-      if (Profile.isEnhancedEdition()) {
-        addField(new TextString(buffer, offset + 144, 32, ARE_ACTOR_NAME_ALT));
-        if ((boolean)Profile.getProperty(Profile.Key.IS_GAME_EEEX)) {
-          addField(new ResourceRef(buffer, offset + 176, "EEex: Area Script", "BCS"));
-          addField(new Unknown(buffer, offset + 184, 88));
-        } else {
-          addField(new Unknown(buffer, offset + 176, 96));
-        }
+    else if (Profile.isEnhancedEdition()) {
+      addField(new TextString(buffer, offset + 144, 32, ARE_ACTOR_NAME_ALT));
+      if ((boolean)Profile.getProperty(Profile.Key.IS_GAME_EEEX)) {
+        addField(new ResourceRef(buffer, offset + 176, ARE_ACTOR_SCRIPT_AREA, "BCS"));
+        addField(new Unknown(buffer, offset + 184, 88));
       } else {
-        addField(new Unknown(buffer, offset + 144, 128));
+        addField(new Unknown(buffer, offset + 176, 96));
       }
+    }
+    else {
+      addField(new Unknown(buffer, offset + 144, 128));
     }
 
     if (creOffset.getValue() > 0 && creSize.getValue() >= 0x2d4) {

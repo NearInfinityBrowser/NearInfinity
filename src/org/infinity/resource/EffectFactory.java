@@ -133,8 +133,6 @@ public final class EffectFactory
   public static final LongIntegerHashMap<String> m_proj_iwd = new LongIntegerHashMap<String>();
   public static final LongIntegerHashMap<String> m_inctype = new LongIntegerHashMap<String>();
   public static final String[] s_inctype = {"Increment", "Set", "Set % of"};
-  public static final String[] s_yesno = {"Yes", "No"};
-  public static final String[] s_noyes = {"No", "Yes"};
   public static final String[] s_buttontype = {
     "Unknown", "Unknown", "Bard Song", "Cast Spell", "Find Traps",
     "Talk", "Unknown", "Guard", "Attack", "Unknown",
@@ -142,7 +140,7 @@ public final class EffectFactory
     "Stop", "Unknown", "Unknown", "Unknown", "Unknown",
     "Unknown", "Quick Item 1", "Quick Item 2", "Quick Item 3", "Quick Spell 1",
     "Quick Spell 2", "Quick Spell 3", "Quick Weapon 1", "Quick Weapon 2", "Quick Weapon 3",
-    "Quick Weapon 4", "Unknown", "Unknown", "Unknown", "Unknown", 
+    "Quick Weapon 4", "Unknown", "Unknown", "Unknown", "Unknown",
     "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
     "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
     "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
@@ -976,12 +974,12 @@ public final class EffectFactory
   // Effect type "Item Usability" (319).
   private static boolean updateOpcode319(AbstractStruct struct) throws Exception
   {
+    boolean retVal = false;
     if (struct != null) {
       if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 319) {
           boolean isEEex = Profile.getProperty(Profile.Key.IS_GAME_EEEX);
-          boolean eeexUpdate = false;
           if (isEEex) {
             int power = ((Bitmap)getEntry(struct, EffectEntry.IDX_POWER)).getValue();
             if (power == 2 || power == 3) {
@@ -991,17 +989,17 @@ public final class EffectFactory
               param1.setName("EEex: " + param1.getName());
               replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1, param1);
               replaceEntry(struct, EffectEntry.IDX_PARAM2, EffectEntry.OFS_PARAM2, param2);
-              eeexUpdate = true;
+              retVal = true;
             }
             else {
               IdsTargetType param2 = new IdsTargetType(getEntryData(struct, EffectEntry.IDX_PARAM2), 0, 4,
                 IdsTargetType.DEFAULT_NAME_TYPE, -1,
                 IdsTargetType.DEFAULT_SECOND_IDS, true);
               param2.addUpdateListener((UpdateListener)struct.getField(0));
-              replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1, 
+              replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
                 param2.createIdsValueFromType(getEntryData(struct, EffectEntry.IDX_PARAM1), 0));
               replaceEntry(struct, EffectEntry.IDX_PARAM2, EffectEntry.OFS_PARAM2, param2);
-              eeexUpdate = true;
+              retVal = true;
             }
           }
           // updating resource field
@@ -1010,15 +1008,12 @@ public final class EffectFactory
             StructEntry resourceEntry =
                 ((IdsTargetType)entry).createResourceFromType(getEntryData(struct, EffectEntry.IDX_RESOURCE), 0);
             replaceEntry(struct, EffectEntry.IDX_RESOURCE, EffectEntry.OFS_RESOURCE, resourceEntry);
-            return true;
-          }
-          if (eeexUpdate) {
-            return true;
+            retVal = true;
           }
         }
       }
     }
-    return false;
+    return retVal;
   }
 
   // Effect type "Set State" (328)
@@ -1445,15 +1440,19 @@ public final class EffectFactory
               "Play BAM file", "Play BAM file 2", "Play BAM file 3", "Play BAM file 4",
               "Special spell hit", "Play BAM with effects", "Detect evil", "Unknown (377)", "Prayer",
               "Curse",
-              // 380..
+              // 380..383
               "Embalm", "Induce hiccups", "Fist of iron", "Hit point transfer"};
           s_effname = Stream.of(s_effname, s_effname2).flatMap(Stream::of).toArray(String[]::new);
           if (isEEex) {
             String[] eeexOpcodes = new String[]{
+                // 384..389
                 "Undefined (384)", "Undefined (385)", "Undefined (386)", "Undefined (387)",
-                "Undefined (388)", "Undefined (389)", "Undefined (390)", "Undefined (391)",
-                "Undefined (392)", "Undefined (393)", "Undefined (394)", "Undefined (395)",
-                "Undefined (396)", "Undefined (397)", "Undefined (398)", "Undefined (399)",
+                "Undefined (388)", "Undefined (389)",
+                // 390..399
+                "Undefined (390)", "Undefined (391)", "Undefined (392)", "Undefined (393)",
+                "Undefined (394)", "Undefined (395)", "Undefined (396)", "Undefined (397)",
+                "Undefined (398)", "Undefined (399)",
+                // 400..408
                 "EEex: Set Temporary AI Script", "EEex: Set Extended Stat", "EEex: Invoke Lua", "EEex: Screen Effects",
                 "EEex: Override Button Type", "EEex: Override Button Index", "EEex: Render Override", "EEex: On Remove",
                 "EEex: Projectile Mutator"};
@@ -1462,14 +1461,21 @@ public final class EffectFactory
         }
         else if (isEEex) {
           String[] eeexOpcodes = new String[]{
-              "Undefined (368)", "Undefined (369)", "Undefined (370)", "Undefined (371)",
-              "Undefined (372)", "Undefined (373)", "Undefined (374)", "Undefined (375)",
-              "Undefined (376)", "Undefined (377)", "Undefined (378)", "Undefined (379)",
+              // 368..369
+              "Undefined (368)", "Undefined (369)",
+              // 370..379
+              "Undefined (370)", "Undefined (371)", "Undefined (372)", "Undefined (373)",
+              "Undefined (374)", "Undefined (375)", "Undefined (376)", "Undefined (377)",
+              "Undefined (378)", "Undefined (379)",
+              // 380..389
               "Undefined (380)", "Undefined (381)", "Undefined (382)", "Undefined (383)",
               "Undefined (384)", "Undefined (385)", "Undefined (386)", "Undefined (387)",
-              "Undefined (388)", "Undefined (389)", "Undefined (390)", "Undefined (391)",
+              "Undefined (388)", "Undefined (389)",
+              // 390..399
+              "Undefined (390)", "Undefined (391)",
               "Undefined (392)", "Undefined (393)", "Undefined (394)", "Undefined (395)",
               "Undefined (396)", "Undefined (397)", "Undefined (398)", "Undefined (399)",
+              // 400..408
               "EEex: Set Temporary AI Script", "EEex: Set Extended Stat", "EEex: Invoke Lua", "EEex: Screen Effects",
               "EEex: Override Button Type", "EEex: Override Button Index", "EEex: Render Override", "EEex: On Remove",
               "EEex: Projectile Mutator"};
@@ -2665,7 +2671,7 @@ public final class EffectFactory
         }
         break;
 
-      case 400:
+      case 400: // EEex: Set Temporary AI Script
         if (!isEEex) {
           break;
         }
@@ -3322,43 +3328,6 @@ public final class EffectFactory
     boolean isEEex = Profile.getProperty(Profile.Key.IS_GAME_EEEX);
 
     switch (effectType) {
-
-      case 401:
-        if (isEEex) {
-          s.add(new DecNumber(buffer, offset, 4, "Value"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
-        }
-        break;
-
-      case 402:
-      case 403:
-      case 406:
-        if (isEEex) {
-          makeEffectParamsDefault(buffer, offset, s);
-        }
-        break;
-
-      case 404:
-        if (isEEex) {
-          s.add(new Bitmap(buffer, offset, 4, "Type to override", s_buttontype));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Override with type", s_buttontype));
-        }
-        break;
-
-      case 405:
-        if (isEEex) {
-          s.add(new DecNumber(buffer, offset, 4, "Index to override"));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Override with type", s_buttontype));
-        }
-        break;
-
-      case 407:
-        if (isEEex) {
-          makeEffectParamsDefault(buffer, offset, s);
-          restype = "SPL";
-        }
-        break;
-
       case 61: // Creature RGB color fade
         if (Profile.isEnhancedEdition()) {
           s.add(new ColorPicker(buffer, offset, "Color"));
@@ -4037,25 +4006,13 @@ public final class EffectFactory
         }
         break;
 
-      case 324: // Immunity to spell and message
-      case 326: // Apply effects list
-        if (Profile.isEnhancedEdition()) {
-          SpellProtType param2 = new SpellProtType(buffer, offset + 4, 4);
-          s.add(param2.createCreatureValueFromType(buffer, offset));
-          s.add(param2);
-          restype = (effectType == 324) ? "EFF:ITM:SPL" : "SPL";
-        } else {
-          makeEffectParamsDefault(buffer, offset, s);
-        }
-        break;
-
       case 319: // Restrict item (BGEE)
       {
         if (Profile.isEnhancedEdition()) {
           if (isEEex) {
-            Bitmap power = new Bitmap(buffer, offset - 1, 1, "EEex: Mode", 
-              new String[]{"Not usable by", "Usable by", 
-              "EEex: Usable by (splprot)", "EEex: Not usable by (splprot)"});
+            Bitmap power = new Bitmap(buffer, offset - 1, 1, "EEex: Mode",
+                                      new String[]{"Not usable by", "Usable by",
+                                                   "EEex: Usable by (splprot)", "EEex: Not usable by (splprot)"});
             power.addUpdateListener((UpdateListener)parent);
             s.set(1, power);
           }
@@ -4070,8 +4027,8 @@ public final class EffectFactory
           }
           else {
             IdsTargetType param2 = new IdsTargetType(buffer, offset + 4, 4,
-              IdsTargetType.DEFAULT_NAME_TYPE, -1,
-              IdsTargetType.DEFAULT_SECOND_IDS, true);
+                                                     IdsTargetType.DEFAULT_NAME_TYPE, -1,
+                                                     IdsTargetType.DEFAULT_SECOND_IDS, true);
             param2.addUpdateListener((UpdateListener)parent);
             s.add(param2.createIdsValueFromType(buffer));
             s.add(param2);
@@ -4117,6 +4074,18 @@ public final class EffectFactory
         if (Profile.isEnhancedEdition()) {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        } else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 324: // Immunity to spell and message
+      case 326: // Apply effects list
+        if (Profile.isEnhancedEdition()) {
+          SpellProtType param2 = new SpellProtType(buffer, offset + 4, 4);
+          s.add(param2.createCreatureValueFromType(buffer, offset));
+          s.add(param2);
+          restype = (effectType == 324) ? "EFF:ITM:SPL" : "SPL";
         } else {
           makeEffectParamsDefault(buffer, offset, s);
         }
@@ -4599,6 +4568,42 @@ public final class EffectFactory
           s.add(new IdsBitmap(buffer, offset + 6, 2, "Damage type", "DAMAGES.IDS"));
         } else {
           makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 401: // EEex: Set Extended Stat
+        if (isEEex) {
+          s.add(new DecNumber(buffer, offset, 4, "Value"));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
+        }
+        break;
+
+      case 402: // EEex: Invoke Lua
+      case 403: // EEex: Screen Effects
+      case 406: // EEex: Render Override
+        if (isEEex) {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 404: // EEex: Override Button Type
+        if (isEEex) {
+          s.add(new Bitmap(buffer, offset, 4, "Type to override", s_buttontype));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Override with type", s_buttontype));
+        }
+        break;
+
+      case 405: // EEex: Override Button Index
+        if (isEEex) {
+          s.add(new DecNumber(buffer, offset, 4, "Index to override"));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Override with type", s_buttontype));
+        }
+        break;
+
+      case 407: // EEex: On Remove
+        if (isEEex) {
+          makeEffectParamsDefault(buffer, offset, s);
+          restype = "SPL";
         }
         break;
 
@@ -5456,19 +5461,22 @@ public final class EffectFactory
             s.add(new TextString(buffer, offset, 8, "Lua table"));
           }
           break;
-          
+
         default:
           if ((Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) &&
               effectType == 319 && param2 == 11) {    // Restrict item (BGEE)
             s.add(new TextString(buffer, offset, 8, "Script name"));
-          } else {
+          }
+          else {
             s.add(new Unknown(buffer, offset, 8, AbstractStruct.COMMON_UNUSED));
           }
           break;
       }
-    } else if (resourceType.equalsIgnoreCase(EFFECT_STRING)) {
+    }
+    else if (resourceType.equalsIgnoreCase(EFFECT_STRING)) {
       s.add(new TextString(buffer, offset, 8, EFFECT_STRING));
-    } else {
+    }
+    else {
       String resourceString = EFFECT_RESOURCE;
       switch (effectType) {
         case 218:
@@ -5476,6 +5484,7 @@ public final class EffectFactory
             resourceString = "EEex: On skins destroyed";
           }
           break;
+
         case 407:
           if (isEEex) {
             resourceString = "On remove";
@@ -5537,37 +5546,6 @@ public final class EffectFactory
                          "Made save", "Does not wake sleepers"}));
           break;
 
-        case 42:
-        case 62:
-          if (isEEex) {
-            s.add(new Bitmap(buffer, offset, 4, "EEex: Bypass slot requirement?", AbstractStruct.OPTION_NOYES));
-          }
-          break;
-
-        case 280:
-          if (isEEex) {
-            s.add(new Bitmap(buffer, offset, 4, "EEex: Suppress graphics?", s_noyes));
-          }
-          break;
-
-        case 324:
-          if (isEEex) {
-            s.add(new StringRef(buffer, offset, "EEex: Override strref"));
-          }
-          break;
-
-        case 401:
-          if (isEEex) {
-            s.add(new IdsBitmap(buffer, offset, 4, "Stat", "STATS.IDS"));
-          }
-          break;
-          
-        case 405:
-          if (isEEex) {
-            s.add(new DecNumber(buffer, offset, 4, "Target config"));
-          }
-          break;
-
         case 18: // Maximum HP bonus
         {
           s.add(new Bitmap(buffer, offset, 4, "Mode", new String[] {"Normal", "Max. HP only"}));
@@ -5602,6 +5580,13 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset, 4, "Icon", array));
           break;
         }
+
+        case 42:
+        case 62:
+          if (isEEex) {
+            s.add(new Bitmap(buffer, offset, 4, "EEex: Bypass slot requirement?", AbstractStruct.OPTION_NOYES));
+          }
+          break;
 
         case 109: // Paralyze
           s.add(new Bitmap(buffer, offset, 4, "Effect", new String[] {"Normal", "Fake petrification"}));
@@ -5638,6 +5623,12 @@ public final class EffectFactory
           }
           break;
 
+        case 280:
+          if (isEEex) {
+            s.add(new Bitmap(buffer, offset, 4, "EEex: Suppress graphics?", AbstractStruct.OPTION_NOYES));
+          }
+          break;
+
         case 290: // Change title
             s.add(new IdsBitmap(buffer, offset, 4, "Class override", "CLASS.IDS"));
           break;
@@ -5649,6 +5640,12 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset, 4, "Attack type",
                            new String[]{"Any attack type", "Melee attack only", "Ranged attack only",
                                         "Magical attack only"}));
+          break;
+
+        case 324:
+          if (isEEex) {
+            s.add(new StringRef(buffer, offset, "EEex: Override strref"));
+          }
           break;
 
         case 328: // Set spell state (BGEE/IWDEE)
@@ -5702,6 +5699,18 @@ public final class EffectFactory
 
         case 366: // Apply spell on movement
           s.add(new IdsBitmap(buffer, offset, 4, "Modal state to check", "MODAL.IDS"));
+          break;
+
+        case 401:
+          if (isEEex) {
+            s.add(new IdsBitmap(buffer, offset, 4, "Stat", "STATS.IDS"));
+          }
+          break;
+
+        case 405:
+          if (isEEex) {
+            s.add(new DecNumber(buffer, offset, 4, "Target config"));
+          }
           break;
 
         default:

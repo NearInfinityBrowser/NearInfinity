@@ -2286,7 +2286,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     // Has EEex been installed?
     if (engine == Engine.EE) {
       Path eeexDb = FileManager.query(getGameRoot(), "EEex.db");
-      addEntry(Key.IS_GAME_EEEX, Type.BOOLEAN, Files.isRegularFile(eeexDb));
+      addEntry(Key.IS_GAME_EEEX, Type.BOOLEAN, FileEx.create(eeexDb).isFile());
     } else {
       addEntry(Key.IS_GAME_EEEX, Type.BOOLEAN, Boolean.FALSE);
     }
