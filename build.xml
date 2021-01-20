@@ -34,7 +34,6 @@
            encoding="UTF-8"
            source="1.8"
            target="1.8"
-           release="8"
            includeantruntime="false"
            deprecation="false"
            debug="false"
