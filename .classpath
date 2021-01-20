@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
 	<classpathentry exported="true" kind="lib" path="lib/jorbis/jorbis.jar" sourcepath="lib/jorbis/jorbis-0.0.17.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/rsyntaxtextarea/rsyntaxtextarea.jar" sourcepath="lib/rsyntaxtextarea/RSyntaxTextArea-3.1.1-light.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/jhexview/jhexview.jar" sourcepath="lib/jhexview/jhexview-current.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/montemedia/montemedia.jar" sourcepath="lib/montemedia/MonteMedia-0.7.7.zip"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jre8"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

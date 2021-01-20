@@ -1436,6 +1436,7 @@ public final class EffectFactory
             "Movement check", "Unknown (364)", "Make unselectable", "Apply spell on movement",
             "Minimum base stats"};
         // add more game-specific types dynamically
+        boolean isEEex = Profile.getProperty(Profile.Key.IS_GAME_EEEX);
         if (Profile.getGame() == Profile.Game.PSTEE) {
           String[] s_effname2 = new String[] {
               // 368..369
@@ -1447,16 +1448,31 @@ public final class EffectFactory
               // 380..
               "Embalm", "Induce hiccups", "Fist of iron", "Hit point transfer"};
           s_effname = Stream.of(s_effname, s_effname2).flatMap(Stream::of).toArray(String[]::new);
+          if (isEEex) {
+            String[] eeexOpcodes = new String[]{
+                "Undefined (384)", "Undefined (385)", "Undefined (386)", "Undefined (387)",
+                "Undefined (388)", "Undefined (389)", "Undefined (390)", "Undefined (391)",
+                "Undefined (392)", "Undefined (393)", "Undefined (394)", "Undefined (395)",
+                "Undefined (396)", "Undefined (397)", "Undefined (398)", "Undefined (399)",
+                "EEex: Set Temporary AI Script", "EEex: Set Extended Stat", "EEex: Invoke Lua", "EEex: Screen Effects",
+                "EEex: Override Button Type", "EEex: Override Button Index", "EEex: Render Override", "EEex: On Remove",
+                "EEex: Projectile Mutator"};
+            s_effname = Stream.of(s_effname, eeexOpcodes).flatMap(Stream::of).toArray(String[]::new);
+          }
         }
-        boolean isEEex = Profile.getProperty(Profile.Key.IS_GAME_EEEX);
-        if (isEEex) {
+        else if (isEEex) {
           String[] eeexOpcodes = new String[]{
-              "Undefined (384)", "Undefined (385)", "Undefined (386)", "Undefined (387)", 
-              "Undefined (388)", "Undefined (389)", "Undefined (390)", "Undefined (391)", 
-              "Undefined (392)", "Undefined (393)", "Undefined (394)", "Undefined (395)", 
+              "Undefined (368)", "Undefined (369)", "Undefined (370)", "Undefined (371)",
+              "Undefined (372)", "Undefined (373)", "Undefined (374)", "Undefined (375)",
+              "Undefined (376)", "Undefined (377)", "Undefined (378)", "Undefined (379)",
+              "Undefined (380)", "Undefined (381)", "Undefined (382)", "Undefined (383)",
+              "Undefined (384)", "Undefined (385)", "Undefined (386)", "Undefined (387)",
+              "Undefined (388)", "Undefined (389)", "Undefined (390)", "Undefined (391)",
+              "Undefined (392)", "Undefined (393)", "Undefined (394)", "Undefined (395)",
               "Undefined (396)", "Undefined (397)", "Undefined (398)", "Undefined (399)",
               "EEex: Set Temporary AI Script", "EEex: Set Extended Stat", "EEex: Invoke Lua", "EEex: Screen Effects",
-              "EEex: Override Button"};
+              "EEex: Override Button Type", "EEex: Override Button Index", "EEex: Render Override", "EEex: On Remove",
+              "EEex: Projectile Mutator"};
           s_effname = Stream.of(s_effname, eeexOpcodes).flatMap(Stream::of).toArray(String[]::new);
         }
         break;
@@ -3307,13 +3323,6 @@ public final class EffectFactory
 
     switch (effectType) {
 
-      case 404:
-        if (isEEex) {
-          s.add(new Bitmap(buffer, offset, 4, "Type To Override", s_buttontype));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Override With Type", s_buttontype));
-        }
-        break;
-
       case 401:
         if (isEEex) {
           s.add(new DecNumber(buffer, offset, 4, "Value"));
@@ -3321,10 +3330,32 @@ public final class EffectFactory
         }
         break;
 
-      case 403:
       case 402:
+      case 403:
+      case 406:
         if (isEEex) {
           makeEffectParamsDefault(buffer, offset, s);
+        }
+        break;
+
+      case 404:
+        if (isEEex) {
+          s.add(new Bitmap(buffer, offset, 4, "Type to override", s_buttontype));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Override with type", s_buttontype));
+        }
+        break;
+
+      case 405:
+        if (isEEex) {
+          s.add(new DecNumber(buffer, offset, 4, "Index to override"));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Override with type", s_buttontype));
+        }
+        break;
+
+      case 407:
+        if (isEEex) {
+          makeEffectParamsDefault(buffer, offset, s);
+          restype = "SPL";
         }
         break;
 
@@ -5413,10 +5444,16 @@ public final class EffectFactory
     boolean isEEex = Profile.getProperty(Profile.Key.IS_GAME_EEEX);
     if (resourceType == null) {
       switch (effectType) {
-        case 403:
         case 402:
+        case 403:
           if (isEEex) {
-            s.add(new TextString(buffer, offset, 8, "Lua Function"));
+            s.add(new TextString(buffer, offset, 8, "Lua function"));
+          }
+          break;
+
+        case 408:
+          if (isEEex) {
+            s.add(new TextString(buffer, offset, 8, "Lua table"));
           }
           break;
           
@@ -5437,6 +5474,11 @@ public final class EffectFactory
         case 218:
           if (isEEex) {
             resourceString = "EEex: On skins destroyed";
+          }
+          break;
+        case 407:
+          if (isEEex) {
+            resourceString = "On remove";
           }
           break;
       }
@@ -5495,6 +5537,13 @@ public final class EffectFactory
                          "Made save", "Does not wake sleepers"}));
           break;
 
+        case 42:
+        case 62:
+          if (isEEex) {
+            s.add(new Bitmap(buffer, offset, 4, "EEex: Bypass slot requirement?", AbstractStruct.OPTION_NOYES));
+          }
+          break;
+
         case 280:
           if (isEEex) {
             s.add(new Bitmap(buffer, offset, 4, "EEex: Suppress graphics?", s_noyes));
@@ -5513,6 +5562,12 @@ public final class EffectFactory
           }
           break;
           
+        case 405:
+          if (isEEex) {
+            s.add(new DecNumber(buffer, offset, 4, "Target config"));
+          }
+          break;
+
         case 18: // Maximum HP bonus
         {
           s.add(new Bitmap(buffer, offset, 4, "Mode", new String[] {"Normal", "Max. HP only"}));
