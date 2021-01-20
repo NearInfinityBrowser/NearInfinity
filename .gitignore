@@ -1,5 +1,7 @@
 NearInfinity.jar
+jar/NearInfinity.jar
 *.class
 /bin
 /build
 /.settings
+.vscode/launch.json

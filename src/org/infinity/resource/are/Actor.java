@@ -212,7 +212,12 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
     else {
       if (Profile.isEnhancedEdition()) {
         addField(new TextString(buffer, offset + 144, 32, ARE_ACTOR_NAME_ALT));
-        addField(new Unknown(buffer, offset + 176, 96));
+        if ((boolean)Profile.getProperty(Profile.Key.IS_GAME_EEEX)) {
+          addField(new ResourceRef(buffer, offset + 176, "EEex: Area Script", "BCS"));
+          addField(new Unknown(buffer, offset + 184, 88));
+        } else {
+          addField(new Unknown(buffer, offset + 176, 96));
+        }
       } else {
         addField(new Unknown(buffer, offset + 144, 128));
       }
