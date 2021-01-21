@@ -3312,12 +3312,14 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       // List of contributors (sorted alphabetically)
       final String[] contributors = {
           "Argent77",
+          "Bubb",
           "devSin",
           "Fredrik Lindgren (aka Wisp)",
           "FredSRichardson",
           "Mingun",
           "Taimon",
           "Valerio Bigiani (aka The Bigg)",
+          "winterheart",
       };
       // More contributors, in separate block
       final String[] contributorsMisc = {
