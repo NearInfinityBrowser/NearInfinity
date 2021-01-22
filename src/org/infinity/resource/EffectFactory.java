@@ -320,10 +320,11 @@ public final class EffectFactory
   public static final String[] s_savetype = {"No save", "Spell", "Breath weapon",
                                              "Paralyze/Poison/Death", "Rod/Staff/Wand",
                                              "Petrify/Polymorph", null, null, null, null, null,
-                                             "EE: Ignore primary target;Line AoE projectile doesn't affect end target",
-                                             "EE: Ignore secondary target;Line AoE projectile doesn't affect bystanders",
+                                             "EE: Ignore primary target*;Line AoE projectile doesn't affect end target",
+                                             "EE: Ignore secondary target*;Line AoE projectile doesn't affect bystanders",
                                              null, null, null, null, null, null, null, null, null, null, null, null,
-                                             "EE/Ex: Bypass mirror image", "EE: Ignore difficulty"};
+                                             "EE/Ex: Bypass mirror image*;Affects only opcodes 12 and 25",
+                                             "EE: Ignore difficulty*;Affects only opcode 12"};
   public static final String[] s_savetype_tobex = {"No save", "Spell", "Breath weapon",
                                                    "Paralyze/Poison/Death", "Rod/Staff/Wand",
                                                    "Petrify/Polymorph", null, null, null,
