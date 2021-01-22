@@ -5585,6 +5585,8 @@ public final class EffectFactory
         case 62:
           if (isEEex) {
             s.add(new Bitmap(buffer, offset, 4, "EEex: Bypass slot requirement?", AbstractStruct.OPTION_NOYES));
+          } else {
+            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           }
           break;
 
@@ -5626,6 +5628,8 @@ public final class EffectFactory
         case 280:
           if (isEEex) {
             s.add(new Bitmap(buffer, offset, 4, "EEex: Suppress graphics?", AbstractStruct.OPTION_NOYES));
+          } else {
+            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           }
           break;
 
@@ -5645,6 +5649,8 @@ public final class EffectFactory
         case 324:
           if (isEEex) {
             s.add(new StringRef(buffer, offset, "EEex: Override strref"));
+          } else {
+            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           }
           break;
 
@@ -5704,12 +5710,16 @@ public final class EffectFactory
         case 401:
           if (isEEex) {
             s.add(new IdsBitmap(buffer, offset, 4, "Stat", "STATS.IDS"));
+          } else {
+            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           }
           break;
 
         case 405:
           if (isEEex) {
             s.add(new DecNumber(buffer, offset, 4, "Target config"));
+          } else {
+            s.add(new DecNumber(buffer, offset, 4, EFFECT_SPECIAL));
           }
           break;
 
