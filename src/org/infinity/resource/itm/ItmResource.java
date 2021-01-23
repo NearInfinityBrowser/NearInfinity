@@ -42,8 +42,13 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.spl.SplResource;
 import org.infinity.search.SearchOptions;
+import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
+import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
+import org.infinity.util.Table2da;
+import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -203,7 +208,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
   public static final String[] s_kituse4 =
           {"None", "Berserker", "Wizard slayer", "Kensai", "Cavalier", "Inquisitor",
            "Undead hunter", "Abjurer", "Conjurer"};
-  public static final String[] s_kituse1_v2 = {"None"};
+  public static final String[] s_kituse1_v2 = {"None", "", "", "", "", "", "", "", ""};
   public static final String[] s_kituse2_v2 =
           {"None", "Cleric of Lathander", "Cleric of Selune", "Cleric of Helm", "Cleric of Oghma",
            "Cleric of Tempus", "Cleric of Bane", "Cleric of Mask", "Cleric of Talos"};
@@ -418,6 +423,9 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
     addField(new DecNumber(buffer, 38, 2, ITM_MIN_STRENGTH));
     if (ResourceFactory.resourceExists("KIT.IDS")) {
       addField(new DecNumber(buffer, 40, 1, ITM_MIN_STRENGTH_BONUS));
+      if (isV20) {
+        updateKitUsability(s_kituse1_v2, 24, 8, true);
+      }
       addField(new Flag(buffer, 41, 1, ITM_UNUSABLE_BY_1, isV20 ? s_kituse1_v2 : s_kituse1));
       addField(new DecNumber(buffer, 42, 1, ITM_MIN_INTELLIGENCE));
       addField(new Flag(buffer, 43, 1, ITM_UNUSABLE_BY_2, isV20 ? s_kituse2_v2 : s_kituse2));
@@ -514,6 +522,57 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
     }
     if (hexViewer != null) {
       hexViewer.dataModified();
+    }
+  }
+
+  /**
+   * Updates the specified string array with kit names from KIT.IDS.
+   * @param kits The string array for kit names. (First slot is reserved for empty selection string.)
+   * @param offset bit position to start.
+   * @param count number of bits to update.
+   * @param fillMissing whether only empty slots in the string array should be updated.
+   */
+  private void updateKitUsability(String[] kits, int offset, int count, boolean fillMissing)
+  {
+    if (kits != null && offset >= 0 && offset < 32 && count > 0) {
+      IdsMap map = IdsMapCache.get("KIT.IDS");
+      Table2da table = Table2daCache.get("KITLIST.2DA");
+      if (map != null) {
+        for (int i = 0; i < count; i++) {
+          long value = 1L << (offset + i);
+          IdsMapEntry entry = map.get(value);
+          if (entry != null) {
+            if (i + 1 < kits.length && (!fillMissing || kits[i + 1] == null || kits[i + 1].isEmpty())) {
+              int strref = -1;
+              if (table != null) {
+                // try getting proper kit name from kitlist.2da
+                for (int row = 3, rowCount = table.getRowCount(); row < rowCount; row++) {
+                  if (entry.getSymbol().equalsIgnoreCase(table.get(row, 0))) {
+                    strref = Misc.toNumber(table.get(row, 2), -1);  // mixed
+                    if (strref < 0) {
+                      strref = Misc.toNumber(table.get(row, 1), -1);  // lowercase
+                    }
+                  }
+                  if (strref > 0) {
+                    break;
+                  }
+                }
+              }
+              String desc = null;
+              if (strref > 0) {
+                try {
+                  desc = StringTable.getStringRef(strref);
+                } catch (IndexOutOfBoundsException e) {
+                }
+              }
+              if (desc == null || desc.isEmpty()) {
+                desc = entry.getSymbol();
+              }
+              kits[i + 1] = desc;
+            }
+          }
+        }
+      }
     }
   }
 
