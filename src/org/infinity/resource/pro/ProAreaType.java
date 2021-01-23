@@ -15,13 +15,16 @@ import org.infinity.datatype.ProRef;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnsignDecNumber;
+import org.infinity.datatype.UpdateEvent;
+import org.infinity.datatype.UpdateListener;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
+import org.infinity.resource.StructEntry;
 import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.io.StreamUtils;
 
-public final class ProAreaType extends AbstractStruct implements AddRemovable
+public final class ProAreaType extends AbstractStruct implements AddRemovable, UpdateListener
 {
   // PRO/Area-specific field labels
   public static final String PRO_AREA                               = "Area effect info";
@@ -39,6 +42,8 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
   public static final String PRO_AREA_EXPLOSION_PROJECTILE          = "Explosion projectile";
   public static final String PRO_AREA_EXPLOSION_ANIMATION           = "Explosion animation";
   public static final String PRO_AREA_CONE_WIDTH                    = "Cone width";
+  public static final String PRO_AREA_ANGLE_BETWEEN_RAYS            = "Angle between rays";
+  public static final String PRO_AREA_ROTATE_RAYS                   = "Rotate rays";
   public static final String PRO_AREA_SPREAD_ANIMATION              = "Spread animation";
   public static final String PRO_AREA_RING_ANIMATION                = "Ring animation";
   public static final String PRO_AREA_SOUND                         = "Area sound";
@@ -106,10 +111,48 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
   //</editor-fold>
 
   @Override
+  public boolean valueUpdated(UpdateEvent event)
+  {
+    boolean retVal = false;
+    if (event.getSource() instanceof DecNumber && ((DecNumber)event.getSource()).getName().equals(PRO_AREA_RAY_COUNT)) {
+      int rayCount = ((DecNumber)event.getSource()).getValue();
+      AbstractStruct struct = event.getStructure();
+      if (rayCount > 0) {
+        StructEntry field = struct.getField(null, 0x224);
+        if (field instanceof DecNumber && !field.getName().equals(PRO_AREA_ANGLE_BETWEEN_RAYS)) {
+          field.setName(PRO_AREA_ANGLE_BETWEEN_RAYS);
+          retVal = true;
+        }
+        field = struct.getField(null, 0x226);
+        if (field instanceof DecNumber && !field.getName().equals(PRO_AREA_ROTATE_RAYS)) {
+          field.setName(PRO_AREA_ROTATE_RAYS);
+          retVal = true;
+        }
+      } else {
+        StructEntry field = struct.getField(null, 0x224);
+        if (field instanceof DecNumber && !field.getName().equals(PRO_AREA_CONE_WIDTH)) {
+          field.setName(PRO_AREA_CONE_WIDTH);
+          retVal = true;
+        }
+        field = struct.getField(null, 0x226);
+        if (field instanceof DecNumber && !field.getName().equals(COMMON_UNUSED)) {
+          field.setName(COMMON_UNUSED);
+          retVal = true;
+        }
+      }
+    }
+    return retVal;
+  }
+
+  @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new Flag(buffer, offset, 2, PRO_AREA_FLAGS, s_areaflags));
-    addField(new DecNumber(buffer, offset + 2, 2, PRO_AREA_RAY_COUNT));
+    DecNumber rayCount = new DecNumber(buffer, offset + 2, 2, PRO_AREA_RAY_COUNT);
+    if (Profile.isEnhancedEdition()) {
+      rayCount.addUpdateListener(this);
+    }
+    addField(rayCount);
     addField(new DecNumber(buffer, offset + 4, 2, PRO_AREA_TRAP_SIZE));
     addField(new DecNumber(buffer, offset + 6, 2, PRO_AREA_EXPLOSION_SIZE));
     addField(new ResourceRef(buffer, offset + 8, PRO_AREA_EXPLOSION_SOUND, "WAV"));
@@ -122,9 +165,17 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable
     addField(new Unknown(buffer, offset + 25, 1, COMMON_UNUSED));
     addField(new ProRef(buffer, offset + 26, PRO_AREA_EXPLOSION_PROJECTILE));
     addField(new ResourceRef(buffer, offset + 28, PRO_AREA_EXPLOSION_ANIMATION, "VEF", "VVC", "BAM"));
-    addField(new DecNumber(buffer, offset + 36, 2, PRO_AREA_CONE_WIDTH));
+    if (Profile.isEnhancedEdition() && rayCount.getValue() > 0) {
+      addField(new DecNumber(buffer, offset + 36, 2, PRO_AREA_ANGLE_BETWEEN_RAYS));
+    } else {
+      addField(new DecNumber(buffer, offset + 36, 2, PRO_AREA_CONE_WIDTH));
+    }
     if (Profile.isEnhancedEdition()) {
-      addField(new Unknown(buffer, offset + 38, 2));
+      if (rayCount.getValue() > 0) {
+        addField(new DecNumber(buffer, offset + 38, 2, PRO_AREA_ROTATE_RAYS));
+      } else {
+        addField(new DecNumber(buffer, offset + 38, 2, COMMON_UNUSED));
+      }
       addField(new ResourceRef(buffer, offset + 40, PRO_AREA_SPREAD_ANIMATION, "BAM"));
       addField(new ResourceRef(buffer, offset + 48, PRO_AREA_RING_ANIMATION, "BAM"));
       addField(new ResourceRef(buffer, offset + 56, PRO_AREA_SOUND, "WAV"));

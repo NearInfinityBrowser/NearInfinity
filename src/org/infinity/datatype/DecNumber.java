@@ -45,7 +45,12 @@ public class DecNumber extends Datatype implements InlineEditable, IsNumeric
   public boolean update(Object value)
   {
     try {
-      setValue(parseNumber(value, getSize(), signed, true));
+      long oldVal = getLongValue();
+      long newVal = parseNumber(value, getSize(), signed, true);
+      setValue(newVal);
+      if (oldVal != newVal) {
+        fireValueUpdated(new UpdateEvent(this, getParent()));
+      }
       return true;
     } catch (Exception e) {
       e.printStackTrace();
