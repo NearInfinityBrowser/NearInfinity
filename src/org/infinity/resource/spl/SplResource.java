@@ -67,7 +67,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
 {
   // SPL-specific field labels
   public static final String SPL_NAME                             = "Spell name";
-  public static final String SPL_NAME_IDENTIFIED                  = org.infinity.resource.itm.ItmResource.ITM_NAME_IDENTIFIED;
+  public static final String SPL_NAME_IDENTIFIED                  = org.infinity.resource.itm.ItmResource.ITM_NAME_IDENTIFIED + SUFFIX_UNUSED;
   public static final String SPL_CASTING_SOUND                    = "Casting sound";
   public static final String SPL_FLAGS                            = "Flags";
   public static final String SPL_TYPE                             = "Spell type";
@@ -80,7 +80,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
   public static final String SPL_ICON                             = "Spell icon";
   public static final String SPL_ICON_GROUND                      = "Ground icon";
   public static final String SPL_DESCRIPTION                      = "Spell description";
-  public static final String SPL_DESCRIPTION_IDENTIFIED           = org.infinity.resource.itm.ItmResource.ITM_DESCRIPTION_IDENTIFIED;
+  public static final String SPL_DESCRIPTION_IDENTIFIED           = org.infinity.resource.itm.ItmResource.ITM_DESCRIPTION_IDENTIFIED + SUFFIX_UNUSED;
   public static final String SPL_DESCRIPTION_IMAGE                = org.infinity.resource.itm.ItmResource.ITM_DESCRIPTION_IMAGE;
   public static final String SPL_OFFSET_ABILITIES                 = org.infinity.resource.itm.ItmResource.ITM_OFFSET_ABILITIES;
   public static final String SPL_NUM_ABILITIES                    = org.infinity.resource.itm.ItmResource.ITM_NUM_ABILITIES;

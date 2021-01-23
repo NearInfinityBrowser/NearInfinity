@@ -52,6 +52,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public static final String COMMON_UNKNOWN       = "Unknown";
   public static final String COMMON_UNUSED        = "Unused";
   public static final String COMMON_UNUSED_BYTES  = "Unused bytes?";
+  public static final String SUFFIX_UNUSED        = " (unused)";
 
   // Commonly used string arrays
   public static final String[] OPTION_NOYES       = {"No", "Yes"};

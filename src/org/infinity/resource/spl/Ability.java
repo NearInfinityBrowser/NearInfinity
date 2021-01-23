@@ -32,6 +32,13 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
   public static final String SPL_ABIL                     = "Spell ability";
   public static final String SPL_ABIL_MIN_LEVEL           = "Minimum level";
   public static final String SPL_ABIL_CASTING_SPEED       = "Casting speed";
+  public static final String SPL_ABIL_TIMES_PER_DAY       = "Times per day";
+  public static final String SPL_ABIL_DICE_SIZE           = AbstractAbility.ABILITY_DICE_SIZE + SUFFIX_UNUSED;
+  public static final String SPL_ABIL_DICE_COUNT          = AbstractAbility.ABILITY_DICE_COUNT + SUFFIX_UNUSED;
+  public static final String SPL_ABIL_DAMAGE_BONUS        = AbstractAbility.ABILITY_DAMAGE_BONUS + SUFFIX_UNUSED;
+  public static final String SPL_ABIL_DAMAGE_TYPE         = AbstractAbility.ABILITY_DAMAGE_TYPE + SUFFIX_UNUSED;
+  public static final String SPL_ABIL_NUM_CHARGES         = AbstractAbility.ABILITY_NUM_CHARGES + SUFFIX_UNUSED;
+  public static final String SPL_ABIL_WHEN_DRAINED        = AbstractAbility.ABILITY_WHEN_DRAINED + SUFFIX_UNUSED;
 
   Ability() throws Exception
   {
@@ -104,15 +111,15 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
     addField(new DecNumber(buffer, offset + 14, 2, ABILITY_RANGE));
     addField(new DecNumber(buffer, offset + 16, 2, SPL_ABIL_MIN_LEVEL));
     addField(new DecNumber(buffer, offset + 18, 2, SPL_ABIL_CASTING_SPEED));
-    addField(new DecNumber(buffer, offset + 20, 2, ABILITY_HIT_BONUS));
-    addField(new DecNumber(buffer, offset + 22, 2, ABILITY_DICE_SIZE));
-    addField(new DecNumber(buffer, offset + 24, 2, ABILITY_DICE_COUNT));
-    addField(new DecNumber(buffer, offset + 26, 2, ABILITY_DAMAGE_BONUS));
-    addField(new Bitmap(buffer, offset + 28, 2, ABILITY_DAMAGE_TYPE, s_dmgtype));
+    addField(new DecNumber(buffer, offset + 20, 2, SPL_ABIL_TIMES_PER_DAY));
+    addField(new DecNumber(buffer, offset + 22, 2, SPL_ABIL_DICE_SIZE));
+    addField(new DecNumber(buffer, offset + 24, 2, SPL_ABIL_DICE_COUNT));
+    addField(new DecNumber(buffer, offset + 26, 2, SPL_ABIL_DAMAGE_BONUS));
+    addField(new DecNumber(buffer, offset + 28, 2, SPL_ABIL_DAMAGE_TYPE));
     addField(new SectionCount(buffer, offset + 30, 2, ABILITY_NUM_EFFECTS, Effect.class));
     addField(new DecNumber(buffer, offset + 32, 2, ABILITY_FIRST_EFFECT_INDEX));
-    addField(new DecNumber(buffer, offset + 34, 2, ABILITY_NUM_CHARGES));
-    addField(new Bitmap(buffer, offset + 36, 2, ABILITY_WHEN_DRAINED, s_drain));
+    addField(new DecNumber(buffer, offset + 34, 2, SPL_ABIL_NUM_CHARGES));
+    addField(new DecNumber(buffer, offset + 36, 2, SPL_ABIL_WHEN_DRAINED));
     if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
       addField(new ProRef(buffer, offset + 38, ABILITY_PROJECTILE));
     } else if (Profile.getEngine() == Profile.Engine.PST) {
