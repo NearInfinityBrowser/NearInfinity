@@ -19,14 +19,13 @@ import org.infinity.datatype.Unknown;
 import org.infinity.gui.StructViewer;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.util.io.StreamUtils;
 
-public final class Actor extends AbstractStruct implements AddRemovable, HasViewerTabs, HasAddRemovable
+public final class Actor extends AbstractStruct implements AddRemovable, HasViewerTabs
 {
   // ARE/Actor-specific field labels
   public static final String ARE_ACTOR                      = "Actor";
@@ -59,6 +58,7 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
   public static final String ARE_ACTOR_SCRIPT_RACE          = "Race script";
   public static final String ARE_ACTOR_SCRIPT_DEFAULT       = "Default script";
   public static final String ARE_ACTOR_SCRIPT_SPECIFICS     = "Specifics script";
+  public static final String ARE_ACTOR_SCRIPT_AREA          = "EEex: Area script";
   public static final String ARE_ACTOR_CHARACTER            = "Character";
   public static final String ARE_ACTOR_OFFSET_CRE_STRUCTURE = "CRE structure offset";
   public static final String ARE_ACTOR_SIZE_CRE_STRUCTURE   = "CRE structure size";
@@ -90,30 +90,6 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
   }
 
 //--------------------- End Interface AddRemovable ---------------------
-
-
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
-  @Override
-  public AddRemovable[] getAddRemovables()
-  {
-    return new AddRemovable[]{};
-  }
-
-  @Override
-  public AddRemovable confirmAddEntry(AddRemovable entry) throws Exception
-  {
-    return entry;
-  }
-
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
 
 // --------------------- Begin Interface HasViewerTabs ---------------------
 
@@ -234,13 +210,17 @@ public final class Actor extends AbstractStruct implements AddRemovable, HasView
       addField(new ResourceRef(buffer, offset + 144, ARE_ACTOR_SCRIPT_SPECIAL_1, "BCS"));
       addField(new Unknown(buffer, offset + 152, 120));
     }
-    else {
-      if (Profile.isEnhancedEdition()) {
-        addField(new TextString(buffer, offset + 144, 32, ARE_ACTOR_NAME_ALT));
-        addField(new Unknown(buffer, offset + 176, 96));
+    else if (Profile.isEnhancedEdition()) {
+      addField(new TextString(buffer, offset + 144, 32, ARE_ACTOR_NAME_ALT));
+      if ((boolean)Profile.getProperty(Profile.Key.IS_GAME_EEEX)) {
+        addField(new ResourceRef(buffer, offset + 176, ARE_ACTOR_SCRIPT_AREA, "BCS"));
+        addField(new Unknown(buffer, offset + 184, 88));
       } else {
-        addField(new Unknown(buffer, offset + 144, 128));
+        addField(new Unknown(buffer, offset + 176, 96));
       }
+    }
+    else {
+      addField(new Unknown(buffer, offset + 144, 128));
     }
 
     if (creOffset.getValue() > 0 && creSize.getValue() >= 0x2d4) {

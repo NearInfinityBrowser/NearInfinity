@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -16,13 +16,13 @@ import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.util.io.StreamUtils;
 
-public final class ITEPoint extends AbstractStruct implements AddRemovable, HasVertices, HasAddRemovable
+public final class ITEPoint extends AbstractStruct implements AddRemovable, HasVertices, HasChildStructs
 {
   // ARE/Trigger-specific field labels
   public static final String ARE_TRIGGER                            = "Trigger";
@@ -75,11 +75,11 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
   {
     super(superStruct, ARE_TRIGGER + " " + number, buffer, offset);
   }
+  //</editor-fold>
 
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     return new AddRemovable[]{new Vertex()};
   }
@@ -89,29 +89,17 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
   {
     return entry;
   }
+  //</editor-fold>
 
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
-
-//--------------------- Begin Interface AddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
+  //</editor-fold>
 
-//--------------------- End Interface AddRemovable ---------------------
-
-
-// --------------------- Begin Interface HasVertices ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasVertices">
   @Override
   public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
@@ -139,9 +127,9 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     ((DecNumber)getAttribute(ARE_TRIGGER_NUM_VERTICES)).setValue(count);
     return count;
   }
+  //</editor-fold>
 
-// --------------------- End Interface HasVertices ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
@@ -153,7 +141,9 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
       ((AbstractStruct)datatype).realignStructOffsets();
     }
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -210,4 +200,5 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     }
     return offset + 196;
   }
+  //</editor-fold>
 }

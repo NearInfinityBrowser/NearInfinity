@@ -15,7 +15,7 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Effect;
 import org.infinity.resource.Effect2;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.ProEffect;
 import org.infinity.resource.cre.CreResource;
@@ -44,7 +44,7 @@ public final class StructClipboard
   {
     for (int i = 0; i < substructures.size(); i++) {
       AddRemovable pasteEntry = (AddRemovable)substructures.get(i);
-      if (pasteEntry instanceof HasAddRemovable) {
+      if (pasteEntry instanceof HasChildStructs) {
         AbstractStruct pasteStruct = (AbstractStruct)pasteEntry;
         List<AddRemovable> subsubstructures = pasteStruct.removeAllRemoveables();
         targetStruct.addDatatype(pasteEntry);
@@ -126,12 +126,10 @@ public final class StructClipboard
         return CLIPBOARD_ENTRIES;
       AddRemovable[] targetClasses;
       try {
-        targetClasses = ((HasAddRemovable)struct).getAddRemovables();
+        targetClasses = ((HasChildStructs)struct).getPrototypes();
       } catch (Exception e) {
         return CLIPBOARD_EMPTY;
       }
-      if (targetClasses == null)
-        targetClasses = new AddRemovable[0];
       for (final StructEntry entry: contents) {
         if (entry instanceof AddRemovable) {
           if (canConvertToEffectV1(struct, (AddRemovable)entry) ||
@@ -175,8 +173,7 @@ public final class StructClipboard
         if (targetStruct.isCompatibleDatatypeSelection(pasteEntry)) {
           index += i;
         }
-        if (pasteEntry instanceof HasAddRemovable) {
-          ((HasAddRemovable)pasteEntry).getAddRemovables();
+        if (pasteEntry instanceof HasChildStructs) {
           List<AddRemovable> substructures = ((AbstractStruct)pasteEntry).removeAllRemoveables();
           lastIndex = targetStruct.addDatatype(pasteEntry, index);
           pasteSubStructures((AbstractStruct)pasteEntry, substructures);

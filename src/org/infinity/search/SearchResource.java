@@ -123,7 +123,7 @@ public class SearchResource extends ChildFrame
 
   public SearchResource()
   {
-    super("Extended search");
+    super("Extended search (deprecated)");
     (new SwingWorker<Void, Void>() {
       @Override
       public Void doInBackground()

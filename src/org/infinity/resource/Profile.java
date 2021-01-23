@@ -4,6 +4,9 @@
 
 package org.infinity.resource;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
@@ -26,7 +29,20 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.UIManager;
+import javax.swing.event.ListDataListener;
+
 import org.infinity.NearInfinity;
+import org.infinity.gui.BrowserMenuBar;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
@@ -158,6 +174,8 @@ public final class Profile implements FileWatcher.FileWatchListener
     // Properties set at runtime
     /** Property: ({@link Game}) Game identifier. */
     GET_GAME_TYPE,
+    /** Property: ({@link Game}) Game identifier of previously loaded game (if available). */
+    GET_GAME_TYPE_PREVIOUS,
     /** Property: ({@link Engine}) Engine identifier. */
     GET_GAME_ENGINE,
     /** Property: ({@code String}) Name of the game's root folder. */
@@ -227,6 +245,8 @@ public final class Profile implements FileWatcher.FileWatchListener
     IS_ENHANCED_EDITION,
     /** Property: ({@code Boolean}) Has current game been enhanced by TobEx? */
     IS_GAME_TOBEX,
+    /** Property: ({@code Boolean}) Has current game been enhanced by EEex? */
+    IS_GAME_EEEX,
     /** Property: ({@code Boolean}) Has type of current game been forcibly set? */
     IS_FORCED_GAME,
 
@@ -1210,6 +1230,78 @@ public final class Profile implements FileWatcher.FileWatchListener
     return list;
   }
 
+  /**
+   * Brings up a dialog where the user can select a game from a list.
+   * @param title an optional title string for the dialog.
+   * @param prompt an optional string associated with the list of games.
+   * @param defaultGame the game which is initially selected.
+   * @return the selected game. Returns {@code null} if no game was selected or the user cancelled the game selection.
+   */
+  public static Game showGameSelectionDialog(String title, String prompt, Game defaultGame)
+  {
+    Game game = null;
+    if (title == null) {
+      title = UIManager.getString("OptionPane.titleText");
+    }
+    if (prompt == null) {
+      prompt = "Please select:";
+    }
+
+    JList<String> list = new JList<>(new ListModel<String>() {
+      @Override
+      public int getSize()
+      {
+        return Game.values().length;
+      }
+
+      @Override
+      public String getElementAt(int index)
+      {
+        try {
+          return getProperty(Key.GET_GLOBAL_GAME_TITLE, Game.values()[index]);
+        } catch (Exception e) {
+          throw new ArrayIndexOutOfBoundsException(index);
+        }
+      }
+
+      @Override
+      public void addListDataListener(ListDataListener l) { }
+
+      @Override
+      public void removeListDataListener(ListDataListener l) { }
+    });
+    list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    if (defaultGame != null) {
+      int idx = Arrays.asList(Game.values()).indexOf(defaultGame);
+      list.setSelectedIndex(idx);
+    }
+
+    JScrollPane scroll = new JScrollPane(list);
+    scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+    scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    list.ensureIndexIsVisible(list.getSelectedIndex());
+
+    JPanel panel = new JPanel(new GridBagLayout());
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    panel.add(new JLabel(prompt), gbc);
+    gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                            GridBagConstraints.BOTH, new Insets(4, 0, 0, 0), 0, 0);
+    panel.add(scroll, gbc);
+
+    int retVal = JOptionPane.showConfirmDialog(NearInfinity.getInstance(), panel, title,
+                                               JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+    if (retVal == JOptionPane.OK_OPTION && list.getSelectedValue() != null) {
+      try {
+        game = Game.values()[list.getSelectedIndex()];
+      } catch (Exception e) {
+      }
+    }
+
+    return game;
+  }
+
   // Returns the Property object assigned to the given key.
   private static Property getEntry(Key  key)
   {
@@ -1226,7 +1318,9 @@ public final class Profile implements FileWatcher.FileWatchListener
   // Cleans up data when closing a game profile
   private static void closeGame()
   {
+    Game oldGame = getProperty(Key.GET_GAME_TYPE);
     properties.clear();
+    addEntry(Key.GET_GAME_TYPE_PREVIOUS, Type.OBJECT, oldGame);
     initStaticProperties();
     FileWatcher.getInstance().removeFileWatchListener(instance);
     FileWatcher.getInstance().reset();
@@ -1678,7 +1772,18 @@ public final class Profile implements FileWatcher.FileWatchListener
       }
     } else {
       // game == Game.Unknown
-      // TODO: present list of available game types to choose from
+      if (game == null) {
+        // present list of available game types to choose from
+        Game oldGame = getProperty(Key.GET_GAME_TYPE_PREVIOUS);
+        if (oldGame == null) {
+          oldGame = Profile.Game.Unknown;
+        }
+        game = Profile.showGameSelectionDialog("Unknown game", "Please select a game:", oldGame);
+        if (game != null) {
+          openGame(getChitinKey(), BrowserMenuBar.getInstance().getBookmarkName(getChitinKey()), game);
+          return;
+        }
+      }
       if (game == null) game = Game.Unknown;
       addEntry(Key.GET_GAME_INI_NAME, Type.STRING, "baldur.ini");
       Path ini = FileManager.query(gameRoots, getProperty(Key.GET_GAME_INI_NAME));
@@ -2176,6 +2281,14 @@ public final class Profile implements FileWatcher.FileWatchListener
       addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, FileEx.create(tobexIni).isFile());
     } else {
       addEntry(Key.IS_GAME_TOBEX, Type.BOOLEAN, Boolean.FALSE);
+    }
+
+    // Has EEex been installed?
+    if (engine == Engine.EE) {
+      Path eeexDb = FileManager.query(getGameRoot(), "EEex.db");
+      addEntry(Key.IS_GAME_EEEX, Type.BOOLEAN, FileEx.create(eeexDb).isFile());
+    } else {
+      addEntry(Key.IS_GAME_EEEX, Type.BOOLEAN, Boolean.FALSE);
     }
 
     // Add campaign-specific extra folders

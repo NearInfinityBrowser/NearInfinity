@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.are;
@@ -17,7 +17,7 @@ import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.vertex.ClosedVertex;
@@ -27,7 +27,7 @@ import org.infinity.resource.vertex.OpenVertexImpeded;
 import org.infinity.resource.vertex.Vertex;
 import org.infinity.util.io.StreamUtils;
 
-public final class Door extends AbstractStruct implements AddRemovable, HasVertices, HasAddRemovable
+public final class Door extends AbstractStruct implements AddRemovable, HasVertices, HasChildStructs
 {
   // ARE/Door-specific field labels
   public static final String ARE_DOOR                                   = "Door";
@@ -94,10 +94,9 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     super(superStruct, ARE_DOOR + " " + nr, buffer, offset);
   }
 
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     return new AddRemovable[]{new OpenVertex(), new ClosedVertex(), new ClosedVertexImpeded(),
                               new OpenVertexImpeded()};
@@ -108,29 +107,17 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
   {
     return entry;
   }
+  //</editor-fold>
 
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
-
-//--------------------- Begin Interface AddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
+  //</editor-fold>
 
-//--------------------- End Interface AddRemovable ---------------------
-
-
-// --------------------- Begin Interface HasVertices ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasVertices">
   @Override
   public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
@@ -181,9 +168,9 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     }
     return count;
   }
+  //</editor-fold>
 
-// --------------------- End Interface HasVertices ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
@@ -209,7 +196,9 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
       datatype.setOffset(offset + 4 * (index - 1));
     }
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -267,4 +256,5 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     addField(new Unknown(buffer, offset + 192, 8));
     return offset + 200;
   }
+  //</editor-fold>
 }
