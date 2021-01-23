@@ -5539,12 +5539,17 @@ public final class EffectFactory
       boolean isEEex = Profile.getProperty(Profile.Key.IS_GAME_EEEX);
       switch (effectType) {
         case 12:    // Damage
-          s.add(new Flag(buffer, offset, 4, EFFECT_SPECIAL, new String[] {
-                         "Default", "Drain HP to caster", "Transfer HP to target",
-                         "Fist damage only", "Drain HP to caster (non-cumulative)", null,
-                         "Suppress damage feedback", "Drain HP (limited to cur. HP of target)",
-                         "Drain HP (limited to max. HP of caster)", "Save for half",
-                         "Made save", "Does not wake sleepers"}));
+          s.add(new Flag(buffer, offset, 4, "Flags", new String[] {
+                         "Default",
+                         "Transfer HP to caster (cumulative)*;Bits 0, 1, 3 and 4 are mutually exclusive. Cumulative temporary extra HP.",
+                         "Transfer HP to target (cumulative)*;Bits 0, 1, 3 and 4 are mutually exclusive. Cumulative temporary extra HP.",
+                         "Fist damage only",
+                         "Transfer HP to caster (non-cumulative)*;Bits 0, 1, 3 and 4 are mutually exclusive. Non-cumulative temporary extra HP.",
+                         "Transfer HP to target (non-cumulative)*;Bits 0, 1, 3 and 4 are mutually exclusive. Non-cumulative temporary extra HP.",
+                         "Suppress damage feedback",
+                         "Limit to cur. HP of target minus MINHP*;Bits 1 and 4 switch target -> caster.",
+                         "Limit to cur./max. HP difference of caster*;Bits 1 and 4 switch caster -> target.",
+                         "Save for half", "Made save", "Does not wake sleepers"}));
           break;
 
         case 18: // Maximum HP bonus
