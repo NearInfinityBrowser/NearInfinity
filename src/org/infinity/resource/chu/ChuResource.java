@@ -36,7 +36,7 @@ import org.infinity.util.Pair;
  * @see <a href="https://gibberlings3.github.io/iesdp/file_formats/ie_formats/chu_v1.htm">
  * https://gibberlings3.github.io/iesdp/file_formats/ie_formats/chu_v1.htm</a>
  */
-public final class ChuResource extends AbstractStruct implements Resource, HasViewerTabs //, HasAddRemovable
+public final class ChuResource extends AbstractStruct implements Resource, HasViewerTabs //, HasChildStructs
 {
   // CHU-specific field labels
   public static final String CHU_NUM_PANELS       = "# panels";

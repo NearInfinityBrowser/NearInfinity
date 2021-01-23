@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2020 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.cre;
@@ -11,11 +11,11 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.HexNumber;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.resource.HasAddRemovable;
+import org.infinity.resource.HasChildStructs;
 import org.infinity.resource.StructEntry;
 import org.infinity.util.io.StreamUtils;
 
-public final class SpellMemorization extends AbstractStruct implements AddRemovable, HasAddRemovable
+public final class SpellMemorization extends AbstractStruct implements AddRemovable, HasChildStructs
 {
   // CRE/SpellMemorization-specific field labels
   public static final String CRE_MEMORIZATION                         = "Memorization info";
@@ -36,21 +36,17 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
     super(cre, CRE_MEMORIZATION + " " + nr, buffer, offset);
   }
 
-//--------------------- Begin Interface AddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
+  //</editor-fold>
 
-//--------------------- End Interface AddRemovable ---------------------
-
-
-// --------------------- Begin Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
-  public AddRemovable[] getAddRemovables() throws Exception
+  public AddRemovable[] getPrototypes() throws Exception
   {
     return new AddRemovable[]{new MemorizedSpells()};
   }
@@ -60,15 +56,9 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
   {
     return entry;
   }
+  //</editor-fold>
 
-  @Override
-  public boolean confirmRemoveEntry(AddRemovable entry) throws Exception
-  {
-    return true;
-  }
-
-// --------------------- End Interface HasAddRemovable ---------------------
-
+  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
@@ -82,7 +72,9 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
       ((AbstractStruct)datatype).realignStructOffsets();
     }
   }
+  //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -94,6 +86,7 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
     addField(new DecNumber(buffer, offset + 12, 4, CRE_MEMORIZATION_SPELL_COUNT));
     return offset + 16;
   }
+  //</editor-fold>
 
   public void readMemorizedSpells(ByteBuffer buffer, int offset) throws Exception
   {

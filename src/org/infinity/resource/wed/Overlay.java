@@ -15,7 +15,7 @@ import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 
-public final class Overlay extends AbstractStruct // implements AddRemovable, HasAddRemovable
+public final class Overlay extends AbstractStruct // implements AddRemovable, HasChildStructs
 {
   // WED/Overlay-specific field labels
   public static final String WED_OVERLAY                        = "Overlay";

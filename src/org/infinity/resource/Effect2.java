@@ -61,6 +61,11 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
   public static final String[] s_restype = {"None", "Spell", "Item"};
   public static final String[] s_dispel = {"Natural/Nonmagical", "Dispel/Not bypass resistance",
                                            "Not dispel/Bypass resistance", "Dispel/Bypass resistance"};
+  public static final String[] s_dispel_ee = {"Natural/Nonmagical", "Dispel", "Bypass resistance",
+                                              "Bypass deflection/reflection/trap", null, null, null, null, null,
+                                              null, null, null, null, null, null, null, null,
+                                              null, null, null, null, null, null, null, null,
+                                              null, null, null, null, null, null, null, "Effect applied by item"};
 //  public static final String[] s_dispel_v1 = {"None", "Dispellable", "Bypass resistance"};
 //  public static final String[] s_dispel_v2 = {"None", "Dispellable", "Bypass resistance",
 //                                              "Bypass turn/reflect/absorb"};
@@ -75,8 +80,11 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     }
     list.add(new DecNumber(buffer, offset + 8, 4, EFFECT_MIN_LEVEL));
     list.add(new DecNumber(buffer, offset + 12, 4, EFFECT_MAX_LEVEL));
-//    list.add(new Flag(buffer, offset + 16, 4, EFFECT_DISPEL_TYPE, s_dispel));
-    list.add(new Bitmap(buffer, offset + 16, 4, EFFECT_DISPEL_TYPE, s_dispel));
+    if (Profile.isEnhancedEdition()) {
+      list.add(new Flag(buffer, offset + 16, 4, EFFECT_DISPEL_TYPE, s_dispel_ee));
+    } else {
+      list.add(new Bitmap(buffer, offset + 16, 4, EFFECT_DISPEL_TYPE, s_dispel));
+    }
     list.add(new DecNumber(buffer, offset + 20, 4, EFFECT_PARAMETER_3));
     list.add(new DecNumber(buffer, offset + 24, 4, EFFECT_PARAMETER_4));
     list.add(new DecNumber(buffer, offset + 28, 4, EFFECT_PARAMETER_5));
