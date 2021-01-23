@@ -112,6 +112,11 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
                                               "Allow spotting", "Outdoors only", "Ignore dead/wild magic",
                                               "Ignore wild surge", "Non-combat ability", "", "", "", "", "",
                                               "", "", "EE/Ex: Can target invisible", "EE/Ex: Castable when silenced"};
+  public static final String[] s_spellflag2 = {"No flags set", "", "", "", "", "", "", "", "",
+                                               "", "", "Hostile", "No LOS required",
+                                               "Allow spotting", "Outdoors only", "Simplified duration",
+                                               "Trigger/Contingency", "", "", "Non-combat ability (?)", "", "", "",
+                                               "", "", "", ""};
   public static final String[] s_exclude =
     { "None",
       "Berserker", "Wizard slayer", "Kensai", "Cavalier", "Inquisitor", "Undead hunter",
@@ -331,7 +336,11 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
     addField(new StringRef(buffer, offset + 8, SPL_NAME));
     addField(new StringRef(buffer, offset + 12, SPL_NAME_IDENTIFIED));
     addField(new ResourceRef(buffer, offset + 16, SPL_CASTING_SOUND, "WAV"));
-    addField(new Flag(buffer, offset + 24, 4, SPL_FLAGS, s_spellflag));
+    if (version.getText().equalsIgnoreCase("V2.0")) {
+      addField(new Flag(buffer, offset + 24, 4, SPL_FLAGS, s_spellflag2));
+    } else {
+      addField(new Flag(buffer, offset + 24, 4, SPL_FLAGS, s_spellflag));
+    }
     Bitmap spellType = new Bitmap(buffer, offset + 28, 2, SPL_TYPE, s_spelltype);   // 0x1c
     spellType.addUpdateListener(this);
     addField(spellType);
