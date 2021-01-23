@@ -189,7 +189,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
            "Lawful;Includes Lawful Good, Lawful Neutral and Lawful Evil",
            "Neutral ...;Includes Neutral Good, True Neutral and Neutral Evil",
            null, null, null, null, null, "Elf",
-           "Dwarf", "Half-elf", "Halfling", "Human", "Gnome"
+           "Dwarf", "Half-elf", "Halfling", "Human", "Gnome", "Half-Orc"
           };
   public static final String[] s_kituse1 =
           {"None", "Cleric of Talos", "Cleric of Helm", "Cleric of Lathander",
@@ -203,6 +203,17 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
   public static final String[] s_kituse4 =
           {"None", "Berserker", "Wizard slayer", "Kensai", "Cavalier", "Inquisitor",
            "Undead hunter", "Abjurer", "Conjurer"};
+  public static final String[] s_kituse1_v2 = {"None"};
+  public static final String[] s_kituse2_v2 =
+          {"None", "Cleric of Lathander", "Cleric of Selune", "Cleric of Helm", "Cleric of Oghma",
+           "Cleric of Tempus", "Cleric of Bane", "Cleric of Mask", "Cleric of Talos"};
+  public static final String[] s_kituse3_v2 =
+          {"None", "Diviner", "Enchanter", "Illusionist", "Invoker", "Necromancer", "Transmuter",
+           "Generalist", "Cleric of Ilmater"};
+  public static final String[] s_kituse4_v2 =
+          {"None", "Paladin of Ilmater", "Paladin of Helm", "Paladin of Mystra",
+           "Monk of the Old Order", "Monk of the Broken Ones", "Monk of the Dark Moon",
+           "Abjurer", "Conjurer"};
 
   private StructHexViewer hexViewer;
 
@@ -374,11 +385,13 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
   {
     addField(new TextString(buffer, 0, 4, COMMON_SIGNATURE));
     TextString version = new TextString(buffer, 4, 4, COMMON_VERSION);
+    boolean isV10 = version.getText().equalsIgnoreCase("V1  ");
+    boolean isV11 = version.getText().equalsIgnoreCase("V1.1");
+    boolean isV20 = version.getText().equalsIgnoreCase("V2.0");
     addField(version);
     addField(new StringRef(buffer, 8, ITM_NAME_GENERAL));
     addField(new StringRef(buffer, 12, ITM_NAME_IDENTIFIED));
-    if (version.getText().equalsIgnoreCase("V1.1") ||
-        (version.getText().equalsIgnoreCase("V1  ") && Profile.getGame() == Profile.Game.PSTEE)) {
+    if (isV11 || (isV10 && Profile.getGame() == Profile.Game.PSTEE)) {
       addField(new ResourceRef(buffer, 16, ITM_DROP_SOUND, "WAV"));
       if (Profile.getGame() == Profile.Game.PSTEE) {
         addField(new Flag(buffer, 24, 4, ITM_FLAGS, s_flags_pstee));
@@ -394,7 +407,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
       addField(new ResourceRef(buffer, 16, ITM_USED_UP_ITEM, "ITM"));
       addField(new Flag(buffer, 24, 4, ITM_FLAGS, IdsMapCache.getUpdatedIdsFlags(s_flags, "ITEMFLAG.IDS", 4, false, false)));
       addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, s_categories));
-      if (version.toString().equalsIgnoreCase("V2.0")) {
+      if (isV20) {
         addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, s_usability20));
       } else {
         addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, s_usability));
@@ -405,13 +418,13 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
     addField(new DecNumber(buffer, 38, 2, ITM_MIN_STRENGTH));
     if (ResourceFactory.resourceExists("KIT.IDS")) {
       addField(new DecNumber(buffer, 40, 1, ITM_MIN_STRENGTH_BONUS));
-      addField(new Flag(buffer, 41, 1, ITM_UNUSABLE_BY_1, s_kituse1));
+      addField(new Flag(buffer, 41, 1, ITM_UNUSABLE_BY_1, isV20 ? s_kituse1_v2 : s_kituse1));
       addField(new DecNumber(buffer, 42, 1, ITM_MIN_INTELLIGENCE));
-      addField(new Flag(buffer, 43, 1, ITM_UNUSABLE_BY_2, s_kituse2));
+      addField(new Flag(buffer, 43, 1, ITM_UNUSABLE_BY_2, isV20 ? s_kituse2_v2 : s_kituse2));
       addField(new DecNumber(buffer, 44, 1, ITM_MIN_DEXTERITY));
-      addField(new Flag(buffer, 45, 1, ITM_UNUSABLE_BY_3, s_kituse3));
+      addField(new Flag(buffer, 45, 1, ITM_UNUSABLE_BY_3, isV20 ? s_kituse3_v2 : s_kituse3));
       addField(new DecNumber(buffer, 46, 1, ITM_MIN_WISDOM));
-      addField(new Flag(buffer, 47, 1, ITM_UNUSABLE_BY_4, s_kituse4));
+      addField(new Flag(buffer, 47, 1, ITM_UNUSABLE_BY_4, isV20 ? s_kituse4_v2 : s_kituse4));
       addField(new DecNumber(buffer, 48, 1, ITM_MIN_CONSTITUTION));
       if (ResourceFactory.resourceExists("PROFTYPE.IDS")) {
         addField(new IdsBitmap(buffer, 49, 1, ITM_WEAPON_PROFICIENCY, "PROFTYPE.IDS"));
@@ -435,7 +448,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
     addField(new DecNumber(buffer, 76, 4, ITM_WEIGHT));
     addField(new StringRef(buffer, 80, ITM_DESCRIPTION_GENERAL));
     addField(new StringRef(buffer, 84, ITM_DESCRIPTION_IDENTIFIED));
-    if (version.toString().equalsIgnoreCase("V1.1")) {
+    if (isV11) {
       addField(new ResourceRef(buffer, 88, ITM_PICK_UP_SOUND, "WAV"));
     } else {
       addField(new ResourceRef(buffer, 88, ITM_DESCRIPTION_IMAGE, "BAM"));
@@ -455,13 +468,13 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
                                                  Effect.class);
     addField(global_count);
 
-    if (version.toString().equalsIgnoreCase("V1.1")) {
+    if (isV11) {
       addField(new ResourceRef(buffer, 114, ITM_DIALOG, "DLG"));
       addField(new StringRef(buffer, 122, ITM_SPEAKER_NAME));
       addField(new IdsBitmap(buffer, 126, 2, ITM_WEAPON_COLOR, "CLOWNCLR.IDS"));
       addField(new Unknown(buffer, 128, 26));
     }
-    else if (version.toString().equalsIgnoreCase("V2.0")) {
+    else if (isV20) {
       addField(new Unknown(buffer, 114, 16));
     }
 
