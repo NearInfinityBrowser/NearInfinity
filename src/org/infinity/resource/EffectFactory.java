@@ -817,24 +817,27 @@ public final class EffectFactory
   // Effect type "Dexterity bonus" (15)
   private static boolean updateOpcode15(AbstractStruct struct) throws Exception
   {
+    boolean retVal = false;
     if (struct != null) {
       if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 ||
           Profile.isEnhancedEdition() || (boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX)) {
+        boolean isV1 = (getEntry(struct, EffectEntry.IDX_OPCODE).getSize() == 2);
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         int param2 = ((Bitmap)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
         if (opcode == 15) {
-          if (param2 == 3) {
+          if (isV1 && param2 == 3) {
             replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
                 new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, AbstractStruct.COMMON_UNUSED));
+            retVal = true;
           } else {
             replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
                 new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value"));
+            retVal = true;
           }
-          return true;
         }
       }
     }
-    return false;
+    return retVal;
   }
 
   // Effect type "Reset morale" (23)
@@ -868,24 +871,27 @@ public final class EffectFactory
   // Effect type "Strength bonus" (44)
   private static boolean updateOpcode44(AbstractStruct struct) throws Exception
   {
+    boolean retVal = false;
     if (struct != null) {
       if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 ||
           Profile.isEnhancedEdition() || (boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX)) {
+        boolean isV1 = (getEntry(struct, EffectEntry.IDX_OPCODE).getSize() == 2);
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         int param2 = ((Bitmap)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
         if (opcode == 44) {
-          if (param2 == 3) {
+          if (isV1 && param2 == 3) {
             replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
                 new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, AbstractStruct.COMMON_UNUSED));
+            retVal = true;
           } else {
             replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
                 new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value"));
+            retVal = true;
           }
-          return true;
         }
       }
     }
-    return false;
+    return retVal;
   }
 
   // Effect type "Disease" (78)
@@ -2218,7 +2224,7 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 ||
             Profile.isEnhancedEdition() || isTobEx) {
           int type = buffer.getInt(offset + 4);
-          s.add(new DecNumber(buffer, offset, 4, (type == 3) ? AbstractStruct.COMMON_UNUSED : "Value"));
+          s.add(new DecNumber(buffer, offset, 4, (isV1 && type == 3) ? AbstractStruct.COMMON_UNUSED : "Value"));
           Bitmap item = new Bitmap(buffer, offset + 4, 4, "Modifier type",
               new String[]{"Increment", "Set", "Set % of", "Cat's grace"});
           s.add(item);
@@ -2451,7 +2457,7 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 ||
             Profile.isEnhancedEdition()) {
           int type = buffer.getInt(offset + 4);
-          s.add(new DecNumber(buffer, offset, 4, (type == 3) ? AbstractStruct.COMMON_UNUSED : "Value"));
+          s.add(new DecNumber(buffer, offset, 4, (isV1 && type == 3) ? AbstractStruct.COMMON_UNUSED : "Value"));
           item = new Bitmap(buffer, offset + 4, 4, "Modifier type",
               new String[]{"Increment", "Set", "Set % of", "Bull's Strength"});
           s.add(item);
