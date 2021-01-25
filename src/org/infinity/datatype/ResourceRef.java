@@ -212,12 +212,15 @@ public class ResourceRef extends Datatype
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
+    String oldString = getText();
     final ResourceRefEntry selected = list.getSelectedValue();
     if (selected == NONE) {
       setValue(NONE.name);//FIXME: use null instead of this
 
       // notifying listeners
-      fireValueUpdated(new UpdateEvent(this, struct));
+      if (!getText().equals(oldString)) {
+        fireValueUpdated(new UpdateEvent(this, struct));
+      }
 
       return true;
     }
@@ -240,7 +243,9 @@ public class ResourceRef extends Datatype
     }
 
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (!getText().equals(oldString)) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }

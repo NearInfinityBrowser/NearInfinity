@@ -159,6 +159,7 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric//TODO: t
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
+    long oldValue = getLongValue();
     // updating value
     Long number = getValueOfItem(list.getSelectedValue());
     if (number != null) {
@@ -168,7 +169,9 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric//TODO: t
     }
 
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (getLongValue() != oldValue) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }

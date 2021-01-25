@@ -117,10 +117,13 @@ public class Unknown extends Datatype implements Editable, IsBinary
     if (newData == null) {
       return false;
     }
+    ByteBuffer oldBuffer = getData();
     setValue(newData);
 
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (getData().compareTo(oldBuffer) != 0) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }
@@ -159,6 +162,7 @@ public class Unknown extends Datatype implements Editable, IsBinary
     buffer.position(0);
     ByteBuffer bb = StreamUtils.getByteBuffer(buffer.remaining());
     buffer.put(bb);
+    bb.position(0);
     return bb;
   }
 

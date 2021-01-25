@@ -44,7 +44,14 @@ public class FloatNumber extends Datatype implements InlineEditable
       if (getSize() == 4) {
         newValue = Double.valueOf(newValue).floatValue();
       }
+      double oldValue = getValue();
       setValue(newValue);
+
+      // notifying listeners
+      if (getValue() != oldValue) {
+        fireValueUpdated(new UpdateEvent(this, getParent()));
+      }
+
       return true;
     } catch (NumberFormatException e) {
       e.printStackTrace();

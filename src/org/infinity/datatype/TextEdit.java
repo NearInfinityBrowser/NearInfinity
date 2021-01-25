@@ -126,10 +126,13 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
+    String oldString = getText();
     setValue(textArea.getText());
 
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (!getText().equals(oldString)) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }

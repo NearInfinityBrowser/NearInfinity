@@ -167,10 +167,13 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
   {
     if (colorList.getSelectedIndex() >= 0) {
       if (number != colorList.getSelectedIndex()) {
+        long oldValue = getLongValue();
         setValue(colorList.getSelectedIndex());
 
         // notifying listeners
-        fireValueUpdated(new UpdateEvent(this, struct));
+        if (getLongValue() != oldValue) {
+          fireValueUpdated(new UpdateEvent(this, struct));
+        }
       }
 
       return true;

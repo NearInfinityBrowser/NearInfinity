@@ -121,10 +121,13 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
     if (index == -1) {
       return false;
     }
+    String oldString = getText();
     setValue(ids[index]);
 
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (getText().equals(oldString)) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }

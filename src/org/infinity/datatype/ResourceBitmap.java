@@ -204,9 +204,13 @@ public class ResourceBitmap extends Datatype
       return false;
     }
 
+    long oldValue = getLongValue();
     setValue(selected.getValue());
+
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (getLongValue() != oldValue) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }

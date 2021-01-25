@@ -46,11 +46,19 @@ public final class TextString extends Datatype implements InlineEditable, IsText
   @Override
   public boolean update(Object value)
   {
-    String newstring = (String)value;
-    if (newstring.length() > getSize()) {
+    String newString = value.toString();
+    if (newString.length() > getSize()) {
       return false;
     }
-    setValue(newstring);
+
+    String oldString = getText();
+    setValue(newString);
+
+    // notifying listeners
+    if (!getText().equals(oldString)) {
+      fireValueUpdated(new UpdateEvent(this, getParent()));
+    }
+
     return true;
   }
 

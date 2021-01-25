@@ -156,10 +156,15 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
+    long oldValue = getLongValue();
+
     // updating value
     setValue(calcValue());
+
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (getLongValue() != oldValue) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }

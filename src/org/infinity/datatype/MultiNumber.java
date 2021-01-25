@@ -148,10 +148,13 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
+    long oldValue = getLongValue();
     setValueImpl(mValues.getValue());
 
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (getLongValue() != oldValue) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }

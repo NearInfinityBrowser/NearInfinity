@@ -261,10 +261,13 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
+    long oldValue = getLongValue();
     setValue(getValueFromEditor());
 
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (getLongValue() != oldValue) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }
