@@ -308,7 +308,23 @@ public final class ViewerUtil
     return new StructListPanel(title, struct, listClass, attrName, renderer, listener);
   }
 
+  /**
+   * Creates a panel with a text area control and a title with the {@code StructEntry} name.
+   * @param entry the {@code StructEntry} instance used to derive data and title from.
+   * @return a {@code JPanel} instance.
+   */
   public static JPanel makeTextAreaPanel(StructEntry entry)
+  {
+    return makeTextAreaPanel(entry, true);
+  }
+
+  /**
+   * Creates a panel with a text area control and an optional title with the {@code StructEntry} name.
+   * @param entry the {@code StructEntry} instance used to derive data and title from.
+   * @param showTitle whether to show the entry title.
+   * @return a {@code JPanel} instance.
+   */
+  public static JPanel makeTextAreaPanel(StructEntry entry, boolean showTitle)
   {
     String text;
     if (entry instanceof StringRef) {
@@ -329,7 +345,9 @@ public final class ViewerUtil
     scroll.setLineNumbersEnabled(false);
     ta.setMargin(new Insets(3, 3, 3, 3));
     JPanel panel = new JPanel(new BorderLayout());
-    panel.add(new JLabel(entry.getName()), BorderLayout.NORTH);
+    if (showTitle) {
+      panel.add(new JLabel(entry.getName()), BorderLayout.NORTH);
+    }
     panel.add(scroll, BorderLayout.CENTER);
     panel.setPreferredSize(new Dimension(5, 5));
     return panel;
