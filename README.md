@@ -1,3 +1,6 @@
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/Argent77/NearInfinity?color=darkred&include_prereleases&label=latest%20release)](https://GitHub.com/Argent77/NearInfinity/releases/latest)
+[![GitHub release date (latest by date)](https://img.shields.io/github/release-date/Argent77/NearInfinity?color=gold)](https://GitHub.com/Argent77/NearInfinity/releases/latest)
+[![Github downloads (total)](https://img.shields.io/github/downloads/Argent77/NearInfinity/total.svg?color=blueviolet)](https://GitHub.com/Argent77/NearInfinity/releases)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b5d10ca2684c4e30b6632e34584f1241)](https://www.codacy.com/manual/Mingun/NearInfinity)
 
 # Near Infinity
