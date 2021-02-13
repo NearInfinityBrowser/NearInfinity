@@ -80,7 +80,7 @@ public class ByteBufferInputStream extends InputStream
       if (remaining <= 0) {
         break;
       }
-      buf.get(bytes, read, remaining);
+      buf.get(bytes, off + read, remaining);
       read += remaining;
     }
 
