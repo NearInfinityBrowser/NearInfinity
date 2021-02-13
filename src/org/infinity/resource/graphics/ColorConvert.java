@@ -33,6 +33,8 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
+import org.infinity.resource.key.FileResourceEntry;
+import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
@@ -438,8 +440,19 @@ public class ColorConvert
    */
   public static int[] loadPaletteBMP(Path file) throws Exception
   {
-    if (file != null && FileEx.create(file).isFile()) {
-      try (InputStream is = StreamUtils.getInputStream(file)) {
+    return loadPaletteBMP(new FileResourceEntry(file));
+  }
+
+  /**
+   * Attempts to load a palette from the specified Windows BMP file.
+   * @param entry The BMP resource entry to extract the palette from.
+   * @return The palette as ARGB integers.
+   * @throws Exception on error.
+   */
+  public static int[] loadPaletteBMP(ResourceEntry entry) throws Exception
+  {
+    if (entry != null) {
+      try (InputStream is = entry.getResourceDataAsStream()) {
         byte[] signature = new byte[8];
         is.read(signature);
         if ("BM".equals(new String(signature, 0, 2))) {
@@ -463,14 +476,14 @@ public class ColorConvert
             }
             return retVal;
           } else {
-            throw new Exception("Error loading palette from BMP file " + file.getFileName());
+            throw new Exception("Error loading palette: " + entry.getResourceName());
           }
         } else {
-          throw new Exception("Invalid BMP file " + file.getFileName());
+          throw new Exception("Invalid BMP resource: " + entry.getResourceName());
         }
       } catch (IOException e) {
         e.printStackTrace();
-        throw new Exception("Unable to read BMP file " + file.getFileName());
+        throw new Exception("Unable to read BMP resource: " + entry.getResourceName());
       }
     } else {
       throw new Exception("File does not exist.");
@@ -612,13 +625,18 @@ public class ColorConvert
    */
   public static int[] loadPaletteBAM(Path file, boolean preserveAlpha) throws Exception
   {
-    if (file != null && FileEx.create(file).isFile()) {
-      try (InputStream is = StreamUtils.getInputStream(file)) {
+    return loadPaletteBAM(new FileResourceEntry(file), preserveAlpha);
+  }
+
+  public static int[] loadPaletteBAM(ResourceEntry entry, boolean preserveAlpha) throws Exception
+  {
+    if (entry != null) {
+      try (InputStream is = entry.getResourceDataAsStream()) {
         byte[] signature = new byte[8];
         is.read(signature);
         String s = new String(signature);
         if ("BAM V1  ".equals(s) || "BAMCV1  ".equals(s)) {
-          byte[] bamData = new byte[(int)Files.size(file)];
+          byte[] bamData = new byte[(int)entry.getResourceSize()];
           System.arraycopy(signature, 0, bamData, 0, signature.length);
           is.read(bamData, signature.length, bamData.length - signature.length);
           if ("BAMCV1  ".equals(s)) {
@@ -636,14 +654,14 @@ public class ColorConvert
             }
             return retVal;
           } else {
-            throw new Exception("Error loading palette from BAM file " + file.getFileName());
+            throw new Exception("Error loading palette: " + entry.getResourceName());
           }
         } else {
           throw new Exception("Unsupport file type.");
         }
       } catch (IOException e) {
         e.printStackTrace();
-        throw new Exception("Unable to read BAM file " + file.getFileName());
+        throw new Exception("Unable to read BAM resource: " + entry.getResourceName());
       }
     } else {
       throw new Exception("File does not exist.");
