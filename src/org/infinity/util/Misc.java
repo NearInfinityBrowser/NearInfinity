@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.util.Comparator;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -539,6 +540,75 @@ public class Misc
   {
     return (o != null) ? o.toString() : "";
   }
+
+  /**
+   * This method throws a general {@link Exception} without message if the specified condition isn't met.
+   * @param cond the condition to meet.
+   * @throws Exception
+   */
+  public static void requireCondition(boolean cond) throws Exception
+  {
+    requireCondition(cond, null, null);
+  }
+
+  /**
+   * This method throws a general {@link Exception} with associated message if the specified condition isn't met.
+   * @param cond the condition to meet.
+   * @param message the exception message. Can be {@code null}.
+   * @throws Exception
+   */
+  public static void requireCondition(boolean cond, String message) throws Exception
+  {
+    requireCondition(cond, message, null);
+  }
+
+  /**
+   * This method throws a specialized exception without message if the specified condition isn't met.
+   * @param cond the condition to meet.
+   * @param classEx the exception class to throw.
+   * @throws Exception
+   */
+  public static void requireCondition(boolean cond, Class<? extends Exception> classEx) throws Exception
+  {
+    requireCondition(cond, null, classEx);
+  }
+
+  /**
+   * This method throws a specialized exception with associated message if the specified condition isn't met.
+   * @param cond the condition to meet.
+   * @param message the exception message. Can be {@code null}.
+   * @param classEx the exception class to throw.
+   * @throws Exception
+   */
+  public static void requireCondition(boolean cond, String message, Class<? extends Exception> classEx) throws Exception
+  {
+    if (!cond) {
+      if (message != null && message.isEmpty())
+      {
+        message = null;
+      }
+
+      if (classEx == null) {
+        classEx = Exception.class;
+      }
+
+      for (final Class<?> cls : new Class<?>[] { classEx, Exception.class }) {
+        Object ex = null;
+        if (message != null) {
+          Constructor<?> ctor = cls.getConstructor(String.class);
+          ex = ctor.newInstance(message);
+        } else {
+          Constructor<?> ctor = cls.getConstructor();
+          ex = ctor.newInstance();
+        }
+
+        if (ex instanceof Exception) {
+          throw (Exception)ex;
+        }
+      }
+    }
+  }
+
 
   // Contains static functions only
   private Misc() {}
