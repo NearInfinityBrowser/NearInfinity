@@ -338,6 +338,39 @@ public class BamV1Decoder extends BamDecoder
     }
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + ((listFrames == null) ? 0 : listFrames.hashCode());
+    hash = 31 * hash + ((listCycles == null) ? 0 : listCycles.hashCode());
+    hash = 31 * hash + ((bamBuffer == null) ? 0 : bamBuffer.hashCode());
+    hash = 31 * hash + ((bamPalette == null) ? 0 : bamPalette.hashCode());
+    hash = 31 * hash + rleIndex;
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof BamV1Decoder)) {
+      return false;
+    }
+    boolean retVal = super.equals(o);
+    if (retVal) {
+      BamV1Decoder other = (BamV1Decoder)o;
+      retVal &= (this.listFrames == null && other.listFrames == null) ||
+                (this.listFrames != null && this.listFrames.equals(other.listFrames));
+      retVal &= (this.listCycles == null && other.listCycles == null) ||
+                (this.listCycles != null && this.listCycles.equals(other.listCycles));
+      retVal &= (this.bamBuffer == null && other.bamBuffer == null) ||
+                (this.bamBuffer != null && this.bamBuffer.equals(other.bamBuffer));
+      retVal &= (this.bamPalette == null && other.bamPalette == null) ||
+                (this.bamPalette != null && this.bamPalette.equals(other.bamPalette));
+      retVal &= (this.rleIndex == other.rleIndex);
+    }
+    return retVal;
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 

@@ -323,6 +323,42 @@ public class BamV2Decoder extends BamDecoder
     }
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + ((pvrIndices == null) ? 0 : pvrIndices.hashCode());
+    hash = 31 * hash + ((listFrames == null) ? 0 : listFrames.hashCode());
+    hash = 31 * hash + ((listCycles == null) ? 0 : listCycles.hashCode());
+    hash = 31 * hash + ((bamBuffer == null) ? 0 : bamBuffer.hashCode());
+    hash = 31 * hash + ((bamPath == null) ? 0 : bamPath.hashCode());
+    hash = 31 * hash + numDataBlocks;
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof BamV2Decoder)) {
+      return false;
+    }
+    boolean retVal = super.equals(o);
+    if (retVal) {
+      BamV2Decoder other = (BamV2Decoder)o;
+      retVal &= (this.pvrIndices == null && other.pvrIndices == null) ||
+                (this.pvrIndices != null && this.pvrIndices.equals(other.pvrIndices));
+      retVal &= (this.listFrames == null && other.listFrames == null) ||
+                (this.listFrames != null && this.listFrames.equals(other.listFrames));
+      retVal &= (this.listCycles == null && other.listCycles == null) ||
+                (this.listCycles != null && this.listCycles.equals(other.listCycles));
+      retVal &= (this.bamBuffer == null && other.bamBuffer == null) ||
+                (this.bamBuffer != null && this.bamBuffer.equals(other.bamBuffer));
+      retVal &= (this.bamPath == null && other.bamPath == null) ||
+                (this.bamPath != null && this.bamPath.equals(other.bamPath));
+      retVal &= (this.numDataBlocks == other.numDataBlocks);
+    }
+    return retVal;
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 

@@ -194,49 +194,54 @@ public class PseudoBamDecoder extends BamDecoder
   /**
    * Adds a new frame to the end of the frame list. Center position defaults to (0, 0).
    * @param image The image to add.
+   * @return The index of the added frame or -1 if frame could not be added.
    */
-  public void frameAdd(BufferedImage image)
+  public int frameAdd(BufferedImage image)
   {
-    frameInsert(listFrames.size(), new BufferedImage[]{image}, new Point[0]);
+    return frameInsert(listFrames.size(), new BufferedImage[]{image}, new Point[0]);
   }
 
   /**
    * Adds a new frame to the end of the frame list.
    * @param image The image to add.
    * @param center The center position of the image.
+   * @return The index of the added frame or -1 if frame could not be added.
    */
-  public void frameAdd(BufferedImage image, Point center)
+  public int frameAdd(BufferedImage image, Point center)
   {
-    frameInsert(listFrames.size(), new BufferedImage[]{image}, new Point[]{center});
+    return frameInsert(listFrames.size(), new BufferedImage[]{image}, new Point[]{center});
   }
 
   /**
    * Adds the list of frames to the end of the frame list. Center positions default to (0, 0).
    * @param images An array containing the images to add.
+   * @return The index of the first added frame or -1 if frames could not be added.
    */
-  public void frameAdd(BufferedImage[] images)
+  public int frameAdd(BufferedImage[] images)
   {
-    frameInsert(listFrames.size(), images, new Point[0]);
+    return frameInsert(listFrames.size(), images, new Point[0]);
   }
 
   /**
    * Adds the list of frames to the end of the frame list.
    * @param images An array containing the images to add.
    * @param centers An array of center positions corresponding with the images.
+   * @return The index of the first added frame or -1 if frames could not be added.
    */
-  public void frameAdd(BufferedImage[] images, Point[] centers)
+  public int frameAdd(BufferedImage[] images, Point[] centers)
   {
-    frameInsert(listFrames.size(), images, centers);
+    return frameInsert(listFrames.size(), images, centers);
   }
 
   /**
    * Inserts a frame at the specified position. Center position defaults to (0, 0).
    * @param frameIdx The position for the frame to insert.
    * @param image The image to insert.
+   * @return The index of the inserted frame or -1 if frame could not be inserted.
    */
-  public void frameInsert(int frameIdx, BufferedImage image)
+  public int frameInsert(int frameIdx, BufferedImage image)
   {
-    frameInsert(frameIdx, new BufferedImage[]{image}, new Point[0]);
+    return frameInsert(frameIdx, new BufferedImage[]{image}, new Point[0]);
   }
 
   /**
@@ -244,20 +249,22 @@ public class PseudoBamDecoder extends BamDecoder
    * @param frameIdx The position for the frame to insert.
    * @param image The image to insert.
    * @param center The center position of the image.
+   * @return The index of the inserted frame or -1 if frame could not be inserted.
    */
-  public void frameInsert(int frameIdx, BufferedImage image, Point center)
+  public int frameInsert(int frameIdx, BufferedImage image, Point center)
   {
-    frameInsert(frameIdx, new BufferedImage[]{image}, new Point[]{center});
+    return frameInsert(frameIdx, new BufferedImage[]{image}, new Point[]{center});
   }
 
   /**
    * Inserts an array of frames at the specified position. Center positions default to (0, 0).
    * @param frameIdx The position for the frames to insert.
    * @param images An array containing the images to insert.
+   * @return The index of the first inserted frame or -1 if frames could not be inserted.
    */
-  public void frameInsert(int frameIdx, BufferedImage[] images)
+  public int frameInsert(int frameIdx, BufferedImage[] images)
   {
-    frameInsert(frameIdx, images, new Point[0]);
+    return frameInsert(frameIdx, images, new Point[0]);
   }
 
   /**
@@ -265,8 +272,9 @@ public class PseudoBamDecoder extends BamDecoder
    * @param frameIdx The position for the frames to insert.
    * @param images An array containing the images to insert.
    * @param centers An array of center positions corresponding with the images.
+   * @return The index of the first inserted frame or -1 if frames could not be inserted.
    */
-  public void frameInsert(int frameIdx, BufferedImage[] images, Point[] centers)
+  public int frameInsert(int frameIdx, BufferedImage[] images, Point[] centers)
   {
     if (frameIdx >= 0 && frameIdx <= listFrames.size() && images != null) {
       for (int i = 0; i < images.length; i++) {
@@ -277,7 +285,9 @@ public class PseudoBamDecoder extends BamDecoder
         }
         listFrames.add(frameIdx+i, new PseudoBamFrameEntry(images[i], x, y));
       }
+      return frameIdx;
     }
+    return -1;
   }
 
   /**
@@ -1354,6 +1364,34 @@ public class PseudoBamDecoder extends BamDecoder
     return true;
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + ((mapOptions == null) ? 0 : mapOptions.hashCode());
+    hash = 31 * hash + ((listCycles == null) ? 0 : listCycles.hashCode());
+    hash = 31 * hash + ((listFrames == null) ? 0 : listFrames.hashCode());
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof PseudoBamDecoder)) {
+      return false;
+    }
+    boolean retVal = super.equals(o);
+    if (retVal) {
+      PseudoBamDecoder other = (PseudoBamDecoder)o;
+      retVal &= (this.mapOptions == null && other.mapOptions == null) ||
+                (this.mapOptions != null && this.mapOptions.equals(other.mapOptions));
+      retVal &= (this.listCycles == null && other.listCycles == null) ||
+                (this.listCycles != null && this.listCycles.equals(other.listCycles));
+      retVal &= (this.listFrames == null && other.listFrames == null) ||
+                (this.listFrames != null && this.listFrames.equals(other.listFrames));
+    }
+    return retVal;
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 
@@ -1521,32 +1559,37 @@ public class PseudoBamDecoder extends BamDecoder
     }
 
 
-    /** Adds a new empty cycle. */
-    public void cycleAdd()
+    /** Adds a new empty cycle. Returns the index of the added cycle. */
+    public int cycleAdd()
     {
-      cycleInsert(getDecoder().listCycles.size(), null);
+      return cycleInsert(getDecoder().listCycles.size(), null);
     }
 
-    /** Adds a new cycle and initializes it with an array of frame indices. */
-    public void cycleAdd(int[] indices)
+    /** Adds a new cycle and initializes it with an array of frame indices. Returns the index of the added cycle. */
+    public int cycleAdd(int[] indices)
     {
-      cycleInsert(getDecoder().listCycles.size(), indices);
+      return cycleInsert(getDecoder().listCycles.size(), indices);
     }
 
     /** Inserts a new empty cycle at the specified position. */
-    public void cycleInsert(int cycleIdx)
+    public int cycleInsert(int cycleIdx)
     {
-      cycleInsert(cycleIdx, null);
+      return cycleInsert(cycleIdx, null);
     }
 
-    /** Inserts a new cycle at the specified position and initializes it with an array of frame indices. */
-    public void cycleInsert(int cycleIdx, int[] indices)
+    /**
+     * Inserts a new cycle at the specified position and initializes it with an array of frame indices.
+     * Returns the index of the inserted cycle. Returns -1 if the cycle could not be inserted.
+     */
+    public int cycleInsert(int cycleIdx, int[] indices)
     {
       if (cycleIdx >= 0 && cycleIdx <= getDecoder().listCycles.size()) {
         PseudoBamCycleEntry ce = new PseudoBamCycleEntry(indices);
         getDecoder().listCycles.add(cycleIdx, ce);
         update();
+        return cycleIdx;
       }
+      return -1;
     }
 
     /** Removes the cycle at the specified position. */
@@ -1607,20 +1650,24 @@ public class PseudoBamDecoder extends BamDecoder
 
 
     /** Adds frame indices to the specified cycle. */
-    public void cycleAddFrames(int cycleIdx, int[] indices)
+    public int cycleAddFrames(int cycleIdx, int[] indices)
     {
       if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
-        cycleInsertFrames(cycleIdx, getDecoder().listCycles.get(cycleIdx).size(), indices);
+        return cycleInsertFrames(cycleIdx, getDecoder().listCycles.get(cycleIdx).size(), indices);
       }
+      return -1;
     }
 
     /** Inserts frame indices to the cycle at the specified position. */
-    public void cycleInsertFrames(int cycleIdx, int pos, int[] indices)
+    public int cycleInsertFrames(int cycleIdx, int pos, int[] indices)
     {
       if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
-        getDecoder().listCycles.get(cycleIdx).insert(pos, indices);
-        update();
+        if (getDecoder().listCycles.get(cycleIdx).insert(pos, indices)) {
+          update();
+          return pos;
+        }
       }
+      return -1;
     }
 
     /** Removes one frame index from the cycle at the specified position. */

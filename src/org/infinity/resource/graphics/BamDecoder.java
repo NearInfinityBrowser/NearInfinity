@@ -168,6 +168,39 @@ public abstract class BamDecoder
     this.type = type;
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = 7;
+    hash = 31 * hash + ((type == null) ? 0 : type.hashCode());
+    hash = 31 * hash + ((bamEntry == null) ? 0 : bamEntry.hashCode());
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (o == this) {
+      return true;
+    }
+    if (!(o instanceof BamDecoder)) {
+      return false;
+    }
+    BamDecoder other = (BamDecoder)o;
+    boolean retVal = (this.type == null && other.type == null) ||
+                     (this.type != null && this.type.equals(other.type));
+    retVal &= (this.bamEntry == null && other.bamEntry == null) ||
+              (this.bamEntry != null && this.bamEntry.equals(other.bamEntry));
+    return retVal;
+  }
+
+  @Override
+  public String toString()
+  {
+    String retVal = "entry=" + ((bamEntry != null) ? bamEntry.toString() : "(null)");
+    retVal += ", Type=" + ((type != null) ? type.toString() : "(null)");
+    return retVal;
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 
@@ -188,14 +221,19 @@ public abstract class BamDecoder
    */
   public static abstract class BamControl
   {
-    /**
-     * Definitions of how to render BAM frames.<br>
-     * <b>Individual:</b> Each frame is drawn individually. The resulting image dimension is defined
-     *                    by the drawn frame. Does not take frame centers into account.<br>
-     * <b>Shared:</b> Each frame is drawn onto a canvas of fixed dimension that is big enough to hold
-     *                every single frame without cropping or resizing. Takes frame centers into account.
-     */
-    public enum Mode { INDIVIDUAL, SHARED }
+    /** Definitions of how to render BAM frames. */
+    public enum Mode {
+      /**
+       * Each frame is drawn individually. The resulting image dimension is defined by the
+       * drawn frame. Does not take frame centers into account.
+       */
+      INDIVIDUAL,
+      /**
+       * Each frame is drawn onto a canvas of fixed dimension that is big enough to hold
+       * every single frame without cropping or resizing. Takes frame centers into account.
+       */
+      SHARED
+    }
 
     private final BamDecoder parent;
 
@@ -376,19 +414,21 @@ public abstract class BamDecoder
       if (cycleBased) {
         for (int i = 0; i < cycleFrameCount(); i++) {
           int frame = cycleGetFrameIndexAbsolute(i);
-          int cx = isMirrored ? (parent.getFrameInfo(frame).getWidth() - parent.getFrameInfo(frame).getCenterX() - 1) : parent.getFrameInfo(frame).getCenterX();
+          FrameEntry fe = parent.getFrameInfo(frame);
+          int cx = isMirrored ? (fe.getWidth() - fe.getCenterX() - 1) : fe.getCenterX();
           x1 = Math.min(x1, -cx);
-          y1 = Math.min(y1, -parent.getFrameInfo(frame).getCenterY());
-          x2 = Math.max(x2, parent.getFrameInfo(frame).getWidth() - cx);
-          y2 = Math.max(y2, parent.getFrameInfo(frame).getHeight() - parent.getFrameInfo(frame).getCenterY());
+          y1 = Math.min(y1, -fe.getCenterY());
+          x2 = Math.max(x2, fe.getWidth() - cx);
+          y2 = Math.max(y2, fe.getHeight() - fe.getCenterY());
         }
       } else {
         for (int i = 0; i < parent.frameCount(); i++) {
-          int cx = isMirrored ? (parent.getFrameInfo(i).getWidth() - parent.getFrameInfo(i).getCenterX() - 1) : parent.getFrameInfo(i).getCenterX();
+          FrameEntry fe = parent.getFrameInfo(i);
+          int cx = isMirrored ? (fe.getWidth() - fe.getCenterX() - 1) : fe.getCenterX();
           x1 = Math.min(x1, -cx);
-          y1 = Math.min(y1, -parent.getFrameInfo(i).getCenterY());
-          x2 = Math.max(x2, parent.getFrameInfo(i).getWidth() - cx);
-          y2 = Math.max(y2, parent.getFrameInfo(i).getHeight() - parent.getFrameInfo(i).getCenterY());
+          y1 = Math.min(y1, -fe.getCenterY());
+          x2 = Math.max(x2, fe.getWidth() - cx);
+          y2 = Math.max(y2, fe.getHeight() - fe.getCenterY());
         }
       }
       if (x1 == Integer.MAX_VALUE) x1 = 0;
