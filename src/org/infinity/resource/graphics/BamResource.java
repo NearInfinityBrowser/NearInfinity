@@ -793,13 +793,13 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
 
         if (curCycle >= 0) {
           ((JLabel)buttonControlPanel.getControlByType(CtrlCycleLabel))
-            .setText("Cycle: " + (curCycle + 1) + "/" + bamControl.cycleCount());
+            .setText("Cycle: " + curCycle + "/" + (bamControl.cycleCount() - 1));
           ((JLabel)buttonControlPanel.getControlByType(CtrlFrameLabel))
-            .setText("Frame: " + (curFrame + 1) + "/" + bamControl.cycleFrameCount());
+            .setText("Frame: " + curFrame + "/" + (bamControl.cycleFrameCount() - 1));
         } else {
           ((JLabel)buttonControlPanel.getControlByType(CtrlCycleLabel)).setText("All frames");
           ((JLabel)buttonControlPanel.getControlByType(CtrlFrameLabel))
-            .setText("Frame: " + (curFrame + 1) + "/" + decoder.frameCount());
+            .setText("Frame: " + curFrame + "/" + (decoder.frameCount() - 1));
         }
 
         buttonControlPanel.getControlByType(CtrlPrevCycle).setEnabled(curCycle > -1);
