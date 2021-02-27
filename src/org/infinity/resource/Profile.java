@@ -7,7 +7,10 @@ package org.infinity.resource;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
@@ -237,7 +240,7 @@ public final class Profile implements FileWatcher.FileWatchListener
      *            (Sorted by priority in descending order for Enhanced Editions,
      *             sorted by entries found in ini file for non-enhanced games) */
     GET_GAME_BIFF_FOLDERS,
-    /** Property: {@code Map<String, String>} Map of "Equipped appearance" codes with associated
+    /** Property: ({@code Map<String, String>}) Map of "Equipped appearance" codes with associated
      *            descriptions. Map is generated on first call of {@code getEquippedAppearanceMap()}.
      */
     GET_GAME_EQUIPPED_APPEARANCES,
@@ -249,6 +252,14 @@ public final class Profile implements FileWatcher.FileWatchListener
     IS_GAME_EEEX,
     /** Property: ({@code Boolean}) Has type of current game been forcibly set? */
     IS_FORCED_GAME,
+    /** Property: ({@code Integer}) Returns the Infinity Animations installed version:
+     *  <pre>
+     *            0: not installed
+     *            1: old IA format (v5 or earlier)
+     *            2: new format (v6 or later)
+     * </pre>
+     */
+    GET_INFINITY_ANIMATIONS,
 
     /** Property: ({@code Boolean}) Are {@code 2DA} resources supported? */
     IS_SUPPORTED_2DA,
@@ -2289,6 +2300,52 @@ public final class Profile implements FileWatcher.FileWatchListener
       addEntry(Key.IS_GAME_EEEX, Type.BOOLEAN, FileEx.create(eeexDb).isFile());
     } else {
       addEntry(Key.IS_GAME_EEEX, Type.BOOLEAN, Boolean.FALSE);
+    }
+
+    // Is Infinity Animations installed?
+    boolean isIAv1 = false;
+    boolean isIAv2 = false;
+    if (engine == Engine.BG2) {
+      Path exe = FileManager.queryExisting(getGameRoot(), "bgmain.exe");
+      if (exe != null) {
+        File exeFile = exe.toFile();
+        if (exeFile != null && exeFile.length() == 7839790L) {
+          try (RandomAccessFile raf = new RandomAccessFile(exeFile, "r")) {
+            // checking key signatures
+            final int[] sigCheckV1 = { 0x3db6d84, 0xc6004c48, 0x54464958, 0x004141de, 0xf9 };
+            final int[] sigCheckV2 = { 0x3db6d84, 0xc6004c48, 0x54464958, 0x0041412d, 0xf9 };
+            long ofs[] = { 0x40742cL, 0x40a8daL, 0x7536e7L, 0x407713L };
+            int sig[] = new int[ofs.length + 1];
+            for (int i = 0; i < ofs.length; i++) {
+              // reading int signatures
+              raf.seek(ofs[i]);
+              int b1 = raf.read();
+              int b2 = raf.read();
+              int b3 = raf.read();
+              int b4 = raf.read();
+              if ((b1 | b2 | b3 | b4) < 0) {
+                throw new EOFException();
+              }
+              sig[i] = b1 | (b2 << 8) | (b3 << 16) | (b4 << 24);
+            }
+
+            // reading byte signature
+            raf.seek(0x4595c9L);
+            sig[ofs.length] = raf.read();
+
+            isIAv1 = Arrays.equals(sig, sigCheckV1);
+            isIAv2 = Arrays.equals(sig, sigCheckV2);
+          } catch (IOException e) {
+          }
+        }
+      }
+    }
+    if (isIAv1) {
+      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, Integer.valueOf(1));  // v5 or earlier
+    } else if (isIAv2) {
+      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, Integer.valueOf(2));  // v6 or later
+    } else {
+      addEntry(Key.GET_INFINITY_ANIMATIONS, Type.INTEGER, Integer.valueOf(0));  // not installed
     }
 
     // Add campaign-specific extra folders

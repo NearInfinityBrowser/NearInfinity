@@ -48,6 +48,7 @@ import org.infinity.datatype.UpdateEvent;
 import org.infinity.datatype.UpdateListener;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
+import org.infinity.gui.ChildFrame;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
@@ -727,6 +728,16 @@ public final class CreResource extends AbstractStruct
   {
     super(superStruct, name, data, startoffset);
     isChr = StreamUtils.readString(data, startoffset, 4).equalsIgnoreCase("CHR ");
+  }
+
+  @Override
+  public void close() throws Exception
+  {
+    ViewerAnimation va = ChildFrame.getFirstFrame(ViewerAnimation.class);
+    if (va != null) {
+      va.close();
+    }
+    super.close();
   }
 
   //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
