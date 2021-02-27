@@ -79,11 +79,11 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
 //  private static final String[] s_flag = {"Can't do anything", "Can buy", "Can sell", "Can identify",
 //                                          "Can steal", "Can buy cures", "Can donate",
 //                                          "Can buy drinks", "", "", "Quality Bit 0 (BAM)", "Quality Bit 1 (BAM)"};
-  public static final String[] s_flag_bg2 = {"Can only rest", "Can buy", "Can sell", "Can identify",
-                                              "Can steal", "Can donate;Unused in Enhanced Editions", "Can buy cures",
-                                              "Can buy drinks", null, "EE: Disable donation screen;Disables donation screen in temple stores",
-                                              "Tavern quality 1", "Tavern quality 2", null, "Fence", "EE: Ignore reputation",
-                                              "Ex: Toggle recharge", "EE: Can sell critical"};
+  public static final String[] s_flag_bg2 = {"User can only rest", "User can buy", "User can sell", "User can identify",
+                                              "User can steal", "User can donate;Unused in Enhanced Editions", "User can purchase cures",
+                                              "User can purchase drinks", null, "EE: Disable donation screen;Disables donation screen in temple stores",
+                                              "Tavern quality 1", "Tavern quality 2", null, "User can sell stolen goods", "EE: Ignore reputation",
+                                              "Ex: Toggle item recharge", "EE: User can sell critical items"};
   public static final String[] s_rooms = {"No rooms available", "Peasant", "Merchant", "Noble", "Royal"};
 
   private StructHexViewer hexViewer;
