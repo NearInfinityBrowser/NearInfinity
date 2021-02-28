@@ -376,35 +376,6 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
         randomEntry = ResourceFactory.getResourceEntry("RANDCOLR.2DA");
       }
 
-      // adding color gradients
-      if (colorsEntry != null) {
-        BufferedImage image = null;
-        try {
-          image = new GraphicsResource(colorsEntry).getImage();
-          if (defaultWidth <= 0) {
-            // auto-calculate color width
-            defaultWidth = 192 / image.getWidth();
-          }
-          for (int y = 0; y < image.getHeight(); y++) {
-            BufferedImage range = new BufferedImage(image.getWidth() * defaultWidth, defaultHeight, image.getType());
-            Graphics2D g = range.createGraphics();
-            try {
-              g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-//              g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-              g.drawImage(image, 0, 0, range.getWidth(), range.getHeight(), 0, y, image.getWidth(), y+1, null);
-              g.setColor(Color.BLACK);
-              g.setStroke(new BasicStroke(1.0f));
-              g.drawRect(0, 0, range.getWidth() - 1, range.getHeight() - 1);
-            } finally {
-              g.dispose();
-            }
-            colors.add(range);
-          }
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-
       // collecting valid random color indices
       int maxValue = colors.size() - 1;
       if (randomEntry != null) {
@@ -424,32 +395,84 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
         }
       }
 
-      // adding random/invalid color placeholder
-      maxValue = Math.max(maxValue, 255) + 1;
-      Color invalidColor = new Color(0xe0e0e0);
-      for (int i = colors.size(); i < maxValue; i++) {
-        boolean isRandom = randomColors.contains(Integer.valueOf(i));
-        BufferedImage range = new BufferedImage(12 * defaultWidth, defaultHeight, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = range.createGraphics();
+      // scanning range of colors
+      if (colorsEntry != null) {
+        BufferedImage image = null;
         try {
-          g.setColor(isRandom ? Color.LIGHT_GRAY : invalidColor);
-          g.fillRect(0, 0, range.getWidth(), range.getHeight());
-          g.setFont(new JLabel().getFont());
+          image = new GraphicsResource(colorsEntry).getImage();
+          maxValue = Math.max(maxValue, image.getHeight());
+          if (defaultWidth <= 0) {
+            // auto-calculate color width
+            defaultWidth = 192 / image.getWidth();
+          }
+
+          for (int idx = 0; idx <= maxValue; idx++) {
+            BufferedImage range;
+            if (!randomColors.contains(Integer.valueOf(idx)) && idx < image.getHeight()) {
+              // fixed color
+              range = getFixedColor(image, idx, defaultWidth, defaultHeight);
+            } else {
+              // random color or invalid entry
+              range = getVirtualColor(idx, defaultWidth, defaultHeight);
+            }
+            colors.add(range);
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    // Returns an image derived from the specified color range bitmap
+    private BufferedImage getFixedColor(BufferedImage colorRanges, int index, int width, int height)
+    {
+      BufferedImage retVal = null;
+
+      if (colorRanges != null && index >= 0 && index < colorRanges.getHeight()) {
+        retVal = new BufferedImage(colorRanges.getWidth() * width, height, colorRanges.getType());
+        Graphics2D g = retVal.createGraphics();
+        try {
+          g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+          g.drawImage(colorRanges, 0, 0, retVal.getWidth(), retVal.getHeight(), 0, index, colorRanges.getWidth(), index+1, null);
           g.setColor(Color.BLACK);
           g.setStroke(new BasicStroke(1.0f));
-          g.drawRect(0, 0, range.getWidth() - 1, range.getHeight() - 1);
-          g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
-          String msg = isRandom ? "(Random)" : "(Invalid)";
-          FontMetrics fm = g.getFontMetrics();
-          Rectangle2D rect = fm.getStringBounds(msg, g);
-          g.drawString(msg,
-                      (float)(range.getWidth() - rect.getWidth()) / 2.0f,
-                      (float)(range.getHeight() - rect.getY()) / 2.0f);
+          g.drawRect(0, 0, retVal.getWidth() - 1, retVal.getHeight() - 1);
         } finally {
           g.dispose();
         }
-        colors.add(range);
       }
+
+      return retVal;
+    }
+
+    // Returns an image describing a random color or invalid color entry
+    private BufferedImage getVirtualColor(int index, int width, int height)
+    {
+      BufferedImage retVal = null;
+
+      Color invalidColor = new Color(0xe0e0e0);
+      boolean isRandom = randomColors.contains(Integer.valueOf(index));
+      retVal = new BufferedImage(12 * width, height, BufferedImage.TYPE_INT_RGB);
+      Graphics2D g = retVal.createGraphics();
+      try {
+        g.setColor(isRandom ? Color.LIGHT_GRAY : invalidColor);
+        g.fillRect(0, 0, retVal.getWidth(), retVal.getHeight());
+        g.setFont(new JLabel().getFont());
+        g.setColor(Color.BLACK);
+        g.setStroke(new BasicStroke(1.0f));
+        g.drawRect(0, 0, retVal.getWidth() - 1, retVal.getHeight() - 1);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
+        String msg = isRandom ? "(Random)" : "(Invalid)";
+        FontMetrics fm = g.getFontMetrics();
+        Rectangle2D rect = fm.getStringBounds(msg, g);
+        g.drawString(msg,
+                    (float)(retVal.getWidth() - rect.getWidth()) / 2.0f,
+                    (float)(retVal.getHeight() - rect.getY()) / 2.0f);
+      } finally {
+        g.dispose();
+      }
+
+      return retVal;
     }
   }
 }

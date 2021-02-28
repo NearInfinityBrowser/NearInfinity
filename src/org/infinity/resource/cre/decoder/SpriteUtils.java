@@ -1170,9 +1170,9 @@ public class SpriteUtils
       }
     }
 
-    int[] retVal = colorGradients.getOrDefault(index, null);
-    if (retVal == null && allowRandom) {
-      retVal = getRandomColorGradient(animType, index);
+    int[] retVal = allowRandom ? getRandomColorGradient(animType, index) : null;
+    if (retVal == null) {
+      retVal = colorGradients.getOrDefault(index, null);
     }
 
     return retVal;
