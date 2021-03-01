@@ -95,7 +95,7 @@ public class ItemInfo
     try (final InputStream is = itmEntry.getResourceDataAsStream()) {
       byte[] sig = new byte[8];
       // offset = 0x00
-      Misc.requireCondition(is.read(sig) == 8, "Could not read signature field");
+      Misc.requireCondition(is.read(sig) == 8, "Could not read signature field: " + itmEntry);
       final String signature = new String(sig).toUpperCase(Locale.ENGLISH);
       switch (signature) {
         case "ITM V1  ":
@@ -107,7 +107,7 @@ public class ItemInfo
       }
 
       // flags (common)
-      Misc.requireCondition(is.skip(0x10) == 0x10, "Could not advance in data stream");
+      Misc.requireCondition(is.skip(0x10) == 0x10, "Could not advance in data stream: " + itmEntry);
       // offset = 0x18
       this.flags = StreamUtils.readInt(is);
 
@@ -127,29 +127,29 @@ public class ItemInfo
       this.unusableKits = 0;
       if (!"ITM V1.1".equals(signature)) {
         int v;
-        Misc.requireCondition(is.skip(5) == 5, "Could not advance in data stream");
+        Misc.requireCondition(is.skip(5) == 5, "Could not advance in data stream: " + itmEntry);
         // offset = 0x29
-        Misc.requireCondition((v = is.read()) != -1, "Could not read kits usability field");
+        Misc.requireCondition((v = is.read()) != -1, "Could not read kits usability field: " + itmEntry);
         this.unusableKits |= (v << 24);
-        Misc.requireCondition(is.skip(1) == 1, "Could not advance in data stream");
+        Misc.requireCondition(is.skip(1) == 1, "Could not advance in data stream: " + itmEntry);
         // offset = 0x2b
-        Misc.requireCondition((v = is.read()) != -1, "Could not read kits usability field");
+        Misc.requireCondition((v = is.read()) != -1, "Could not read kits usability field: " + itmEntry);
         this.unusableKits |= (v << 16);
-        Misc.requireCondition(is.skip(1) == 1, "Could not advance in data stream");
+        Misc.requireCondition(is.skip(1) == 1, "Could not advance in data stream: " + itmEntry);
         // offset = 0x2d
-        Misc.requireCondition((v = is.read()) != -1, "Could not read kits usability field");
+        Misc.requireCondition((v = is.read()) != -1, "Could not read kits usability field: " + itmEntry);
         this.unusableKits |= (v << 8);
-        Misc.requireCondition(is.skip(1) == 1, "Could not advance in data stream");
+        Misc.requireCondition(is.skip(1) == 1, "Could not advance in data stream: " + itmEntry);
         // offset = 0x2f
-        Misc.requireCondition((v = is.read()) != -1, "Could not read kits usability field");
+        Misc.requireCondition((v = is.read()) != -1, "Could not read kits usability field: " + itmEntry);
         this.unusableKits |= v;
       } else {
         // to keep stream position synchronized
-        Misc.requireCondition(is.skip(0xc) == 0xc, "Could not advance in data stream");
+        Misc.requireCondition(is.skip(0xc) == 0xc, "Could not advance in data stream: " + itmEntry);
       }
 
       // abilities (common: ofs, num, header)
-      Misc.requireCondition(is.skip(0x34) == 0x34, "Could not advance in data stream");
+      Misc.requireCondition(is.skip(0x34) == 0x34, "Could not advance in data stream: " + itmEntry);
       // offset = 0x64
       int ofsAbil = StreamUtils.readInt(is);    // abilities offset
       int numAbil = StreamUtils.readShort(is);  // abilities count
@@ -162,25 +162,27 @@ public class ItemInfo
 
       // reading global color effects (attempt 1)
       int skip;
-      if (ofsFx < ofsAbil) {
+      if (numFx > 0 && ofsFx < ofsAbil) {
         skip = ofsFx - curOfs;
-        Misc.requireCondition(is.skip(skip) == skip, "Could not advance in data stream");
+        Misc.requireCondition(is.skip(skip) == skip, "Could not advance in data stream: " + itmEntry);
         curOfs += skip;
         // offset = [ofsFx]
         curOfs += readEffects(is, numFx);
       }
 
       // reading ability types
-      skip = ofsAbil - curOfs;
-      Misc.requireCondition(skip >= 0 && is.skip(skip) == skip, "Could not advance in data stream");
-      curOfs += skip;
-      // offset = [ofsAbil]
-      curOfs += readAbilities(is, numAbil);
+      if (numAbil > 0) {
+        skip = ofsAbil - curOfs;
+        Misc.requireCondition(skip >= 0 && is.skip(skip) == skip, "Could not advance in data stream: " + itmEntry);
+        curOfs += skip;
+        // offset = [ofsAbil]
+        curOfs += readAbilities(is, numAbil);
+      }
 
       // reading global color effects (attempt 2)
-      if (ofsFx >= ofsAbil) {
+      if (numFx > 0 && ofsFx >= ofsAbil) {
         skip = ofsFx - curOfs;
-        Misc.requireCondition(skip >= 0 && is.skip(skip) == skip, "Could not advance in data stream");
+        Misc.requireCondition(skip >= 0 && is.skip(skip) == skip, "Could not advance in data stream: " + itmEntry);
         curOfs += skip;
         // offset = [ofsFx]
         curOfs += readEffects(is, numFx);
@@ -201,7 +203,7 @@ public class ItemInfo
         int param1 = StreamUtils.readInt(is);
         int param2 = StreamUtils.readInt(is);
         int timing = is.read();
-        Misc.requireCondition(is.skip(0x23) == 0x23, "Could not advance in data stream");
+        Misc.requireCondition(is.skip(0x23) == 0x23, "Could not advance in data stream: " + itmEntry);
         if (target == 1 && timing ==2) {
           // self target; on equip
           SegmentDef.SpriteType type = null;
@@ -229,7 +231,7 @@ public class ItemInfo
         }
       } else {
         // sync stream offset
-        Misc.requireCondition(is.skip(0x2e) == 0x2e, "Could not advance in data stream");
+        Misc.requireCondition(is.skip(0x2e) == 0x2e, "Could not advance in data stream: " + itmEntry);
       }
       retVal += 0x30;
       num--;
@@ -244,7 +246,7 @@ public class ItemInfo
     while (num > 0) {
       this.abilities[this.abilities.length - num] = StreamUtils.readShort(is);
       retVal += 2;
-      Misc.requireCondition(is.skip(0x36) == 0x36, "Could not advance in data stream");
+      Misc.requireCondition(is.skip(0x36) == 0x36, "Could not advance in data stream: " + itmEntry);
       retVal += 0x36;
       num--;
     }
