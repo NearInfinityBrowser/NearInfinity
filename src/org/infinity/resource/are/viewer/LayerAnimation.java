@@ -38,6 +38,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation, AreResource
   @Override
   protected void loadLayer()
   {
+    // loading animations from ARE
     loadLayerItems(ARE_OFFSET_ANIMATIONS, ARE_NUM_ANIMATIONS,
                    Animation.class, a -> new LayerObjectAnimation(parent, a));
 
@@ -83,11 +84,11 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation, AreResource
     for (int i = 0, size = list.size(); i < size; i++) {
       boolean state = isLayerVisible() && (!isScheduleEnabled() || isScheduled(i));
       LayerObjectAnimation obj = list.get(i);
-      IconLayerItem iconItem = (IconLayerItem)obj.getLayerItem(ViewerConstants.ANIM_ITEM_ICON);
+      IconLayerItem iconItem = (IconLayerItem)obj.getLayerItem(ViewerConstants.ITEM_ICON);
       if (iconItem != null) {
         iconItem.setVisible(state && !realEnabled);
       }
-      AnimatedLayerItem animItem = (AnimatedLayerItem)obj.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+      AnimatedLayerItem animItem = (AnimatedLayerItem)obj.getLayerItem(ViewerConstants.ITEM_REAL);
       if (animItem != null) {
         animItem.setVisible(state && realEnabled);
         if (isRealAnimationEnabled() && isRealAnimationPlaying()) {
@@ -110,7 +111,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation, AreResource
   }
 
   /**
-   * Sets the interpolation type for real animations
+   * Sets the interpolation type for real animations.
    * @param interpolationType Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR,
    *                          ViewerConstants.TYPE_NEAREST_BILINEAR or ViewerConstants.TYPE_BICUBIC.
    */
@@ -119,7 +120,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation, AreResource
     if (interpolationType != this.interpolationType) {
       this.interpolationType = interpolationType;
       for (final LayerObjectAnimation layer : getLayerObjects()) {
-        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
         if (item != null) {
           item.setInterpolationType(interpolationType);
         }
@@ -145,7 +146,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation, AreResource
     if (forced != forcedInterpolation) {
       forcedInterpolation = forced;
       for (final LayerObjectAnimation layer : getLayerObjects()) {
-        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
         if (item != null) {
           item.setForcedInterpolation(forced);
         }
@@ -249,7 +250,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation, AreResource
     if (frameRate != this.frameRate) {
       this.frameRate = frameRate;
       for (final LayerObjectAnimation layer : getLayerObjects()) {
-        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
         if (item != null) {
           item.setFrameRate(frameRate);
         }
@@ -274,10 +275,10 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation, AreResource
   {
     isAnimActiveIgnored = set;
     for (final LayerObjectAnimation layer : getLayerObjects()) {
-      final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+      final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
       if (item != null) {
-        if (item.getAnimation() instanceof BackgroundAnimationProvider) {
-          ((BackgroundAnimationProvider)item.getAnimation()).setActiveIgnored(set);
+        if (item.getAnimation() instanceof AbstractAnimationProvider) {
+          ((AbstractAnimationProvider)item.getAnimation()).setActiveIgnored(set);
         }
       }
     }
@@ -287,7 +288,7 @@ public class LayerAnimation extends BasicLayer<LayerObjectAnimation, AreResource
   private void updateFrameState()
   {
     for (final LayerObjectAnimation layer : getLayerObjects()) {
-      final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ANIM_ITEM_REAL);
+      final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
       if (item != null) {
         switch (frameState) {
           case ViewerConstants.FRAME_NEVER:

@@ -180,9 +180,12 @@ public class TilesetRenderer extends RenderCanvas
   /**
    * Removes the current map and all associated data from memory.
    */
-  public void clear()
+  public void dispose()
   {
     release(true);
+    if (getImage() instanceof VolatileImage) {
+      ((VolatileImage)getImage()).flush();
+    }
   }
 
   /**
@@ -634,9 +637,12 @@ public class TilesetRenderer extends RenderCanvas
       if (img != null) {
         if (forceUpdate) {
           Graphics2D g = (Graphics2D)img.getGraphics();
-          g.setBackground(new Color(0, true));
-          g.clearRect(0, 0, img.getWidth(null), img.getHeight(null));
-          g.dispose();
+          try {
+            g.setBackground(new Color(0, true));
+            g.clearRect(0, 0, img.getWidth(null), img.getHeight(null));
+          } finally {
+            g.dispose();
+          }
           repaint();
         }
       }

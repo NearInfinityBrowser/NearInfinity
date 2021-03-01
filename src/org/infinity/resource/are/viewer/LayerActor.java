@@ -7,6 +7,9 @@ package org.infinity.resource.are.viewer;
 import java.util.List;
 import java.util.Locale;
 
+import org.infinity.gui.layeritem.AbstractLayerItem;
+import org.infinity.gui.layeritem.AnimatedLayerItem;
+import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.are.Actor;
 import org.infinity.resource.are.AreResource;
@@ -24,6 +27,11 @@ import org.infinity.util.IniMapSection;
 public class LayerActor extends BasicLayer<LayerObjectActor, AreResource>
 {
   private static final String AvailableFmt = "Actors: %d";
+
+  private boolean realEnabled, realPlaying, forcedInterpolation, selectionCircleEnabled, personalSpaceEnabled;
+  private int frameState;
+  private Object interpolationType = ViewerConstants.TYPE_NEAREST_NEIGHBOR;
+  private double frameRate = ViewerConstants.FRAME_AUTO;
 
   public LayerActor(AreResource are, AreaViewer viewer)
   {
@@ -61,6 +69,9 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource>
         }
       }
     }
+
+    // sorting entries by vertical position to fix overlapping issues
+    getLayerObjects().sort((c1, c2) -> c2.location.y - c1.location.y);
   }
 
   @Override
@@ -68,5 +79,264 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource>
   {
     int cnt = getLayerObjectCount();
     return String.format(AvailableFmt, cnt);
+  }
+
+  /**
+   * Sets the visibility state of all items in the layer. Takes enabled states of the different
+   * item types into account.
+   */
+  @Override
+  public void setLayerVisible(boolean visible)
+  {
+    setVisibilityState(visible);
+    List<LayerObjectActor> list = getLayerObjects();
+    for (int i = 0, size = list.size(); i < size; i++) {
+      boolean state = isLayerVisible() && (!isScheduleEnabled() || isScheduled(i));
+      LayerObjectActor obj = list.get(i);
+      IconLayerItem iconItem = (IconLayerItem)obj.getLayerItem(ViewerConstants.ITEM_ICON);
+      if (iconItem != null) {
+        iconItem.setVisible(state && !realEnabled);
+      }
+      AnimatedLayerItem animItem = (AnimatedLayerItem)obj.getLayerItem(ViewerConstants.ITEM_REAL);
+      if (animItem != null) {
+        animItem.setVisible(state && realEnabled);
+        if (isRealActorEnabled() && isRealActorPlaying()) {
+          animItem.play();
+        } else {
+          animItem.stop();
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns the currently active interpolation type for real actors.
+   * @return Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR, ViewerConstants.TYPE_NEAREST_BILINEAR
+   *         or ViewerConstants.TYPE_BICUBIC.
+   */
+  public Object getRealActorInterpolation()
+  {
+    return interpolationType;
+  }
+
+  /**
+   * Sets the interpolation type for real actors.
+   * @param interpolationType Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR,
+   *                          ViewerConstants.TYPE_NEAREST_BILINEAR or ViewerConstants.TYPE_BICUBIC.
+   */
+  public void setRealActorInterpolation(Object interpolationType)
+  {
+    if (interpolationType != this.interpolationType) {
+      this.interpolationType = interpolationType;
+      for (final LayerObjectActor layer : getLayerObjects()) {
+        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
+        if (item != null) {
+          item.setInterpolationType(interpolationType);
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns whether to force the specified interpolation type or use the best one available, depending
+   * on the current zoom factor.
+   */
+  public boolean isRealActorForcedInterpolation()
+  {
+    return forcedInterpolation;
+  }
+
+  /**
+   * Specify whether to force the specified interpolation type or use the best one available, depending
+   * on the current zoom factor.
+   */
+  public void setRealActorForcedInterpolation(boolean forced)
+  {
+    if (forced != forcedInterpolation) {
+      forcedInterpolation = forced;
+      for (final LayerObjectActor layer : getLayerObjects()) {
+        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
+        if (item != null) {
+          item.setForcedInterpolation(forced);
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns whether real actor items or iconic actor items are enabled.
+   * @return If {@code true}, real actor items are enabled.
+   *         If {@code false}, iconic actor items are enabled.
+   */
+  public boolean isRealActorEnabled()
+  {
+    return realEnabled;
+  }
+
+  /**
+   * Specify whether iconic actor type or real actor type is enabled.
+   * @param enable If {@code true}, real actor items will be shown.
+   *               If {@code false}, iconic actor items will be shown.
+   */
+  public void setRealActorEnabled(boolean enable)
+  {
+    if (enable != realEnabled) {
+      realEnabled = enable;
+      if (isLayerVisible()) {
+        setLayerVisible(isLayerVisible());
+      }
+    }
+  }
+
+  /**
+   * Returns whether real actor items are enabled and animated.
+   */
+  public boolean isRealActorPlaying()
+  {
+    return realEnabled && realPlaying;
+  }
+
+  /**
+   * Specify whether real actor should be animated. Setting to {@code true} will enable
+   * real actors automatically.
+   */
+  public void setRealActorPlaying(boolean play)
+  {
+    if (play != realPlaying) {
+      realPlaying = play;
+      if (realPlaying && !realEnabled) {
+        realEnabled = true;
+      }
+      if (isLayerVisible()) {
+        setLayerVisible(isLayerVisible());
+      }
+    }
+  }
+
+  /**
+   * Returns the current frame visibility.
+   * @return One of ViewerConstants.FRAME_NEVER, ViewerConstants.FRAME_AUTO or ViewerConstants.FRAME_ALWAYS.
+   */
+  public int getRealActorFrameState()
+  {
+    return frameState;
+  }
+
+  /**
+   * Specify the frame visibility for real actors
+   * @param state One of ViewerConstants.FRAME_NEVER, ViewerConstants.FRAME_AUTO or ViewerConstants.FRAME_ALWAYS.
+   */
+  public void setRealActorFrameState(int state)
+  {
+    switch (state) {
+      case ViewerConstants.FRAME_NEVER:
+      case ViewerConstants.FRAME_AUTO:
+      case ViewerConstants.FRAME_ALWAYS:
+      {
+        frameState = state;
+        updateFrameState();
+        break;
+      }
+    }
+  }
+
+  /**
+   * Returns whether selection circle of actor sprites is enabled.
+   */
+  public boolean isRealActorSelectionCircleEnabled()
+  {
+    return selectionCircleEnabled;
+  }
+
+  /**
+   * Specify whether selection circle of actor sprites is enabled.
+   */
+  public void setRealActorSelectionCircleEnabled(boolean enable)
+  {
+    if (enable != selectionCircleEnabled) {
+      selectionCircleEnabled = enable;
+      for (final LayerObjectActor layer : getLayerObjects()) {
+        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
+        if (item.getAnimation() instanceof ActorAnimationProvider) {
+          ActorAnimationProvider aap = (ActorAnimationProvider)item.getAnimation();
+          aap.setSelectionCircleEnabled(selectionCircleEnabled);
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns whether personal space indicator of actor sprites is enabled.
+   */
+  public boolean isRealActorPersonalSpaceEnabled()
+  {
+    return personalSpaceEnabled;
+  }
+
+  /**
+   * Specify whether personal space indicator of actor sprites is enabled.
+   */
+  public void setRealActorPersonalSpaceEnabled(boolean enable)
+  {
+    if (enable != personalSpaceEnabled) {
+      personalSpaceEnabled = enable;
+      for (final LayerObjectActor layer : getLayerObjects()) {
+        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
+        if (item.getAnimation() instanceof ActorAnimationProvider) {
+          ActorAnimationProvider aap = (ActorAnimationProvider)item.getAnimation();
+          aap.setPersonalSpaceEnabled(personalSpaceEnabled);
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns the frame rate used for playing back actor sprites.
+   * @return Frame rate in frames/second.
+   */
+  public double getRealActorFrameRate()
+  {
+    return frameRate;
+  }
+
+  /**
+   * Specify a new frame rate for real actors.
+   * @param frameRate Frame rate in frames/second.
+   */
+  public void setRealActorFrameRate(double frameRate)
+  {
+    frameRate = Math.min(Math.max(frameRate, 1.0), 30.0);
+    if (frameRate != this.frameRate) {
+      this.frameRate = frameRate;
+      for (final LayerObjectActor layer : getLayerObjects()) {
+        final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
+        if (item != null) {
+          item.setFrameRate(frameRate);
+        }
+      }
+    }
+  }
+
+  private void updateFrameState()
+  {
+    for (final LayerObjectActor layer : getLayerObjects()) {
+      final AnimatedLayerItem item = (AnimatedLayerItem)layer.getLayerItem(ViewerConstants.ITEM_REAL);
+      if (item != null) {
+        switch (frameState) {
+          case ViewerConstants.FRAME_NEVER:
+            item.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, false);
+            item.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, false);
+            break;
+          case ViewerConstants.FRAME_AUTO:
+            item.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, false);
+            item.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, true);
+            break;
+          case ViewerConstants.FRAME_ALWAYS:
+            item.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, true);
+            item.setFrameEnabled(AbstractLayerItem.ItemState.HIGHLIGHTED, true);
+            break;
+        }
+      }
+    }
   }
 }

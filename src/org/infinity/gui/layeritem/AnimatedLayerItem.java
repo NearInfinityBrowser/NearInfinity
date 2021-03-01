@@ -8,6 +8,7 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
@@ -175,6 +176,22 @@ public class AnimatedLayerItem extends AbstractLayerItem
       forcedInterpolation = set;
       updateFrame();
     }
+  }
+
+  /**
+   * Returns the {@link Composite} object assigned to the canvas.
+   */
+  public Composite getComposite()
+  {
+    return rcCanvas.getComposite();
+  }
+
+  /**
+   * Sets the {@link Composite} object for the canvas.
+   */
+  public void setComposite(Composite comp)
+  {
+    rcCanvas.setComposite(comp);
   }
 
   /**
