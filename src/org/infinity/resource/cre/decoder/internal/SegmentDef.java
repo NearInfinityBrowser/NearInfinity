@@ -58,7 +58,7 @@ public class SegmentDef
     /** The same as {@link #CUT} but runs from end to start. */
     REVERSE_CUT;
 
-    private static EnumMap<Behavior, Behavior> opposites = new EnumMap<Behavior, Behavior>(Behavior.class) {{
+    private static final EnumMap<Behavior, Behavior> opposites = new EnumMap<Behavior, Behavior>(Behavior.class) {{
       put(REPEAT, REVERSE_REPEAT);
       put(SINGLE, REVERSE_SINGLE);
       put(FREEZE, REVERSE_FREEZE);

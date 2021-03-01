@@ -7,6 +7,7 @@ package org.infinity.resource.cre.decoder;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -50,6 +51,7 @@ import org.infinity.resource.cre.decoder.tables.SpriteTables;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.BamV1Decoder.BamV1Control;
+import org.infinity.resource.graphics.BlendingComposite;
 import org.infinity.resource.key.BufferedResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
@@ -877,10 +879,11 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   /** Recreates the creature animation based on the current creature resource. */
   public void reset() throws Exception
   {
+    Direction[] directions = getDirectionMap().keySet().toArray(new Direction[getDirectionMap().keySet().size()]);
     discard();
     // recreating current sequence
     if (getCurrentSequence() != Sequence.NONE) {
-      createSequence(getCurrentSequence());
+      createSequence(getCurrentSequence(), directions);
     }
   }
 
@@ -900,6 +903,20 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
    */
   public boolean loadSequence(Sequence seq) throws Exception
   {
+    return loadSequence(seq, null);
+  }
+
+  /**
+   * Loads selected directions of the specified sequence if available. Discards the currently active sequence.
+   * Call {@code reset()} instead to enforce reloading the same sequence with different
+   * creature attributes.
+   * @param seq the animation sequence to load. Specifying {@code Sequence.None} only discards the current sequence.
+   * @param directions array with directions allowed to be created. Specify {@code null} to create animations
+   *                   for all directions.
+   * @return whether the sequence was successfully loaded.
+   */
+  public boolean loadSequence(Sequence seq, Direction[] directions) throws Exception
+  {
     boolean retVal = true;
 
     if (getCurrentSequence() != Objects.requireNonNull(seq, "Animation sequence cannot be null")) {
@@ -907,7 +924,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       discard();
 
       try {
-        createSequence(seq);
+        createSequence(seq, directions);
         currentSequence = seq;
       } catch (NullPointerException e) {
         retVal = (seq != Sequence.NONE);
@@ -928,6 +945,48 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /** Returns whether the specified animation sequence is available for the current creature animation. */
   public abstract boolean isSequenceAvailable(Sequence seq);
+
+  /**
+   * Returns the closest available direction to the specified direction.
+   * @param dir the requested direction
+   * @return an available {@code Direction} that is closest to the specified direction.
+   *         Returns {@code null} if no direction is available.
+   */
+  public Direction getExistingDirection(Direction dir)
+  {
+    Direction retVal = null;
+
+    if (dir == null) {
+      return retVal;
+    }
+    if (getDirectionMap().containsKey(dir)) {
+      return dir;
+    }
+    SeqDef sd = getSequenceDefinition(getCurrentSequence());
+    if (sd == null || sd.isEmpty()) {
+      return retVal;
+    }
+
+    int dirIdx = dir.getValue();
+    int dirLen = Direction.values().length;
+    int maxRange = dirLen / 2;
+    for (int range = 1; range <= maxRange; range++) {
+      int dist = (dirIdx + range + dirLen) % dirLen;
+      Direction distDir = Direction.from(dist);
+      if (getDirectionMap().containsKey(distDir)) {
+        retVal = distDir;
+        break;
+      }
+      dist = (dirIdx - range + dirLen) % dirLen;
+      distDir = Direction.from(dist);
+      if (getDirectionMap().containsKey(distDir)) {
+        retVal = distDir;
+        break;
+      }
+    }
+
+    return retVal;
+  }
 
   /** Provides access to the {@link CreatureInfo} instance associated with the sprite decoder. */
   public CreatureInfo getCreatureInfo()
@@ -1316,30 +1375,23 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     animationChanged = false;
   }
 
-  // TODO: uncommment when Composite is implemented
   /**
    * Returns the preferred compositor for rendering the sprite on the target surface.
    */
-//  public Composite getBlendingComposite()
-//  {
-//    Composite retVal;
-//    int blending = ((isBrightest()     ? 1 : 0) << 0) |
-//                   ((isMultiplyBlend() ? 1 : 0) << 1);
-//    switch (blending) {
-//      case 1:   // brightest
-//        retVal = BlendingComposite.Brightest;
-//        break;
-//      case 2:   // multiply
-//        retVal = BlendingComposite.Multiply;
-//        break;
-//      case 3:   // brightest + multiply
-//        retVal = BlendingComposite.BrightestMultiply;
-//        break;
-//      default:
-//        retVal = BlendingComposite.SrcOver;
-//    }
-//    return retVal;
-//  }
+  public Composite getComposite()
+  {
+    int blending = ((isBrightest() ? 1 : 0) << 0) | ((isMultiplyBlend() ? 1 : 0) << 1);
+    switch (blending) {
+      case 1:   // brightest
+        return BlendingComposite.Brightest;
+      case 2:   // multiply
+        return BlendingComposite.Multiply;
+      case 3:   // brightest + multiply
+        return BlendingComposite.BrightestMultiply;
+      default:
+        return AlphaComposite.SrcOver;
+    }
+  }
 
   /** Creates the BAM structure for the creature animation. */
   protected abstract void init() throws Exception;
@@ -1468,16 +1520,33 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Loads the specified animation sequence into the SpriteDecoder.
-   * @param seq The sequence to load.
+   * @param seq the sequence to load.
    * @throws NullPointerException if specified sequence is not available.
    */
   protected void createSequence(Sequence seq) throws Exception
   {
     SeqDef sd = Objects.requireNonNull(getSequenceDefinition(seq), "Sequence not available: " + (seq != null ? seq : "(null)"));
-    createAnimation(sd, FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_DST_FRAME);
+    createAnimation(sd, null, FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_DST_FRAME);
   }
 
-  protected void createAnimation(SeqDef definition,
+  /**
+   * Loads the specified animation sequence into the SpriteDecoder.
+   * Only directions listed in the given {@code Direction} array will be considered.
+   * @param seq the sequence to load.
+   * @param directions an array of {@code Direction} values. Only directions listed in the array
+   *                   are considered by the creation process. Specify {@code null} to allow all directions.
+   * @throws NullPointerException if specified sequence is not available.
+   */
+  protected void createSequence(Sequence seq, Direction[] directions) throws Exception
+  {
+    SeqDef sd = Objects.requireNonNull(getSequenceDefinition(seq), "Sequence not available: " + (seq != null ? seq : "(null)"));
+    if (directions == null) {
+      directions = Direction.values();
+    }
+    createAnimation(sd, Arrays.asList(directions), FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_DST_FRAME);
+  }
+
+  protected void createAnimation(SeqDef definition, List<Direction> directions,
                                  BiConsumer<BamV1Control, SegmentDef> beforeSrcBam,
                                  Function<BufferedImage, BufferedImage> beforeSrcImage,
                                  BiConsumer<DirDef, Integer> afterDstFrame)
@@ -1487,7 +1556,17 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     ResourceEntry entry = null;
     definition = Objects.requireNonNull(definition, "Sequence definition cannot be null");
 
+    if (directions == null) {
+      directions = Arrays.asList(Direction.values());
+    }
+    if (directions.isEmpty()) {
+      return;
+    }
+
     for (final DirDef dd : definition.getDirections()) {
+      if (!directions.contains(dd.getDirection())) {
+        continue;
+      }
       CycleDef cd = dd.getCycle();
       int cycleIndex = dstCtrl.cycleAdd();
       addDirection(dd.getDirection(), cycleIndex);
