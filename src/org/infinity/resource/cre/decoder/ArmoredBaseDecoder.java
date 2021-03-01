@@ -18,6 +18,7 @@ import org.infinity.resource.itm.Ability;
 import org.infinity.resource.itm.ItmResource;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapSection;
+import org.infinity.util.Misc;
 
 /**
  * Common base for processing creature animations with different armor levels.
@@ -96,11 +97,7 @@ public abstract class ArmoredBaseDecoder extends SpriteDecoder
     ItmResource itm = SpriteUtils.getEquippedArmor(getCreResource());
     if (itm != null) {
       String code = ((IsTextual)itm.getAttribute(ItmResource.ITM_EQUIPPED_APPEARANCE)).getText();
-      try {
-        retVal = Math.max(1, Math.min(getMaxArmorCode(), Integer.parseInt(code.substring(0, 1))));
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+      retVal = Math.max(1, Math.min(getMaxArmorCode(), Misc.toNumber(code.substring(0, 1), 1)));
     }
     return retVal;
   }

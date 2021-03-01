@@ -206,11 +206,10 @@ public class MonsterLayeredSpellDecoder extends SpriteDecoder
     // defining weapon overlay for current creature
     ItmResource itm = SpriteUtils.getEquippedWeapon(getCreResource());
     if (itm != null) {
-      String weapon = SpriteUtils.getItemAppearance(itm);
+      String weapon = SpriteUtils.getItemAppearance(itm).trim();
       if (!weapon.isEmpty()) {
         weapon = weapon.substring(0, 1);
       }
-      weapon = weapon.trim();
       if (!getWeapon1Overlay().startsWith(weapon) && !getWeapon2Overlay().startsWith(weapon)) {
         weapon = "";
       }

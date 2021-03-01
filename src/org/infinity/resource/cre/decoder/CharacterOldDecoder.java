@@ -300,7 +300,7 @@ public class CharacterOldDecoder extends ArmoredBaseDecoder
     if (isHelmetEquipped()) {
       String prefix = getHelmetHeightCode();
       if (!prefix.isEmpty()) {
-        String code = SpriteUtils.getItemAppearance(SpriteUtils.getEquippedHelmet(getCreResource()));
+        String code = SpriteUtils.getItemAppearance(SpriteUtils.getEquippedHelmet(getCreResource())).trim();
         if (code.length() == 2) {
           resrefList.add(Couple.with(prefix + code, SegmentDef.SpriteType.HELMET));
         }
@@ -312,7 +312,7 @@ public class CharacterOldDecoder extends ArmoredBaseDecoder
       String prefix = getHeightCode();
       if (!prefix.isEmpty()) {
         ItmResource itm = SpriteUtils.getEquippedShield(getCreResource());
-        String code = SpriteUtils.getItemAppearance(itm);
+        String code = SpriteUtils.getItemAppearance(itm).trim();
         if (!code.isEmpty()) {
           resrefList.add(Couple.with(prefix + code, SegmentDef.SpriteType.SHIELD));
         }
@@ -321,7 +321,7 @@ public class CharacterOldDecoder extends ArmoredBaseDecoder
       // adding weapon overlay
       prefix = getHeightCode();
       if (!prefix.isEmpty()) {
-        String code = SpriteUtils.getItemAppearance(itmWeapon);
+        String code = SpriteUtils.getItemAppearance(itmWeapon).trim();
         if (code.length() == 2) {
           if (ResourceFactory.resourceExists(prefix + code + suffix + ".BAM")) {
             resrefList.add(Couple.with(prefix + code, SegmentDef.SpriteType.WEAPON));
