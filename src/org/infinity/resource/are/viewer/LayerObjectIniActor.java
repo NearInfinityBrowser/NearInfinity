@@ -42,6 +42,7 @@ public class LayerObjectIniActor extends LayerObjectActor
   private final PlainTextResource ini;
   private final IniMapSection creData;
   private final int creIndex;
+  private final CreResource cre;
 
   /**
    * Creates a new {@code LayerObjectIniActor} instance.
@@ -64,7 +65,7 @@ public class LayerObjectIniActor extends LayerObjectActor
     if (creEntry == null) {
       throw new IllegalArgumentException(creData.getName() + ": Invalid CRE resref (" + creName + ")");
     }
-    ActorAnimationProvider sprite = null;
+
     CreResource cre = null;
     try {
       cre = new CreResource(creEntry);
@@ -73,14 +74,12 @@ public class LayerObjectIniActor extends LayerObjectActor
       throw new IllegalArgumentException(creData.getName() + ": Invalid CRE resource", e);
     }
 
-    // initializations
-    String sectionName = creData.getName();
-    final String msg = cre.getAttribute(CreResource.CRE_NAME).toString() + " [" + sectionName + "]";
+    this.cre = cre;
 
+    // initializations
     int[] pos = getCreatureLocation();
     location.x = pos[0];
     location.y = pos[1];
-    int orientation = (pos.length > 2) ? pos[2] : 0;
 
     // setting creature allegiance
     int ea = ((IsNumeric)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
@@ -91,33 +90,28 @@ public class LayerObjectIniActor extends LayerObjectActor
       ea = object[0];
     }
 
-    try {
-      sprite = createAnimationProvider(cre);
-      sprite.setOrientation(orientation);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
     // Using cached icons
     Image[] icons = ICONS.get(getAllegiance(ea));
     icons = getIcons(icons);
 
+    String tooltip = getTooltip();
     ini.setHighlightedLine(creData.getLine() + 1);
-    IconLayerItem item1 = new IconLayerItem(ini, msg, icons[0], CENTER);
+
+    IconLayerItem item1 = new IconLayerItem(ini, tooltip, icons[0], CENTER);
     item1.setLabelEnabled(Settings.ShowLabelActorsIni);
     item1.setName(getCategory());
-    item1.setToolTipText(msg);
+    item1.setToolTipText(tooltip);
     item1.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
     item1.setVisible(isVisible());
     items[0] = item1;
 
-    AnimatedLayerItem item2 = new AnimatedLayerItem(ini, msg, sprite);
+    // payload is initialized on demand
+    AnimatedLayerItem item2 = new AnimatedLayerItem(ini, tooltip, AbstractAnimationProvider.DEFAULT_ANIMATION_PROVIDER);
     item2.setName(getCategory());
-    item2.setToolTipText(msg);
+    item2.setToolTipText(tooltip);
     item2.setVisible(false);
-    item2.setFrameRate(10.0);
+    item2.setFrameRate(Settings.getDefaultFrameRateAnimations());
     item2.setAutoPlay(false);
-    item2.setComposite(Settings.UseActorAccurateBlending ? sprite.getDecoder().getComposite() : null);
     item2.setFrameColor(AbstractLayerItem.ItemState.NORMAL, COLOR_FRAME_NORMAL);
     item2.setFrameWidth(AbstractLayerItem.ItemState.NORMAL, 2);
     item2.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, false);
@@ -137,7 +131,6 @@ public class LayerObjectIniActor extends LayerObjectActor
     return creIndex;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -175,5 +168,31 @@ public class LayerObjectIniActor extends LayerObjectActor
     return retVal;
   }
 
-  //</editor-fold>
+  @Override
+  public synchronized void loadAnimation()
+  {
+    if (items[1] instanceof AnimatedLayerItem) {
+      AnimatedLayerItem item = (AnimatedLayerItem)items[1];
+      if (item.getAnimation() == AbstractAnimationProvider.DEFAULT_ANIMATION_PROVIDER) {
+        try {
+          int[] pos = getCreatureLocation();
+          int orientation = (pos.length > 2) ? pos[2] : 0;
+          ActorAnimationProvider sprite = createAnimationProvider(cre);
+          sprite.setOrientation(orientation);
+
+          item.setAnimation(sprite);
+          item.setComposite(Settings.UseActorAccurateBlending ? sprite.getDecoder().getComposite() : null);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+
+  /** Tooltip for actor object. */
+  private String getTooltip()
+  {
+    String sectionName = creData.getName();
+    return cre.getAttribute(CreResource.CRE_NAME).toString() + " [" + sectionName + "]";
+  }
 }

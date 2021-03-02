@@ -4,9 +4,15 @@
 
 package org.infinity.resource.are.viewer;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.List;
 import java.util.Locale;
 
+import javax.swing.ProgressMonitor;
+import javax.swing.SwingWorker;
+
+import org.infinity.gui.WindowBlocker;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.AnimatedLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
@@ -24,7 +30,7 @@ import org.infinity.util.IniMapSection;
 /**
  * Manages actor layer objects.
  */
-public class LayerActor extends BasicLayer<LayerObjectActor, AreResource>
+public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implements PropertyChangeListener
 {
   private static final String AvailableFmt = "Actors: %d";
 
@@ -32,6 +38,8 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource>
   private int frameState;
   private Object interpolationType = ViewerConstants.TYPE_NEAREST_NEIGHBOR;
   private double frameRate = ViewerConstants.FRAME_AUTO;
+  private SwingWorker<Void, Void> loadWorker;
+  private WindowBlocker blocker;
 
   public LayerActor(AreResource are, AreaViewer viewer)
   {
@@ -89,25 +97,78 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource>
   public void setLayerVisible(boolean visible)
   {
     setVisibilityState(visible);
-    List<LayerObjectActor> list = getLayerObjects();
-    for (int i = 0, size = list.size(); i < size; i++) {
-      boolean state = isLayerVisible() && (!isScheduleEnabled() || isScheduled(i));
-      LayerObjectActor obj = list.get(i);
-      IconLayerItem iconItem = (IconLayerItem)obj.getLayerItem(ViewerConstants.ITEM_ICON);
-      if (iconItem != null) {
-        iconItem.setVisible(state && !realEnabled);
-      }
-      AnimatedLayerItem animItem = (AnimatedLayerItem)obj.getLayerItem(ViewerConstants.ITEM_REAL);
-      if (animItem != null) {
-        animItem.setVisible(state && realEnabled);
-        if (isRealActorEnabled() && isRealActorPlaying()) {
-          animItem.play();
-        } else {
-          animItem.stop();
+
+    loadWorker = new SwingWorker<Void, Void>() {
+      @Override
+      public Void doInBackground()
+      {
+        final List<LayerObjectActor> list = getLayerObjects();
+        final ProgressMonitor progress = new ProgressMonitor(getViewer(), "Loading actor animations...", "0 %", 0, list.size());
+        progress.setMillisToDecideToPopup(500);
+        progress.setMillisToPopup(1000);
+
+        try {
+          for (int i = 0, size = list.size(); i < size; i++) {
+            boolean state = isLayerVisible() && (!isScheduleEnabled() || isScheduled(i));
+            LayerObjectActor loa = list.get(i);
+
+            IconLayerItem iconItem = (IconLayerItem)loa.getLayerItem(ViewerConstants.ITEM_ICON);
+            if (iconItem != null) {
+              iconItem.setVisible(state && !realEnabled);
+            }
+
+            AnimatedLayerItem animItem = (AnimatedLayerItem)loa.getLayerItem(ViewerConstants.ITEM_REAL);
+            if (animItem != null) {
+              if (animItem.getAnimation() == AbstractAnimationProvider.DEFAULT_ANIMATION_PROVIDER && state && realEnabled) {
+                // real actor animations loaded on demand
+                if (blocker == null) {
+                  blocker = new WindowBlocker(getViewer());
+                  blocker.setBlocked(true);
+                }
+                loa.loadAnimation();
+              }
+
+              animItem.setVisible(state && realEnabled);
+              if (isRealActorEnabled() && isRealActorPlaying()) {
+                animItem.play();
+              } else {
+                animItem.stop();
+              }
+            }
+            progress.setNote(((i + 1) * 100 / size) + " %");
+            progress.setProgress(i + 1);
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        } finally {
+          progress.close();
+          if (blocker != null) {
+            blocker.setBlocked(false);
+            blocker = null;
+          }
         }
+        return null;
+      }
+    };
+
+    loadWorker.addPropertyChangeListener(this);
+    loadWorker.execute();
+  }
+
+//--------------------- Begin Interface PropertyChangeListener ---------------------
+
+  @Override
+  public void propertyChange(PropertyChangeEvent e)
+  {
+    if (e.getSource() == loadWorker) {
+      if ("state".equals(e.getPropertyName()) &&
+          SwingWorker.StateValue.DONE == e.getNewValue()) {
+        loadWorker = null;
       }
     }
   }
+
+//--------------------- End Interface PropertyChangeListener ---------------------
 
   /**
    * Returns the currently active interpolation type for real actors.

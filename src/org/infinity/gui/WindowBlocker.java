@@ -61,7 +61,9 @@ public final class WindowBlocker
   public void setBlocked(boolean blocked)
   {
     if (glassPane == null) return;
-    glassPane.setVisible(blocked);
+    if (blocked != glassPane.isVisible()) {
+      glassPane.setVisible(blocked);
+    }
   }
 }
 

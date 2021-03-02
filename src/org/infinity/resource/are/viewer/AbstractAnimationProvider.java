@@ -5,15 +5,20 @@
 package org.infinity.resource.are.viewer;
 
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 
 import org.infinity.gui.layeritem.BasicAnimationProvider;
+import org.infinity.resource.graphics.ColorConvert;
 
 /**
  * Provides base functionality for rendering animations.
  */
 public abstract class AbstractAnimationProvider implements BasicAnimationProvider
 {
+  /** A default animation provider that can be used as placeholder. */
+  public static final DefaultAnimationProvider DEFAULT_ANIMATION_PROVIDER = new DefaultAnimationProvider();
+
   private BufferedImage image, working;
   private boolean isActive, isActiveIgnored;
 
@@ -120,4 +125,48 @@ public abstract class AbstractAnimationProvider implements BasicAnimationProvide
       }
     }
   }
+
+
+//-------------------------- INNER CLASSES --------------------------
+
+  /** A pseudo animation provider that always returns a transparent image of 16x16 size. */
+  public static final class DefaultAnimationProvider implements BasicAnimationProvider
+  {
+    private final BufferedImage image;
+
+    public DefaultAnimationProvider()
+    {
+      image = ColorConvert.createCompatibleImage(16, 16, true);
+    }
+
+    @Override
+    public Image getImage()
+    {
+      return image;
+    }
+
+    @Override
+    public boolean advanceFrame()
+    {
+      return false;
+    }
+
+    @Override
+    public void resetFrame()
+    {
+    }
+
+    @Override
+    public boolean isLooping()
+    {
+      return false;
+    }
+
+    @Override
+    public Point getLocationOffset()
+    {
+      return new Point();
+    }
+  }
+
 }

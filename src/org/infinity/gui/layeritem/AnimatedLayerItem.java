@@ -15,7 +15,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -25,6 +24,7 @@ import javax.swing.Timer;
 
 import org.infinity.gui.RenderCanvas;
 import org.infinity.resource.Viewable;
+import org.infinity.resource.are.viewer.AbstractAnimationProvider;
 import org.infinity.resource.are.viewer.ViewerConstants;
 import org.infinity.resource.graphics.ColorConvert;
 
@@ -474,8 +474,8 @@ public class AnimatedLayerItem extends AbstractLayerItem
     if (anim != null) {
       animation = anim;
     } else {
-      if (!(animation instanceof DefaultAnimationProvider)) {
-        animation = new DefaultAnimationProvider();
+      if (!(animation instanceof AbstractAnimationProvider.DefaultAnimationProvider)) {
+        animation = AbstractAnimationProvider.DEFAULT_ANIMATION_PROVIDER;
       }
     }
 
@@ -635,47 +635,6 @@ public class AnimatedLayerItem extends AbstractLayerItem
         color = DefaultColor;
       }
       this.color = color;
-    }
-  }
-
-
-  /** A pseudo animation provider that always returns a transparent image of 16x16 size. */
-  private static final class DefaultAnimationProvider implements BasicAnimationProvider
-  {
-    private final BufferedImage image;
-
-    public DefaultAnimationProvider()
-    {
-      image = ColorConvert.createCompatibleImage(16, 16, true);
-    }
-
-    @Override
-    public Image getImage()
-    {
-      return image;
-    }
-
-    @Override
-    public boolean advanceFrame()
-    {
-      return false;
-    }
-
-    @Override
-    public void resetFrame()
-    {
-    }
-
-    @Override
-    public boolean isLooping()
-    {
-      return false;
-    }
-
-    @Override
-    public Point getLocationOffset()
-    {
-      return new Point();
     }
   }
 }

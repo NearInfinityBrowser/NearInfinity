@@ -41,6 +41,7 @@ public class LayerObjectAreActor extends LayerObjectActor
   private static final Point CENTER = new Point(12, 40);
 
   private final Actor actor;
+  private final CreResource cre;
   private Flag scheduleFlags;
 
   public LayerObjectAreActor(AreResource parent, Actor actor)
@@ -48,64 +49,55 @@ public class LayerObjectAreActor extends LayerObjectActor
     super(Actor.class, parent);
     this.actor = actor;
 
-    String actorName = null;
-    String actorCreName = null;
-    Image[] icons = ICONS.get(Allegiance.NEUTRAL);
     int ea = 128;   // default: neutral
-    ActorAnimationProvider sprite = null;
+    CreResource cre = null;
     try {
       // initializations
-      actorName  = ((IsTextual)actor.getAttribute(Actor.ARE_ACTOR_NAME)).getText();
       location.x = ((IsNumeric)actor.getAttribute(Actor.ARE_ACTOR_POS_X)).getValue();
       location.y = ((IsNumeric)actor.getAttribute(Actor.ARE_ACTOR_POS_Y)).getValue();
-      int orientation = ((IsNumeric)actor.getAttribute(Actor.ARE_ACTOR_ORIENTATION)).getValue();
-
       scheduleFlags = ((Flag)actor.getAttribute(Actor.ARE_ACTOR_PRESENT_AT));
 
       StructEntry obj = actor.getAttribute(Actor.ARE_ACTOR_CHARACTER);
-      CreResource cre = null;
       if (obj instanceof TextString) {
         // ARE in saved game
         cre = (CreResource)actor.getAttribute(Actor.ARE_ACTOR_CRE_FILE);
-      } else
-      if (obj instanceof ResourceRef) {
+      }
+      else if (obj instanceof ResourceRef) {
         final ResourceRef creRef = (ResourceRef)obj;
         if (!creRef.isEmpty()) {
           cre = new CreResource(ResourceFactory.getResourceEntry(creRef.getResourceName()));
         }
       }
+
       if (cre != null) {
-        actorCreName = cre.getAttribute(CreResource.CRE_NAME).toString();
         ea = ((IsNumeric)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
       }
-
-      sprite = createAnimationProvider(cre);
-      sprite.setOrientation(orientation);
     } catch (Exception e) {
       e.printStackTrace();
     }
 
+    this.cre = cre;
+
     // Using cached icons
-    icons = ICONS.get(getAllegiance(ea));
+    Image[] icons = ICONS.get(getAllegiance(ea));
     icons = getIcons(icons);
 
-    final String msg = (actorCreName == null) ? actorName : actorCreName + " (" + actorName + ')';
-
-    IconLayerItem item1 = new IconLayerItem(actor, msg, icons[0], CENTER);
+    String tooltip = getTooltip();
+    IconLayerItem item1 = new IconLayerItem(actor, tooltip, icons[0], CENTER);
     item1.setLabelEnabled(Settings.ShowLabelActorsAre);
     item1.setName(getCategory());
-    item1.setToolTipText(msg);
+    item1.setToolTipText(tooltip);
     item1.setImage(AbstractLayerItem.ItemState.HIGHLIGHTED, icons[1]);
     item1.setVisible(isVisible());
     items[0] = item1;
 
-    AnimatedLayerItem item2 = new AnimatedLayerItem(actor, msg, sprite);
+    // payload is initialized on demand
+    AnimatedLayerItem item2 = new AnimatedLayerItem(actor, tooltip, AbstractAnimationProvider.DEFAULT_ANIMATION_PROVIDER);
     item2.setName(getCategory());
-    item2.setToolTipText(msg);
+    item2.setToolTipText(tooltip);
     item2.setVisible(false);
-    item2.setFrameRate(10.0);
+    item2.setFrameRate(Settings.getDefaultFrameRateAnimations());
     item2.setAutoPlay(false);
-    item2.setComposite(Settings.UseActorAccurateBlending ? sprite.getDecoder().getComposite() : null);
     item2.setFrameColor(AbstractLayerItem.ItemState.NORMAL, COLOR_FRAME_NORMAL);
     item2.setFrameWidth(AbstractLayerItem.ItemState.NORMAL, 2);
     item2.setFrameEnabled(AbstractLayerItem.ItemState.NORMAL, false);
@@ -115,7 +107,6 @@ public class LayerObjectAreActor extends LayerObjectActor
     items[1] = item2;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -131,5 +122,38 @@ public class LayerObjectAreActor extends LayerObjectActor
       return false;
     }
   }
-  //</editor-fold>
+
+  @Override
+  public synchronized void loadAnimation()
+  {
+    if (items[1] instanceof AnimatedLayerItem) {
+      AnimatedLayerItem item = (AnimatedLayerItem)items[1];
+      if (item.getAnimation() == AbstractAnimationProvider.DEFAULT_ANIMATION_PROVIDER) {
+        if (cre != null) {
+          try {
+            int orientation = ((IsNumeric)actor.getAttribute(Actor.ARE_ACTOR_ORIENTATION)).getValue();
+            ActorAnimationProvider sprite = createAnimationProvider(cre);
+            sprite.setOrientation(orientation);
+
+            item.setAnimation(sprite);
+            item.setComposite(Settings.UseActorAccurateBlending ? sprite.getDecoder().getComposite() : null);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }
+  }
+
+  /** Tooltip for actor object. */
+  private String getTooltip()
+  {
+    String retVal = null;
+    if (cre != null) {
+      retVal = ((IsTextual)cre.getAttribute(CreResource.CRE_NAME)).getText();
+    } else {
+      retVal = ((IsTextual)actor.getAttribute(Actor.ARE_ACTOR_NAME)).getText();
+    }
+    return retVal;
+  }
 }

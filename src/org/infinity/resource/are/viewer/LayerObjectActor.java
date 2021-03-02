@@ -9,7 +9,6 @@ import java.awt.Point;
 import java.util.Objects;
 
 import org.infinity.datatype.IsNumeric;
-import org.infinity.datatype.IsTextual;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.AnimatedLayerItem;
 import org.infinity.gui.layeritem.BasicAnimationProvider;
@@ -127,6 +126,11 @@ public abstract class LayerObjectActor extends LayerObject
   }
 
   /**
+   * Loads animation data if it hasn't been loaded yet.
+   */
+  public abstract void loadAnimation();
+
+  /**
    * Sets the lighting condition of the actor. Does nothing if the actor is flagged as
    * self-illuminating.
    * @param dayTime One of the constants: {@code TilesetRenderer.LIGHTING_DAY},
@@ -144,7 +148,7 @@ public abstract class LayerObjectActor extends LayerObject
   }
 
   /** Returns the allegiance of the specified EA value. */
-  protected Allegiance getAllegiance(int ea)
+  protected static Allegiance getAllegiance(int ea)
   {
     if (ea >= 2 && ea <= 30) {
       return Allegiance.GOOD;
@@ -162,8 +166,9 @@ public abstract class LayerObjectActor extends LayerObject
    * @return a initialized {@link ActorAnimationProvider} instance
    * @throws Exception if animation provider could not be created or initialized.
    */
-  protected ActorAnimationProvider createAnimationProvider(CreResource cre) throws Exception
+  protected static ActorAnimationProvider createAnimationProvider(CreResource cre) throws Exception
   {
+    Objects.requireNonNull(cre);
     ActorAnimationProvider retVal = null;
     SpriteDecoder decoder = null;
 
@@ -254,10 +259,15 @@ public abstract class LayerObjectActor extends LayerObject
     String retVal;
     Objects.requireNonNull(cre);
 
-    if (cre.getResourceEntry() == null) {
-      retVal = ((IsTextual)cre.getAttribute(CreResource.CRE_SCRIPT_NAME)).getText();
-    } else {
+    if (cre.getResourceEntry() != null) {
+      // regular CRE resource
       retVal = cre.getResourceEntry().getResourceName();
+    } else if (cre.getParent() != null) {
+      // CRE attached to ARE > Actor
+      retVal = cre.getParent().getName();
+    } else {
+      // failsafe
+      retVal = Integer.toString(cre.hashCode());
     }
 
     int status = ((IsNumeric)cre.getAttribute(CreResource.CRE_STATUS)).getValue();

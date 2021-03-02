@@ -1971,7 +1971,6 @@ public class PseudoBamDecoder extends BamDecoder
     {
       currentCycle = currentFrame = -1;
       update();
-      updateSharedBamSize();
     }
 
     // Updates current cycle and frame pointers
