@@ -32,9 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.infinity.datatype.IsNumeric;
 import org.infinity.resource.Profile;
@@ -624,11 +621,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       }};
 
   /**
-   * A default operation that can be passed to the {@link #createAnimation(SeqDef, Consumer, Function, BiConsumer)} method.
-   * It is called once per source BAM resource.
+   * A default operation that can be passed to the
+   * {@link #createAnimation(SeqDef, List, BeforeSourceBam, BeforeSourceFrame, AfterSourceFrame, AfterDestFrame)}
+   * method. It is called once per source BAM resource.
    * Performed actions: palette replacement, shadow color fix, false color replacement, translucency
    */
-  protected final BiConsumer<BamV1Control, SegmentDef> FN_BEFORE_SRC_BAM = new BiConsumer<BamV1Control, SegmentDef>() {
+  protected final BeforeSourceBam FN_BEFORE_SRC_BAM = new BeforeSourceBam() {
     @Override
     public void accept(BamV1Control control, SegmentDef sd)
     {
@@ -649,29 +647,43 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   };
 
   /**
-   * A default operation that can be passed to the {@link #createAnimation(SeqDef, Consumer, Function, BiConsumer)} method.
-   * It is called for each source frame (segment) before being applied to the target frame.
-   * Performed actions: none
+   * A default operation that can be passed to the
+   * {@link #createAnimation(SeqDef, List, BeforeSourceBam, BeforeSourceFrame, AfterSourceFrame, AfterDestFrame)}
+   * method. It is called for each source frame (segment) before being applied to the target frame.
    */
-  protected final Function<BufferedImage, BufferedImage> FN_BEFORE_SRC_FRAME = new Function<BufferedImage, BufferedImage>() {
+  protected final BeforeSourceFrame FN_BEFORE_SRC_FRAME = new BeforeSourceFrame() {
     @Override
-    public BufferedImage apply(BufferedImage image)
+    public BufferedImage apply(SegmentDef sd, BufferedImage image, Graphics2D g)
     {
-      // TODO: apply brightest, multiply_blend (?)
+      // nothing to do...
       return image;
     }
   };
 
   /**
-   * A default action that can be passed to the {@link #createAnimation(SeqDef, Consumer, Function, BiConsumer)} method.
-   * It calculates an eastern direction frame by mirroring it horizontally if needed.
+   * A default operation that can be passed to the
+   * {@link #createAnimation(SeqDef, List, BeforeSourceBam, BeforeSourceFrame, AfterSourceFrame, AfterDestFrame)}
+   * method. It is called for each source frame (segment) after being applied to the target frame.
    */
-  protected final BiConsumer<DirDef, Integer> FN_AFTER_DST_FRAME = new BiConsumer<DirDef, Integer>() {
+  protected final AfterSourceFrame FN_AFTER_SRC_FRAME = new AfterSourceFrame() {
     @Override
-    public void accept(DirDef dd, Integer idx)
+    public void accept(SegmentDef sd, Graphics2D g)
+    {
+      // nothing to do...
+    }
+  };
+
+  /**
+   * A default action that can be passed to the
+   * {@link #createAnimation(SeqDef, List, BeforeSourceBam, BeforeSourceFrame, AfterSourceFrame, AfterDestFrame)}
+   * method. It calculates an eastern direction frame by mirroring it horizontally if needed.
+   */
+  protected final AfterDestFrame FN_AFTER_DST_FRAME = new AfterDestFrame() {
+    @Override
+    public void accept(DirDef dd, int frameIdx)
     {
       if (dd.isMirrored()) {
-        flipImageHorizontal(idx.intValue());
+        flipImageHorizontal(frameIdx);
       }
     }
   };
@@ -1526,7 +1538,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   protected void createSequence(Sequence seq) throws Exception
   {
     SeqDef sd = Objects.requireNonNull(getSequenceDefinition(seq), "Sequence not available: " + (seq != null ? seq : "(null)"));
-    createAnimation(sd, null, FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_DST_FRAME);
+    createAnimation(sd, null, FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_SRC_FRAME, FN_AFTER_DST_FRAME);
   }
 
   /**
@@ -1543,13 +1555,14 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     if (directions == null) {
       directions = Direction.values();
     }
-    createAnimation(sd, Arrays.asList(directions), FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_DST_FRAME);
+    createAnimation(sd, Arrays.asList(directions), FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_SRC_FRAME, FN_AFTER_DST_FRAME);
   }
 
   protected void createAnimation(SeqDef definition, List<Direction> directions,
-                                 BiConsumer<BamV1Control, SegmentDef> beforeSrcBam,
-                                 Function<BufferedImage, BufferedImage> beforeSrcImage,
-                                 BiConsumer<DirDef, Integer> afterDstFrame)
+                                 BeforeSourceBam beforeSrcBam,
+                                 BeforeSourceFrame beforeSrcFrame,
+                                 AfterSourceFrame afterSrcFrame,
+                                 AfterDestFrame afterDstFrame)
   {
     PseudoBamControl dstCtrl = createControl();
     BamV1Control srcCtrl = null;
@@ -1599,7 +1612,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
           sd.advance();
         }
 
-        int frameIndex = createFrame(frameInfo.toArray(new FrameInfo[frameInfo.size()]), beforeSrcImage);
+        int frameIndex = createFrame(frameInfo.toArray(new FrameInfo[frameInfo.size()]), beforeSrcFrame, afterSrcFrame);
         if (afterDstFrame != null) {
           afterDstFrame.accept(dd, Integer.valueOf(frameIndex));
         }
@@ -1613,11 +1626,13 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
    * and adds it to the BAM frame list. Each source frame segment can be processed by the specified lambda function
    * before it is drawn onto to the target frame.
    * @param sourceFrames array of source frame segments to compose.
-   * @param beforeSrcImage optional function to be executed before a source frame segment is drawn onto the
-   *                       target frame. It is passed the {@code BufferedImage} object of the source frame segment.
+   * @param beforeSrcFrame optional function that is executed before a source frame segment is drawn onto the
+   *                       target frame.
+   * @param afterSrcFrame optional method that is executed right after a source frame segment has been drawn onto the
+   *                      target frame.
    * @return the absolute target BAM frame index.
    */
-  protected int createFrame(FrameInfo[] sourceFrames, Function<BufferedImage, BufferedImage> beforeSrcImage)
+  protected int createFrame(FrameInfo[] sourceFrames, BeforeSourceFrame beforeSrcFrame, AfterSourceFrame afterSrcFrame)
   {
     Rectangle rect;
     if (Objects.requireNonNull(sourceFrames, "Source frame info objects required").length > 0) {
@@ -1668,8 +1683,8 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
           int frameIdx = fi.getFrame();
           ctrl.cycleSetFrameIndex(frameIdx);
           BufferedImage srcImage = (BufferedImage)ctrl.cycleGetFrame();
-          if (beforeSrcImage != null) {
-            srcImage = beforeSrcImage.apply(srcImage);
+          if (beforeSrcFrame != null) {
+            srcImage = beforeSrcFrame.apply(fi.getSegmentDefinition(), srcImage, g);
           }
           FrameEntry entry = ctrl.getDecoder().getFrameInfo(ctrl.cycleGetFrameIndexAbsolute());
           int x = -rect.x - entry.getCenterX();
@@ -1695,7 +1710,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
               }
             }
           }
+
           g.drawImage(srcImage, x, y, entry.getWidth(), entry.getHeight(), null);
+
+          if (afterSrcFrame != null) {
+            afterSrcFrame.accept(fi.getSegmentDefinition(), g);
+          }
           ctrl = null;
         }
       } finally {
@@ -2690,5 +2710,61 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
         ranges.add(Couple.with(curBase, range));
       }
     }
+  }
+
+  /**
+   * Represents an operation that is called once per source BAM resource when creating a creature animation.
+   */
+  public interface BeforeSourceBam
+  {
+    /**
+     * Performs this operation on the given arguments.
+     * @param control the {@code BamV1Control} instance of the source BAM
+     * @param sd the {@code SegmentDef} instance describing the source BAM.
+     */
+    void accept(BamV1Control control, SegmentDef sd);
+  }
+
+  /**
+   * Represents a function that is called for each source frame before it is drawn onto the destination image.
+   */
+  public interface BeforeSourceFrame
+  {
+    /**
+     * Performs this function on the given arguments.
+     * @param sd the {@code SegmentDef} structure describing the given source frame.
+     * @param srcImage {@code BufferedImage} object of the the source frame
+     * @param g the {@code Graphics2D} object of the destination image.
+     * @return the updated source frame image
+     */
+    BufferedImage apply(SegmentDef sd, BufferedImage srcImage, Graphics2D g);
+  }
+
+  /**
+   * Represents an operation that is called for each source frame after it has been drawn onto the destination image.
+   * It can be used to clean up modifications made to the {@code Graphics2D} instance
+   * in the {@code BeforeSourceFrame} function.
+   */
+  public interface AfterSourceFrame
+  {
+    /**
+     * Performs this operation on the given arguments.
+     * @param sd the {@code SegmentDef} structure describing the current source frame.
+     * @param g the {@code Graphics2D} object of the destination image.
+     */
+    void accept(SegmentDef sd, Graphics2D g);
+  }
+
+  /**
+   * Represents an operation that is called for each destination frame after it has been created.
+   */
+  public interface AfterDestFrame
+  {
+    /**
+     * Performs this operation on the given arguments.
+     * @param dd the {@code DirDef} object defining the current destination cycle
+     * @param frameIdx the absolute destination BAM frame index.
+     */
+    void accept(DirDef dd, int frameIdx);
   }
 }

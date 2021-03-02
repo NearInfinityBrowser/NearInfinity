@@ -76,8 +76,11 @@ public class BlendingComposite implements Composite
     abstract void blend(int[] src, int[] dst, int[] result);
   }
 
+  /** Implements the following blending operations: src={@code GL_ONE_MINUS_DST_COLOR}, dst={@code GL_ONE}. */
   public static final BlendingComposite Brightest = new BlendingComposite(BlendingMode.BRIGHTEST);
+  /** Implements the following blending operations: src={@code GL_DST_COLOR}, dst={@code GL_ONE}. */
   public static final BlendingComposite Multiply = new BlendingComposite(BlendingMode.MULTIPLY);
+  /** Implements the following blending operations: src={@code GL_SRC_COLOR}, dst={@code GL_ONE}. */
   public static final BlendingComposite BrightestMultiply = new BlendingComposite(BlendingMode.BRIGHTEST_MULTIPLY);
 
   private final float alpha;
