@@ -34,6 +34,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import org.infinity.NearInfinity;
+import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.IsTextual;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
@@ -43,7 +45,9 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.SpriteUtils;
+import org.infinity.resource.gam.PartyNPC;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
+import org.infinity.util.StringTable;
 
 /**
  * A basic creature animation viewer.
@@ -451,12 +455,34 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
                           GridBagConstraints.HORIZONTAL, new Insets(8, 0, 8, 0), 0, 0);
     add(buttonControlPanel, c);
 
-    String name = getCre().getName();
-    if (!name.isEmpty()) {
-      setTitle(String.format("%s (%s)", getCre().getName(), getCre().getAttribute(CreResource.CRE_NAME)));
+    // determining creature resource and name
+    String resName, name;
+    if (getCre().getResourceEntry() != null) {
+      resName = getCre().getResourceEntry().getResourceName();
+    } else if (getCre().getParent() != null) {
+      resName = getCre().getParent().getName();
     } else {
-      setTitle(getCre().getName());
+      resName = getCre().getName();
     }
+
+    int strref = ((IsNumeric)getCre().getAttribute(CreResource.CRE_NAME)).getValue();
+    if (!StringTable.isValidStringRef(strref)) {
+      strref = ((IsNumeric)getCre().getAttribute(CreResource.CRE_NAME)).getValue();
+    }
+    if (StringTable.isValidStringRef(strref)) {
+      name = StringTable.getStringRef(strref);
+    } else if (getCre().getParent() instanceof PartyNPC) {
+      name = ((IsTextual)getCre().getParent().getAttribute(PartyNPC.GAM_NPC_NAME)).getText();
+    } else {
+      name = "";
+    }
+
+    if (!name.isEmpty()) {
+      setTitle(String.format("%s (%s)", resName, name));
+    } else {
+      setTitle(resName);
+    }
+
     setSize(NearInfinity.getInstance().getPreferredSize());
     Center.center(this, NearInfinity.getInstance().getBounds());
     setExtendedState(NearInfinity.getInstance().getExtendedState() & ~ICONIFIED);
