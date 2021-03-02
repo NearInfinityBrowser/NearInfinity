@@ -89,6 +89,15 @@ public class CreatureInfo
   /** Returns creature flags. */
   public int getFlags() { return ((IsNumeric)cre.getAttribute(CreResource.CRE_FLAGS)).getValue(); }
 
+  /** Returns the creature status. */
+  public int getStatus() { return ((IsNumeric)cre.getAttribute(CreResource.CRE_STATUS)).getValue(); }
+
+  /** Returns whether the creature is panicked. */
+  public boolean isStatusPanic()
+  {
+    return ((getStatus() & (1 << 2)) != 0);
+  }
+
   /** Returns the creature animation id. */
   public int getAnimationId() { return ((IsNumeric)cre.getAttribute(CreResource.CRE_ANIMATION)).getValue(); }
 
@@ -105,7 +114,7 @@ public class CreatureInfo
     if (Profile.isEnhancedEdition()) {
       int v = ((IsNumeric)cre.getAttribute(CreResource.CRE_TRANSLUCENCY)).getValue();
       if (v > 0) {
-        retVal = Math.min(v, 255);
+        retVal = 255 - Math.min(v, 255);
       }
     }
     return retVal;

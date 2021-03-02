@@ -1647,7 +1647,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     }
 
     // include selection circle in image size
-    float circleStrokeSize = (float)(Math.floor(Math.sqrt(getEllipse()) / 2.0));  // thickness relative to circle size
+    float circleStrokeSize = getSelectionCircleStrokeSize();
     if (isSelectionCircleEnabled()) {
       Dimension dim = getSelectionCircleSize();
       rect = updateFrameDimension(rect, new Dimension(2 * (dim.width + (int)circleStrokeSize),
@@ -1824,6 +1824,20 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     return dim;
   }
 
+  /** Determines a circle stroke size relative to the circle size. Empty circles have no stroke size. */
+  protected float getSelectionCircleStrokeSize()
+  {
+    float circleStrokeSize;
+    if (getEllipse() > 0) {
+      // thickness relative to circle size
+      circleStrokeSize = Math.max(1.0f, (float)(Math.floor(Math.sqrt(getEllipse()) / 2.0)));
+    } else {
+      circleStrokeSize = 0.0f;
+    }
+
+    return circleStrokeSize;
+  }
+
   /**
    * Draws a selection circle onto the specified graphics object.
    * @param g the {@code Graphics2D} instance of the image.
@@ -1836,7 +1850,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     if (g != null) {
       Dimension dim = getSelectionCircleSize();
       if (color == null) {
-        color = getAllegianceColor(getCreatureInfo().getAllegiance());
+        if (getCreatureInfo().isStatusPanic()) {
+          // panic
+          color = getAllegianceColor(-1);
+        } else {
+          color = getAllegianceColor(getCreatureInfo().getAllegiance());
+        }
       }
       Object oldHints = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -1959,11 +1978,21 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   protected void applyTranslucency(BamV1Control control)
   {
     if (control != null) {
-      int alpha = getCreatureInfo().getTranslucency() << 24;
+      int alpha = getCreatureInfo().getTranslucency();
       int[] palette = control.getCurrentPalette();
+
+      // shadow color (alpha relative to semi-transparency of shadow)
+      int alphaShadow = 255 - (palette[1] >>> 24);
+      alphaShadow = alpha * alphaShadow / 255;
+      alphaShadow <<= 24; // setting alpha mask
+      palette[1] = alphaShadow | (palette[1] & 0x00ffffff);
+
+      // creature colors
+      alpha <<= 24; // setting alpha mask
       for (int i = 2; i < palette.length; i++) {
         palette[i] = alpha | (palette[i] & 0x00ffffff);
       }
+
       control.setExternalPalette(palette);
     }
   }
@@ -2044,18 +2073,22 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Determines the right allegiance color for selection circles and returns it as {@code Color} object.
-   * @param value numeric allegiance value.
-   * @return a {@code Color} object with the associated allegiance color.
+   * A negative value will enable the "panic" color.
+   * @param value numeric allegiance value. Specify a negative value to override allegiance by the "panic" status.
+   * @return a {@code Color} object with the associated allegiance or status color.
    */
   protected static Color getAllegianceColor(int value)
   {
     Color c = null;
-    if (value >= 2 && value <= 4 || value == 201) {
+    if (value < 0) {
+      // treat as panic
+      c = new Color(0xffff40, false);
+    } else if (value >= 2 && value <= 4 || value == 201) {
       // ally
-      c = new Color(0x00fa00, false);
+      c = new Color(0x20ff20, false);
     } else if (value == 255 || value == 254 || value == 28 || value == 6 || value == 5) {
       // enemy
-      c = new Color(0xff0020, false);
+      c = new Color(0xff2020, false);
     } else {
       // neutral
       c = new Color(0x40ffff, false);
