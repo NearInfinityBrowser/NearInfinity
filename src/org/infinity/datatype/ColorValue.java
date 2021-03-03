@@ -27,8 +27,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
@@ -78,6 +79,8 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
   private static final int DEFAULT_COLOR_WIDTH  = 16;
   private static final int DEFAULT_COLOR_HEIGHT = 24;
 
+  private final HashMap<Integer, String> randomColors = new HashMap<>();
+
   private int number;
   private JList<Image> colorList;
   private ResourceEntry colorEntry; // the source of color ranges
@@ -91,13 +94,35 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
   public ColorValue(ByteBuffer buffer, int offset, int length, String name, String bmpFile)
   {
     super(offset, length, name);
+    init(bmpFile);
+    read(buffer, offset);
+  }
+
+  private void init(String bmpFile)
+  {
     if (bmpFile != null && ResourceFactory.resourceExists(bmpFile)) {
       this.colorEntry = ResourceFactory.getResourceEntry(bmpFile);
     }
     if (ResourceFactory.resourceExists("CLOWNCLR.IDS")) {
       this.colorMap = IdsMapCache.get("CLOWNCLR.IDS");
     }
-    read(buffer, offset);
+
+    ResourceEntry randomEntry = null;
+    if (ResourceFactory.resourceExists("RANDCOLR.2DA")) {
+      randomEntry = ResourceFactory.getResourceEntry("RANDCOLR.2DA");
+    }
+
+    // collecting valid random color indices
+    if (randomEntry != null) {
+      Table2da table = Table2daCache.get(randomEntry);
+      for (int col = 1, count = table.getColCount(); col < count; col++) {
+        int index = Misc.toNumber(table.get(0, col), -1);
+        String name = Misc.prettifySymbol(table.getHeader(col));
+        if (index >= 0 && index < 256) {
+          randomColors.put(index, name);
+        }
+      }
+    }
   }
 
 //--------------------- Begin Interface Editable ---------------------
@@ -106,8 +131,9 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
   public JComponent edit(ActionListener container)
   {
     int defaultColorWidth = (colorEntry == null) ? DEFAULT_COLOR_WIDTH : 0;
-    colorList = new JList<>(new ColorListModel(defaultColorWidth, DEFAULT_COLOR_HEIGHT, colorEntry));
-    colorList.setCellRenderer(new ColorCellRenderer(colorMap));
+    ColorListModel colorModel = new ColorListModel(this, defaultColorWidth, DEFAULT_COLOR_HEIGHT);
+    colorList = new JList<>(colorModel);
+    colorList.setCellRenderer(new ColorCellRenderer(this));
     colorList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     colorList.setBorder(BorderFactory.createLineBorder(Color.GRAY));
     colorList.addMouseListener(new MouseAdapter() {
@@ -237,9 +263,22 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
   public String toString()
   {
     String retVal = "Color index " + Integer.toString(number);
-    String name = lookupColorName(colorMap, number, true);
+    String name = getColorName(number);
     if (name != null) {
       retVal += " (" + name + ")";
+    }
+    return retVal;
+  }
+
+  /**
+   * Returns the name associated with the specified color entry.
+   * Returns {@code null} if no name is available.
+   */
+  public String getColorName(int index)
+  {
+    String retVal = randomColors.get(Integer.valueOf(index));
+    if (retVal == null) {
+      retVal = lookupColorName(colorMap, index, true);
     }
     return retVal;
   }
@@ -277,12 +316,12 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
   {
     private static final Border DEFAULT_NO_FOCUS_BORDER = new EmptyBorder(1, 1, 1, 1);
 
-    private final IdsMap colorMap;
+    private final ColorValue colorValue;
 
-    public ColorCellRenderer(IdsMap colorMap)
+    public ColorCellRenderer(ColorValue cv)
     {
       super();
-      this.colorMap = colorMap;
+      this.colorValue = Objects.requireNonNull(cv);
       setVerticalAlignment(SwingConstants.CENTER);
       setHorizontalTextPosition(SwingConstants.RIGHT);
       setVerticalTextPosition(SwingConstants.CENTER);
@@ -302,7 +341,7 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
       }
 
       String label = "Index " + index;
-      String name = lookupColorName(colorMap, index, true);
+      String name = colorValue.getColorName(index);
       if (name != null) {
         label += " (" + name + ")";
       }
@@ -338,12 +377,13 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
 
   private static final class ColorListModel extends AbstractListModel<Image>
   {
-    private final HashSet<Integer> randomColors = new HashSet<>();
     private final List<Image> colors = new ArrayList<>(256);
+    private final ColorValue colorValue;
 
-    public ColorListModel(int defaultWidth, int defaultHeight, ResourceEntry colorsEntry)
+    public ColorListModel(ColorValue cv, int defaultWidth, int defaultHeight)
     {
-      initEntries(defaultWidth, defaultHeight, colorsEntry);
+      this.colorValue = Objects.requireNonNull(cv);
+      initEntries(defaultWidth, defaultHeight);
     }
 
     @Override
@@ -361,46 +401,24 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
       return null;
     }
 
-    private void initEntries(int defaultWidth, int defaultHeight, ResourceEntry colorsEntry)
+    private void initEntries(int defaultWidth, int defaultHeight)
     {
-      if (colorsEntry == null) {
+      if (colorValue.colorEntry == null) {
         if (ResourceFactory.resourceExists("RANGES12.BMP")) {
-          colorsEntry = ResourceFactory.getResourceEntry("RANGES12.BMP");
+          colorValue.colorEntry = ResourceFactory.getResourceEntry("RANGES12.BMP");
         } else if (ResourceFactory.resourceExists("MPALETTE.BMP")) {
-          colorsEntry = ResourceFactory.getResourceEntry("MPALETTE.BMP");
+          colorValue.colorEntry = ResourceFactory.getResourceEntry("MPALETTE.BMP");
         }
       }
 
-      ResourceEntry randomEntry = null;
-      if (ResourceFactory.resourceExists("RANDCOLR.2DA")) {
-        randomEntry = ResourceFactory.getResourceEntry("RANDCOLR.2DA");
-      }
-
-      // collecting valid random color indices
-      int maxValue = colors.size() - 1;
-      if (randomEntry != null) {
-        Table2da table = Table2daCache.get(randomEntry);
-        for (int col = 1; col < table.getColCount(); col++) {
-          String s = table.get(0, col);
-          if (s != null) {
-            try {
-              Integer v = Integer.valueOf(Integer.parseInt(s));
-              if (v >= colors.size() && v < 256 && !randomColors.contains(v)) {
-                randomColors.add(v);
-                maxValue = Math.max(maxValue, v.intValue());
-              }
-            } catch (NumberFormatException e) {
-            }
-          }
-        }
-      }
 
       // scanning range of colors
-      if (colorsEntry != null) {
+      int maxValue = 255; // default size
+      if (colorValue.colorEntry != null) {
         BufferedImage image = null;
         try {
-          image = new GraphicsResource(colorsEntry).getImage();
-          maxValue = Math.max(maxValue, image.getHeight());
+          image = new GraphicsResource(colorValue.colorEntry).getImage();
+          maxValue = Math.max(maxValue, image.getHeight() - 1);
           if (defaultWidth <= 0) {
             // auto-calculate color width
             defaultWidth = 192 / image.getWidth();
@@ -408,7 +426,7 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
 
           for (int idx = 0; idx <= maxValue; idx++) {
             BufferedImage range;
-            if (!randomColors.contains(Integer.valueOf(idx)) && idx < image.getHeight()) {
+            if (!colorValue.randomColors.containsKey(Integer.valueOf(idx)) && idx < image.getHeight()) {
               // fixed color
               range = getFixedColor(image, idx, defaultWidth, defaultHeight);
             } else {
@@ -451,7 +469,7 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
       BufferedImage retVal = null;
 
       Color invalidColor = new Color(0xe0e0e0);
-      boolean isRandom = randomColors.contains(Integer.valueOf(index));
+      boolean isRandom = colorValue.randomColors.containsKey(Integer.valueOf(index));
       retVal = new BufferedImage(12 * width, height, BufferedImage.TYPE_INT_RGB);
       Graphics2D g = retVal.createGraphics();
       try {
