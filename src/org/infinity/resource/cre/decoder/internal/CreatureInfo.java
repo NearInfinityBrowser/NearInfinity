@@ -748,7 +748,7 @@ public class CreatureInfo
 
     if (itmEntry != null) {
       try {
-        ItemInfo itemInfo = new ItemInfo(itmEntry);
+        ItemInfo itemInfo = ItemInfo.get(itmEntry);
         equipment.put(slot, itemInfo);
       } catch (Exception e) {
         e.printStackTrace();

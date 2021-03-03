@@ -8,15 +8,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.infinity.datatype.IsTextual;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
 import org.infinity.resource.cre.decoder.internal.DirDef;
+import org.infinity.resource.cre.decoder.internal.ItemInfo;
 import org.infinity.resource.cre.decoder.internal.SegmentDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
-import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapSection;
@@ -170,9 +169,9 @@ public class MonsterIcewindDecoder extends SpriteDecoder
 
     // getting weapon code from CRE resource
     String weapon = "";
-    ItmResource itm = SpriteUtils.getEquippedWeapon(getCreResource());
-    if (itm != null) {
-      weapon = ((IsTextual)itm.getAttribute(ItmResource.ITM_EQUIPPED_APPEARANCE)).getText();
+    ItemInfo itmWeapon = SpriteUtils.getEquippedWeapon(getCreResource());
+    if (itmWeapon != null) {
+      weapon = itmWeapon.getAppearance();
       if (!weapon.isEmpty()) {
         weapon = weapon.substring(0, 1).trim();
       }

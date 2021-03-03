@@ -4,18 +4,14 @@
 
 package org.infinity.resource.cre.decoder;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
 import org.infinity.datatype.IsNumeric;
-import org.infinity.datatype.IsTextual;
 import org.infinity.resource.Profile;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
-import org.infinity.resource.itm.Ability;
-import org.infinity.resource.itm.ItmResource;
+import org.infinity.resource.cre.decoder.internal.ItemInfo;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapSection;
 import org.infinity.util.Misc;
@@ -94,9 +90,9 @@ public abstract class ArmoredBaseDecoder extends SpriteDecoder
   public int getArmorCode()
   {
     int retVal = 1;
-    ItmResource itm = SpriteUtils.getEquippedArmor(getCreResource());
+    ItemInfo itm = SpriteUtils.getEquippedArmor(getCreResource());
     if (itm != null) {
-      String code = ((IsTextual)itm.getAttribute(ItmResource.ITM_EQUIPPED_APPEARANCE)).getText();
+      String code = itm.getAppearance();
       retVal = Math.max(1, Math.min(getMaxArmorCode(), Misc.toNumber(code.substring(0, 1), 1)));
     }
     return retVal;
@@ -109,7 +105,7 @@ public abstract class ArmoredBaseDecoder extends SpriteDecoder
    * @param preferTwoWeapon whether {@code AttackType.TwoWeapon} should be returned if a melee one-handed weapon is detected.
    * @return attack type associated with the item resource.
    */
-  public AttackType getAttackType(ItmResource itm, int abilityIndex, boolean preferTwoWeapon)
+  public AttackType getAttackType(ItemInfo itm, int abilityIndex, boolean preferTwoWeapon)
   {
     AttackType retVal = AttackType.ONE_HANDED;
     if (itm == null) {
@@ -117,25 +113,18 @@ public abstract class ArmoredBaseDecoder extends SpriteDecoder
     }
 
     // collecting data
-    int flags = ((IsNumeric)itm.getAttribute(ItmResource.ITM_FLAGS)).getValue();
-    boolean isTwoHanded = (flags & (1 << 1)) != 0;
+    boolean isTwoHanded = (itm.getFlags() & (1 << 1)) != 0;
     if (Profile.isEnhancedEdition()) {
       // include fake two-handed weapons (e.g. monk fists)
-      isTwoHanded |= (flags & (1 << 12)) != 0;
+      isTwoHanded |= (itm.getFlags() & (1 << 12)) != 0;
     }
-    int cat = ((IsNumeric)itm.getAttribute(ItmResource.ITM_CATEGORY)).getValue();
     int abilType = -1;
-    int numAbil = ((IsNumeric)itm.getAttribute(ItmResource.ITM_NUM_ABILITIES)).getValue();
-    abilityIndex = Math.max(0, Math.min(numAbil - 1, abilityIndex));
-    if (abilityIndex < numAbil) {
-      List<StructEntry> list = itm.getFields(Ability.class);
-      if (list != null && abilityIndex < list.size() && list.get(abilityIndex) instanceof Ability) {
-        Ability abil = (Ability)list.get(abilityIndex);
-        abilType = ((IsNumeric)abil.getAttribute(Ability.ABILITY_TYPE)).getValue();
-      }
+    abilityIndex = Math.max(0, Math.min(itm.getAbilityCount() - 1, abilityIndex));
+    if (abilityIndex >= 0) {
+      abilType = itm.getAbility(abilityIndex).getAbilityType();
     }
 
-    switch (cat) {
+    switch (itm.getCategory()) {
       case 15:  // Bows
         retVal = AttackType.BOW;
         break;

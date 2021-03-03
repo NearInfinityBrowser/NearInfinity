@@ -92,6 +92,7 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.bcs.Signatures;
 import org.infinity.resource.cre.decoder.SpriteUtils;
+import org.infinity.resource.cre.decoder.internal.ItemInfo;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;
@@ -1045,6 +1046,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     ProRef.clearCache();
     Signatures.clearCache();
     SpriteUtils.clearCache();
+    ItemInfo.clearCache();
   }
 
   private static void showProgress(String msg, int max)

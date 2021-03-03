@@ -16,10 +16,10 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
 import org.infinity.resource.cre.decoder.internal.DirDef;
+import org.infinity.resource.cre.decoder.internal.ItemInfo;
 import org.infinity.resource.cre.decoder.internal.SegmentDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
-import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapSection;
@@ -368,13 +368,15 @@ public class CharacterDecoder extends ArmoredBaseDecoder
     String prefixShield = getShieldHeightCode();
     String codeShield = "";
     if (!prefixShield.isEmpty()) {
-      ItmResource itm = SpriteUtils.getEquippedShield(getCreResource());
-      codeShield = SpriteUtils.getItemAppearance(itm).trim();
-      isLefthandedWeapon = !codeShield.isEmpty() && SpriteUtils.isLeftHandedWeapon(itm);
+      ItemInfo itmShield = SpriteUtils.getEquippedShield(getCreResource());
+      if (itmShield != null) {
+        codeShield = itmShield.getAppearance().trim();
+        isLefthandedWeapon = !codeShield.isEmpty() && ItemInfo.test(itmShield, ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED);
+      }
     }
 
     // getting attack type
-    ItmResource itmWeapon = SpriteUtils.getEquippedWeapon(getCreResource());
+    ItemInfo itmWeapon = SpriteUtils.getEquippedWeapon(getCreResource());
     int itmAbility = SpriteUtils.getEquippedWeaponAbility(getCreResource());
     AttackType attackType = getAttackType(itmWeapon, itmAbility, isLefthandedWeapon);
 
@@ -405,9 +407,12 @@ public class CharacterDecoder extends ArmoredBaseDecoder
     if (isHelmetEquipped()) {
       prefix = getHelmetHeightCode();
       if (!prefix.isEmpty()) {
-        String code = SpriteUtils.getItemAppearance(SpriteUtils.getEquippedHelmet(getCreResource())).trim();
-        if (code.length() == 2) {
-          resrefList.add(Couple.with(prefix + code, SegmentDef.SpriteType.HELMET));
+        ItemInfo itmHelmet = SpriteUtils.getEquippedHelmet(getCreResource());
+        if (itmHelmet != null) {
+          String code = itmHelmet.getAppearance().trim();
+          if (code.length() == 2) {
+            resrefList.add(Couple.with(prefix + code, SegmentDef.SpriteType.HELMET));
+          }
         }
       }
     }
@@ -419,8 +424,8 @@ public class CharacterDecoder extends ArmoredBaseDecoder
 
     // adding weapon overlay
     prefix = getHeightCode();
-    if (!prefix.isEmpty()) {
-      String code = SpriteUtils.getItemAppearance(itmWeapon).trim();
+    if (itmWeapon != null && !prefix.isEmpty()) {
+      String code = itmWeapon.getAppearance().trim();
       if (code.length() == 2) {
         resrefList.add(Couple.with(prefix + code, SegmentDef.SpriteType.WEAPON));
       }

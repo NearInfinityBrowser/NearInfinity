@@ -7,8 +7,6 @@ package org.infinity.resource.cre.decoder;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,14 +19,12 @@ import org.infinity.datatype.IsTextual;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.decoder.internal.ItemInfo;
 import org.infinity.resource.graphics.BamV1Decoder;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.BamV1Decoder.BamV1Control;
-import org.infinity.resource.itm.Ability;
-import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
@@ -41,8 +37,6 @@ import org.infinity.util.tuples.Couple;
  */
 public class SpriteUtils
 {
-  /** Cache for structured game resources */
-  private static final HashMap<ResourceEntry, AbstractStruct> resourceCache = new HashMap<>();
   /** Cache for source BAM resources (decoder and attached controller). */
   private static final HashMap<ResourceEntry, Couple<BamV1Decoder, BamV1Decoder.BamV1Control>> bamCache = new HashMap<>();
   /** Cache for replacement palettes. */
@@ -60,7 +54,6 @@ public class SpriteUtils
   /** Clears cached resources. */
   public static void clearCache()
   {
-    resourceCache.clear();
     bamCache.clear();
     paletteCache.clear();
     colorGradients.clear();
@@ -342,131 +335,6 @@ public class SpriteUtils
   }
 
   /**
-   * Attempts to fetch the requested resource structure from cache before creating a new instance.
-   * @param <T> the desired type of the return value.
-   * @param classType the specific class type of the resource entry.
-   * @param entry the resource entry to load.
-   * @return a structured resource of type {@code T} if successful. Returns {@code null} otherwise.
-   * @throws Exception propagated exception from the instantiation process.
-   */
-  @SuppressWarnings("unchecked")
-  public static <T extends AbstractStruct> T loadResource(Class<? extends AbstractStruct> classType, ResourceEntry entry) throws Exception
-  {
-    T retVal = null;
-    if (classType == null || entry == null) {
-      return retVal;
-    }
-
-    AbstractStruct as = resourceCache.get(entry);
-    if (as == null) {
-      try {
-        Constructor<? extends AbstractStruct> ctor = classType.getConstructor(ResourceEntry.class);
-        if (ctor != null) {
-          as = ctor.newInstance(entry);
-          resourceCache.put(entry, as);
-        }
-      } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException e) {
-      }
-    }
-
-    if (classType.isAssignableFrom(as.getClass())) {
-      retVal = (T)as;
-    }
-
-    return retVal;
-  }
-
-  /**
-   * Returns whether the specified item is a two-handed weapon.
-   * @param itm the item resource
-   * @param meleeOnly indicates whether to consider only melee weapons.
-   * @return {@code true} if the item is a valid two-handed weapon. This also includes fake two-handed weapons in EE games.
-   *         Returns {@code false} otherwise.
-   */
-  public static boolean isWeaponTwoHanded(ItmResource itm, boolean meleeOnly)
-  {
-    boolean retVal = false;
-    if (itm == null) {
-      return retVal;
-    }
-
-    int flags = ((IsNumeric)itm.getAttribute(ItmResource.ITM_FLAGS)).getValue();
-    int mask = 1 << 1;  // two-handed
-    if (Profile.isEnhancedEdition()) {
-      mask |= 1 << 12;  // fake two-handed
-    }
-    retVal = (flags & mask) != 0;
-
-    String appearance = ((IsTextual)itm.getAttribute(ItmResource.ITM_EQUIPPED_APPEARANCE)).getText().trim();
-    retVal &= !appearance.isEmpty();
-
-    if (retVal && meleeOnly) {
-      int abilType = -1;
-      int numAbil = ((IsNumeric)itm.getAttribute(ItmResource.ITM_NUM_ABILITIES)).getValue();
-      if (numAbil > 0) {
-        int ofsAbil = ((IsNumeric)itm.getAttribute(ItmResource.ITM_OFFSET_ABILITIES)).getValue();
-        StructEntry se = itm.getAttribute(ofsAbil, true);
-        if (se instanceof IsNumeric) {
-          abilType = ((IsNumeric)se).getValue();
-        }
-      }
-      retVal &= (abilType == 1);  // ability type "melee"
-    }
-
-    return retVal;
-  }
-
-  /**
-   * Returns whether the specified item is a weapon that can be wielded with the left hand.
-   * @param itm the item resource
-   * @return {@code true} if the weapon can be wielded with the left hand. Returns {@code false} otherwise.
-   */
-  public static boolean isLeftHandedWeapon(ItmResource itm)
-  {
-    boolean retVal = false;
-    if (itm != null) {
-      int flags = ((IsNumeric)itm.getAttribute(ItmResource.ITM_FLAGS)).getValue();
-      boolean isTwoHanded = (flags & (1 << 1)) != 0;  // two-handed
-      boolean allowLeftHanded = !Profile.isEnhancedEdition() || ((flags & (1 << 13)) == 0);
-      String appearance = ((IsTextual)itm.getAttribute(ItmResource.ITM_EQUIPPED_APPEARANCE)).getText().trim();
-      int abilType = -1;
-      int numAbil = ((IsNumeric)itm.getAttribute(ItmResource.ITM_NUM_ABILITIES)).getValue();
-      if (numAbil > 0) {
-        int ofsAbil = ((IsNumeric)itm.getAttribute(ItmResource.ITM_OFFSET_ABILITIES)).getValue();
-        StructEntry se = itm.getAttribute(ofsAbil, true);
-        if (se instanceof IsNumeric) {
-          abilType = ((IsNumeric)se).getValue();
-        }
-        // eligible left-handed weapons: not two-handed; left-handed allowed; has equipped appearance; ability type = Melee
-        retVal = !isTwoHanded && allowLeftHanded && !appearance.isEmpty() && (abilType == 1);
-      }
-    }
-    return retVal;
-  }
-
-
-  /**
-   * Returns the two-letter appearance code for the specified item.
-   * @param itm The item resource.
-   * @return A two-letter string indicating the item appearance for creature animations. Returns an empty string otherwise.
-   */
-  public static String getItemAppearance(ItmResource itm)
-  {
-    String retVal = "";
-    if (itm != null) {
-      retVal = ((IsTextual)itm.getAttribute(ItmResource.ITM_EQUIPPED_APPEARANCE)).getText().toUpperCase(Locale.ENGLISH);
-      if (retVal.length() > 2) {
-        retVal = retVal.substring(0, 2);
-      } else {
-        while (retVal.length() < 2) {
-          retVal += " ";
-        }
-      }
-    }
-    return retVal;
-  }
-
-  /**
    * Returns the index of the selected weapon ability.
    * @param cre the CRE resource.
    * @return ability index. Returns 0 if ability could not be determined.
@@ -590,28 +458,23 @@ public class SpriteUtils
     }
 
     // loading referenced item
-    ItmResource itm = null;
+    ItemInfo info = null;
     int ofsItems = Objects.requireNonNull(cre).getExtraOffset() + ((IsNumeric)cre.getAttribute(CreResource.CRE_OFFSET_ITEMS)).getValue();
     try {
       String itmResref = ((IsTextual)cre.getAttribute(ofsItems + itmIndex * 20, true)).getText();
-      itm = loadResource(ItmResource.class, ResourceFactory.getResourceEntry(itmResref + ".ITM"));
+      info = ItemInfo.get(ResourceFactory.getResourceEntry(itmResref + ".ITM"));
     } catch (Exception e) {
       return retVal;
     }
 
     // check if item requires a launcher
     int abilityIndex = ((IsNumeric)cre.getAttribute(CreResource.CRE_SELECTED_WEAPON_ABILITY)).getValue();
-    int numAbil = ((IsNumeric)Objects.requireNonNull(itm).getAttribute(ItmResource.ITM_NUM_ABILITIES)).getValue();
+    int numAbil = info.getAbilityCount();
     abilityIndex = Math.min(abilityIndex, numAbil - 1);
     if (abilityIndex < 0) {
       return retVal;
     }
-    int ofsAbil = ((IsNumeric)itm.getAttribute(ItmResource.ITM_OFFSET_ABILITIES)).getValue();
-    Ability ability = itm.getAttribute(ofsAbil + abilityIndex * 0x38, Ability.class, false);
-    if (ability == null) {
-      return retVal;
-    }
-    int launcherType = ((IsNumeric)ability.getAttribute(Ability.ITM_ABIL_LAUNCHER_REQUIRED)).getValue();
+    int launcherType = info.getAbility(abilityIndex).getLauncher();
     if (launcherType == 0) {
       // item can be used directly
       retVal = slotIndex;
@@ -656,12 +519,13 @@ public class SpriteUtils
   /**
    * Returns the active weapon of the specified creature.
    * @param cre The CRE resource.
-   * @return The ITM resource of the active weapon. Returns {@code null} if no weapon is active.
+   * @return The {@code ItemInfo} object for the item resource of the active weapon.
+   *         Returns {@code null} if no weapon is active.
    * @throws NullPointerException if no creature resource specified.
    */
-  public static ItmResource getEquippedWeapon(CreResource cre)
+  public static ItemInfo getEquippedWeapon(CreResource cre)
   {
-    ItmResource retVal = null;
+    ItemInfo retVal = null;
 
     // find selected weapon slot and determine the associated item
     int slotIndex = getWeaponSlotIndex(cre, ((IsNumeric)cre.getAttribute(CreResource.CRE_SELECTED_WEAPON_SLOT)).getValue());
@@ -686,20 +550,21 @@ public class SpriteUtils
   /**
    * Returns the equipped helmet of the specified creature.
    * @param cre The CRE resource.
-   * @return The ITM resource of the helmet. Returns {@code null} if no helmet is equipped.
+   * @return The {@code ItemInfo} object for the item resource of the helmet.
+   *         Returns {@code null} if no helmet is equipped.
    * @throws NullPointerException if no creature resource specified.
    */
-  public static ItmResource getEquippedHelmet(CreResource cre)
+  public static ItemInfo getEquippedHelmet(CreResource cre)
   {
     if (Profile.getEngine() == Profile.Engine.PST || Profile.getGame() == Profile.Game.PSTEE) {
       // PST does not support helmets
       return null;
     }
 
-    ItmResource retVal = getInventoryItem(cre, 0);
+    ItemInfo retVal = getInventoryItem(cre, 0);
     if (retVal != null) {
       // checking item category
-      switch (((IsNumeric)retVal.getAttribute(ItmResource.ITM_CATEGORY)).getValue()) {
+      switch (retVal.getCategory()) {
         case 7:   // Headgear
         case 72:  // Hats
           break;
@@ -713,12 +578,13 @@ public class SpriteUtils
   /**
    * Returns the equipped shield or left-handed weapon of the specified creature.
    * @param cre The CRE resource.
-   * @return The ITM resource of the shield or left-handed weapon. Returns {@code null} if left hand is empty.
+   * @return The {@code ItemInfo} object for the item resource of the shield or left-handed weapon.
+   *         Returns {@code null} if left hand is empty.
    * @throws NullPointerException if no creature resource specified.
    */
-  public static ItmResource getEquippedShield(CreResource cre)
+  public static ItemInfo getEquippedShield(CreResource cre)
   {
-    ItmResource retVal = null;
+    ItemInfo retVal = null;
     if (Profile.getEngine() == Profile.Engine.PST || Profile.getGame() == Profile.Game.PSTEE) {
       // PST does not support shields
       return retVal;
@@ -743,22 +609,23 @@ public class SpriteUtils
   /**
    * Returns the equipped armor or robe of the specified creature.
    * @param cre The CRE resource.
-   * @return The ITM resource of armor or robe. Returns {@code null} if no armor is equipped.
+   * @return The {@code ItemInfo} object for the item resource of armor or robe.
+   *         Returns {@code null} if no armor is equipped.
    */
-  public static ItmResource getEquippedArmor(CreResource cre)
+  public static ItemInfo getEquippedArmor(CreResource cre)
   {
     return getInventoryItem(cre, 1);
   }
 
   /**
-   * Returns the item resource at the specified item slot of the given creature.
+   * Returns an {@link ItemInfo} instance of the item resource at the specified item slot of the given creature.
    * @param cre the CRE resource
    * @param slotIndex absolute slot index of the requested item
-   * @return the ITM resource. Returns {@code null} if item could not be determined.
+   * @return the {@code ItemInfo} object for the item resource. Returns {@code null} if item could not be determined.
    */
-  public static ItmResource getInventoryItem(CreResource cre, int slotIndex)
+  public static ItemInfo getInventoryItem(CreResource cre, int slotIndex)
   {
-    ItmResource retVal = null;
+    ItemInfo retVal = null;
     if (cre == null || slotIndex < 0) {
       return retVal;
     }
@@ -795,7 +662,8 @@ public class SpriteUtils
         if (itemIndex < numItems) {
           int ofsItems = cre.getExtraOffset() + ((IsNumeric)cre.getAttribute(CreResource.CRE_OFFSET_ITEMS)).getValue();
           String itemRef = ((IsTextual)cre.getAttribute(ofsItems + itemIndex * 20, true)).getText();
-          retVal = loadResource(ItmResource.class, ResourceFactory.getResourceEntry(itemRef + ".ITM"));
+          ResourceEntry entry = ResourceFactory.getResourceEntry(itemRef + ".ITM");
+          retVal = ItemInfo.get(entry);
         }
       }
     } catch (Exception e) {
@@ -805,10 +673,10 @@ public class SpriteUtils
     return retVal;
   }
 
-  /** Attempts to find the virtual "fist" weapon item used for barehanded attacks. */
-  public static ItmResource getFistWeapon(CreResource cre)
+  /** Attempts to find and return the virtual "fist" weapon item used for barehanded attacks. */
+  public static ItemInfo getFistWeapon(CreResource cre)
   {
-    ItmResource retVal = null;
+    ItemInfo retVal = null;
 
     int animId = ((IsNumeric)cre.getAttribute(CreResource.CRE_ANIMATION)).getValue();
     if ((animId & 0xff00) == 0x6500) {
@@ -822,11 +690,12 @@ public class SpriteUtils
         String resref = table.get(level, 1);
         ResourceEntry entry = ResourceFactory.getResourceEntry(resref + ".ITM");
         try {
-          retVal = loadResource(ItmResource.class, entry);
+          retVal = ItemInfo.get(entry);
         } catch (Exception e) {
           e.printStackTrace();
         }
       }
+
       if (retVal == null) {
         // 2. try hardcoded selection
         String resref = null;
@@ -836,7 +705,7 @@ public class SpriteUtils
             resref = "MFIST" + i;
             ResourceEntry entry = ResourceFactory.getResourceEntry(resref + ".ITM");
             try {
-              retVal = loadResource(ItmResource.class, entry);
+              retVal = ItemInfo.get(entry);
             } catch (Exception e) {
               e.printStackTrace();
             }
@@ -849,7 +718,7 @@ public class SpriteUtils
       // return default fist
       ResourceEntry entry = ResourceFactory.getResourceEntry("FIST.ITM");
       try {
-        retVal = loadResource(ItmResource.class, entry);
+        retVal = ItemInfo.get(entry);
       } catch (Exception e) {
         e.printStackTrace();
       }

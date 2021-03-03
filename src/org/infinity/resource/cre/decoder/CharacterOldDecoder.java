@@ -17,10 +17,10 @@ import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.internal.CycleDef;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
 import org.infinity.resource.cre.decoder.internal.DirDef;
+import org.infinity.resource.cre.decoder.internal.ItemInfo;
 import org.infinity.resource.cre.decoder.internal.SegmentDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
-import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapSection;
@@ -270,7 +270,7 @@ public class CharacterOldDecoder extends ArmoredBaseDecoder
     }
 
     // getting attack type
-    ItmResource itmWeapon = SpriteUtils.getEquippedWeapon(getCreResource());
+    ItemInfo itmWeapon = SpriteUtils.getEquippedWeapon(getCreResource());
     int itmAbility = SpriteUtils.getEquippedWeaponAbility(getCreResource());
     AttackType attackType = getAttackType(itmWeapon, itmAbility, false);
 
@@ -300,9 +300,12 @@ public class CharacterOldDecoder extends ArmoredBaseDecoder
     if (isHelmetEquipped()) {
       String prefix = getHelmetHeightCode();
       if (!prefix.isEmpty()) {
-        String code = SpriteUtils.getItemAppearance(SpriteUtils.getEquippedHelmet(getCreResource())).trim();
-        if (code.length() == 2) {
-          resrefList.add(Couple.with(prefix + code, SegmentDef.SpriteType.HELMET));
+        ItemInfo itmHelmet = SpriteUtils.getEquippedHelmet(getCreResource());
+        if (itmHelmet != null) {
+          String code = itmHelmet.getAppearance().trim();
+          if (code.length() == 2) {
+            resrefList.add(Couple.with(prefix + code, SegmentDef.SpriteType.HELMET));
+          }
         }
       }
     }
@@ -311,17 +314,19 @@ public class CharacterOldDecoder extends ArmoredBaseDecoder
       // adding shield overlay
       String prefix = getHeightCode();
       if (!prefix.isEmpty()) {
-        ItmResource itm = SpriteUtils.getEquippedShield(getCreResource());
-        String code = SpriteUtils.getItemAppearance(itm).trim();
-        if (!code.isEmpty()) {
-          resrefList.add(Couple.with(prefix + code, SegmentDef.SpriteType.SHIELD));
+        ItemInfo itmShield = SpriteUtils.getEquippedShield(getCreResource());
+        if (itmShield != null) {
+          String code = itmShield.getAppearance().trim();
+          if (!code.isEmpty()) {
+            resrefList.add(Couple.with(prefix + code, SegmentDef.SpriteType.SHIELD));
+          }
         }
       }
 
       // adding weapon overlay
       prefix = getHeightCode();
-      if (!prefix.isEmpty()) {
-        String code = SpriteUtils.getItemAppearance(itmWeapon).trim();
+      if (itmWeapon != null && !prefix.isEmpty()) {
+        String code = itmWeapon.getAppearance().trim();
         if (code.length() == 2) {
           if (ResourceFactory.resourceExists(prefix + code + suffix + ".BAM")) {
             resrefList.add(Couple.with(prefix + code, SegmentDef.SpriteType.WEAPON));

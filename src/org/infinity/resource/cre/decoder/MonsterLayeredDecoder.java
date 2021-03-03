@@ -12,10 +12,10 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
 import org.infinity.resource.cre.decoder.internal.DirDef;
+import org.infinity.resource.cre.decoder.internal.ItemInfo;
 import org.infinity.resource.cre.decoder.internal.SegmentDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
-import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapSection;
@@ -152,12 +152,12 @@ public class MonsterLayeredDecoder extends SpriteDecoder
     switch (seq) {
       case ATTACK:
       case ATTACK_2:
-        if (SpriteUtils.isWeaponTwoHanded(SpriteUtils.getEquippedWeapon(getCreResource()), false)) {
+        if (ItemInfo.test(SpriteUtils.getEquippedWeapon(getCreResource()), ItemInfo.FILTER_WEAPON_2H)) {
           return retVal;
         }
         break;
       case ATTACK_2H:
-        if (!SpriteUtils.isWeaponTwoHanded(SpriteUtils.getEquippedWeapon(getCreResource()), false)) {
+        if (!ItemInfo.test(SpriteUtils.getEquippedWeapon(getCreResource()), ItemInfo.FILTER_WEAPON_2H)) {
           return retVal;
         }
         break;
@@ -173,9 +173,9 @@ public class MonsterLayeredDecoder extends SpriteDecoder
     creResList.add(Couple.with(resref + suffix, SegmentDef.SpriteType.AVATAR));
 
     // defining weapon overlay for current creature
-    ItmResource itm = SpriteUtils.getEquippedWeapon(getCreResource());
-    if (itm != null) {
-      String weapon = SpriteUtils.getItemAppearance(itm).trim();
+    ItemInfo itmWeapon = SpriteUtils.getEquippedWeapon(getCreResource());
+    if (itmWeapon != null) {
+      String weapon = itmWeapon.getAppearance().trim();
       if (!weapon.isEmpty()) {
         weapon = weapon.substring(0, 1);
       }
