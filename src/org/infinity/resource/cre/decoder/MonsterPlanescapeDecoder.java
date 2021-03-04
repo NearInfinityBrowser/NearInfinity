@@ -19,9 +19,12 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
 import org.infinity.resource.cre.decoder.internal.DirDef;
+import org.infinity.resource.cre.decoder.internal.SegmentDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
+import org.infinity.resource.graphics.BamV1Decoder;
 import org.infinity.resource.graphics.BamV1Decoder.BamV1Control;
+import org.infinity.resource.graphics.BamV1Decoder.BamV1FrameEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapSection;
@@ -44,6 +47,48 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
   public static final DecoderAttribute KEY_COLOR_LOCATION   = DecoderAttribute.with("color", DecoderAttribute.DataType.USERDEFINED, new int[0]);
   public static final DecoderAttribute KEY_SHADOW           = DecoderAttribute.with("shadow", DecoderAttribute.DataType.STRING);
   public static final DecoderAttribute KEY_RESREF2          = DecoderAttribute.with("resref2", DecoderAttribute.DataType.STRING);
+
+  protected final BeforeSourceBam FN_BEFORE_SRC_BAM = new BeforeSourceBam() {
+    @Override
+    public void accept(BamV1Control control, SegmentDef sd)
+    {
+      String resref = sd.getEntry().getResourceRef();
+      if (resref.equalsIgnoreCase("POSSHAD")) {
+        // fix hardcoded "Pillar of Skulls" shadow center: shift by: [193.59]
+        BamV1Decoder decoder = control.getDecoder();
+        for (int idx = 0, count = decoder.frameCount(); idx < count; idx++) {
+          BamV1FrameEntry entry = decoder.getFrameInfo(idx);
+          entry.resetCenter();
+          entry.setCenterX(entry.getCenterX() + 193);
+          entry.setCenterY(entry.getCenterY() + 59);
+        }
+//      } else if (resref.equalsIgnoreCase("IGARM")) {
+//        // TODO: shift Coaxmetal arm animation center by fixed amount
+//        // shift arm cycle=0 by: [-59.83]
+//        // shift arm cycle=1 by: [-60.233]
+//        Point pt;
+//        if (sd.getCycleIndex() == 0) {
+//          pt = new Point(-59, 83);
+//        } else {
+//          pt = new Point(-60, 233);
+//        }
+//        BamV1Decoder decoder = control.getDecoder();
+//        for (int idx = 0, count = control.cycleFrameCount(sd.getCycleIndex()); idx < count; idx++) {
+//          int frameIdx = control.cycleGetFrameIndexAbsolute(sd.getCycleIndex(), idx);
+//          BamV1FrameEntry entry = decoder.getFrameInfo(frameIdx);
+//          entry.setCenterX(entry.getCenterX() + pt.x);
+//          entry.setCenterY(entry.getCenterY() + pt.y);
+//        }
+      }
+      SpriteUtils.fixShadowColor(control);
+      if (isFalseColor()) {
+        applyFalseColors(control, sd);
+      }
+      if (isTranslucent()) {
+        applyTranslucency(control);
+      }
+    }
+  };
 
   // available animation slot names
   private static final HashMap<Sequence, String> Slots = new HashMap<Sequence, String>() {{
@@ -395,14 +440,13 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
     setAttribute(KEY_COLOR_LOCATION, setColorLocations(section));
 
     // hardcoded stuff
-    // TODO: fix center positions of secondary BAM sources
-//    String resref = section.getAsString(Slots.get(Sequence.PST_Stand), "");
-//    if ("POSMAIN".equalsIgnoreCase(resref)) {
-//      // pillar of skulls
-//      setAttribute(KEY_SHADOW, "POSSHAD");
-//    }
+    String resref = section.getAsString(Slots.get(Sequence.PST_STAND), "");
+    if ("POSMAIN".equalsIgnoreCase(resref)) {
+      // Pillar of Skulls: relocate shadow center
+      setAttribute(KEY_SHADOW, "POSSHAD");
+    }
 //    if ("IGHEAD".equalsIgnoreCase(resref)) {
-//      // "Coaxmetal" (iron golem)
+//      // "Coaxmetal" (iron golem): relocate center of arm segments
 //      setAttribute(KEY_RESREF2, "IGARM");
 //    }
     if ((getAnimationId() & 0x0fff) == 0x000e) {
@@ -410,6 +454,23 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
       setBrightest(true);
       setLightSource(true); // TODO: confirm
     }
+  }
+
+  @Override
+  protected void createSequence(Sequence seq) throws Exception
+  {
+    SeqDef sd = Objects.requireNonNull(getSequenceDefinition(seq), "Sequence not available: " + (seq != null ? seq : "(null)"));
+    createAnimation(sd, null, FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_SRC_FRAME, FN_AFTER_DST_FRAME);
+  }
+
+  @Override
+  protected void createSequence(Sequence seq, Direction[] directions) throws Exception
+  {
+    SeqDef sd = Objects.requireNonNull(getSequenceDefinition(seq), "Sequence not available: " + (seq != null ? seq : "(null)"));
+    if (directions == null) {
+      directions = Direction.values();
+    }
+    createAnimation(sd, Arrays.asList(directions), FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_SRC_FRAME, FN_AFTER_DST_FRAME);
   }
 
   @Override
@@ -432,7 +493,9 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
       // Sprite resref
       String name = Slots.get(seq);
       resref = section.getAsString(name, "");
-      if (!resref.isEmpty()) {
+      if (resref.isEmpty()) {
+        return retVal;
+      } else {
         ResourceEntry entry = ResourceFactory.getResourceEntry(resref.toUpperCase(Locale.ENGLISH) + "B.BAM");
         if (entry == null) {
           entry = ResourceFactory.getResourceEntry(resref.toUpperCase(Locale.ENGLISH) + ".BAM");
