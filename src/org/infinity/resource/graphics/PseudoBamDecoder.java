@@ -1401,6 +1401,7 @@ public class PseudoBamDecoder extends BamDecoder
     private final HashMap<String, Object> mapOptions = new HashMap<String, Object>();
 
     private int width, height, centerX, centerY;
+    private int overrideCenterX, overrideCenterY;
     private BufferedImage frame;
 
     public PseudoBamFrameEntry(BufferedImage image, int centerX, int centerY)
@@ -1408,6 +1409,8 @@ public class PseudoBamDecoder extends BamDecoder
       setFrame(image);
       setCenterX(centerX);
       setCenterY(centerY);
+      this.centerX = getCenterX();
+      this.centerY = getCenterY();
     }
 
     @Override
@@ -1415,23 +1418,16 @@ public class PseudoBamDecoder extends BamDecoder
     @Override
     public int getHeight() { return height; }
     @Override
-    public int getCenterX() { return centerX; }
+    public int getCenterX() { return overrideCenterX; }
     @Override
-    public int getCenterY() { return centerY; }
+    public int getCenterY() { return overrideCenterY; }
 
-    public void setCenterX(int value)
-    {
-      if (value < Short.MIN_VALUE) value = Short.MIN_VALUE;
-        else if (value > Short.MAX_VALUE) value = Short.MAX_VALUE;
-      centerX = value;
-    }
-
-    public void setCenterY(int value)
-    {
-      if (value < Short.MIN_VALUE) value = Short.MIN_VALUE;
-        else if (value > Short.MAX_VALUE) value = Short.MAX_VALUE;
-      centerY = value;
-    }
+    @Override
+    public void setCenterX(int x) { overrideCenterX = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, x)); }
+    @Override
+    public void setCenterY(int y) { overrideCenterY = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, y)); }
+    @Override
+    public void resetCenter() { overrideCenterX = centerX; overrideCenterY = centerY; }
 
     /** Returns the image object of this frame entry. */
     public BufferedImage getFrame()

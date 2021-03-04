@@ -213,6 +213,9 @@ public abstract class BamDecoder
     public int getHeight();
     public int getCenterX();
     public int getCenterY();
+    public void setCenterX(int x);
+    public void setCenterY(int y);
+    public void resetCenter();
   }
 
 

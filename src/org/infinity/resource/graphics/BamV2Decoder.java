@@ -368,6 +368,7 @@ public class BamV2Decoder extends BamDecoder
     private final int dataBlockSize = 0x1c;   // size of a single data block
 
     private int width, height, centerX, centerY;
+    private int overrideCenterX, overrideCenterY;
     private BufferedImage frame;
 
     private BamV2FrameEntry(ByteBuffer buffer, int ofsFrame, int ofsBlocks)
@@ -375,8 +376,8 @@ public class BamV2Decoder extends BamDecoder
       if (buffer != null && ofsFrame < buffer.limit() && ofsBlocks < buffer.limit()) {
         width = buffer.getShort(ofsFrame) & 0xffff;
         height = buffer.getShort(ofsFrame+2) & 0xffff;
-        centerX = buffer.getShort(ofsFrame+4);
-        centerY = buffer.getShort(ofsFrame+6);
+        centerX = overrideCenterX = buffer.getShort(ofsFrame+4);
+        centerY = overrideCenterY = buffer.getShort(ofsFrame+6);
         int blockStart = buffer.getShort(ofsFrame+8) & 0xffff;
         int blockCount = buffer.getShort(ofsFrame+10) & 0xffff;
         decodeImage(buffer, ofsBlocks, blockStart, blockCount);
@@ -391,9 +392,16 @@ public class BamV2Decoder extends BamDecoder
     @Override
     public int getHeight() { return height; }
     @Override
-    public int getCenterX() { return centerX; }
+    public int getCenterX() { return overrideCenterX; }
     @Override
-    public int getCenterY() { return centerY; }
+    public int getCenterY() { return overrideCenterY; }
+
+    @Override
+    public void setCenterX(int x) { overrideCenterX = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, x)); }
+    @Override
+    public void setCenterY(int y) { overrideCenterY = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, y)); }
+    @Override
+    public void resetCenter() { overrideCenterX = centerX; overrideCenterY = centerY; }
 
     public Image getImage() { return frame; }
 

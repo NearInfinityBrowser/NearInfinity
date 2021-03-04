@@ -378,6 +378,7 @@ public class BamV1Decoder extends BamDecoder
   public class BamV1FrameEntry implements BamDecoder.FrameEntry
   {
     private int width, height, centerX, centerY, ofsData;
+    private int overrideCenterX, overrideCenterY;
     private boolean compressed;
 
     private BamV1FrameEntry(ByteBuffer buffer, int ofs)
@@ -385,8 +386,8 @@ public class BamV1Decoder extends BamDecoder
       if (buffer != null && ofs + 12 <= buffer.limit()) {
         width = buffer.getShort(ofs + 0) & 0xffff;
         height = buffer.getShort(ofs + 2) & 0xffff;
-        centerX = buffer.getShort(ofs + 4);
-        centerY = buffer.getShort(ofs + 6);
+        centerX = overrideCenterX = buffer.getShort(ofs + 4);
+        centerY = overrideCenterY = buffer.getShort(ofs + 6);
         ofsData = buffer.getInt(ofs + 8) & 0x7fffffff;
         compressed = (buffer.getInt(ofs + 8) & 0x80000000) == 0;
       } else {
@@ -400,9 +401,16 @@ public class BamV1Decoder extends BamDecoder
     @Override
     public int getHeight() { return height; }
     @Override
-    public int getCenterX() { return centerX; }
+    public int getCenterX() { return overrideCenterX; }
     @Override
-    public int getCenterY() { return centerY; }
+    public int getCenterY() { return overrideCenterY; }
+
+    @Override
+    public void setCenterX(int x) { overrideCenterX = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, x)); }
+    @Override
+    public void setCenterY(int y) { overrideCenterY = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, y)); }
+    @Override
+    public void resetCenter() { overrideCenterX = centerX; overrideCenterY = centerY; }
 
     public boolean isCompressed() { return compressed; }
   }
