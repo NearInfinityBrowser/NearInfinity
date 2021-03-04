@@ -410,27 +410,60 @@ public class Misc
   public static String prettifySymbol(String symbol)
   {
     if (symbol != null) {
-      StringBuilder sb = new StringBuilder(symbol);
-      boolean upper = true;
-      for (int idx = 0, len = sb.length(); idx < len; idx++) {
-        char ch = sb.charAt(idx);
-        if (upper) {
-          ch = Character.toUpperCase(ch);
-          upper = false;
-        } else {
-          ch = Character.toLowerCase(ch);
-        }
+      StringBuilder sb = new StringBuilder();
+      boolean isUpper = false;
+      boolean isDigit = false;
+      boolean isPrevUpper = false;
+      boolean isPrevDigit = false;
+      boolean toUpper = true;
+      for (int idx = 0, len = symbol.length(); idx < len; idx++) {
+        char ch = symbol.charAt(idx);
         if (" ,-_".indexOf(ch) >= 0) {
-          if (ch == '_') ch =  ' ';
-          if (ch == '-') {
-            sb.insert(idx, " -");
-            ch = ' ';
-            idx += 2;
-            len += 2;
+          // improve spacing
+          switch (ch) {
+            case '_':
+              sb.append(' ');
+              break;
+            case '-':
+              sb.append(" - ");
+              break;
+            default:
+              sb.append(ch);
           }
-          upper = true;
+          toUpper = true;
+        } else {
+          if (toUpper) {
+            ch = Character.toUpperCase(ch);
+            toUpper = false;
+          }
+          isPrevUpper = isUpper;
+          isPrevDigit = isDigit;
+          isUpper = Character.isUpperCase(ch);
+          isDigit = Character.isDigit(ch);
+          if (idx > 0) {
+            // detect word boundaries
+            char chPrev = sb.charAt(sb.length() - 1);
+            if (chPrev != ' ') {
+              if (isUpper && !isPrevUpper && !isPrevDigit) {
+                sb.append(' ');
+              } else if (isDigit && !isPrevDigit) {
+                sb.append(' ');
+              }
+            }
+
+            chPrev = sb.charAt(sb.length() - 1);
+            if (isUpper && chPrev != ' ') {
+              // prevent upper case characters in the middle of words
+              ch = Character.toLowerCase(ch);
+            }
+
+            if (!isUpper && chPrev == ' ') {
+              // new words start with upper case character
+              ch = Character.toUpperCase(ch);
+            }
+          }
+          sb.append(ch);
         }
-        sb.setCharAt(idx, ch);
       }
       symbol = sb.toString();
     }
