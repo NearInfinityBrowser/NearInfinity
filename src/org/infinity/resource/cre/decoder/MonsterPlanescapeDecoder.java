@@ -53,8 +53,9 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
     public void accept(BamV1Control control, SegmentDef sd)
     {
       String resref = sd.getEntry().getResourceRef();
+
+      // fix hardcoded "Pillar of Skulls" shadow center: shift by: [193.59]
       if (resref.equalsIgnoreCase("POSSHAD")) {
-        // fix hardcoded "Pillar of Skulls" shadow center: shift by: [193.59]
         BamV1Decoder decoder = control.getDecoder();
         for (int idx = 0, count = decoder.frameCount(); idx < count; idx++) {
           BamV1FrameEntry entry = decoder.getFrameInfo(idx);
@@ -62,28 +63,17 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
           entry.setCenterX(entry.getCenterX() + 193);
           entry.setCenterY(entry.getCenterY() + 59);
         }
-//      } else if (resref.equalsIgnoreCase("IGARM")) {
-//        // TODO: shift Coaxmetal arm animation center by fixed amount
-//        // shift arm cycle=0 by: [-59.83]
-//        // shift arm cycle=1 by: [-60.233]
-//        Point pt;
-//        if (sd.getCycleIndex() == 0) {
-//          pt = new Point(-59, 83);
-//        } else {
-//          pt = new Point(-60, 233);
-//        }
-//        BamV1Decoder decoder = control.getDecoder();
-//        for (int idx = 0, count = control.cycleFrameCount(sd.getCycleIndex()); idx < count; idx++) {
-//          int frameIdx = control.cycleGetFrameIndexAbsolute(sd.getCycleIndex(), idx);
-//          BamV1FrameEntry entry = decoder.getFrameInfo(frameIdx);
-//          entry.setCenterX(entry.getCenterX() + pt.x);
-//          entry.setCenterY(entry.getCenterY() + pt.y);
-//        }
       }
-      SpriteUtils.fixShadowColor(control);
+
+      // "Pillar of Skulls" uses separate shadow animation
+      if (!resref.equalsIgnoreCase("POSMAIN")) {
+        SpriteUtils.fixShadowColor(control);
+      }
+
       if (isFalseColor()) {
         applyFalseColors(control, sd);
       }
+
       if (isTranslucent()) {
         applyTranslucency(control);
       }
