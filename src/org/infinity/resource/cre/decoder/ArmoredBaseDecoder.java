@@ -90,7 +90,7 @@ public abstract class ArmoredBaseDecoder extends SpriteDecoder
   public int getArmorCode()
   {
     int retVal = 1;
-    ItemInfo itm = SpriteUtils.getEquippedArmor(getCreResource());
+    ItemInfo itm = getCreatureInfo().getEquippedArmor();
     if (itm != null) {
       String code = itm.getAppearance();
       retVal = Math.max(1, Math.min(getMaxArmorCode(), Misc.toNumber(code.substring(0, 1), 1)));

@@ -4,6 +4,8 @@
 
 package org.infinity.resource.cre.decoder.internal;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -252,6 +254,46 @@ public class CreatureInfo
   }
 
   /**
+   * Returns the active weapon of the specified creature.
+   * @return The {@code ItemInfo} object for the item resource of the active weapon.
+   *         Returns {@code null} if no weapon is active.
+   */
+  public ItemInfo getEquippedWeapon()
+  {
+    return getItemInfo(ItemSlots.WEAPON);
+  }
+
+  /**
+   * Returns the equipped helmet of the specified creature.
+   * @return The {@code ItemInfo} object for the item resource of the helmet.
+   *         Returns {@code null} if no helmet is equipped.
+   */
+  public ItemInfo getEquippedHelmet()
+  {
+    return getItemInfo(ItemSlots.HELMET);
+  }
+
+  /**
+   * Returns the equipped shield or left-handed weapon of the specified creature.
+   * @return The {@code ItemInfo} object for the item resource of the shield or left-handed weapon.
+   *         Returns {@code null} if left hand is empty.
+   */
+  public ItemInfo getEquippedShield()
+  {
+    return getItemInfo(ItemSlots.SHIELD);
+  }
+
+  /**
+   * Returns the equipped armor or robe.
+   * @return The {@code ItemInfo} object for the item resource of armor or robe.
+   *         Returns {@code null} if no armor is equipped.
+   */
+  public ItemInfo getEquippedArmor()
+  {
+    return getItemInfo(ItemSlots.ARMOR);
+  }
+
+  /**
    * Returns the {@link ItemInfo} instance associated with the specified item slot.
    * @param slot the slot where the item is equipped.
    * @return {@code ItemInfo} instance of the item, {@code null} if no item equipped.
@@ -497,16 +539,6 @@ public class CreatureInfo
   // initialize BG/EE-style creature resources
   private void initV10() throws Exception
   {
-    int selectedWeaponSlot = 38;
-    if (Profile.getGame() == Profile.Game.PSTEE) {
-      Misc.requireCondition("V1.0".equalsIgnoreCase(((IsTextual)cre.getAttribute(CreResource.COMMON_VERSION)).getText()),
-                            "CRE version not supported");
-      int numSlots = ((IsNumeric)cre.getAttribute(CreResource.CRE_NUM_ITEM_SLOTS)).getValue();
-      if (numSlots > 0) {
-        selectedWeaponSlot = numSlots - 1;
-      }
-    }
-
     // initializing equipment
     HashMap<ItemSlots, Integer> slotMap = new HashMap<ItemSlots, Integer>() {{
       put(ItemSlots.HELMET, 0);
@@ -522,14 +554,13 @@ public class CreatureInfo
       put(ItemSlots.CLOAK, 17);
     }};
 
-    initEquipment(slotMap, selectedWeaponSlot);
+    initEquipment(slotMap);
   }
 
   // initialize PST-style creature resources
   private void initV12() throws Exception
   {
     // initializing equipment
-    int selectedWeaponSlot = 46;
     HashMap<ItemSlots, Integer> slotMap = new HashMap<ItemSlots, Integer>() {{
       put(ItemSlots.HELMET, 0);
       put(ItemSlots.ARMOR, 1);
@@ -544,21 +575,34 @@ public class CreatureInfo
       put(ItemSlots.CLOAK, 19);
     }};
 
-    initEquipment(slotMap, selectedWeaponSlot);
+    initEquipment(slotMap);
   }
 
   // initialize IWD2-style creature resources
   private void initV22() throws Exception
   {
     // initializing equipment
-    initEquipmentV22();
+    HashMap<ItemSlots, Integer> slotMap = new HashMap<ItemSlots, Integer>() {{
+      put(ItemSlots.HELMET, 0);
+      put(ItemSlots.ARMOR, 1);
+      put(ItemSlots.GAUNTLETS, 3);
+      put(ItemSlots.RING_LEFT, 4);
+      put(ItemSlots.RING_RIGHT, 5);
+      put(ItemSlots.AMULET, 6);
+      put(ItemSlots.BELT, 7);
+      put(ItemSlots.BOOTS, 8);
+      put(ItemSlots.WEAPON, 9);
+      put(ItemSlots.SHIELD, 10);
+      put(ItemSlots.CLOAK, 21);
+    }};
+
+    initEquipment(slotMap);
   }
 
   // initialize IWD-style creature resources
   private void initV90() throws Exception
   {
     // initializing equipment
-    int selectedWeaponSlot = 38;
     HashMap<ItemSlots, Integer> slotMap = new HashMap<ItemSlots, Integer>() {{
       put(ItemSlots.HELMET, 0);
       put(ItemSlots.ARMOR, 1);
@@ -573,7 +617,7 @@ public class CreatureInfo
       put(ItemSlots.CLOAK, 17);
     }};
 
-    initEquipment(slotMap, selectedWeaponSlot);
+    initEquipment(slotMap);
   }
 
   private void initEffects()
@@ -656,7 +700,7 @@ public class CreatureInfo
     }
   }
 
-  private void initEquipment(HashMap<ItemSlots, Integer> slotMap, int selectedWeaponSlot)
+  private void initEquipment(HashMap<ItemSlots, Integer> slotMap)
   {
     List<StructEntry> itemList = cre.getFields(Item.class);
     int ofsSlots = cre.getExtraOffset() + ((IsNumeric)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS)).getValue();
@@ -665,64 +709,16 @@ public class CreatureInfo
       int slotIdx = entry.getValue().intValue();
       int itemIdx = -1;
       if (slot == ItemSlots.WEAPON) {
-        // special: determine weapon slot
-        int weaponIdx = ((IsNumeric)cre.getAttribute(ofsSlots + selectedWeaponSlot * 2)).getValue();
+        // special: determine active weapon slot
+        int selectedWeaponSlot = ((IsNumeric)cre.getAttribute(CreResource.CRE_SELECTED_WEAPON_SLOT)).getValue();
+        int weaponIdx = getWeaponSlotIndex(selectedWeaponSlot);
         if (weaponIdx == 1000) {
           // selected weapon: fists
           itemIdx = weaponIdx;
-        } else {
-          weaponIdx = Math.max(0, Math.min(4, weaponIdx));
-          for (int idx = weaponIdx; idx >= 0; idx--) {
-            itemIdx = ((IsNumeric)cre.getAttribute(ofsSlots + (slotIdx + idx) * 2)).getValue();
-            if (itemIdx >= 0 && itemIdx < itemList.size()) {
-              break;
-            }
-          }
-        }
-      } else {
-        itemIdx = ((IsNumeric)cre.getAttribute(ofsSlots + slotIdx * 2)).getValue();
-      }
-
-      initEquipmentItem(slot, itemIdx, itemList);
-    }
-  }
-
-  private void initEquipmentV22()
-  {
-    int selectedWeaponSlot = 50;
-    HashMap<ItemSlots, Integer> slotMap = new HashMap<ItemSlots, Integer>() {{
-      put(ItemSlots.HELMET, 0);
-      put(ItemSlots.ARMOR, 1);
-      put(ItemSlots.GAUNTLETS, 3);
-      put(ItemSlots.RING_LEFT, 4);
-      put(ItemSlots.RING_RIGHT, 5);
-      put(ItemSlots.AMULET, 6);
-      put(ItemSlots.BELT, 7);
-      put(ItemSlots.BOOTS, 8);
-      put(ItemSlots.WEAPON, 9);
-      put(ItemSlots.SHIELD, 10);
-      put(ItemSlots.CLOAK, 21);
-    }};
-
-    List<StructEntry> itemList = cre.getFields(Item.class);
-    int ofsSlots = cre.getExtraOffset() + ((IsNumeric)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS)).getValue();
-    for (HashMap.Entry<ItemSlots, Integer> entry : slotMap.entrySet()) {
-      ItemSlots slot = entry.getKey();
-      int slotIdx = entry.getValue().intValue();
-      int itemIdx = -1;
-      if (slot == ItemSlots.WEAPON || slot == ItemSlots.SHIELD) {
-        // special: weapon/shield combinations are grouped and determined by selected weapon slot
-        int weaponIdx = ((IsNumeric)cre.getAttribute(ofsSlots + selectedWeaponSlot * 2)).getValue();
-        if (weaponIdx == 1000) {
-          // selected weapon: fists
-          itemIdx = weaponIdx;
-        } else {
-          weaponIdx = Math.max(0, Math.min(4, weaponIdx));
-          for (int idx = weaponIdx; idx >= 0; idx--) {
-            itemIdx = ((IsNumeric)cre.getAttribute(ofsSlots + (slotIdx + idx * 2) * 2)).getValue();
-            if (itemIdx >= 0 && itemIdx < itemList.size()) {
-              break;
-            }
+        } else if (weaponIdx >= 0) {
+          weaponIdx = getEffectiveWeaponIndex(weaponIdx);
+          if (weaponIdx >= 0) {
+            itemIdx = ((IsNumeric)cre.getAttribute(ofsSlots + weaponIdx * 2)).getValue();
           }
         }
       } else {
@@ -788,6 +784,173 @@ public class CreatureInfo
       retVal = ResourceFactory.getResourceEntry("FIST.ITM");
     }
 
+    return retVal;
+  }
+
+  /**
+   * Analyses the item at the specified slot index and returns the same index if the item can be used directly.
+   * If the item requires a launcher the method scans the weapon slots of the specified CRE resource and
+   * returns the slot index of a matching launcher item.
+   * @param slotIndex the absolute slot index of the item to check
+   * @return the absolute slot index of the effective weapon. Returns {@code -1} if no weapon could be determined.
+   */
+  private int getEffectiveWeaponIndex(int slotIndex)
+  {
+    int retVal = -1;
+    if (slotIndex < 0) {
+      return retVal;
+    }
+
+    // getting item entry index
+    int ofsSlots = cre.getExtraOffset() + ((IsNumeric)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS)).getValue();
+    int itmIndex = ((IsNumeric)cre.getAttribute(ofsSlots + slotIndex * 2)).getValue();
+    int numItems = ((IsNumeric)cre.getAttribute(CreResource.CRE_NUM_ITEMS)).getValue();
+    if (itmIndex < 0 || itmIndex >= numItems) {
+      return retVal;
+    }
+
+    // loading referenced item
+    ItemInfo info = null;
+    int ofsItems = Objects.requireNonNull(cre).getExtraOffset() + ((IsNumeric)cre.getAttribute(CreResource.CRE_OFFSET_ITEMS)).getValue();
+    try {
+      String itmResref = ((IsTextual)cre.getAttribute(ofsItems + itmIndex * 20, true)).getText();
+      info = ItemInfo.get(ResourceFactory.getResourceEntry(itmResref + ".ITM"));
+    } catch (Exception e) {
+      return retVal;
+    }
+
+    // check if item requires a launcher
+    int abilityIndex = ((IsNumeric)cre.getAttribute(CreResource.CRE_SELECTED_WEAPON_ABILITY)).getValue();
+    int numAbil = info.getAbilityCount();
+    abilityIndex = Math.min(abilityIndex, numAbil - 1);
+    if (abilityIndex < 0) {
+      return retVal;
+    }
+    int launcherType = info.getAbility(abilityIndex).getLauncher();
+    if (launcherType == 0) {
+      // item can be used directly
+      retVal = slotIndex;
+    }
+
+    if (retVal < 0) {
+      // launcher required: find a weapon in weapon slots 1-4 with a matching item category
+      String creVer = ((IsTextual)Objects.requireNonNull(cre).getAttribute(CreResource.COMMON_VERSION)).getText().toUpperCase(Locale.ENGLISH);
+      int idxWeaponSlots = 9;
+      int slotGroupSize = creVer.equals("V2.2") ? 2 : 1;  // IWD2 uses weapon/shield pairs
+      for (int i = 0; i < 4; i++) {
+        int ofs = ofsSlots + (idxWeaponSlots + i * slotGroupSize) * 2;
+        itmIndex = ((IsNumeric)cre.getAttribute(ofs)).getValue();
+        if (itmIndex >= 0 && itmIndex < numItems) {
+          int cat = -1;
+          try {
+            String itmResref = ((IsTextual)cre.getAttribute(ofsItems + itmIndex * 20, true)).getText();
+            ResourceEntry itmEntry = ResourceFactory.getResourceEntry(itmResref + ".ITM");
+            if (itmEntry != null) {
+              try (InputStream is = itmEntry.getResourceDataAsStream()) {
+                Misc.requireCondition(is.skip(0x1c) == 0x1c, "Could not read item category", IOException.class);
+                cat = is.read();
+                cat |= is.read() << 8;
+              }
+            }
+            // checking if launcher type corresponds with item category
+            if (launcherType == 1 && cat == 15 ||   // Bow
+                launcherType == 2 && cat == 27 ||   // Crossbow
+                launcherType == 3 && cat == 18) {   // Sling
+              retVal = idxWeaponSlots + i * slotGroupSize;
+              break;
+            }
+          } catch (Exception e) {
+          }
+        }
+      }
+    }
+
+    return retVal;
+  }
+
+  /**
+   * Determines the absolute item slot index of the specified weapon-related slot id.
+   * Special slots that cannot be mapped to slot indices are returned as -1.
+   * Only weapon-related slots are considered, which includes the actual weapon slot ids as well as the ammo ids.
+   * @param slotId the slot id (as defined in SLOTS.IDS)
+   * @return absolute item slot index. Returns 1000 for fist slot. Returns -1 if slot id could not be mapped to a slot index.
+   */
+  private int getWeaponSlotIndex(int slotId)
+  {
+    int retVal = -1;
+    if (slotId == 1000) {
+      // fist weapon
+      return slotId;
+    }
+
+    String creVer = ((IsTextual)Objects.requireNonNull(cre).getAttribute(CreResource.COMMON_VERSION)).getText().toUpperCase(Locale.ENGLISH);
+    slotId += 35;   // determine SLOTS.IDS value
+    switch (slotId) {
+      case 3:   // IWD2: ammo1
+      case 4:   // IWD2: ammo2
+      case 5:   // IWD2: ammo3
+      case 6:   // IWD2: ammo4
+        if (creVer.equals("V2.2")) {
+          retVal = slotId + 14;
+        }
+        break;
+      case 11:  // ammo1
+      case 12:  // ammo2
+      case 13:  // ammo3
+      case 14:  // ammo4
+        if (!creVer.equals("V2.2")) {
+          retVal = slotId + 2;
+        }
+        break;
+      case 15:
+      case 16:
+        if (creVer.equals("V1.2")) {
+          retVal = slotId + 2;
+        }
+        break;
+      case 34:  // magically created weapon
+      {
+        switch (creVer) {
+          case "V1.2":
+            retVal = slotId + 11;
+            break;
+          case "V2.2":
+            retVal = slotId + 15;
+            break;
+          default:
+          {
+            if (Profile.getGame() == Profile.Game.PSTEE) {
+              // special: PSTEE party members have customized item slots
+              int numSlots = ((IsNumeric)cre.getAttribute(CreResource.CRE_NUM_ITEM_SLOTS)).getValue();
+              if (numSlots > 0) {
+                Table2da table = Table2daCache.get("ITMSLOTS.2DA");
+                if (table != null) {
+                  for (int row = 0, rowCount = table.getRowCount(); row < rowCount; row++) {
+                    if (Misc.toNumber(table.get(row, 1), -1) == 13) { // magic weapon slot?
+                      retVal = Misc.toNumber(table.get(row, 5), -1);
+                    }
+                  }
+                }
+              }
+            }
+            if (retVal < 0) {
+              retVal = slotId + 3;
+            }
+          }
+        }
+        break;
+      }
+      case 35:  // weapon1
+      case 36:  // weapon2 (IWD2: shield1)
+      case 37:  // weapon3 (IWD2: weapon2)
+      case 38:  // weapon4 (IWD2: shield2)
+      case 39:  // IWD2: weapon3
+      case 40:  // IWD2: shield3
+      case 41:  // IWD2: weapon4
+      case 42:  // IWD2: shield4
+        retVal = slotId - 26;
+        break;
+    }
     return retVal;
   }
 

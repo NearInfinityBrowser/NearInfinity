@@ -270,8 +270,8 @@ public class CharacterOldDecoder extends ArmoredBaseDecoder
     }
 
     // getting attack type
-    ItemInfo itmWeapon = SpriteUtils.getEquippedWeapon(getCreResource());
-    int itmAbility = SpriteUtils.getEquippedWeaponAbility(getCreResource());
+    ItemInfo itmWeapon = getCreatureInfo().getEquippedWeapon();
+    int itmAbility = getCreatureInfo().getSelectedWeaponAbility();
     AttackType attackType = getAttackType(itmWeapon, itmAbility, false);
 
     EnumSet<Sequence> sequences = forbiddenSequences.get(attackType);
@@ -300,7 +300,7 @@ public class CharacterOldDecoder extends ArmoredBaseDecoder
     if (isHelmetEquipped()) {
       String prefix = getHelmetHeightCode();
       if (!prefix.isEmpty()) {
-        ItemInfo itmHelmet = SpriteUtils.getEquippedHelmet(getCreResource());
+        ItemInfo itmHelmet = getCreatureInfo().getEquippedHelmet();
         if (itmHelmet != null) {
           String code = itmHelmet.getAppearance().trim();
           if (code.length() == 2) {
@@ -314,7 +314,7 @@ public class CharacterOldDecoder extends ArmoredBaseDecoder
       // adding shield overlay
       String prefix = getHeightCode();
       if (!prefix.isEmpty()) {
-        ItemInfo itmShield = SpriteUtils.getEquippedShield(getCreResource());
+        ItemInfo itmShield = getCreatureInfo().getEquippedShield();
         if (itmShield != null) {
           String code = itmShield.getAppearance().trim();
           if (!code.isEmpty()) {

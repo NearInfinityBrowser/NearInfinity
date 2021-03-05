@@ -368,16 +368,16 @@ public class CharacterDecoder extends ArmoredBaseDecoder
     String prefixShield = getShieldHeightCode();
     String codeShield = "";
     if (!prefixShield.isEmpty()) {
-      ItemInfo itmShield = SpriteUtils.getEquippedShield(getCreResource());
+      ItemInfo itmShield = getCreatureInfo().getEquippedShield();
       if (itmShield != null) {
         codeShield = itmShield.getAppearance().trim();
-        isLefthandedWeapon = !codeShield.isEmpty() && ItemInfo.test(itmShield, ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED);
+        isLefthandedWeapon = !codeShield.isEmpty() && ItemInfo.testAll(itmShield, ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED);
       }
     }
 
     // getting attack type
-    ItemInfo itmWeapon = SpriteUtils.getEquippedWeapon(getCreResource());
-    int itmAbility = SpriteUtils.getEquippedWeaponAbility(getCreResource());
+    ItemInfo itmWeapon = getCreatureInfo().getEquippedWeapon();
+    int itmAbility = getCreatureInfo().getSelectedWeaponAbility();
     AttackType attackType = getAttackType(itmWeapon, itmAbility, isLefthandedWeapon);
 
     EnumSet<Sequence> sequences = forbiddenSequences.get(attackType);
@@ -407,7 +407,7 @@ public class CharacterDecoder extends ArmoredBaseDecoder
     if (isHelmetEquipped()) {
       prefix = getHelmetHeightCode();
       if (!prefix.isEmpty()) {
-        ItemInfo itmHelmet = SpriteUtils.getEquippedHelmet(getCreResource());
+        ItemInfo itmHelmet = getCreatureInfo().getEquippedHelmet();
         if (itmHelmet != null) {
           String code = itmHelmet.getAppearance().trim();
           if (code.length() == 2) {

@@ -152,12 +152,12 @@ public class MonsterLayeredDecoder extends SpriteDecoder
     switch (seq) {
       case ATTACK:
       case ATTACK_2:
-        if (ItemInfo.test(SpriteUtils.getEquippedWeapon(getCreResource()), ItemInfo.FILTER_WEAPON_2H)) {
+        if (ItemInfo.testAll(getCreatureInfo().getEquippedWeapon(), ItemInfo.FILTER_WEAPON_2H)) {
           return retVal;
         }
         break;
       case ATTACK_2H:
-        if (!ItemInfo.test(SpriteUtils.getEquippedWeapon(getCreResource()), ItemInfo.FILTER_WEAPON_2H)) {
+        if (!ItemInfo.testAll(getCreatureInfo().getEquippedWeapon(), ItemInfo.FILTER_WEAPON_2H)) {
           return retVal;
         }
         break;
@@ -173,7 +173,7 @@ public class MonsterLayeredDecoder extends SpriteDecoder
     creResList.add(Couple.with(resref + suffix, SegmentDef.SpriteType.AVATAR));
 
     // defining weapon overlay for current creature
-    ItemInfo itmWeapon = SpriteUtils.getEquippedWeapon(getCreResource());
+    ItemInfo itmWeapon = getCreatureInfo().getEquippedWeapon();
     if (itmWeapon != null) {
       String weapon = itmWeapon.getAppearance().trim();
       if (!weapon.isEmpty()) {

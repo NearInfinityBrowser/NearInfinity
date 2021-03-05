@@ -169,7 +169,7 @@ public class MonsterIcewindDecoder extends SpriteDecoder
 
     // getting weapon code from CRE resource
     String weapon = "";
-    ItemInfo itmWeapon = SpriteUtils.getEquippedWeapon(getCreResource());
+    ItemInfo itmWeapon = getCreatureInfo().getEquippedWeapon();
     if (itmWeapon != null) {
       weapon = itmWeapon.getAppearance();
       if (!weapon.isEmpty()) {

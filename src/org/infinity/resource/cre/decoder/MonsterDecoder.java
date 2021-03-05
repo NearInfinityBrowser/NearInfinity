@@ -284,7 +284,7 @@ public class MonsterDecoder extends SpriteDecoder
     creResList.add(Couple.with(resref + suffix + ".BAM", SegmentDef.SpriteType.AVATAR));
 
     // processing weapon overlay
-    ItemInfo itmWeapon = SpriteUtils.getEquippedWeapon(getCreResource());
+    ItemInfo itmWeapon = getCreatureInfo().getEquippedWeapon();
     if (itmWeapon != null) {
       String weapon = itmWeapon.getAppearance().trim();
       if (!weapon.isEmpty()) {

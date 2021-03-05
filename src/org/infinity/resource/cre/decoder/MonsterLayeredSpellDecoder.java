@@ -191,8 +191,8 @@ public class MonsterLayeredSpellDecoder extends SpriteDecoder
       return retVal;
     }
 
-    ItemInfo itmWeapon = SpriteUtils.getEquippedWeapon(getCreResource());
-    if (seq == Sequence.ATTACK_2H && ItemInfo.test(itmWeapon, ItemInfo.FILTER_WEAPON_2H)) {
+    ItemInfo itmWeapon = getCreatureInfo().getEquippedWeapon();
+    if (seq == Sequence.ATTACK_2H && ItemInfo.testAll(itmWeapon, ItemInfo.FILTER_WEAPON_2H)) {
       return retVal;
     }
 
