@@ -28,12 +28,23 @@ import org.infinity.util.io.StreamUtils;
 /**
  * Provides useful information about equippable items.
  */
-public class ItemInfo
+public class ItemInfo implements Comparable<ItemInfo>
 {
+  /**
+   * This predicate simply returns {@code true} for all items.
+   */
+  public static final ItemPredicate FILTER_ALL = new ItemPredicate() {
+    @Override
+    public boolean test(ItemInfo info)
+    {
+      return true;
+    }
+  };
+
   /**
    * This predicate returns {@code true} only if the item can be equipped and unequipped in the character inventory.
    */
-  public static final Predicate<ItemInfo> FILTER_EQUIPPABLE = new Predicate<ItemInfo>() {
+  public static final ItemPredicate FILTER_EQUIPPABLE = new ItemPredicate() {
     @Override
     public boolean test(ItemInfo info)
     {
@@ -44,7 +55,7 @@ public class ItemInfo
   /**
    * This predicate returns {@code true} only if the item can be equipped in a weapon slot.
    */
-  public static final Predicate<ItemInfo> FILTER_WEAPON = new Predicate<ItemInfo>() {
+  public static final ItemPredicate FILTER_WEAPON = new ItemPredicate() {
     @Override
     public boolean test(ItemInfo info)
     {
@@ -59,7 +70,7 @@ public class ItemInfo
   /**
    * This predicate returns {@code true} if the item is a two-handed weapon (melee or ranged).
    */
-  public static final Predicate<ItemInfo> FILTER_WEAPON_2H = new Predicate<ItemInfo>() {
+  public static final ItemPredicate FILTER_WEAPON_2H = new ItemPredicate() {
     @Override
     public boolean test(ItemInfo info)
     {
@@ -76,7 +87,7 @@ public class ItemInfo
    * This predicate returns {@code true} only if the item can be placed in a weapon slot and the default ability
    * is defined as melee type.
    */
-  public static final Predicate<ItemInfo> FILTER_WEAPON_MELEE = new Predicate<ItemInfo>() {
+  public static final ItemPredicate FILTER_WEAPON_MELEE = new ItemPredicate() {
     @Override
     public boolean test(ItemInfo info)
     {
@@ -94,7 +105,7 @@ public class ItemInfo
    * This predicate returns {@code true} only if {@link #FILTER_WEAPON_MELEE} passes the test and the item is flagged
    * as two-handed or fake two-handed (e.g. monk fists).
    */
-  public static final Predicate<ItemInfo> FILTER_WEAPON_MELEE_2H = new Predicate<ItemInfo>() {
+  public static final ItemPredicate FILTER_WEAPON_MELEE_2H = new ItemPredicate() {
     @Override
     public boolean test(ItemInfo info)
     {
@@ -111,7 +122,7 @@ public class ItemInfo
    * This predicate returns {@code true} only if {@link #FILTER_WEAPON_MELEE} passes the test and the item can be
    * equipped in the shield slot.
    */
-  public static final Predicate<ItemInfo> FILTER_WEAPON_MELEE_LEFT_HANDED = new Predicate<ItemInfo>() {
+  public static final ItemPredicate FILTER_WEAPON_MELEE_LEFT_HANDED = new ItemPredicate() {
     @Override
     public boolean test(ItemInfo info)
     {
@@ -129,7 +140,7 @@ public class ItemInfo
    * This predicate returns {@code true} only if the item can be placed in a weapon slot and the default ability
    * is defined as ranged or launcher type.
    */
-  public static final Predicate<ItemInfo> FILTER_WEAPON_RANGED = new Predicate<ItemInfo>() {
+  public static final ItemPredicate FILTER_WEAPON_RANGED = new ItemPredicate() {
     @Override
     public boolean test(ItemInfo info)
     {
@@ -142,6 +153,101 @@ public class ItemInfo
       return retVal;
     }
   };
+
+  /**
+   * This predicate returns {@code true} only if the item can be placed in a weapon slot and is a
+   * ranged launcher-type weapon.
+   */
+  public static final ItemPredicate FILTER_WEAPON_RANGED_LAUNCHER = new ItemPredicate() {
+    @Override
+    public boolean test(ItemInfo info)
+    {
+      boolean retVal = FILTER_WEAPON.test(info);
+      if (retVal && info.getAbilityCount() > 0) {
+        AbilityInfo ai = info.getAbility(0);
+        retVal &= (ai.getLauncher() == 0);
+        retVal &= (ai.getAbilityType() == 4);
+      }
+      return retVal;
+    }
+  };
+
+  /**
+   * This predicate returns {@code true} only if the item is a shield that can be placed in the shield slot.
+   */
+  public static final ItemPredicate FILTER_SHIELD = new ItemPredicate() {
+    @Override
+    public boolean test(ItemInfo info)
+    {
+      boolean retVal = FILTER_EQUIPPABLE.test(info);
+      if (retVal) {
+        switch (info.getCategory()) {
+          case 12:  // Shields
+          case 41:  // Bucklers
+          case 47:  // Large shields
+          case 49:  // Medium shields
+          case 53:  // Small shields
+            break;
+          default:
+            retVal = false;
+        }
+      }
+      return retVal;
+    }
+  };
+
+  /**
+   * This predicate returns {@code true} only if the item can be placed in the armor slot.
+   */
+  public static final ItemPredicate FILTER_ARMOR = new ItemPredicate() {
+    @Override
+    public boolean test(ItemInfo info)
+    {
+      boolean retVal = FILTER_EQUIPPABLE.test(info);
+      if (retVal) {
+        switch (info.getCategory()) {
+          case 2:   // Armor
+          case 60:  // Leather armor
+          case 61:  // Studded leather
+          case 62:  // Chain mail
+          case 63:  // Split mail
+          case 64:  // Plate mail
+          case 65:  // Full plate
+          case 66:  // Hide armor
+          case 67:  // Robes
+          case 68:  // Scale mail
+            break;
+          default:
+            retVal = false;
+        }
+      }
+      return retVal;
+    }
+  };
+
+  /**
+   * This predicate returns {@code true} only if the item can be placed in the helmet slot.
+   */
+  public static final ItemPredicate FILTER_HELMET = new ItemPredicate() {
+    @Override
+    public boolean test(ItemInfo info)
+    {
+      boolean retVal = FILTER_EQUIPPABLE.test(info);
+      if (retVal) {
+        switch (info.getCategory()) {
+          case 7:   // Headgear
+          case 72:  // Hats
+            break;
+          default:
+            retVal = false;
+        }
+      }
+      return retVal;
+    }
+  };
+
+  /** Predefined {@code ItemInfo} structure without associated ITM resource. */
+  public static final ItemInfo EMPTY = new ItemInfo();
 
   private static final HashMap<ResourceEntry, ItemInfo> ITEM_CACHE = new HashMap<>();
 
@@ -171,7 +277,7 @@ public class ItemInfo
   {
     ItemInfo retVal = null;
     if (entry == null) {
-      return retVal;
+      return EMPTY;
     }
     synchronized (ITEM_CACHE) {
       retVal = ITEM_CACHE.get(entry);
@@ -194,7 +300,7 @@ public class ItemInfo
   {
     ItemInfo retVal = null;
     if (entry == null) {
-      return retVal;
+      return EMPTY;
     }
     synchronized (ITEM_CACHE) {
       retVal = new ItemInfo(entry);
@@ -218,7 +324,7 @@ public class ItemInfo
    * @param sorted whether the returned list is sorted by {@code ResourceEntry} in ascending order.
    * @return list of matching {@code ItemInfo} structures.
    */
-  public static List<ItemInfo> getItemList(Predicate<ItemInfo> pred, boolean sorted)
+  public static List<ItemInfo> getItemList(ItemPredicate pred, boolean sorted)
   {
     List<ItemInfo> retVal = new ArrayList<>();
 
@@ -238,19 +344,52 @@ public class ItemInfo
     }
 
     if (sorted) {
-      Collections.sort(retVal, (i1, i2) -> i1.itmEntry.compareTo(i2.itmEntry));
+      Collections.sort(retVal);
     }
 
     return retVal;
   }
 
   /**
-   * Convenience method: Returns {@code true} if the given item passes the specified test.
-   * Returns {@code false} if info is {@code null}. Returns {@code true} if pred is {@code null}.
+   * Convenience method: Returns {@code true} if the given item passes all the specified tests.
+   * Returns {@code false} if info is {@code null}.
+   * Returns {@code true} if no predicate is specified.
    */
-  public static boolean test(ItemInfo info, Predicate<ItemInfo> pred)
+  public static boolean testAll(ItemInfo info, ItemPredicate... pred)
   {
-    return (info != null && pred != null) ? pred.test(info) : (info != null);
+    boolean retVal = (info != null);
+    if (retVal) {
+      for (final ItemPredicate p : pred) {
+        if (p != null) {
+          retVal &= p.test(info);
+        }
+        if (!retVal) {
+          break;
+        }
+      }
+    }
+    return retVal;
+  }
+
+  /**
+   * Convenience method: Returns {@code true} if the given item passes at least one of the specified tests.
+   * Returns {@code false} if info is {@code null}.
+   * Returns {@code true} if no predicate is specified.
+   */
+  public static boolean testAny(ItemInfo info, ItemPredicate... pred)
+  {
+    boolean retVal = (info != null);
+    if (retVal && pred.length > 0) {
+      for (final ItemPredicate p : pred) {
+        if (p != null) {
+          retVal |= p.test(info);
+        }
+        if (retVal) {
+          break;
+        }
+      }
+    }
+    return retVal;
   }
 
   /**
@@ -281,14 +420,23 @@ public class ItemInfo
     return -1;
   }
 
+  private ItemInfo()
+  {
+    this.itmEntry = null;
+    initDefault();
+  }
+
   private ItemInfo(ResourceEntry itmEntry) throws Exception
   {
-    this.itmEntry = Objects.requireNonNull(itmEntry, "ITM resource cannot be null");
+    this.itmEntry = itmEntry;
     init();
   }
 
+  /** Returns whether this {@code ItemInfo} instance contains a valid item. */
+  public boolean isEmpty() { return (itmEntry == null); }
+
   /** Returns the {@code ResourceEntry} instance of the item resource. */
-  public ResourceEntry getItemEntry() { return itmEntry; }
+  public ResourceEntry getResourceEntry() { return itmEntry; }
 
   /** Returns the general name of the item. */
   public String getName() { return name; }
@@ -341,8 +489,21 @@ public class ItemInfo
   /** Returns a sequential {@link Stream} of the {@code EffectInfo} list. */
   public Stream<EffectInfo> getEffectStream() { return effectsInfo.stream(); }
 
+  /** Invoked for {@code null} items. */
+  private void initDefault()
+  {
+    name = nameIdentified = appearance = "";
+    flags = category = unusable = unusableKits = proficiency = enchantment = 0;
+  }
+
+  /** Initializes relevant item attributes. */
   private void init() throws IOException, Exception
   {
+    if (itmEntry == null) {
+      initDefault();
+      return;
+    }
+
     try (final InputStream is = itmEntry.getResourceDataAsStream()) {
       byte[] sig = new byte[8];
       // offset = 0x00
@@ -511,6 +672,20 @@ public class ItemInfo
     }
   }
 
+//--------------------- Begin Interface Comparable ---------------------
+
+  @Override
+  public int compareTo(ItemInfo o)
+  {
+    if (itmEntry == null) {
+      return (o.itmEntry == null) ? 0 : -1;
+    } else {
+      return (o.itmEntry == null) ? 1 : itmEntry.compareTo(o.itmEntry);
+    }
+  }
+
+//--------------------- End Interface Comparable ---------------------
+
   @Override
   public int hashCode()
   {
@@ -549,6 +724,22 @@ public class ItemInfo
     retVal &= (this.appearance == null && other.appearance == null) ||
               (this.appearance != null && this.appearance.equals(other.appearance));
     return retVal;
+  }
+
+  @Override
+  public String toString()
+  {
+    if (isEmpty()) {
+      return "None";
+    } else if (getIdentifiedName().isEmpty()) {
+      return getResourceEntry().getResourceName();
+    } else {
+      String name = getIdentifiedName();
+      if (name.length() > 80) {
+        name = name.substring(0, 80) + "...";
+      }
+      return getResourceEntry().getResourceName() + " (" + name + ")";
+    }
   }
 
 //-------------------------- INNER CLASSES --------------------------
@@ -703,5 +894,31 @@ public class ItemInfo
 
     /** Returns the special parameter used by selected effects. */
     public int getSpecial() { return special; }
+  }
+
+  /**
+   * Represents a {@link Predicate} about an {@code ItemInfo} object.
+   */
+  public interface ItemPredicate extends Predicate<ItemInfo>
+  {
+    @Override
+    boolean test(ItemInfo info);
+
+    default ItemPredicate and(ItemPredicate other)
+    {
+      Objects.requireNonNull(other);
+      return (t) -> test(t) && other.test(t);
+    }
+
+    default ItemPredicate negate()
+    {
+      return (t) -> !test(t);
+    }
+
+    default ItemPredicate or(ItemPredicate other)
+    {
+      Objects.requireNonNull(other);
+      return (t) -> test(t) || other.test(t);
+    }
   }
 }
