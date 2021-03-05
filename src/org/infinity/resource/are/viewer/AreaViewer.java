@@ -387,11 +387,11 @@ public class AreaViewer extends ChildFrame
       t.add(t2);
       if (i == LayerManager.getLayerTypeIndex(LayerType.ACTOR)) {
         // Initializing real creature animation checkboxes
-        cbLayerRealActor[0] = new JCheckBox("Show actor sprite");
+        cbLayerRealActor[0] = new JCheckBox("Show actor animation");
         cbLayerRealActor[0].addActionListener(getListeners());
         t3 = new DefaultMutableTreeNode(cbLayerRealActor[0]);
         t2.add(t3);
-        cbLayerRealActor[1] = new JCheckBox("Animate actor sprite");
+        cbLayerRealActor[1] = new JCheckBox("Animate actor animation");
         cbLayerRealActor[1].addActionListener(getListeners());
         t3 = new DefaultMutableTreeNode(cbLayerRealActor[1]);
         t2.add(t3);
