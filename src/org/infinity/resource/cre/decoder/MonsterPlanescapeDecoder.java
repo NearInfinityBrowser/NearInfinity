@@ -359,12 +359,12 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
   {
     final HashSet<Integer> usedColors = new HashSet<>();
     CreResource cre = getCreResource();
-    int[] retVal = new int[4];
+    int numColors = Math.max(0, Math.min(7, ((IsNumeric)cre.getAttribute(CreResource.CRE_NUM_COLORS)).getValue()));
+    int[] retVal = new int[numColors];
     int num = 0;
     for (int i = 0; i < retVal.length; i++) {
       int l = ((IsNumeric)cre.getAttribute(String.format(CreResource.CRE_COLOR_PLACEMENT_FMT, i + 1))).getValue();
-      int c = ((IsNumeric)cre.getAttribute(String.format(CreResource.CRE_COLOR_FMT, i + 1))).getValue();
-      if (l > 0 && c > 0 && !usedColors.contains(l & 0xf0)) {
+      if (l > 0 && !usedColors.contains(l & 0xf0)) {
         usedColors.add(l & 0xf0);
         retVal[num] = l;
         num++;

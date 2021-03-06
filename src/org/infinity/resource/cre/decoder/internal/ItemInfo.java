@@ -575,7 +575,7 @@ public class ItemInfo implements Comparable<ItemInfo>
         this.proficiency = is.read();
       } else {
         // to keep stream position synchronized
-        Misc.requireCondition(is.skip(0xc) == 0xe, "Could not advance in data stream: " + itmEntry);
+        Misc.requireCondition(is.skip(0xe) == 0xe, "Could not advance in data stream: " + itmEntry);
       }
 
       // enchantment

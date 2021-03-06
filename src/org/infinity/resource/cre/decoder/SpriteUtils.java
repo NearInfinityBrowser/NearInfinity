@@ -170,19 +170,23 @@ public class SpriteUtils
       buffer.position(0);
       buffer.put("CRE V1.2".getBytes(Misc.CHARSET_ASCII));
       // creature colors
+      int numColors = 0;
       if (colors != null) {
         for (final HashMap.Entry<String, Integer> e : colors.entrySet()) {
+          int value = e.getValue().intValue();
           for (int i = 0; i < 7; i++) {
             String labelColor = String.format(CreResource.CRE_COLOR_FMT, i + 1);
             String labelColorPlacement = String.format(CreResource.CRE_COLOR_PLACEMENT_FMT, i + 1);
             if (labelColor.equals(e.getKey())) {
-              buffer.putShort(0x2e4 + (i * 2), e.getValue().shortValue());
+              buffer.putShort(0x2e4 + (i * 2), (short)value);
             } else if (labelColorPlacement.equals(e.getKey())) {
-              buffer.put(0x2f5 + i, e.getValue().byteValue());
+              buffer.put(0x2f5 + i, (byte)value);
+              numColors++;
             }
           }
         }
       }
+      buffer.put(0x2df, (byte)numColors);
       // Enemy-Ally
       buffer.put(0x314, (byte)128);
       // setting valid offsets
