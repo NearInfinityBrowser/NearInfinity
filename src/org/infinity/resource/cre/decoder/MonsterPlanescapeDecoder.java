@@ -70,7 +70,7 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
         SpriteUtils.fixShadowColor(control);
       }
 
-      if (isFalseColor()) {
+      if (isPaletteReplacementEnabled() && isFalseColor()) {
         applyFalseColors(control, sd);
       }
 
@@ -255,6 +255,9 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
     }
     if (clown != 0) {
       lines.add("clown=" + clown);
+      for (int i = 0; i < clown; i++) {
+        lines.add("color" + (i + 1) + "=" + (128 + i * 16));
+      }
     }
     if (bestiary != 0) {
       lines.add("bestiary=" + bestiary);
@@ -327,15 +330,18 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
   {
     int[] retVal = null;
     if (Profile.getGame() == Profile.Game.PST) {
-      retVal = setColorLocationsPST();
+      retVal = setColorLocationsIni(section);
+      if (retVal.length == 0) {
+        retVal = setColorLocationsCre();
+      }
     } else {
-      retVal = setColorLocationsPSTEE(section);
+      retVal = setColorLocationsIni(section);
     }
     return retVal;
   }
 
-  /** Returns a list of all valid color locations. (PSTEE) */
-  private int[] setColorLocationsPSTEE(IniMapSection section)
+  /** Returns a list of all valid color locations defined in the associated INI file. (PSTEE) */
+  private int[] setColorLocationsIni(IniMapSection section)
   {
     final HashSet<Integer> usedColors = new HashSet<>();
     int[] retVal = new int[7];
@@ -354,8 +360,8 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
     return retVal;
   }
 
-  /** Returns a list of all valid color locations. (original PST) */
-  private int[] setColorLocationsPST()
+  /** Returns a list of all valid color locations from the CRE resource. (original PST) */
+  private int[] setColorLocationsCre()
   {
     final HashSet<Integer> usedColors = new HashSet<>();
     CreResource cre = getCreResource();

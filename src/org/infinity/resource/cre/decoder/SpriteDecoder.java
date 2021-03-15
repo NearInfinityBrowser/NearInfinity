@@ -630,16 +630,19 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     @Override
     public void accept(BamV1Control control, SegmentDef sd)
     {
-      if (sd.getSpriteType() == SegmentDef.SpriteType.AVATAR) {
+      if (isPaletteReplacementEnabled() && sd.getSpriteType() == SegmentDef.SpriteType.AVATAR) {
         int[] palette = getNewPaletteData(sd.getEntry());
         if (palette != null) {
           SpriteUtils.applyNewPalette(control, palette);
         }
       }
+
       SpriteUtils.fixShadowColor(control);
-      if (isFalseColor()) {
+
+      if (isPaletteReplacementEnabled() && isFalseColor()) {
         applyFalseColors(control, sd);
       }
+
       if (isTranslucent()) {
         applyTranslucency(control);
       }
@@ -699,6 +702,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   private boolean showCircle;
   private boolean showPersonalSpace;
   private boolean showBoundingBox;
+  private boolean paletteReplacementEnabled;
   private boolean renderSpriteAvatar;
   private boolean renderSpriteWeapon;
   private boolean renderSpriteHelmet;
@@ -812,6 +816,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     this.showCircle = false;
     this.showPersonalSpace = false;
     this.showBoundingBox = false;
+    this.paletteReplacementEnabled = true;
     this.renderSpriteAvatar = true;
     this.renderSpriteWeapon = true;
     this.renderSpriteShield = true;
@@ -860,7 +865,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns an iterator over the attribute keys. */
-  protected Iterator<DecoderAttribute> getAttributeIterator()
+  public Iterator<DecoderAttribute> getAttributeIterator()
   {
     return attributesMap.keySet().iterator();
   }
@@ -1135,6 +1140,20 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     }
   }
 
+  /** Returns whether any kind of palette replacement (full palette or false colors) is enabled. */
+  public boolean isPaletteReplacementEnabled()
+  {
+    return paletteReplacementEnabled;
+  }
+
+  /** Sets whether palette replacement (full palette or false colors) is enabled. */
+  public void setPaletteReplacementEnabled(boolean b)
+  {
+    if (paletteReplacementEnabled != b) {
+      paletteReplacementEnabled = b;
+      spriteChanged();
+    }
+  }
 
   /** Returns the moving speed of the creature animation. */
   public double getMoveScale()
@@ -1614,7 +1633,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
         int frameIndex = createFrame(frameInfo.toArray(new FrameInfo[frameInfo.size()]), beforeSrcFrame, afterSrcFrame);
         if (afterDstFrame != null) {
-          afterDstFrame.accept(dd, Integer.valueOf(frameIndex));
+          afterDstFrame.accept(dd, frameIndex);
         }
         dstCtrl.cycleAddFrames(cycleIndex, new int[] {frameIndex});
       }
@@ -1889,7 +1908,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   {
     int[] retVal = null;
     try {
-      retVal = SpriteUtils.getColorGradient(getAnimationType(), colorIndex, true);
+      retVal = SpriteUtils.getColorGradient(colorIndex, true);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -1948,6 +1967,10 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
           palette = SpriteUtils.interpolateColors(palette, ofs1, ofs2, srcLen, ofs3, dstLen, false);
         }
       }
+
+      // fixing special palette entries
+      palette[2] = 0xFF000000;
+      palette[3] = 0xFF000000;
     }
 
     control.setExternalPalette(palette);

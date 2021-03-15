@@ -65,8 +65,8 @@ PST: (PST and PST:EE only)
   - the selection circle radius
 - SPACE (int)
   - the personal space in search map units
-- CLOWN (bool)
-  - whether false color replacement is enabled
+- CLOWN (int)
+  - number of false color ranges to replace (* indicates disabled false color replacement)
 - ARMOR (int)
   - (currently) unused by NI
 - BESTIARY (int)

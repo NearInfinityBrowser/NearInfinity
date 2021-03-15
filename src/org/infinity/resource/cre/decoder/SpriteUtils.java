@@ -610,17 +610,16 @@ public class SpriteUtils
   /**
    * Returns the specified color gradient. Colors are retrieved from the game-specific gradient resource.
    * Optionally takes random color entry definitions into account.
-   * @param animType Indicates what type of color gradient should be loaded.
    * @param index Index of the color gradient.
    * @param allowRandom whether random color entries are taken into account.
    * @return the gradient as array of colors. Returns {@code null} if color index does not exist.
    */
-  public static int[] getColorGradient(SpriteDecoder.AnimationType animType, int index, boolean allowRandom)
+  public static int[] getColorGradient(int index, boolean allowRandom)
   {
     if (colorGradients.isEmpty()) {
       // initializing color gradient map on demand
       ResourceEntry palFile = null;
-      if (animType == SpriteDecoder.AnimationType.MONSTER_PLANESCAPE) {
+      if (Profile.getGame() == Profile.Game.PST || Profile.getGame() == Profile.Game.PSTEE) {
         palFile = ResourceFactory.getResourceEntry("PAL32.BMP");
       } else if (ResourceFactory.resourceExists("RANGES12.BMP")) {
         palFile = ResourceFactory.getResourceEntry("RANGES12.BMP");
@@ -644,7 +643,7 @@ public class SpriteUtils
       }
     }
 
-    int[] retVal = allowRandom ? getRandomColorGradient(animType, index) : null;
+    int[] retVal = allowRandom ? getRandomColorGradient(index) : null;
     if (retVal == null) {
       retVal = colorGradients.getOrDefault(index, null);
     }
@@ -658,7 +657,7 @@ public class SpriteUtils
    * @return a randomly chosen color gradient from the random color entry list.
    *         Returns {@code null} if no real color gradient could be determined.
    */
-  public static int[] getRandomColorGradient(SpriteDecoder.AnimationType animType, int index)
+  public static int[] getRandomColorGradient(int index)
   {
     if (randomGradientIndices.isEmpty()) {
       if (ResourceFactory.resourceExists("RANDCOLR.2DA")) {
@@ -691,7 +690,7 @@ public class SpriteUtils
         // random color entries may refer to other random color entries
         indices = randomGradientIndices.getOrDefault(index, null);
       } else {
-        retVal = getColorGradient(animType, idx, false);
+        retVal = getColorGradient(idx, false);
       }
     }
 
