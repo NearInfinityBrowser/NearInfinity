@@ -534,13 +534,13 @@ public class PseudoBamDecoder extends BamDecoder
 
       int dstWidth = dstImage.getWidth();
       int dstHeight = dstImage.getHeight();
-      int srcWidth = listFrames.get(frameIdx).width;
-      int srcHeight = listFrames.get(frameIdx).height;
+      int srcWidth = listFrames.get(frameIdx).getWidth();
+      int srcHeight = listFrames.get(frameIdx).getHeight();
       if (control.getMode() == BamControl.Mode.SHARED) {
         // drawing on shared canvas
         Rectangle shared = control.getSharedRectangle();
-        int srcCenterX = listFrames.get(frameIdx).centerX;
-        int srcCenterY = listFrames.get(frameIdx).centerY;
+        int srcCenterX = listFrames.get(frameIdx).getCenterX();
+        int srcCenterY = listFrames.get(frameIdx).getCenterY();
         int left = -shared.x - srcCenterX;
         int top = -shared.y - srcCenterY;
         int maxWidth = (dstWidth < srcWidth + left) ? dstWidth : srcWidth;
@@ -680,9 +680,9 @@ public class PseudoBamDecoder extends BamDecoder
         }
 
         // checking frame properties
-        if (entry.width <= 0 || entry.width > 65535 || entry.height <= 0 || entry.height > 65535 ||
-            entry.centerX < Short.MIN_VALUE || entry.centerX > Short.MAX_VALUE ||
-            entry.centerY < Short.MIN_VALUE || entry.centerY > Short.MAX_VALUE) {
+        if (entry.getWidth() <= 0 || entry.getWidth() > 65535 || entry.getHeight() <= 0 || entry.getHeight() > 65535 ||
+            entry.getCenterX() < Short.MIN_VALUE || entry.getCenterX() > Short.MAX_VALUE ||
+            entry.getCenterY() < Short.MIN_VALUE || entry.getCenterY() > Short.MAX_VALUE) {
           throw new Exception("Dimensions are out of range for frame index " + i);
         }
 
@@ -813,10 +813,10 @@ public class PseudoBamDecoder extends BamDecoder
       // adding frame entries
       int curOfs = ofsFrameEntries;
       for (int i = 0; i < listFrames.size(); i++) {
-        DynamicArray.putShort(bamData, curOfs, (short)listFrames.get(i).width);
-        DynamicArray.putShort(bamData, curOfs + 2, (short)listFrames.get(i).height);
-        DynamicArray.putShort(bamData, curOfs + 4, (short)listFrames.get(i).centerX);
-        DynamicArray.putShort(bamData, curOfs + 6, (short)listFrames.get(i).centerY);
+        DynamicArray.putShort(bamData, curOfs, (short)listFrames.get(i).getWidth());
+        DynamicArray.putShort(bamData, curOfs + 2, (short)listFrames.get(i).getHeight());
+        DynamicArray.putShort(bamData, curOfs + 4, (short)listFrames.get(i).getCenterX());
+        DynamicArray.putShort(bamData, curOfs + 6, (short)listFrames.get(i).getCenterY());
         DynamicArray.putInt(bamData, curOfs + 8, frameDataOffsets[i]);
         curOfs += FrameEntrySize;
       }
@@ -943,7 +943,7 @@ public class PseudoBamDecoder extends BamDecoder
             FrameDataV2 frame = listFrameData.get(idx);
             PseudoBamFrameEntry bfe = listFrames.get(idx);
 
-            PseudoBamFrameEntry entry = new PseudoBamFrameEntry(bfe.frame, bfe.centerX, bfe.centerY);
+            PseudoBamFrameEntry entry = new PseudoBamFrameEntry(bfe.frame, bfe.getCenterX(), bfe.getCenterY());
             entry.setOption(OPTION_INT_BLOCKINDEX, Integer.valueOf(blockStartIndex));
             entry.setOption(OPTION_INT_BLOCKCOUNT, Integer.valueOf(1));
             listFrameEntries.add(entry);
@@ -979,10 +979,10 @@ public class PseudoBamDecoder extends BamDecoder
       short v;
       for (int i = 0; i < listFrameEntries.size(); i++) {
         PseudoBamFrameEntry fe = listFrameEntries.get(i);
-        DynamicArray.putShort(bamData, ofs, (short)fe.width);
-        DynamicArray.putShort(bamData, ofs + 2, (short)fe.height);
-        DynamicArray.putShort(bamData, ofs + 4, (short)fe.centerX);
-        DynamicArray.putShort(bamData, ofs + 6, (short)fe.centerY);
+        DynamicArray.putShort(bamData, ofs, (short)fe.getWidth());
+        DynamicArray.putShort(bamData, ofs + 2, (short)fe.getHeight());
+        DynamicArray.putShort(bamData, ofs + 4, (short)fe.getCenterX());
+        DynamicArray.putShort(bamData, ofs + 6, (short)fe.getCenterY());
         o = fe.getOption(OPTION_INT_BLOCKINDEX);
         v = (o != null) ? ((Integer)o).shortValue() : 0;
         DynamicArray.putShort(bamData, ofs + 8, v);
@@ -1451,7 +1451,10 @@ public class PseudoBamDecoder extends BamDecoder
     @Override
     public Object clone()
     {
-      return new PseudoBamFrameEntry(frame, centerX, centerY);
+      PseudoBamFrameEntry retVal = new PseudoBamFrameEntry(frame, centerX, centerY);
+      retVal.overrideCenterX = overrideCenterX;
+      retVal.overrideCenterY = overrideCenterY;
+      return retVal;
     }
 
     @Override
