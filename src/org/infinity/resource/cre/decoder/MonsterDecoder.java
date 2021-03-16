@@ -298,14 +298,15 @@ public class MonsterDecoder extends SpriteDecoder
     retVal = new SeqDef(seq);
     for (final Couple<String, SegmentDef.SpriteType> creInfo : creResList) {
       ResourceEntry entry = ResourceFactory.getResourceEntry(creInfo.getValue0());
+      SegmentDef.SpriteType type = creInfo.getValue1();
       if (SpriteUtils.bamCyclesExist(entry, ofs, SeqDef.DIR_FULL_W.length)) {
-        SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_W, false, entry, ofs, null, behavior);
+        SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_W, false, entry, ofs, type, behavior);
         retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
-        tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_E, true, entry, ofs + 1, null, behavior);
+        tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_E, true, entry, ofs + 1, type, behavior);
         retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
       } else if (entry != null && SpriteUtils.getBamCycles(entry) == 1) {
         // fallback solution: just use first bam cycle (required by a few animations)
-        SeqDef tmp = SeqDef.createSequence(seq, new Direction[] {Direction.S}, false, entry, 0, null, behavior);
+        SeqDef tmp = SeqDef.createSequence(seq, new Direction[] {Direction.S}, false, entry, 0, type, behavior);
         retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
       }
     }
