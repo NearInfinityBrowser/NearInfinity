@@ -46,7 +46,19 @@ public class SpriteUtils
   /** Clears cached resources. */
   public static void clearCache()
   {
+    clearBamCache();
+    clearColorCache();
+  }
+
+  /** Clears BAM cache only. */
+  public static void clearBamCache()
+  {
     bamCache.clear();
+  }
+
+  /** Clears all palette-related caches. */
+  public static void clearColorCache()
+  {
     paletteCache.clear();
     colorGradients.clear();
     randomGradientIndices.clear();

@@ -1151,6 +1151,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   {
     if (paletteReplacementEnabled != b) {
       paletteReplacementEnabled = b;
+      SpriteUtils.clearBamCache();
       spriteChanged();
     }
   }
