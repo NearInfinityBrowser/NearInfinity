@@ -8,10 +8,12 @@ import java.nio.ByteBuffer;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.IdsBitmap;
 import org.infinity.datatype.StringRef;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
+import org.infinity.resource.ResourceFactory;
 import org.infinity.util.io.StreamUtils;
 
 public final class AutomapNote extends AbstractStruct implements AddRemovable
@@ -56,7 +58,11 @@ public final class AutomapNote extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 2, 2, ARE_AUTOMAP_LOCATION_Y));
     addField(new StringRef(buffer, offset + 4, ARE_AUTOMAP_TEXT));
     addField(new Bitmap(buffer, offset + 8, 2, ARE_AUTOMAP_TEXT_LOCATION, s_source));
-    addField(new Bitmap(buffer, offset + 10, 2, ARE_AUTOMAP_MARKER_COLOR, s_flag));
+    if (ResourceFactory.resourceExists("MAPNOTES.IDS")) {
+      addField(new IdsBitmap(buffer, offset + 10, 2, ARE_AUTOMAP_MARKER_COLOR, "MAPNOTES.IDS", false));
+    } else {
+      addField(new Bitmap(buffer, offset + 10, 2, ARE_AUTOMAP_MARKER_COLOR, s_flag));
+    }
     addField(new DecNumber(buffer, offset + 12, 4, ARE_AUTOMAP_CONTROL_ID));
     addField(new Unknown(buffer, offset + 16, 36));
     return offset + 52;
