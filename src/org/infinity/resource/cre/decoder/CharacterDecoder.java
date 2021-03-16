@@ -231,7 +231,17 @@ public class CharacterDecoder extends ArmoredBaseDecoder
     return retVal;
   }
 
-  protected void setShieldHeightCode(String s) { setAttribute(KEY_HEIGHT_CODE_SHIELD, s); }
+  protected void setShieldHeightCode(String s)
+  {
+    if (s != null && !s.isEmpty()) {
+      // Discard if shield height code refers to non-existing overlays
+      List<ResourceEntry> resList = ResourceFactory.getResources(s + "..G1\\.BAM");
+      if (resList.isEmpty()) {
+        s = "";
+      }
+    }
+    setAttribute(KEY_HEIGHT_CODE_SHIELD, s);
+    }
 
   /** Returns the paperdoll resref. */
   public String getPaperdollResref() { return getAttribute(KEY_RESREF_PAPERDOLL); }
