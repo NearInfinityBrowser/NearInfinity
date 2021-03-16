@@ -31,219 +31,180 @@ import org.infinity.util.io.StreamUtils;
 public class ItemInfo implements Comparable<ItemInfo>
 {
   /**
+   * This predicate simply returns {@code false} for all items.
+   */
+  public static final ItemPredicate FILTER_NONE = (info) -> { return false; };
+
+  /**
    * This predicate simply returns {@code true} for all items.
    */
-  public static final ItemPredicate FILTER_ALL = new ItemPredicate() {
-    @Override
-    public boolean test(ItemInfo info)
-    {
-      return true;
-    }
-  };
+  public static final ItemPredicate FILTER_ALL = (info) -> { return true; };
 
   /**
    * This predicate returns {@code true} only if the item can be equipped and unequipped in the character inventory.
    */
-  public static final ItemPredicate FILTER_EQUIPPABLE = new ItemPredicate() {
-    @Override
-    public boolean test(ItemInfo info)
-    {
-      return (info.getFlags() & 0x04) == 0x04;  // droppable
-    }
+  public static final ItemPredicate FILTER_EQUIPPABLE = (info) -> {
+    return (info.getFlags() & 0x04) == 0x04;  // droppable
   };
 
   /**
    * This predicate returns {@code true} only if the item can be equipped in a weapon slot.
    */
-  public static final ItemPredicate FILTER_WEAPON = new ItemPredicate() {
-    @Override
-    public boolean test(ItemInfo info)
-    {
-      boolean retVal = FILTER_EQUIPPABLE.test(info);
-      if (retVal && info.getAbilityCount() > 0) {
-        retVal &= (info.getAbility(0).getLocation() == 1);
-      }
-      return retVal;
+  public static final ItemPredicate FILTER_WEAPON = (info) -> {
+    boolean retVal = FILTER_EQUIPPABLE.test(info);
+    retVal &= (info.getAbilityCount() > 0);
+    if (retVal) {
+      retVal &= (info.getAbility(0).getLocation() == 1);  // weapon slot
+      retVal &= (info.getAbility(0).getLauncher() == 0);  // no launcher required
     }
+    return retVal;
   };
 
   /**
    * This predicate returns {@code true} if the item is a two-handed weapon (melee or ranged).
    */
-  public static final ItemPredicate FILTER_WEAPON_2H = new ItemPredicate() {
-    @Override
-    public boolean test(ItemInfo info)
-    {
-      boolean retVal = FILTER_WEAPON.test(info);
-      if (retVal && info.getAbilityCount() > 0) {
-        int mask = Profile.isEnhancedEdition() ? 0x1002 : 0x2;  // two-handed, fake two-handed
-        retVal &= (info.getFlags() & mask) != 0;
-      }
-      return retVal;
+  public static final ItemPredicate FILTER_WEAPON_2H = (info) -> {
+    boolean retVal = FILTER_WEAPON.test(info);
+    retVal &= (info.getAbilityCount() > 0);
+    if (retVal) {
+      int mask = Profile.isEnhancedEdition() ? 0x1002 : 0x2;  // two-handed, fake two-handed
+      retVal &= (info.getFlags() & mask) != 0;
     }
+    return retVal;
   };
 
   /**
    * This predicate returns {@code true} only if the item can be placed in a weapon slot and the default ability
    * is defined as melee type.
    */
-  public static final ItemPredicate FILTER_WEAPON_MELEE = new ItemPredicate() {
-    @Override
-    public boolean test(ItemInfo info)
-    {
-      boolean retVal = FILTER_WEAPON.test(info);
-      if (retVal && info.getAbilityCount() > 0) {
-        AbilityInfo ai = info.getAbility(0);
-        retVal = (ai.getAbilityType() == 1) &&
-                 (ai.getLauncher() == 0);
-      }
-      return retVal;
+  public static final ItemPredicate FILTER_WEAPON_MELEE = (info) -> {
+    boolean retVal = FILTER_WEAPON.test(info);
+    retVal &= (info.getAbilityCount() > 0);
+    if (retVal) {
+      AbilityInfo ai = info.getAbility(0);
+      retVal = (ai.getAbilityType() == 1) &&
+               (ai.getLauncher() == 0);
     }
+    return retVal;
   };
 
   /**
    * This predicate returns {@code true} only if {@link #FILTER_WEAPON_MELEE} passes the test and the item is flagged
    * as two-handed or fake two-handed (e.g. monk fists).
    */
-  public static final ItemPredicate FILTER_WEAPON_MELEE_2H = new ItemPredicate() {
-    @Override
-    public boolean test(ItemInfo info)
-    {
-      boolean retVal = FILTER_WEAPON_MELEE.test(info);
-      if (retVal) {
-        int mask = Profile.isEnhancedEdition() ? 0x1002 : 0x2;
-        retVal &= (info.getFlags() & mask) != 0;
-      }
-      return retVal;
+  public static final ItemPredicate FILTER_WEAPON_MELEE_2H = (info) -> {
+    boolean retVal = FILTER_WEAPON_MELEE.test(info);
+    if (retVal) {
+      int mask = Profile.isEnhancedEdition() ? 0x1002 : 0x2;
+      retVal &= (info.getFlags() & mask) != 0;
     }
+    return retVal;
   };
 
   /**
    * This predicate returns {@code true} only if {@link #FILTER_WEAPON_MELEE} passes the test and the item can be
    * equipped in the shield slot.
    */
-  public static final ItemPredicate FILTER_WEAPON_MELEE_LEFT_HANDED = new ItemPredicate() {
-    @Override
-    public boolean test(ItemInfo info)
-    {
-      boolean retVal = FILTER_WEAPON_MELEE.test(info);
-      if (retVal) {
-        boolean isTwoHanded = (info.getFlags() & 2) != 0;
-        boolean allowLeftHanded = !Profile.isEnhancedEdition() || ((info.getFlags() & (1 << 13)) == 0);
-        retVal = !isTwoHanded && allowLeftHanded;
-      }
-      return retVal;
+  public static final ItemPredicate FILTER_WEAPON_MELEE_LEFT_HANDED = (info) -> {
+    boolean retVal = FILTER_WEAPON_MELEE.test(info);
+    if (retVal) {
+      boolean isTwoHanded = (info.getFlags() & 2) != 0;
+      boolean allowLeftHanded = !Profile.isEnhancedEdition() || ((info.getFlags() & (1 << 13)) == 0);
+      retVal = !isTwoHanded && allowLeftHanded;
     }
+    return retVal;
   };
 
   /**
    * This predicate returns {@code true} only if the item can be placed in a weapon slot and the default ability
    * is defined as ranged or launcher type.
    */
-  public static final ItemPredicate FILTER_WEAPON_RANGED = new ItemPredicate() {
-    @Override
-    public boolean test(ItemInfo info)
-    {
-      boolean retVal = FILTER_WEAPON.test(info);
-      if (retVal && info.getAbilityCount() > 0) {
-        AbilityInfo ai = info.getAbility(0);
-        retVal &= (ai.getLauncher() == 0);
-        retVal &= (ai.getAbilityType() == 2) || (ai.getAbilityType() == 4);
-      }
-      return retVal;
+  public static final ItemPredicate FILTER_WEAPON_RANGED = (info) -> {
+    boolean retVal = FILTER_WEAPON.test(info);
+    retVal &= (info.getAbilityCount() > 0);
+    if (retVal) {
+      AbilityInfo ai = info.getAbility(0);
+      retVal &= (ai.getLauncher() == 0);
+      retVal &= (ai.getAbilityType() == 2) || (ai.getAbilityType() == 4);
     }
+    return retVal;
   };
 
   /**
    * This predicate returns {@code true} only if the item can be placed in a weapon slot and is a
    * ranged launcher-type weapon.
    */
-  public static final ItemPredicate FILTER_WEAPON_RANGED_LAUNCHER = new ItemPredicate() {
-    @Override
-    public boolean test(ItemInfo info)
-    {
-      boolean retVal = FILTER_WEAPON.test(info);
-      if (retVal && info.getAbilityCount() > 0) {
-        AbilityInfo ai = info.getAbility(0);
-        retVal &= (ai.getLauncher() == 0);
-        retVal &= (ai.getAbilityType() == 4);
-      }
-      return retVal;
+  public static final ItemPredicate FILTER_WEAPON_RANGED_LAUNCHER = (info) -> {
+    boolean retVal = FILTER_WEAPON.test(info);
+    retVal &= (info.getAbilityCount() > 0);
+    if (retVal) {
+      AbilityInfo ai = info.getAbility(0);
+      retVal &= (ai.getLauncher() == 0);
+      retVal &= (ai.getAbilityType() == 4);
     }
+    return retVal;
   };
 
   /**
    * This predicate returns {@code true} only if the item is a shield that can be placed in the shield slot.
    */
-  public static final ItemPredicate FILTER_SHIELD = new ItemPredicate() {
-    @Override
-    public boolean test(ItemInfo info)
-    {
-      boolean retVal = FILTER_EQUIPPABLE.test(info);
-      if (retVal) {
-        switch (info.getCategory()) {
-          case 12:  // Shields
-          case 41:  // Bucklers
-          case 47:  // Large shields
-          case 49:  // Medium shields
-          case 53:  // Small shields
-            break;
-          default:
-            retVal = false;
-        }
+  public static final ItemPredicate FILTER_SHIELD = (info) -> {
+    boolean retVal = FILTER_EQUIPPABLE.test(info);
+    if (retVal) {
+      switch (info.getCategory()) {
+        case 12:  // Shields
+        case 41:  // Bucklers
+        case 47:  // Large shields
+        case 49:  // Medium shields
+        case 53:  // Small shields
+          break;
+        default:
+          retVal = false;
       }
-      return retVal;
     }
+    return retVal;
   };
 
   /**
    * This predicate returns {@code true} only if the item can be placed in the armor slot.
    */
-  public static final ItemPredicate FILTER_ARMOR = new ItemPredicate() {
-    @Override
-    public boolean test(ItemInfo info)
-    {
-      boolean retVal = FILTER_EQUIPPABLE.test(info);
-      if (retVal) {
-        switch (info.getCategory()) {
-          case 2:   // Armor
-          case 60:  // Leather armor
-          case 61:  // Studded leather
-          case 62:  // Chain mail
-          case 63:  // Split mail
-          case 64:  // Plate mail
-          case 65:  // Full plate
-          case 66:  // Hide armor
-          case 67:  // Robes
-          case 68:  // Scale mail
-            break;
-          default:
-            retVal = false;
-        }
+  public static final ItemPredicate FILTER_ARMOR = (info) -> {
+    boolean retVal = FILTER_EQUIPPABLE.test(info);
+    if (retVal) {
+      switch (info.getCategory()) {
+        case 2:   // Armor
+        case 60:  // Leather armor
+        case 61:  // Studded leather
+        case 62:  // Chain mail
+        case 63:  // Split mail
+        case 64:  // Plate mail
+        case 65:  // Full plate
+        case 66:  // Hide armor
+        case 67:  // Robes
+        case 68:  // Scale mail
+          break;
+        default:
+          retVal = false;
       }
-      return retVal;
     }
+    return retVal;
   };
 
   /**
    * This predicate returns {@code true} only if the item can be placed in the helmet slot.
    */
-  public static final ItemPredicate FILTER_HELMET = new ItemPredicate() {
-    @Override
-    public boolean test(ItemInfo info)
-    {
-      boolean retVal = FILTER_EQUIPPABLE.test(info);
-      if (retVal) {
-        switch (info.getCategory()) {
-          case 7:   // Headgear
-          case 72:  // Hats
-            break;
-          default:
-            retVal = false;
-        }
+  public static final ItemPredicate FILTER_HELMET = (info) -> {
+    boolean retVal = FILTER_EQUIPPABLE.test(info);
+    if (retVal) {
+      switch (info.getCategory()) {
+        case 7:   // Headgear
+        case 72:  // Hats
+          break;
+        default:
+          retVal = false;
       }
-      return retVal;
     }
+    return retVal;
   };
 
   /** Predefined {@code ItemInfo} structure without associated ITM resource. */
@@ -264,6 +225,7 @@ public class ItemInfo implements Comparable<ItemInfo>
   private int unusableKits;
   private String appearance;
   private int proficiency;
+  private int stack;
   private int enchantment;
 
   /**
@@ -462,6 +424,9 @@ public class ItemInfo implements Comparable<ItemInfo>
   /** Returns the proficiency id associated with the item. */
   public int getProficiency() { return proficiency; }
 
+  /** Returns the max. stack amount available for the the item. */
+  public int getStack() { return stack; }
+
   /** Returns the enchantment value of the item. */
   public int getEnchantment() { return enchantment; }
 
@@ -493,7 +458,7 @@ public class ItemInfo implements Comparable<ItemInfo>
   private void initDefault()
   {
     name = nameIdentified = appearance = "";
-    flags = category = unusable = unusableKits = proficiency = enchantment = 0;
+    flags = category = unusable = unusableKits = proficiency = stack = enchantment = 0;
   }
 
   /** Initializes relevant item attributes. */
@@ -578,8 +543,12 @@ public class ItemInfo implements Comparable<ItemInfo>
         Misc.requireCondition(is.skip(0xe) == 0xe, "Could not advance in data stream: " + itmEntry);
       }
 
+      // stack amount
+      Misc.requireCondition(is.skip(0x6) == 0x6, "Could not advance in data stream: " + itmEntry);
+      this.stack = StreamUtils.readShort(is);
+
       // enchantment
-      Misc.requireCondition(is.skip(0x2e) == 0x2e, "Could not advance in data stream: " + itmEntry);
+      Misc.requireCondition(is.skip(0x26) == 0x26, "Could not advance in data stream: " + itmEntry);
       this.enchantment = StreamUtils.readInt(is);
 
       // abilities (common: ofs, num, header)
