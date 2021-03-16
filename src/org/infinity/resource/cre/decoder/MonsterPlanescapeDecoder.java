@@ -311,28 +311,28 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
   /** Returns the number of available false color ranges. */
   public int getColorLocationCount()
   {
-    int[] color = getAttribute(KEY_COLOR_LOCATION);
-    return color.length;
+    List<Integer> color = getAttribute(KEY_COLOR_LOCATION);
+    return color.size();
   }
 
   /** Returns the specified color location. */
-  public int getColorLocation(int index)
+  public int getColorLocation(int index) throws IndexOutOfBoundsException
   {
-    int[] color = getAttribute(KEY_COLOR_LOCATION);
-    if (index < 0 || index > color.length) {
+    List<Integer> color = getAttribute(KEY_COLOR_LOCATION);
+    if (index < 0 || index >= color.size()) {
       throw new IndexOutOfBoundsException();
     }
-    return color[index];
+    return color.get(index);
   }
 
   /** Returns a list of all valid color locations. */
-  private int[] setColorLocations(IniMapSection section)
+  private List<Integer> setColorLocations(IniMapSection section)
   {
-    int[] retVal = null;
+    List<Integer> retVal = null;
     if (Profile.getGame() == Profile.Game.PST) {
-      retVal = setColorLocationsIni(section);
-      if (retVal.length == 0) {
-        retVal = setColorLocationsCre();
+      retVal = setColorLocationsCre();
+      if (retVal.isEmpty()) {
+        retVal = setColorLocationsIni(section);
       }
     } else {
       retVal = setColorLocationsIni(section);
@@ -341,43 +341,33 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
   }
 
   /** Returns a list of all valid color locations defined in the associated INI file. (PSTEE) */
-  private int[] setColorLocationsIni(IniMapSection section)
+  private List<Integer> setColorLocationsIni(IniMapSection section)
   {
     final HashSet<Integer> usedColors = new HashSet<>();
-    int[] retVal = new int[7];
-    int num = 0;
-    for (int i = 0; i < retVal.length; i++) {
+    List<Integer> retVal = new ArrayList<>(7);
+    for (int i = 0; i < 7; i++) {
       int v = section.getAsInteger(KEY_COLOR_LOCATION.getName() + (i + 1), 0);
       if (v >= 128 && v < 240 && !usedColors.contains(v & 0xf0)) {
         usedColors.add(v & 0xf0);
-        retVal[num] = v;
-        num++;
+        retVal.add(Integer.valueOf(v));
       }
-    }
-    if (num < retVal.length) {
-      retVal = Arrays.copyOf(retVal, num);
     }
     return retVal;
   }
 
   /** Returns a list of all valid color locations from the CRE resource. (original PST) */
-  private int[] setColorLocationsCre()
+  private List<Integer> setColorLocationsCre()
   {
     final HashSet<Integer> usedColors = new HashSet<>();
     CreResource cre = getCreResource();
     int numColors = Math.max(0, Math.min(7, ((IsNumeric)cre.getAttribute(CreResource.CRE_NUM_COLORS)).getValue()));
-    int[] retVal = new int[numColors];
-    int num = 0;
-    for (int i = 0; i < retVal.length; i++) {
+    List<Integer> retVal = new ArrayList<>(numColors);
+    for (int i = 0; i < numColors; i++) {
       int l = ((IsNumeric)cre.getAttribute(String.format(CreResource.CRE_COLOR_PLACEMENT_FMT, i + 1))).getValue();
       if (l > 0 && !usedColors.contains(l & 0xf0)) {
         usedColors.add(l & 0xf0);
-        retVal[num] = l;
-        num++;
+        retVal.add(Integer.valueOf(l));
       }
-    }
-    if (num < retVal.length) {
-      retVal = Arrays.copyOf(retVal, num);
     }
     return retVal;
   }
