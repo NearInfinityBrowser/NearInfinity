@@ -215,6 +215,25 @@ public class HashBitmap extends Datatype implements Editable, IsNumeric//TODO: t
     return o == null ? "Unknown - " + value : o.toString();
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + Long.hashCode(value);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof HashBitmap)) {
+      return false;
+    }
+    HashBitmap other = (HashBitmap)o;
+    boolean retVal = (value == other.value);
+    return retVal;
+  }
+
   //<editor-fold defaultstate="collapsed" desc="IsNumeric">
   @Override
   public long getLongValue()

@@ -212,6 +212,25 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     return sb.toString();
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + Integer.hashCode(value);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof MultiNumber)) {
+      return false;
+    }
+    MultiNumber other = (MultiNumber)o;
+    boolean retVal = (value == other.value);
+    return retVal;
+  }
+
   /** Returns number of bits per value. */
   public int getBits()
   {

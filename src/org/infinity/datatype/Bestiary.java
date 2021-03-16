@@ -756,6 +756,26 @@ public final class Bestiary extends Datatype implements Editable, TableModel
     return first ? "No known creatures" : sb.toString();
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + ((known == null) ? 0 : known.hashCode());
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof Bestiary)) {
+      return false;
+    }
+    Bestiary other = (Bestiary)o;
+    boolean retVal = (known == null && other.known == null) ||
+                     (known != null && known.equals(other.known));
+    return retVal;
+  }
+
   /**
    * Returns resource entry from which creatures will be read.
    * @return Pointer to resource with creatures in the bestiary. Never {@code null}

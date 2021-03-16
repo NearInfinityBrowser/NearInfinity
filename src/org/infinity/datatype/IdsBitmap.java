@@ -15,7 +15,12 @@ public class IdsBitmap extends HashBitmap
 {
   public IdsBitmap(ByteBuffer buffer, int offset, int length, String name, String resource)
   {
-    super(buffer, offset, length, name, createResourceList(resource), true);
+    this(buffer, offset, length, name, resource, true);
+  }
+
+  public IdsBitmap(ByteBuffer buffer, int offset, int length, String name, String resource, boolean sortByName)
+  {
+    super(buffer, offset, length, name, createResourceList(resource), sortByName);
   }
 
   @Override

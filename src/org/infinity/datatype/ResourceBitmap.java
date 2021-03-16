@@ -268,6 +268,28 @@ public class ResourceBitmap extends Datatype
     return String.format(formatString, resName, searchString, Long.toString(value));
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + ((resources == null) ? 0 : resources.hashCode());
+    hash = 31 * hash + Long.hashCode(value);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof ResourceBitmap)) {
+      return false;
+    }
+    ResourceBitmap other = (ResourceBitmap)o;
+    boolean retVal = (resources == null && other.resources == null) ||
+                     (resources != null && resources.equals(other.resources));
+    retVal &= (value == other.value);
+    return retVal;
+  }
+
   //--------------------- Begin Interface IsNumeric ---------------------
 
   @Override

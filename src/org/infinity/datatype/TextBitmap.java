@@ -176,6 +176,26 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
     return text;
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + ((text == null) ? 0 : text.hashCode());
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof TextBitmap)) {
+      return false;
+    }
+    TextBitmap other = (TextBitmap)o;
+    boolean retVal = (text == null && other.text == null) ||
+                     (text != null && text.equals(other.text));
+    return retVal;
+  }
+
 //--------------------- Begin Interface IsTextual ---------------------
 
   /** Returns the unprocessed textual symbol of fixed number of characters. */

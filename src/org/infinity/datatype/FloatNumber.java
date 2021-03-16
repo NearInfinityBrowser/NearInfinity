@@ -96,6 +96,25 @@ public class FloatNumber extends Datatype implements InlineEditable
     return Double.toString(value);
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + Double.hashCode(value);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof FloatNumber)) {
+      return false;
+    }
+    FloatNumber other = (FloatNumber)o;
+    boolean retVal = (value == other.value);
+    return retVal;
+  }
+
   public double getValue()
   {
     return value;

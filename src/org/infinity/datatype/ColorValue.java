@@ -270,6 +270,25 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
     return retVal;
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + Integer.hashCode(number);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof ColorValue)) {
+      return false;
+    }
+    ColorValue other = (ColorValue)o;
+    boolean retVal = (number == other.number);
+    return retVal;
+  }
+
   /**
    * Returns the name associated with the specified color entry.
    * Returns {@code null} if no name is available.

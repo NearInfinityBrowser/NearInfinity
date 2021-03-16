@@ -188,6 +188,28 @@ public class Unknown extends Datatype implements Editable, IsBinary
       return "";
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + ((buffer == null || buffer.array() == null) ? 0 : buffer.array().hashCode());
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof Unknown)) {
+      return false;
+    }
+    Unknown other = (Unknown)o;
+    byte[] arr1 = (buffer != null && buffer.array() != null) ? buffer.array() : null;
+    byte[] arr2 = (other.buffer != null && other.buffer.array() != null) ? other.buffer.array() : null;
+    boolean retVal = (arr1 == null && arr2 == null) ||
+                     (arr1 != null && arr1.equals(arr2));
+    return retVal;
+  }
+
   protected void setValue(byte[] newValue)
   {
     buffer.position(0);

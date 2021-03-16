@@ -486,6 +486,35 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     return sb.toString();
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = 7;
+    hash = 31 * hash + ((fields == null) ? 0 : fields.hashCode());
+    hash = 31 * hash + Integer.hashCode(startoffset);
+    hash = 31 * hash + Integer.hashCode(endoffset);
+    hash = 31 * hash + Integer.hashCode(extraoffset);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (o == this) {
+      return true;
+    }
+    if (!(o instanceof AbstractStruct)) {
+      return false;
+    }
+    AbstractStruct other = (AbstractStruct)o;
+    boolean retVal = (fields == null && other.fields == null) ||
+                     (fields != null && fields.equals(other.fields));
+    retVal &= (startoffset == other.startoffset);
+    retVal &= (endoffset == other.endoffset);
+    retVal &= (extraoffset == other.extraoffset);
+    return retVal;
+  }
+
   /** Returns the table row index where the specified AddRemovable structure can be inserted. */
   public int getDatatypeIndex(AddRemovable addedEntry)
   {

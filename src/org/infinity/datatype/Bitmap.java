@@ -185,6 +185,25 @@ public class Bitmap extends Datatype implements Editable, IsNumeric
     return toString(value);
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + Integer.hashCode(value);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof Bitmap)) {
+      return false;
+    }
+    Bitmap other = (Bitmap)o;
+    boolean retVal = (value == other.value);
+    return retVal;
+  }
+
   /** Returns the unformatted description of the specified value. */
   protected String getString(int nr)
   {

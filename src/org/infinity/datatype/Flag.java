@@ -219,6 +219,25 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     return sb.toString();
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + Long.hashCode(value);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof Flag)) {
+      return false;
+    }
+    Flag other = (Flag)o;
+    boolean retVal = (value == other.value);
+    return retVal;
+  }
+
   /**
    * Returns label of flag {@code i} or {@code null}, if such flag does not exist.
    *

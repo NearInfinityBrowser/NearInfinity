@@ -146,6 +146,25 @@ public class DecNumber extends Datatype implements InlineEditable, IsNumeric
     return Long.toString(number);
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + Long.hashCode(number);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof DecNumber)) {
+      return false;
+    }
+    DecNumber other = (DecNumber)o;
+    boolean retVal = (number == other.number);
+    return retVal;
+  }
+
   /** Attempts to parse the specified string into a decimal or, optionally, hexadecimal number. */
   static long parseNumber(Object value, int size, boolean negativeAllowed, boolean hexAllowed) throws Exception
   {

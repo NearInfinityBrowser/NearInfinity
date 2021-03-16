@@ -312,6 +312,29 @@ public class ResourceRef extends Datatype
     return getResourceName();
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + ((type == null) ? 0 : type.hashCode());
+    hash = 31 * hash + ((resname == null) ? 0 : resname.hashCode());
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof ResourceRef)) {
+      return false;
+    }
+    ResourceRef other = (ResourceRef)o;
+    boolean retVal = (type == null && other.type == null) ||
+                     (type != null && type.equals(other.type));
+    retVal &= (resname == null && other.resname == null) ||
+              (resname != null && resname.equals(other.resname));
+    return retVal;
+  }
+
   //<editor-fold defaultstate="collapsed" desc="IsTextual">
   @Override
   public String getText()
