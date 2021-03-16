@@ -36,6 +36,7 @@ import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
 import org.infinity.datatype.UnsignDecNumber;
 import org.infinity.datatype.UpdateListener;
+import org.infinity.resource.are.AutomapNote;
 import org.infinity.resource.itm.ItmResource;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.LongIntegerHashMap;
@@ -3751,6 +3752,16 @@ public final class EffectFactory
         break;
 
       case 253: // Set automap note
+        s.add(new StringRef(buffer, offset, "String"));
+        if (Profile.isEnhancedEdition() && ResourceFactory.resourceExists("MAPNOTES.IDS")) {
+          s.add(new IdsBitmap(buffer, offset + 4, 4, "Color", "MAPNOTES.IDS", false));
+        } else if (Profile.getEngine() == Profile.Engine.BG2) {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Color", AutomapNote.s_flag));
+        } else {
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+        }
+        break;
+
       case 254: // Remove automap note
       case 267: // Disable display string
         s.add(new StringRef(buffer, offset, "String"));
