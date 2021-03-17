@@ -45,6 +45,7 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.SpriteUtils;
+import org.infinity.resource.cre.viewer.CreatureViewer;
 import org.infinity.resource.gam.PartyNPC;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 import org.infinity.util.StringTable;
@@ -69,6 +70,7 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
   private static final ButtonPanel.Control CtrlShowCircle     = ButtonPanel.Control.CUSTOM_10;
   private static final ButtonPanel.Control CtrlShowSpace      = ButtonPanel.Control.CUSTOM_11;
   private static final ButtonPanel.Control CtrlZoom           = ButtonPanel.Control.CUSTOM_12;
+  private static final ButtonPanel.Control CtrlOpenViewer     = ButtonPanel.Control.CUSTOM_13;
 
   // List of potential sequences to display when loading a new creature
   private static final List<SpriteDecoder.Sequence> InitialSequences = new ArrayList<SpriteDecoder.Sequence>() {{
@@ -277,7 +279,12 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
   @Override
   public void actionPerformed(ActionEvent event)
   {
-    if (buttonControlPanel.getControlByType(CtrlSequenceList) == event.getSource()) {
+    if (timer == event.getSource()) {
+      curFrame += 1;
+      curFrame %= getController().cycleFrameCount();
+      showFrame();
+    }
+    else if (buttonControlPanel.getControlByType(CtrlSequenceList) == event.getSource()) {
       JComboBox<?> cb = (JComboBox<?>)buttonControlPanel.getControlByType(CtrlSequenceList);
       SpriteDecoder.Sequence seq = (SpriteDecoder.Sequence)(cb).getSelectedItem();
       try {
@@ -369,10 +376,15 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
       }
       updateControls();
     }
-    else if (timer == event.getSource()) {
-      curFrame += 1;
-      curFrame %= getController().cycleFrameCount();
-      showFrame();
+    else if (buttonControlPanel.getControlByType(CtrlOpenViewer) == event.getSource()) {
+      CreatureViewer cv = ChildFrame.show(CreatureViewer.class, () -> new CreatureViewer(getCre()));
+      if (cv != null) {
+        if (getCre() != cv.getCreResource()) {
+          cv.setCreResource(getCre());
+        }
+        cv.toFront();
+      }
+      close();
     }
   }
 
@@ -433,6 +445,10 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     cbShowSpace.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
     cbShowSpace.addActionListener(this);
 
+    JButton bOpenViewer = new JButton("Open in viewer", Icons.getIcon(Icons.ICON_CRE_VIEWER_24));
+    bOpenViewer.setToolTipText("Open in Creature Animation Viewer");
+    bOpenViewer.addActionListener(this);
+
     buttonControlPanel.addControl(lCycle, CtrlCycleLabel);
     buttonControlPanel.addControl(bPrevCycle, CtrlPrevCycle);
     buttonControlPanel.addControl(bNextCycle, CtrlNextCycle);
@@ -445,6 +461,7 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     buttonControlPanel.addControl(cbZoom, CtrlZoom);
     buttonControlPanel.addControl(cbShowCircle, CtrlShowCircle);
     buttonControlPanel.addControl(cbShowSpace, CtrlShowSpace);
+    buttonControlPanel.addControl(bOpenViewer, CtrlOpenViewer);
 
     setLayout(new GridBagLayout());
     GridBagConstraints c;

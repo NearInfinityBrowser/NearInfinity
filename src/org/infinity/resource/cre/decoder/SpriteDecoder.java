@@ -356,7 +356,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       }
       boolean retVal = false;
 
-      // TODO: improve Infinity Animations check
+      // Infinity Animations sprite takes precedence over regular sprite
       AnimationType type = containsInfinityAnimations(value);
       if (type != null && type != this) {
         return retVal;

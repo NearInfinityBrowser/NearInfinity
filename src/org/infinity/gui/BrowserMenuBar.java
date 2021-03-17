@@ -85,6 +85,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.StructureFactory;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.ViewableContainer;
+import org.infinity.resource.cre.viewer.CreatureViewer;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.Keyfile;
 import org.infinity.resource.key.ResourceEntry;
@@ -1483,7 +1484,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   {
     private static final String TOOLS_DEBUG_EXTRA_INFO  = "DebugShowExtraInfo";
 
-    private final JMenuItem toolInfinityAmp, toolCleanKeyfile, toolCheckAllDialog, toolCheckOverrideDialog;
+    private final JMenuItem toolInfinityAmp, toolCreatureViewer, toolCleanKeyfile, toolCheckAllDialog, toolCheckOverrideDialog;
     private final JMenuItem toolCheckResRef, toolIDSBrowser, toolDropZone, toolCheckCREInv;
     private final JMenuItem toolCheckIDSRef, toolCheckIDSBCSRef, toolCheckScripts, toolCheckStructs;
     private final JMenuItem toolCheckStringUse, toolCheckStringIndex, toolCheckFileUse, toolMassExport;
@@ -1497,6 +1498,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     {
       super("Tools");
       setMnemonic(KeyEvent.VK_T);
+
+      toolCreatureViewer = makeMenuItem("Creature Animation Viewer", KeyEvent.VK_A, Icons.getIcon(Icons.ICON_CRE_VIEWER_24), -1, this);
+      add(toolCreatureViewer);
 
       toolInfinityAmp = makeMenuItem("InfinityAmp", KeyEvent.VK_I, Icons.getIcon(Icons.ICON_VOLUME_16), -1, this);
       add(toolInfinityAmp);
@@ -1685,7 +1689,10 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     @Override
     public void actionPerformed(ActionEvent event)
     {
-      if (event.getSource() == toolInfinityAmp) {
+      if (event.getSource() == toolCreatureViewer) {
+        ChildFrame.show(CreatureViewer.class, () -> new CreatureViewer());
+      }
+      else if (event.getSource() == toolInfinityAmp) {
         ChildFrame.show(InfinityAmp.class, () -> new InfinityAmp());
       }
       else if (event.getSource() == toolIDSBrowser) {
