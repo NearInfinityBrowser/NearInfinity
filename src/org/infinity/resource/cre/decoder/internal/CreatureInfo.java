@@ -28,6 +28,7 @@ import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.Item;
 import org.infinity.resource.cre.decoder.MonsterPlanescapeDecoder;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
+import org.infinity.resource.cre.decoder.internal.ItemInfo.EffectInfo;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
@@ -39,7 +40,7 @@ import org.infinity.util.Table2daCache;
 public class CreatureInfo
 {
   /** Value to disable allegiance override. */
-  public static final int ALLEGIANCE_OVERRIDE_NONE = -1;
+  public static final int OVERRIDE_NONE = -1;
 
   /**
    * Identifies the equipment slot for an item.
@@ -81,7 +82,7 @@ public class CreatureInfo
   {
     this.decoder = Objects.requireNonNull(decoder, "SpriteDecoder instance cannot be null");
     this.cre = Objects.requireNonNull(cre, "CRE resource cannot be null");
-    this.allegianceOverride = ALLEGIANCE_OVERRIDE_NONE;
+    this.allegianceOverride = OVERRIDE_NONE;
     init();
   }
 
@@ -119,6 +120,41 @@ public class CreatureInfo
         retVal = 255 - Math.min(v, 255);
       }
     }
+    return retVal;
+  }
+
+  /**
+   * Returns the translucency strength of the creature after evaluating all potential sources of translucency,
+   * which includes creature animation properties, creature properties (EE only) and item effects.
+   * Values can range from 0 (fully opaque) to 255 (fully transparent).
+   */
+  public int getEffectiveTranslucency()
+  {
+    int retVal = -1;
+
+    // getting translucency from item effect
+    for (final ItemSlots slot : ItemSlots.values()) {
+      ItemInfo info = getItemInfo(slot);
+      if (info != null) {
+        EffectInfo effectInfo = info.getEffectStream()
+            .filter(ei -> ei.getOpcode() == 66 &&   // translucency
+                          ei.getTiming() == 2 &&    // when equipped
+                          ei.getParameter2() == 0)  // draw instantly
+            .findAny()
+            .orElse(null);
+        if (effectInfo != null) {
+          // we need inverted amount
+          int amount = Math.max(0, Math.min(255, effectInfo.getParameter1()));
+          retVal = Math.max(retVal, 255 - amount);
+        }
+      }
+    }
+
+    if (retVal < 0) {
+      // falling back to default translucency
+      retVal = getTranslucency();
+    }
+
     return retVal;
   }
 
@@ -206,17 +242,17 @@ public class CreatureInfo
    */
   public int getAllegiance(boolean allowOverride)
   {
-    int retVal = ALLEGIANCE_OVERRIDE_NONE;
+    int retVal = OVERRIDE_NONE;
     if (allowOverride) {
       retVal = getAllegianceOverride();
     }
-    if (retVal == ALLEGIANCE_OVERRIDE_NONE) {
+    if (retVal == OVERRIDE_NONE) {
       retVal = ((IsNumeric)cre.getAttribute(CreResource.CRE_ALLEGIANCE)).getValue();
     }
     return retVal;
   }
 
-  /** Returns the overridden allegiance. Returns {@link #ALLEGIANCE_OVERRIDE_NONE} if allegiance has not been overridden. */
+  /** Returns the overridden allegiance. Returns {@link #OVERRIDE_NONE} if allegiance has not been overridden. */
   public int getAllegianceOverride()
   {
     return allegianceOverride;
@@ -225,11 +261,11 @@ public class CreatureInfo
   /**
    * Overrides the creature's allegiance.
    * @param allegiance new allegiance of the creature. Uses the same values as defined in EA.IDS.
-   *                   Specify {@link #ALLEGIANCE_OVERRIDE_NONE} to disable.
+   *                   Specify {@link #OVERRIDE_NONE} to disable.
    */
   public void setAllegianceOverride(int allegiance)
   {
-    allegiance = Math.max(ALLEGIANCE_OVERRIDE_NONE, Math.min(255, allegiance));
+    allegiance = Math.max(OVERRIDE_NONE, Math.min(255, allegiance));
     if (allegianceOverride != allegiance) {
       allegianceOverride = allegiance;
       decoder.allegianceChanged();
@@ -645,57 +681,45 @@ public class CreatureInfo
     }
 
     int fxType = (as instanceof Effect2) ? 1 : 0;
+    int ofsParam1 = (fxType == 1) ? 0x14 : 0x04;
+    int ofsParam2 = (fxType == 1) ? 0x18 : 0x08;
+//    int ofsSpecial = (fxType == 1) ? 0x40 : 0x2c;
 
     int opcode = ((EffectType)se).getValue();
-    if (opcode == 7) {
-      int param1 = -1;
-      int param2 = -1;
-      if (fxType == 1) {
-        // EFF V2
-        se = as.getAttribute(0x14);
-        if (se instanceof IsNumeric) {
-          param1 = ((IsNumeric)se).getValue();
-        }
-        se = as.getAttribute(0x18);
-        if (se instanceof IsNumeric) {
-          param2 = ((IsNumeric)se).getValue();
-        }
-      } else {
-        // EFF V1
-        se = as.getAttribute(0x4);
-        if (se instanceof IsNumeric) {
-          param1 = ((IsNumeric)se).getValue();
-        }
-        se = as.getAttribute(0x8);
-        if (se instanceof IsNumeric) {
-          param2 = ((IsNumeric)se).getValue();
-        }
-      }
+    switch (opcode) {
+      case 7: // Set color
+      {
+        se = as.getAttribute(ofsParam1);
+        int param1 = (se instanceof IsNumeric) ? ((IsNumeric)se).getValue() : -1;
+        se = as.getAttribute(ofsParam2);
+        int param2 = (se instanceof IsNumeric) ? ((IsNumeric)se).getValue() : -1;
 
-      if (param1 != -1 && param2 != -1) {
-        SegmentDef.SpriteType type = null;
-        int location = param2 & 0xf;
-        switch ((param2 >> 4) & 0xf) {
-          case 0:
-            type = SegmentDef.SpriteType.AVATAR;
-            break;
-          case 1:
-            type = SegmentDef.SpriteType.WEAPON;
-            break;
-          case 2:
-            type = SegmentDef.SpriteType.SHIELD;
-            break;
-          case 3:
-            type = SegmentDef.SpriteType.HELMET;
-            break;
-          default:
-            if ((param2 & 0xff) == 0xff) {
-              // affect all sprite colors
+        if (param1 != -1 && param2 != -1) {
+          SegmentDef.SpriteType type = null;
+          int location = param2 & 0xf;
+          switch ((param2 >> 4) & 0xf) {
+            case 0:
               type = SegmentDef.SpriteType.AVATAR;
-              location = -1;
-            }
+              break;
+            case 1:
+              type = SegmentDef.SpriteType.WEAPON;
+              break;
+            case 2:
+              type = SegmentDef.SpriteType.SHIELD;
+              break;
+            case 3:
+              type = SegmentDef.SpriteType.HELMET;
+              break;
+            default:
+              if ((param2 & 0xff) == 0xff) {
+                // affect all sprite colors
+                type = SegmentDef.SpriteType.AVATAR;
+                location = -1;
+              }
+          }
+          getColorInfo().add(type, location, param1);
         }
-        getColorInfo().add(type, location, param1);
+        break;
       }
     }
   }

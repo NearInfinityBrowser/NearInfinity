@@ -121,21 +121,6 @@ public class MonsterIcewindDecoder extends SpriteDecoder
         }
       }
     }
-//    final String[] wovl;
-//    final String[] seqs;
-//    if (essential) {
-//      wovl = new String[] { "" };
-//      seqs = new String[] { "DE", "GH", "SD", "WK" };
-//    } else {
-//      wovl = new String[] { "", "A", "B", "C", "D", "F", "H", "M", "Q", "S", "W" };
-//      seqs = new String[] { "A1", "A2", "A3", "A4", "CA", "DE", "GH", "GU", "SC", "SD", "SL", "SP", "TW", "WK" };
-//    }
-//    for (final String wpn : wovl) {
-//      for (final String seq : seqs) {
-//        String bamFile = resref + wpn + seq + ".BAM";
-//        retVal.add(resref + wpn + seq + "E.BAM");
-//      }
-//    }
 
     return retVal;
   }

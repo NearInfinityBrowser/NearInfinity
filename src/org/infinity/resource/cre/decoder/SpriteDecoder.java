@@ -1296,7 +1296,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   /** Returns whether creature animation is translucent.  */
   public boolean isTranslucent()
   {
-    return getCreatureInfo().getTranslucency() > 0;
+    return getCreatureInfo().getEffectiveTranslucency() > 0;
   }
 
   /** Sets whether creature animation is translucent.  */
@@ -2002,7 +2002,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   protected void applyTranslucency(BamV1Control control)
   {
     if (control != null) {
-      int alpha = getCreatureInfo().getTranslucency();
+      int alpha = getCreatureInfo().getEffectiveTranslucency();
       int[] palette = control.getCurrentPalette();
 
       // shadow color (alpha relative to semi-transparency of shadow)

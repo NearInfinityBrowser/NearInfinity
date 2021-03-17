@@ -575,6 +575,7 @@ public class ItemInfo implements Comparable<ItemInfo>
           Misc.requireCondition(is.read(effect) == effect.length, "Could not read effect " + i + ": " + itmEntry);
           curOfs += effect.length;
           EffectInfo ei = new EffectInfo(effect);
+          effectsInfo.add(ei);
           parseEffect(ei);
         }
       }
@@ -602,6 +603,7 @@ public class ItemInfo implements Comparable<ItemInfo>
           Misc.requireCondition(is.read(effect) == effect.length, "Could not read effect " + i + ": " + itmEntry);
           curOfs += effect.length;
           EffectInfo ei = new EffectInfo(effect);
+          effectsInfo.add(ei);
           parseEffect(ei);
         }
       }
