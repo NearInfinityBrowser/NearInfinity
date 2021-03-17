@@ -116,8 +116,12 @@ public class CreatureControlModel
       getModelAnimation().reload();
     }
 
-    int idx = Math.max(0, getModelAnimation().getIndexOf(Integer.valueOf(value)));
-    getModelAnimation().setSelectedItem(getModelAnimation().getElementAt(idx));
+    int idx = getModelAnimation().getIndexOf(Integer.valueOf(value));
+    if (idx >= 0) {
+      getModelAnimation().setSelectedItem(getModelAnimation().getElementAt(idx));
+    } else {
+      getModelAnimation().setSelectedItem(new AnimateEntry(value, "(Unknown)"));
+    }
     creAnimationChanged();
   }
 
@@ -292,15 +296,23 @@ public class CreatureControlModel
 
   /**
    * Returns the {@code AnimateEntry} instance of the currently selected creature animation.
-   * Returns {@code null} if entry is not available.
+   * Returns {@code null} if valid entry is not available.
    */
   public AnimateEntry getSelectedAnimation()
   {
-    if (modelCreAnimation != null && modelCreAnimation.getSelectedItem() instanceof AnimateEntry) {
-      return (AnimateEntry)modelCreAnimation.getSelectedItem();
-    } else {
-      return null;
+    AnimateEntry retVal = null;
+    if (modelCreAnimation != null && modelCreAnimation.getSelectedItem() != null) {
+      Object o = modelCreAnimation.getSelectedItem();
+      if (o instanceof AnimateEntry) {
+        retVal = (AnimateEntry)o;
+      } else {
+        int value = modelCreAnimation.parseValue(o);
+        if (value >= 0) {
+          retVal = new AnimateEntry(value, "(Unknown)");
+        }
+      }
     }
+    return retVal;
   }
 
   /**

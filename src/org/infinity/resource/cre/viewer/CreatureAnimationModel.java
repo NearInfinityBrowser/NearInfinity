@@ -200,11 +200,13 @@ public class CreatureAnimationModel extends AbstractListModel<CreatureAnimationM
    * A string is parsed and returns as decimal or hexadecimal number.
    * Returns -1 if argument could not be converted.
    */
-  protected int parseValue(Object o)
+  public int parseValue(Object o)
   {
     int retVal = -1;
     if (o instanceof AnimateEntry) {
       retVal = ((AnimateEntry)o).getValue();
+    } else if (o instanceof Number) {
+      retVal = ((Number)o).intValue();
     } else if (o != null) {
       String s = o.toString().trim().toLowerCase().replaceAll("\\s+", "");
       try {
