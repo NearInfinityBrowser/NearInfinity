@@ -585,7 +585,14 @@ public class MediaPanel extends JPanel
   {
     lFrameCur.setText(Integer.toString(getCurrentFrame()));
     lFrameMax.setText(Integer.toString(getMaxFrame() - 1));
-    lDirection.setText(getDirection(getCurrentDirection()).toString());
+    SpriteDecoder.Direction dir = getDirection(getCurrentDirection());
+    lDirection.setText(dir.toString());
+    String text = "";
+    if (getController() != null) {
+      int cycle = ((SpriteDecoder)getController().getDecoder()).getDirectionMap().getOrDefault(dir, -1);
+      text = "Cycle: " + cycle;
+    }
+    lDirection.setToolTipText(text);
   }
 
   /** Initializes the sequence list with available animation sequences and preselects a suitable default sequence. */
