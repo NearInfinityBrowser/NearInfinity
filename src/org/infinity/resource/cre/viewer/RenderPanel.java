@@ -191,6 +191,7 @@ public class RenderPanel extends JPanel
     if (composite == null && c != null ||
         composite != null && !composite.equals(c)) {
       composite = c;
+      updateCanvas();
     }
   }
 
