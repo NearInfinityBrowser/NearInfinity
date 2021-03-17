@@ -41,10 +41,66 @@ public class ItemInfo implements Comparable<ItemInfo>
   public static final ItemPredicate FILTER_ALL = (info) -> { return true; };
 
   /**
-   * This predicate returns {@code true} only if the item can be equipped and unequipped in the character inventory.
+   * This predicate returns {@code true} only if the item can be equipped in an equipment slot (except item slots).
    */
   public static final ItemPredicate FILTER_EQUIPPABLE = (info) -> {
-    return (info.getFlags() & 0x04) == 0x04;  // droppable
+    switch (info.getCategory()) {
+      case 1:   // Amulets
+      case 2:   // Armor
+      case 3:   // Belts
+      case 4:   // Boots
+      case 5:   // Arrows
+      case 6:   // Bracers
+      case 7:   // Headgear
+      case 10:  // Rings
+      case 12:  // Shields
+      case 14:  // Bullets
+      case 15:  // Bows
+      case 16:  // Daggers
+      case 17:  // Maces
+      case 18:  // Slings
+      case 19:  // Small swords
+      case 20:  // Large swords
+      case 21:  // Hammers
+      case 22:  // Morning stars
+      case 23:  // Flails
+      case 24:  // Darts
+      case 25:  // Axes
+      case 26:  // Quarterstaves
+      case 27:  // Crossbows
+      case 28:  // Hand-to-hand weapons
+      case 29:  // Spears
+      case 30:  // Halberds
+      case 31:  // Bolts
+      case 32:  // Cloaks/Robes
+      case 39:  // Tattoos
+      case 41:  // Bucklers
+      case 44:  // Clubs
+      case 47:  // Large shields
+      case 49:  // Medium shields
+      case 53:  // Small shields
+      case 57:  // Greatswords
+      case 60:  // Leather armor
+      case 61:  // Studded leather
+      case 62:  // Chain mail
+      case 63:  // Splint mail
+      case 64:  // Plate mail
+      case 65:  // Full plate
+      case 66:  // Hide armor
+      case 67:  // Robes
+      case 68:  // Scale mail
+      case 69:  // Bastard swords
+      case 70:  // Scarves
+      case 72:  // Hats
+      case 73:  // Gloves
+      case 74:  // Eyeballs
+      case 75:  // Earrings
+      case 76:  // Teeth
+      case 77:  // Bracelets
+        return true;
+      default:
+        return false;
+    }
   };
 
   /**

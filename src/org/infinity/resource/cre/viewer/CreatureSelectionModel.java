@@ -144,6 +144,7 @@ public class CreatureSelectionModel extends AbstractListModel<CreatureSelectionM
   private void init()
   {
     removeAllElements();
+    selectedItem = null;
 
     ResourceFactory.getResources("CRE").stream().forEach(re -> creList.add(new CreatureItem(re)));
     Collections.sort(creList);
@@ -151,8 +152,6 @@ public class CreatureSelectionModel extends AbstractListModel<CreatureSelectionM
     if (!creList.isEmpty()) {
       fireIntervalAdded(this, 0, creList.size() - 1);
     }
-
-    setSelectedItem(getElementAt(0));
   }
 
 //-------------------------- INNER CLASSES --------------------------

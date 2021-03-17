@@ -567,6 +567,7 @@ public class CreatureControlPanel extends JPanel
           getControlModel().creSelectionChanged();
           updateToolTip(cbCreSelection);
         } catch (Exception ex) {
+          ex.printStackTrace();
           getViewer().showErrorMessage("Could not load the creature resource.\nError: " + ex.getMessage());
         }
       }
