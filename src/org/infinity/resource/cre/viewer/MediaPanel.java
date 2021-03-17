@@ -119,6 +119,7 @@ public class MediaPanel extends JPanel
     SettingsPanel settings = getViewer().getSettingsPanel();
     decoder.setAutoApplyChanges(false);
     decoder.setPaletteReplacementEnabled(settings.isPaletteReplacementEnabled());
+    decoder.setTranslucencyEnabled(settings.isTranslucencyEnabled());
     decoder.setSelectionCircleEnabled(settings.isSelectionCircleEnabled());
     decoder.setPersonalSpaceVisible(settings.isPersonalSpaceEnabled());
     decoder.setRenderAvatar(settings.isAvatarVisible());

@@ -55,8 +55,9 @@ public class SettingsPanel extends JPanel
   }};
 
   private static int indexZoom, indexFrameRate, indexBackground;
-  private static boolean isFiltering, isBlending, isSelectionCircle, isPersonalSpace, isPaletteReplacementEnabled,
-                         isShowAvatar, isShowHelmet, isShowShield, isShowWeapon, isShowBorders;
+  private static boolean isFiltering, isBlending, isTranslucent, isSelectionCircle, isPersonalSpace,
+                         isPaletteReplacementEnabled, isShowAvatar, isShowHelmet, isShowShield, isShowWeapon,
+                         isShowBorders;
 
   static {
     indexZoom = 1;        // 100 % (original)
@@ -64,6 +65,7 @@ public class SettingsPanel extends JPanel
     indexBackground = 0;  // System color
     isFiltering = false;
     isBlending = true;
+    isTranslucent = true;
     isSelectionCircle = false;
     isPersonalSpace = false;
     isShowAvatar = true;
@@ -81,8 +83,8 @@ public class SettingsPanel extends JPanel
   private JComboBox<ItemString<Integer>> cbFrameRate;
   private JComboBox<Backgrounds.BackgroundInfo> cbBackground;
   private JButton bCenter;
-  private JCheckBox cbFiltering, cbBlending, cbSelectionCircle, cbPersonalSpace, cbPaletteReplacementEnabled,
-                    cbShowAvatar, cbShowHelmet, cbShowShield, cbShowWeapon, cbShowBorders;
+  private JCheckBox cbFiltering, cbBlending, cbTranslucent, cbSelectionCircle, cbPersonalSpace,
+                    cbPaletteReplacementEnabled, cbShowAvatar, cbShowHelmet, cbShowShield, cbShowWeapon, cbShowBorders;
   private AttributesPanel panelAttributes;
 
   public SettingsPanel(CreatureViewer viewer)
@@ -199,6 +201,18 @@ public class SettingsPanel extends JPanel
       isBlending = b;
       cbBlending.setSelected(isBlending);
       getViewer().getRenderPanel().setComposite(getComposite());
+    }
+  }
+
+  /** Returns whether translucency is enabled for selected creature animations. */
+  public boolean isTranslucencyEnabled() { return isTranslucent; }
+
+  private void setTranslucencyEnabled(boolean b)
+  {
+    if (isTranslucent != b) {
+      isTranslucent = b;
+      cbTranslucent.setSelected(isTranslucent);
+      getViewer().getMediaPanel().reset(true);
     }
   }
 
@@ -369,9 +383,17 @@ public class SettingsPanel extends JPanel
     cbFiltering = new JCheckBox("Enable filtering", isFiltering);
     cbFiltering.addActionListener(listeners);
 
-    cbBlending= new JCheckBox("Enable blending", isBlending);
+    cbBlending = new JCheckBox("Enable blending", isBlending);
     cbBlending.setToolTipText("Affects only creature animations with special blending attributes (e.g. nishruus or wisps)");
     cbBlending.addActionListener(listeners);
+
+    cbTranslucent = new JCheckBox("Enable translucency", isTranslucent);
+    cbTranslucent.setToolTipText("Affects only creature animations with translucency effect (e.g. ghosts or air elementals)");
+    cbTranslucent.addActionListener(listeners);
+
+    cbPaletteReplacementEnabled = new JCheckBox("Palette replacement", isPaletteReplacementEnabled);
+    cbPaletteReplacementEnabled.setToolTipText("Enable full palette or false color palette replacement.");
+    cbPaletteReplacementEnabled.addActionListener(listeners);
 
     cbSelectionCircle = new JCheckBox("Show selection circle", isSelectionCircle);
     cbSelectionCircle.addActionListener(listeners);
@@ -395,10 +417,6 @@ public class SettingsPanel extends JPanel
     cbShowBorders.setToolTipText("Draw borders around individual segments of the creature animation.");
     cbShowBorders.addActionListener(listeners);
 
-    cbPaletteReplacementEnabled = new JCheckBox("Palette replacement", isPaletteReplacementEnabled);
-    cbPaletteReplacementEnabled.setToolTipText("Enable full palette or false color palette replacement.");
-    cbPaletteReplacementEnabled.addActionListener(listeners);
-
     JPanel panel2 = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
@@ -409,31 +427,38 @@ public class SettingsPanel extends JPanel
 
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    panel2.add(cbSelectionCircle, c);
+    panel2.add(cbTranslucent, c);
     c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
-    panel2.add(cbPersonalSpace, c);
+    panel2.add(cbPaletteReplacementEnabled, c);
 
     c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    panel2.add(cbShowAvatar, c);
+    panel2.add(cbSelectionCircle, c);
     c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
-    panel2.add(cbShowHelmet, c);
+    panel2.add(cbPersonalSpace, c);
 
     c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    panel2.add(cbShowWeapon, c);
+    panel2.add(cbShowAvatar, c);
     c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
-    panel2.add(cbShowShield, c);
+    panel2.add(cbShowHelmet, c);
 
     c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    panel2.add(cbShowBorders, c);
+    panel2.add(cbShowWeapon, c);
     c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
-    panel2.add(cbPaletteReplacementEnabled, c);
+    panel2.add(cbShowShield, c);
+
+    c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    panel2.add(cbShowBorders, c);
+    c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
+    panel2.add(new JPanel(), c);
 
 
     // attributes table panel
@@ -492,6 +517,12 @@ public class SettingsPanel extends JPanel
       else if (e.getSource() == cbBlending) {
         setBlendingEnabled(cbBlending.isSelected());
       }
+      else if (e.getSource() == cbTranslucent) {
+        setTranslucencyEnabled(cbTranslucent.isSelected());
+      }
+      else if (e.getSource() == cbPaletteReplacementEnabled) {
+        setPaletteReplacementEnabled(cbPaletteReplacementEnabled.isSelected());
+      }
       else if (e.getSource() == cbSelectionCircle) {
         setSelectionCircleEnabled(cbSelectionCircle.isSelected());
       }
@@ -512,9 +543,6 @@ public class SettingsPanel extends JPanel
       }
       else if (e.getSource() == cbShowBorders) {
         setOverlayBordersVisible(cbShowBorders.isSelected());
-      }
-      else if (e.getSource() == cbPaletteReplacementEnabled) {
-        setPaletteReplacementEnabled(cbPaletteReplacementEnabled.isSelected());
       }
     }
 

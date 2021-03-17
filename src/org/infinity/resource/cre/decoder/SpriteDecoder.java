@@ -643,7 +643,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
         applyFalseColors(control, sd);
       }
 
-      if (isTranslucent()) {
+      if (isTranslucencyEnabled() && isTranslucent()) {
         applyTranslucency(control);
       }
     }
@@ -702,6 +702,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   private boolean showCircle;
   private boolean showPersonalSpace;
   private boolean showBoundingBox;
+  private boolean translucencyEnabled;
   private boolean paletteReplacementEnabled;
   private boolean renderSpriteAvatar;
   private boolean renderSpriteWeapon;
@@ -816,6 +817,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     this.showCircle = false;
     this.showPersonalSpace = false;
     this.showBoundingBox = false;
+    this.translucencyEnabled = true;
     this.paletteReplacementEnabled = true;
     this.renderSpriteAvatar = true;
     this.renderSpriteWeapon = true;
@@ -1137,6 +1139,24 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     if (renderSpriteHelmet != b) {
       renderSpriteHelmet = b;
       spriteChanged();
+    }
+  }
+
+  /** Returns whether translucency effect is applied to the creature animation. */
+  public boolean isTranslucencyEnabled()
+  {
+    return translucencyEnabled;
+  }
+
+  /** Sets whether translucency effect is applied to the creature animation. */
+  public void setTranslucencyEnabled(boolean b)
+  {
+    if (translucencyEnabled != b) {
+      translucencyEnabled = b;
+      if (isTranslucent()) {
+        SpriteUtils.clearBamCache();
+        spriteChanged();
+      }
     }
   }
 
