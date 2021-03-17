@@ -491,7 +491,7 @@ public class CreatureControlModel
       ItemInfo info = (ItemInfo)getModelWeapon().getSelectedItem();
       boolean isMelee = (info.getAbilityCount() > 0) && (info.getAbility(0).getAbilityType() == 1);
       boolean isTwoHanded = (info.getFlags() & (1 << 1)) != 0;
-      isTwoHanded |= !Profile.isEnhancedEdition() || (info.getFlags() & (1 << 12)) != 0;
+      isTwoHanded |= Profile.isEnhancedEdition() && ((info.getFlags() & (1 << 12)) != 0);
       ItemPredicate shieldPred = null;
       if (!isTwoHanded) {
         shieldPred = (shieldPred == null) ? ItemInfo.FILTER_SHIELD : shieldPred.or(ItemInfo.FILTER_SHIELD);
