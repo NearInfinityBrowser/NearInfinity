@@ -22,8 +22,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.infinity.util.Misc;
-import org.infinity.util.Pair;
 import org.infinity.util.io.StreamUtils;
+import org.infinity.util.tuples.Couple;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
@@ -280,7 +280,7 @@ public class UpdateInfo
     }
 
     List<String> serverList = new ArrayList<String>();
-    List<Pair<String>> infoList = new ArrayList<Pair<String>>();
+    List<Couple<String, String>> infoList = new ArrayList<>();
 
     NodeList children = elemGeneral.getChildNodes();
     for (int idx = 0, size = children.getLength(); idx < size; idx++) {
@@ -322,7 +322,7 @@ public class UpdateInfo
           try {
             String name = n1.getTextContent().trim();
             URL url = new URL(n2.getTextContent().trim());
-            infoList.add(new Pair<String>(name, url.toExternalForm()));
+            infoList.add(Couple.with(name, url.toExternalForm()));
           } catch (MalformedURLException e) {
             // don't add invalid URLs
           }
@@ -428,9 +428,9 @@ public class UpdateInfo
   public static class General
   {
     private final List<String> servers = new ArrayList<String>();
-    private final List<Pair<String>> information = new ArrayList<Pair<String>>();
+    private final List<Couple<String, String>> information = new ArrayList<>();
 
-    private General(List<String> servers, List<Pair<String>> information) throws Exception
+    private General(List<String> servers, List<Couple<String, String>> information) throws Exception
     {
       if (servers != null) {
         this.servers.addAll(servers);
@@ -460,7 +460,7 @@ public class UpdateInfo
     public String getInformationName(int index)
     {
       if (index >= 0 && index < getInformationCount()) {
-        return information.get(index).getFirst();
+        return information.get(index).getValue0();
       } else {
         return null;
       }
@@ -470,7 +470,7 @@ public class UpdateInfo
     public String getInformationLink(int index)
     {
       if (index >= 0 && index < getInformationCount()) {
-        return information.get(index).getSecond();
+        return information.get(index).getValue1();
       } else {
         return null;
       }

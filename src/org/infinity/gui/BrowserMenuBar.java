@@ -16,7 +16,6 @@ import java.awt.Insets;
 import java.awt.KeyEventDispatcher;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import static java.awt.event.ActionEvent.ALT_MASK;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
@@ -102,11 +101,11 @@ import org.infinity.util.CharsetDetector;
 import org.infinity.util.MassExporter;
 import org.infinity.util.Misc;
 import org.infinity.util.ObjectString;
-import org.infinity.util.Pair;
 import org.infinity.util.Platform;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
+import org.infinity.util.tuples.Couple;
 
 public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 {
@@ -1409,12 +1408,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
       advancedSearch =
           makeMenuItem("Advanced search...", KeyEvent.VK_A, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
-      advancedSearch.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, CTRL_MASK | ALT_MASK));
+      advancedSearch.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, CTRL_MASK | ActionEvent.ALT_MASK));
       advancedSearch.setToolTipText("A powerful and highly flexible search for structured resources of all kinds.");
       menuAdvanced.add(advancedSearch);
       searchResource =
           makeMenuItem("Legacy extended search...", KeyEvent.VK_X, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
-      searchResource.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, CTRL_MASK | ALT_MASK));
+      searchResource.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, CTRL_MASK | ActionEvent.ALT_MASK));
       searchResource.setToolTipText("The original \"Extended Search\".");
       menuAdvanced.add(searchResource);
 
@@ -1635,7 +1634,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       add(toolConsole);
       dumpDebugInfo = new JMenuItem("Print debug info to Console", Icons.getIcon(Icons.ICON_PROPERTIES_16));
       dumpDebugInfo.setToolTipText("Output to console class of current top-level window, resource and selected field in the structure viewer");
-      dumpDebugInfo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_MASK | ALT_MASK));
+      dumpDebugInfo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_MASK | ActionEvent.ALT_MASK));
       dumpDebugInfo.addActionListener(this);
       dumpDebugInfo.setEnabled(getPrefs().getBoolean(TOOLS_DEBUG_EXTRA_INFO, false));
       dumpDebugInfo.setVisible(dumpDebugInfo.isEnabled());
@@ -2719,9 +2718,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     }
 
     /** Extracts entries of Game/Language pairs from the given argument. */
-    private List<Pair<String>> extractGameLanguages(String definition)
+    private List<Couple<String, String>> extractGameLanguages(String definition)
     {
-      List<Pair<String>> list = new ArrayList<Pair<String>>();
+      List<Couple<String, String>> list = new ArrayList<>();
       if (definition != null && !definition.isEmpty()) {
         String[] entries = definition.split(";");
         if (entries != null) {
@@ -2731,22 +2730,18 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
               Profile.Game game = Profile.gameFromString(elements[0]);
               if (game != Profile.Game.Unknown) {
                 String lang = elements[1].trim();
-                Pair<String> pair = null;
+                Couple<String, String> pair = null;
                 if (lang.equalsIgnoreCase(LANGUAGE_AUTODETECT)) {
-                  pair = new Pair<String>();
-                  pair.setFirst(game.toString());
-                  pair.setSecond(LANGUAGE_AUTODETECT);
+                  pair = Couple.with(game.toString(), LANGUAGE_AUTODETECT);
                 } else if (lang.matches("[a-z]{2}_[A-Z]{2}")) {
-                  pair = new Pair<String>();
-                  pair.setFirst(game.toString());
-                  pair.setSecond(lang);
+                  pair = Couple.with(game.toString(), lang);
                 }
 
                 // check if game/language pair is already in the list
                 if (pair != null) {
-                  for (final Pair<String> curPair: list) {
-                    if (curPair.getFirst().equalsIgnoreCase(pair.getFirst())) {
-                      curPair.setSecond(pair.getSecond());
+                  for (final Couple<String, String> curPair: list) {
+                    if (curPair.getValue0().equalsIgnoreCase(pair.getValue0())) {
+                      curPair.setValue1(pair.getValue1());
                       pair = null;
                       break;
                     }
@@ -2765,13 +2760,13 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     }
 
     /** Creates a formatted string out of the Game/Language pairs included in the given list. */
-    private String createGameLanguages(List<Pair<String>> list)
+    private String createGameLanguages(List<Couple<String, String>> list)
     {
       StringBuilder sb = new StringBuilder();
       if (list != null) {
-        for (Iterator<Pair<String>> iter = list.iterator(); iter.hasNext();) {
-          Pair<String> pair = iter.next();
-          sb.append(String.format("%s=%s", pair.getFirst(), pair.getSecond()));
+        for (final Iterator<Couple<String, String>> iter = list.iterator(); iter.hasNext();) {
+          Couple<String, String> pair = iter.next();
+          sb.append(String.format("%s=%s", pair.getValue0(), pair.getValue1()));
           if (iter.hasNext()) {
             sb.append(';');
           }
@@ -2781,14 +2776,14 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     }
 
     /** Adds or updates the Game/Language pair in the formatted "definition" string. */
-    private String updateGameLanguages(String definition, Pair<String> pair)
+    private String updateGameLanguages(String definition, Couple<String, String> pair)
     {
-      List<Pair<String>> list = extractGameLanguages(definition);
-      if (pair != null && pair.getFirst() != null && pair.getSecond() != null) {
+      List<Couple<String, String>> list = extractGameLanguages(definition);
+      if (pair != null && pair.getValue0() != null && pair.getValue1() != null) {
         // attempt to update existing entry first
-        for (final Pair<String> curPair: list) {
-          if (curPair.getFirst().equalsIgnoreCase(pair.getFirst())) {
-            curPair.setSecond(pair.getSecond());
+        for (final Couple<String, String> curPair: list) {
+          if (curPair.getValue0().equalsIgnoreCase(pair.getValue0())) {
+            curPair.setValue1(pair.getValue1());
             pair = null;
             break;
           }
@@ -2808,12 +2803,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private String getGameLanguage(String definition, Profile.Game game)
     {
       if (game != null && game != Profile.Game.Unknown) {
-        List<Pair<String>> list = extractGameLanguages(definition);
-        for (Iterator<Pair<String>> iter = list.iterator(); iter.hasNext();) {
-          Pair<String> pair = iter.next();
-          Profile.Game curGame = Profile.gameFromString(pair.getFirst());
+        List<Couple<String, String>> list = extractGameLanguages(definition);
+        for (final Iterator<Couple<String, String>> iter = list.iterator(); iter.hasNext();) {
+          Couple<String, String> pair = iter.next();
+          Profile.Game curGame = Profile.gameFromString(pair.getValue0());
           if (curGame == game) {
-            return pair.getSecond();
+            return pair.getValue1();
           }
         }
       }
@@ -2850,7 +2845,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           if (Profile.updateGameLanguage(newLanguageCode)) {
             languageDefinition =
                 updateGameLanguages(languageDefinition,
-                                    new Pair<String>(Profile.getGame().toString(), newLanguage));
+                                    Couple.with(Profile.getGame().toString(), newLanguage));
             NearInfinity.getInstance().refreshGame();
             success = true;
           } else {

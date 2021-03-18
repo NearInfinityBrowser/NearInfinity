@@ -115,11 +115,11 @@ import org.infinity.util.IniMap;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
 import org.infinity.util.Misc;
-import org.infinity.util.Pair;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.infinity.util.tuples.Couple;
 
 public class ConvertToBam extends ChildFrame
   implements ActionListener, PropertyChangeListener, FocusListener, ChangeListener,
@@ -1855,10 +1855,10 @@ public class ConvertToBam extends ChildFrame
   private void updateFramesList()
   {
     // updating button states
-    Pair<Integer> bounds = getIndexBounds(listFrames.getSelectedIndices());
-    bFramesUp.setEnabled(!modelFrames.isEmpty() && bounds.getFirst() > 0);
-    bFramesDown.setEnabled(!modelFrames.isEmpty() && bounds.getFirst() >= 0 &&
-                           bounds.getSecond() < modelFrames.getSize() - 1);
+    Couple<Integer, Integer> bounds = getIndexBounds(listFrames.getSelectedIndices());
+    bFramesUp.setEnabled(!modelFrames.isEmpty() && bounds.getValue0() > 0);
+    bFramesDown.setEnabled(!modelFrames.isEmpty() && bounds.getValue0() >= 0 &&
+                           bounds.getValue1() < modelFrames.getSize() - 1);
     miFramesRemove.setEnabled(!modelFrames.isEmpty() && !listFrames.isSelectionEmpty());
     miFramesRemoveAll.setEnabled(!modelFrames.isEmpty());
     miFramesDropUnused.setEnabled(!modelFrames.isEmpty());
@@ -1879,16 +1879,16 @@ public class ConvertToBam extends ChildFrame
   private void updateCyclesList()
   {
     listCycles.repaint();
-    Pair<Integer> bounds = getIndexBounds(listCycles.getSelectedIndices());
-    int idx = (bounds.getFirst().compareTo(bounds.getSecond()) == 0) ? bounds.getFirst() : -1;
+    Couple<Integer, Integer> bounds = getIndexBounds(listCycles.getSelectedIndices());
+    int idx = (bounds.getValue0().compareTo(bounds.getValue1()) == 0) ? bounds.getValue0() : -1;
     if (idx >= 0) {
       listCycles.ensureIndexIsVisible(idx);
     }
 
     // updating button states
-    bCyclesUp.setEnabled(!modelCycles.isEmpty() && bounds.getFirst() > 0);
-    bCyclesDown.setEnabled(!modelCycles.isEmpty() && bounds.getFirst() >= 0 &&
-                           bounds.getSecond() < modelCycles.getSize() - 1);
+    bCyclesUp.setEnabled(!modelCycles.isEmpty() && bounds.getValue0() > 0);
+    bCyclesDown.setEnabled(!modelCycles.isEmpty() && bounds.getValue0() >= 0 &&
+                           bounds.getValue1() < modelCycles.getSize() - 1);
     bCyclesRemove.setEnabled(!listCycles.isSelectionEmpty());
     bCyclesRemoveAll.setEnabled(!modelCycles.isEmpty());
 
@@ -1910,10 +1910,10 @@ public class ConvertToBam extends ChildFrame
   private void updateCurrentCycle()
   {
     // updating button states
-    Pair<Integer> bounds = getIndexBounds(listCurCycle.getSelectedIndices());
-    bCurCycleUp.setEnabled(!modelCurCycle.isEmpty() && bounds.getFirst() > 0);
-    bCurCycleDown.setEnabled(!modelCurCycle.isEmpty() && bounds.getFirst() >= 0 &&
-                             bounds.getSecond() < modelCurCycle.getSize() - 1);
+    Couple<Integer, Integer> bounds = getIndexBounds(listCurCycle.getSelectedIndices());
+    bCurCycleUp.setEnabled(!modelCurCycle.isEmpty() && bounds.getValue0() > 0);
+    bCurCycleDown.setEnabled(!modelCurCycle.isEmpty() && bounds.getValue0() >= 0 &&
+                             bounds.getValue1() < modelCurCycle.getSize() - 1);
     bCurCycleAdd.setEnabled(!listFramesAvail.isSelectionEmpty());
     bCurCycleRemove.setEnabled(!listCurCycle.isSelectionEmpty());
     listFramesAvail.invalidate();
@@ -1923,16 +1923,16 @@ public class ConvertToBam extends ChildFrame
 
   private void initCurrentCycle(int cycleIdx)
   {
-    initCurrentCycle(new Pair<Integer>(cycleIdx, cycleIdx));
+    initCurrentCycle(Couple.with(cycleIdx, cycleIdx));
   }
 
   /** Initializes the "Current cycle" section of the Cycles tab. */
-  private void initCurrentCycle(Pair<Integer> cycleIndices)
+  private void initCurrentCycle(Couple<Integer, Integer> cycleIndices)
   {
     if (cycleIndices != null) {
-      if (cycleIndices.getFirst().compareTo(cycleIndices.getSecond()) == 0 &&
-          cycleIndices.getFirst() >= 0 && cycleIndices.getFirst() < modelCycles.getSize()) {
-        int cycleIdx = cycleIndices.getFirst();
+      if (cycleIndices.getValue0().compareTo(cycleIndices.getValue1()) == 0 &&
+          cycleIndices.getValue0() >= 0 && cycleIndices.getValue0() < modelCycles.getSize()) {
+        int cycleIdx = cycleIndices.getValue0();
 
         // enabling components
         listFramesAvail.setEnabled(true);
@@ -1960,7 +1960,7 @@ public class ConvertToBam extends ChildFrame
         listCurCycle.setSelectedIndices(new int[]{});
         listCurCycle.setEnabled(false);
 
-        if (cycleIndices.getFirst() < 0 || cycleIndices.getSecond() < 0) {
+        if (cycleIndices.getValue0() < 0 || cycleIndices.getValue1() < 0) {
           pCurrentCycle.setBorder(BorderFactory.createTitledBorder("No cycle selected "));
         } else {
           pCurrentCycle.setBorder(BorderFactory.createTitledBorder("Too many cycles selected "));
@@ -2067,12 +2067,12 @@ public class ConvertToBam extends ChildFrame
             g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
             float ratioX = (float)imgWidth / (float)image.getWidth(null);
             float ratioY = (float)imgHeight / (float)image.getHeight(null);
-            Pair<Float> minMaxRatio = new Pair<Float>(Math.min(ratioX, ratioY), Math.max(ratioX, ratioY));
-            if ((float)image.getWidth(null)*minMaxRatio.getSecond() < (float)imgWidth &&
-                (float)image.getHeight(null)*minMaxRatio.getSecond() < (float)imgHeight) {
-              ratio = minMaxRatio.getSecond();
+            Couple<Float, Float> minMaxRatio = Couple.with(Math.min(ratioX, ratioY), Math.max(ratioX, ratioY));
+            if ((float)image.getWidth(null)*minMaxRatio.getValue1() < (float)imgWidth &&
+                (float)image.getHeight(null)*minMaxRatio.getValue1() < (float)imgHeight) {
+              ratio = minMaxRatio.getValue1();
             } else {
-              ratio = minMaxRatio.getFirst();
+              ratio = minMaxRatio.getValue0();
             }
             int newWidth = (int)((float)image.getWidth(null)*ratio);
             int newHeight = (int)((float)image.getHeight(null)*ratio);
@@ -3151,11 +3151,11 @@ public class ConvertToBam extends ChildFrame
   {
     int[] indices = listFramesAvail.getSelectedIndices();
     if (indices != null && indices.length > 0) {
-      Pair<Integer> dstBounds = getIndexBounds(listCurCycle.getSelectedIndices());
-      int dstIdx = dstBounds.getSecond() + 1;
+      Couple<Integer, Integer> dstBounds = getIndexBounds(listCurCycle.getSelectedIndices());
+      int dstIdx = dstBounds.getValue1() + 1;
       modelCurCycle.insert(dstIdx, indices);
       modelCycles.contentChanged(modelCurCycle.getCycle());
-      listFramesAvail.setSelectedIndices(new int[]{getIndexBounds(indices).getSecond()});
+      listFramesAvail.setSelectedIndices(new int[]{getIndexBounds(indices).getValue1()});
       listCurCycle.setSelectedIndex(dstIdx + indices.length - 1);
       updateCurrentCycle();
     }
@@ -3811,18 +3811,18 @@ public class ConvertToBam extends ChildFrame
 
 
   /** Returns the min/max values from the specified array of indices in a Pair object. */
-  private Pair<Integer> getIndexBounds(int[] indices)
+  private Couple<Integer, Integer> getIndexBounds(int[] indices)
   {
-    Pair<Integer> retVal = new Pair<Integer>(Integer.valueOf(-1), Integer.valueOf(-1));
+    Couple<Integer, Integer> retVal = Couple.with(Integer.valueOf(-1), Integer.valueOf(-1));
     if (indices != null && indices.length > 0) {
-      retVal.setFirst(Integer.valueOf(Integer.MAX_VALUE));
-      retVal.setSecond(Integer.valueOf(Integer.MIN_VALUE));
+      retVal.setValue0(Integer.valueOf(Integer.MAX_VALUE));
+      retVal.setValue1(Integer.valueOf(Integer.MIN_VALUE));
       for (int i = 0; i < indices.length; i++) {
-        if (indices[i] < retVal.getFirst()) {
-          retVal.setFirst(Integer.valueOf(indices[i]));
+        if (indices[i] < retVal.getValue0()) {
+          retVal.setValue0(Integer.valueOf(indices[i]));
         }
-        if (indices[i] > retVal.getSecond()) {
-          retVal.setSecond(Integer.valueOf(indices[i]));
+        if (indices[i] > retVal.getValue1()) {
+          retVal.setValue1(Integer.valueOf(indices[i]));
         }
       }
     }

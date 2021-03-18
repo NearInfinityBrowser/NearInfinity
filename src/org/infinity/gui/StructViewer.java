@@ -101,8 +101,8 @@ import org.infinity.search.DialogStateReferenceSearcher;
 import org.infinity.search.advanced.AdvancedSearch;
 import org.infinity.search.advanced.SearchOptions;
 import org.infinity.util.Misc;
-import org.infinity.util.Pair;
 import org.infinity.util.StructClipboard;
+import org.infinity.util.tuples.Couple;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
 
@@ -184,7 +184,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private JSplitPane splitv;
   private boolean splitterSet;
   private int oldSplitterHeight;
-  private Pair<Integer> storedSelection;
+  private Couple<Integer, Integer> storedSelection;
 
   private static JMenuItem createMenuItem(String cmd, String text, Icon icon, ActionListener l)
   {
@@ -920,7 +920,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           min = Math.min(min, idx);
           max = Math.max(max, idx);
         }
-        storedSelection = new Pair<Integer>(min, max);
+        storedSelection = Couple.with(min, max);
       }
     }
   }
@@ -929,7 +929,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public void restoreCurrentSelection()
   {
     if (storedSelection != null) {
-      table.setRowSelectionInterval(storedSelection.getFirst(), storedSelection.getSecond());
+      table.setRowSelectionInterval(storedSelection.getValue0(), storedSelection.getValue1());
       storedSelection = null;
     }
   }

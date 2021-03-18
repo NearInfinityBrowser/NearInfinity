@@ -32,9 +32,9 @@ import org.infinity.gui.converter.ConvertToPvrz;
 import org.infinity.resource.Profile;
 import org.infinity.util.BinPack2D;
 import org.infinity.util.DynamicArray;
-import org.infinity.util.Pair;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.infinity.util.tuples.Couple;
 
 /**
  * A decoder that takes individual images as input and simulates a BAM structure.
@@ -926,15 +926,15 @@ public class PseudoBamDecoder extends BamDecoder
       // generating remaining info blocks
       List<FrameDataV2> listFrameDataBlocks = new ArrayList<FrameDataV2>();
       List<PseudoBamFrameEntry> listFrameEntries = new ArrayList<PseudoBamFrameEntry>();
-      List<Pair<Short>> listCycleData = new ArrayList<Pair<Short>>(listCycles.size());
+      List<Couple<Short, Short>> listCycleData = new ArrayList<>(listCycles.size());
       int frameStartIndex = 0;    // keeps track of current start index of frame entries
       int blockStartIndex = 0;    // keeps track of current start index of frame data blocks
       for (int i = 0; i < listCycles.size(); i++) {
         List<Integer> cycleFrames = listCycles.get(i).frames;
 
         // generating cycle entries
-        Pair<Short> cycle = new Pair<Short>(Short.valueOf((short)cycleFrames.size()),
-                                            Short.valueOf((short)frameStartIndex));
+        Couple<Short, Short> cycle = Couple.with(Short.valueOf((short)cycleFrames.size()),
+                                                 Short.valueOf((short)frameStartIndex));
         listCycleData.add(cycle);
 
         for (int j = 0; j < cycleFrames.size(); j++) {
@@ -994,9 +994,9 @@ public class PseudoBamDecoder extends BamDecoder
 
       // writing cycle entries
       for (int i = 0; i < listCycleData.size(); i++) {
-        Pair<Short> entry = listCycleData.get(i);
-        DynamicArray.putShort(bamData, ofs, entry.getFirst().shortValue());
-        DynamicArray.putShort(bamData, ofs + 2, entry.getSecond().shortValue());
+        Couple<Short, Short> entry = listCycleData.get(i);
+        DynamicArray.putShort(bamData, ofs, entry.getValue0().shortValue());
+        DynamicArray.putShort(bamData, ofs + 2, entry.getValue1().shortValue());
         ofs += CycleEntrySize;
       }
 
