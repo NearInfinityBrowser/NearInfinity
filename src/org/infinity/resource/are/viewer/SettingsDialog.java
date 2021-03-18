@@ -386,7 +386,7 @@ public class SettingsDialog extends JDialog
     cbShowActorPersonalSpace = new JCheckBox("Draw personal space indicator", Settings.ShowActorPersonalSpace);
     cbShowActorPersonalSpace.setToolTipText("Requires a restart of the area viewer or a map update via toolbar button.");
     cbActorAccurateBlending = new JCheckBox("Enable accurate color blending", Settings.UseActorAccurateBlending);
-    cbActorAccurateBlending.setToolTipText("<html>Creature animations with special blending modes (such as gaseous forms or wisps)<br/>" +
+    cbActorAccurateBlending.setToolTipText("<html>Creature animations with special blending modes (such as movanic devas or wisps)<br/>" +
                                            "can reduce overall performance of the area viewer. Disable to improve performance.<br/>" +
                                            "Requires a restart of the area viewer or a map update via toolbar button.</html>");
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,

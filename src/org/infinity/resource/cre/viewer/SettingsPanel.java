@@ -384,7 +384,7 @@ public class SettingsPanel extends JPanel
     cbFiltering.addActionListener(listeners);
 
     cbBlending = new JCheckBox("Enable blending", isBlending);
-    cbBlending.setToolTipText("Affects only creature animations with special blending attributes (e.g. nishruus or wisps)");
+    cbBlending.setToolTipText("Affects only creature animations with special blending attributes (e.g. movanic devas or wisps)");
     cbBlending.addActionListener(listeners);
 
     cbTranslucent = new JCheckBox("Enable translucency", isTranslucent);
