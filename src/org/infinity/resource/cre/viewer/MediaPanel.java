@@ -569,10 +569,10 @@ public class MediaPanel extends JPanel
   {
     boolean loaded = getSequence() != null;
     boolean running = isRunning();
-    bHome.setEnabled(loaded && getCurrentFrame() > 0);
-    bEnd.setEnabled(loaded && getCurrentFrame() < getMaxFrame() - 1);
-    bStepBack.setEnabled(loaded && getCurrentFrame() > 0);
-    bStepForward.setEnabled(loaded && getCurrentFrame() < getMaxFrame() - 1);
+    bHome.setEnabled(running || loaded && getCurrentFrame() > 0);
+    bEnd.setEnabled(running || loaded && getCurrentFrame() < getMaxFrame() - 1);
+    bStepBack.setEnabled(running || loaded && getCurrentFrame() > 0);
+    bStepForward.setEnabled(running || loaded && getCurrentFrame() < getMaxFrame() - 1);
     bPlay.setEnabled(loaded);
     bStop.setEnabled(running);
     cbSequences.setEnabled(modelSequences.getSize() > 0);
