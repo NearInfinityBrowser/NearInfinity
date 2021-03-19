@@ -98,9 +98,9 @@ import org.infinity.updater.UpdateInfo;
 import org.infinity.updater.Updater;
 import org.infinity.updater.UpdaterSettings;
 import org.infinity.util.CharsetDetector;
+import org.infinity.util.DataString;
 import org.infinity.util.MassExporter;
 import org.infinity.util.Misc;
-import org.infinity.util.ObjectString;
 import org.infinity.util.Platform;
 import org.infinity.util.StringTable;
 import org.infinity.util.io.FileEx;
@@ -3302,44 +3302,44 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       // title string
       final String versionString = "Near Infinity " + VERSION;
       // list of current links
-      final ObjectString[] currentLinks = {
-          new ObjectString("Active branch", "https://github.com/Argent77/NearInfinity/"),
-          new ObjectString("Main branch", "https://github.com/NearInfinityBrowser/NearInfinity/"),
-          new ObjectString("Wiki page", wikiUrl),
-      };
+      final List<DataString<String>> currentLinks = new ArrayList<DataString<String>>() {{
+          add(DataString.with("Active branch", "https://github.com/Argent77/NearInfinity/"));
+          add(DataString.with("Main branch", "https://github.com/NearInfinityBrowser/NearInfinity/"));
+          add(DataString.with("Wiki page", wikiUrl));
+      }};
       // original author
       final String originalVersion = "From Near Infinity 1.32.1 beta 24";
       final String originalCopyright = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
-      final ObjectString originalLink = new ObjectString("Website", "http://www.idi.ntnu.no/~joh/ni/");
+      final DataString<String> originalLink = DataString.with("Website", "http://www.idi.ntnu.no/~joh/ni/");
       // List of contributors (sorted alphabetically)
-      final String[] contributors = {
-          "Argent77",
-          "Bubb",
-          "devSin",
-          "Fredrik Lindgren (aka Wisp)",
-          "FredSRichardson",
-          "Mingun",
-          "Taimon",
-          "Valerio Bigiani (aka The Bigg)",
-          "winterheart",
-      };
+      final List<String> contributors = new ArrayList<String>() {{
+        add("Argent77");
+        add("Bubb");
+        add("devSin");
+        add("Fredrik Lindgren (aka Wisp)");
+        add("FredSRichardson");
+        add("Mingun");
+        add("Taimon");
+        add("Valerio Bigiani (aka The Bigg)");
+        add("winterheart");
+      }};
       // More contributors, in separate block
-      final String[] contributorsMisc = {
-          "Near Infinity logo/icon by Cuv and Troodon80",
-      };
+      final List<String> contributorsMisc = new ArrayList<String>() {{
+        add("Near Infinity logo/icon by Cuv and Troodon80");
+      }};
       // copyright message
-      final String[] copyNearInfinityText = {
-          "This program is free and may be distributed according to the terms of ",
-          "the GNU Lesser General Public License."
-      };
+      final List<String> copyNearInfinityText = new ArrayList<String>() {{
+        add("This program is free and may be distributed according to the terms of ");
+        add("the GNU Lesser General Public License.");
+      }};
       // Third-party copyright messages
-      final String[] copyThirdPartyText = {
-          "Most icons (\u00A9) eclipse.org - Common Public License.",
-          "RSyntaxTextArea (\u00A9) Fifesoft - Berkeley Software Distribution License.",
-          "Monte Media Library by Werner Randelshofer - GNU Lesser General Public License.",
-          "JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.",
-          "JHexView by Sebastian Porst - GNU General Public License.",
-      };
+      final List<String> copyThirdPartyText = new ArrayList<String>() {{
+        add("Most icons (\u00A9) eclipse.org - Common Public License.");
+        add("RSyntaxTextArea (\u00A9) Fifesoft - Berkeley Software Distribution License.");
+        add("Monte Media Library by Werner Randelshofer - GNU Lesser General Public License.");
+        add("JOrbis (\u00A9) JCraft Inc. - GNU Lesser General Public License.");
+        add("JHexView by Sebastian Porst - GNU General Public License.");
+      }};
 
       // Fixed elements
       final Font defaultfont = UIManager.getFont("Label.font");
@@ -3357,11 +3357,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       {
         int row = 0;
         // current links
-        for (int i = 0; i < currentLinks.length; i++, row++) {
+        for (int i = 0; i < currentLinks.size(); i++, row++) {
           int top = (i > 0) ? 4 : 0;
-          JLabel lTitle = new JLabel(currentLinks[i].getString() + ":");
+          JLabel lTitle = new JLabel(currentLinks.get(i).getString() + ":");
           lTitle.setFont(font);
-          String link = currentLinks[i].getObject();
+          String link = currentLinks.get(i).getData();
           JLabel lLink = ViewerUtil.createUrlLabel(link);
           lLink.setFont(font);
           gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
@@ -3390,7 +3390,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                                 GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
         pLinks.add(label, gbc);
-        String link = originalLink.getObject();
+        String link = originalLink.getData();
         label = ViewerUtil.createUrlLabel(link);
         label.setFont(font);
         gbc = ViewerUtil.setGBC(gbc, 1, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
@@ -3405,8 +3405,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         // trying to limit line width to a certain maximum
         FontMetrics fm = getFontMetrics(font);
         double maxWidth = 0.0;
-        for (int i = 0; i < currentLinks.length; i++) {
-          String s = currentLinks[i].getString() + ": " + currentLinks[i].getObject();
+        for (int i = 0; i < currentLinks.size(); i++) {
+          String s = currentLinks.get(i).getString() + ": " + currentLinks.get(i).getData();
           maxWidth = Math.max(maxWidth, fm.getStringBounds(s, getGraphics()).getWidth());
         }
 
@@ -3421,15 +3421,15 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
         // adding names
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < contributors.length; i++) {
+        for (int i = 0; i < contributors.size(); i++) {
           if (i > 0) {
-            if (i+1 == contributors.length) {
+            if (i+1 == contributors.size()) {
               sb.append(" and ");
             } else {
               sb.append(", ");
             }
           }
-          String s = sb.toString() + contributors[i];
+          String s = sb.toString() + contributors.get(i);
           if (fm.getStringBounds(s, getGraphics()).getWidth() > maxWidth) {
             label = new JLabel(sb.toString());
             label.setFont(smallFont);
@@ -3439,7 +3439,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
             row++;
             sb = new StringBuilder();
           }
-          sb.append(contributors[i]);
+          sb.append(contributors.get(i));
         }
         label = new JLabel(sb.toString());
         label.setFont(smallFont);
@@ -3449,8 +3449,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         row++;
 
         // Adding misc. contributors
-        for (int i = 0; i < contributorsMisc.length; i++) {
-          label = new JLabel(contributorsMisc[i]);
+        for (int i = 0; i < contributorsMisc.size(); i++) {
+          label = new JLabel(contributorsMisc.get(i));
           label.setFont(smallFont);
           gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                                   GridBagConstraints.HORIZONTAL, new Insets(i == 0 ? 4 : 0, 0, 0, 0), 0, 0);
@@ -3470,8 +3470,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         pLicense.add(label, gbc);
         row++;
 
-        for (int i = 0; i < copyNearInfinityText.length; i++) {
-          label = new JLabel(copyNearInfinityText[i]);
+        for (int i = 0; i < copyNearInfinityText.size(); i++) {
+          label = new JLabel(copyNearInfinityText.get(i));
           label.setFont(smallFont);
           gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                                   GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
@@ -3491,8 +3491,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         pMiscLicenses.add(label, gbc);
         row++;
 
-        for (int i = 0; i < copyThirdPartyText.length; i++) {
-          label = new JLabel(copyThirdPartyText[i]);
+        for (int i = 0; i < copyThirdPartyText.size(); i++) {
+          label = new JLabel(copyThirdPartyText.get(i));
           label.setFont(smallFont);
           gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                                   GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);

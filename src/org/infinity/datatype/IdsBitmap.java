@@ -4,31 +4,65 @@
 
 package org.infinity.datatype;
 
+import java.awt.event.ActionListener;
 import java.nio.ByteBuffer;
+import java.util.function.BiFunction;
+
+import javax.swing.JComponent;
 
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.LongIntegerHashMap;
 
-public class IdsBitmap extends HashBitmap
+public class IdsBitmap extends AbstractBitmap<IdsMapEntry>
 {
+  private final BiFunction<Long, IdsMapEntry, String> formatterIdsBitmap = (value, item) -> {
+    String number;
+    if (isShowAsHex()) {
+      number = getHexValue(value.longValue());
+    } else {
+      number = value.toString();
+    }
+    if (item != null) {
+      return item.getSymbol() + " - " + number;
+    } else {
+      return "Unknown - " + number;
+    }
+  };
+
   public IdsBitmap(ByteBuffer buffer, int offset, int length, String name, String resource)
   {
-    this(buffer, offset, length, name, resource, true);
+    this(buffer, offset, length, name, resource, true, false);
   }
 
   public IdsBitmap(ByteBuffer buffer, int offset, int length, String name, String resource, boolean sortByName)
   {
-    super(buffer, offset, length, name, createResourceList(resource), sortByName);
+    this(buffer, offset, length, name, resource, sortByName, false);
   }
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public LongIntegerHashMap<IdsMapEntry> getHashBitmap()
+  public IdsBitmap(ByteBuffer buffer, int offset, int length, String name, String resource, boolean sortByName,
+                   boolean showAsHex)
   {
-    return (LongIntegerHashMap<IdsMapEntry>)super.getHashBitmap();
+    super(buffer, offset, length, name, createResourceList(resource), null, true);
+    setSortByName(sortByName);
+    setShowAsHex(showAsHex);
+    setFormatter(formatterIdsBitmap);
   }
+
+  //--------------------- Begin Interface Editable ---------------------
+
+  @Override
+  public JComponent edit(ActionListener container)
+  {
+    if (getDataOf(getLongValue()) == null) {
+      putItem(getLongValue(), new IdsMapEntry(getLongValue(), "Unknown"));
+    }
+
+    return super.edit(container);
+  }
+
+  //--------------------- End Interface Editable ---------------------
 
   /**
    * Add to bitmap specified entry, id entry with such key not yet registered,
@@ -38,7 +72,7 @@ public class IdsBitmap extends HashBitmap
    */
   public void addIdsMapEntry(IdsMapEntry entry)
   {
-    getHashBitmap().putIfAbsent(entry.getID(), entry);
+    getBitmap().putIfAbsent(entry.getID(), entry);
   }
 
   private static LongIntegerHashMap<IdsMapEntry> createResourceList(String resource)

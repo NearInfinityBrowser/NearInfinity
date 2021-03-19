@@ -16,9 +16,11 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
+import org.infinity.datatype.AbstractBitmap;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.PriTypeBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SecTypeBitmap;
@@ -238,11 +240,11 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
   @Override
   public boolean valueUpdated(UpdateEvent event)
   {
-    if (event.getSource() instanceof Bitmap &&
-        SPL_TYPE.equals(((Bitmap)event.getSource()).getName())) {
+    if (event.getSource() instanceof AbstractBitmap<?> &&
+        SPL_TYPE.equals(((AbstractBitmap<?>)event.getSource()).getName())) {
       Flag curFlags = (Flag)getAttribute(SPL_EXCLUSION_FLAGS);
       if (curFlags != null) {
-        int type = ((Bitmap)event.getSource()).getValue();
+        int type = ((IsNumeric)event.getSource()).getValue();
         int size = curFlags.getSize();
         int offset = curFlags.getOffset();
         ByteBuffer b = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN).putInt(curFlags.getValue());

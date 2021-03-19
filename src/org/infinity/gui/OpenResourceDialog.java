@@ -46,7 +46,7 @@ import javax.swing.text.PlainDocument;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.ObjectString;
+import org.infinity.util.DataString;
 import org.infinity.util.SimpleListModel;
 
 /**
@@ -59,10 +59,10 @@ public class OpenResourceDialog extends JDialog
   private final List<List<ResourceEntry>> resources = new ArrayList<>();
 
   private ResourceEntry[] result;
-  private ObjectString[] extensions;
+  private List<DataString<String>> extensions;
   private JList<ResourceEntry> list;
   private SimpleListModel<ResourceEntry> listModel;
-  private JComboBox<ObjectString> cbType;
+  private JComboBox<DataString<String>> cbType;
   private JTextField tfSearch;
   private PlainDocument searchDoc;
   private JButton bOpen, bCancel;
@@ -190,10 +190,10 @@ public class OpenResourceDialog extends JDialog
   {
     if (extList != null && extList.length > 0) {
       int extra = (extList.length > 1) ? 1 : 0;
-      extensions = new ObjectString[extList.length + extra];
+      extensions = new ArrayList<>();// ObjectString[extList.length + extra];
       for (int i = 0; i < extList.length; i++) {
         final String s = extList[i].trim().toUpperCase(Locale.ENGLISH);
-        extensions[i + extra] = new ObjectString(s + " resources", s, ObjectString.FMT_STRING_ONLY);
+        extensions.add(DataString.with(s + " resources", s, DataString.FMT_STRING_ONLY));
       }
 
       // adding an extra entry which combines all listed extensions
@@ -206,10 +206,11 @@ public class OpenResourceDialog extends JDialog
           final String s = extList[i].trim().toUpperCase(Locale.ENGLISH);
           sb.append(s);
         }
-        extensions[0] = new ObjectString("Supported resources", sb.toString(), ObjectString.FMT_STRING_ONLY);
+        extensions.add(0, DataString.with("Supported resources", sb.toString(), DataString.FMT_STRING_ONLY));
       }
     } else {
-      extensions = new ObjectString[]{new ObjectString("All resources", "", ObjectString.FMT_STRING_ONLY)};
+      extensions = new ArrayList<>();
+      extensions.add(DataString.with("All resources", "", DataString.FMT_STRING_ONLY));
     }
 
     updateResources();
@@ -218,7 +219,7 @@ public class OpenResourceDialog extends JDialog
   /** Returns a list of resource types defined for this dialog. */
   protected String[] getExtensions()
   {
-    final String str = extensions[0].getObject().toString();
+    final String str = extensions.get(0).getData();
     if (!str.isEmpty()) {
       return str.split(";");
     }
@@ -273,8 +274,8 @@ public class OpenResourceDialog extends JDialog
   private void updateResources()
   {
     resources.clear();
-    for (final ObjectString extension : extensions) {
-      final String data = extension.getObject();
+    for (final DataString<String> extension : extensions) {
+      final String data = extension.getData();
       final String[] types;
       if (data.isEmpty()) {
         types = Profile.getAvailableResourceTypes();
@@ -294,10 +295,10 @@ public class OpenResourceDialog extends JDialog
   /** Initializes type combobox. */
   private void updateGui()
   {
-    DefaultComboBoxModel<ObjectString> model = (DefaultComboBoxModel<ObjectString>)cbType.getModel();
+    DefaultComboBoxModel<DataString<String>> model = (DefaultComboBoxModel<DataString<String>>)cbType.getModel();
     model.removeAllElements();
     if (extensions != null) {
-      for (final ObjectString os: extensions) {
+      for (final DataString<String> os: extensions) {
         model.addElement(os);
       }
     }

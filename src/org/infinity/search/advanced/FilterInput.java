@@ -68,7 +68,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.ui.ResourceListModel;
-import org.infinity.util.ObjectString;
+import org.infinity.util.DataString;
 
 /**
  * Input dialog for a advanced search filter definition.
@@ -105,14 +105,15 @@ public class FilterInput extends ChildFrame
 
   private JPanel pFieldInput;
   private CardLayout clFieldInput, clValueInput;
-  private JComboBox<ObjectString> cbFieldType;
+  private JComboBox<DataString<SearchOptions.FieldMode>> cbFieldType;
   private JTextField tfFieldName, tfValueStringInput;
   private JFormattedTextField ftfFieldOffsetInput;
   private JCheckBox cbFieldNameCase, cbFieldNameRegex;
   private JPopupMenu menuFieldOffset;
 
   private JPanel pValueInput;
-  private JComboBox<ObjectString> cbValueType, cbValueBitfieldMode;
+  private JComboBox<DataString<SearchOptions.ValueType>> cbValueType;
+  private JComboBox<DataString<SearchOptions.BitFieldMode>> cbValueBitfieldMode;
   private JComboBox<ResourceEntry> cbValueResourceInput;
   private JComboBox<String> cbValueResourceType;
   private JFormattedTextField ftfValueInputMin, ftfValueInputMax;
@@ -323,11 +324,13 @@ public class FilterInput extends ChildFrame
   {
     GridBagConstraints c = new GridBagConstraints();
     JLabel lFieldType = new JLabel("Search field by:");
-    cbFieldType = new JComboBox<>(new ObjectString[] {
-        new ObjectString("Name", SearchOptions.FieldMode.ByName, "%s"),
-        new ObjectString("Relative Offset", SearchOptions.FieldMode.ByRelativeOffset, "%s"),
-        new ObjectString("Absolute Offset", SearchOptions.FieldMode.ByAbsoluteOffset, "%s"),
-    });
+    DefaultComboBoxModel<DataString<SearchOptions.FieldMode>> modelFieldType =
+        new DefaultComboBoxModel<DataString<SearchOptions.FieldMode>>() {{
+          addElement(DataString.with("Name", SearchOptions.FieldMode.ByName, "%s"));
+          addElement(DataString.with("Relative Offset", SearchOptions.FieldMode.ByRelativeOffset, "%s"));
+          addElement(DataString.with("Absolute Offset", SearchOptions.FieldMode.ByAbsoluteOffset, "%s"));
+    }};
+    cbFieldType = new JComboBox<>(modelFieldType);
     cbFieldType.setSelectedIndex(0);
     cbFieldType.addActionListener(listeners);
     JPanel pFieldType = new JPanel(new GridBagLayout());
@@ -384,12 +387,14 @@ public class FilterInput extends ChildFrame
   {
     GridBagConstraints c = new GridBagConstraints();
     JLabel lValueType = new JLabel("Value type:");
-    cbValueType = new JComboBox<>(new ObjectString[] {
-        new ObjectString("Text", SearchOptions.ValueType.Text, "%s"),
-        new ObjectString("Number", SearchOptions.ValueType.Number, "%s"),
-        new ObjectString("Resource", SearchOptions.ValueType.Resource, "%s"),
-        new ObjectString("Bitfield", SearchOptions.ValueType.Bitfield, "%s"),
-    });
+    DefaultComboBoxModel<DataString<SearchOptions.ValueType>> modelValueType =
+        new DefaultComboBoxModel<DataString<SearchOptions.ValueType>>() {{
+          addElement(DataString.with("Text", SearchOptions.ValueType.Text, "%s"));
+          addElement(DataString.with("Number", SearchOptions.ValueType.Number, "%s"));
+          addElement(DataString.with("Resource", SearchOptions.ValueType.Resource, "%s"));
+          addElement(DataString.with("Bitfield", SearchOptions.ValueType.Bitfield, "%s"));
+    }};
+    cbValueType = new JComboBox<>(modelValueType);
     cbValueType.setSelectedIndex(0);
     cbValueType.addActionListener(listeners);
 
@@ -454,12 +459,14 @@ public class FilterInput extends ChildFrame
     bpwValueBitfield = new ButtonPopupWindow("Set options...", new FlagsPanel(4, flagsDesc));
 
     JLabel lValueBitfieldMode = new JLabel("Mode:");
-    cbValueBitfieldMode = new JComboBox<>(new ObjectString[] {
-        new ObjectString("Exact match", SearchOptions.BitFieldMode.Exact, "%s"),
-        new ObjectString("Match all set bits (AND)", SearchOptions.BitFieldMode.And, "%s"),
-        new ObjectString("Match any set bits (OR)", SearchOptions.BitFieldMode.Or, "%s"),
-        new ObjectString("Match one set bit (XOR)", SearchOptions.BitFieldMode.Xor, "%s"),
-    });
+    DefaultComboBoxModel<DataString<SearchOptions.BitFieldMode>> modelValueBitfieldMode =
+        new DefaultComboBoxModel<DataString<SearchOptions.BitFieldMode>>() {{
+          addElement(DataString.with("Exact match", SearchOptions.BitFieldMode.Exact, "%s"));
+          addElement(DataString.with("Match all set bits (AND)", SearchOptions.BitFieldMode.And, "%s"));
+          addElement(DataString.with("Match any set bits (OR)", SearchOptions.BitFieldMode.Or, "%s"));
+          addElement(DataString.with("Match one set bit (XOR)", SearchOptions.BitFieldMode.Xor, "%s"));
+    }};
+    cbValueBitfieldMode = new JComboBox<>(modelValueBitfieldMode);
     JPanel pValueBitfield = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pValueBitfield.add(bpwValueBitfield, c);
@@ -548,11 +555,12 @@ public class FilterInput extends ChildFrame
 
     // field input
     {
-      DefaultComboBoxModel<ObjectString> model = (DefaultComboBoxModel<ObjectString>)cbFieldType.getModel();
+      DefaultComboBoxModel<DataString<SearchOptions.FieldMode>> model =
+          (DefaultComboBoxModel<DataString<SearchOptions.FieldMode>>)cbFieldType.getModel();
       int idx = 0;
       for (int i = 0; i < model.getSize(); i++) {
-        ObjectString os = model.getElementAt(i);
-        if (so.getSearchType().equals(os.getObject())) {
+        DataString<SearchOptions.FieldMode> os = model.getElementAt(i);
+        if (so.getSearchType().equals(os.getData())) {
           idx = i;
           break;
         }
@@ -567,11 +575,12 @@ public class FilterInput extends ChildFrame
 
     // value input
     {
-      DefaultComboBoxModel<ObjectString> modelValue = (DefaultComboBoxModel<ObjectString>)cbValueType.getModel();
+      DefaultComboBoxModel<DataString<SearchOptions.ValueType>> modelValue =
+          (DefaultComboBoxModel<DataString<SearchOptions.ValueType>>)cbValueType.getModel();
       int idx = 0;
       for (int i = 0; i < modelValue.getSize(); i++) {
-        ObjectString os = modelValue.getElementAt(i);
-        if (so.getValueType().equals(os.getObject())) {
+        DataString<SearchOptions.ValueType> os = modelValue.getElementAt(i);
+        if (so.getValueType().equals(os.getData())) {
           idx = i;
           break;
         }
@@ -612,11 +621,12 @@ public class FilterInput extends ChildFrame
       FlagsPanel fp = (FlagsPanel)bpwValueBitfield.getContent();
       fp.setValue(so.getValueBitfield());
 
-      modelValue = (DefaultComboBoxModel<ObjectString>)cbValueBitfieldMode.getModel();
+      DefaultComboBoxModel<DataString<SearchOptions.BitFieldMode>> modelMode =
+          (DefaultComboBoxModel<DataString<SearchOptions.BitFieldMode>>)cbValueBitfieldMode.getModel();
       idx = 0;
       for (int i = 0; i < modelValue.getSize(); i++) {
-        ObjectString os = modelValue.getElementAt(i);
-        if (so.getBitfieldMode().equals(os.getObject())) {
+        DataString<SearchOptions.BitFieldMode> os = modelMode.getElementAt(i);
+        if (so.getBitfieldMode().equals(os.getData())) {
           idx = i;
           break;
         }
@@ -639,9 +649,9 @@ public class FilterInput extends ChildFrame
 
     // value input
     {
-      ObjectString os = cbValueType.getModel().getElementAt(cbValueType.getSelectedIndex());
+      DataString<SearchOptions.ValueType> os = cbValueType.getModel().getElementAt(cbValueType.getSelectedIndex());
       if (os != null) {
-        SearchOptions.ValueType type = (SearchOptions.ValueType)os.getObject();
+        SearchOptions.ValueType type = os.getData();
         switch (type) {
           case Text:
             so.setValueText(tfValueStringInput.getText(), cbValueStringCase.isSelected(), cbValueStringRegex.isSelected());
@@ -662,8 +672,9 @@ public class FilterInput extends ChildFrame
           case Bitfield:
           {
             FlagsPanel fp = (FlagsPanel)bpwValueBitfield.getContent();
-            ObjectString osMode = cbValueBitfieldMode.getModel().getElementAt(cbValueBitfieldMode.getSelectedIndex());
-            so.setValueBitfield(fp.getValue(), (SearchOptions.BitFieldMode)osMode.getObject());
+            DataString<SearchOptions.BitFieldMode> osMode =
+                cbValueBitfieldMode.getModel().getElementAt(cbValueBitfieldMode.getSelectedIndex());
+            so.setValueBitfield(fp.getValue(), osMode.getData());
             break;
           }
         }
@@ -674,9 +685,9 @@ public class FilterInput extends ChildFrame
 
     // field input
     {
-      ObjectString os = cbFieldType.getModel().getElementAt(cbFieldType.getSelectedIndex());
+      DataString<SearchOptions.FieldMode> os = cbFieldType.getModel().getElementAt(cbFieldType.getSelectedIndex());
       if (os != null) {
-        SearchOptions.FieldMode mode = (SearchOptions.FieldMode)os.getObject();
+        SearchOptions.FieldMode mode = os.getData();
         switch (mode) {
           case ByName:
             so.setSearchName(tfFieldName.getText(), cbFieldNameCase.isSelected(), cbFieldNameRegex.isSelected());
@@ -886,8 +897,8 @@ public class FilterInput extends ChildFrame
       } else if (event.getSource() == cbFieldType) {
         // switch field type panel
         if (cbFieldType.getSelectedIndex() >= 0) {
-          ObjectString os = cbFieldType.getModel().getElementAt(cbFieldType.getSelectedIndex());
-          SearchOptions.FieldMode mode = (SearchOptions.FieldMode)os.getObject();
+          DataString<SearchOptions.FieldMode> os = cbFieldType.getModel().getElementAt(cbFieldType.getSelectedIndex());
+          SearchOptions.FieldMode mode = os.getData();
           switch (mode) {
             case ByName:
               clFieldInput.show(pFieldInput, FIELD_TYPE_TEXT);
@@ -907,8 +918,8 @@ public class FilterInput extends ChildFrame
       } else if (event.getSource() == cbValueType) {
         // switch value type panel
         if (cbValueType.getSelectedIndex() >= 0) {
-          ObjectString os = cbValueType.getModel().getElementAt(cbValueType.getSelectedIndex());
-          SearchOptions.ValueType mode = (SearchOptions.ValueType)os.getObject();
+          DataString<SearchOptions.ValueType> os = cbValueType.getModel().getElementAt(cbValueType.getSelectedIndex());
+          SearchOptions.ValueType mode = os.getData();
           switch (mode) {
             case Number:
               clValueInput.show(pValueInput, VALUE_TYPE_NUMBER);

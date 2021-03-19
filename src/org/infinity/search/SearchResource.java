@@ -60,15 +60,13 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.PlainDocument;
 
 import org.infinity.NearInfinity;
-import org.infinity.datatype.Bitmap;
-import org.infinity.datatype.HashBitmap;
 import org.infinity.datatype.IdsBitmap;
-import org.infinity.datatype.IwdRef;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.KitIdsBitmap;
 import org.infinity.datatype.PriTypeBitmap;
 import org.infinity.datatype.ProRef;
+import org.infinity.datatype.ResourceBitmap;
 import org.infinity.datatype.SecTypeBitmap;
-import org.infinity.datatype.Song2daBitmap;
 import org.infinity.datatype.TextBitmap;
 import org.infinity.gui.ButtonPopupWindow;
 import org.infinity.gui.ChildFrame;
@@ -5038,10 +5036,12 @@ public class SearchResource extends ChildFrame
       final IndexedString[] pro;
       if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
         ProRef proRef = new ProRef(StreamUtils.getByteBuffer(2), 0, "Projectile");
-        pro = new IndexedString[proRef.getResourceList().size()];
-        for (int i = 0; i < pro.length; i++) {
-          long id = proRef.getResourceList().get(i).getValue();
-          pro[i] = new IndexedString(proRef.getResourceList().get(i).getResourceName(), (int)id);
+        pro = new IndexedString[proRef.getBitmap().size()];
+        int i = 0;
+        for (final ResourceBitmap.RefEntry entry : proRef.getBitmap().values()) {
+          long id = entry.getValue();
+          pro[i] = new IndexedString(entry.getResourceName(), (int)id);
+          i++;
         }
       } else if (Profile.getEngine() == Profile.Engine.PST) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_pst, 0, 0);
@@ -5336,10 +5336,12 @@ public class SearchResource extends ChildFrame
       final IndexedString[] pro;
       if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
         ProRef proRef = new ProRef(StreamUtils.getByteBuffer(2), 0, "Projectile");
-        pro = new IndexedString[proRef.getResourceList().size()];
-        for (int i = 0; i < pro.length; i++) {
-          long id = proRef.getResourceList().get(i).getValue();
-          pro[i] = new IndexedString(proRef.getResourceList().get(i).getResourceName(), (int)id);
+        pro = new IndexedString[proRef.getBitmap().size()];
+        int i = 0;
+        for (final ResourceBitmap.RefEntry entry : proRef.getBitmap().values()) {
+          long id = entry.getValue();
+          pro[i] = new IndexedString(entry.getResourceName(), (int)id);
+          i++;
         }
       } else if (Profile.getEngine() == Profile.Engine.PST) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_pst, 1, 0);
@@ -5768,7 +5770,7 @@ public class SearchResource extends ChildFrame
 
     public static JComboBox<IdsMapEntry> getIdsMapEntryList(IdsBitmap ids)
     {
-      final SortedMap<Long, IdsMapEntry> map = ids.getHashBitmap();
+      final SortedMap<Long, IdsMapEntry> map = ids.getBitmap();
       final IdsMapEntry[] list = map.values().toArray(new IdsMapEntry[map.size()]);
       Arrays.sort(list);
       return defaultWidth(new AutoComboBox<>(list), 160);
@@ -5982,18 +5984,8 @@ public class SearchResource extends ChildFrame
         // Check against specific datatypes for more accurate results
         if (curItem instanceof IdsMapEntry) {
           id = Long.toString(((IdsMapEntry)curItem).getID());
-        } else if (curItem instanceof Bitmap) {
-          id = Integer.toString(((Bitmap)curItem).getValue());
-        } else if (curItem instanceof HashBitmap) {
-          id = Long.toString(((HashBitmap)curItem).getValue());
-        } else if (curItem instanceof IdsBitmap) {
-          id = Long.toString(((HashBitmap)curItem).getValue());
-        } else if (curItem instanceof IwdRef) {
-          id = Long.toString(((IwdRef)curItem).getValue());
-        } else if (curItem instanceof ProRef) {
-          id = Long.toString(((ProRef)curItem).getValue());
-        } else if (curItem instanceof Song2daBitmap) {
-          id = Long.toString(((Song2daBitmap)curItem).getValue());
+        } else if (curItem instanceof IsNumeric) {
+          id = Long.toString(((IsNumeric)curItem).getValue());
         } else if (curItem instanceof TextBitmap) {
           id = ((TextBitmap)curItem).getDescription();
         } else {

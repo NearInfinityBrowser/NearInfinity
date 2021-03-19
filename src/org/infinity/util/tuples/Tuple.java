@@ -10,11 +10,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 
 public abstract class Tuple implements Iterable<Object>, Comparable<Tuple>
 {
+  public static final Function<List<Object>, String> FMT_DEFAULT = (list) -> list.toString();
+
   private final Object[] values;
   private final List<Object> valueList;
+
+  private Function<List<Object>, String> formatter;
 
   protected Tuple(Object... values)
   {
@@ -66,10 +71,33 @@ public abstract class Tuple implements Iterable<Object>, Comparable<Tuple>
     return this.valueList.iterator();
   }
 
+  /**
+   * Returns a functional interface used to generate the return value of the {@link #toString()} method.
+   * <p>It takes a list of {@code Objects} which represent the values assigned to the tuple and returns a
+   * textual representation of the values.
+   * @return Function to generate the return value of the {@link #toString()} method.
+   */
+  public Function<List<Object>, String> getFormatter()
+  {
+    return (formatter != null) ? formatter : FMT_DEFAULT;
+  }
+
+  /**
+   * Assigns a new functional interface responsible for generating the return value of the {@link #toString()} method.
+   * <p>It takes a list of {@code Objects} which represent the values assigned to the tuple and returns a
+   * textual representation of the values.
+   * @param formatter the {@code Function} to generate the return value of the {@link #toString()} method.
+   *                  Specify {@code null} to revert to the default function.
+   */
+  public void setFormatter(Function<List<Object>, String> formatter)
+  {
+    this.formatter = formatter;
+  }
+
   @Override
   public String toString()
   {
-    return valueList.toString();
+    return getFormatter().apply(valueList);
   }
 
   /**

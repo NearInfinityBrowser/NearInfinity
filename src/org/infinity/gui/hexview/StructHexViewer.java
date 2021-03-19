@@ -43,16 +43,14 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
 import org.infinity.NearInfinity;
-import org.infinity.datatype.Bitmap;
+import org.infinity.datatype.AbstractBitmap;
 import org.infinity.datatype.ColorPicker;
 import org.infinity.datatype.ColorValue;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.FloatNumber;
-import org.infinity.datatype.HashBitmap;
 import org.infinity.datatype.MultiNumber;
 import org.infinity.datatype.ProRef;
-import org.infinity.datatype.ResourceBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -144,8 +142,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
     } else if (type instanceof DecNumber || type instanceof MultiNumber ||
                type instanceof FloatNumber) {
       return "Number";
-    } else if (type instanceof Bitmap || type instanceof HashBitmap ||
-               type instanceof ResourceBitmap) {
+    } else if (type instanceof AbstractBitmap<?>) {
       return "Numeric type or identifier";
     } else if (type instanceof TextBitmap || type instanceof TextEdit ||
                type instanceof TextString) {

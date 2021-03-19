@@ -57,7 +57,7 @@ public final class IDSRefChecker extends AbstractChecker
       if (e instanceof IdsBitmap) {
         final IdsBitmap ref = (IdsBitmap)e;
         final long value = ref.getLongValue();
-        if (value != 0L && ref.getValueOf(value) == null) {
+        if (value != 0L && ref.getDataOf(value) == null) {
           synchronized (hitFrame) {
             hitFrame.addHit(entry, entry.getSearchString(), ref);
           }

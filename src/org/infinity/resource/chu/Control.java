@@ -16,6 +16,7 @@ import org.infinity.datatype.ColorPicker;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HexNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
@@ -155,7 +156,7 @@ final class Control extends AbstractStruct // implements AddRemovable
   /** Returns the control type. */
   public int getControlType()
   {
-    return ((Bitmap)getAttribute(CHU_CONTROL_TYPE)).getValue();
+    return ((IsNumeric)getAttribute(CHU_CONTROL_TYPE)).getValue();
   }
 
 

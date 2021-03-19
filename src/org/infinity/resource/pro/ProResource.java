@@ -14,6 +14,7 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HashBitmap;
 import org.infinity.datatype.IdsTargetType;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ProRef;
 import org.infinity.datatype.ResourceBitmap;
 import org.infinity.datatype.ResourceRef;
@@ -149,9 +150,9 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
       }
       return bRet;
     }
-    else if (event.getSource() instanceof HashBitmap &&
+    else if (event.getSource() instanceof IsNumeric &&
              ((StructEntry)event.getSource()).getName().equals(PRO_TYPE)) {
-      HashBitmap proType = (HashBitmap)event.getSource();
+      IsNumeric proType = (IsNumeric)event.getSource();
       AbstractStruct struct = event.getStructure();
       // add/remove extended sections in the parent structure depending on the current value
       if (struct instanceof Resource && struct instanceof HasChildStructs) {

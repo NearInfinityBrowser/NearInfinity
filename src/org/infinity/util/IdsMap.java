@@ -221,7 +221,8 @@ public class IdsMap
 
   private long normalizedKey(long key)
   {
-    return key & 0xffffffffL;
+    // cap to 32 bit but preserve sign
+    return key % 0x100000000L;
   }
 
   private String normalizedString(String s)

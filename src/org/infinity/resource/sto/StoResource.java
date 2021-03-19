@@ -15,6 +15,7 @@ import javax.swing.JScrollPane;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -349,8 +350,8 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
         Object o;
 
         // preparations
-        DecNumber ofs = (DecNumber)sto.getAttribute(STO_OFFSET_ITEMS_FOR_SALE, false);
-        DecNumber cnt = (DecNumber)sto.getAttribute(STO_NUM_ITEMS_FOR_SALE, false);
+        IsNumeric ofs = (IsNumeric)sto.getAttribute(STO_OFFSET_ITEMS_FOR_SALE, false);
+        IsNumeric cnt = (IsNumeric)sto.getAttribute(STO_NUM_ITEMS_FOR_SALE, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           String itemLabel = SearchOptions.getResourceName(SearchOptions.STO_Item_Item1);
           items = new ResourceRef[cnt.getValue()];
@@ -376,8 +377,8 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
           items = new ResourceRef[0];
         }
 
-        ofs = (DecNumber)sto.getAttribute(STO_OFFSET_ITEMS_PURCHASED, false);
-        cnt = (DecNumber)sto.getAttribute(STO_NUM_ITEMS_PURCHASED, false);
+        ofs = (IsNumeric)sto.getAttribute(STO_OFFSET_ITEMS_PURCHASED, false);
+        cnt = (IsNumeric)sto.getAttribute(STO_NUM_ITEMS_PURCHASED, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           purchases = new Bitmap[cnt.getValue()];
           for (int i = 0; i < cnt.getValue(); i++) {

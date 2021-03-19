@@ -12,6 +12,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.infinity.datatype.AnimateBitmap;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.ColorPicker;
 import org.infinity.datatype.ColorValue;
@@ -800,7 +801,7 @@ public final class EffectFactory
       if (Profile.isEnhancedEdition()) {
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 1) {
-          int param2 = ((Bitmap)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
+          int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
           if (param2 == 2) {  // Set % of
             replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
                          new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value"));
@@ -824,7 +825,7 @@ public final class EffectFactory
           Profile.isEnhancedEdition() || (boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX)) {
         boolean isV1 = (getEntry(struct, EffectEntry.IDX_OPCODE).getSize() == 2);
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
-        int param2 = ((Bitmap)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
+        int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
         if (opcode == 15) {
           if (isV1 && param2 == 3) {
             replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
@@ -848,7 +849,7 @@ public final class EffectFactory
       if (Profile.isEnhancedEdition()) {
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 23) {
-          int special = ((Bitmap)getEntry(struct, EffectEntry.IDX_SPECIAL)).getValue();
+          int special = ((IsNumeric)getEntry(struct, EffectEntry.IDX_SPECIAL)).getValue();
           if (special == 0 ) {
             // Activate BG2 mode
             replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
@@ -878,7 +879,7 @@ public final class EffectFactory
           Profile.isEnhancedEdition() || (boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX)) {
         boolean isV1 = (getEntry(struct, EffectEntry.IDX_OPCODE).getSize() == 2);
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
-        int param2 = ((Bitmap)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
+        int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
         if (opcode == 44) {
           if (isV1 && param2 == 3) {
             replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
@@ -902,7 +903,7 @@ public final class EffectFactory
       if (Profile.isEnhancedEdition()) {
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 78) {
-          int param2 = ((Bitmap)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
+          int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
           switch (param2) {
             case 11:  // Mold Touch/Single
             case 12:  // Mold Touch/Decrement
@@ -930,7 +931,7 @@ public final class EffectFactory
       if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 232) {
-          int param2 = ((Bitmap)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
+          int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
           switch (param2) {
             case 13: // Time of day
               replaceEntry(struct, EffectEntry.IDX_SPECIAL, EffectEntry.OFS_SPECIAL,
@@ -989,7 +990,7 @@ public final class EffectFactory
         if (opcode == 319) {
           boolean isEEex = Profile.getProperty(Profile.Key.IS_GAME_EEEX);
           if (isEEex) {
-            int power = ((Bitmap)getEntry(struct, EffectEntry.IDX_POWER)).getValue();
+            int power = ((IsNumeric)getEntry(struct, EffectEntry.IDX_POWER)).getValue();
             if (power == 2 || power == 3) {
               SpellProtType param2 = new SpellProtType(getEntryData(struct, EffectEntry.IDX_PARAM2), 0, 4);
               param2.setName("EEex: " + param2.getName());
@@ -1031,7 +1032,7 @@ public final class EffectFactory
       if (Profile.isEnhancedEdition()) {
         int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 328) {
-          int special = ((Bitmap)getEntry(struct, EffectEntry.IDX_SPECIAL)).getValue();
+          int special = ((IsNumeric)getEntry(struct, EffectEntry.IDX_SPECIAL)).getValue();
           if (special == 1 && ResourceFactory.resourceExists("SPLSTATE.IDS")) {
             // Activate IWD2 mode
             replaceEntry(struct, EffectEntry.IDX_PARAM2, EffectEntry.OFS_PARAM2,
@@ -2500,7 +2501,7 @@ public final class EffectFactory
         break;
 
       case 53: // Animation change
-        s.add(new IdsBitmap(buffer, offset, 4, "Morph into", "ANIMATE.IDS"));
+        s.add(new AnimateBitmap(buffer, offset, 4, "Morph into"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Morph type",
                          new String[]{"Temporary change", "Remove temporary change",
                                       "Permanent change"}));
@@ -2923,7 +2924,7 @@ public final class EffectFactory
         break;
 
       case 135: // Polymorph
-        s.add(new IdsBitmap(buffer, offset, 4, "Animation", "ANIMATE.IDS"));
+        s.add(new AnimateBitmap(buffer, offset, 4, "Animation"));
         s.add(new Bitmap(buffer, offset + 4, 4, "Polymorph type",
                          new String[]{"Change into", "Appearance only", "Appearance only",
                                       "Appearance only"}));

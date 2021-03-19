@@ -49,7 +49,7 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
-import org.infinity.util.ObjectString;
+import org.infinity.util.DataString;
 import org.infinity.util.Platform;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
@@ -2440,20 +2440,20 @@ public final class Profile implements FileWatcher.FileWatchListener
       return retVal;
     }
 
-    List<ObjectString> gameFolders = new ArrayList<>();
+    List<DataString<Path>> gameFolders = new ArrayList<>();
     // Getting potential DLC folders (search order is important)
     if (rootDir != null && FileEx.create(rootDir).isDirectory()) {
-      gameFolders.add(new ObjectString("mod", rootDir.resolve("workshop")));
-      gameFolders.add(new ObjectString("zip", rootDir.resolve("dlc")));
-      gameFolders.add(new ObjectString("zip", rootDir));
+      gameFolders.add(DataString.with("mod", rootDir.resolve("workshop")));
+      gameFolders.add(DataString.with("zip", rootDir.resolve("dlc")));
+      gameFolders.add(DataString.with("zip", rootDir));
     }
     if (homeDir != null && FileEx.create(homeDir).isDirectory()) {
-      gameFolders.add(new ObjectString("zip", homeDir));
+      gameFolders.add(DataString.with("zip", homeDir));
     }
 
-    for (final ObjectString root: gameFolders) {
+    for (final DataString<Path> root: gameFolders) {
       String ext = root.getString();
-      Path dir = root.getObject();
+      Path dir = root.getData();
       if (dir != null && FileEx.create(dir).isDirectory()) {
         List<Path> list = new ArrayList<>();
         try (DirectoryStream<Path> dstream = Files.newDirectoryStream(dir)) {

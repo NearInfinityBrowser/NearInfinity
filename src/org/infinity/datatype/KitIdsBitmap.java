@@ -18,6 +18,7 @@ public class KitIdsBitmap extends IdsBitmap
   public KitIdsBitmap(ByteBuffer buffer, int offset, String name)
   {
     super(buffer, offset, 4, name, "KIT.IDS");
+    setShowAsHex(true);
     // adding "No Kit" value if needed
     addIdsMapEntry(new IdsMapEntry(0L, "NO_KIT"));
 
@@ -34,6 +35,12 @@ public class KitIdsBitmap extends IdsBitmap
  }
 
 //--------------------- End Interface Writeable ---------------------
+
+  @Override
+  protected String getHexValue(long value)
+  {
+    return String.format("0x%04X", value);
+  }
 
   /** Swaps position of the two lower words. */
   private static long swapWords(long value)

@@ -14,6 +14,7 @@ import java.util.Collections;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
@@ -91,27 +92,27 @@ final class Window extends AbstractStruct // implements AddRemovable
   /** Returns the panel id. */
   public int getWindowId()
   {
-    return ((DecNumber)getAttribute(CHU_WINDOW_ID)).getValue();
+    return ((IsNumeric)getAttribute(CHU_WINDOW_ID)).getValue();
   }
 
   /** Returns the x and y positions of the panel. */
   public Point getWindowPosition()
   {
-    return new Point(((DecNumber)getAttribute(CHU_WINDOW_POSITION_X)).getValue(),
-                     ((DecNumber)getAttribute(CHU_WINDOW_POSITION_Y)).getValue());
+    return new Point(((IsNumeric)getAttribute(CHU_WINDOW_POSITION_X)).getValue(),
+                     ((IsNumeric)getAttribute(CHU_WINDOW_POSITION_Y)).getValue());
   }
 
   /** Returns width and height of the panel. */
   public Dimension getWindowDimension()
   {
-    return new Dimension(((DecNumber)getAttribute(CHU_WINDOW_WIDTH)).getValue(),
-                         ((DecNumber)getAttribute(CHU_WINDOW_HEIGHT)).getValue());
+    return new Dimension(((IsNumeric)getAttribute(CHU_WINDOW_WIDTH)).getValue(),
+                         ((IsNumeric)getAttribute(CHU_WINDOW_HEIGHT)).getValue());
   }
 
   /** Returns whether the panel references a background MOS. */
   public boolean hasBackgroundImage()
   {
-    return ((Bitmap)getAttribute(CHU_WINDOW_HAS_BACKGROUND)).getValue() == 1;
+    return ((IsNumeric)getAttribute(CHU_WINDOW_HAS_BACKGROUND)).getValue() == 1;
   }
 
   /** Returns the background MOS for the panel. */
