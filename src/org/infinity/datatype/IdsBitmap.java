@@ -33,18 +33,18 @@ public class IdsBitmap extends AbstractBitmap<IdsMapEntry>
 
   public IdsBitmap(ByteBuffer buffer, int offset, int length, String name, String resource)
   {
-    this(buffer, offset, length, name, resource, true, false);
+    this(buffer, offset, length, name, resource, true, false, false);
   }
 
   public IdsBitmap(ByteBuffer buffer, int offset, int length, String name, String resource, boolean sortByName)
   {
-    this(buffer, offset, length, name, resource, sortByName, false);
+    this(buffer, offset, length, name, resource, sortByName, false, false);
   }
 
   public IdsBitmap(ByteBuffer buffer, int offset, int length, String name, String resource, boolean sortByName,
-                   boolean showAsHex)
+                   boolean showAsHex, boolean signed)
   {
-    super(buffer, offset, length, name, createResourceList(resource), null, true);
+    super(buffer, offset, length, name, createResourceList(resource), null, signed);
     setSortByName(sortByName);
     setShowAsHex(showAsHex);
     setFormatter(formatterIdsBitmap);

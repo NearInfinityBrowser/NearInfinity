@@ -46,7 +46,7 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
 
   public AnimateBitmap(ByteBuffer buffer, int offset, int length, String name)
   {
-    super(buffer, offset, length, name, "ANIMATE.IDS", true, true);
+    super(buffer, offset, length, name, "ANIMATE.IDS", true, true, false);
     setFormatter(formatterAnimateBitmap);
 
     if (Profile.isEnhancedEdition() || ResourceFactory.resourceExists("ANISND.IDS")) {
