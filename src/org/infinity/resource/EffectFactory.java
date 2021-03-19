@@ -1063,7 +1063,7 @@ public final class EffectFactory
               newEntry = new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Enabled?", AbstractStruct.OPTION_NOYES);
               break;
             case 2:
-              newEntry = new ColorValue(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Color");
+              newEntry = new ColorValue(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Color", false);
               break;
             default:
               newEntry = new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value");
@@ -2157,7 +2157,7 @@ public final class EffectFactory
         break;
 
       case 7: // Set color
-        s.add(new ColorValue(buffer, offset, 4, "Color"));
+        s.add(new ColorValue(buffer, offset, 4, "Color", false));
         s.add(new HashBitmap(buffer, offset + 4, 4, "Location", m_colorloc, false));
         break;
 
@@ -4288,7 +4288,7 @@ public final class EffectFactory
                                                "Personal space"});
           switch (bmp.getValue()) {
             case 1:  s.add(new Bitmap(buffer, offset, 4, "Enabled?", AbstractStruct.OPTION_NOYES)); break;
-            case 2:  s.add(new ColorValue(buffer, offset, 4, "Color")); break;
+            case 2:  s.add(new ColorValue(buffer, offset, 4, "Color", false)); break;
             default: s.add(new DecNumber(buffer, offset, 4, "Value"));
           }
           s.add(bmp);

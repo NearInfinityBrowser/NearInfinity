@@ -1021,13 +1021,13 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 28, 2, CRE_HP_CURRENT));
     addField(new DecNumber(buffer, offset + 30, 2, CRE_HP_MAX));
     addField(new IdsBitmap(buffer, offset + 32, 4, CRE_ANIMATION, "ANIMATE.IDS"));
-    addField(new ColorValue(buffer, offset + 36, 1, CRE_COLOR_METAL));
-    addField(new ColorValue(buffer, offset + 37, 1, CRE_COLOR_MINOR));
-    addField(new ColorValue(buffer, offset + 38, 1, CRE_COLOR_MAJOR));
-    addField(new ColorValue(buffer, offset + 39, 1, CRE_COLOR_SKIN));
-    addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER));
-    addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR));
-    addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
+    addField(new ColorValue(buffer, offset + 36, 1, CRE_COLOR_METAL, true));
+    addField(new ColorValue(buffer, offset + 37, 1, CRE_COLOR_MINOR, true));
+    addField(new ColorValue(buffer, offset + 38, 1, CRE_COLOR_MAJOR, true));
+    addField(new ColorValue(buffer, offset + 39, 1, CRE_COLOR_SKIN, true));
+    addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER, true));
+    addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR, true));
+    addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR, true));
     Bitmap effect_version = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
     effect_version.addUpdateListener(this);
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
@@ -1444,13 +1444,13 @@ public final class CreResource extends AbstractStruct
     if (Profile.getGame() == Profile.Game.PSTEE && version.equals("V1.0")) {
       setColorFieldsPSTEE(animate.getValue(), buffer, offset + 36, false);
     } else {
-      addField(new ColorValue(buffer, offset + 36, 1, CRE_COLOR_METAL));
-      addField(new ColorValue(buffer, offset + 37, 1, CRE_COLOR_MINOR));
-      addField(new ColorValue(buffer, offset + 38, 1, CRE_COLOR_MAJOR));
-      addField(new ColorValue(buffer, offset + 39, 1, CRE_COLOR_SKIN));
-      addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER));
-      addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR));
-      addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR));
+      addField(new ColorValue(buffer, offset + 36, 1, CRE_COLOR_METAL, true));
+      addField(new ColorValue(buffer, offset + 37, 1, CRE_COLOR_MINOR, true));
+      addField(new ColorValue(buffer, offset + 38, 1, CRE_COLOR_MAJOR, true));
+      addField(new ColorValue(buffer, offset + 39, 1, CRE_COLOR_SKIN, true));
+      addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER, true));
+      addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR, true));
+      addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR, true));
     }
     Bitmap effect_version = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
     effect_version.addUpdateListener(this);
@@ -1668,7 +1668,7 @@ public final class CreResource extends AbstractStruct
       addField(new DecNumber(buffer, offset + 727, 1, CRE_NUM_COLORS));
       addField(new Flag(buffer, offset + 728, 4, CRE_ATTRIBUTES, s_attributes_pst));
       for (int i = 0; i < 7; i++) {
-        addField(new ColorValue(buffer, offset + 732 + (i * 2), 2, String.format(CRE_COLOR_FMT, i+1),
+        addField(new ColorValue(buffer, offset + 732 + (i * 2), 2, String.format(CRE_COLOR_FMT, i+1), true,
                                 "PAL32.BMP"));
 //        addField(new IdsBitmap(buffer, offset + 732 + (i * 2), 2,
 //                               String.format(CRE_COLOR_FMT, i+1), "CLOWNCLR.IDS"));
@@ -2003,7 +2003,7 @@ public final class CreResource extends AbstractStruct
         }
         startOffset += field.getSize();
       } else {
-        addField(new ColorValue(buffer, startOffset, 1, colorNames[i], "PAL32.BMP"));
+        addField(new ColorValue(buffer, startOffset, 1, colorNames[i], true, "PAL32.BMP"));
         startOffset++;
       }
     }

@@ -86,19 +86,19 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
   private ResourceEntry colorEntry; // the source of color ranges
   private IdsMap colorMap;          // provides an optional symbolic color name
 
-  public ColorValue(ByteBuffer buffer, int offset, int length, String name)
+  public ColorValue(ByteBuffer buffer, int offset, int length, String name, boolean allowRandom)
   {
-    this(buffer, offset, length, name, null);
+    this(buffer, offset, length, name, allowRandom, null);
   }
 
-  public ColorValue(ByteBuffer buffer, int offset, int length, String name, String bmpFile)
+  public ColorValue(ByteBuffer buffer, int offset, int length, String name, boolean allowRandom, String bmpFile)
   {
     super(offset, length, name);
-    init(bmpFile);
+    init(bmpFile, allowRandom);
     read(buffer, offset);
   }
 
-  private void init(String bmpFile)
+  private void init(String bmpFile, boolean allowRandom)
   {
     if (bmpFile != null && ResourceFactory.resourceExists(bmpFile)) {
       this.colorEntry = ResourceFactory.getResourceEntry(bmpFile);
@@ -108,7 +108,7 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
     }
 
     ResourceEntry randomEntry = null;
-    if (ResourceFactory.resourceExists("RANDCOLR.2DA")) {
+    if (allowRandom && ResourceFactory.resourceExists("RANDCOLR.2DA")) {
       randomEntry = ResourceFactory.getResourceEntry("RANDCOLR.2DA");
     }
 

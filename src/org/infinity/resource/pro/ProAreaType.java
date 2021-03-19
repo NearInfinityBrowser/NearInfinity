@@ -161,7 +161,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable, U
     addField(new ProRef(buffer, offset + 20, PRO_AREA_SECONDARY_PROJECTILE, false));
     addField(new DecNumber(buffer, offset + 22, 1, PRO_AREA_NUM_REPETITIONS));
     addField(new HashBitmap(buffer, offset + 23, 1, PRO_AREA_EXPLOSION_EFFECT, m_proj));
-    addField(new ColorValue(buffer, offset + 24, 1, PRO_AREA_EXPLOSION_COLOR));
+    addField(new ColorValue(buffer, offset + 24, 1, PRO_AREA_EXPLOSION_COLOR, false));
     addField(new Unknown(buffer, offset + 25, 1, COMMON_UNUSED));
     addField(new ProRef(buffer, offset + 26, PRO_AREA_EXPLOSION_PROJECTILE));
     addField(new ResourceRef(buffer, offset + 28, PRO_AREA_EXPLOSION_ANIMATION, "VEF", "VVC", "BAM"));

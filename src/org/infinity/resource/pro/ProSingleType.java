@@ -90,11 +90,11 @@ public final class ProSingleType extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 26, 2, PRO_SINGLE_LIGHT_SPOT_HEIGHT));
     addField(new ResourceRef(buffer, offset + 28, PRO_SINGLE_PALETTE, "BMP"));
     for (int i = 0; i < 7; i++) {
-      addField(new ColorValue(buffer, offset + 36 + i, 1, String.format(PRO_SINGLE_PRO_COLOR_FMT, i+1)));
+      addField(new ColorValue(buffer, offset + 36 + i, 1, String.format(PRO_SINGLE_PRO_COLOR_FMT, i+1), false));
     }
     addField(new DecNumber(buffer, offset + 43, 1, PRO_SINGLE_SMOKE_PUFF_DELAY));
     for (int i = 0; i < 7; i++) {
-      addField(new ColorValue(buffer, offset + 44 + i, 1, String.format(PRO_SINGLE_SMOKE_COLOR_FMT, i+1)));
+      addField(new ColorValue(buffer, offset + 44 + i, 1, String.format(PRO_SINGLE_SMOKE_COLOR_FMT, i+1), false));
     }
     addField(new HashBitmap(buffer, offset + 51, 1, PRO_SINGLE_FACE_TARGET_GRANULARITY, m_facetarget));
     addField(new IdsBitmap(buffer, offset + 52, 2, PRO_SINGLE_SMOKE_ANIMATION, "ANIMATE.IDS"));

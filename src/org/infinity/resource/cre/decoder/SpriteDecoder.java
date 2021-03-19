@@ -1925,11 +1925,11 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
    * @param colorIndex the color entry.
    * @return palette data as int array. Returns {@code null} if palette data could not be determined.
    */
-  protected int[] getColorData(int colorIndex)
+  protected int[] getColorData(int colorIndex, boolean allowRandom)
   {
     int[] retVal = null;
     try {
-      retVal = SpriteUtils.getColorGradient(colorIndex, true);
+      retVal = SpriteUtils.getColorGradient(colorIndex, allowRandom);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -1950,9 +1950,11 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     final Map<Integer, int[]> colorRanges = new HashMap<Integer, int[]>();
     for (int loc = 0; loc < 7; loc++) {
       int ofs = getColorOffset(loc);
-      int col = getCreatureInfo().getEffectiveColorValue(sd.getSpriteType(), loc);
-      if (ofs > 0 && col >= 0) {
-        int[] range = getColorData(col);
+      Couple<Integer, Boolean> colorInfo = getCreatureInfo().getEffectiveColorValue(sd.getSpriteType(), loc);
+      int colIdx = colorInfo.getValue0().intValue();
+      boolean allowRandom = colorInfo.getValue1().booleanValue();
+      if (ofs > 0 && colIdx >= 0) {
+        int[] range = getColorData(colIdx, allowRandom);
         if (range != null) {
           colorRanges.put(ofs, range);
         }

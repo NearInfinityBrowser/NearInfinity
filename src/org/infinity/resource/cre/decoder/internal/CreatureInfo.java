@@ -33,6 +33,7 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
+import org.infinity.util.tuples.Couple;
 
 /**
  * Provides useful information about a creature resource and their equipment.
@@ -491,23 +492,34 @@ public class CreatureInfo
 
   /**
    * Returns the color entry of the specified location index for the avatar sprite
-   * after applying all equipment and effect colors.
-   * Returns -1 if color entry is not available.
+   * after applying all equipment and effect colors as well as the source of the color value.
+   * @param locationIndex the color location index. Available range: [0, 6]
+   * @return a tuple with the color entry as well as a {@code Boolean} value indicating whether random colors are allowed.
+   * Returns {@code -1} for the color entry if value could not be determined.
    */
-  public int getEffectiveColorValue(int locationIndex)
+  public Couple<Integer, Boolean> getEffectiveColorValue(int locationIndex)
   {
     return getEffectiveColorValue(SegmentDef.SpriteType.AVATAR, locationIndex);
   }
 
   /**
    * Returns the color entry of the location index for the specified sprite overlay type
-   * after applying all equipment and effect colors.
-   * Returns -1 if color entry is not available.
+   * after applying all equipment and effect colors as well as the source of the color value.
+   * @param type the {@link SegmentDef.SpriteType SpriteType} target
+   * @param locationIndex the color location index. Available range: [0, 6]
+   * @return a tuple with the color entry as well as a {@code Boolean} value indicating whether random colors are allowed.
+   * Returns {@code -1} for the color entry if value could not be determined.
    */
-  public int getEffectiveColorValue(SegmentDef.SpriteType type, int locationIndex)
+  public Couple<Integer, Boolean> getEffectiveColorValue(SegmentDef.SpriteType type, int locationIndex)
   {
+    Couple<Integer, Boolean> retVal = Couple.with(-1, true);
+
     // using creature color by default
-    int retVal = getColorValue(SegmentDef.SpriteType.AVATAR, locationIndex);
+    int value = getColorValue(SegmentDef.SpriteType.AVATAR, locationIndex);
+    if (value >= 0) {
+      retVal.setValue0(value);
+      retVal.setValue1(Boolean.TRUE);
+    }
 
     if (type == null) {
       type = SegmentDef.SpriteType.AVATAR;
@@ -518,14 +530,16 @@ public class CreatureInfo
     for (final ItemInfo info : itemInfos) {
       int v = info.getColorInfo().getValue(type, locationIndex);
       if (v >= 0) {
-        retVal = v;
+        retVal.setValue0(v);
+        retVal.setValue1(Boolean.FALSE);
       }
     }
 
     // checking creature effects
     int v = getColorInfo().getValue(type, locationIndex);
     if (v >= 0) {
-      retVal = v;
+      retVal.setValue0(v);
+      retVal.setValue1(Boolean.FALSE);
     }
 
     return retVal;
@@ -548,8 +562,6 @@ public class CreatureInfo
         initV10();
         break;
       case "V1.1":  // non-standard PST format
-        initV10();
-        break;
       case "V1.2":
         initV12();
         break;
