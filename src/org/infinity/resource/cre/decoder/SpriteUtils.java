@@ -473,13 +473,14 @@ public class SpriteUtils
   /**
    * Ensures that "transparent" and "shadow" palette entries of the animation are properly set.
    * @param control the BAM controller associated with the animation.
+   * @param isTransparentShadow indicates whether shadow color is semi-transparent
    */
-  public static void fixShadowColor(BamV1Control control)
+  public static void fixShadowColor(BamV1Control control, boolean isTransparentShadow)
   {
     if (control != null) {
       int[] palette = control.getCurrentPalette();
       palette[0] = 0x0000FF00;
-      palette[1] = 0x80000000;
+      palette[1] = isTransparentShadow ? 0x80000000 : 0xFF000000;
       control.setExternalPalette(palette);
     }
   }

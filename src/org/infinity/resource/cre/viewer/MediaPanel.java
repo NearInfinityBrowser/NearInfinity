@@ -520,7 +520,7 @@ public class MediaPanel extends JPanel
     l1 = new JLabel("Sequence:");
     modelSequences = new DefaultComboBoxModel<>();
     cbSequences = new JComboBox<>(modelSequences);
-    cbSequences.setPrototypeDisplayValue(SpriteDecoder.Sequence.ATTACK_BACKSLASH_1H);
+    cbSequences.setPrototypeDisplayValue(SpriteDecoder.Sequence.ATTACK_2WEAPONS1);
     cbSequences.addItemListener(listeners);
 
     cbLoop = new JCheckBox("Loop", isLoop);

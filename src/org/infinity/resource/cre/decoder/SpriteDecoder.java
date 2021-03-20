@@ -639,7 +639,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
         }
       }
 
-      SpriteUtils.fixShadowColor(control);
+      SpriteUtils.fixShadowColor(control, isTransparentShadow());
 
       if (isPaletteReplacementEnabled() && isFalseColor()) {
         applyFalseColors(control, sd);
@@ -704,6 +704,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   private boolean showCircle;
   private boolean showPersonalSpace;
   private boolean showBoundingBox;
+  private boolean transparentShadow;
   private boolean translucencyEnabled;
   private boolean paletteReplacementEnabled;
   private boolean renderSpriteAvatar;
@@ -819,6 +820,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     this.showCircle = false;
     this.showPersonalSpace = false;
     this.showBoundingBox = false;
+    this.transparentShadow = true;
     this.translucencyEnabled = true;
     this.paletteReplacementEnabled = true;
     this.renderSpriteAvatar = true;
@@ -1905,6 +1907,21 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       g.setStroke(new BasicStroke(strokeSize));
       g.drawOval(center.x - dim.width, center.y - dim.height, 2 * dim.width, 2 * dim.height);
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, (oldHints != null) ? oldHints : RenderingHints.VALUE_ANTIALIAS_DEFAULT);
+    }
+  }
+
+  /** Returns whether creature shadow is semi-transparent. */
+  protected boolean isTransparentShadow()
+  {
+    return transparentShadow;
+  }
+
+  /** Sets whether creature shadow is semi-transparent. */
+  protected void setTransparentShadow(boolean b)
+  {
+    if (transparentShadow != b) {
+      transparentShadow = b;
+      spriteChanged();
     }
   }
 

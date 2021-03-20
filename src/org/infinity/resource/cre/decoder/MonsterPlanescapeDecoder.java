@@ -67,7 +67,7 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
 
       // "Pillar of Skulls" uses separate shadow animation
       if (!resref.equalsIgnoreCase("POSMAIN")) {
-        SpriteUtils.fixShadowColor(control);
+        SpriteUtils.fixShadowColor(control, isTransparentShadow());
       }
 
       if (isPaletteReplacementEnabled() && isFalseColor()) {
@@ -279,6 +279,7 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
   public MonsterPlanescapeDecoder(CreResource cre) throws Exception
   {
     super(ANIMATION_TYPE, cre);
+    setTransparentShadow(false);
   }
 
   /** Returns the bestiary entry index. */
