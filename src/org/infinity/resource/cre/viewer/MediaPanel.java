@@ -121,6 +121,7 @@ public class MediaPanel extends JPanel
     decoder.setPaletteReplacementEnabled(settings.isPaletteReplacementEnabled());
     decoder.setTranslucencyEnabled(settings.isTranslucencyEnabled());
     decoder.setSelectionCircleEnabled(settings.isSelectionCircleEnabled());
+    decoder.setSelectionCircleBitmap(settings.isOrnateSelectionCircle());
     decoder.setPersonalSpaceVisible(settings.isPersonalSpaceEnabled());
     decoder.setRenderAvatar(settings.isAvatarVisible());
     decoder.setRenderHelmet(settings.isHelmetVisible());

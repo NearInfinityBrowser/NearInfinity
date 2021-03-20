@@ -23,7 +23,12 @@ public class Icons
   public static final String ICON_STOP           = "btn_stop.png";
   public static final String ICON_CENTER         = "btn_center.png";
 
-  private static final Map<URL, ImageIcon> ICONMAP = new HashMap<URL, ImageIcon>(12);
+  public static final String ICON_CIRCLE_GREEN   = "circle_green.png";
+  public static final String ICON_CIRCLE_BLUE    = "circle_blue.png";
+  public static final String ICON_CIRCLE_RED     = "circle_red.png";
+  public static final String ICON_CIRCLE_YELLOW  = "circle_yellow.png";
+
+  private static final Map<URL, ImageIcon> ICONMAP = new HashMap<URL, ImageIcon>(20);
 
   /**
    * Returns an ImageIcon object of the specified graphics filename.

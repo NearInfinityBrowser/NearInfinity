@@ -55,7 +55,7 @@ public class SettingsPanel extends JPanel
   }};
 
   private static int indexZoom, indexFrameRate, indexBackground;
-  private static boolean isFiltering, isBlending, isTranslucent, isSelectionCircle, isPersonalSpace,
+  private static boolean isFiltering, isBlending, isTranslucent, isSelectionCircle, isOrnateSelectionCircle, isPersonalSpace,
                          isPaletteReplacementEnabled, isShowAvatar, isShowHelmet, isShowShield, isShowWeapon,
                          isShowBorders;
 
@@ -67,6 +67,7 @@ public class SettingsPanel extends JPanel
     isBlending = true;
     isTranslucent = true;
     isSelectionCircle = false;
+    isOrnateSelectionCircle = (Profile.getGame() == Profile.Game.PST) || (Profile.getGame() == Profile.Game.PSTEE);
     isPersonalSpace = false;
     isShowAvatar = true;
     isShowHelmet = true;
@@ -83,7 +84,7 @@ public class SettingsPanel extends JPanel
   private JComboBox<ItemString<Integer>> cbFrameRate;
   private JComboBox<Backgrounds.BackgroundInfo> cbBackground;
   private JButton bCenter;
-  private JCheckBox cbFiltering, cbBlending, cbTranslucent, cbSelectionCircle, cbPersonalSpace,
+  private JCheckBox cbFiltering, cbBlending, cbTranslucent, cbSelectionCircle, cbOrnateSelectionCircle, cbPersonalSpace,
                     cbPaletteReplacementEnabled, cbShowAvatar, cbShowHelmet, cbShowShield, cbShowWeapon, cbShowBorders;
   private AttributesPanel panelAttributes;
 
@@ -224,6 +225,18 @@ public class SettingsPanel extends JPanel
     if (isSelectionCircle != b) {
       isSelectionCircle = b;
       cbSelectionCircle.setSelected(isSelectionCircle);
+      getViewer().getMediaPanel().reset(true);
+    }
+  }
+
+  /** Returns whether an ornate graphics is used to draw the selection circle. */
+  public boolean isOrnateSelectionCircle() { return isOrnateSelectionCircle; }
+
+  private void setOrnateSelectionCircle(boolean b)
+  {
+    if (isOrnateSelectionCircle != b) {
+      isOrnateSelectionCircle = b;
+      cbOrnateSelectionCircle.setSelected(isOrnateSelectionCircle);
       getViewer().getMediaPanel().reset(true);
     }
   }
@@ -381,6 +394,7 @@ public class SettingsPanel extends JPanel
 
     // checkbox controls
     cbFiltering = new JCheckBox("Enable filtering", isFiltering);
+    cbFiltering.setToolTipText("On: bilinear filtering, off: nearest neighbor filtering");
     cbFiltering.addActionListener(listeners);
 
     cbBlending = new JCheckBox("Enable blending", isBlending);
@@ -391,23 +405,30 @@ public class SettingsPanel extends JPanel
     cbTranslucent.setToolTipText("Affects only creature animations with translucency effect (e.g. ghosts or air elementals)");
     cbTranslucent.addActionListener(listeners);
 
-    cbPaletteReplacementEnabled = new JCheckBox("Palette replacement", isPaletteReplacementEnabled);
+    cbPaletteReplacementEnabled = new JCheckBox("Enable palette replacement", isPaletteReplacementEnabled);
     cbPaletteReplacementEnabled.setToolTipText("Enable full palette or false color palette replacement.");
     cbPaletteReplacementEnabled.addActionListener(listeners);
 
     cbSelectionCircle = new JCheckBox("Show selection circle", isSelectionCircle);
     cbSelectionCircle.addActionListener(listeners);
 
+    cbOrnateSelectionCircle = new JCheckBox("Use ornate selection circle", isOrnateSelectionCircle);
+    cbOrnateSelectionCircle.setToolTipText("Enable to use the ornate selection circle graphics from PST.");
+    cbOrnateSelectionCircle.addActionListener(listeners);
+
     cbPersonalSpace = new JCheckBox("Show personal space", isPersonalSpace);
+    cbPersonalSpace.setToolTipText("Enable to visualize the search map cells blocked by the creature.");
     cbPersonalSpace.addActionListener(listeners);
 
     cbShowAvatar = new JCheckBox("Show avatar overlay", isShowAvatar);
+    cbShowAvatar.setToolTipText("Includes the avatar, separate shadows and ground layers of buried creatures.");
     cbShowAvatar.addActionListener(listeners);
 
     cbShowHelmet = new JCheckBox("Show helmet overlay", isShowHelmet);
     cbShowHelmet.addActionListener(listeners);
 
     cbShowShield = new JCheckBox("Show shield overlay", isShowShield);
+    cbShowShield.setToolTipText("Includes shields and offhand weapons.");
     cbShowShield.addActionListener(listeners);
 
     cbShowWeapon = new JCheckBox("Show weapon overlay", isShowWeapon);
@@ -427,38 +448,38 @@ public class SettingsPanel extends JPanel
 
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    panel2.add(cbTranslucent, c);
+    panel2.add(cbSelectionCircle, c);
     c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
-    panel2.add(cbPaletteReplacementEnabled, c);
+    panel2.add(cbShowAvatar, c);
 
     c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    panel2.add(cbSelectionCircle, c);
+    panel2.add(cbOrnateSelectionCircle, c);
     c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
-    panel2.add(cbPersonalSpace, c);
-
-    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    panel2.add(cbShowAvatar, c);
-    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
     panel2.add(cbShowHelmet, c);
 
+    c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    panel2.add(cbPersonalSpace, c);
+    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
+    panel2.add(cbShowWeapon, c);
+
     c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    panel2.add(cbShowWeapon, c);
+    panel2.add(cbTranslucent, c);
     c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
     panel2.add(cbShowShield, c);
 
     c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    panel2.add(cbShowBorders, c);
+    panel2.add(cbPaletteReplacementEnabled, c);
     c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
-    panel2.add(new JPanel(), c);
+    panel2.add(cbShowBorders, c);
 
 
     // attributes table panel
@@ -525,6 +546,9 @@ public class SettingsPanel extends JPanel
       }
       else if (e.getSource() == cbSelectionCircle) {
         setSelectionCircleEnabled(cbSelectionCircle.isSelected());
+      }
+      else if (e.getSource() == cbOrnateSelectionCircle) {
+        setOrnateSelectionCircle(cbOrnateSelectionCircle.isSelected());
       }
       else if (e.getSource() == cbPersonalSpace) {
         setPersonalSpaceEnabled(cbPersonalSpace.isSelected());

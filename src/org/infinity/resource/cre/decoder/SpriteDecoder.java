@@ -10,6 +10,7 @@ import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -47,6 +48,7 @@ import org.infinity.resource.cre.decoder.internal.ItemInfo;
 import org.infinity.resource.cre.decoder.internal.SegmentDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
+import org.infinity.resource.cre.viewer.icon.Icons;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.BamV1Decoder.BamV1Control;
@@ -702,6 +704,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   private Sequence currentSequence;
   private boolean showCircle;
+  private boolean selectionCircleBitmap;
   private boolean showPersonalSpace;
   private boolean showBoundingBox;
   private boolean transparentShadow;
@@ -818,6 +821,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     this.ini = Objects.requireNonNull(getAnimationInfo(getAnimationId()), "No INI data available for animation id: " + getAnimationId());
     this.currentSequence = Sequence.NONE;
     this.showCircle = false;
+    this.selectionCircleBitmap = (Profile.getGame() == Profile.Game.PST) || (Profile.getGame() == Profile.Game.PSTEE);
     this.showPersonalSpace = false;
     this.showBoundingBox = false;
     this.transparentShadow = true;
@@ -1177,6 +1181,27 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       paletteReplacementEnabled = b;
       SpriteUtils.clearBamCache();
       spriteChanged();
+    }
+  }
+
+  /**
+   * Returns {@code true} if a bitmap is used to render the selection circle.
+   * Returns {@code false} if a colored circle is drawn instead.
+   */
+  public boolean isSelectionCircleBitmap()
+  {
+    return selectionCircleBitmap;
+  }
+
+  /**
+   * Specify {@code true} if a bitmap should be used to render the selection circle.
+   * Specify {@code false} if a colored circle should be drawn instead.
+   */
+  public void setSelectionCircleBitmap(boolean b)
+  {
+    if (selectionCircleBitmap != b) {
+      selectionCircleBitmap = b;
+      selectionCircleChanged();
     }
   }
 
@@ -1717,7 +1742,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
         if (isSelectionCircleEnabled()) {
           // Drawing selection circle
-          drawSelectionCircle(g, center, null, circleStrokeSize);
+          drawSelectionCircle(g, center, circleStrokeSize);
         }
 
         // drawing source frames to target image
@@ -1860,6 +1885,9 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   {
     Dimension dim = new Dimension();
     dim.width = Math.max(0, getEllipse());
+    if (isSelectionCircleBitmap()) {
+      dim.width += 4; // compensation for missing stroke size
+    }
     dim.height = dim.width * 4 / 7;   // ratio 1.75
     if (dim.height % 7 > 3) {
       // rounding up
@@ -1868,15 +1896,13 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     return dim;
   }
 
-  /** Determines a circle stroke size relative to the circle size. Empty circles have no stroke size. */
+  /** Determines a circle stroke size relative to the circle size. Empty circles or bitmap circles have no stroke size. */
   protected float getSelectionCircleStrokeSize()
   {
-    float circleStrokeSize;
-    if (getEllipse() > 0) {
+    float circleStrokeSize = 0.0f;
+    if (!isSelectionCircleBitmap() && getEllipse() > 0) {
       // thickness relative to circle size
       circleStrokeSize = Math.max(1.0f, (float)(Math.floor(Math.sqrt(getEllipse()) / 2.0)));
-    } else {
-      circleStrokeSize = 0.0f;
     }
 
     return circleStrokeSize;
@@ -1889,24 +1915,28 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
    * @param color the circle color. Specify {@code null} to use global defaults.
    * @param strokeSize the thickness of the selection circle.
    */
-  protected void drawSelectionCircle(Graphics2D g, Point center, Color color, float strokeSize)
+  protected void drawSelectionCircle(Graphics2D g, Point center, float strokeSize)
   {
     if (g != null) {
       Dimension dim = getSelectionCircleSize();
-      if (color == null) {
-        if (getCreatureInfo().isStatusPanic()) {
-          // panic
-          color = getAllegianceColor(-1);
-        } else {
-          color = getAllegianceColor(getCreatureInfo().getAllegiance());
-        }
+
+      if (isSelectionCircleBitmap()) {
+        Image image = getCreatureInfo().isStatusPanic() ? getAllegianceImage(-1)
+                                                        : getAllegianceImage(getCreatureInfo().getAllegiance());
+        Object oldHints = g.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.drawImage(image, center.x - dim.width, center.y - dim.height, 2 * dim.width, 2 * dim.height, null);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, (oldHints != null) ? oldHints : RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+      } else {
+        Color color = getCreatureInfo().isStatusPanic() ? getAllegianceColor(-1)
+                                                        : getAllegianceColor(getCreatureInfo().getAllegiance());
+        Object oldHints = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(color);
+        g.setStroke(new BasicStroke(strokeSize));
+        g.drawOval(center.x - dim.width, center.y - dim.height, 2 * dim.width, 2 * dim.height);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, (oldHints != null) ? oldHints : RenderingHints.VALUE_ANTIALIAS_DEFAULT);
       }
-      Object oldHints = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
-      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      g.setColor(color);
-      g.setStroke(new BasicStroke(strokeSize));
-      g.drawOval(center.x - dim.width, center.y - dim.height, 2 * dim.width, 2 * dim.height);
-      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, (oldHints != null) ? oldHints : RenderingHints.VALUE_ANTIALIAS_DEFAULT);
     }
   }
 
@@ -2178,6 +2208,32 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     }
 
     return c;
+  }
+
+  /**
+   * Determines the right selection circle bitmap based on the specified allegiance value and returns it
+   * as {@code Image} object. A negative value will enable the "panic" bitmap.
+   * @param value numeric allegiance value. Specify a negative value to override allegiance by the "panic" status.
+   * @return
+   */
+  protected static Image getAllegianceImage(int value)
+  {
+    Image retVal = null;
+    if (value < 0) {
+      // treat as panic
+      retVal = Icons.getImage(Icons.ICON_CIRCLE_YELLOW);
+    } else if (value >= 2 && value <= 4 || value == 201) {
+      // ally
+      retVal = Icons.getImage(Icons.ICON_CIRCLE_GREEN);
+    } else if (value == 255 || value == 254 || value == 28 || value == 6 || value == 5) {
+      // enemy
+      retVal = Icons.getImage(Icons.ICON_CIRCLE_RED);
+    } else {
+      // neutral
+      retVal = Icons.getImage(Icons.ICON_CIRCLE_BLUE);
+    }
+
+    return retVal;
   }
 
   /**
