@@ -445,8 +445,8 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     cbShowSpace.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
     cbShowSpace.addActionListener(this);
 
-    JButton bOpenViewer = new JButton("Open in viewer", Icons.getIcon(Icons.ICON_CRE_VIEWER_24));
-    bOpenViewer.setToolTipText("Open in Creature Animation Viewer");
+    JButton bOpenViewer = new JButton("Open in browser", Icons.getIcon(Icons.ICON_CRE_VIEWER_24));
+    bOpenViewer.setToolTipText("Open in Creature Animation Browser");
     bOpenViewer.addActionListener(this);
 
     buttonControlPanel.addControl(lCycle, CtrlCycleLabel);

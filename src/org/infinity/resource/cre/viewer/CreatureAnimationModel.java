@@ -20,7 +20,7 @@ import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
 
 /**
- * {@code ComboBoxModel} for the creature animation combo box used in the Creature Animation Viewer.
+ * {@code ComboBoxModel} for the creature animation combo box used in the Creature Animation Browser.
  */
 public class CreatureAnimationModel extends AbstractListModel<CreatureAnimationModel.AnimateEntry>
     implements MutableComboBoxModel<CreatureAnimationModel.AnimateEntry>

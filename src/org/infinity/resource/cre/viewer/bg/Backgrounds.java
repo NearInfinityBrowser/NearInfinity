@@ -20,7 +20,7 @@ import javax.swing.UIManager;
 import org.infinity.resource.Profile;
 
 /**
- * Backgrounds for the creature animation viewer.
+ * Backgrounds for the creature animation browser.
  */
 public final class Backgrounds
 {

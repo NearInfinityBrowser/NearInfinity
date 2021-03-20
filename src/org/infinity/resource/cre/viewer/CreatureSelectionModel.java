@@ -27,7 +27,7 @@ import org.infinity.util.io.StreamUtils;
 import org.infinity.util.tuples.Couple;
 
 /**
- * {@code ComboBoxModel} for the creature selection combo box used in the Creature Animation Viewer.
+ * {@code ComboBoxModel} for the creature selection combo box used in the Creature Animation Browser.
  */
 public class CreatureSelectionModel extends AbstractListModel<CreatureSelectionModel.CreatureItem>
     implements ComboBoxModel<CreatureSelectionModel.CreatureItem>

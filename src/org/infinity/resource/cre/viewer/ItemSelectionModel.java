@@ -16,7 +16,7 @@ import org.infinity.resource.cre.decoder.internal.ItemInfo.ItemPredicate;
 import org.infinity.resource.key.ResourceEntry;
 
 /**
- * {@code ComboBoxModel} for item selection combo boxes used in the Creature Animation Viewer.
+ * {@code ComboBoxModel} for item selection combo boxes used in the Creature Animation Browser.
  * The model allows to filter items by custom criteria.
  */
 public class ItemSelectionModel extends AbstractListModel<ItemInfo> implements ComboBoxModel<ItemInfo>

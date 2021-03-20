@@ -41,7 +41,7 @@ import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 
 /**
- * {@code ComboBoxModel} for the color selection combo box used in the Creature Animation Viewer.
+ * {@code ComboBoxModel} for the color selection combo box used in the Creature Animation Browser.
  */
 public class ColorSelectionModel extends AbstractListModel<ColorSelectionModel.ColorEntry>
 implements ComboBoxModel<ColorSelectionModel.ColorEntry>

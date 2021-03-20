@@ -153,7 +153,7 @@ public class CreatureViewer extends ChildFrame
     add(mainCentralPanel, BorderLayout.CENTER);
 
     setIconImage(Icons.getImage(Icons.ICON_CRE_VIEWER_24));
-    setTitle("Creature Animation Viewer");
+    setTitle("Creature Animation Browser");
     setSize(NearInfinity.getInstance().getPreferredSize());
     Center.center(this, NearInfinity.getInstance().getBounds());
     setExtendedState(NearInfinity.getInstance().getExtendedState() & ~ICONIFIED);
