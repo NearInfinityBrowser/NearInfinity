@@ -37,11 +37,13 @@ import org.infinity.datatype.IsNumeric;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.decoder.internal.ColorInfo;
 import org.infinity.resource.cre.decoder.internal.CreatureInfo;
 import org.infinity.resource.cre.decoder.internal.CycleDef;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
 import org.infinity.resource.cre.decoder.internal.DirDef;
 import org.infinity.resource.cre.decoder.internal.FrameInfo;
+import org.infinity.resource.cre.decoder.internal.ItemInfo;
 import org.infinity.resource.cre.decoder.internal.SegmentDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
@@ -1957,6 +1959,24 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
         int[] range = getColorData(colIdx, allowRandom);
         if (range != null) {
           colorRanges.put(ofs, range);
+        }
+      }
+    }
+
+    // Special: Off-hand weapon uses weapon colors
+    if (sd.getSpriteType() == SegmentDef.SpriteType.SHIELD) {
+      ItemInfo itemInfo = getCreatureInfo().getEquippedShield();
+      if (itemInfo != null && itemInfo.getSlotType() == ItemInfo.SlotType.WEAPON) {
+        ColorInfo colorInfo = itemInfo.getColorInfo();
+        for (int loc = 0; loc < 7; loc++) {
+          int ofs = getColorOffset(loc);
+          int colIdx = colorInfo.getValue(SegmentDef.SpriteType.WEAPON, loc);
+          if (ofs > 0 && colIdx >= 0) {
+            int[] range = getColorData(colIdx, false);
+            if (range != null) {
+              colorRanges.put(ofs, range);
+            }
+          }
         }
       }
     }

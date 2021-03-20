@@ -30,6 +30,40 @@ import org.infinity.util.io.StreamUtils;
  */
 public class ItemInfo implements Comparable<ItemInfo>
 {
+  /** Generalized categories based on equipment slots. */
+  public enum SlotType {
+    /** Helmet slot (PST: Right earring/lens/helmet) */
+    HELMET,
+    /** Armor slot */
+    ARMOR,
+    /** Shield slot (PST: left tattoo) */
+    SHIELD,
+    /** Gloves slot (PST: hand) */
+    GLOVES,
+    /** Left/right ring slot */
+    RING,
+    /** Amulet slot (PST: Left earring/eyeball) */
+    AMULET,
+    /** Belt slot (PST: Right lower tattoo) */
+    BELT,
+    /** Boots slot */
+    BOOTS,
+    /** Weapon slots */
+    WEAPON,
+    /** Quiver slots */
+    QUIVER,
+    /** Cloak slot (PST: Right upper tattoo) */
+    CLOAK,
+    /** (PST only) Covers the following slots: {@code SHIELD}, {@code AMULET}, {@code CLOAK} */
+    TATTOO,
+    /** (PST only) Covers the following slots: {@code HELMET}, {@code AMULET} */
+    EARRING,
+    /** Quick item slot */
+    QUICK_ITEM,
+    /** Generic inventory slot (default slot if none other are matching) */
+    INVENTORY,
+  }
+
   /**
    * This predicate simply returns {@code false} for all items.
    */
@@ -509,6 +543,91 @@ public class ItemInfo implements Comparable<ItemInfo>
 
   /** Returns a sequential {@link Stream} of the {@code EffectInfo} list. */
   public Stream<EffectInfo> getEffectStream() { return effectsInfo.stream(); }
+
+  /** Returns the most suitable item slot type compatible with the current item. */
+  public SlotType getSlotType()
+  {
+    return getSlotType(getCategory());
+  }
+
+  /** Returns the most suitable item slot type compatible with the specified item category. */
+  public static SlotType getSlotType(int category)
+  {
+    switch (category) {
+      case 7:   // headgear
+      case 40:  // lenses
+      case 72:  // hats
+        return SlotType.HELMET;
+      case 2:   // armor
+      case 60:  // leather armor
+      case 61:  // studded leather
+      case 62:  // chain mail
+      case 63:  // splint mail
+      case 64:  // plate mail
+      case 65:  // full plate
+      case 66:  // hide armor
+      case 67:  // robes
+      case 68:  // scale mail
+        return SlotType.ARMOR;
+      case 12:  // shields
+      case 41:  // bucklers
+      case 47:  // large shields
+      case 49:  // medium shields
+      case 53:  // small shields
+        return SlotType.SHIELD;
+      case 6:   // bracers/gauntlets
+      case 70:  // scarves
+      case 73:  // gloves
+      case 77:  // bracelets
+        return SlotType.GLOVES;
+      case 10:  // rings
+        return SlotType.RING;
+      case 1:   // amulets
+      case 74:  // eyeballs
+        return SlotType.AMULET;
+      case 3:   // belts
+        return SlotType.BELT;
+      case 4:   // boots
+        return SlotType.BOOTS;
+      case 15:  // bows
+      case 16:  // daggers
+      case 17:  // maces
+      case 18:  // slings
+      case 19:  // small swords
+      case 20:  // large swords
+      case 21:  // hammers
+      case 22:  // morning stars
+      case 23:  // flails
+      case 24:  // darts
+      case 25:  // axes
+      case 26:  // quarterstaves
+      case 27:  // crossbows
+      case 28:  // hand-to-hand weapons
+      case 29:  // spears
+      case 30:  // halberds
+      case 44:  // clubs
+      case 57:  // greatswords
+      case 69:  // bastard swords
+      case 76:  // teeth
+        return SlotType.WEAPON;
+      case 5:   // arrows
+      case 14:  // bullets
+      case 31:  // bolts
+        return SlotType.QUIVER;
+      case 32:  // cloaks and robes
+        return SlotType.CLOAK;
+      case 39:  // tattoos
+        return SlotType.TATTOO;
+      case 9:   // potions
+      case 11:  // scrolls
+      case 35:  // wands
+        return SlotType.QUICK_ITEM;
+      case 75:  // earrings
+        return SlotType.EARRING;
+      default:
+        return SlotType.INVENTORY;
+    }
+  }
 
   /** Invoked for {@code null} items. */
   private void initDefault()
