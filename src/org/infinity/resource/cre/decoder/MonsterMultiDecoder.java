@@ -11,10 +11,13 @@ import java.util.List;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.decoder.internal.AnimationInfo;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
 import org.infinity.resource.cre.decoder.internal.DirDef;
+import org.infinity.resource.cre.decoder.internal.Direction;
 import org.infinity.resource.cre.decoder.internal.SegmentDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
+import org.infinity.resource.cre.decoder.internal.Sequence;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
@@ -30,7 +33,7 @@ import org.infinity.util.tuples.Couple;
 public class MonsterMultiDecoder extends QuadrantsBaseDecoder
 {
   /** The animation type associated with this class definition. */
-  public static final AnimationType ANIMATION_TYPE = AnimationType.MONSTER_MULTI;
+  public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.MONSTER_MULTI;
 
   public static final DecoderAttribute KEY_SPLIT_BAMS     = DecoderAttribute.with("split_bams", DecoderAttribute.DataType.BOOLEAN);
   public static final DecoderAttribute KEY_DOUBLE_BLIT    = DecoderAttribute.with("double_blit", DecoderAttribute.DataType.BOOLEAN);
@@ -229,7 +232,7 @@ public class MonsterMultiDecoder extends QuadrantsBaseDecoder
     IniMapSection section = getSpecificIniSection();
     if (section.getEntryCount() == 0) {
       // EE: defined as "multi_new" type
-      section = getAnimationInfo().getSection(AnimationType.MONSTER_MULTI_NEW.getSectionName());
+      section = getAnimationInfo().getSection(AnimationInfo.Type.MONSTER_MULTI_NEW.getSectionName());
     }
     setSplittedBams(section.getAsInteger(KEY_SPLIT_BAMS.getName(), 0) != 0);
     setQuadrants(section.getAsInteger(KEY_QUADRANTS.getName(), 9));

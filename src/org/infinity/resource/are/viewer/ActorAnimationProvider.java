@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import org.infinity.resource.cre.decoder.SpriteDecoder;
+import org.infinity.resource.cre.decoder.internal.Direction;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 
@@ -125,10 +126,10 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
    */
   public void setOrientation(int dir)
   {
-    dir = Math.abs(dir) % SpriteDecoder.Direction.values().length;
+    dir = Math.abs(dir) % Direction.values().length;
     if (dir != orientation) {
       orientation = dir;
-      SpriteDecoder.Direction direction = getDecoder().getExistingDirection(SpriteDecoder.Direction.from(orientation));
+      Direction direction = getDecoder().getExistingDirection(Direction.from(orientation));
       int idx = getDecoder().getDirectionMap().getOrDefault(direction, 0);
       setCycle(idx);
     }

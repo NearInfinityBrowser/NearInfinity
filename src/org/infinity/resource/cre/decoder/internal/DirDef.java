@@ -6,8 +6,6 @@ package org.infinity.resource.cre.decoder.internal;
 
 import java.util.Objects;
 
-import org.infinity.resource.cre.decoder.SpriteDecoder.Direction;
-
 /**
  * Definition of a single direction in an animation sequence.
  */

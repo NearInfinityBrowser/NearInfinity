@@ -10,10 +10,13 @@ import java.util.List;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.decoder.internal.AnimationInfo;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
 import org.infinity.resource.cre.decoder.internal.DirDef;
+import org.infinity.resource.cre.decoder.internal.Direction;
 import org.infinity.resource.cre.decoder.internal.SegmentDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
+import org.infinity.resource.cre.decoder.internal.Sequence;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
@@ -27,7 +30,7 @@ import org.infinity.util.tuples.Couple;
 public class MonsterAnkhegDecoder extends SpriteDecoder
 {
   /** The animation type associated with this class definition. */
-  public static final AnimationType ANIMATION_TYPE = AnimationType.MONSTER_ANKHEG;
+  public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.MONSTER_ANKHEG;
 
   public static final DecoderAttribute KEY_MIRROR             = DecoderAttribute.with("mirror", DecoderAttribute.DataType.BOOLEAN);
   public static final DecoderAttribute KEY_EXTEND_DIRECTION   = DecoderAttribute.with("extend_direction", DecoderAttribute.DataType.BOOLEAN);

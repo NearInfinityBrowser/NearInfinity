@@ -10,9 +10,11 @@ import java.util.List;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.decoder.internal.AnimationInfo;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
 import org.infinity.resource.cre.decoder.internal.SegmentDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
+import org.infinity.resource.cre.decoder.internal.Sequence;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
@@ -25,7 +27,7 @@ import org.infinity.util.IniMapSection;
 public class TownStaticDecoder extends SpriteDecoder
 {
   /** The animation type associated with this class definition. */
-  public static final AnimationType ANIMATION_TYPE = AnimationType.TOWN_STATIC;
+  public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.TOWN_STATIC;
 
   public static final DecoderAttribute KEY_CAN_LIE_DOWN   = DecoderAttribute.with("can_lie_down", DecoderAttribute.DataType.BOOLEAN);
 

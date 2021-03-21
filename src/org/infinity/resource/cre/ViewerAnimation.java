@@ -45,6 +45,7 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.SpriteUtils;
+import org.infinity.resource.cre.decoder.internal.Sequence;
 import org.infinity.resource.cre.viewer.CreatureViewer;
 import org.infinity.resource.gam.PartyNPC;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
@@ -73,17 +74,17 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
   private static final ButtonPanel.Control CtrlOpenViewer     = ButtonPanel.Control.CUSTOM_13;
 
   // List of potential sequences to display when loading a new creature
-  private static final List<SpriteDecoder.Sequence> InitialSequences = new ArrayList<SpriteDecoder.Sequence>() {{
-    add(SpriteDecoder.Sequence.STAND);
-    add(SpriteDecoder.Sequence.STAND2);
-    add(SpriteDecoder.Sequence.STAND3);
-    add(SpriteDecoder.Sequence.STAND_EMERGED);
-    add(SpriteDecoder.Sequence.PST_STAND);
-    add(SpriteDecoder.Sequence.STANCE);
-    add(SpriteDecoder.Sequence.STANCE2);
-    add(SpriteDecoder.Sequence.PST_STANCE);
-    add(SpriteDecoder.Sequence.WALK);
-    add(SpriteDecoder.Sequence.PST_WALK);
+  private static final List<Sequence> InitialSequences = new ArrayList<Sequence>() {{
+    add(Sequence.STAND);
+    add(Sequence.STAND2);
+    add(Sequence.STAND3);
+    add(Sequence.STAND_EMERGED);
+    add(Sequence.PST_STAND);
+    add(Sequence.STANCE);
+    add(Sequence.STANCE2);
+    add(Sequence.PST_STANCE);
+    add(Sequence.WALK);
+    add(Sequence.PST_WALK);
   }};
 
   private static boolean zoom = false;
@@ -98,7 +99,7 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
   private RenderCanvas rcDisplay;
   private int curCycle, curFrame;
   private Timer timer;
-  private SpriteDecoder.Sequence sequence;
+  private Sequence sequence;
 
   public ViewerAnimation(CreResource cre)
   {
@@ -142,13 +143,13 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
   }
 
   /** Returns the selected animation sequence. */
-  public SpriteDecoder.Sequence getAnimationSequence()
+  public Sequence getAnimationSequence()
   {
     return sequence;
   }
 
   /** Loads a new animation sequence. */
-  private void setAnimationSequence(SpriteDecoder.Sequence seq) throws Exception
+  private void setAnimationSequence(Sequence seq) throws Exception
   {
     if (seq != null && seq != getAnimationSequence()) {
       sequence = seq;
@@ -286,7 +287,7 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     }
     else if (buttonControlPanel.getControlByType(CtrlSequenceList) == event.getSource()) {
       JComboBox<?> cb = (JComboBox<?>)buttonControlPanel.getControlByType(CtrlSequenceList);
-      SpriteDecoder.Sequence seq = (SpriteDecoder.Sequence)(cb).getSelectedItem();
+      Sequence seq = (Sequence)(cb).getSelectedItem();
       try {
         WindowBlocker.blockWindow(this, true);
         setAnimationSequence(seq);
@@ -423,10 +424,10 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
 
     JLabel lSequence = new JLabel("Sequence:");
     lSequence.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
-    DefaultComboBoxModel<SpriteDecoder.Sequence> modelSequences = new DefaultComboBoxModel<>();
-    JComboBox<SpriteDecoder.Sequence> cbSequences = new JComboBox<>(modelSequences);
+    DefaultComboBoxModel<Sequence> modelSequences = new DefaultComboBoxModel<>();
+    JComboBox<Sequence> cbSequences = new JComboBox<>(modelSequences);
     cbSequences.addActionListener(this);
-    for (final SpriteDecoder.Sequence seq : SpriteDecoder.Sequence.values()) {
+    for (final Sequence seq : Sequence.values()) {
       if (getDecoder().isSequenceAvailable(seq)) {
         modelSequences.addElement(seq);
       }
@@ -508,14 +509,14 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     // loading animation sequence
     if (cbSequences.isEnabled()) {
       int seqIdx = 0;
-      for (final SpriteDecoder.Sequence sequence : InitialSequences) {
+      for (final Sequence sequence : InitialSequences) {
         int idx = ((DefaultComboBoxModel<?>)cbSequences.getModel()).getIndexOf(sequence);
         if (idx >= 0) {
           seqIdx = idx;
           break;
         }
       }
-      SpriteDecoder.Sequence seq = cbSequences.getModel().getElementAt(seqIdx);
+      Sequence seq = cbSequences.getModel().getElementAt(seqIdx);
       cbSequences.setSelectedItem(seq);
       setAnimationSequence(seq);
     }

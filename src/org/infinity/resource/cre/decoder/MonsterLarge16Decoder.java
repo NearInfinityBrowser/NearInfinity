@@ -10,9 +10,12 @@ import java.util.List;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.decoder.internal.AnimationInfo;
 import org.infinity.resource.cre.decoder.internal.DirDef;
+import org.infinity.resource.cre.decoder.internal.Direction;
 import org.infinity.resource.cre.decoder.internal.SegmentDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
+import org.infinity.resource.cre.decoder.internal.Sequence;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
@@ -26,7 +29,7 @@ import org.infinity.util.tuples.Couple;
 public class MonsterLarge16Decoder extends SpriteDecoder
 {
   /** The animation type associated with this class definition. */
-  public static final AnimationType ANIMATION_TYPE = AnimationType.MONSTER_LARGE_16;
+  public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.MONSTER_LARGE_16;
 
   private static final HashMap<Sequence, Couple<String, Integer>> suffixMap = new HashMap<Sequence, Couple<String, Integer>>() {{
     put(Sequence.WALK, Couple.with("G1", 0));

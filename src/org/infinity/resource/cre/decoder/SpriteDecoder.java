@@ -26,7 +26,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -38,11 +37,14 @@ import org.infinity.datatype.IsNumeric;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.decoder.internal.AnimationInfo;
+import org.infinity.resource.cre.decoder.internal.Sequence;
 import org.infinity.resource.cre.decoder.internal.ColorInfo;
 import org.infinity.resource.cre.decoder.internal.CreatureInfo;
 import org.infinity.resource.cre.decoder.internal.CycleDef;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
 import org.infinity.resource.cre.decoder.internal.DirDef;
+import org.infinity.resource.cre.decoder.internal.Direction;
 import org.infinity.resource.cre.decoder.internal.FrameInfo;
 import org.infinity.resource.cre.decoder.internal.ItemInfo;
 import org.infinity.resource.cre.decoder.internal.SegmentDef;
@@ -100,528 +102,28 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   public static final DecoderAttribute KEY_FALSE_COLOR        = DecoderAttribute.with("false_color", DecoderAttribute.DataType.BOOLEAN);
   public static final DecoderAttribute KEY_TRANSLUCENT        = DecoderAttribute.with("translucent", DecoderAttribute.DataType.BOOLEAN);
 
-
-  // Predefined sets of games with common animation slot mappings
-  private static final EnumSet<Profile.Game> TYPE_GAME_BG1      = EnumSet.of(Profile.Game.BG1, Profile.Game.BG1TotSC);
-  private static final EnumSet<Profile.Game> TYPE_GAME_BG2_TOB  = EnumSet.of(Profile.Game.BG2ToB, Profile.Game.BGT, Profile.Game.Tutu);
-  // all BG2 game variants
-  private static final EnumSet<Profile.Game> TYPE_GAME_BG2      = EnumSet.of(Profile.Game.BG2SoA, Profile.Game.BG2ToB, Profile.Game.BGT,
-                                                                             Profile.Game.Tutu);
-  private static final EnumSet<Profile.Game> TYPE_GAME_IWD      = EnumSet.of(Profile.Game.IWD);
-  private static final EnumSet<Profile.Game> TYPE_GAME_IWD_HOW  = EnumSet.of(Profile.Game.IWDHoW, Profile.Game.IWDHowTotLM);
-  private static final EnumSet<Profile.Game> TYPE_GAME_IWD2     = EnumSet.of(Profile.Game.IWD2);
-  private static final EnumSet<Profile.Game> TYPE_GAME_PST      = EnumSet.of(Profile.Game.PST);
-  // all EE games
-  private static final EnumSet<Profile.Game> TYPE_GAME_EE       = EnumSet.of(Profile.Game.BG1EE, Profile.Game.BG1SoD, Profile.Game.BG2EE,
-                                                                             Profile.Game.EET, Profile.Game.IWDEE, Profile.Game.PSTEE);
-  private static final EnumSet<Profile.Game> TYPE_GAME_PSTEE    = EnumSet.of(Profile.Game.PSTEE);
-  // all games except PST
-  private static final EnumSet<Profile.Game> TYPE_GAME_ALL      = EnumSet.complementOf(EnumSet.of(Profile.Game.Unknown, Profile.Game.PST));
-
-  // Predefined slot ranges for specific animation types
-  private static final List<Range> RANGE_EFFECT                 = Arrays.asList(new Range(0, 0xfff));
-  private static final List<Range> RANGE_MONSTER_QUADRANT       = Arrays.asList(new Range(0x1000, 0x1ff));
-  private static final List<Range> RANGE_MONSTER_MULTI          = Arrays.asList(new Range(0x1200, 0xff),
-                                                                                new Range(0x1400, 0xbff));
-  private static final List<Range> RANGE_MONSTER_MULTI_NEW      = Arrays.asList(new Range(0x1300, 0xff));
-  private static final List<Range> RANGE_MONSTER_LAYERED        = Arrays.asList(new Range(0x8000, 0xfff));
-  private static final List<Range> RANGE_MONSTER_LAYERED_SPELL  = Arrays.asList(new Range(0x2000, 0xfff));
-  private static final List<Range> RANGE_MONSTER_ANKHEG         = Arrays.asList(new Range(0x3000, 0xfff));
-  private static final List<Range> RANGE_TOWN_STATIC            = Arrays.asList(new Range(0x4000, 0xfff));
-  private static final List<Range> RANGE_CHARACTER              = Arrays.asList(new Range(0x5000, 0x3ff),
-                                                                                new Range(0x5500, 0xff),
-                                                                                new Range(0x6000, 0x3ff),
-                                                                                new Range(0x6500, 0xff));
-  private static final List<Range> RANGE_CHARACTER_IA           = Arrays.asList(new Range(0x6600, 0x4ff));
-  private static final List<Range> RANGE_CHARACTER_OLD          = Arrays.asList(new Range(0x5400, 0xff),
-                                                                                new Range(0x5600, 0x9ff),
-                                                                                new Range(0x6400, 0xff),
-                                                                                new Range(0x6600, 0x9ff));
-  private static final List<Range> RANGE_MONSTER                = Arrays.asList(new Range(0x7002, 0xd, 0x00, 0x1f, 4),
-                                                                                new Range(0x7004, 0xb, 0x20, 0x0f, 4),
-                                                                                new Range(0x7000, 0xf, 0x30, 0x0f, 4),
-                                                                                new Range(0x7003, 0xc, 0x40, 0x0f, 4),
-                                                                                new Range(0x7002, 0xd, 0x50, 0x0f, 4),
-                                                                                new Range(0x7003, 0xc, 0x70, 0x0f, 4),
-                                                                                new Range(0x7005, 0xa, 0x90, 0x1f, 4),
-                                                                                new Range(0x7007, 0x8, 0xb0, 0x0f, 4),
-                                                                                new Range(0x7002, 0xd, 0xc0, 0x0f, 4),
-                                                                                new Range(0x7002, 0xd, 0xe0, 0x0f, 4),
-                                                                                new Range(0x7000, 0xf, 0xf0, 0x0f, 4));
-  private static final List<Range> RANGE_MONSTER_IA             = Arrays.asList(new Range(0x5b00, 0x4ff));
-  private static final List<Range> RANGE_MONSTER_OLD            = Arrays.asList(new Range(0x7000, 0x1, 0x00, 0x1f, 4),
-                                                                                new Range(0x7000, 0x3, 0x20, 0x0f, 4),
-                                                                                new Range(0x7000, 0x2, 0x40, 0x0f, 4),
-                                                                                new Range(0x7000, 0x1, 0x50, 0x0f, 4),
-                                                                                new Range(0x7000, 0xf, 0x60, 0x0f, 4),
-                                                                                new Range(0x7000, 0x2, 0x70, 0x0f, 4),
-                                                                                new Range(0x7000, 0xf, 0x80, 0x0f, 4),
-                                                                                new Range(0x7000, 0x4, 0x90, 0x1f, 4),
-                                                                                new Range(0x7000, 0x6, 0xb0, 0x0f, 4),
-                                                                                new Range(0x7000, 0x1, 0xc0, 0x0f, 4),
-                                                                                new Range(0x7000, 0xf, 0xd0, 0x0f, 4),
-                                                                                new Range(0x7000, 0x1, 0xe0, 0x0f, 4));
-  private static final List<Range> RANGE_MONSTER_OLD_IA         = Arrays.asList(new Range(0x547a, 0x479));
-  private static final List<Range> RANGE_MONSTER_LARGE          = Arrays.asList(new Range(0x9000, 0xfff));
-  private static final List<Range> RANGE_MONSTER_LARGE_16       = Arrays.asList(new Range(0xa000, 0xfff));
-  private static final List<Range> RANGE_AMBIENT_STATIC         = Arrays.asList(new Range(0xb000, 0xfff));
-  private static final List<Range> RANGE_AMBIENT                = Arrays.asList(new Range(0xc000, 0xfff));
-  private static final List<Range> RANGE_FLYING                 = Arrays.asList(new Range(0xd000, 0xfff));
-  private static final List<Range> RANGE_MONSTER_ICEWIND        = Arrays.asList(new Range(0xe000, 0xfff));
-  private static final List<Range> RANGE_MONSTER_ICEWIND_EX     = Arrays.asList(new Range(0xe000, 0x1fff));
-  private static final List<Range> RANGE_MONSTER_ICEWIND_IA     = Arrays.asList(new Range(0x5000, 0x478));
-  private static final List<Range> RANGE_MONSTER_PLANESCAPE     = Arrays.asList(new Range(0xf000, 0xfff));
-  private static final List<Range> RANGE_MONSTER_PLANESCAPE_EX  = Arrays.asList(new Range(0x0000, 0xffff));
-
-  /** Available creature animation types. */
-  public enum AnimationType {
-    /** Animation type: 0000 */
-    EFFECT(0x0000, "effect", Arrays.asList(
-        Couple.with(TYPE_GAME_ALL, RANGE_EFFECT))),                   // type=0
-    /** Animation type: 1000 (slots [1000..11ff]) */
-    MONSTER_QUADRANT(0x1000, "monster_quadrant", Arrays.asList(
-        Couple.with(TYPE_GAME_ALL, RANGE_MONSTER_QUADRANT))),         // type=1
-    /** Animation type: 1000 (slots [1200..12ff], [1400..1fff] */
-    MONSTER_MULTI(0x1000, "monster_multi", Arrays.asList(
-        Couple.with(TYPE_GAME_EE, RANGE_MONSTER_MULTI),
-        Couple.with(TYPE_GAME_BG2, RANGE_MONSTER_MULTI),
-        Couple.with(TYPE_GAME_IWD2, RANGE_MONSTER_MULTI))),           // type=2
-    /** Animation type: 1000 (slots [1300..13ff]) */
-    MONSTER_MULTI_NEW(0x1000, "multi_new", Arrays.asList(
-        Couple.with(TYPE_GAME_EE, RANGE_MONSTER_MULTI_NEW),
-        Couple.with(TYPE_GAME_BG2_TOB, RANGE_MONSTER_MULTI_NEW))),    // type=3
-    /** Animation type: 8000 */
-    MONSTER_LAYERED(0x8000, "monster_layered", Arrays.asList(
-        Couple.with(TYPE_GAME_ALL, RANGE_MONSTER_LAYERED))),          // type=4
-    /** Animation type: 2000 */
-    MONSTER_LAYERED_SPELL(0x2000, "monster_layered_spell", Arrays.asList(
-        Couple.with(TYPE_GAME_ALL, RANGE_MONSTER_LAYERED_SPELL))),    // type=5
-    /** Animation type: 3000 */
-    MONSTER_ANKHEG(0x3000, "monster_ankheg", Arrays.asList(
-        Couple.with(TYPE_GAME_ALL, RANGE_MONSTER_ANKHEG))),           // type=6
-    /** Animation type: 4000 */
-    TOWN_STATIC(0x4000, "town_static", Arrays.asList(
-        Couple.with(TYPE_GAME_ALL, RANGE_TOWN_STATIC))),              // type=7
-    /** Animation types: 5000, 6000 (slots [5000..53ff], [5500..55ff], [6000..63ff], [6500..65ff]) */
-    CHARACTER(new int[] {0x5000, 0x6000}, "character", Arrays.asList(
-        Couple.with(TYPE_GAME_EE, RANGE_CHARACTER),
-        Couple.with(TYPE_GAME_BG2, RANGE_CHARACTER),
-        Couple.with(TYPE_GAME_IWD_HOW, RANGE_CHARACTER),
-        Couple.with(TYPE_GAME_IWD2, RANGE_CHARACTER)),
-        RANGE_CHARACTER_IA),                                          // type=8
-    /** Animation types: 5000, 6000 (slots [5400..54ff], [5600..5fff], [6400..64ff], [6600..6fff]) */
-    CHARACTER_OLD(new int[] {0x5000, 0x6000}, "character_old", Arrays.asList(
-        Couple.with(TYPE_GAME_ALL, RANGE_CHARACTER_OLD),
-        Couple.with(TYPE_GAME_BG1, RANGE_CHARACTER),
-        Couple.with(TYPE_GAME_IWD, RANGE_CHARACTER))),                // type=9
-    /** Animation type: 7000 (many subranges) */
-    MONSTER(0x7000, "monster", Arrays.asList(
-        Couple.with(TYPE_GAME_EE, RANGE_MONSTER),
-        Couple.with(TYPE_GAME_BG2, RANGE_MONSTER),
-        Couple.with(TYPE_GAME_IWD, RANGE_MONSTER),
-        Couple.with(TYPE_GAME_IWD_HOW, RANGE_MONSTER),
-        Couple.with(TYPE_GAME_IWD2, RANGE_MONSTER)),
-        RANGE_MONSTER_IA),                                            // type=10
-    /** Animation type: 7000 (many subranges) */
-    MONSTER_OLD(0x7000, "monster_old", Arrays.asList(
-        Couple.with(TYPE_GAME_ALL, RANGE_MONSTER_OLD)),
-        RANGE_MONSTER_OLD_IA),                                        // type=11
-    /** Animation type: 9000 */
-    MONSTER_LARGE(0x9000, "monster_large", Arrays.asList(
-        Couple.with(TYPE_GAME_ALL, RANGE_MONSTER_LARGE))),            // type=12
-    /** Animation type: A000 */
-    MONSTER_LARGE_16(0xa000, "monster_large16", Arrays.asList(
-        Couple.with(TYPE_GAME_ALL, RANGE_MONSTER_LARGE_16))),         // type=13
-    /** Animation type: B000 */
-    AMBIENT_STATIC(0xb000, "ambient_static", Arrays.asList(
-        Couple.with(TYPE_GAME_ALL, RANGE_AMBIENT_STATIC))),           // type=14
-    /** Animation type: C000 */
-    AMBIENT(0xc000, "ambient", Arrays.asList(
-        Couple.with(TYPE_GAME_ALL, RANGE_AMBIENT))),                  // type=15
-    /** Animation type: D000 */
-    FLYING(0xd000, "flying", Arrays.asList(
-        Couple.with(TYPE_GAME_ALL, RANGE_FLYING))),                   // type=16
-    /** Animation type: E000 (for non-EE: also slots [f000..ffff]) */
-    MONSTER_ICEWIND(0xe000, "monster_icewind", Arrays.asList(
-        Couple.with(TYPE_GAME_EE, RANGE_MONSTER_ICEWIND),
-        Couple.with(TYPE_GAME_BG2, RANGE_MONSTER_ICEWIND),
-        Couple.with(TYPE_GAME_IWD, RANGE_MONSTER_ICEWIND_EX),
-        Couple.with(TYPE_GAME_IWD_HOW, RANGE_MONSTER_ICEWIND_EX),
-        Couple.with(TYPE_GAME_IWD2, RANGE_MONSTER_ICEWIND_EX)),
-        RANGE_MONSTER_ICEWIND_IA),                                    // type=17
-    /** Animation type: F000 */
-    MONSTER_PLANESCAPE(0xf000, "monster_planescape", Arrays.asList(
-        Couple.with(TYPE_GAME_PSTEE, RANGE_MONSTER_PLANESCAPE),
-        Couple.with(TYPE_GAME_PST, RANGE_MONSTER_PLANESCAPE_EX)));    // type=18
-
-    private final EnumMap<Profile.Game, List<Range>> rangeMap = new EnumMap<>(Profile.Game.class);
-    private final List<Range> iaRanges;
-    private final int[] animationTypes;
-    private final String sectionName;
-
-    /**
-     * @param type slot base range
-     * @param sectionName INI section name
-     * @param entries list of games and their associated slot ranges.
-     */
-    private AnimationType(int type, String sectionName, List<Couple<EnumSet<Profile.Game>, List<Range>>> entries)
-        throws IllegalArgumentException
-    {
-      this(new int[] {type}, sectionName, entries, null);
-    }
-
-    /**
-     * @param type
-     * @param sectionName
-     * @param entries
-     * @param infinityAnimationRanges
-     * @throws IllegalArgumentException
-     */
-    private AnimationType(int type, String sectionName, List<Couple<EnumSet<Profile.Game>, List<Range>>> entries,
-                          List<Range> infinityAnimationRanges)
-        throws IllegalArgumentException
-    {
-      this(new int[] {type}, sectionName, entries, infinityAnimationRanges);
-    }
-
-    /**
-     * @param types
-     * @param sectionName
-     * @param entries
-     * @throws IllegalArgumentException
-     */
-    private AnimationType(int[] types, String sectionName, List<Couple<EnumSet<Profile.Game>, List<Range>>> entries)
-        throws IllegalArgumentException
-    {
-      this(types, sectionName, entries, null);
-    }
-
-    /**
-     * @param type list of slot base ranges
-     * @param sectionName INI section name
-     * @param entries list of games and their associated slot ranges.
-     * @throws IllegalArgumentException
-     */
-    private AnimationType(int[] types, String sectionName, List<Couple<EnumSet<Profile.Game>, List<Range>>> entries,
-                          List<Range> infinityAnimationRanges) throws IllegalArgumentException
-    {
-      try {
-        Misc.requireCondition(types != null && types.length > 0, "Type cannot be empty", IllegalArgumentException.class);
-        Misc.requireCondition(sectionName != null && !sectionName.isEmpty(), "Section name cannot be empty", IllegalArgumentException.class);
-      } catch (IllegalArgumentException iae) {
-        throw iae;
-      } catch (Exception e) {
-      }
-      this.animationTypes = types;
-      this.sectionName = sectionName;
-      for (final Couple<EnumSet<Profile.Game>, List<Range>> entry : entries) {
-        EnumSet<Profile.Game> games = entry.getValue0();
-        List<Range> ranges = entry.getValue1();
-        for (final Profile.Game game : games) {
-          if (ranges.size() > 0) {
-            List<Range> list = this.rangeMap.get(game);
-            if (list != null) {
-              list.addAll(ranges);
-            } else {
-              this.rangeMap.put(game, new ArrayList<>(ranges));
-            }
-          }
-        }
-      }
-      this.iaRanges = infinityAnimationRanges;
-    }
-
-    /** Returns the name for the type-specific INI section. */
-    public String getSectionName() { return sectionName; }
-
-    /** Returns the first available base animation type associated with the enum instance. */
-    public int getType() { return animationTypes[0]; }
-
-    /** Returns the number of defined base animation types associated with the enum instance. */
-    public int getTypeCount() { return animationTypes.length; }
-
-    /** Returns the specified base animation type associated with the enum instance. */
-    public int getType(int idx) { return animationTypes[idx]; }
-
-    /**
-     * Returns whether the specified value is covered by the ranges associated with the enum instance
-     * for the current game.
-     */
-    public boolean contains(int value) { return contains(Profile.getGame(), value); }
-
-    /**
-     * Returns whether the specified value is covered by the ranges associated with the enum instance
-     * for the specified game.
-     */
-    public boolean contains(Profile.Game game, int value)
-    {
-      if (game == null) {
-        game = Profile.getGame();
-      }
-      boolean retVal = false;
-
-      // Infinity Animations sprite takes precedence over regular sprite
-      AnimationType type = containsInfinityAnimations(value);
-      if (type != null && type != this) {
-        return retVal;
-      }
-      retVal = (type == this);
-
-      if (!retVal) {
-        retVal = contains(value, rangeMap.get(Profile.getGame()));
-      }
-      return retVal;
-    }
-
-    // Checks whether specified value is covered by the given ranges
-    private static boolean contains(int value, List<Range> ranges)
-    {
-      if (ranges != null) {
-        return ranges
-            .parallelStream()
-            .anyMatch(r -> r.contains(value));
-      }
-      return false;
-    }
-
-    /**
-     * Determines the {@code AnimationType} enum where a defined Infinity Animations (IA) range covers the specied value.
-     * @param value the value to check.
-     * @return {@code AnimationType} enum supporting the specified IA value.
-     *         Returns {@code null} if value is not covered by any IA range.
-     */
-    public static AnimationType containsInfinityAnimations(int value)
-    {
-      AnimationType retVal = null;
-      if (Profile.<Integer>getProperty(Profile.Key.GET_INFINITY_ANIMATIONS) > 0) {
-        for (AnimationType type : AnimationType.values()) {
-          if (contains(value, type.iaRanges)) {
-            retVal = type;
-            break;
-          }
-        }
-      }
-      return retVal;
-    }
-
-    /**
-     * Returns the {@code AnimationType} enum covering the specified animation id.
-     * @param animationId the animation id
-     * @return {@code AnimationType} enum that covers the specified animation id. Returns {@code null} otherwise.
-     */
-    public static AnimationType typeOfId(int animationId)
-    {
-      for (final AnimationType type : values()) {
-        if (type.contains(animationId)) {
-          return type;
-        }
-      }
-      return null;
-    }
-  }
-
-  /** Available animation sequences. Note: PST-specific animation sequences are prefixed by "PST_". */
-  public enum Sequence {
-    /** Special value: Used when no animation sequence is loaded. */
-    NONE,
-    STAND("Stand"),
-    STAND2("Stand 2"),
-    STAND3("Stand 3"),
-    /** For buried creatures only: stand sequence when emerged. */
-    STAND_EMERGED("Stand (emerged)"),
-    /** For buried creatures only: stand sequence when hidden. */
-    STAND_HIDDEN("Stand (hidden)"),
-    STANCE("Combat ready"),
-    STANCE2("Combat ready"),
-    GET_HIT("Get hit"),
-    /** Dying sequence; may also be used for sleep sequence. */
-    DIE("Die"),
-    TWITCH("Twitch"),
-    /** The animation sequence used while chanting a spell. */
-    SPELL("Conjure spell"),
-    /** The animation sequence used when releasing a spell. */
-    CAST("Cast spell"),
-    SPELL1("Conjure spell 1"),
-    CAST1("Cast spell 1"),
-    SPELL2("Conjure spell 2"),
-    CAST2("Cast spell 2"),
-    SPELL3("Conjure spell 3"),
-    CAST3("Cast spell 3"),
-    SPELL4("Conjure spell 4"),
-    CAST4("Cast spell 4"),
-    SLEEP("Sleep"),
-    GET_UP("Get up"),
-    SLEEP2("Sleep 2"),
-    GET_UP2("Get up 2"),
-    WALK("Walk"),
-    ATTACK("Attack"),
-    ATTACK_2("Attack 2"),
-    ATTACK_3("Attack 3"),
-    ATTACK_4("Attack 4"),
-    ATTACK_5("Attack 5"),
-    ATTACK_2H("Attack (2-h)"),
-    /** 1-h slash attack; also used for throwing/sling in BG1/IWD */
-    ATTACK_SLASH_1H("Attack (slash)"),
-    /** 1-h backslash attack */
-    ATTACK_BACKSLASH_1H("Attack (backslash)"),
-    /** 1-h thrust/jab attack */
-    ATTACK_JAB_1H("Attack (jab)"),
-    /** 2-h slash attack */
-    ATTACK_SLASH_2H("Attack (slash)"),
-    /** 2-h backslash attack */
-    ATTACK_BACKSLASH_2H("Attack (backslash)"),
-    /** 2-h thrust/jab attack */
-    ATTACK_JAB_2H("Attack (jab)"),
-    /** two-weapon attack */
-    ATTACK_2WEAPONS1("Attack (two-weapons) 1"),
-    /** two-weapon attack */
-    ATTACK_2WEAPONS2("Attack (two-weapons) 2"),
-    /** Generic overhead attack; may be used for throwing weapons and weapons without equipped appearance. */
-    ATTACK_OVERHEAD("Attack (overhead)"),
-    ATTACK_BOW("Attack (bow)"),
-    ATTACK_SLING("Attack (sling)"),
-    ATTACK_CROSSBOW("Attack (crossbow)"),
-    /** Generic ranged attack animation (e.g. for innate powers/breath weapons) */
-    SHOOT("Attack (ranged)"),
-    /** For buried creatures only: monster emerges from underground. */
-    EMERGE("Emerge"),
-    /** For buried creatures only: monster retreats to underground. */
-    HIDE("Hide"),
-
-    PST_ATTACK1("Attack"),
-    PST_ATTACK2("Attack 2"),
-    PST_ATTACK3("Attack 3"),
-    PST_GET_HIT("Get hit"),
-    PST_RUN("Run"),
-    PST_WALK("Walk"),
-    PST_SPELL1("Cast spell"),
-    PST_SPELL2("Cast spell 2"),
-    PST_SPELL3("Cast spell 3"),
-    PST_GET_UP("Get up"),
-    PST_DIE_FORWARD("Die (fall forward)"),
-    PST_DIE_BACKWARD("Die (fall backwards)"),
-    PST_DIE_COLLAPSE("Die (collapse)"),
-    PST_TALK1("Talk"),
-    PST_TALK2("Talk 2"),
-    PST_TALK3("Talk 3"),
-    PST_STAND_FIDGET1("Stand (fidget)"),
-    PST_STAND_FIDGET2("Stand (fidget 2)"),
-    PST_STANCE_FIDGET1("Combat ready (fidget)"),
-    PST_STANCE_FIDGET2("Combat ready (fidget 2)"),
-    PST_STAND("Stand"),
-    PST_STANCE("Combat ready"),
-    PST_STANCE_TO_STAND("Combat ready to stand"),
-    PST_STAND_TO_STANCE("Stand to combat ready"),
-    PST_MISC1("Custom sequence 1"),
-    PST_MISC2("Custom sequence 2"),
-    PST_MISC3("Custom sequence 3"),
-    PST_MISC4("Custom sequence 4"),
-    PST_MISC5("Custom sequence 5"),
-    PST_MISC6("Custom sequence 6"),
-    PST_MISC7("Custom sequence 7"),
-    PST_MISC8("Custom sequence 8"),
-    PST_MISC9("Custom sequence 9"),
-    PST_MISC10("Custom sequence 10"),
-    PST_MISC11("Custom sequence 11"),
-    PST_MISC12("Custom sequence 12"),
-    PST_MISC13("Custom sequence 13"),
-    PST_MISC14("Custom sequence 14"),
-    PST_MISC15("Custom sequence 15"),
-    PST_MISC16("Custom sequence 16"),
-    PST_MISC17("Custom sequence 17"),
-    PST_MISC18("Custom sequence 18"),
-    PST_MISC19("Custom sequence 19"),
-    PST_MISC20("Custom sequence 20");
-
-    private final String desc;
-
-    private Sequence() { this(null); }
-    private Sequence(String desc) { this.desc = desc; }
-
-    @Override
-    public String toString()
-    {
-      return (desc != null) ? desc : super.toString();
-    }
-  }
-
-  /** Available cardinal directions for action sequences. */
-  public enum Direction {
-    /** South */
-    S(0),
-    /** South-southwest */
-    SSW(1),
-    /** Southwest */
-    SW(2),
-    /** West-southwest */
-    WSW(3),
-    /** West */
-    W(4),
-    /** West-northwest */
-    WNW(5),
-    /** Northwest */
-    NW(6),
-    /** North-northwest */
-    NNW(7),
-    /** North */
-    N(8),
-    /** North-northeast */
-    NNE(9),
-    /** Northeast */
-    NE(10),
-    /** East-northeast */
-    ENE(11),
-    /** East */
-    E(12),
-    /** East-southeast */
-    ESE(13),
-    /** Southeast */
-    SE(14),
-    /** South-southeast */
-    SSE(15);
-
-    private final int dir;
-    private Direction(int dir) { this.dir = dir; }
-
-    /** Returns the numeric direction value. */
-    public int getValue() { return dir; }
-
-    /**
-     * Determines the {@link Direction} instance associated with the specified numeric value and returns it.
-     * Return {@code null} if association could not be determined.
-     */
-    public static Direction from(int value) {
-      for (final Direction d : Direction.values()) {
-        if (d.getValue() == value) {
-          return d;
-        }
-      }
-      return null;
-    }
-  }
-
   /** Mappings between animation types and compatible sprite classes. */
-  private static final EnumMap<AnimationType, Class<? extends SpriteDecoder>> typeAssociations =
-      new EnumMap<AnimationType, Class<? extends SpriteDecoder>>(AnimationType.class) {{
-        put(AnimationType.EFFECT, EffectDecoder.class);
-        put(AnimationType.MONSTER_QUADRANT, MonsterQuadrantDecoder.class);
-        put(AnimationType.MONSTER_MULTI, MonsterMultiDecoder.class);
-        put(AnimationType.MONSTER_MULTI_NEW, MonsterMultiNewDecoder.class);
-        put(AnimationType.MONSTER_LAYERED_SPELL, MonsterLayeredSpellDecoder.class);
-        put(AnimationType.MONSTER_ANKHEG, MonsterAnkhegDecoder.class);
-        put(AnimationType.TOWN_STATIC, TownStaticDecoder.class);
-        put(AnimationType.CHARACTER, CharacterDecoder.class);
-        put(AnimationType.CHARACTER_OLD, CharacterOldDecoder.class);
-        put(AnimationType.MONSTER, MonsterDecoder.class);
-        put(AnimationType.MONSTER_OLD, MonsterOldDecoder.class);
-        put(AnimationType.MONSTER_LAYERED, MonsterLayeredDecoder.class);
-        put(AnimationType.MONSTER_LARGE, MonsterLargeDecoder.class);
-        put(AnimationType.MONSTER_LARGE_16, MonsterLarge16Decoder.class);
-        put(AnimationType.AMBIENT_STATIC, AmbientStaticDecoder.class);
-        put(AnimationType.AMBIENT, AmbientDecoder.class);
-        put(AnimationType.FLYING, FlyingDecoder.class);
-        put(AnimationType.MONSTER_ICEWIND, MonsterIcewindDecoder.class);
-        put(AnimationType.MONSTER_PLANESCAPE, MonsterPlanescapeDecoder.class);
+  private static final EnumMap<AnimationInfo.Type, Class<? extends SpriteDecoder>> typeAssociations =
+      new EnumMap<AnimationInfo.Type, Class<? extends SpriteDecoder>>(AnimationInfo.Type.class) {{
+        put(AnimationInfo.Type.EFFECT, EffectDecoder.class);
+        put(AnimationInfo.Type.MONSTER_QUADRANT, MonsterQuadrantDecoder.class);
+        put(AnimationInfo.Type.MONSTER_MULTI, MonsterMultiDecoder.class);
+        put(AnimationInfo.Type.MONSTER_MULTI_NEW, MonsterMultiNewDecoder.class);
+        put(AnimationInfo.Type.MONSTER_LAYERED_SPELL, MonsterLayeredSpellDecoder.class);
+        put(AnimationInfo.Type.MONSTER_ANKHEG, MonsterAnkhegDecoder.class);
+        put(AnimationInfo.Type.TOWN_STATIC, TownStaticDecoder.class);
+        put(AnimationInfo.Type.CHARACTER, CharacterDecoder.class);
+        put(AnimationInfo.Type.CHARACTER_OLD, CharacterOldDecoder.class);
+        put(AnimationInfo.Type.MONSTER, MonsterDecoder.class);
+        put(AnimationInfo.Type.MONSTER_OLD, MonsterOldDecoder.class);
+        put(AnimationInfo.Type.MONSTER_LAYERED, MonsterLayeredDecoder.class);
+        put(AnimationInfo.Type.MONSTER_LARGE, MonsterLargeDecoder.class);
+        put(AnimationInfo.Type.MONSTER_LARGE_16, MonsterLarge16Decoder.class);
+        put(AnimationInfo.Type.AMBIENT_STATIC, AmbientStaticDecoder.class);
+        put(AnimationInfo.Type.AMBIENT, AmbientDecoder.class);
+        put(AnimationInfo.Type.FLYING, FlyingDecoder.class);
+        put(AnimationInfo.Type.MONSTER_ICEWIND, MonsterIcewindDecoder.class);
+        put(AnimationInfo.Type.MONSTER_PLANESCAPE, MonsterPlanescapeDecoder.class);
       }};
 
   /**
@@ -749,14 +251,14 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     Class<? extends SpriteDecoder> retVal = null;
 
     // Testing Infinity Animation range first
-    AnimationType animType = AnimationType.containsInfinityAnimations(animationId);
+    AnimationInfo.Type animType = AnimationInfo.Type.containsInfinityAnimations(animationId);
     if (animType != null) {
       retVal = typeAssociations.get(animType);
     }
 
     // Testing regular ranges
     if (retVal == null) {
-      for (final AnimationType type : AnimationType.values()) {
+      for (final AnimationInfo.Type type : AnimationInfo.Type.values()) {
         if (type.contains(animationId)) {
           retVal = typeAssociations.get(type);
           if (retVal != null) {
@@ -774,7 +276,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
    * @param type the {@code AnimationType}
    * @return the associated {@code SpriteClass} class object. Returns {@code null} if class could not be determined.
    */
-  public static Class<? extends SpriteDecoder> getSpriteDecoderClass(AnimationType type)
+  public static Class<? extends SpriteDecoder> getSpriteDecoderClass(AnimationInfo.Type type)
   {
     return typeAssociations.get(type);
   }
@@ -787,7 +289,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
    * @param ini the INI file with creature animation attributes
    * @throws Exception
    */
-  protected SpriteDecoder(AnimationType type, int animationId, IniMap ini) throws Exception
+  protected SpriteDecoder(AnimationInfo.Type type, int animationId, IniMap ini) throws Exception
   {
     Objects.requireNonNull(type, "Animation type cannot be null");
     Objects.requireNonNull(ini, "No INI data available for animation id: " + animationId);
@@ -810,7 +312,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
    * @param cre the CRE resource instance.
    * @throws Exception
    */
-  protected SpriteDecoder(AnimationType type, CreResource cre) throws Exception
+  protected SpriteDecoder(AnimationInfo.Type type, CreResource cre) throws Exception
   {
     Objects.requireNonNull(type, "Animation type cannot be null");
     this.attributesMap = new TreeMap<>();
@@ -881,7 +383,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
   /** Returns the type of the current creature animation. */
-  public AnimationType getAnimationType()
+  public AnimationInfo.Type getAnimationType()
   {
     return getAttribute(KEY_ANIMATION_TYPE);
   }
@@ -2036,7 +1538,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       palette = SpriteUtils.replaceColors(palette, range, ofs.intValue(), range.length, false);
     }
 
-    if (getAnimationType() != AnimationType.MONSTER_PLANESCAPE) {
+    if (getAnimationType() != AnimationInfo.Type.MONSTER_PLANESCAPE) {
       // preparing offset array
       final int srcOfs = 4;
       final int dstOfs = 88;
@@ -2243,7 +1745,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
    * @param type the animation type.
    * @return the initialized "general" INI section as list of strings. An empty list otherwise.
    */
-  protected static List<String> processTableDataGeneral(String[] data, AnimationType type)
+  protected static List<String> processTableDataGeneral(String[] data, AnimationInfo.Type type)
   {
     List<String> retVal = new ArrayList<>();
     if (data == null || type == null) {
@@ -2260,7 +1762,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     String palette = SpriteTables.valueToString(data, SpriteTables.COLUMN_PALETTE, "");
 
     int animIndex = SpriteTables.valueToInt(data, SpriteTables.COLUMN_TYPE, -1);
-    if (animIndex < 0 || animIndex >= AnimationType.values().length || AnimationType.values()[animIndex] != type) {
+    if (animIndex < 0 || animIndex >= AnimationInfo.Type.values().length || AnimationInfo.Type.values()[animIndex] != type) {
       return retVal;
     }
 
@@ -2379,8 +1881,8 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
             retVal = cls;
           }
         } else {
-          for (final AnimationType type : AnimationType.values()) {
-            if (type != AnimationType.MONSTER_PLANESCAPE) {
+          for (final AnimationInfo.Type type : AnimationInfo.Type.values()) {
+            if (type != AnimationInfo.Type.MONSTER_PLANESCAPE) {
               cls = typeAssociations.get(type);
               if (isSpriteDecoderAvailable(cls, animationId, iniList)) {
                 retVal = cls;
@@ -2541,7 +2043,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     }
 
     List<String> tableEntries = new ArrayList<>();
-    AnimationType type = AnimationType.typeOfId(animationId);
+    AnimationInfo.Type type = AnimationInfo.Type.typeOfId(animationId);
     if (type == null) {
       return retVal;
     }
@@ -2833,56 +2335,6 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
 //-------------------------- INNER CLASSES --------------------------
-
-  /**
-   * A helper class that allows you to define numeric ranges.
-   */
-  public static class Range
-  {
-    private final List<Couple<Integer, Integer>> ranges = new ArrayList<>();
-
-    /**
-     * Defines a range that starts at <code>base</code> and ends at <code>base + range</code> (inclusive).
-     * @param base start value of the range.
-     * @param range length of the range.
-     */
-    public Range(int base, int range)
-    {
-      this(base, range, 0, 0, 0);
-    }
-
-    /**
-     * Defines a set of common ranges. The resolved list of ranges can be defined as:<br><br>
-     * <code>base + ([subBase, subBase+subRange] << subPos) + [0, range]</code><br><br>
-     * where [x, y] defines a range from x to y (inclusive).
-     * @param base start value of the range.
-     * @param range length of the range.
-     */
-    public Range(int base, int range, int subBase, int subRange, int subPos)
-    {
-      init(base, range, subBase, subRange, subPos);
-    }
-
-    /** Returns whether the range covers the specified value. */
-    public boolean contains(int value)
-    {
-      return ranges
-          .parallelStream()
-          .anyMatch(c -> (value >= c.getValue0().intValue() &&
-                          value <= (c.getValue0().intValue() + c.getValue1().intValue())));
-    }
-
-    private void init(int base, int range, int subBase, int subRange, int subPos)
-    {
-      range = Math.abs(range);
-      subRange = Math.abs(subRange);
-      subPos = Math.max(0, Math.min(32, subPos));
-      for (int i = 0; i <= subRange; i++) {
-        int curBase = base + ((subBase + i) << subPos);
-        ranges.add(Couple.with(curBase, range));
-      }
-    }
-  }
 
   /**
    * Represents an operation that is called once per source BAM resource when creating a creature animation.

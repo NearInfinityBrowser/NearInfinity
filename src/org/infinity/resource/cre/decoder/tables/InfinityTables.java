@@ -14,6 +14,7 @@ import java.util.Objects;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
+import org.infinity.resource.cre.decoder.internal.AnimationInfo;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapEntry;
@@ -78,7 +79,7 @@ public class InfinityTables
 
       // determining SpriteDecoder class instance
       int classType = SpriteTables.valueToInt(data, SpriteTables.COLUMN_TYPE, -1);
-      SpriteDecoder.AnimationType animType = SpriteDecoder.AnimationType.values()[classType];
+      AnimationInfo.Type animType = AnimationInfo.Type.values()[classType];
       Class<? extends SpriteDecoder> cls = SpriteDecoder.getSpriteDecoderClass(animType);
       if (cls != null) {
         // calling method of signature: public static IniMap processTableData(String[] data);
@@ -128,31 +129,31 @@ public class InfinityTables
 
 //    char type = SpriteTables.valueToString(items, 4, " ").charAt(0);
 
-    final HashMap<String, SpriteDecoder.AnimationType> animationTypes = new HashMap<String, SpriteDecoder.AnimationType>() {{
-      put("BGI MONSTER LONG 4 PART", SpriteDecoder.AnimationType.MONSTER_QUADRANT);
-      put("DRAGONS", SpriteDecoder.AnimationType.MONSTER_MULTI);
-      put("BGII SPLIT 4 PART", SpriteDecoder.AnimationType.MONSTER_MULTI_NEW);
-      put("BGI SIMPLE CASTER", SpriteDecoder.AnimationType.MONSTER_LAYERED_SPELL);
-      put("BROKEN ANKHEG", SpriteDecoder.AnimationType.MONSTER_ANKHEG);
-      put("CHARACTER BGII", SpriteDecoder.AnimationType.CHARACTER);
-      put("CHARACTER BGI", SpriteDecoder.AnimationType.CHARACTER_OLD);
-      put("BGII UNSPLIT EXT.", SpriteDecoder.AnimationType.MONSTER);
-      put("BGII SPLIT", SpriteDecoder.AnimationType.MONSTER);
-      put("BGI SIMPLE MONSTER", SpriteDecoder.AnimationType.MONSTER_OLD);
-      put("BGI MONSTER LONG", SpriteDecoder.AnimationType.MONSTER_LARGE_16);
-      put("IWD", SpriteDecoder.AnimationType.MONSTER_ICEWIND);
+    final HashMap<String, AnimationInfo.Type> animationTypes = new HashMap<String, AnimationInfo.Type>() {{
+      put("BGI MONSTER LONG 4 PART", AnimationInfo.Type.MONSTER_QUADRANT);
+      put("DRAGONS", AnimationInfo.Type.MONSTER_MULTI);
+      put("BGII SPLIT 4 PART", AnimationInfo.Type.MONSTER_MULTI_NEW);
+      put("BGI SIMPLE CASTER", AnimationInfo.Type.MONSTER_LAYERED_SPELL);
+      put("BROKEN ANKHEG", AnimationInfo.Type.MONSTER_ANKHEG);
+      put("CHARACTER BGII", AnimationInfo.Type.CHARACTER);
+      put("CHARACTER BGI", AnimationInfo.Type.CHARACTER_OLD);
+      put("BGII UNSPLIT EXT.", AnimationInfo.Type.MONSTER);
+      put("BGII SPLIT", AnimationInfo.Type.MONSTER);
+      put("BGI SIMPLE MONSTER", AnimationInfo.Type.MONSTER_OLD);
+      put("BGI MONSTER LONG", AnimationInfo.Type.MONSTER_LARGE_16);
+      put("IWD", AnimationInfo.Type.MONSTER_ICEWIND);
     }};
 
     String typeString = null;
-    SpriteDecoder.AnimationType animType = null;
+    AnimationInfo.Type animType = null;
     for (int len = items.length - 5; len > 0 && animType == null; len--) {
       typeString = concatItems(items, 5, len);
       animType = animationTypes.get(typeString);
     }
 
     int type = -1;
-    for (int i = SpriteDecoder.AnimationType.values().length - 1; i >= 0; i--) {
-      if (SpriteDecoder.AnimationType.values()[i] == animType) {
+    for (int i = AnimationInfo.Type.values().length - 1; i >= 0; i--) {
+      if (AnimationInfo.Type.values()[i] == animType) {
         type = i;
         break;
       }

@@ -36,6 +36,8 @@ import javax.swing.event.ChangeListener;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
+import org.infinity.resource.cre.decoder.internal.Direction;
+import org.infinity.resource.cre.decoder.internal.Sequence;
 import org.infinity.resource.cre.viewer.icon.Icons;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 
@@ -45,17 +47,17 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 public class MediaPanel extends JPanel
 {
   // List of potential sequences to display when loading a new creature
-  private static final List<SpriteDecoder.Sequence> DEFAULT_SEQUENCES = new ArrayList<SpriteDecoder.Sequence>() {{
-    add(SpriteDecoder.Sequence.STAND);
-    add(SpriteDecoder.Sequence.STAND2);
-    add(SpriteDecoder.Sequence.STAND3);
-    add(SpriteDecoder.Sequence.STAND_EMERGED);
-    add(SpriteDecoder.Sequence.PST_STAND);
-    add(SpriteDecoder.Sequence.STANCE);
-    add(SpriteDecoder.Sequence.STANCE2);
-    add(SpriteDecoder.Sequence.PST_STANCE);
-    add(SpriteDecoder.Sequence.WALK);
-    add(SpriteDecoder.Sequence.PST_WALK);
+  private static final List<Sequence> DEFAULT_SEQUENCES = new ArrayList<Sequence>() {{
+    add(Sequence.STAND);
+    add(Sequence.STAND2);
+    add(Sequence.STAND3);
+    add(Sequence.STAND_EMERGED);
+    add(Sequence.PST_STAND);
+    add(Sequence.STANCE);
+    add(Sequence.STANCE2);
+    add(Sequence.PST_STANCE);
+    add(Sequence.WALK);
+    add(Sequence.PST_WALK);
   }};
 
   private static boolean isLoop;
@@ -65,13 +67,13 @@ public class MediaPanel extends JPanel
   }
 
   // mapping of slider value to direction
-  private final HashMap<Integer, SpriteDecoder.Direction> directionMap = new HashMap<>();
+  private final HashMap<Integer, Direction> directionMap = new HashMap<>();
   private final Listeners listeners = new Listeners();
   private final CreatureViewer viewer;
 
   private JButton bHome, bEnd, bStepBack, bStepForward, bPlay, bStop;
-  private DefaultComboBoxModel<SpriteDecoder.Sequence> modelSequences;
-  private JComboBox<SpriteDecoder.Sequence> cbSequences;
+  private DefaultComboBoxModel<Sequence> modelSequences;
+  private JComboBox<Sequence> cbSequences;
   private JCheckBox cbLoop;
   private JSlider slDirection;
   private JLabel lDirection;
@@ -96,8 +98,8 @@ public class MediaPanel extends JPanel
    */
   public void reset(boolean preserveState)
   {
-    SpriteDecoder.Sequence oldSequence = preserveState ? getSequence() : null;
-    SpriteDecoder.Direction oldDir = preserveState ? getDirection(getCurrentDirection()) : null;
+    Sequence oldSequence = preserveState ? getSequence() : null;
+    Direction oldDir = preserveState ? getDirection(getCurrentDirection()) : null;
     int oldFrameIdx = preserveState ? getCurrentFrame() : 0;
     boolean isRunning = preserveState ? isRunning() : false;
 
@@ -262,7 +264,7 @@ public class MediaPanel extends JPanel
   }
 
   /** Sets the specified direction if available. Throws an {@code IllegalArgumentException} otherwise. */
-  public void setCurrentDirection(SpriteDecoder.Direction dir) throws IllegalArgumentException
+  public void setCurrentDirection(Direction dir) throws IllegalArgumentException
   {
     if (dir != null) {
       for (int i = 0; i < slDirection.getMaximum(); i++) {
@@ -278,13 +280,13 @@ public class MediaPanel extends JPanel
   }
 
   /** Returns the currently selected animation sequence. Returns {@code null} if no sequence is active. */
-  public SpriteDecoder.Sequence getSequence()
+  public Sequence getSequence()
   {
     return modelSequences.getElementAt(cbSequences.getSelectedIndex());
   }
 
   /** Sets the specified sequence and loads the associated animation. */
-  public void setSequence(SpriteDecoder.Sequence seq) throws IllegalArgumentException
+  public void setSequence(Sequence seq) throws IllegalArgumentException
   {
     int oldIdx = cbSequences.getSelectedIndex();
     int idx = modelSequences.getIndexOf(seq);
@@ -298,11 +300,11 @@ public class MediaPanel extends JPanel
     }
   }
 
-  public void loadSequence(SpriteDecoder.Sequence seq) throws IllegalArgumentException
+  public void loadSequence(Sequence seq) throws IllegalArgumentException
   {
     SpriteDecoder decoder = getViewer().getDecoder();
     RenderPanel renderer = getViewer().getRenderPanel();
-    SpriteDecoder.Direction oldDir = getDirection(getCurrentDirection());
+    Direction oldDir = getDirection(getCurrentDirection());
     boolean isRunning = isRunning();
     pause();
     try {
@@ -521,7 +523,7 @@ public class MediaPanel extends JPanel
     l1 = new JLabel("Sequence:");
     modelSequences = new DefaultComboBoxModel<>();
     cbSequences = new JComboBox<>(modelSequences);
-    cbSequences.setPrototypeDisplayValue(SpriteDecoder.Sequence.ATTACK_2WEAPONS1);
+    cbSequences.setPrototypeDisplayValue(Sequence.ATTACK_2WEAPONS1);
     cbSequences.addItemListener(listeners);
 
     cbLoop = new JCheckBox("Loop", isLoop);
@@ -587,7 +589,7 @@ public class MediaPanel extends JPanel
   {
     lFrameCur.setText(Integer.toString(getCurrentFrame()));
     lFrameMax.setText(Integer.toString(getMaxFrame() - 1));
-    SpriteDecoder.Direction dir = getDirection(getCurrentDirection());
+    Direction dir = getDirection(getCurrentDirection());
     lDirection.setText(dir.toString());
     String text = "";
     if (getController() != null) {
@@ -598,11 +600,11 @@ public class MediaPanel extends JPanel
   }
 
   /** Initializes the sequence list with available animation sequences and preselects a suitable default sequence. */
-  private void initSequences(SpriteDecoder decoder, SpriteDecoder.Sequence defSeq)
+  private void initSequences(SpriteDecoder decoder, Sequence defSeq)
   {
     modelSequences.removeAllElements();
     if (decoder != null) {
-      for (final SpriteDecoder.Sequence seq : SpriteDecoder.Sequence.values()) {
+      for (final Sequence seq : Sequence.values()) {
         if (decoder.isSequenceAvailable(seq)) {
           modelSequences.addElement(seq);
         }
@@ -618,7 +620,7 @@ public class MediaPanel extends JPanel
       }
       if (idx < 0) {
         // try default sequence from list
-        for (final SpriteDecoder.Sequence seq : DEFAULT_SEQUENCES) {
+        for (final Sequence seq : DEFAULT_SEQUENCES) {
           idx = modelSequences.getIndexOf(seq);
           if (idx >= 0) {
             break;
@@ -634,7 +636,7 @@ public class MediaPanel extends JPanel
   }
 
   /** Initializes the direction slider and label with available directions. */
-  private void initDirection(SpriteDecoder decoder, SpriteDecoder.Direction defDir)
+  private void initDirection(SpriteDecoder decoder, Direction defDir)
   {
     // discarding old data
     slDirection.setMinimum(0);
@@ -643,8 +645,8 @@ public class MediaPanel extends JPanel
 
     if (decoder != null) {
       // collecting directions
-      List<Integer> directions = new ArrayList<>(SpriteDecoder.Direction.values().length * 2 + 1);
-      for (final SpriteDecoder.Direction dir : decoder.getDirectionMap().keySet()) {
+      List<Integer> directions = new ArrayList<>(Direction.values().length * 2 + 1);
+      for (final Direction dir : decoder.getDirectionMap().keySet()) {
         directions.add(Integer.valueOf(dir.getValue()));
       }
 
@@ -656,19 +658,19 @@ public class MediaPanel extends JPanel
       // duplicate list entries
       directions.addAll(new ArrayList<Integer>(directions));
       // remove excess entries from left (negative) side
-      while (directions.size() > 1 && directions.get(0) > SpriteDecoder.Direction.N.getValue()) {
+      while (directions.size() > 1 && directions.get(0) > Direction.N.getValue()) {
         directions.remove(0);
         min++;
       }
       // remove excess entries from right (positive) side
-      while (directions.size() > 1 && directions.get(directions.size() - 1) < SpriteDecoder.Direction.N.getValue()) {
+      while (directions.size() > 1 && directions.get(directions.size() - 1) < Direction.N.getValue()) {
         directions.remove(directions.size() - 1);
         max--;
       }
 
       for (int i = min; i <= max; i++) {
         int dirVal = directions.get(i - min);
-        SpriteDecoder.Direction dir = SpriteDecoder.Direction.from(dirVal);
+        Direction dir = Direction.from(dirVal);
         directionMap.put(Integer.valueOf(i), dir);
       }
 
@@ -676,13 +678,13 @@ public class MediaPanel extends JPanel
       slDirection.setMinimum(min);
       slDirection.setMaximum(max);
       // defining major ticks distance
-      Integer d1 = decoder.getDirectionMap().get(SpriteDecoder.Direction.S);
+      Integer d1 = decoder.getDirectionMap().get(Direction.S);
       if (d1 != null) {
-        Integer d2 = decoder.getDirectionMap().get(SpriteDecoder.Direction.W);
+        Integer d2 = decoder.getDirectionMap().get(Direction.W);
         if (d2 != null) {
           slDirection.setMajorTickSpacing(d2 - d1);
         } else {
-          d2 = decoder.getDirectionMap().get(SpriteDecoder.Direction.N);
+          d2 = decoder.getDirectionMap().get(Direction.N);
           if (d2 != null) {
             slDirection.setMajorTickSpacing((d2 - d1) / 2);
           }
@@ -693,7 +695,7 @@ public class MediaPanel extends JPanel
       // defining direction labels
       Hashtable<Integer, JLabel> labels = new Hashtable<>();
       for (int i = min; i <= max; i++) {
-        SpriteDecoder.Direction dir = getDirection(i);
+        Direction dir = getDirection(i);
         if (dir != null && (dir.getValue() % 4) == 0) {
           labels.put(Integer.valueOf(i), new JLabel(dir.toString()));
         }
@@ -716,9 +718,9 @@ public class MediaPanel extends JPanel
   }
 
   /** Returns the {@code Direction} of the specified direction slider position. Defaults to {@code Direction.S}. */
-  private SpriteDecoder.Direction getDirection(int index)
+  private Direction getDirection(int index)
   {
-    return directionMap.getOrDefault(Integer.valueOf(index), SpriteDecoder.Direction.S);
+    return directionMap.getOrDefault(Integer.valueOf(index), Direction.S);
   }
 
 //-------------------------- INNER CLASSES --------------------------
@@ -775,7 +777,7 @@ public class MediaPanel extends JPanel
     public void stateChanged(ChangeEvent e)
     {
       if (e.getSource() == slDirection) {
-        SpriteDecoder.Direction dir = getDirection(slDirection.getValue());
+        Direction dir = getDirection(slDirection.getValue());
         lDirection.setText(dir.toString());
         int cycle = getViewer().getDecoder().getDirectionMap().getOrDefault(dir, -1).intValue();
         if (cycle >= 0) {
@@ -793,8 +795,8 @@ public class MediaPanel extends JPanel
     {
       if (e.getSource() == cbSequences) {
         if (e.getStateChange() == ItemEvent.SELECTED &&
-            e.getItem() instanceof SpriteDecoder.Sequence) {
-          final SpriteDecoder.Sequence seq = (SpriteDecoder.Sequence)e.getItem();
+            e.getItem() instanceof Sequence) {
+          final Sequence seq = (Sequence)e.getItem();
           try {
             WindowBlocker.blockWindow(getViewer(), true);
             loadSequence(seq);

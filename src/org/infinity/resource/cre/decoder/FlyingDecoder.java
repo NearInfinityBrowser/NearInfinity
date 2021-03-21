@@ -9,8 +9,10 @@ import java.util.List;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.decoder.internal.AnimationInfo;
 import org.infinity.resource.cre.decoder.internal.DirDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
+import org.infinity.resource.cre.decoder.internal.Sequence;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
@@ -23,7 +25,7 @@ import org.infinity.util.IniMapSection;
 public class FlyingDecoder extends SpriteDecoder
 {
   /** The animation type associated with this class definition. */
-  public static final AnimationType ANIMATION_TYPE = AnimationType.FLYING;
+  public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.FLYING;
 
   /**
    * A helper method that parses the specified data array and generates a {@link IniMap} instance out of it.

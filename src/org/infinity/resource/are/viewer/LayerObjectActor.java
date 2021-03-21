@@ -15,6 +15,8 @@ import org.infinity.gui.layeritem.BasicAnimationProvider;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
+import org.infinity.resource.cre.decoder.internal.AnimationInfo;
+import org.infinity.resource.cre.decoder.internal.Sequence;
 import org.infinity.resource.graphics.BamDecoder;
 
 /**
@@ -33,35 +35,35 @@ public abstract class LayerObjectActor extends LayerObject
   protected static final Color COLOR_FRAME_HIGHLIGHTED = new Color(0xFF2020FF, false);
 
   // Default animation sequence to load if available; fall back to the first available sequence if no default is available
-  private static final SpriteDecoder.Sequence[] DEFAULT_SEQUENCE = {
-      SpriteDecoder.Sequence.STAND,
-      SpriteDecoder.Sequence.STAND2,
-      SpriteDecoder.Sequence.STAND3,
-      SpriteDecoder.Sequence.STAND_EMERGED,
-      SpriteDecoder.Sequence.PST_STAND,
-      SpriteDecoder.Sequence.STANCE,
-      SpriteDecoder.Sequence.STANCE2,
-      SpriteDecoder.Sequence.PST_STANCE,
-      SpriteDecoder.Sequence.WALK,
-      SpriteDecoder.Sequence.PST_WALK,
+  private static final Sequence[] DEFAULT_SEQUENCE = {
+      Sequence.STAND,
+      Sequence.STAND2,
+      Sequence.STAND3,
+      Sequence.STAND_EMERGED,
+      Sequence.PST_STAND,
+      Sequence.STANCE,
+      Sequence.STANCE2,
+      Sequence.PST_STANCE,
+      Sequence.WALK,
+      Sequence.PST_WALK,
   };
   // Potential sequences for "death" state
-  private static final SpriteDecoder.Sequence[] DEATH_SEQUENCE = {
-      SpriteDecoder.Sequence.TWITCH,
-      SpriteDecoder.Sequence.DIE,
-      SpriteDecoder.Sequence.PST_DIE_FORWARD,
-      SpriteDecoder.Sequence.PST_DIE_BACKWARD,
-      SpriteDecoder.Sequence.PST_DIE_COLLAPSE,
+  private static final Sequence[] DEATH_SEQUENCE = {
+      Sequence.TWITCH,
+      Sequence.DIE,
+      Sequence.PST_DIE_FORWARD,
+      Sequence.PST_DIE_BACKWARD,
+      Sequence.PST_DIE_COLLAPSE,
   };
   // Potential sequences for "unconscious" state
-  private static final SpriteDecoder.Sequence[] SLEEP_SEQUENCE = {
-      SpriteDecoder.Sequence.SLEEP,
-      SpriteDecoder.Sequence.SLEEP2,
-      SpriteDecoder.Sequence.TWITCH,
-      SpriteDecoder.Sequence.DIE,
-      SpriteDecoder.Sequence.PST_DIE_FORWARD,
-      SpriteDecoder.Sequence.PST_DIE_BACKWARD,
-      SpriteDecoder.Sequence.PST_DIE_COLLAPSE,
+  private static final Sequence[] SLEEP_SEQUENCE = {
+      Sequence.SLEEP,
+      Sequence.SLEEP2,
+      Sequence.TWITCH,
+      Sequence.DIE,
+      Sequence.PST_DIE_FORWARD,
+      Sequence.PST_DIE_BACKWARD,
+      Sequence.PST_DIE_COLLAPSE,
   };
 
   protected final Point location = new Point();
@@ -186,7 +188,7 @@ public abstract class LayerObjectActor extends LayerObject
       decoder.setSelectionCircleEnabled(Settings.ShowActorSelectionCircle);
       decoder.setPersonalSpaceVisible(Settings.ShowActorPersonalSpace);
 
-      SpriteDecoder.Sequence sequence = null;
+      Sequence sequence = null;
 
       // check for special animation sequence
       if (isDead) {
@@ -197,9 +199,9 @@ public abstract class LayerObjectActor extends LayerObject
 
       if (sequence == null) {
         // improve visualization of flying creatures
-        if (decoder.getAnimationType() == SpriteDecoder.AnimationType.FLYING &&
-            decoder.isSequenceAvailable(SpriteDecoder.Sequence.WALK)) {
-          sequence = SpriteDecoder.Sequence.WALK;
+        if (decoder.getAnimationType() == AnimationInfo.Type.FLYING &&
+            decoder.isSequenceAvailable(Sequence.WALK)) {
+          sequence = Sequence.WALK;
         }
       }
 
@@ -277,18 +279,18 @@ public abstract class LayerObjectActor extends LayerObject
   }
 
   /** Returns the first matching animation sequence listed in {@code sequences} that is available in the {@code SpriteDecoder} instance. */
-  protected static SpriteDecoder.Sequence getMatchingSequence(SpriteDecoder decoder, SpriteDecoder.Sequence[] sequences)
+  protected static Sequence getMatchingSequence(SpriteDecoder decoder, Sequence[] sequences)
   {
-    SpriteDecoder.Sequence retVal = null;
+    Sequence retVal = null;
     if (sequences == null) {
-      sequences = SpriteDecoder.Sequence.values();
+      sequences = Sequence.values();
     }
 
     if (decoder == null || sequences.length == 0) {
       return retVal;
     }
 
-    for (final SpriteDecoder.Sequence seq : sequences) {
+    for (final Sequence seq : sequences) {
       if (decoder.isSequenceAvailable(seq)) {
         retVal = seq;
         break;

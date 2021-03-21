@@ -14,12 +14,15 @@ import java.util.List;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.decoder.internal.AnimationInfo;
 import org.infinity.resource.cre.decoder.internal.CycleDef;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
 import org.infinity.resource.cre.decoder.internal.DirDef;
+import org.infinity.resource.cre.decoder.internal.Direction;
 import org.infinity.resource.cre.decoder.internal.ItemInfo;
 import org.infinity.resource.cre.decoder.internal.SegmentDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
+import org.infinity.resource.cre.decoder.internal.Sequence;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
@@ -33,7 +36,7 @@ import org.infinity.util.tuples.Couple;
 public class CharacterOldDecoder extends ArmoredBaseDecoder
 {
   /** The animation type associated with this class definition. */
-  public static final AnimationType ANIMATION_TYPE = AnimationType.CHARACTER_OLD;
+  public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.CHARACTER_OLD;
 
   public static final DecoderAttribute KEY_HIDE_WEAPONS   = DecoderAttribute.with("hide_weapons", DecoderAttribute.DataType.BOOLEAN);
   public static final DecoderAttribute KEY_SHADOW         = DecoderAttribute.with("shadow", DecoderAttribute.DataType.STRING);

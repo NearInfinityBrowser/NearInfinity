@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.resource.Profile;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.decoder.internal.AnimationInfo;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
 import org.infinity.resource.cre.decoder.internal.ItemInfo;
 import org.infinity.util.IniMap;
@@ -34,12 +35,12 @@ public abstract class ArmoredBaseDecoder extends SpriteDecoder
     BOW, CROSSBOW, SLING
   }
 
-  public ArmoredBaseDecoder(AnimationType type, int animationId, IniMap ini) throws Exception
+  public ArmoredBaseDecoder(AnimationInfo.Type type, int animationId, IniMap ini) throws Exception
   {
     super(type, animationId, ini);
   }
 
-  public ArmoredBaseDecoder(AnimationType type, CreResource cre) throws Exception
+  public ArmoredBaseDecoder(AnimationInfo.Type type, CreResource cre) throws Exception
   {
     super(type, cre);
   }
@@ -156,7 +157,7 @@ public abstract class ArmoredBaseDecoder extends SpriteDecoder
   protected String guessHeightCode()
   {
     String retVal = "";
-    boolean isCharacter = (getAnimationType() == AnimationType.CHARACTER);
+    boolean isCharacter = (getAnimationType() == AnimationInfo.Type.CHARACTER);
     String c2 = isCharacter ? "Q" : "P";
 
     // try resref naming scheme

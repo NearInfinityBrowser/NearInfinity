@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Objects;
 
 import org.infinity.resource.cre.decoder.SpriteDecoder;
-import org.infinity.resource.cre.decoder.SpriteDecoder.Direction;
-import org.infinity.resource.cre.decoder.SpriteDecoder.Sequence;
 import org.infinity.resource.key.ResourceEntry;
 
 /**

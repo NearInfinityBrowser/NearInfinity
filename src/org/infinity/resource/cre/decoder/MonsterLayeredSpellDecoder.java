@@ -10,11 +10,13 @@ import java.util.List;
 
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.decoder.internal.AnimationInfo;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
 import org.infinity.resource.cre.decoder.internal.DirDef;
 import org.infinity.resource.cre.decoder.internal.ItemInfo;
 import org.infinity.resource.cre.decoder.internal.SegmentDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
+import org.infinity.resource.cre.decoder.internal.Sequence;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
@@ -29,7 +31,7 @@ import org.infinity.util.tuples.Couple;
 public class MonsterLayeredSpellDecoder extends SpriteDecoder
 {
   /** The animation type associated with this class definition. */
-  public static final AnimationType ANIMATION_TYPE = AnimationType.MONSTER_LAYERED_SPELL;
+  public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.MONSTER_LAYERED_SPELL;
 
   public static final DecoderAttribute KEY_DUAL_ATTACK     = DecoderAttribute.with("dual_attack", DecoderAttribute.DataType.BOOLEAN);
   public static final DecoderAttribute KEY_INVULNERABLE    = DecoderAttribute.with("invulnerable", DecoderAttribute.DataType.BOOLEAN);
@@ -171,7 +173,7 @@ public class MonsterLayeredSpellDecoder extends SpriteDecoder
     IniMapSection section = getSpecificIniSection();
     if (section.getEntryCount() == 0) {
       // EE: defined as "monster_layered" type
-      section = getAnimationInfo().getSection(AnimationType.MONSTER_LAYERED.getSectionName());
+      section = getAnimationInfo().getSection(AnimationInfo.Type.MONSTER_LAYERED.getSectionName());
     }
 
     setDetectedByInfravision(true);

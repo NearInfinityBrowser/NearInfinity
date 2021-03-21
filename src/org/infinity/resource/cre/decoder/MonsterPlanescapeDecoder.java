@@ -17,8 +17,11 @@ import org.infinity.datatype.IsNumeric;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.decoder.internal.Sequence;
+import org.infinity.resource.cre.decoder.internal.AnimationInfo;
 import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
 import org.infinity.resource.cre.decoder.internal.DirDef;
+import org.infinity.resource.cre.decoder.internal.Direction;
 import org.infinity.resource.cre.decoder.internal.SegmentDef;
 import org.infinity.resource.cre.decoder.internal.SeqDef;
 import org.infinity.resource.cre.decoder.tables.SpriteTables;
@@ -37,7 +40,7 @@ import org.infinity.util.Misc;
 public class MonsterPlanescapeDecoder extends SpriteDecoder
 {
   /** The animation type associated with this class definition. */
-  public static final AnimationType ANIMATION_TYPE = AnimationType.MONSTER_PLANESCAPE;
+  public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.MONSTER_PLANESCAPE;
 
   public static final DecoderAttribute KEY_BESTIARY         = DecoderAttribute.with("bestiary", DecoderAttribute.DataType.INT);
   public static final DecoderAttribute KEY_CLOWN            = DecoderAttribute.with("clown", DecoderAttribute.DataType.BOOLEAN);
