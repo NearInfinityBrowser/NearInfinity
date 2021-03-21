@@ -2295,7 +2295,13 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     hash = 31 * hash + ((attributesMap == null) ? 0 : attributesMap.hashCode());
     hash = 31 * hash + ((currentSequence == null) ? 0 : currentSequence.hashCode());
     hash = 31 * hash + Boolean.valueOf(showCircle).hashCode();
+    hash = 31 * hash + Boolean.valueOf(selectionCircleBitmap).hashCode();
     hash = 31 * hash + Boolean.valueOf(showPersonalSpace).hashCode();
+    hash = 31 * hash + Boolean.valueOf(showBoundingBox).hashCode();
+    hash = 31 * hash + Boolean.valueOf(transparentShadow).hashCode();
+    hash = 31 * hash + Boolean.valueOf(translucencyEnabled).hashCode();
+    hash = 31 * hash + Boolean.valueOf(paletteReplacementEnabled).hashCode();
+    hash = 31 * hash + Boolean.valueOf(renderSpriteAvatar).hashCode();
     hash = 31 * hash + Boolean.valueOf(renderSpriteWeapon).hashCode();
     hash = 31 * hash + Boolean.valueOf(renderSpriteHelmet).hashCode();
     hash = 31 * hash + Boolean.valueOf(renderSpriteShield).hashCode();
@@ -2324,7 +2330,13 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       retVal &= (this.currentSequence == null && other.currentSequence == null) ||
                 (this.currentSequence != null && this.currentSequence.equals(other.currentSequence));
       retVal &= (this.showCircle == other.showCircle);
+      retVal &= (this.selectionCircleBitmap == other.selectionCircleBitmap);
       retVal &= (this.showPersonalSpace == other.showPersonalSpace);
+      retVal &= (this.showBoundingBox == other.showBoundingBox);
+      retVal &= (this.transparentShadow == other.transparentShadow);
+      retVal &= (this.translucencyEnabled == other.translucencyEnabled);
+      retVal &= (this.paletteReplacementEnabled == other.paletteReplacementEnabled);
+      retVal &= (this.renderSpriteAvatar == other.renderSpriteAvatar);
       retVal &= (this.renderSpriteWeapon == other.renderSpriteWeapon);
       retVal &= (this.renderSpriteHelmet == other.renderSpriteHelmet);
       retVal &= (this.renderSpriteShield == other.renderSpriteShield);

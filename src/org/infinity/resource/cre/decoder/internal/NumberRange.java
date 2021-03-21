@@ -57,4 +57,26 @@ public class NumberRange
       ranges.add(Couple.with(curBase, range));
     }
   }
+
+  @Override
+  public int hashCode()
+  {
+    int hash = 7;
+    hash = 31 * hash + ((ranges == null) ? 0 : ranges.hashCode());
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (o == this) {
+      return true;
+    }
+    if (!(o instanceof NumberRange)) {
+      return false;
+    }
+    NumberRange other = (NumberRange)o;
+    boolean retVal = ranges.equals(other.ranges);
+    return retVal;
+  }
 }

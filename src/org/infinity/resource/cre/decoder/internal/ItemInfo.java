@@ -838,12 +838,18 @@ public class ItemInfo implements Comparable<ItemInfo>
     int hash = 7;
     hash = 31 * hash + colorInfo.hashCode();
     hash = 31 * hash + abilityInfo.hashCode();
+    hash = 31 * hash + effectsInfo.hashCode();
     hash = 31 * hash + ((itmEntry == null) ? 0 : itmEntry.hashCode());
+    hash = 31 * hash + ((name == null) ? 0 : name.hashCode());
+    hash = 31 * hash + ((nameIdentified == null) ? 0 : nameIdentified.hashCode());
     hash = 31 * hash + flags;
     hash = 31 * hash + category;
     hash = 31 * hash + unusable;
     hash = 31 * hash + unusableKits;
     hash = 31 * hash + ((appearance == null) ? 0 : appearance.hashCode());
+    hash = 31 * hash + proficiency;
+    hash = 31 * hash + stack;
+    hash = 31 * hash + enchantment;
     return hash;
   }
 
@@ -859,16 +865,25 @@ public class ItemInfo implements Comparable<ItemInfo>
     ItemInfo other = (ItemInfo)o;
     boolean retVal = (this.colorInfo == null && other.colorInfo == null) ||
                      (this.colorInfo != null && this.colorInfo.equals(other.colorInfo));
-    retVal &= (this.abilityInfo == null && other.abilityInfo == null ||
-               this.abilityInfo != null && this.abilityInfo.equals(other.abilityInfo));
+    retVal &= (this.abilityInfo == null && other.abilityInfo == null) ||
+              (this.abilityInfo != null && this.abilityInfo.equals(other.abilityInfo));
+    retVal &= (this.effectsInfo == null && other.effectsInfo == null) ||
+              (this.effectsInfo != null && this.effectsInfo.equals(other.effectsInfo));
     retVal &= (this.itmEntry == null && other.itmEntry == null) ||
               (this.itmEntry != null && this.itmEntry.equals(other.itmEntry));
+    retVal &= (this.name == null && other.name == null) ||
+              (this.name != null && this.name.equals(other.name));
+    retVal &= (this.nameIdentified == null && other.nameIdentified == null) ||
+              (this.nameIdentified != null && this.nameIdentified.equals(other.nameIdentified));
     retVal &= this.flags == other.flags;
     retVal &= this.category == other.category;
     retVal &= this.unusable == other.unusable;
     retVal &= this.unusableKits == other.unusableKits;
     retVal &= (this.appearance == null && other.appearance == null) ||
               (this.appearance != null && this.appearance.equals(other.appearance));
+    retVal &= this.proficiency == other.proficiency;
+    retVal &= this.stack == other.stack;
+    retVal &= this.enchantment == other.enchantment;
     return retVal;
   }
 
