@@ -92,7 +92,7 @@ import org.infinity.resource.Viewable;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.bcs.Signatures;
 import org.infinity.resource.cre.decoder.SpriteUtils;
-import org.infinity.resource.cre.decoder.internal.ItemInfo;
+import org.infinity.resource.cre.decoder.util.ItemInfo;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;

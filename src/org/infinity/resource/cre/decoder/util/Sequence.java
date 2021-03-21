@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package org.infinity.resource.cre.decoder.internal;
+package org.infinity.resource.cre.decoder.util;
 
 /**
  * Available animation sequences. Note: PST-specific animation sequences are prefixed by "PST_".

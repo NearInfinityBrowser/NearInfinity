@@ -19,7 +19,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import org.infinity.resource.cre.decoder.SpriteDecoder;
-import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
+import org.infinity.resource.cre.decoder.util.DecoderAttribute;
 import org.infinity.util.Misc;
 
 /**

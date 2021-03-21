@@ -14,7 +14,7 @@ import java.util.Objects;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
-import org.infinity.resource.cre.decoder.internal.AnimationInfo;
+import org.infinity.resource.cre.decoder.util.AnimationInfo;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapEntry;

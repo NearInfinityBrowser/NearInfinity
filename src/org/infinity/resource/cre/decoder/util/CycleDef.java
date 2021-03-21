@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package org.infinity.resource.cre.decoder.internal;
+package org.infinity.resource.cre.decoder.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,8 +10,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-import org.infinity.resource.cre.decoder.internal.SegmentDef.Behavior;
-import org.infinity.resource.cre.decoder.internal.SegmentDef.SpriteType;
+import org.infinity.resource.cre.decoder.util.SegmentDef.Behavior;
+import org.infinity.resource.cre.decoder.util.SegmentDef.SpriteType;
 import org.infinity.resource.key.ResourceEntry;
 
 /**

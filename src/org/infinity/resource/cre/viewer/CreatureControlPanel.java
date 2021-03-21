@@ -33,7 +33,7 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.MonsterPlanescapeDecoder;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
-import org.infinity.resource.cre.decoder.internal.ItemInfo;
+import org.infinity.resource.cre.decoder.util.ItemInfo;
 import org.infinity.resource.cre.viewer.ColorSelectionModel.ColorEntry;
 import org.infinity.resource.cre.viewer.CreatureSelectionModel.CreatureItem;
 import org.infinity.util.IdsMap;

@@ -5,8 +5,8 @@
 package org.infinity.resource.cre.decoder;
 
 import org.infinity.resource.cre.CreResource;
-import org.infinity.resource.cre.decoder.internal.AnimationInfo;
-import org.infinity.resource.cre.decoder.internal.DecoderAttribute;
+import org.infinity.resource.cre.decoder.util.AnimationInfo;
+import org.infinity.resource.cre.decoder.util.DecoderAttribute;
 import org.infinity.util.IniMap;
 
 /**

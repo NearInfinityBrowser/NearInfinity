@@ -11,8 +11,8 @@ import java.util.stream.IntStream;
 import javax.swing.AbstractListModel;
 import javax.swing.ComboBoxModel;
 
-import org.infinity.resource.cre.decoder.internal.ItemInfo;
-import org.infinity.resource.cre.decoder.internal.ItemInfo.ItemPredicate;
+import org.infinity.resource.cre.decoder.util.ItemInfo;
+import org.infinity.resource.cre.decoder.util.ItemInfo.ItemPredicate;
 import org.infinity.resource.key.ResourceEntry;
 
 /**

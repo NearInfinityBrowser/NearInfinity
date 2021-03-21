@@ -36,8 +36,8 @@ import javax.swing.event.ChangeListener;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
-import org.infinity.resource.cre.decoder.internal.Direction;
-import org.infinity.resource.cre.decoder.internal.Sequence;
+import org.infinity.resource.cre.decoder.util.Direction;
+import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.cre.viewer.icon.Icons;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 

@@ -20,7 +20,7 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.Item;
-import org.infinity.resource.cre.decoder.internal.ItemInfo;
+import org.infinity.resource.cre.decoder.util.ItemInfo;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 

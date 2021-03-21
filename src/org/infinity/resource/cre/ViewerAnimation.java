@@ -45,7 +45,7 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.SpriteUtils;
-import org.infinity.resource.cre.decoder.internal.Sequence;
+import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.cre.viewer.CreatureViewer;
 import org.infinity.resource.gam.PartyNPC;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;

@@ -15,8 +15,8 @@ import org.infinity.gui.layeritem.BasicAnimationProvider;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
-import org.infinity.resource.cre.decoder.internal.AnimationInfo;
-import org.infinity.resource.cre.decoder.internal.Sequence;
+import org.infinity.resource.cre.decoder.util.AnimationInfo;
+import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.graphics.BamDecoder;
 
 /**

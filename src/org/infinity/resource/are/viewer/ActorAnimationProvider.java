@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import org.infinity.resource.cre.decoder.SpriteDecoder;
-import org.infinity.resource.cre.decoder.internal.Direction;
+import org.infinity.resource.cre.decoder.util.Direction;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 

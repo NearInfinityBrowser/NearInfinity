@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package org.infinity.resource.cre.decoder.internal;
+package org.infinity.resource.cre.decoder.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +28,7 @@ import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.Item;
 import org.infinity.resource.cre.decoder.MonsterPlanescapeDecoder;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
-import org.infinity.resource.cre.decoder.internal.ItemInfo.EffectInfo;
+import org.infinity.resource.cre.decoder.util.ItemInfo.EffectInfo;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
