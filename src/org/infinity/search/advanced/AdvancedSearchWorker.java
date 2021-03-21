@@ -392,8 +392,7 @@ public class AdvancedSearchWorker implements Runnable
   private boolean isMatchBitfield(StructEntry se, int value, SearchOptions.BitFieldMode mode)
   {
     if (se instanceof Flag) {
-      Flag flag = (Flag)se;
-      int bits = flag.getValue();
+      int bits = ((IsNumeric)se).getValue();
       switch (mode) {
         case Exact:
           return bits == value;

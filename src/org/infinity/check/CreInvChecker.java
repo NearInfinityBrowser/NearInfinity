@@ -25,6 +25,7 @@ import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
@@ -199,7 +200,7 @@ public final class CreInvChecker extends AbstractSearcher implements Runnable, A
   {
     final List<Item> items = new ArrayList<>();
     final List<DecNumber> slots = new ArrayList<>();
-    final DecNumber slots_offset = (DecNumber)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS);
+    final IsNumeric slots_offset = (IsNumeric)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS);
     for (final StructEntry entry : cre.getFields()) {
       if (entry instanceof Item) {
         items.add((Item)entry);

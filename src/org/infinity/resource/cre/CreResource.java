@@ -1923,7 +1923,7 @@ public final class CreResource extends AbstractStruct
   private void updateMemorizedSpells()
   {
     // Assumes memorized spells offset is correct
-    int offset = ((HexNumber)getAttribute(CRE_OFFSET_MEMORIZED_SPELLS)).getValue() + getExtraOffset();
+    int offset = ((IsNumeric)getAttribute(CRE_OFFSET_MEMORIZED_SPELLS)).getValue() + getExtraOffset();
     int count = 0;
     for (final StructEntry o : getFields()) {
       if (o instanceof SpellMemorization) {
@@ -2191,8 +2191,8 @@ public final class CreResource extends AbstractStruct
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)cre.getAttribute(CRE_OFFSET_EFFECTS, false);
-        DecNumber cnt = (DecNumber)cre.getAttribute(CRE_NUM_EFFECTS, false);
+        IsNumeric ofs = (IsNumeric)cre.getAttribute(CRE_OFFSET_EFFECTS, false);
+        IsNumeric cnt = (IsNumeric)cre.getAttribute(CRE_NUM_EFFECTS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           effects = new AbstractStruct[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -2203,8 +2203,8 @@ public final class CreResource extends AbstractStruct
           effects = new AbstractStruct[0];
         }
 
-        ofs = (DecNumber)cre.getAttribute(CRE_OFFSET_ITEMS, false);
-        cnt = (DecNumber)cre.getAttribute(CRE_NUM_ITEMS, false);
+        ofs = (IsNumeric)cre.getAttribute(CRE_OFFSET_ITEMS, false);
+        cnt = (IsNumeric)cre.getAttribute(CRE_NUM_ITEMS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           items = new AbstractStruct[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -2248,8 +2248,8 @@ public final class CreResource extends AbstractStruct
             spells[i] = listSpells.get(i);
           }
         } else {
-          ofs = (DecNumber)cre.getAttribute(CRE_OFFSET_KNOWN_SPELLS, false);
-          cnt = (DecNumber)cre.getAttribute(CRE_NUM_KNOWN_SPELLS, false);
+          ofs = (IsNumeric)cre.getAttribute(CRE_OFFSET_KNOWN_SPELLS, false);
+          cnt = (IsNumeric)cre.getAttribute(CRE_NUM_KNOWN_SPELLS, false);
           if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
             spells = new Datatype[cnt.getValue()];
             final String spellLabel = SearchOptions.getResourceName(SearchOptions.CRE_Spell_Spell1);

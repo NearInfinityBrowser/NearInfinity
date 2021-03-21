@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.HexNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.HasChildStructs;
@@ -63,10 +63,10 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof MemorizedSpells) {
-      int index = ((DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_TABLE_INDEX)).getValue();
-      index += ((DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_COUNT)).getValue();
+      int index = ((IsNumeric)getAttribute(CRE_MEMORIZATION_SPELL_TABLE_INDEX)).getValue();
+      index += ((IsNumeric)getAttribute(CRE_MEMORIZATION_SPELL_COUNT)).getValue();
       final CreResource cre = (CreResource)getParent();
-      int offset = ((HexNumber)cre.getAttribute(CreResource.CRE_OFFSET_MEMORIZED_SPELLS)).getValue() +
+      int offset = ((IsNumeric)cre.getAttribute(CreResource.CRE_OFFSET_MEMORIZED_SPELLS)).getValue() +
                    cre.getExtraOffset();
       datatype.setOffset(offset + 12 * index);
       ((AbstractStruct)datatype).realignStructOffsets();
@@ -90,8 +90,8 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
 
   public void readMemorizedSpells(ByteBuffer buffer, int offset) throws Exception
   {
-    DecNumber firstSpell = (DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_TABLE_INDEX);
-    DecNumber numSpell = (DecNumber)getAttribute(CRE_MEMORIZATION_SPELL_COUNT);
+    IsNumeric firstSpell = (IsNumeric)getAttribute(CRE_MEMORIZATION_SPELL_TABLE_INDEX);
+    IsNumeric numSpell = (IsNumeric)getAttribute(CRE_MEMORIZATION_SPELL_COUNT);
     for (int i = 0; i < numSpell.getValue(); i++) {
       addField(new MemorizedSpells(this, buffer, offset + 12 * (firstSpell.getValue() + i)));
     }

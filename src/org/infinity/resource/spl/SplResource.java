@@ -275,7 +275,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
       }
     }
     else if (datatype instanceof Ability) {
-      int effect_count = ((SectionCount)getAttribute(SPL_NUM_GLOBAL_EFFECTS)).getValue();
+      int effect_count = ((IsNumeric)getAttribute(SPL_NUM_GLOBAL_EFFECTS)).getValue();
       for (final StructEntry o : getFields()) {
         if (o instanceof Ability) {
           Ability ability = (Ability)o;
@@ -306,7 +306,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
       }
     }
     else if (datatype instanceof Ability) {
-      int effect_count = ((SectionCount)getAttribute(SPL_NUM_GLOBAL_EFFECTS)).getValue();
+      int effect_count = ((IsNumeric)getAttribute(SPL_NUM_GLOBAL_EFFECTS)).getValue();
       for (final StructEntry o : getFields()) {
         if (o instanceof Ability) {
           Ability ability = (Ability)o;
@@ -444,8 +444,8 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)spl.getAttribute(SPL_OFFSET_EFFECTS, false);
-        DecNumber cnt = (DecNumber)spl.getAttribute(SPL_NUM_GLOBAL_EFFECTS, false);
+        IsNumeric ofs = (IsNumeric)spl.getAttribute(SPL_OFFSET_EFFECTS, false);
+        IsNumeric cnt = (IsNumeric)spl.getAttribute(SPL_NUM_GLOBAL_EFFECTS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           effects = new Effect[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -456,8 +456,8 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
           effects = new Effect[0];
         }
 
-        ofs = (DecNumber)spl.getAttribute(SPL_OFFSET_ABILITIES, false);
-        cnt = (DecNumber)spl.getAttribute(SPL_NUM_ABILITIES, false);
+        ofs = (IsNumeric)spl.getAttribute(SPL_OFFSET_ABILITIES, false);
+        cnt = (IsNumeric)spl.getAttribute(SPL_NUM_ABILITIES, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           abilities = new Ability[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -471,7 +471,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
         abilityEffects = new Effect[abilities.length][];
         for (int idx = 0; idx < abilities.length; idx++) {
           if (abilities[idx] != null) {
-            cnt = (DecNumber)abilities[idx].getAttribute(AbstractAbility.ABILITY_NUM_EFFECTS, false);
+            cnt = (IsNumeric)abilities[idx].getAttribute(AbstractAbility.ABILITY_NUM_EFFECTS, false);
             if (cnt != null && cnt.getValue() > 0) {
               abilityEffects[idx] = new Effect[cnt.getValue()];
               for (int idx2 = 0; idx2 < cnt.getValue(); idx2++) {

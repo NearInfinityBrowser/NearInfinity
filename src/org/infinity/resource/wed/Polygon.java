@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
-import org.infinity.datatype.HexNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
@@ -64,12 +64,12 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof Vertex) {
-      int index = ((DecNumber)getAttribute(WED_POLY_VERTEX_INDEX)).getValue();
-      index += ((DecNumber)getAttribute(WED_POLY_NUM_VERTICES)).getValue();
+      int index = ((IsNumeric)getAttribute(WED_POLY_VERTEX_INDEX)).getValue();
+      index += ((IsNumeric)getAttribute(WED_POLY_NUM_VERTICES)).getValue();
       AbstractStruct superStruct = getParent();
       while (superStruct.getParent() != null)
         superStruct = superStruct.getParent();
-      int offset = ((HexNumber)superStruct.getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
+      int offset = ((IsNumeric)superStruct.getAttribute(WedResource.WED_OFFSET_VERTICES)).getValue();
       datatype.setOffset(offset + 4 * index);
       ((AbstractStruct)datatype).realignStructOffsets();
     }
@@ -78,8 +78,8 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
 
   public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
-    DecNumber firstVertex = (DecNumber)getAttribute(WED_POLY_VERTEX_INDEX);
-    DecNumber numVertices = (DecNumber)getAttribute(WED_POLY_NUM_VERTICES);
+    IsNumeric firstVertex = (IsNumeric)getAttribute(WED_POLY_VERTEX_INDEX);
+    IsNumeric numVertices = (IsNumeric)getAttribute(WED_POLY_NUM_VERTICES);
     for (int i = 0; i < numVertices.getValue(); i++) {
       addField(new Vertex(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
     }

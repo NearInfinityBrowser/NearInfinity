@@ -19,6 +19,7 @@ import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IdsBitmap;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -331,7 +332,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
       }
     }
     else if (datatype instanceof Ability) {
-      int effect_count = ((SectionCount)getAttribute(ITM_NUM_GLOBAL_EFFECTS)).getValue();
+      int effect_count = ((IsNumeric)getAttribute(ITM_NUM_GLOBAL_EFFECTS)).getValue();
       for (final StructEntry o : getFields()) {
         if (o instanceof Ability) {
           Ability ability = (Ability)o;
@@ -362,7 +363,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
       }
     }
     else if (datatype instanceof Ability) {
-      int effect_count = ((SectionCount)getAttribute(ITM_NUM_GLOBAL_EFFECTS)).getValue();
+      int effect_count = ((IsNumeric)getAttribute(ITM_NUM_GLOBAL_EFFECTS)).getValue();
       for (final StructEntry o : getFields()) {
         if (o instanceof Ability) {
           Ability ability = (Ability)o;
@@ -593,8 +594,8 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)itm.getAttribute(ITM_OFFSET_EFFECTS, false);
-        DecNumber cnt = (DecNumber)itm.getAttribute(ITM_NUM_GLOBAL_EFFECTS, false);
+        IsNumeric ofs = (IsNumeric)itm.getAttribute(ITM_OFFSET_EFFECTS, false);
+        IsNumeric cnt = (IsNumeric)itm.getAttribute(ITM_NUM_GLOBAL_EFFECTS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           effects = new Effect[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -605,8 +606,8 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
           effects = new Effect[0];
         }
 
-        ofs = (DecNumber)itm.getAttribute(ITM_OFFSET_ABILITIES, false);
-        cnt = (DecNumber)itm.getAttribute(ITM_NUM_ABILITIES, false);
+        ofs = (IsNumeric)itm.getAttribute(ITM_OFFSET_ABILITIES, false);
+        cnt = (IsNumeric)itm.getAttribute(ITM_NUM_ABILITIES, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           abilities = new Ability[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -620,7 +621,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
         abilityEffects = new Effect[abilities.length][];
         for (int idx = 0; idx < abilities.length; idx++) {
           if (abilities[idx] != null) {
-            cnt = (DecNumber)abilities[idx].getAttribute(AbstractAbility.ABILITY_NUM_EFFECTS, false);
+            cnt = (IsNumeric)abilities[idx].getAttribute(AbstractAbility.ABILITY_NUM_EFFECTS, false);
             if (cnt != null && cnt.getValue() > 0) {
               abilityEffects[idx] = new Effect[cnt.getValue()];
               for (int idx2 = 0; idx2 < cnt.getValue(); idx2++) {

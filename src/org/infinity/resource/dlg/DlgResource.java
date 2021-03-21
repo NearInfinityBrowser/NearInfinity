@@ -471,9 +471,9 @@ public final class DlgResource extends AbstractStruct
   {
     if (datatype instanceof StateTrigger) {
       StateTrigger trigger = (StateTrigger)datatype;
-      int ofsStates = ((SectionOffset)getAttribute(DLG_OFFSET_STATES)).getValue();
-      int numStates = ((SectionCount)getAttribute(DLG_NUM_STATES)).getValue();
-      int ofsTriggers = ((SectionOffset)getAttribute(DLG_OFFSET_STATE_TRIGGERS)).getValue();
+      int ofsStates = ((IsNumeric)getAttribute(DLG_OFFSET_STATES)).getValue();
+      int numStates = ((IsNumeric)getAttribute(DLG_NUM_STATES)).getValue();
+      int ofsTriggers = ((IsNumeric)getAttribute(DLG_OFFSET_STATE_TRIGGERS)).getValue();
       int idxTrigger = (trigger.getOffset() - ofsTriggers) / trigger.getSize();
 
       // adjusting state trigger references
@@ -500,9 +500,9 @@ public final class DlgResource extends AbstractStruct
       }
     } else if (datatype instanceof ResponseTrigger) {
       ResponseTrigger trigger = (ResponseTrigger)datatype;
-      int ofsTrans = ((SectionOffset)getAttribute(DLG_OFFSET_RESPONSES)).getValue();
-      int numTrans = ((SectionCount)getAttribute(DLG_NUM_RESPONSES)).getValue();
-      int ofsTriggers = ((SectionOffset)getAttribute(DLG_OFFSET_RESPONSE_TRIGGERS)).getValue();
+      int ofsTrans = ((IsNumeric)getAttribute(DLG_OFFSET_RESPONSES)).getValue();
+      int numTrans = ((IsNumeric)getAttribute(DLG_NUM_RESPONSES)).getValue();
+      int ofsTriggers = ((IsNumeric)getAttribute(DLG_OFFSET_RESPONSE_TRIGGERS)).getValue();
       int idxTrigger = (trigger.getOffset() - ofsTriggers) / trigger.getSize();
 
       // adjusting response trigger references
@@ -533,9 +533,9 @@ public final class DlgResource extends AbstractStruct
       }
     } else if (datatype instanceof Action) {
       Action action = (Action)datatype;
-      int ofsTrans = ((SectionOffset)getAttribute(DLG_OFFSET_RESPONSES)).getValue();
-      int numTrans = ((SectionCount)getAttribute(DLG_NUM_RESPONSES)).getValue();
-      int ofsActions = ((SectionOffset)getAttribute(DLG_OFFSET_ACTIONS)).getValue();
+      int ofsTrans = ((IsNumeric)getAttribute(DLG_OFFSET_RESPONSES)).getValue();
+      int numTrans = ((IsNumeric)getAttribute(DLG_NUM_RESPONSES)).getValue();
+      int ofsActions = ((IsNumeric)getAttribute(DLG_OFFSET_ACTIONS)).getValue();
       int idxAction = (action.getOffset() - ofsActions) / action.getSize();
 
       // adjusting action references

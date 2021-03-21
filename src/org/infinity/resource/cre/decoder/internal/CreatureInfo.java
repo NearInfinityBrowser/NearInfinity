@@ -697,7 +697,7 @@ public class CreatureInfo
     int ofsParam2 = (fxType == 1) ? 0x18 : 0x08;
 //    int ofsSpecial = (fxType == 1) ? 0x40 : 0x2c;
 
-    int opcode = ((EffectType)se).getValue();
+    int opcode = ((IsNumeric)se).getValue();
     switch (opcode) {
       case 7: // Set color
       {

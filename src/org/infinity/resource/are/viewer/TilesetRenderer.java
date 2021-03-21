@@ -19,8 +19,6 @@ import java.util.Locale;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsTextual;
 import org.infinity.datatype.ResourceRef;
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
 import org.infinity.gui.RenderCanvas;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
@@ -661,8 +659,8 @@ public class TilesetRenderer extends RenderCanvas
   {
     if (wed != null) {
       // loading overlay structures
-      SectionOffset so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_OVERLAYS);
-      SectionCount sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_OVERLAYS);
+      IsNumeric so = (IsNumeric)wed.getAttribute(WedResource.WED_OFFSET_OVERLAYS);
+      IsNumeric sc = (IsNumeric)wed.getAttribute(WedResource.WED_NUM_OVERLAYS);
       if (so != null && sc != null) {
         for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
           Overlay ovl = (Overlay)wed.getAttribute(curOfs, false);
@@ -680,8 +678,8 @@ public class TilesetRenderer extends RenderCanvas
       }
 
       // loading door structures
-      so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_DOORS);
-      sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_DOORS);
+      so = (IsNumeric)wed.getAttribute(WedResource.WED_OFFSET_DOORS);
+      sc = (IsNumeric)wed.getAttribute(WedResource.WED_NUM_DOORS);
       IsNumeric lookupOfs = (IsNumeric)wed.getAttribute(WedResource.WED_OFFSET_DOOR_TILEMAP_LOOKUP);
       if (so != null && sc != null && lookupOfs != null) {
         for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
@@ -691,7 +689,7 @@ public class TilesetRenderer extends RenderCanvas
             boolean isClosed = ((IsNumeric)door.getAttribute(Door.WED_DOOR_IS_DOOR)).getValue() == 1;
             final int tileSize = 2;
             int tileIdx = ((IsNumeric)door.getAttribute(Door.WED_DOOR_TILEMAP_LOOKUP_INDEX)).getValue();
-            int tileCount = ((SectionCount)door.getAttribute(Door.WED_DOOR_NUM_TILEMAP_INDICES)).getValue();
+            int tileCount = ((IsNumeric)door.getAttribute(Door.WED_DOOR_NUM_TILEMAP_INDICES)).getValue();
             if (tileCount < 0) tileCount = 0;
             int[] indices = new int[tileCount];
             for (int j = 0; j < tileCount; j++) {
@@ -1135,7 +1133,7 @@ public class TilesetRenderer extends RenderCanvas
         // storing tile information
         tilesX = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
         tilesY = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_HEIGHT)).getValue();
-        int mapOfs = ((SectionOffset)ovl.getAttribute(Overlay.WED_OVERLAY_OFFSET_TILEMAP)).getValue();
+        int mapOfs = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_OFFSET_TILEMAP)).getValue();
         int idxOfs = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_OFFSET_TILEMAP_LOOKUP)).getValue();
         int tileCount = tilesX * tilesY;
         for (int i = 0, curOfs = mapOfs; i < tileCount; i++) {

@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
 import org.infinity.resource.AbstractStruct;
@@ -64,7 +65,7 @@ public final class Transition extends AbstractStruct implements AddRemovable, Tr
   public int getActionIndex()
   {
     if (getFlag().isFlagSet(2)) {
-      return ((DecNumber)getAttribute(DLG_TRANS_ACTION_INDEX, false)).getValue();
+      return ((IsNumeric)getAttribute(DLG_TRANS_ACTION_INDEX, false)).getValue();
     } else {
       return -1;
     }
@@ -87,7 +88,7 @@ public final class Transition extends AbstractStruct implements AddRemovable, Tr
 
   public int getNextDialogState()
   {
-    return ((DecNumber)getAttribute(DLG_TRANS_NEXT_DIALOG_STATE, false)).getValue();
+    return ((IsNumeric)getAttribute(DLG_TRANS_NEXT_DIALOG_STATE, false)).getValue();
   }
 
   public int getNumber()
@@ -98,7 +99,7 @@ public final class Transition extends AbstractStruct implements AddRemovable, Tr
   public int getTriggerIndex()
   {
     if (getFlag().isFlagSet(1)) {
-      return ((DecNumber)getAttribute(DLG_TRANS_TRIGGER_INDEX, false)).getValue();
+      return ((IsNumeric)getAttribute(DLG_TRANS_TRIGGER_INDEX, false)).getValue();
     } else {
       return -1;
     }

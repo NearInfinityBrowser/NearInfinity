@@ -15,6 +15,7 @@ import javax.swing.ImageIcon;
 import javax.swing.tree.TreeNode;
 
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.SectionCount;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.icon.Icons;
@@ -124,8 +125,8 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
   private int getAttribute(String attrName)
   {
     final StructEntry entry = getDialog().getAttribute(attrName, false);
-    if (entry instanceof SectionCount) {
-      return ((SectionCount)entry).getValue();
+    if (entry instanceof IsNumeric) {
+      return ((IsNumeric)entry).getValue();
     }
     return 0;
   }

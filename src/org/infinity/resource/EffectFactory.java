@@ -766,7 +766,7 @@ public final class EffectFactory
     if (struct != null) {
       EffectType effType = (EffectType)getEntry(struct, EffectEntry.IDX_OPCODE);
       if (effType != null) {
-        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        int opcode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         switch (opcode) {
           case 1: // Modify attacks per round
             return updateOpcode1(struct);
@@ -799,7 +799,7 @@ public final class EffectFactory
   {
     if (struct != null) {
       if (Profile.isEnhancedEdition()) {
-        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        int opcode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 1) {
           int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
           if (param2 == 2) {  // Set % of
@@ -824,7 +824,7 @@ public final class EffectFactory
       if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 ||
           Profile.isEnhancedEdition() || (boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX)) {
         boolean isV1 = (getEntry(struct, EffectEntry.IDX_OPCODE).getSize() == 2);
-        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        int opcode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
         if (opcode == 15) {
           if (isV1 && param2 == 3) {
@@ -847,7 +847,7 @@ public final class EffectFactory
   {
     if (struct != null) {
       if (Profile.isEnhancedEdition()) {
-        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        int opcode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 23) {
           int special = ((IsNumeric)getEntry(struct, EffectEntry.IDX_SPECIAL)).getValue();
           if (special == 0 ) {
@@ -878,7 +878,7 @@ public final class EffectFactory
       if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2 ||
           Profile.isEnhancedEdition() || (boolean)Profile.getProperty(Profile.Key.IS_GAME_TOBEX)) {
         boolean isV1 = (getEntry(struct, EffectEntry.IDX_OPCODE).getSize() == 2);
-        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        int opcode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
         if (opcode == 44) {
           if (isV1 && param2 == 3) {
@@ -901,7 +901,7 @@ public final class EffectFactory
   {
     if (struct != null) {
       if (Profile.isEnhancedEdition()) {
-        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        int opcode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 78) {
           int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
           switch (param2) {
@@ -929,7 +929,7 @@ public final class EffectFactory
   {
     if (struct != null) {
       if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
-        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        int opcode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 232) {
           int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
           switch (param2) {
@@ -964,7 +964,7 @@ public final class EffectFactory
   {
     if (struct != null) {
       if (Profile.isEnhancedEdition()) {
-        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        int opcode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 233) {
           boolean signed = ((MultiNumber)getEntry(struct, EffectEntry.IDX_PARAM1)).isSigned();
           int mode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2B)).getValue();
@@ -986,7 +986,7 @@ public final class EffectFactory
     boolean retVal = false;
     if (struct != null) {
       if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
-        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        int opcode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 319) {
           boolean isEEex = Profile.getProperty(Profile.Key.IS_GAME_EEEX);
           if (isEEex) {
@@ -1030,7 +1030,7 @@ public final class EffectFactory
   {
     if (struct != null) {
       if (Profile.isEnhancedEdition()) {
-        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        int opcode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 328) {
           int special = ((IsNumeric)getEntry(struct, EffectEntry.IDX_SPECIAL)).getValue();
           if (special == 1 && ResourceFactory.resourceExists("SPLSTATE.IDS")) {
@@ -1054,7 +1054,7 @@ public final class EffectFactory
   {
     if (struct != null) {
       if (Profile.isEnhancedEdition()) {
-        int opcode = ((EffectType)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
+        int opcode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 342) {
           int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
           StructEntry newEntry = null;

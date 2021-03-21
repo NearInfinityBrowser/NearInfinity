@@ -977,8 +977,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)are.getAttribute(ARE_OFFSET_ACTORS, false);
-        DecNumber cnt = (DecNumber)are.getAttribute(ARE_NUM_ACTORS, false);
+        IsNumeric ofs = (IsNumeric)are.getAttribute(ARE_OFFSET_ACTORS, false);
+        IsNumeric cnt = (IsNumeric)are.getAttribute(ARE_NUM_ACTORS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           actors = new Actor[cnt.getValue()];
           for (int idx = 0; idx < actors.length; idx++) {
@@ -988,8 +988,8 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
           actors = new Actor[0];
         }
 
-        ofs = (DecNumber)are.getAttribute(ARE_OFFSET_ANIMATIONS, false);
-        cnt = (DecNumber)are.getAttribute(ARE_NUM_ANIMATIONS, false);
+        ofs = (IsNumeric)are.getAttribute(ARE_OFFSET_ANIMATIONS, false);
+        cnt = (IsNumeric)are.getAttribute(ARE_NUM_ANIMATIONS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           animations = new Animation[cnt.getValue()];
           for (int idx = 0; idx < animations.length; idx++) {
@@ -999,15 +999,15 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
           animations = new Animation[0];
         }
 
-        ofs = (DecNumber)are.getAttribute(ARE_OFFSET_CONTAINERS, false);
-        cnt = (DecNumber)are.getAttribute(ARE_NUM_CONTAINERS, false);
+        ofs = (IsNumeric)are.getAttribute(ARE_OFFSET_CONTAINERS, false);
+        cnt = (IsNumeric)are.getAttribute(ARE_NUM_CONTAINERS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           items = new Item[cnt.getValue()][];
           for (int i = 0; i < cnt.getValue(); i++) {
             String label = String.format(SearchOptions.getResourceName(SearchOptions.ARE_Container), i);
             Container container = (Container)are.getAttribute(label, false);
             if (container != null) {
-              DecNumber cnt2 = (DecNumber)container.getAttribute(ARE_NUM_ITEMS, false);
+              IsNumeric cnt2 = (IsNumeric)container.getAttribute(ARE_NUM_ITEMS, false);
               if (cnt2 != null && cnt2.getValue() > 0) {
                 items[i] = new Item[cnt2.getValue()];
                 for (int j = 0; j < cnt2.getValue(); j++) {

@@ -11,6 +11,7 @@ import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HashBitmap;
 import org.infinity.datatype.IdsBitmap;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ProRef;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.Unknown;
@@ -114,8 +115,8 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable, U
   public boolean valueUpdated(UpdateEvent event)
   {
     boolean retVal = false;
-    if (event.getSource() instanceof DecNumber && ((DecNumber)event.getSource()).getName().equals(PRO_AREA_RAY_COUNT)) {
-      int rayCount = ((DecNumber)event.getSource()).getValue();
+    if (event.getSource() instanceof IsNumeric && ((StructEntry)event.getSource()).getName().equals(PRO_AREA_RAY_COUNT)) {
+      int rayCount = ((IsNumeric)event.getSource()).getValue();
       AbstractStruct struct = event.getStructure();
       if (rayCount > 0) {
         StructEntry field = struct.getField(null, 0x224);

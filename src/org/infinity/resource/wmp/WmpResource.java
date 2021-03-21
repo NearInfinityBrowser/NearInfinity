@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 import javax.swing.JComponent;
 import javax.swing.JTabbedPane;
 
-import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
 import org.infinity.datatype.TextString;
@@ -82,7 +82,7 @@ public final class WmpResource extends AbstractStruct implements Resource, HasVi
       case 0:
       {
         JTabbedPane tabbedPane = new JTabbedPane();
-        int count = ((DecNumber)getAttribute(WMP_NUM_MAPS)).getValue();
+        int count = ((IsNumeric)getAttribute(WMP_NUM_MAPS)).getValue();
         for (int i = 0; i < count; i++) {
           MapEntry entry = (MapEntry)getAttribute(MapEntry.WMP_MAP + " " + i);
           tabbedPane.addTab(entry.getName(), entry.getViewerTab(0));

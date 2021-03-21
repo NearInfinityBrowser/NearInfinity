@@ -46,8 +46,8 @@ import javax.swing.event.TableModelListener;
 
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.IsReference;
 import org.infinity.datatype.IsTextual;
-import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.RenderCanvas;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewerUtil;
@@ -1428,7 +1428,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
             // 2. drawing control
             if (isVisible()) {
               // loading BAM
-              String resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_BTN_RESREF)).getResourceName();
+              String resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_BTN_RESREF)).getResourceName();
               // getting specified cycle index
               int cycleIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_BTN_ANIMATION_INDEX)).getValue();
               int frameIdx = 0;
@@ -1536,7 +1536,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2. drawing control
             // 2.1. drawing background image
-            String resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_SLD_BACKGROUND)).getResourceName();
+            String resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_SLD_BACKGROUND)).getResourceName();
             MosDecoder mos = MosDecoder.loadMos(ResourceFactory.getResourceEntry(resName));
             if (mos != null) {
               if (mos instanceof MosV1Decoder) {
@@ -1547,7 +1547,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2.2. drawing control elements
             if (isVisible()) {
-              resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_SLD_KNOB)).getResourceName();
+              resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_SLD_KNOB)).getResourceName();
               BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
               if (bam != null) {
                 BamControl bamCtrl = bam.createControl();
@@ -1645,7 +1645,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2. drawing control
             // 2.1. drawing background image (is it actually used?)
-            String resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_TF_BACKGROUND_1)).getResourceName();
+            String resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_TF_BACKGROUND_1)).getResourceName();
             if (!isResourceIgnored(resName)) {
               MosDecoder mos = MosDecoder.loadMos(ResourceFactory.getResourceEntry(resName));
               if (mos != null) {
@@ -1663,7 +1663,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
               String text = ((IsTextual)getResource().getAttribute(Control.CHU_CONTROL_TF_TEXT)).getText();
               if (!text.isEmpty()) {
-                resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_TF_FONT)).getResourceName();
+                resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_TF_FONT)).getResourceName();
                 resName = resName.toUpperCase(Locale.ENGLISH).replace(".FNT", ".BAM");
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
@@ -1681,7 +1681,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
               // 2.3. drawing caret
               if (isCaretEnabled()) {
-                resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_TF_CARET)).getResourceName();
+                resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_TF_CARET)).getResourceName();
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
                   BamControl bamCtrl = bam.createControl();
@@ -1815,7 +1815,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
             if (isVisible()) {
               String text = StringTable.getStringRef(((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_LBL_TEXT)).getValue());
               if (text != null) {
-                String resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_LBL_FONT)).getResourceName();
+                String resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_LBL_FONT)).getResourceName();
                 resName = resName.toUpperCase(Locale.ENGLISH).replace(".FNT", ".BAM");
                 BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
                 if (bam != null) {
@@ -1920,7 +1920,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
 
             // 2. drawing control
             if (isVisible()) {
-              String resName = ((ResourceRef)getResource().getAttribute(Control.CHU_CONTROL_SB_GRAPHICS)).getResourceName();
+              String resName = ((IsReference)getResource().getAttribute(Control.CHU_CONTROL_SB_GRAPHICS)).getResourceName();
               BamDecoder bam = BamDecoder.loadBam(ResourceFactory.getResourceEntry(resName));
               if (bam != null) {
                 int cycleIdx = ((IsNumeric)getResource().getAttribute(Control.CHU_CONTROL_SB_ANIMATION_INDEX)).getValue();
