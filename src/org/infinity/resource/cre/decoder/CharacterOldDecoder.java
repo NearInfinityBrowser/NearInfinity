@@ -24,6 +24,7 @@ import org.infinity.resource.cre.decoder.util.ItemInfo;
 import org.infinity.resource.cre.decoder.util.SegmentDef;
 import org.infinity.resource.cre.decoder.util.SeqDef;
 import org.infinity.resource.cre.decoder.util.Sequence;
+import org.infinity.resource.cre.decoder.util.SpriteUtils;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapSection;
@@ -33,7 +34,7 @@ import org.infinity.util.tuples.Couple;
  * Creature animation decoder for processing type 5000/6000 (character_old) animations.
  * Available ranges: [5400,54ff], [5600,5fff], [6400,64ff], [6600,6fff]
  */
-public class CharacterOldDecoder extends ArmoredBaseDecoder
+public class CharacterOldDecoder extends CharacterBaseDecoder
 {
   /** The animation type associated with this class definition. */
   public static final AnimationInfo.Type ANIMATION_TYPE = AnimationInfo.Type.CHARACTER_OLD;

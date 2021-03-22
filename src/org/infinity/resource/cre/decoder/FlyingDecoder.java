@@ -14,6 +14,7 @@ import org.infinity.resource.cre.decoder.util.AnimationInfo;
 import org.infinity.resource.cre.decoder.util.DirDef;
 import org.infinity.resource.cre.decoder.util.SeqDef;
 import org.infinity.resource.cre.decoder.util.Sequence;
+import org.infinity.resource.cre.decoder.util.SpriteUtils;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapSection;

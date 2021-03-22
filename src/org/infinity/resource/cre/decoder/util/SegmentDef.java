@@ -7,7 +7,6 @@ package org.infinity.resource.cre.decoder.util;
 import java.util.EnumMap;
 import java.util.Objects;
 
-import org.infinity.resource.cre.decoder.SpriteUtils;
 import org.infinity.resource.key.ResourceEntry;
 
 /**

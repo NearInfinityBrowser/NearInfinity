@@ -25,6 +25,7 @@ import org.infinity.resource.cre.decoder.util.Direction;
 import org.infinity.resource.cre.decoder.util.SegmentDef;
 import org.infinity.resource.cre.decoder.util.SeqDef;
 import org.infinity.resource.cre.decoder.util.Sequence;
+import org.infinity.resource.cre.decoder.util.SpriteUtils;
 import org.infinity.resource.graphics.BamV1Decoder;
 import org.infinity.resource.graphics.BamV1Decoder.BamV1Control;
 import org.infinity.resource.graphics.BamV1Decoder.BamV1FrameEntry;

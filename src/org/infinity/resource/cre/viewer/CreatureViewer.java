@@ -24,7 +24,7 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
-import org.infinity.resource.cre.decoder.SpriteUtils;
+import org.infinity.resource.cre.decoder.util.SpriteUtils;
 
 /**
  * The Creature Viewer implements a highly customizable viewer for creature animations.

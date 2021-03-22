@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package org.infinity.resource.cre.decoder;
+package org.infinity.resource.cre.decoder.util;
 
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;

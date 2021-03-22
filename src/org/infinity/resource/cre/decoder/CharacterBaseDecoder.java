@@ -20,7 +20,7 @@ import org.infinity.util.Misc;
 /**
  * Common base for processing creature animations with different armor levels.
  */
-public abstract class ArmoredBaseDecoder extends SpriteDecoder
+public abstract class CharacterBaseDecoder extends SpriteDecoder
 {
   public static final DecoderAttribute KEY_CAN_LIE_DOWN       = DecoderAttribute.with("can_lie_down", DecoderAttribute.DataType.BOOLEAN);
   public static final DecoderAttribute KEY_DOUBLE_BLIT        = DecoderAttribute.with("double_blit", DecoderAttribute.DataType.BOOLEAN);
@@ -35,12 +35,12 @@ public abstract class ArmoredBaseDecoder extends SpriteDecoder
     BOW, CROSSBOW, SLING
   }
 
-  public ArmoredBaseDecoder(AnimationInfo.Type type, int animationId, IniMap ini) throws Exception
+  public CharacterBaseDecoder(AnimationInfo.Type type, int animationId, IniMap ini) throws Exception
   {
     super(type, animationId, ini);
   }
 
-  public ArmoredBaseDecoder(AnimationInfo.Type type, CreResource cre) throws Exception
+  public CharacterBaseDecoder(AnimationInfo.Type type, CreResource cre) throws Exception
   {
     super(type, cre);
   }
