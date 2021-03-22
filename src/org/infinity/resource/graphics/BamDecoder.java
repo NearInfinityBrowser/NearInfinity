@@ -4,6 +4,8 @@
 
 package org.infinity.resource.graphics;
 
+import java.awt.AlphaComposite;
+import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Point;
@@ -26,6 +28,7 @@ public abstract class BamDecoder
   private final ResourceEntry bamEntry;
 
   private Type type;
+  private Composite composite;
 
   /**
    * Returns whether the specified resource entry points to a valid BAM resource.
@@ -154,11 +157,30 @@ public abstract class BamDecoder
   /** Draws the specified frame onto the canvas. */
   public abstract void frameGet(BamControl control, int frameIdx, Image canvas);
 
+  /**
+   * Returns the {@link Composite} instance that is used to draw the BAM frame onto a canvas.
+   * <p>By default the {@link AlphaComposite#SrcOver} composite object is used.
+   */
+  public Composite getComposite()
+  {
+    return (composite != null) ? composite : AlphaComposite.SrcOver;
+  }
+
+  /**
+   * Sets a {@link Composite} instance that is used to draw the BAM frame onto a canvas.
+   * Specify {@code null} to use the default {@code Composite}.
+   */
+  public void setComposite(Composite comp)
+  {
+    this.composite = comp;
+  }
+
 
   protected BamDecoder(ResourceEntry bamEntry)
   {
     this.bamEntry = bamEntry;
     this.type = Type.INVALID;
+    this.composite = null;  // use default
   }
 
 

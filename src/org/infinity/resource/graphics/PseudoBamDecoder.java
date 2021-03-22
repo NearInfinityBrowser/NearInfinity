@@ -7,7 +7,6 @@ package org.infinity.resource.graphics;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
@@ -589,8 +588,11 @@ public class PseudoBamDecoder extends BamDecoder
 
       // rendering resulting image onto the canvas if needed
       if (dstImage != canvas) {
-        Graphics g = canvas.getGraphics();
+        Graphics2D g = (Graphics2D)canvas.getGraphics();
         try {
+          if (getComposite() != null) {
+            g.setComposite(getComposite());
+          }
           g.drawImage(dstImage, 0, 0, null);
         } finally {
           g.dispose();

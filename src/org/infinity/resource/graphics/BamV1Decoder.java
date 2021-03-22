@@ -5,7 +5,7 @@
 package org.infinity.resource.graphics;
 
 import java.awt.Dimension;
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -325,8 +325,11 @@ public class BamV1Decoder extends BamDecoder
 
       // rendering resulting image onto the canvas if needed
       if (image != canvas) {
-        Graphics g = canvas.getGraphics();
+        Graphics2D g = (Graphics2D)canvas.getGraphics();
         try {
+          if (getComposite() != null) {
+            g.setComposite(getComposite());
+          }
           g.drawImage(image, 0, 0, null);
         } finally {
           g.dispose();
