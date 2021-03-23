@@ -29,7 +29,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
-import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -556,7 +555,7 @@ public class MediaPanel extends JPanel
     panelMain.add(new JPanel(), c);
 
     JScrollPane scrollMedia = new JScrollPane(panelMain);
-    scrollMedia.setBorder(new EtchedBorder());
+    scrollMedia.setBorder(panelMain.getBorder());
 
     setLayout(new BorderLayout());
     add(scrollMedia, BorderLayout.CENTER);

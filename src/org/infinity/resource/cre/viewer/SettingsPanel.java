@@ -22,7 +22,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.border.EtchedBorder;
 
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.Profile;
@@ -501,7 +500,7 @@ public class SettingsPanel extends JPanel
     panelMain.add(panelAttributes, c);
 
     JScrollPane scroll = new JScrollPane(panelMain);
-    scroll.setBorder(new EtchedBorder());
+    scroll.setBorder(panelMain.getBorder());
 
     setLayout(new BorderLayout());
     add(scroll, BorderLayout.CENTER);

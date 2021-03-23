@@ -123,20 +123,23 @@ public class CreatureViewer extends ChildFrame
 
     // *** CRE customization panel ***
     panelCreature = new CreatureControlPanel(this);
+    panelCreature.setBorder(new EtchedBorder());
 
     // *** Settings panel ***
     panelSettings = new SettingsPanel(this);
+    panelSettings.setBorder(new EtchedBorder());
 
     // *** Animation viewer panel ***
     panelCanvas = new RenderPanel(this);
 
     JPanel viewerPanel = new JPanel(new BorderLayout());
-    viewerPanel.add(panelCanvas, BorderLayout.CENTER);
     viewerPanel.setBorder(new EtchedBorder());
+    viewerPanel.add(panelCanvas, BorderLayout.CENTER);
 
     // *** Controls panel ***
     // sub panel for playback controls
     panelMedia = new MediaPanel(this);
+    panelMedia.setBorder(new EtchedBorder());
 
     // *** Top-level viewer panel ***
     JPanel viewerMainPanel = new JPanel(new BorderLayout());

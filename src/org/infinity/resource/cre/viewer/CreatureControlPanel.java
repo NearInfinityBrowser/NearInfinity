@@ -24,7 +24,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.border.EtchedBorder;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
@@ -459,7 +458,7 @@ public class CreatureControlPanel extends JPanel
     panelMain.add(pColumn4, c);
 
     JScrollPane scroll = new JScrollPane(panelMain);
-    scroll.setBorder(new EtchedBorder());
+    scroll.setBorder(panelMain.getBorder());
 
     setLayout(new BorderLayout());
     add(scroll, BorderLayout.CENTER);
