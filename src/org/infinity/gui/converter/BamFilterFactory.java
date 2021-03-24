@@ -21,6 +21,9 @@ public class BamFilterFactory
     FilterInfoList.add(new FilterInfo(BamFilterColorHSL.getFilterName(),
                                       BamFilterColorHSL.getFilterDesc(),
                                       BamFilterColorHSL.class));
+    FilterInfoList.add(new FilterInfo(BamFilterColorLab.getFilterName(),
+                                      BamFilterColorLab.getFilterDesc(),
+                                      BamFilterColorLab.class));
     FilterInfoList.add(new FilterInfo(BamFilterColorBalance.getFilterName(),
                                       BamFilterColorBalance.getFilterDesc(),
                                       BamFilterColorBalance.class));
