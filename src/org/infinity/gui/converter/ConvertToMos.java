@@ -75,7 +75,7 @@ public class ConvertToMos extends ChildFrame
   private JSpinner sPvrzIndex;
   private JLabel lPvrzInfo;
   private JComboBox<String> cbCompression;
-  private JCheckBox cbCompress, cbCloseOnExit;
+  private JCheckBox cbCompress, cbColorConvert, cbCloseOnExit;
   private SwingWorker<List<String>, Void> workerConvert;
   private WindowBlocker blocker;
 
@@ -85,13 +85,15 @@ public class ConvertToMos extends ChildFrame
    * @param img The source image to convert into a MOS resource.
    * @param mosFileName The name of the resulting MOS file.
    * @param compressed If {@code true}, converts into a compressed BAMC file.
+   * @param fastConvert If {@code true}, uses a fast but less accurate color reduction algorith.
    * @param result Returns more specific information about the conversion process. Data placed in the
    *               first item indicates success, data in the second item indicates failure.
    * @param showProgress Specify whether to show a progress monitor (needs a valid 'parent' parameter).
    * @return {@code true} if the conversion finished successfully, {@code false} otherwise.
    */
   public static boolean convertV1(Component parent, BufferedImage img, String mosFileName,
-                                  boolean compressed, List<String> result, boolean showProgress)
+                                  boolean compressed, boolean fastConvert, List<String> result,
+                                  boolean showProgress)
   {
     // checking parameters
     if (result == null) {
@@ -194,7 +196,8 @@ public class ConvertToMos extends ChildFrame
               if (palIndex != null) {
                 tileData[i] = (byte)(palIndex + 1);
               } else {
-                byte color = (byte)ColorConvert.nearestColorRGB(pixels[i], palette, true);
+                ColorConvert.ColorDistanceFunc colorFunc = fastConvert ? ColorConvert.COLOR_DISTANCE_ARGB : ColorConvert.COLOR_DISTANCE_CIE94;
+                byte color = (byte)ColorConvert.getNearestColor(pixels[i], palette, 0.0, colorFunc);
                 tileData[i] = (byte)(color + 1);
                 colorCache.put(pixels[i], color);
               }
@@ -768,13 +771,21 @@ public class ConvertToMos extends ChildFrame
     JPanel pOptionsV1 = new JPanel(new GridBagLayout());
     pOptionsV1.setBorder(BorderFactory.createTitledBorder("Options "));
     cbCompress = new JCheckBox("Compressed (MOSC)", false);
+    cbColorConvert = new JCheckBox("Fast conversion", false);
+    cbColorConvert.setToolTipText("Enable to use a faster but less accurate color reduction algorithm.");
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
     pOptionsV1.add(cbCompress, c);
     c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pOptionsV1.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 0, 0, 0), 0, 0);
+    pOptionsV1.add(cbColorConvert, c);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    pOptionsV1.add(new JPanel(), c);
+    c = ViewerUtil.setGBC(c, 0, 2, 2, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pOptionsV1.add(new JPanel(), c);
 
@@ -1013,10 +1024,11 @@ public class ConvertToMos extends ChildFrame
     // fetching remaining settings
     int pvrzIndex = getPvrzIndex(sPvrzIndex.getValue());
     boolean isMOSC = cbCompress.isSelected();
+    boolean isFastConversion = cbColorConvert.isSelected();
 
     // converting
     if (tabPane.getSelectedIndex() == 0) {
-      convertV1(this, srcImage, tfOutputV1.getText(), isMOSC, result, true);
+      convertV1(this, srcImage, tfOutputV1.getText(), isMOSC, isFastConversion, result, true);
     } else if (tabPane.getSelectedIndex() == 1) {
       convertV2(this, srcImage, tfOutputV2.getText(), dxtType, pvrzIndex, result, true);
     } else {

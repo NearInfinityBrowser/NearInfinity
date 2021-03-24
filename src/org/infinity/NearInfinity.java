@@ -93,6 +93,7 @@ import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.bcs.Signatures;
 import org.infinity.resource.cre.decoder.util.ItemInfo;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
+import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;
@@ -1045,6 +1046,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     StringTable.resetAll();
     ProRef.clearCache();
     Signatures.clearCache();
+    ColorConvert.clearCache();
     SpriteUtils.clearCache();
     ItemInfo.clearCache();
   }
