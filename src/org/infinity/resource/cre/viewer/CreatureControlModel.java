@@ -9,8 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-import javax.swing.JToggleButton.ToggleButtonModel;
-
 import org.infinity.resource.Profile;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
@@ -18,7 +16,7 @@ import org.infinity.resource.cre.decoder.util.CreatureInfo;
 import org.infinity.resource.cre.decoder.util.ItemInfo;
 import org.infinity.resource.cre.decoder.util.ItemInfo.ItemPredicate;
 import org.infinity.resource.cre.viewer.ColorSelectionModel.ColorEntry;
-import org.infinity.resource.cre.viewer.CreatureAllegianceModel.AllegianceEntry;
+import org.infinity.resource.cre.viewer.CreatureStatusModel.StatusEntry;
 import org.infinity.resource.cre.viewer.CreatureAnimationModel.AnimateEntry;
 import org.infinity.resource.cre.viewer.CreatureSelectionModel.CreatureItem;
 import org.infinity.resource.key.ResourceEntry;
@@ -34,12 +32,11 @@ public class CreatureControlModel
 
   private CreatureSelectionModel modelCreSelection;
   private CreatureAnimationModel modelCreAnimation;
-  private CreatureAllegianceModel modelCreAllegiance;
+  private CreatureStatusModel modelCreAllegiance;
   private ItemSelectionModel modelItemHelmet;
   private ItemSelectionModel modelItemArmor;
   private ItemSelectionModel modelItemShield;
   private ItemSelectionModel modelItemWeapon;
-  private ToggleButtonModel modelPanic;
   private int hashCreature;
   private boolean canApply, canReset;
 
@@ -231,15 +228,9 @@ public class CreatureControlModel
   }
 
   /** Returns the model of the creature allegiance combobox. */
-  public CreatureAllegianceModel getModelAllegiance()
+  public CreatureStatusModel getModelAllegiance()
   {
     return modelCreAllegiance;
-  }
-
-  /** Returns the model of the panic checkbox. */
-  public ToggleButtonModel getModelPanic()
-  {
-    return modelPanic;
   }
 
   /** Returns the model of the helmet combobox. */
@@ -319,10 +310,10 @@ public class CreatureControlModel
    * Returns the {@code AnimateEntry} instance of the currently selected creature allegiance.
    * Returns {@code null} if entry is not available.
    */
-  public AllegianceEntry getSelectedAllegiance()
+  public StatusEntry getSelectedAllegiance()
   {
-    if (modelCreAllegiance != null && modelCreAllegiance.getSelectedItem() instanceof AllegianceEntry) {
-      return (AllegianceEntry)modelCreAllegiance.getSelectedItem();
+    if (modelCreAllegiance != null && modelCreAllegiance.getSelectedItem() instanceof StatusEntry) {
+      return (StatusEntry)modelCreAllegiance.getSelectedItem();
     } else {
       return null;
     }
@@ -408,9 +399,6 @@ public class CreatureControlModel
       // setting allegiance
       int ea = creInfo.getAllegiance();
       setSelectedAllegiance(ea);
-
-      // resetting panic option
-      getModelPanic().setSelected(false);
 
       // setting equipped helmet
       ItemInfo helmet = creInfo.getEquippedHelmet();
@@ -599,7 +587,7 @@ public class CreatureControlModel
     // perform lazy initialization: time-consuming initializations are performed on demand
     modelCreSelection = new CreatureSelectionModel(false);
     modelCreAnimation = new CreatureAnimationModel();
-    modelCreAllegiance = new CreatureAllegianceModel();
+    modelCreAllegiance = new CreatureStatusModel();
     modelItemHelmet = new ItemSelectionModel(ItemInfo.FILTER_HELMET, false);
     modelItemArmor = new ItemSelectionModel(ItemInfo.FILTER_ARMOR, false);
     modelItemShield = new ItemSelectionModel(ItemInfo.FILTER_SHIELD.or(ItemInfo.FILTER_WEAPON_MELEE_LEFT_HANDED), false);
@@ -607,6 +595,5 @@ public class CreatureControlModel
     for (int i = 0; i < 7; i++) {
       colorModels.add(new ColorSelectionModel());
     }
-    modelPanic = new ToggleButtonModel();
   }
 }

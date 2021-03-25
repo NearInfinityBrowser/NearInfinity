@@ -5,8 +5,6 @@
 package org.infinity.resource.cre.viewer;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -14,21 +12,37 @@ import java.util.stream.IntStream;
 import javax.swing.AbstractListModel;
 import javax.swing.ComboBoxModel;
 
-import org.infinity.util.IdsMap;
-import org.infinity.util.IdsMapCache;
-import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Misc;
 
 /**
  * {@code ComboBoxModel} for the creature allegiance combo box used in the Creature Animation Browser.
  */
-public class CreatureAllegianceModel extends AbstractListModel<CreatureAllegianceModel.AllegianceEntry>
-    implements ComboBoxModel<CreatureAllegianceModel.AllegianceEntry>
+public class CreatureStatusModel extends AbstractListModel<CreatureStatusModel.StatusEntry>
+    implements ComboBoxModel<CreatureStatusModel.StatusEntry>
 {
-  private final List<AllegianceEntry> eaList = new ArrayList<>();
+  /** Available creature status entries. */
+  public enum Status {
+    /** Indicates green selection circle. */
+    FRIENDLY(2),
+    /** Indicates cyan selection circle. */
+    NEUTRAL(128),
+    /** Indicates red selection circle. */
+    HOSTILE(255),
+    /** Indicates yellow selection circle. */
+    PANICKED(-1);
+
+    private final int id;
+    private Status(int id) { this.id = id; }
+
+    /** Returns the numeric id associated with the enum. */
+    public int getValue() { return id; }
+  }
+
+  private final List<StatusEntry> statusList = new ArrayList<>();
 
   private Object selectedItem;
 
-  public CreatureAllegianceModel()
+  public CreatureStatusModel()
   {
     super();
     init();
@@ -41,26 +55,26 @@ public class CreatureAllegianceModel extends AbstractListModel<CreatureAllegianc
 
   /**
    * Returns the index-position of the specified object in the list.
-   * @param anItem a {@code AllegianceEntry} object, {@code Number} object or {@code String} specifying an allegiance name.
+   * @param anItem a {@code StatusEntry} object, {@code Number} object or {@code String} specifying an allegiance name.
    * @return an int representing the index position, where 0 is the first position. Returns -1
    *         if the item could not be found in the list.
    */
   public int getIndexOf(Object anItem)
   {
-    if (anItem instanceof AllegianceEntry) {
-      return eaList.indexOf(anItem);
+    if (anItem instanceof StatusEntry) {
+      return statusList.indexOf(anItem);
     } else if (anItem instanceof Number) {
       final int eaValue = ((Number)anItem).intValue();
       return IntStream
-          .range(0, eaList.size())
-          .filter(i -> eaList.get(i).value == eaValue)
+          .range(0, statusList.size())
+          .filter(i -> statusList.get(i).getStatus().getValue() == eaValue)
           .findAny()
           .orElse(-1);
     } else if (anItem != null) {
       final String eaName = anItem.toString().trim();
       return IntStream
-          .range(0, eaList.size())
-          .filter(i -> eaName.equalsIgnoreCase(eaList.get(i).name))
+          .range(0, statusList.size())
+          .filter(i -> eaName.equalsIgnoreCase(statusList.get(i).getName()))
           .findAny()
           .orElse(-1);
     }
@@ -70,9 +84,9 @@ public class CreatureAllegianceModel extends AbstractListModel<CreatureAllegianc
   /** Empties the list. */
   public void removeAllElements()
   {
-    if (!eaList.isEmpty()) {
-      int oldSize = eaList.size();
-      eaList.clear();
+    if (!statusList.isEmpty()) {
+      int oldSize = statusList.size();
+      statusList.clear();
       selectedItem = null;
       if (oldSize > 0) {
         fireIntervalRemoved(this, 0, oldSize - 1);
@@ -87,14 +101,14 @@ public class CreatureAllegianceModel extends AbstractListModel<CreatureAllegianc
   @Override
   public int getSize()
   {
-    return eaList.size();
+    return statusList.size();
   }
 
   @Override
-  public AllegianceEntry getElementAt(int index)
+  public StatusEntry getElementAt(int index)
   {
-    if (index >= 0 && index < eaList.size()) {
-      return eaList.get(index);
+    if (index >= 0 && index < statusList.size()) {
+      return statusList.get(index);
     } else {
       return null;
     }
@@ -126,48 +140,43 @@ public class CreatureAllegianceModel extends AbstractListModel<CreatureAllegianc
   {
     removeAllElements();
 
-    IdsMap map = IdsMapCache.get("EA.IDS");
-    if (map != null) {
-      for (Iterator<IdsMapEntry> iter = map.getAllValues().iterator(); iter.hasNext(); ) {
-        IdsMapEntry entry = iter.next();
-        eaList.add(new AllegianceEntry(entry));
-      }
-      Collections.sort(eaList);
+    for (final Status status : Status.values()) {
+      statusList.add(new StatusEntry(status));
     }
-    if (!eaList.isEmpty()) {
-      fireIntervalAdded(this, 0, eaList.size() - 1);
-    }
+    fireIntervalAdded(this, 0, statusList.size() - 1);
 
     setSelectedItem(getElementAt(0));
   }
 
 //-------------------------- INNER CLASSES --------------------------
 
-  public static class AllegianceEntry implements Comparable<AllegianceEntry>
+  public static class StatusEntry
   {
-    private final int value;
+    private final Status status;
     private final String name;
 
-    public AllegianceEntry(IdsMapEntry eaEntry)
+    public StatusEntry(Status status)
     {
-      this.value = (int)Objects.requireNonNull(eaEntry).getID();
-      this.name = eaEntry.getSymbol();
+      this.status = Objects.requireNonNull(status);
+      this.name = Misc.prettifySymbol(this.status.toString());
     }
 
-    public int getValue() { return value; }
+    /** Returns the status enum. */
+    public Status getStatus() { return status; }
 
+    /**
+     * Returns a typical EA.IDS value representing the status.
+     * Returns negative values for non-allegiance status types.
+     */
+    public int getValue() { return status.getValue(); }
+
+    /** Returns the descriptive name of the status. */
     public String getName() { return name; }
 
     @Override
     public String toString()
     {
-      return value + " - " + name;
-    }
-
-    @Override
-    public int compareTo(AllegianceEntry o)
-    {
-      return value - o.value;
+      return getName();
     }
   }
 }
