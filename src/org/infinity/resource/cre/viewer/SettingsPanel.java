@@ -12,9 +12,11 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -26,6 +28,7 @@ import javax.swing.JScrollPane;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.Profile;
 import org.infinity.resource.cre.viewer.bg.Backgrounds;
+import org.infinity.resource.cre.viewer.bg.Backgrounds.BackgroundInfo;
 import org.infinity.resource.cre.viewer.icon.Icons;
 
 /**
@@ -33,6 +36,16 @@ import org.infinity.resource.cre.viewer.icon.Icons;
  */
 public class SettingsPanel extends JPanel
 {
+  // Available render canvas backgrounds
+  public static final List<Backgrounds.BackgroundInfo> backgroundList = new ArrayList<Backgrounds.BackgroundInfo>() {{
+    add(Backgrounds.BG_COLOR_NONE);
+    add(Backgrounds.BG_WILDERNESS_BG);    add(Backgrounds.BG_CAVE_BG);
+    add(Backgrounds.BG_CITY_NIGHT_SOD);   add(Backgrounds.BG_WILDERNESS_IWD);
+    add(Backgrounds.BG_CITY_PST);         add(Backgrounds.BG_DUNGEON_PST);
+    add(Backgrounds.BG_COLOR_WHITE);      add(Backgrounds.BG_COLOR_BLACK);
+    add(Backgrounds.BG_COLOR_LIGHT_GRAY); add(Backgrounds.BG_COLOR_GRAY);
+  }};
+
   // Available items for zoom selection list
   private static final Vector<ItemString<Integer>> zoomList = new Vector<ItemString<Integer>>() {{
     add(ItemString.with("50 %", 50));
@@ -86,6 +99,15 @@ public class SettingsPanel extends JPanel
   private JCheckBox cbFiltering, cbBlending, cbTranslucent, cbSelectionCircle, cbOrnateSelectionCircle, cbPersonalSpace,
                     cbPaletteReplacementEnabled, cbShowAvatar, cbShowHelmet, cbShowShield, cbShowWeapon, cbShowBorders;
   private AttributesPanel panelAttributes;
+
+  /** Returns a list of background info instances available for the specified game. */
+  public static List<BackgroundInfo> getBackgrounds(Profile.Game game)
+  {
+    return backgroundList
+        .stream()
+        .filter(bi -> bi.getGames().contains((game != null) ? game : Profile.getGame()))
+        .collect(Collectors.toList());
+  }
 
   public SettingsPanel(CreatureViewer viewer)
   {
@@ -359,9 +381,9 @@ public class SettingsPanel extends JPanel
     cbFrameRate.addActionListener(listeners);
 
     JLabel l3 = new JLabel("Background:");
-    List<Backgrounds.BackgroundInfo> bgList = Backgrounds.getBackgrounds(Profile.getGame());
+    List<Backgrounds.BackgroundInfo> bgList = getBackgrounds(Profile.getGame());
     cbBackground = new JComboBox<Backgrounds.BackgroundInfo>(bgList.toArray(new Backgrounds.BackgroundInfo[bgList.size()]));
-    cbBackground.setPrototypeDisplayValue(Backgrounds.BackgroundList.get(1));
+    cbBackground.setPrototypeDisplayValue(backgroundList.get(1));
     cbBackground.setSelectedIndex(indexBackground);
     cbBackground.addActionListener(listeners);
 

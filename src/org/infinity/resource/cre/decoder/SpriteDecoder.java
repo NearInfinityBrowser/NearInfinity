@@ -1698,7 +1698,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     Color c = null;
     if (value < 0) {
       // treat as panic
-      c = new Color(0xffff40, false);
+      c = new Color(0xffff20, false);
     } else if (value >= 2 && value <= 4 || value == 201) {
       // ally
       c = new Color(0x20ff20, false);
@@ -1707,7 +1707,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       c = new Color(0xff2020, false);
     } else {
       // neutral
-      c = new Color(0x40ffff, false);
+      c = new Color(0x20ffff, false);
     }
 
     return c;

@@ -8,11 +8,8 @@ import java.awt.Color;
 import java.awt.Image;
 import java.awt.Point;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 import javax.swing.UIManager;
@@ -24,15 +21,24 @@ import org.infinity.resource.Profile;
  */
 public final class Backgrounds
 {
-  public static final BackgroundInfo BG_WILDERNESS    = new BackgroundInfo("Sword Coast wilderness tileset", new Color(0x282f12),
-                                                                           "bg_wilderness.jpg", new Point(640, 632),
-                                                                           EnumSet.complementOf(EnumSet.of(Profile.Game.PST, Profile.Game.PSTEE)));
-  public static final BackgroundInfo BG_CAVE          = new BackgroundInfo("Cave tileset", new Color(0x010101),
-                                                                           "bg_cave.jpg", new Point(640, 554),
-                                                                           EnumSet.complementOf(EnumSet.of(Profile.Game.PST, Profile.Game.PSTEE)));
-  public static final BackgroundInfo BG_CITY_PST      = new BackgroundInfo("Sigil city tileset", new Color(0x494131),
-                                                                           "pst_city.jpg", new Point(640, 580),
-                                                                           EnumSet.of(Profile.Game.PST, Profile.Game.PSTEE));
+  public static final BackgroundInfo BG_WILDERNESS_BG   = new BackgroundInfo("Wilderness (BG2)", new Color(0x282f12),
+                                                                             "bg_wilderness.jpg", new Point(640, 632),
+                                                                             EnumSet.complementOf(EnumSet.of(Profile.Game.PST, Profile.Game.PSTEE)));
+  public static final BackgroundInfo BG_CAVE_BG         = new BackgroundInfo("Cave (BG2)", new Color(0x010101),
+                                                                             "bg_cave.jpg", new Point(640, 554),
+                                                                             EnumSet.complementOf(EnumSet.of(Profile.Game.PST, Profile.Game.PSTEE)));
+  public static final BackgroundInfo BG_CITY_NIGHT_SOD  = new BackgroundInfo("City at night (SoD)", new Color(0x12151c),
+                                                                             "sod_city_night.jpg", new Point(620, 530),
+                                                                             EnumSet.complementOf(EnumSet.of(Profile.Game.PST, Profile.Game.PSTEE)));
+  public static final BackgroundInfo BG_WILDERNESS_IWD  = new BackgroundInfo("Wilderness (IWD)", new Color(0xd3deda),
+                                                                             "iwd_wilderness.jpg", new Point(640, 554),
+                                                                             EnumSet.complementOf(EnumSet.of(Profile.Game.PST, Profile.Game.PSTEE)));
+  public static final BackgroundInfo BG_CITY_PST        = new BackgroundInfo("Sigil city (PST)", new Color(0x494131),
+                                                                             "pst_city.jpg", new Point(640, 580),
+                                                                             EnumSet.of(Profile.Game.PST, Profile.Game.PSTEE));
+  public static final BackgroundInfo BG_DUNGEON_PST     = new BackgroundInfo("Sigil dungeon (PST)", new Color(0x494131),
+                                                                             "pst_dungeon.jpg", new Point(640, 480),
+                                                                             EnumSet.of(Profile.Game.PST, Profile.Game.PSTEE));
   public static final BackgroundInfo BG_COLOR_NONE        = new BackgroundInfo("System color", null);
   public static final BackgroundInfo BG_COLOR_WHITE       = new BackgroundInfo("White color", Color.WHITE);
   public static final BackgroundInfo BG_COLOR_BLACK       = new BackgroundInfo("Black color", Color.BLACK);
@@ -44,22 +50,6 @@ public final class Backgrounds
   public static final BackgroundInfo BG_COLOR_YELLOW      = new BackgroundInfo("Yellow color", Color.YELLOW);
   public static final BackgroundInfo BG_COLOR_MAGENTA     = new BackgroundInfo("Magenta color", Color.MAGENTA);
   public static final BackgroundInfo BG_COLOR_CYAN        = new BackgroundInfo("Cyan color", Color.CYAN);
-
-  public static final List<BackgroundInfo> BackgroundList = new ArrayList<BackgroundInfo>() {{
-    add(BG_COLOR_NONE);     add(BG_WILDERNESS);   add(BG_CAVE);             add(BG_CITY_PST);
-    add(BG_COLOR_WHITE);    add(BG_COLOR_BLACK);  add(BG_COLOR_LIGHT_GRAY); add(BG_COLOR_GRAY);
-    add(BG_COLOR_RED);      add(BG_COLOR_GREEN);  add(BG_COLOR_BLUE);       add(BG_COLOR_YELLOW);
-    add(BG_COLOR_MAGENTA);  add(BG_COLOR_CYAN);
-  }};
-
-  /** Returns a list of background info instances available for the specified game. */
-  public static List<BackgroundInfo> getBackgrounds(Profile.Game game)
-  {
-    return BackgroundList
-        .stream()
-        .filter(bi -> bi.games.contains((game != null) ? game : Profile.getGame()))
-        .collect(Collectors.toList());
-  }
 
   /**
    * Returns an {@link Image} object of the specified graphics filename.
