@@ -1121,7 +1121,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
                   dstData[dstIdx++] = (byte)(colIdx + colorShift);
                 } else {
                   double weight = ignoreAlpha ? 0.0 : 1.0;
-                  int color = ColorConvert.getNearestColor(srcData[srcIdx], palette, weight, ColorConvert.COLOR_DISTANCE_CIE94);
+                  int color = ColorConvert.getNearestColor(srcData[srcIdx], palette, weight, null);
                   dstData[dstIdx++] = (byte)(color);
                   if (color > 0) {
                     colorCache.put(srcData[srcIdx], (byte)(color - colorShift));
@@ -1146,7 +1146,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
                 dstData[idx] = (byte)(colIdx + colorShift);
               } else {
                 double weight = ignoreAlpha ? 0.0 : 1.0;
-                int color = ColorConvert.getNearestColor(srcData[idx], palette, weight, ColorConvert.COLOR_DISTANCE_CIE94);
+                int color = ColorConvert.getNearestColor(srcData[idx], palette, weight, null);
                 dstData[idx] = (byte)(color);
                 if (color > 0) {
                   colorCache.put(srcData[idx], (byte)(color - colorShift));

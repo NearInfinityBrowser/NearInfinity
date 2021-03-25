@@ -75,7 +75,7 @@ public class ConvertToTis extends ChildFrame
   private JButton bConvert, bCancel;
   private JButton bInput, bOutput, bVersionHelp;
   private JComboBox<String> cbVersion;
-  private JCheckBox cbColorConvert, cbCloseOnExit;
+  private JCheckBox cbCloseOnExit;
   private SwingWorker<List<String>, Void> workerConvert;
   private WindowBlocker blocker;
 
@@ -92,7 +92,7 @@ public class ConvertToTis extends ChildFrame
    * @return {@code true} if the conversion finished successfully, {@code false} otherwise.
    */
   public static boolean convertV1(Component parent, BufferedImage img, String tisFileName, int tileCount,
-                                  boolean fastConvert, List<String> result, boolean showProgress)
+                                  List<String> result, boolean showProgress)
   {
     // checking parameters
     if (result == null) {
@@ -199,8 +199,7 @@ public class ConvertToTis extends ChildFrame
               if (palIndex != null) {
                 tileData[i] = (byte)(palIndex + 1);
               } else {
-                ColorConvert.ColorDistanceFunc colorFunc = fastConvert ? ColorConvert.COLOR_DISTANCE_ARGB : ColorConvert.COLOR_DISTANCE_CIE94;
-                byte color = (byte)ColorConvert.getNearestColor(srcBlock[i], palette, 0.0, colorFunc);
+                byte color = (byte)ColorConvert.getNearestColor(srcBlock[i], palette, 0.0, null);
                 tileData[i] = (byte)(color + 1);
                 colorCache.put(srcBlock[i], color);
               }
@@ -861,20 +860,11 @@ public class ConvertToTis extends ChildFrame
     JLabel lVersion = new JLabel("TIS version:");
     cbVersion = new JComboBox<>(new String[]{"Legacy", "PVRZ-based"});
     cbVersion.setSelectedIndex(0);
-    cbVersion.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e)
-      {
-        cbColorConvert.setEnabled(cbVersion.getSelectedIndex() == 0);
-      }
-    });
     bVersionHelp = new JButton("?");
     bVersionHelp.setToolTipText("About TIS versions");
     bVersionHelp.addActionListener(this);
     bVersionHelp.setMargin(new Insets(bVersionHelp.getInsets().top, 4,
                                       bVersionHelp.getInsets().bottom, 4));
-    cbColorConvert = new JCheckBox("Fast conversion");
-    cbColorConvert.setToolTipText("(Legacy only) Enable to use a faster but less accurate color reduction algorithm.");
 
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
@@ -885,10 +875,7 @@ public class ConvertToTis extends ChildFrame
     c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pSubOptions.add(bVersionHelp, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
-    pSubOptions.add(cbColorConvert, c);
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pSubOptions.add(new JPanel(), c);
 
@@ -1114,7 +1101,7 @@ public class ConvertToTis extends ChildFrame
       convertV2(this, srcImage, outFileName, tileCount, ret, true);
     } else {
       // TIS V1 conversion
-      convertV1(this, srcImage, outFileName, tileCount, cbColorConvert.isSelected(), ret, true);
+      convertV1(this, srcImage, outFileName, tileCount, ret, true);
     }
 
     return ret;

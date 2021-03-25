@@ -55,11 +55,21 @@ public class ColorConvert
     int r1 = (argb1 >> 16) & 0xff;
     int g1 = (argb1 >> 8) & 0xff;
     int b1 = argb1 & 0xff;
+    if (a1 != 0xff) {
+      r1 = r1 * a1 / 255;
+      g1 = g1 * a1 / 255;
+      b1 = b1 * a1 / 255;
+    }
 
     int a2 = (argb2 >> 24) & 0xff;
     int r2 = (argb2 >> 16) & 0xff;
     int g2 = (argb2 >> 8) & 0xff;
     int b2 = argb2 & 0xff;
+    if (a2 != 0xff) {
+      r2 = r2 * a2 / 255;
+      g2 = g2 * a2 / 255;
+      b2 = b2 * a2 / 255;
+    }
 
     weight = Math.max(0.0, Math.min(2.0, weight));
     double da = (double)(a1 - a2) * 48.0 * weight;
@@ -420,19 +430,25 @@ public class ColorConvert
 
   /**
    * Converts a single RGB value into the CIELAB colorspace.
-   * @param rgb The RGB value to convert.
+   * @param argb The ARGB value to convert.
    * @return the converted color value in CIELAB colorspace. Order: L, a, b, alpha
    *         where L range is [0.0, 100.0], a and b are open-ended (usually between -150 and 150).
    */
-  public static Triple<Double, Double, Double> convertRGBtoLab(int rgb)
+  public static Triple<Double, Double, Double> convertRGBtoLab(int argb)
   {
-    Integer key = Integer.valueOf(rgb & 0xffffff);
+    Integer key = Integer.valueOf(argb & 0xffffff);
     Triple<Double, Double, Double> retVal = ARGB_LAB_CACHE.get(key);
 
     if (retVal == null) {
-      int red = (rgb >> 16) & 0xff;
-      int green = (rgb >> 8) & 0xff;
-      int blue = rgb & 0xff;
+      int alpha = (argb >> 24) & 0xff;
+      int red = (argb >> 16) & 0xff;
+      int green = (argb >> 8) & 0xff;
+      int blue = argb & 0xff;
+      if (alpha != 255) {
+        red = red * alpha / 255;
+        green = green * alpha / 255;
+        blue = blue * alpha / 255;
+      }
 
       // 1. Linearize RGB
       double r = (double)red / 255.0;

@@ -721,7 +721,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
                   if (palIndex != null) {
                     tileData[i] = (byte)(palIndex + 1);
                   } else {
-                    byte color = (byte)ColorConvert.getNearestColor(pixels[i], palette, 0.0, ColorConvert.COLOR_DISTANCE_CIE94);
+                    byte color = (byte)ColorConvert.getNearestColor(pixels[i], palette, 0.0, null);
                     tileData[i] = (byte)(color + 1);
                     colorCache.put(pixels[i], color);
                   }

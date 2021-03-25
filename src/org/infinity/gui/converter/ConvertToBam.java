@@ -4130,7 +4130,7 @@ public class ConvertToBam extends ChildFrame
                 dstBuf[ofs] = colIdx.byteValue();//(byte)ci;
               } else {
                 double weight = getUseAlpha() ? 1.0 : 0.0;
-                byte color = (byte)ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, ColorConvert.COLOR_DISTANCE_CIE94);
+                byte color = (byte)ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, null);
                 dstBuf[ofs] = color;//(byte)ci;
                 colorCache.put(Integer.valueOf(c), Byte.valueOf(color));
               }
@@ -4223,7 +4223,7 @@ public class ConvertToBam extends ChildFrame
               dstBuf[ofs] = colIdx.byteValue();
             } else {
               double weight = getUseAlpha() ? 1.0 : 0.0;
-              byte color = (byte)ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, ColorConvert.COLOR_DISTANCE_CIE94);
+              byte color = (byte)ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, null);
               dstBuf[ofs] = color;//(byte)ci;
               colorCache.put(Integer.valueOf(c), Byte.valueOf(color));
             }
