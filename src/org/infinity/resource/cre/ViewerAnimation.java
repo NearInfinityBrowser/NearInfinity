@@ -503,7 +503,6 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
 
     setSize(NearInfinity.getInstance().getPreferredSize());
     Center.center(this, NearInfinity.getInstance().getBounds());
-    setExtendedState(NearInfinity.getInstance().getExtendedState() & ~ICONIFIED);
     setVisible(true);
 
     // loading animation sequence
