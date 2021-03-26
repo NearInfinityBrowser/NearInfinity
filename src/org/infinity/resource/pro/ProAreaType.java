@@ -44,7 +44,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable, U
   public static final String PRO_AREA_EXPLOSION_ANIMATION           = "Explosion animation";
   public static final String PRO_AREA_CONE_WIDTH                    = "Cone width";
   public static final String PRO_AREA_ANGLE_BETWEEN_RAYS            = "Angle between rays";
-  public static final String PRO_AREA_ROTATE_RAYS                   = "Rotate rays";
+  public static final String PRO_AREA_ROTATE_RAYS                   = "Rotate rays clockwise";
   public static final String PRO_AREA_SPREAD_ANIMATION              = "Spread animation";
   public static final String PRO_AREA_RING_ANIMATION                = "Ring animation";
   public static final String PRO_AREA_SOUND                         = "Area sound";
