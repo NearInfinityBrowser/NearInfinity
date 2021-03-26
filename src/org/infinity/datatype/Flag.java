@@ -7,7 +7,8 @@ package org.infinity.datatype;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,6 +24,7 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 
 import org.infinity.gui.StructViewer;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.util.Misc;
 
@@ -122,21 +124,22 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     bPanel.add(bNone);
     bPanel.add(new JLabel("None = " + nodesc));
 
-    JPanel boxPanel = new JPanel(new GridLayout(0, 4));
-    int rows = checkBoxes.length >> 2;
-    if (rows << 2 != checkBoxes.length) {
-      for (int i = 0; i < checkBoxes.length; i++) {
-        boxPanel.add(checkBoxes[i]);
-        checkBoxes[i].setSelected(isFlagSet(i));
+    // spreading flags over columns with 8 rows each
+    JPanel boxPanel = new JPanel(new GridBagLayout());
+    int cols = checkBoxes.length / 8;
+    GridBagConstraints c = new GridBagConstraints();
+    for (int col = 0; col < cols; col++) {
+      JPanel colPanel = new JPanel(new GridBagLayout());
+      for (int row = 0; row < 8; row++) {
+        int idx = (col * 8) + row;
+        c = ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+        colPanel.add(checkBoxes[idx], c);
+        checkBoxes[idx].setSelected(isFlagSet(idx));
       }
-    }
-    else {
-      for (int i = 0; i < rows; i++)
-        for (int j = 0; j < 4; j++) {
-          int index = i + j * rows;
-          boxPanel.add(checkBoxes[index]);
-          checkBoxes[index].setSelected(isFlagSet(index));
-        }
+      c = ViewerUtil.setGBC(c, col, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+          GridBagConstraints.BOTH, new Insets(0, 8, 0, 8), 0, 0);
+      boxPanel.add(colPanel, c);
     }
 
     JPanel panel = new JPanel(new BorderLayout());
