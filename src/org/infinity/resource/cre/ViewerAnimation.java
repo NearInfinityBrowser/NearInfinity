@@ -15,8 +15,6 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 import javax.swing.BorderFactory;
@@ -26,6 +24,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneConstants;
@@ -36,7 +35,6 @@ import javax.swing.Timer;
 import org.infinity.NearInfinity;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsTextual;
-import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.RenderCanvas;
@@ -56,42 +54,13 @@ import org.infinity.util.StringTable;
  */
 public class ViewerAnimation extends ChildFrame implements ActionListener
 {
-  private static final Color TransparentColor = new Color(0, true);
+  private static final Color COLOR_TRANSPARENT = new Color(0, true);
   private static final int ANIM_DELAY = 1000 / 15;    // 15 fps in milliseconds
-
-  private static final ButtonPanel.Control CtrlNextCycle      = ButtonPanel.Control.CUSTOM_1;
-  private static final ButtonPanel.Control CtrlPrevCycle      = ButtonPanel.Control.CUSTOM_2;
-  private static final ButtonPanel.Control CtrlNextFrame      = ButtonPanel.Control.CUSTOM_3;
-  private static final ButtonPanel.Control CtrlPrevFrame      = ButtonPanel.Control.CUSTOM_4;
-  private static final ButtonPanel.Control CtrlPlay           = ButtonPanel.Control.CUSTOM_5;
-  private static final ButtonPanel.Control CtrlCycleLabel     = ButtonPanel.Control.CUSTOM_6;
-  private static final ButtonPanel.Control CtrlFrameLabel     = ButtonPanel.Control.CUSTOM_7;
-  private static final ButtonPanel.Control CtrlSequenceLabel  = ButtonPanel.Control.CUSTOM_8;
-  private static final ButtonPanel.Control CtrlSequenceList   = ButtonPanel.Control.CUSTOM_9;
-  private static final ButtonPanel.Control CtrlShowCircle     = ButtonPanel.Control.CUSTOM_10;
-  private static final ButtonPanel.Control CtrlShowSpace      = ButtonPanel.Control.CUSTOM_11;
-  private static final ButtonPanel.Control CtrlZoom           = ButtonPanel.Control.CUSTOM_12;
-  private static final ButtonPanel.Control CtrlOpenViewer     = ButtonPanel.Control.CUSTOM_13;
-
-  // List of potential sequences to display when loading a new creature
-  private static final List<Sequence> InitialSequences = new ArrayList<Sequence>() {{
-    add(Sequence.STAND);
-    add(Sequence.STAND2);
-    add(Sequence.STAND3);
-    add(Sequence.STAND_EMERGED);
-    add(Sequence.PST_STAND);
-    add(Sequence.STANCE);
-    add(Sequence.STANCE2);
-    add(Sequence.PST_STANCE);
-    add(Sequence.WALK);
-    add(Sequence.PST_WALK);
-  }};
 
   private static boolean zoom = false;
   private static boolean showSelectionCircle = false;
   private static boolean showPersonalSpace = false;
 
-  private final ButtonPanel buttonControlPanel = new ButtonPanel();
   private final CreResource cre;
 
   private SpriteDecoder decoder;
@@ -100,6 +69,11 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
   private int curCycle, curFrame;
   private Timer timer;
   private Sequence sequence;
+  private JButton bNextCycle, bPrevCycle, bNextFrame, bPrevFrame, bOpenBrowser;
+  private JToggleButton bPlay;
+  private JLabel lCurCycle, lCurFrame;
+  private JComboBox<Sequence> cbSequences;
+  private JCheckBox cbShowCircle, cbShowSpace, cbZoom;
 
   public ViewerAnimation(CreResource cre)
   {
@@ -176,6 +150,7 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     updateCanvasSize();
   }
 
+  /** Ensures that the canvas is big enough to contain the current creature animation sequence. */
   public void updateCanvasSize()
   {
     int zoom = isZoomed() ? 2 : 1;
@@ -198,13 +173,14 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     updateCanvas();
   }
 
+  /** Updates display with content of the current animation frame. */
   public void updateCanvas()
   {
     BufferedImage image = (BufferedImage)rcDisplay.getImage();
     Graphics2D g = image.createGraphics();
     try {
       g.setComposite(AlphaComposite.Src);
-      g.setColor(TransparentColor);
+      g.setColor(COLOR_TRANSPARENT);
       g.fillRect(0, 0, image.getWidth(), image.getHeight());
     } finally {
       g.dispose();
@@ -219,7 +195,7 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
   /** Returns whether animation is zoomed. */
   public boolean isZoomed()
   {
-    return ((JCheckBox)buttonControlPanel.getControlByType(CtrlZoom)).isSelected();
+    return cbZoom.isSelected();
   }
 
   /** Returns whether the animation is played back. */
@@ -284,13 +260,14 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
   public void actionPerformed(ActionEvent event)
   {
     if (timer == event.getSource()) {
-      curFrame += 1;
-      curFrame %= getController().cycleFrameCount();
+      if (getController().cycleFrameCount() > 0) {
+        curFrame += 1;
+        curFrame %= getController().cycleFrameCount();
+      }
       showFrame();
     }
-    else if (buttonControlPanel.getControlByType(CtrlSequenceList) == event.getSource()) {
-      JComboBox<?> cb = (JComboBox<?>)buttonControlPanel.getControlByType(CtrlSequenceList);
-      Sequence seq = (Sequence)(cb).getSelectedItem();
+    else if (cbSequences == event.getSource()) {
+      Sequence seq = cbSequences.getModel().getElementAt(cbSequences.getSelectedIndex());
       try {
         WindowBlocker.blockWindow(this, true);
         setAnimationSequence(seq);
@@ -298,24 +275,24 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
       } catch (Exception e) {
         e.printStackTrace();
         JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        cb.setSelectedItem(getAnimationSequence());
+        cbSequences.setSelectedItem(getAnimationSequence());
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
     }
-    else if (buttonControlPanel.getControlByType(CtrlZoom) == event.getSource()) {
+    else if (cbZoom == event.getSource()) {
       try {
         WindowBlocker.blockWindow(this, true);
-        zoom = ((JCheckBox)buttonControlPanel.getControlByType(CtrlZoom)).isSelected();
+        zoom = cbZoom.isSelected();
         updateCanvasSize();
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
     }
-    else if (buttonControlPanel.getControlByType(CtrlShowCircle) == event.getSource()) {
+    else if (cbShowCircle == event.getSource()) {
       try {
         WindowBlocker.blockWindow(this, true);
-        showSelectionCircle = ((JCheckBox)buttonControlPanel.getControlByType(CtrlShowCircle)).isSelected();
+        showSelectionCircle = cbShowCircle.isSelected();
         getDecoder().setSelectionCircleEnabled(showSelectionCircle);
         resetAnimationSequence();
       } catch (Exception e) {
@@ -324,10 +301,10 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
         WindowBlocker.blockWindow(this, false);
       }
     }
-    else if (buttonControlPanel.getControlByType(CtrlShowSpace) == event.getSource()) {
+    else if (cbShowSpace == event.getSource()) {
       try {
         WindowBlocker.blockWindow(this, true);
-        showPersonalSpace = ((JCheckBox)buttonControlPanel.getControlByType(CtrlShowSpace)).isSelected();
+        showPersonalSpace = cbShowSpace.isSelected();
         getDecoder().setPersonalSpaceVisible(showPersonalSpace);
         resetAnimationSequence();
       } catch (Exception e) {
@@ -336,51 +313,51 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
         WindowBlocker.blockWindow(this, false);
       }
     }
-    else if (buttonControlPanel.getControlByType(CtrlPrevCycle) == event.getSource()) {
+    else if (bPrevCycle == event.getSource()) {
       if (curCycle > 0) {
         curCycle--;
         getController().cycleSet(curCycle);
         if (isPlaying() && getController().cycleFrameCount() == 0) {
           pause();
-          ((JToggleButton)buttonControlPanel.getControlByType(CtrlPlay)).setSelected(false);
+          bPlay.setSelected(false);
         }
         rewind();
         showFrame();
       }
     }
-    else if (buttonControlPanel.getControlByType(CtrlNextCycle) == event.getSource()) {
+    else if (bNextCycle == event.getSource()) {
       if (curCycle < getController().cycleCount() - 1) {
         curCycle++;
         getController().cycleSet(curCycle);
         if (isPlaying() && getController().cycleFrameCount() == 0) {
           pause();
-          ((JToggleButton)buttonControlPanel.getControlByType(CtrlPlay)).setSelected(false);
+          bPlay.setSelected(false);
         }
         rewind();
         showFrame();
       }
     }
-    else if (buttonControlPanel.getControlByType(CtrlPrevFrame) == event.getSource()) {
+    else if (bPrevFrame == event.getSource()) {
       if (curFrame > 0) {
         curFrame--;
         showFrame();
       }
     }
-    else if (buttonControlPanel.getControlByType(CtrlNextFrame) == event.getSource()) {
+    else if (bNextFrame == event.getSource()) {
       if (curFrame < getController().cycleFrameCount() - 1) {
         curFrame++;
         showFrame();
       }
     }
-    else if (buttonControlPanel.getControlByType(CtrlPlay) == event.getSource()) {
-      if (((JToggleButton)buttonControlPanel.getControlByType(CtrlPlay)).isSelected()) {
+    else if (bPlay == event.getSource()) {
+      if (bPlay.isSelected()) {
         play();
       } else {
         pause();
       }
       updateControls();
     }
-    else if (buttonControlPanel.getControlByType(CtrlOpenViewer) == event.getSource()) {
+    else if (bOpenBrowser == event.getSource()) {
       CreatureViewer cv = ChildFrame.show(CreatureViewer.class, () -> new CreatureViewer(getCre()));
       if (cv != null) {
         if (getCre() != cv.getCreResource()) {
@@ -404,76 +381,123 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     JScrollPane scrollDisplay = new JScrollPane(rcDisplay, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     scrollDisplay.setBorder(BorderFactory.createEmptyBorder());
 
-    JToggleButton bPlay = new JToggleButton("Play", Icons.getIcon(Icons.ICON_PLAY_16));
+    bPlay = new JToggleButton("Play", Icons.getIcon(Icons.ICON_PLAY_16));
     bPlay.addActionListener(this);
 
-    JLabel lCycle = new JLabel("", JLabel.CENTER);
-    JButton bPrevCycle = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
+    lCurCycle = new JLabel("", JLabel.CENTER);
+    bPrevCycle = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
     bPrevCycle.setMargin(new Insets(bPrevCycle.getMargin().top, 2, bPrevCycle.getMargin().bottom, 2));
     bPrevCycle.addActionListener(this);
-    JButton bNextCycle = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
+    bNextCycle = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
     bNextCycle.setMargin(bPrevCycle.getMargin());
     bNextCycle.addActionListener(this);
 
-    JLabel lFrame = new JLabel("", JLabel.CENTER);
-    lFrame.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
-    JButton bPrevFrame = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
+    lCurFrame = new JLabel("", JLabel.CENTER);
+    bPrevFrame = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
     bPrevFrame.setMargin(new Insets(bPrevFrame.getMargin().top, 2, bPrevFrame.getMargin().bottom, 2));
     bPrevFrame.addActionListener(this);
-    JButton bNextFrame = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
+    bNextFrame = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
     bNextFrame.setMargin(bPrevFrame.getMargin());
     bNextFrame.addActionListener(this);
 
     JLabel lSequence = new JLabel("Sequence:");
-    lSequence.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
     DefaultComboBoxModel<Sequence> modelSequences = new DefaultComboBoxModel<>();
-    JComboBox<Sequence> cbSequences = new JComboBox<>(modelSequences);
-    cbSequences.addActionListener(this);
+    cbSequences = new JComboBox<>(modelSequences);
     for (final Sequence seq : Sequence.values()) {
       if (getDecoder().isSequenceAvailable(seq)) {
         modelSequences.addElement(seq);
       }
     }
     cbSequences.setEnabled(cbSequences.getItemCount() > 0);
+    cbSequences.addActionListener(this);
 
-    JCheckBox cbZoom = new JCheckBox("Zoom", zoom);
-    cbZoom.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+    cbZoom = new JCheckBox("Zoom", zoom);
     cbZoom.addActionListener(this);
     getDecoder().setSelectionCircleEnabled(showSelectionCircle);
-    JCheckBox cbShowCircle = new JCheckBox("Show selection circle", getDecoder().isSelectionCircleEnabled());
-    cbShowCircle.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+    cbShowCircle = new JCheckBox("Show selection circle", getDecoder().isSelectionCircleEnabled());
     cbShowCircle.addActionListener(this);
     getDecoder().setPersonalSpaceVisible(showPersonalSpace);
-    JCheckBox cbShowSpace = new JCheckBox("Show personal space", getDecoder().isPersonalSpaceVisible());
-    cbShowSpace.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+    cbShowSpace = new JCheckBox("Show personal space", getDecoder().isPersonalSpaceVisible());
     cbShowSpace.addActionListener(this);
 
-    JButton bOpenViewer = new JButton("Open in browser", Icons.getIcon(Icons.ICON_CRE_VIEWER_24));
-    bOpenViewer.setToolTipText("Open in Creature Animation Browser");
-    bOpenViewer.addActionListener(this);
+    bOpenBrowser = new JButton("Open in browser", Icons.getIcon(Icons.ICON_CRE_VIEWER_24));
+    bOpenBrowser.setToolTipText("Open in Creature Animation Browser");
+    bOpenBrowser.addActionListener(this);
 
-    buttonControlPanel.addControl(lCycle, CtrlCycleLabel);
-    buttonControlPanel.addControl(bPrevCycle, CtrlPrevCycle);
-    buttonControlPanel.addControl(bNextCycle, CtrlNextCycle);
-    buttonControlPanel.addControl(lFrame, CtrlFrameLabel);
-    buttonControlPanel.addControl(bPrevFrame, CtrlPrevFrame);
-    buttonControlPanel.addControl(bNextFrame, CtrlNextFrame);
-    buttonControlPanel.addControl(bPlay, CtrlPlay);
-    buttonControlPanel.addControl(lSequence, CtrlSequenceLabel);
-    buttonControlPanel.addControl(cbSequences, CtrlSequenceList);
-    buttonControlPanel.addControl(cbZoom, CtrlZoom);
-    buttonControlPanel.addControl(cbShowCircle, CtrlShowCircle);
-    buttonControlPanel.addControl(cbShowSpace, CtrlShowSpace);
-    buttonControlPanel.addControl(bOpenViewer, CtrlOpenViewer);
+    GridBagConstraints c = new GridBagConstraints();
+    // first row of controls: animation controls, sequence selection and browser button
+    JPanel pRow1 = new JPanel(new GridBagLayout());
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    pRow1.add(new JPanel(), c);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    pRow1.add(lCurCycle, c);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    pRow1.add(bPrevCycle, c);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    pRow1.add(bNextCycle, c);
+
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    pRow1.add(lCurFrame, c);
+    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    pRow1.add(bPrevFrame, c);
+    c = ViewerUtil.setGBC(c, 6, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    pRow1.add(bNextFrame, c);
+
+    c = ViewerUtil.setGBC(c, 7, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    pRow1.add(bPlay, c);
+
+    c = ViewerUtil.setGBC(c, 8, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    pRow1.add(lSequence, c);
+    c = ViewerUtil.setGBC(c, 9, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
+    pRow1.add(cbSequences, c);
+
+    c = ViewerUtil.setGBC(c, 10, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 16, 0, 0), 0, 0);
+    pRow1.add(bOpenBrowser, c);
+
+    c = ViewerUtil.setGBC(c, 11, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    pRow1.add(new JPanel(), c);
+
+    // second row of controls: various checkboxes
+    JPanel pRow2 = new JPanel(new GridBagLayout());
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    pRow2.add(new JPanel(), c);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
+    pRow2.add(cbZoom, c);
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    pRow2.add(cbShowCircle, c);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    pRow2.add(cbShowSpace, c);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+    pRow2.add(new JPanel(), c);
+
 
     setLayout(new GridBagLayout());
-    GridBagConstraints c;
-    c = ViewerUtil.setGBC(null, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
                           GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     add(scrollDisplay, c);
-    c = ViewerUtil.setGBC(null, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 8, 0), 0, 0);
-    add(buttonControlPanel, c);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    add(pRow1, c);
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
+        GridBagConstraints.HORIZONTAL, new Insets(8, 0, 8, 0), 0, 0);
+    add(pRow2, c);
 
     // determining creature resource and name
     String resName, name;
@@ -511,7 +535,7 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     // loading animation sequence
     if (cbSequences.isEnabled()) {
       int seqIdx = 0;
-      for (final Sequence sequence : InitialSequences) {
+      for (final Sequence sequence : SpriteDecoder.DEFAULT_SEQUENCES) {
         int idx = ((DefaultComboBoxModel<?>)cbSequences.getModel()).getIndexOf(sequence);
         if (idx >= 0) {
           seqIdx = idx;
@@ -537,27 +561,25 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
 
     updateCanvas();
 
-    ((JLabel)buttonControlPanel.getControlByType(CtrlCycleLabel))
-      .setText("Cycle: " + curCycle + "/" + (getController().cycleCount() - 1));
-    ((JLabel)buttonControlPanel.getControlByType(CtrlFrameLabel))
-      .setText("Frame: " + curFrame + "/" + (getController().cycleFrameCount() - 1));
+    lCurCycle.setText("Cycle: " + curCycle + "/" + (getController().cycleCount() - 1));
+    lCurFrame.setText("Frame: " + curFrame + "/" + (getController().cycleFrameCount() - 1));
     updateControls();
   }
 
   private void updateControls()
   {
     if (getController() != null) {
-      buttonControlPanel.getControlByType(CtrlPrevFrame).setEnabled(curFrame > 0);
-      buttonControlPanel.getControlByType(CtrlPrevCycle).setEnabled(curCycle > 0);
-      buttonControlPanel.getControlByType(CtrlNextFrame).setEnabled(curFrame < getController().cycleFrameCount() - 1);
-      buttonControlPanel.getControlByType(CtrlNextCycle).setEnabled(curCycle < getController().cycleCount() - 1);
-      buttonControlPanel.getControlByType(CtrlPlay).setEnabled(getController().cycleFrameCount() > 0);
+      bPrevFrame.setEnabled(curFrame > 0);
+      bPrevCycle.setEnabled(curCycle > 0);
+      bNextFrame.setEnabled(curFrame < getController().cycleFrameCount() - 1);
+      bNextCycle.setEnabled(curCycle < getController().cycleCount() - 1);
+      bPlay.setEnabled(getController().cycleFrameCount() > 0);
     } else {
-      buttonControlPanel.getControlByType(CtrlPrevFrame).setEnabled(false);
-      buttonControlPanel.getControlByType(CtrlPrevCycle).setEnabled(false);
-      buttonControlPanel.getControlByType(CtrlNextFrame).setEnabled(false);
-      buttonControlPanel.getControlByType(CtrlNextCycle).setEnabled(false);
-      buttonControlPanel.getControlByType(CtrlPlay).setEnabled(false);
+      bPrevFrame.setEnabled(false);
+      bPrevCycle.setEnabled(false);
+      bNextFrame.setEnabled(false);
+      bNextCycle.setEnabled(false);
+      bPlay.setEnabled(false);
     }
   }
 }

@@ -45,20 +45,6 @@ import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
  */
 public class MediaPanel extends JPanel
 {
-  // List of potential sequences to display when loading a new creature
-  private static final List<Sequence> DEFAULT_SEQUENCES = new ArrayList<Sequence>() {{
-    add(Sequence.STAND);
-    add(Sequence.STAND2);
-    add(Sequence.STAND3);
-    add(Sequence.STAND_EMERGED);
-    add(Sequence.PST_STAND);
-    add(Sequence.STANCE);
-    add(Sequence.STANCE2);
-    add(Sequence.PST_STANCE);
-    add(Sequence.WALK);
-    add(Sequence.PST_WALK);
-  }};
-
   private static boolean isLoop;
 
   static {
@@ -619,7 +605,7 @@ public class MediaPanel extends JPanel
       }
       if (idx < 0) {
         // try default sequence from list
-        for (final Sequence seq : DEFAULT_SEQUENCES) {
+        for (final Sequence seq : SpriteDecoder.DEFAULT_SEQUENCES) {
           idx = modelSequences.getIndexOf(seq);
           if (idx >= 0) {
             break;
