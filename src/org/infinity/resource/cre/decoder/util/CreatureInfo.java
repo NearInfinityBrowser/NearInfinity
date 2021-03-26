@@ -549,7 +549,9 @@ public class CreatureInfo
   /** Returns the creature resource version. */
   private String getCreatureVersion()
   {
-    return ((IsTextual)cre.getAttribute(CreResource.COMMON_VERSION)).getText().toUpperCase(Locale.ENGLISH);
+    String sig = ((IsTextual)cre.getAttribute(CreResource.COMMON_SIGNATURE)).getText().toUpperCase(Locale.ENGLISH);
+    String versionLabel = sig.equals("CHR ") ? CreResource.CHR_VERSION_2 : CreResource.COMMON_VERSION;
+    return ((IsTextual)cre.getAttribute(versionLabel)).getText().toUpperCase(Locale.ENGLISH);
   }
 
   private void init() throws Exception
@@ -887,7 +889,7 @@ public class CreatureInfo
 
     if (retVal < 0) {
       // launcher required: find a weapon in weapon slots 1-4 with a matching item category
-      String creVer = ((IsTextual)Objects.requireNonNull(cre).getAttribute(CreResource.COMMON_VERSION)).getText().toUpperCase(Locale.ENGLISH);
+      String creVer = getCreatureVersion();
       int idxWeaponSlots = 9;
       int slotGroupSize = creVer.equals("V2.2") ? 2 : 1;  // IWD2 uses weapon/shield pairs
       for (int i = 0; i < 4; i++) {
@@ -936,7 +938,7 @@ public class CreatureInfo
       return slotId;
     }
 
-    String creVer = ((IsTextual)Objects.requireNonNull(cre).getAttribute(CreResource.COMMON_VERSION)).getText().toUpperCase(Locale.ENGLISH);
+    String creVer = getCreatureVersion();
     slotId += 35;   // determine SLOTS.IDS value
     switch (slotId) {
       case 3:   // IWD2: ammo1
