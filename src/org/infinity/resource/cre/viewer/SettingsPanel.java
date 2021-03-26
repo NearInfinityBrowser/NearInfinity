@@ -39,11 +39,16 @@ public class SettingsPanel extends JPanel
   // Available render canvas backgrounds
   public static final List<Backgrounds.BackgroundInfo> backgroundList = new ArrayList<Backgrounds.BackgroundInfo>() {{
     add(Backgrounds.BG_COLOR_NONE);
-    add(Backgrounds.BG_WILDERNESS_BG);    add(Backgrounds.BG_CAVE_BG);
-    add(Backgrounds.BG_CITY_NIGHT_SOD);   add(Backgrounds.BG_WILDERNESS_IWD);
-    add(Backgrounds.BG_CITY_PST);         add(Backgrounds.BG_DUNGEON_PST);
-    add(Backgrounds.BG_COLOR_WHITE);      add(Backgrounds.BG_COLOR_BLACK);
-    add(Backgrounds.BG_COLOR_LIGHT_GRAY); add(Backgrounds.BG_COLOR_GRAY);
+    add(Backgrounds.BG_CAVE_BG);
+    add(Backgrounds.BG_CITY_NIGHT_SOD);
+    add(Backgrounds.BG_WILDERNESS_BG);
+    add(Backgrounds.BG_WILDERNESS_IWD);
+    add(Backgrounds.BG_CITY_PST);
+    add(Backgrounds.BG_DUNGEON_PST);
+    add(Backgrounds.BG_COLOR_WHITE);
+    add(Backgrounds.BG_COLOR_BLACK);
+    add(Backgrounds.BG_COLOR_LIGHT_GRAY);
+    add(Backgrounds.BG_COLOR_GRAY);
   }};
 
   // Available items for zoom selection list
