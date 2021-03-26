@@ -629,7 +629,7 @@ public class PseudoBamDecoder extends BamDecoder
    */
   public static boolean isTransparentColor(int color, int threshold)
   {
-    if (threshold < 0) return false;
+    if (threshold < 0) return (color & 0xff000000) == 0;
     final int Green = 0x0000ff00;
     if (threshold < 0) threshold = 0; else if (threshold > 255) threshold = 255;
     boolean isAlpha = (((color >>> 24) & 0xff) < (255 - threshold));
