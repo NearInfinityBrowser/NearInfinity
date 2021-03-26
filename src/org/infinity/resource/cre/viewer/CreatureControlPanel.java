@@ -12,6 +12,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -26,6 +28,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import javax.swing.text.JTextComponent;
 
 import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
@@ -166,6 +169,15 @@ public class CreatureControlPanel extends JPanel
     JLabel l2 = new JLabel("Creature animation:");
     l2.setToolTipText("Supports manually entered numbers. Add \"0x\" prefix or \"h\" suffix to specify a hexadecimal number.");
     cbCreAnimation = new JComboBox<>(model.getModelAnimation());
+    cbCreAnimation.getEditor().getEditorComponent().addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e)
+      {
+        if (e.getSource() instanceof JTextComponent) {
+          ((JTextComponent)e.getSource()).selectAll();
+        }
+      }
+    });
     setPreferredWidth(cbCreAnimation, defWidth);
     cbCreAnimation.setEditable(true);
     cbCreAnimation.addActionListener(listeners);
