@@ -763,6 +763,13 @@ public class CreatureInfo
 
       initEquipmentItem(slot, itemIdx, itemList);
     }
+
+    // Make sure that shield slot is empty when two-handed weapon is equipped
+    if (getEquippedWeapon() != null) {
+      if (ItemInfo.FILTER_WEAPON_2H.test(getEquippedWeapon())) {
+        unsetItemSlot(ItemSlots.SHIELD);
+      }
+    }
   }
 
   private void initEquipmentItem(ItemSlots slot, int itemIndex, List<StructEntry> itemList)
@@ -786,6 +793,16 @@ public class CreatureInfo
         e.printStackTrace();
       }
     }
+  }
+
+  // Removes any equipment set in the specified item slot. Returns the removed equipment.
+  private ItemInfo unsetItemSlot(ItemSlots slot)
+  {
+    ItemInfo retVal = null;
+    if (slot != null) {
+      retVal = equipment.remove(slot);
+    }
+    return retVal;
   }
 
   private ResourceEntry getFistWeapon()
