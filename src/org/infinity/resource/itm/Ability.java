@@ -51,7 +51,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
   public static final String[] s_abilityuse = {"", "Weapon", "Spell", "Item", "Ability", "reserved"};
   public static final String[] s_recharge = {
     "No flags set", "Add strength bonus", "Breakable", "EE: Damage strength bonus",
-    "EE: THAC0 strength bonus", null, null, null, null, null, "EE: Break Sanctuary;Ignored for Target: Caster",
+    "EE: THAC0 strength bonus", null, null, null, null, null, "EE: Break Sanctuary/Invisibility;Ignored for Target: Caster",
     "Hostile", "Recharge after resting", null, null, null, null, "Bypass armor", "Keen edge", null,
     null, null, null, null, null, null, "Ex: Toggle backstab", "EE/Ex: Cannot target invisible"};
 
