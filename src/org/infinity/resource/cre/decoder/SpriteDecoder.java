@@ -2177,7 +2177,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       case MONSTER_ICEWIND:
       {
         boolean found = false;
-        while (resref.length() >= 4 && !found) {
+        if (resref.length() >= 4 && !found) {
           for (final String suffix : new String[] { "A1", "A2", "A3", "A4", "CA", "DE", "GH", "GU", "SC", "SD", "SL", "SP", "TW", "WK" }) {
             if (ResourceFactory.resourceExists(resref + suffix + ".BAM")) {
               found = true;
