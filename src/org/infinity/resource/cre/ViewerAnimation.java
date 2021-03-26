@@ -269,6 +269,9 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
   @Override
   protected boolean windowClosing(boolean forced) throws Exception
   {
+    if (getDecoder() != null) {
+      getDecoder().close();
+    }
     SpriteUtils.clearCache();
     return true;
   }
@@ -393,8 +396,7 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
 
   private void init() throws Exception
   {
-    Dimension dim = new Dimension(1, 1);
-    rcDisplay = new RenderCanvas(new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB));
+    rcDisplay = new RenderCanvas(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB));
     rcDisplay.setHorizontalAlignment(SwingConstants.CENTER);
     rcDisplay.setVerticalAlignment(SwingConstants.CENTER);
     rcDisplay.setInterpolationType(RenderCanvas.TYPE_NEAREST_NEIGHBOR);
@@ -501,7 +503,8 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
       setTitle(resName);
     }
 
-    setSize(NearInfinity.getInstance().getPreferredSize());
+    Dimension dim = NearInfinity.getInstance().getSize();
+    setSize(dim.width - 200, dim.height - 45);
     Center.center(this, NearInfinity.getInstance().getBounds());
     setVisible(true);
 
