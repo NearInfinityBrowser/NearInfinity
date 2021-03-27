@@ -103,20 +103,6 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   public static final DecoderAttribute KEY_FALSE_COLOR        = DecoderAttribute.with("false_color", DecoderAttribute.DataType.BOOLEAN);
   public static final DecoderAttribute KEY_TRANSLUCENT        = DecoderAttribute.with("translucent", DecoderAttribute.DataType.BOOLEAN);
 
-  /** List of default animation sequences that are safe for initializing a new creature animation in order of preference. */
-  public static final List<Sequence> DEFAULT_SEQUENCES = new ArrayList<Sequence>() {{
-    add(Sequence.STAND);
-    add(Sequence.STAND2);
-    add(Sequence.STAND3);
-    add(Sequence.STAND_EMERGED);
-    add(Sequence.PST_STAND);
-    add(Sequence.STANCE);
-    add(Sequence.STANCE2);
-    add(Sequence.PST_STANCE);
-    add(Sequence.WALK);
-    add(Sequence.PST_WALK);
-  }};
-
   /** Mappings between animation types and compatible sprite classes. */
   private static final EnumMap<AnimationInfo.Type, Class<? extends SpriteDecoder>> typeAssociations =
       new EnumMap<AnimationInfo.Type, Class<? extends SpriteDecoder>>(AnimationInfo.Type.class) {{

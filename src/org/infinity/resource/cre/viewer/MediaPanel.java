@@ -605,7 +605,7 @@ public class MediaPanel extends JPanel
       }
       if (idx < 0) {
         // try default sequence from list
-        for (final Sequence seq : SpriteDecoder.DEFAULT_SEQUENCES) {
+        for (final Sequence seq : Sequence.getDefaultSequences()) {
           idx = modelSequences.getIndexOf(seq);
           if (idx >= 0) {
             break;

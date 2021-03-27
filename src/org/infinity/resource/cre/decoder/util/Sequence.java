@@ -4,6 +4,9 @@
 
 package org.infinity.resource.cre.decoder.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Available animation sequences. Note: PST-specific animation sequences are prefixed by "PST_".
  */
@@ -119,6 +122,19 @@ public enum Sequence {
   PST_MISC19("Custom sequence 19"),
   PST_MISC20("Custom sequence 20");
 
+  private static final List<Sequence> DEFAULT_SEQUENCES = new ArrayList<Sequence>() {{
+    add(Sequence.STAND);
+    add(Sequence.STAND2);
+    add(Sequence.STAND3);
+    add(Sequence.STAND_EMERGED);
+    add(Sequence.PST_STAND);
+    add(Sequence.STANCE);
+    add(Sequence.STANCE2);
+    add(Sequence.PST_STANCE);
+    add(Sequence.WALK);
+    add(Sequence.PST_WALK);
+  }};
+
   private final String desc;
 
   /** Creates a new {@code AnimationSequence} with an empty label. */
@@ -132,4 +148,10 @@ public enum Sequence {
   {
     return (desc != null) ? desc : super.toString();
   }
+
+  /**
+   * Returns a list of default animation sequences that are safe for initializing a new
+   * creature animation in order of preference.
+   */
+  public static List<Sequence> getDefaultSequences() { return DEFAULT_SEQUENCES; }
 }

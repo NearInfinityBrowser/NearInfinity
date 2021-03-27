@@ -271,20 +271,21 @@ public class MonsterDecoder extends SpriteDecoder
     // processing creature sprite
     String resref = getAnimationResref();
     String suffix = data.getValue0();
-    if (!SpriteUtils.bamCyclesExist(ResourceFactory.getResourceEntry(resref + SegmentDef.fixBehaviorSuffix(suffix) + ".BAM"),
-                                    data.getValue1().intValue(), 9)) {
+    int ofs = data.getValue1().intValue();
+    ResourceEntry bamEntry = ResourceFactory.getResourceEntry(resref + SegmentDef.fixBehaviorSuffix(suffix) + ".BAM");
+    if (!SpriteUtils.bamCyclesExist(bamEntry, ofs, 1)) {
       data = (isSplittedBams() ? replacementMapSplit: replacementMapUnsplit).get(seq);
       if (data == null) {
         return retVal;
       }
       suffix = data.getValue0();
-      if (!ResourceFactory.resourceExists(resref + SegmentDef.fixBehaviorSuffix(suffix) + ".BAM")) {
+      bamEntry = ResourceFactory.getResourceEntry(resref + SegmentDef.fixBehaviorSuffix(suffix) + ".BAM");
+      if (!SpriteUtils.bamCyclesExist(bamEntry, ofs, 1)) {
         return retVal;
       }
     }
     SegmentDef.Behavior behavior = SegmentDef.getBehaviorOf(suffix);
     suffix = SegmentDef.fixBehaviorSuffix(suffix);
-    int ofs = data.getValue1().intValue();
     creResList.add(Couple.with(resref + suffix + ".BAM", SegmentDef.SpriteType.AVATAR));
 
     // processing weapon overlay
@@ -310,8 +311,14 @@ public class MonsterDecoder extends SpriteDecoder
         retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
       } else if (entry != null && SpriteUtils.getBamCycles(entry) == 1) {
         // fallback solution: just use first bam cycle (required by a few animations)
-        SeqDef tmp = SeqDef.createSequence(seq, new Direction[] {Direction.S}, false, entry, 0, type, behavior);
-        retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        for (final Direction dir : SeqDef.DIR_FULL_W) {
+          SeqDef tmp = SeqDef.createSequence(seq, new Direction[] {dir}, false, entry, 0, type, behavior);
+          retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        }
+        for (final Direction dir : SeqDef.DIR_FULL_E) {
+          SeqDef tmp = SeqDef.createSequence(seq, new Direction[] {dir}, true, entry, 0, type, behavior);
+          retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
+        }
       }
     }
 

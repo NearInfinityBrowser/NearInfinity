@@ -535,7 +535,7 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     // loading animation sequence
     if (cbSequences.isEnabled()) {
       int seqIdx = 0;
-      for (final Sequence sequence : SpriteDecoder.DEFAULT_SEQUENCES) {
+      for (final Sequence sequence : Sequence.getDefaultSequences()) {
         int idx = ((DefaultComboBoxModel<?>)cbSequences.getModel()).getIndexOf(sequence);
         if (idx >= 0) {
           seqIdx = idx;
