@@ -108,6 +108,7 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
         progress.setMillisToPopup(1000);
 
         try {
+          int visualState = getViewer().getVisualState();
           for (int i = 0, size = list.size(); i < size; i++) {
             boolean state = isLayerVisible() && (!isScheduleEnabled() || isScheduled(i));
             LayerObjectActor loa = list.get(i);
@@ -126,6 +127,7 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
                   blocker.setBlocked(true);
                 }
                 loa.loadAnimation();
+                loa.setLighting(visualState);
               }
 
               animItem.setVisible(state && realEnabled);

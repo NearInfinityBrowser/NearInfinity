@@ -775,7 +775,7 @@ public class AreaViewer extends ChildFrame
     cbLayerRealActor[0].setSelected(Settings.ShowActorSprites == ViewerConstants.ANIM_SHOW_STILL);
     cbLayerRealActor[1].setSelected(false);
     updateRealActors();
-    updateRealActorsLighting(getDayTime());
+    updateRealActorsLighting(getVisualState());
 
     // Setting up ambient sound ranges
     LayerAmbient layerAmbient = (LayerAmbient)layerManager.getLayer(ViewerConstants.LayerType.AMBIENT);
@@ -794,7 +794,7 @@ public class AreaViewer extends ChildFrame
     cbLayerRealAnimation[0].setSelected(Settings.ShowRealAnimations == ViewerConstants.ANIM_SHOW_STILL);
     cbLayerRealAnimation[1].setSelected(false);
     updateRealAnimation();
-    updateRealAnimationsLighting(getDayTime());
+    updateRealAnimationsLighting(getVisualState());
 
     updateWindowTitle();
     applySettings();
@@ -867,17 +867,21 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  /** Returns the currently selected visual state (day/twilight/night). */
-  private int getVisualState()
+  /** Returns the currently selected visual state (day/twilight/night) depending on whether the map supports day/night cycles. */
+  public int getVisualState()
   {
-    return getDayTime();
+    if (map.hasDayNight()) {
+      return getDayTime();
+    } else {
+      return ViewerConstants.LIGHTING_DAY;
+    }
   }
 
   /** Set the lighting condition of the current map (day/twilight/night) and real background animations. */
   private synchronized void setVisualState(int hour)
   {
-    while (hour < 0) { hour += 24; }
     hour %= 24;
+    while (hour < 0) { hour += 24; }
     int index = ViewerConstants.getDayTime(hour);
     if (!map.hasDayNight()) {
       index = ViewerConstants.LIGHTING_DAY;
@@ -925,7 +929,8 @@ public class AreaViewer extends ChildFrame
 
     updateMiniMap();
     updateToolBarButtons();
-    updateRealAnimationsLighting(getDayTime());
+    updateRealActorsLighting(getVisualState());
+    updateRealAnimationsLighting(getVisualState());
     updateScheduledItems();
     updateWindowTitle();
   }
