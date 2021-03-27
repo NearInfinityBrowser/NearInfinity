@@ -500,7 +500,7 @@ public class MediaPanel extends JPanel
                           GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
     pColumn1.add(pRow2, c);
     c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(16, 0, 0, 0), 0, 0);
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
     pColumn1.add(pRow3, c);
 
 

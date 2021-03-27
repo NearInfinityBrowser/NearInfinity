@@ -29,6 +29,7 @@ import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
+import org.infinity.gui.BrowserMenuBar;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.graphics.GraphicsResource;
@@ -308,7 +309,8 @@ implements ComboBoxModel<ColorSelectionModel.ColorEntry>
     }
 
     private static final int DEFAULT_IMAGE_WIDTH = 128; // total width of color range
-    private static final int DEFAULT_IMAGE_HEIGHT = 24;
+    // take global font scaling into account
+    private static final int DEFAULT_IMAGE_HEIGHT = 20 * BrowserMenuBar.getInstance().getGlobalFontSize() / 100;
 
     private static final Color COLOR_INVALID      = new Color(0xe0e0e0);
     private static final Color COLOR_RANDOM       = Color.LIGHT_GRAY;

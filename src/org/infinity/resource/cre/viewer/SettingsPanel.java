@@ -393,27 +393,27 @@ public class SettingsPanel extends JPanel
     cbBackground.addActionListener(listeners);
 
     JPanel panel1 = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_END,
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
                           GridBagConstraints.VERTICAL, new Insets(0, 0, 0, 0), 0, 0);
     panel1.add(l1, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
     panel1.add(cbZoom, c);
-    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+    c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 1.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.VERTICAL, new Insets(0, 8, 0, 0), 0, 0);
     panel1.add(bCenter, c);
 
-    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_END,
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
                           GridBagConstraints.VERTICAL, new Insets(8, 0, 0, 0), 0, 0);
     panel1.add(l2, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+    c = ViewerUtil.setGBC(c, 1, 1, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 4, 0, 0), 0, 0);
     panel1.add(cbFrameRate, c);
 
-    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_END,
+    c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
                           GridBagConstraints.VERTICAL, new Insets(8, 0, 0, 0), 0, 0);
     panel1.add(l3, c);
-    c = ViewerUtil.setGBC(c, 1, 2, 2, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+    c = ViewerUtil.setGBC(c, 1, 2, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 4, 0, 0), 0, 0);
     panel1.add(cbBackground, c);
 

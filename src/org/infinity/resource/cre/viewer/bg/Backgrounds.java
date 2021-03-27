@@ -36,7 +36,7 @@ public final class Backgrounds
   public static final BackgroundInfo BG_CITY_PST        = new BackgroundInfo("Sigil city (PST)", new Color(0x494131),
                                                                              "pst_city.jpg", new Point(640, 580),
                                                                              EnumSet.of(Profile.Game.PST, Profile.Game.PSTEE));
-  public static final BackgroundInfo BG_DUNGEON_PST     = new BackgroundInfo("Sigil dungeon (PST)", new Color(0x494131),
+  public static final BackgroundInfo BG_DUNGEON_PST     = new BackgroundInfo("Sigil dungeon (PST)", new Color(0x010101),
                                                                              "pst_dungeon.jpg", new Point(640, 480),
                                                                              EnumSet.of(Profile.Game.PST, Profile.Game.PSTEE));
   public static final BackgroundInfo BG_COLOR_NONE        = new BackgroundInfo("System color", null);

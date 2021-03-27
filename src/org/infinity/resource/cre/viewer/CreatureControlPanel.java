@@ -7,6 +7,7 @@ package org.infinity.resource.cre.viewer;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -156,7 +157,7 @@ public class CreatureControlPanel extends JPanel
 
     GridBagConstraints c = new GridBagConstraints();
 
-    // first column
+    // first column: creature and item selection
     JLabel l1 = new JLabel("Select CRE resource:");
     cbCreSelection = new JComboBox<>(model.getModelCreature());
     // this is a good default width for all selection controls in this panel
@@ -189,25 +190,25 @@ public class CreatureControlPanel extends JPanel
     cbCreAllegiance.addActionListener(listeners);
     updateToolTip(cbCreAllegiance);
 
-    JLabel l4 = new JLabel("Helmet:");
+    JLabel l4 = new JLabel("Helmet slot:");
     cbItemHelmet = new JComboBox<>(model.getModelHelmet());
     setPreferredWidth(cbItemHelmet, defWidth);
     cbItemHelmet.addActionListener(listeners);
     updateToolTip(cbItemHelmet);
 
-    JLabel l5 = new JLabel("Armor:");
+    JLabel l5 = new JLabel("Armor slot:");
     cbItemArmor = new JComboBox<>(model.getModelArmor());
     setPreferredWidth(cbItemArmor, defWidth);
     cbItemArmor.addActionListener(listeners);
     updateToolTip(cbItemArmor);
 
-    JLabel l6 = new JLabel("Shield:");
+    JLabel l6 = new JLabel("Shield slot:");
     cbItemShield = new JComboBox<>(model.getModelShield());
     setPreferredWidth(cbItemShield, defWidth);
     cbItemShield.addActionListener(listeners);
     updateToolTip(cbItemShield);
 
-    JLabel l7 = new JLabel("Weapon:");
+    JLabel l7 = new JLabel("Weapon slot:");
     cbItemWeapon = new JComboBox<>(model.getModelWeapon());
     setPreferredWidth(cbItemWeapon, defWidth);
     cbItemWeapon.addActionListener(listeners);
@@ -217,55 +218,54 @@ public class CreatureControlPanel extends JPanel
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
                           GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
     pColumn1.add(l1, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(0, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(0, 8, 0, 0), 0, 0);
     pColumn1.add(cbCreSelection, c);
 
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
                           GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
     pColumn1.add(l2, c);
-    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
     pColumn1.add(cbCreAnimation, c);
 
     c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
                           GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
     pColumn1.add(l3, c);
-    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
     pColumn1.add(cbCreAllegiance, c);
 
-
     c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
-                          GridBagConstraints.NONE, new Insets(32, 0, 0, 0), 0, 0);
+                          GridBagConstraints.NONE, new Insets(24, 0, 0, 0), 0, 0);
     pColumn1.add(l4, c);
-    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(32, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(24, 8, 0, 0), 0, 0);
     pColumn1.add(cbItemHelmet, c);
 
     c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
                           GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
     pColumn1.add(l5, c);
-    c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
     pColumn1.add(cbItemArmor, c);
 
     c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
                           GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
     pColumn1.add(l6, c);
-    c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
     pColumn1.add(cbItemShield, c);
 
     c = ViewerUtil.setGBC(c, 0, 6, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
                           GridBagConstraints.NONE, new Insets(8, 0, 0, 0), 0, 0);
     pColumn1.add(l7, c);
-    c = ViewerUtil.setGBC(c, 1, 6, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.HORIZONTAL, new Insets(8, 4, 0, 0), 0, 0);
+    c = ViewerUtil.setGBC(c, 1, 6, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
     pColumn1.add(cbItemWeapon, c);
 
 
-    // second column
+    // second column: color selection
     JComboBox<ColorSelectionModel.ColorEntry> cb;
     ColorSelectionModel cm = model.getModelColor(0);
 
@@ -305,39 +305,41 @@ public class CreatureControlPanel extends JPanel
       c = ViewerUtil.setGBC(c, 0, i, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END,
                             GridBagConstraints.NONE, new Insets(top, 0, 0, 0), 0, 0);
       pColumn2.add(colorLabels.get(i), c);
-      c = ViewerUtil.setGBC(c, 1, i, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                            GridBagConstraints.HORIZONTAL, new Insets(top, 4, 0, 0), 0, 0);
+      c = ViewerUtil.setGBC(c, 1, i, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                            GridBagConstraints.HORIZONTAL, new Insets(top, 8, 0, 0), 0, 0);
       pColumn2.add(colorControls.get(i), c);
     }
 
 
-    // third column
+    // third column: buttons
     Insets margin;
+    bApply = new JButton("Apply", Icons.getIcon(Icons.ICON_REFRESH_16));
+    Font fnt = bApply.getFont().deriveFont(bApply.getFont().getSize2D() * 1.25f);
+    bApply.setFont(fnt);
+    margin = bApply.getMargin();
+    margin.top += 4;  margin.bottom += 4;
+    bApply.setMargin(margin);
+    bApply.addActionListener(listeners);
     bReset = new JButton("Reset", Icons.getIcon(Icons.ICON_UNDO_16));
     margin = bReset.getMargin();
     margin.top += 4; margin.bottom += 4;
     bReset.setMargin(margin);
     bReset.setToolTipText("Revert to creature defaults");
     bReset.addActionListener(listeners);
-    bApply = new JButton("Apply", Icons.getIcon(Icons.ICON_REFRESH_16));
-    margin = bApply.getMargin();
-    margin.top += 4;  margin.bottom += 4;
-    bApply.setMargin(margin);
-    bApply.addActionListener(listeners);
 
-    JPanel pColumn3 = new JPanel(new GridBagLayout());
+    JPanel pButtons = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-    pColumn3.add(bApply, c);
+    pButtons.add(bApply, c);
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    pColumn3.add(bReset, c);
+    pButtons.add(bReset, c);
     c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 0.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.VERTICAL, new Insets(8, 0, 0, 0), 0, 0);
-    pColumn3.add(new JPanel(), c);
+    pButtons.add(new JPanel(), c);
 
 
-    // fourth column
+    // fourth column: show/hide panel button
     bHidePanel = new JButton("Hide panel");
     margin = bHidePanel.getMargin();
     margin.top += 4; margin.bottom += 4;
@@ -355,20 +357,24 @@ public class CreatureControlPanel extends JPanel
 
     // combining columns
     JPanel panelShown = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    panelShown.add(new JPanel(), c);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.NONE, new Insets(8, 8, 8, 0), 0, 0);
     panelShown.add(pColumn1, c);
-    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(8, 16, 8, 0), 0, 0);
-    panelShown.add(pColumn2, c);
     c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
-                          GridBagConstraints.NONE, new Insets(8, 16, 8, 0), 0, 0);
-    panelShown.add(pColumn3, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(8, 8, 8, 0), 0, 0);
+    panelShown.add(pButtons, c);
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.NONE, new Insets(8, 32, 8, 0), 0, 0);
+    panelShown.add(pColumn2, c);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.BOTH, new Insets(8, 16, 8, 8), 0, 0);
     panelShown.add(pColumn4, c);
 
-    scrollShown = new JScrollPane(panelShown);
+    scrollShown = new JScrollPane(panelShown, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scrollShown.getHorizontalScrollBar().setUnitIncrement(32);
     scrollShown.setBorder(panelShown.getBorder());
 
     // hidden panel
@@ -383,7 +389,7 @@ public class CreatureControlPanel extends JPanel
     bHidePanel.setPreferredSize(new Dimension(defWidth, bHidePanel.getPreferredSize().height));
 
     panelHidden = new JPanel(new GridBagLayout());
-    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_END,
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_END,
                           GridBagConstraints.NONE, new Insets(8, 8, 8, 8), 0, 0);
     panelHidden.add(bShowPanel, c);
 
