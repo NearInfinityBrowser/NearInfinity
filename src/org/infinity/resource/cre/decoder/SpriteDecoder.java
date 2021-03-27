@@ -711,37 +711,49 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     return SpriteUtils.loadReplacementPalette(getNewPalette());
   }
 
-  /** ??? */
+  /**
+   * Returns whether blending mode "brightest" is enabled.
+   * <p>Blending modes and their effects:
+   * <li>Brightest only: Use {@code GL_ONE_MINUS_DST_COLOR}
+   * <li>MultiplyBlend only: Use {@code GL_DST_COLOR}
+   * <li>Brightest and MultiplyBlend: Use {@code GL_SRC_COLOR}
+   */
   public boolean isBrightest()
   {
     return getAttribute(KEY_BRIGHTEST);
   }
 
-  /** ??? */
+  /** Sets blending mode "brightest". */
   protected void setBrightest(boolean b)
   {
     setAttribute(KEY_BRIGHTEST, b);
   }
 
-  /** Returns whether blending mode is enabled. */
+  /**
+   * Returns whether blending mode "multiply_blend" is enabled.
+   * <p>Blending modes and their effects:
+   * <li>Brightest only: Use {@code GL_ONE_MINUS_DST_COLOR}
+   * <li>MultiplyBlend only: Use {@code GL_DST_COLOR}
+   * <li>Brightest and MultiplyBlend: Use {@code GL_SRC_COLOR}
+   */
   public boolean isMultiplyBlend()
   {
     return getAttribute(KEY_MULTIPLY_BLEND);
   }
 
-  /** Sets blending mode. */
+  /** Sets blending mode "multiply_blend". */
   protected void setMultiplyBlend(boolean b)
   {
     setAttribute(KEY_MULTIPLY_BLEND, b);
   }
 
-  /** ??? */
+  /** Returns whether sprite is affected by environmental lighting. */
   public boolean isLightSource()
   {
     return getAttribute(KEY_LIGHT_SOURCE);
   }
 
-  /** ??? */
+  /** Sets whether sprite is affected by environmental lighting. */
   protected void setLightSource(boolean b)
   {
     setAttribute(KEY_LIGHT_SOURCE, b);
