@@ -17,6 +17,7 @@ import java.util.List;
 import org.infinity.resource.Profile;
 import org.infinity.resource.cre.decoder.MonsterPlanescapeDecoder;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
+import org.infinity.resource.cre.decoder.util.SpriteUtils;
 import org.infinity.resource.key.BufferedResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
@@ -192,7 +193,7 @@ public class SpriteTables
     }
 
     // determining SpriteDecoder class instance
-    Class<? extends SpriteDecoder> cls = SpriteDecoder.getSpriteDecoderClass(animationId);
+    Class<? extends SpriteDecoder> cls = SpriteUtils.getSpriteDecoderClass(animationId);
     if (cls != null) {
       try {
         // calling method of signature: public static IniMap processTableData(String[] data);

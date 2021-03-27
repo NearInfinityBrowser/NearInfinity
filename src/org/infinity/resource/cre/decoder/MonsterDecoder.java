@@ -128,7 +128,7 @@ public class MonsterDecoder extends SpriteDecoder
     String palette1 = SpriteTables.valueToString(data, SpriteTables.COLUMN_PALETTE, "");
     String palette2 = SpriteTables.valueToString(data, SpriteTables.COLUMN_PALETTE2, "");
 
-    List<String> lines = processTableDataGeneral(data, ANIMATION_TYPE);
+    List<String> lines = SpriteUtils.processTableDataGeneral(data, ANIMATION_TYPE);
     lines.add("[monster]");
     lines.add("false_color=" + falseColor);
     lines.add("split_bams=" + splitBams);

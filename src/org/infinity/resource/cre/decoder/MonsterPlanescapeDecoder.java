@@ -252,7 +252,7 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
     int bestiary = SpriteTables.valueToInt(data, SpriteTables.COLUMN_PST_BESTIARY, 0);
     int armor = SpriteTables.valueToInt(data, SpriteTables.COLUMN_PST_ARMOR, 0);
 
-    List<String> lines = processTableDataGeneralPst(data);
+    List<String> lines = SpriteUtils.processTableDataGeneralPst(data);
     lines.add("[monster_planescape]");
     for (final String action : actions.keySet()) {
       lines.add(action + "=" + actions.get(action));

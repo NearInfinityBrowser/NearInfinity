@@ -75,7 +75,7 @@ public class EffectDecoder extends SpriteDecoder
     String altPalette = SpriteTables.valueToString(data, SpriteTables.COLUMN_PALETTE2, "");
     String resref2 = SpriteTables.valueToString(data, SpriteTables.COLUMN_HEIGHT, "");
 
-    List<String> lines = processTableDataGeneral(data, ANIMATION_TYPE);
+    List<String> lines = SpriteUtils.processTableDataGeneral(data, ANIMATION_TYPE);
     lines.add("[effect]");
     lines.add("resref=" + resref);
     if (!shadow.isEmpty()) {

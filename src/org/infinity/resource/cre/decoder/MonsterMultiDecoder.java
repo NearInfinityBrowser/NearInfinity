@@ -105,7 +105,7 @@ public class MonsterMultiDecoder extends QuadrantsBaseDecoder
     int splitBams = SpriteTables.valueToInt(data, SpriteTables.COLUMN_SPLIT, 0);
     String paletteBase = SpriteTables.valueToString(data, SpriteTables.COLUMN_PALETTE, "");
 
-    List<String> lines = processTableDataGeneral(data, ANIMATION_TYPE);
+    List<String> lines = SpriteUtils.processTableDataGeneral(data, ANIMATION_TYPE);
     lines.add("[monster_multi]");
     lines.add("quadrants=9");
     lines.add("split_bams=" + splitBams);

@@ -70,7 +70,7 @@ public class MonsterLayeredDecoder extends SpriteDecoder
     String resrefWeapon1 = SpriteTables.valueToString(data, SpriteTables.COLUMN_HEIGHT, "");
     String resrefWeapon2 = SpriteTables.valueToString(data, SpriteTables.COLUMN_HEIGHT_SHIELD, "");
 
-    List<String> lines = processTableDataGeneral(data, ANIMATION_TYPE);
+    List<String> lines = SpriteUtils.processTableDataGeneral(data, ANIMATION_TYPE);
     lines.add("[monster_layered]");
     lines.add("resref=" + resref);
     lines.add("resref_weapon1=" + resrefWeapon1);

@@ -127,7 +127,7 @@ public class CharacterOldDecoder extends CharacterBaseDecoder
     String heightCodeHelmet = heightCode;
     String shadow = SpriteTables.valueToString(data, SpriteTables.COLUMN_RESREF2, "");
 
-    List<String> lines = processTableDataGeneral(data, ANIMATION_TYPE);
+    List<String> lines = SpriteUtils.processTableDataGeneral(data, ANIMATION_TYPE);
     lines.add("[character_old]");
     lines.add("equip_helmet=" + equipHelmet);
     lines.add("false_color=" + falseColor);

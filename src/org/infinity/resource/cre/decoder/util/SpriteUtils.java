@@ -4,20 +4,62 @@
 
 package org.infinity.resource.cre.decoder.util;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.decoder.AmbientDecoder;
+import org.infinity.resource.cre.decoder.AmbientStaticDecoder;
+import org.infinity.resource.cre.decoder.CharacterDecoder;
+import org.infinity.resource.cre.decoder.CharacterOldDecoder;
+import org.infinity.resource.cre.decoder.EffectDecoder;
+import org.infinity.resource.cre.decoder.FlyingDecoder;
+import org.infinity.resource.cre.decoder.MonsterAnkhegDecoder;
+import org.infinity.resource.cre.decoder.MonsterDecoder;
+import org.infinity.resource.cre.decoder.MonsterIcewindDecoder;
+import org.infinity.resource.cre.decoder.MonsterLarge16Decoder;
+import org.infinity.resource.cre.decoder.MonsterLargeDecoder;
+import org.infinity.resource.cre.decoder.MonsterLayeredDecoder;
+import org.infinity.resource.cre.decoder.MonsterLayeredSpellDecoder;
+import org.infinity.resource.cre.decoder.MonsterMultiDecoder;
+import org.infinity.resource.cre.decoder.MonsterMultiNewDecoder;
+import org.infinity.resource.cre.decoder.MonsterOldDecoder;
+import org.infinity.resource.cre.decoder.MonsterPlanescapeDecoder;
+import org.infinity.resource.cre.decoder.MonsterQuadrantDecoder;
+import org.infinity.resource.cre.decoder.SpriteDecoder;
+import org.infinity.resource.cre.decoder.TownStaticDecoder;
+import org.infinity.resource.cre.decoder.tables.SpriteTables;
+import org.infinity.resource.cre.viewer.icon.Icons;
 import org.infinity.resource.graphics.BamV1Decoder;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.GraphicsResource;
+import org.infinity.resource.graphics.BamDecoder.FrameEntry;
 import org.infinity.resource.graphics.BamV1Decoder.BamV1Control;
+import org.infinity.resource.key.BufferedResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
+import org.infinity.util.IdsMap;
+import org.infinity.util.IdsMapCache;
+import org.infinity.util.IdsMapEntry;
+import org.infinity.util.IniMap;
+import org.infinity.util.IniMapCache;
+import org.infinity.util.IniMapEntry;
+import org.infinity.util.IniMapSection;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
@@ -39,6 +81,30 @@ public class SpriteUtils
   private static final HashMap<Integer, int[]> randomGradientIndices = new HashMap<>();
   /** A random number generator for general use */
   private static final Random random = new Random();
+
+  /** Mappings between animation types and compatible sprite classes. */
+  private static final EnumMap<AnimationInfo.Type, Class<? extends SpriteDecoder>> typeAssociations =
+      new EnumMap<AnimationInfo.Type, Class<? extends SpriteDecoder>>(AnimationInfo.Type.class) {{
+        put(AnimationInfo.Type.EFFECT, EffectDecoder.class);
+        put(AnimationInfo.Type.MONSTER_QUADRANT, MonsterQuadrantDecoder.class);
+        put(AnimationInfo.Type.MONSTER_MULTI, MonsterMultiDecoder.class);
+        put(AnimationInfo.Type.MONSTER_MULTI_NEW, MonsterMultiNewDecoder.class);
+        put(AnimationInfo.Type.MONSTER_LAYERED_SPELL, MonsterLayeredSpellDecoder.class);
+        put(AnimationInfo.Type.MONSTER_ANKHEG, MonsterAnkhegDecoder.class);
+        put(AnimationInfo.Type.TOWN_STATIC, TownStaticDecoder.class);
+        put(AnimationInfo.Type.CHARACTER, CharacterDecoder.class);
+        put(AnimationInfo.Type.CHARACTER_OLD, CharacterOldDecoder.class);
+        put(AnimationInfo.Type.MONSTER, MonsterDecoder.class);
+        put(AnimationInfo.Type.MONSTER_OLD, MonsterOldDecoder.class);
+        put(AnimationInfo.Type.MONSTER_LAYERED, MonsterLayeredDecoder.class);
+        put(AnimationInfo.Type.MONSTER_LARGE, MonsterLargeDecoder.class);
+        put(AnimationInfo.Type.MONSTER_LARGE_16, MonsterLarge16Decoder.class);
+        put(AnimationInfo.Type.AMBIENT_STATIC, AmbientStaticDecoder.class);
+        put(AnimationInfo.Type.AMBIENT, AmbientDecoder.class);
+        put(AnimationInfo.Type.FLYING, FlyingDecoder.class);
+        put(AnimationInfo.Type.MONSTER_ICEWIND, MonsterIcewindDecoder.class);
+        put(AnimationInfo.Type.MONSTER_PLANESCAPE, MonsterPlanescapeDecoder.class);
+      }};
 
   /** A stable pool of random numbers. */
   private static int[] randomPool;
@@ -738,6 +804,704 @@ public class SpriteUtils
       randomPool[i] = random.nextInt();
     }
   }
+
+  /**
+   * Calculates a dimension that can contain all the specified source frames.
+   * @param frames one or more source frames.
+   * @return A rectangle object where x and y indicate the top-left corner relative to the center point.
+   *         Width and height specify frame dimension.
+   */
+  public static Rectangle getTotalFrameDimension(FrameInfo... frames)
+  {
+    Rectangle retVal = new Rectangle();
+
+    if (frames.length > 0) {
+      int left = Integer.MAX_VALUE, top = Integer.MAX_VALUE, right = Integer.MIN_VALUE, bottom = Integer.MIN_VALUE;
+      for (final FrameInfo fi : frames) {
+        BamV1Control ctrl = fi.getController();
+        int frameIdx = fi.getFrame();
+        frameIdx = ctrl.cycleGetFrameIndexAbsolute(fi.getCycle(), frameIdx);
+        FrameEntry entry = fi.getController().getDecoder().getFrameInfo(frameIdx);
+        left = Math.min(left, -entry.getCenterX());
+        top = Math.min(top, -entry.getCenterY());
+        right = Math.max(right, entry.getWidth() - entry.getCenterX());
+        bottom = Math.max(bottom, entry.getHeight() - entry.getCenterY());
+      }
+
+      retVal.x = left;
+      retVal.y = top;
+      retVal.width = right - left;
+      retVal.height = bottom - top;
+    }
+
+    return retVal;
+  }
+
+  /** Expands the rectangle to fit the specified dimension. */
+  public static Rectangle updateFrameDimension(Rectangle rect, Dimension dim)
+  {
+    Rectangle retVal = new Rectangle(Objects.requireNonNull(rect, "Bounding box cannot be null"));
+    if (dim != null) {
+      int w2 = dim.width / 2;
+      int h2 = dim.height / 2;
+      int left = retVal.x;
+      int top = retVal.y;
+      int right = left + retVal.width;
+      int bottom = top + retVal.height;
+      left = Math.min(left, -w2);
+      top = Math.min(top, -h2);
+      right = Math.max(right, w2);
+      bottom = Math.max(bottom, h2);
+      retVal.x = left;
+      retVal.y = top;
+      retVal.width = right - left;
+      retVal.height = bottom - top;
+    }
+    return retVal;
+  }
+
+
+  /**
+   * Determines the right allegiance color for selection circles and returns it as {@code Color} object.
+   * A negative value will enable the "panic" color.
+   * @param value numeric allegiance value. Specify a negative value to override allegiance by the "panic" status.
+   * @return a {@code Color} object with the associated allegiance or status color.
+   */
+  public static Color getAllegianceColor(int value)
+  {
+    Color c = null;
+    if (value < 0) {
+      // treat as panic
+      c = new Color(0xffff20, false);
+    } else if (value >= 2 && value <= 4 || value == 201) {
+      // ally
+      c = new Color(0x20ff20, false);
+    } else if (value == 255 || value == 254 || value == 28 || value == 6 || value == 5) {
+      // enemy
+      c = new Color(0xff2020, false);
+    } else {
+      // neutral
+      c = new Color(0x20ffff, false);
+    }
+
+    return c;
+  }
+
+  /**
+   * Determines the right selection circle bitmap based on the specified allegiance value and returns it
+   * as {@code Image} object. A negative value will enable the "panic" bitmap.
+   * @param value numeric allegiance value. Specify a negative value to override allegiance by the "panic" status.
+   * @return
+   */
+  public static Image getAllegianceImage(int value)
+  {
+    Image retVal = null;
+    if (value < 0) {
+      // treat as panic
+      retVal = Icons.getImage(Icons.ICON_CIRCLE_YELLOW);
+    } else if (value >= 2 && value <= 4 || value == 201) {
+      // ally
+      retVal = Icons.getImage(Icons.ICON_CIRCLE_GREEN);
+    } else if (value == 255 || value == 254 || value == 28 || value == 6 || value == 5) {
+      // enemy
+      retVal = Icons.getImage(Icons.ICON_CIRCLE_RED);
+    } else {
+      // neutral
+      retVal = Icons.getImage(Icons.ICON_CIRCLE_BLUE);
+    }
+
+    return retVal;
+  }
+
+
+  /**
+   * Returns the {@code SpriteClass} class associated with the specified {@code AnimationType} enum.
+   * @param type the {@code AnimationType}
+   * @return the associated {@code SpriteClass} class object. Returns {@code null} if class could not be determined.
+   */
+  public static Class<? extends SpriteDecoder> getSpriteDecoderClass(AnimationInfo.Type type)
+  {
+    return typeAssociations.get(type);
+  }
+
+  /**
+   * Returns the {@code SpriteClass} class associated with the specified animation id.
+   * @param animationId the animation id
+   * @return a class type compatible with the specified animation id.
+   *         Returns {@code null} if no class could be determined.
+   */
+  public static Class<? extends SpriteDecoder> getSpriteDecoderClass(int animationId)
+  {
+    Class<? extends SpriteDecoder> retVal = null;
+
+    // Testing Infinity Animation range first
+    AnimationInfo.Type animType = AnimationInfo.Type.containsInfinityAnimations(animationId);
+    if (animType != null) {
+      retVal = typeAssociations.get(animType);
+    }
+
+    // Testing regular ranges
+    if (retVal == null) {
+      for (final AnimationInfo.Type type : AnimationInfo.Type.values()) {
+        if (type.contains(animationId)) {
+          retVal = typeAssociations.get(type);
+          if (retVal != null) {
+            break;
+          }
+        }
+      }
+    }
+
+    return retVal;
+  }
+
+  /**
+   * Returns creature animation info in INI format. Section and field format is based on the EE v2.0 INI format.
+   * The method will first look for existing INI data in the game resources. Failing that it will look up data in
+   * hardcoded tables and fill in missing data from associated 2DA file if available. Failing that it will guess
+   * the correct format based on animation type and available resources.
+   * @param animationId the 16-bit animation id.
+   * @return An IniMap structure containing necessary data for rendering creature animation. Returns {@code null} if no
+   *         animation info could be assembled.
+   */
+  public static IniMap getAnimationInfo(int animationId)
+  {
+    List<IniMap> retVal = new ArrayList<>();
+
+    // 1. look up existing INI resource
+    retVal.addAll(getAnimationInfoByIni(animationId));
+
+    if (retVal.isEmpty()) {
+      // 2. look up hardcoded tables
+      retVal.addAll(getAnimationInfoByTable(animationId));
+    }
+
+    if (retVal.isEmpty()) {
+      // 3. guess animation info based on anisnd.2da entry and available sprite classes
+      retVal.addAll(getAnimationInfoByGuess(animationId));
+    }
+
+    if (!retVal.isEmpty()) {
+      return retVal.get(0);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Attempts to determine the animation type assigned to the specified creature.
+   * @return Class instance responsible for handling the detected animation type. {@code null} if type could not be determined.
+   */
+  public static Class<? extends SpriteDecoder> detectAnimationType(int animationId)
+  {
+    Class<? extends SpriteDecoder> retVal = null;
+
+    List<IniMap> iniList = new ArrayList<>();
+    iniList.addAll(getAnimationInfoByIni(animationId));
+
+    if (iniList.isEmpty()) {
+      iniList.addAll(getAnimationInfoByTable(animationId));
+    }
+
+    if (iniList.isEmpty()) {
+      iniList.addAll(getAnimationInfoByGuess(animationId));
+    }
+
+    if (!iniList.isEmpty()) {
+      // trying recommended sprite decoder class first
+      Class<? extends SpriteDecoder> cls = getSpriteDecoderClass(animationId);
+      if (isSpriteDecoderAvailable(cls, animationId, iniList)) {
+        retVal = cls;
+      }
+
+      if (retVal == null) {
+        // trying out all available sprite decoder classes otherwise
+        if (Profile.getGame() == Profile.Game.PST || Profile.getGame() == Profile.Game.PSTEE) {
+          if (isSpriteDecoderAvailable(MonsterPlanescapeDecoder.class, animationId, iniList)) {
+            retVal = cls;
+          }
+        } else {
+          for (final AnimationInfo.Type type : AnimationInfo.Type.values()) {
+            if (type != AnimationInfo.Type.MONSTER_PLANESCAPE) {
+              cls = typeAssociations.get(type);
+              if (isSpriteDecoderAvailable(cls, animationId, iniList)) {
+                retVal = cls;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return retVal;
+  }
+
+  /**
+   * A helper method that parses the specified data array and generates a list of INI lines
+   * related to the "general" section.
+   * @param data the String array containing data for a specific table entry.
+   * @param type the animation type.
+   * @return the initialized "general" INI section as list of strings. An empty list otherwise.
+   */
+  public static List<String> processTableDataGeneral(String[] data, AnimationInfo.Type type)
+  {
+    List<String> retVal = new ArrayList<>();
+    if (data == null || type == null) {
+      return retVal;
+    }
+
+    int id = SpriteTables.valueToAnimationId(data, SpriteTables.COLUMN_ID, -1);
+    if (id < 0) {
+      return retVal;
+    }
+    int ellipse = SpriteTables.valueToInt(data, SpriteTables.COLUMN_ELLIPSE, 16);
+    int space = SpriteTables.valueToInt(data, SpriteTables.COLUMN_SPACE, 3);
+    int blending = SpriteTables.valueToInt(data, SpriteTables.COLUMN_BLENDING, 0);
+    String palette = SpriteTables.valueToString(data, SpriteTables.COLUMN_PALETTE, "");
+
+    int animIndex = SpriteTables.valueToInt(data, SpriteTables.COLUMN_TYPE, -1);
+    if (animIndex < 0 || animIndex >= AnimationInfo.Type.values().length || AnimationInfo.Type.values()[animIndex] != type) {
+      return retVal;
+    }
+
+    int animType = -1;
+    for (int i = 0; i < type.getTypeCount(); i++) {
+      if (animType < 0 || (id & 0xf000) == type.getType(i)) {
+        animType = type.getType(i);
+      }
+    }
+
+    retVal.add("[general]");
+    retVal.add(String.format("animation_type=%04X", animType));
+    retVal.add("ellipse=" + ellipse);
+    retVal.add("personal_space=" + space);
+    if ((blending & 1) == 1) {
+      retVal.add("brightest=1");
+    }
+    if ((blending & 2) == 2) {
+      retVal.add("multiply_blend=1");
+    }
+    if ((blending & 4) == 4) {
+      retVal.add("light_source=1");
+    }
+    if (!palette.isEmpty()) {
+      retVal.add("new_palette=" + palette);
+    }
+
+    return retVal;
+  }
+
+  /**
+   * A helper method for PST animations that parses the specified data array and generates a list of INI lines
+   * related to the "general" section.
+   * @param data the String array containing data for a specific table entry.
+   * @return the initialized "general" INI section as list of strings. An empty list otherwise.
+   */
+  public static List<String> processTableDataGeneralPst(String[] data)
+  {
+    List<String> retVal = new ArrayList<>();
+    if (data == null) {
+      return retVal;
+    }
+
+    int id = SpriteTables.valueToInt(data, SpriteTables.COLUMN_ID, -1);
+    if (id < 0) {
+      return retVal;
+    }
+    int ellipse = SpriteTables.valueToInt(data, SpriteTables.COLUMN_PST_ELLIPSE, 16);
+    int space = SpriteTables.valueToInt(data, SpriteTables.COLUMN_PST_SPACE, 3);
+
+    retVal.add("[general]");
+    retVal.add("animation_type=F000");
+    retVal.add("ellipse=" + ellipse);
+    retVal.add("personal_space=" + space);
+
+    return retVal;
+  }
+
+  /**
+   * Returns whether the specified {@code SpriteDecoder} class is compatible with the given animation id
+   * and any of the IniMap definitions.
+   */
+  private static boolean isSpriteDecoderAvailable(Class<? extends SpriteDecoder> spriteClass, int animationId, List<IniMap> iniList)
+  {
+    boolean retVal = false;
+    if (spriteClass == null || iniList == null) {
+      return retVal;
+    }
+
+    try {
+      Constructor<? extends SpriteDecoder> ctor = spriteClass.getConstructor(int.class, IniMap.class);
+      if (ctor != null) {
+        for (final IniMap ini : iniList) {
+          try {
+            retVal = (ctor.newInstance(animationId, ini).getClass() != null);
+          } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
+          }
+        }
+      }
+    } catch (NoSuchMethodException e) {
+    }
+
+    return retVal;
+  }
+
+  /**
+   * Returns creature animation info from an existing INI file.
+   * @param animationId the creature animation id
+   * @return an list of {@link IniMap} instances with potential creature animation data.
+   *         Returns {@code null} if no matching INI was found.
+   */
+  private static List<IniMap> getAnimationInfoByIni(int animationId)
+  {
+    List<IniMap> retVal = new ArrayList<>();
+
+    animationId &= 0xffff;
+    String iniFile = String.format("%04X.INI", animationId);
+    if (ResourceFactory.resourceExists(iniFile)) {
+      retVal.add(new IniMap(ResourceFactory.getResourceEntry(iniFile), true));
+    }
+
+    return retVal;
+  }
+
+  /**
+   * Returns creature animation info from hardcoded creature data.
+   * @param animationId the creature animation id
+   * @return an list of {@link IniMap} instance with potential creature animation data.
+   *         Returns empty list if no creature data was found.
+   */
+  private static List<IniMap> getAnimationInfoByTable(int animationId)
+  {
+    return SpriteTables.createIniMaps(animationId & 0xffff);
+  }
+
+  /**
+   * Returns creature animation info based on ANISND.2DA data and analyzing potential slot ranges.
+   * May return false positives.
+   * @param animationId the creature animation id
+   * @return a list of {@link IniMap} instances with potential creature animation data.
+   *         Returns {@code null} if no potential match was found.
+   */
+  private static List<IniMap> getAnimationInfoByGuess(int animationId)
+  {
+    if (Profile.getGame() == Profile.Game.PST || Profile.getGame() == Profile.Game.PSTEE) {
+      return guessIniMapsPst(animationId);
+    } else {
+      return guessIniMaps(animationId);
+    }
+  }
+
+  // Attempts to find potential non-PST-specific IniMap instances
+  private static List<IniMap> guessIniMaps(int animationId)
+  {
+    List<IniMap> retVal = new ArrayList<>();
+    String resref = null;
+    String palette = null;
+
+    // evaluate ANIMATE.SRC if available
+    ResourceEntry resEntry = ResourceFactory.getResourceEntry("ANIMATE.SRC");
+    if (resEntry != null) {
+      IniMap anisrc = IniMapCache.get(resEntry);
+      if (anisrc != null) {
+        IniMapSection iniSection = anisrc.getUnnamedSection();
+        if (iniSection != null) {
+          for (final Iterator<IniMapEntry> iter = iniSection.iterator(); iter.hasNext(); ) {
+            IniMapEntry entry = iter.next();
+            try {
+              String key = entry.getKey();
+              int id = (key.startsWith("0x") || key.startsWith("0X")) ? Misc.toNumber(key.substring(2, key.length()), 16, -1)
+                  : Misc.toNumber(key, -1);
+              if (id == animationId) {
+                String value = entry.getValue();
+                if (id > 0x1000 && value.length() > 4) {
+                  value = value.substring(0, 4);
+                }
+                resref = value;
+                break;
+              }
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          }
+        }
+      }
+    }
+
+    if (resref == null) {
+      // evaluate ANISND.IDS if available
+      IdsMap anisnd = IdsMapCache.get("ANISND.IDS");
+      if (anisnd != null) {
+        IdsMapEntry anisndEntry = anisnd.get(animationId);
+        if (anisndEntry != null) {
+          String[] elements = anisndEntry.getSymbol().split("\\s+");
+          if (elements.length > 0 && elements[0].length() <= 8) {
+            resref = elements[0];
+            int pos = resref.indexOf('_');
+            if (pos > 0) {
+              // assuming underscore indicates a palette resref
+              palette = resref;
+              resref = resref.substring(0, pos);
+            } else if (animationId >= 0x1000 && resref.length() > 4) {
+              resref = resref.substring(0, 4);
+            }
+          }
+        }
+      }
+    }
+
+    if (resref == null) {
+      return retVal;
+    }
+
+    if (palette == null) {
+      palette = "*";
+    }
+
+    List<String> tableEntries = new ArrayList<>();
+    AnimationInfo.Type type = AnimationInfo.Type.typeOfId(animationId);
+    if (type == null) {
+      return retVal;
+    }
+
+    ResourceEntry bamEntry;
+    switch (type) {
+      case EFFECT:
+        tableEntries.add(String.format("0x%04x %s 0 0 0 * %s * * * * * * * * *", animationId, resref, palette));
+        break;
+      case MONSTER_QUADRANT:
+        if (ResourceFactory.resourceExists(resref + "G14.BAM")) {
+          tableEntries.add(String.format("0x%04x %s 1 32 5 * %s * * * * * * * * *", animationId, resref, palette));
+        }
+        break;
+      case MONSTER_MULTI:
+        if (ResourceFactory.resourceExists(resref + "1908.BAM")) {
+          tableEntries.add(String.format("0x%04x %s 2 72 13 * %s * * * * 1 * * * *", animationId, resref, palette));
+        }
+        break;
+      case MONSTER_MULTI_NEW:
+        if (ResourceFactory.resourceExists(resref + "G145.BAM")) {
+          tableEntries.add(String.format("0x%04x %s 2 32 5 * %s * * * * 1 * * * *", animationId, resref, palette));
+        } else if (ResourceFactory.resourceExists(resref + "G1.BAM")) {
+          tableEntries.add(String.format("0x%04x %s 2 32 5 * %s * * * * 0 * * * *", animationId, resref, palette));
+        }
+        break;
+      case MONSTER_LAYERED_SPELL:
+        resref = guessResourceRef(resref, "G1");
+        bamEntry = ResourceFactory.getResourceEntry(resref + "G1.BAM");
+        if (bamEntry != null) {
+          int falseColor = SpriteUtils.bamHasFalseColors(bamEntry) ? 1 : 0;
+          tableEntries.add(String.format("0x%04x %s 4 16 3 * %s * * * %d * * * * *", animationId, resref, palette, falseColor));
+        }
+        break;
+      case MONSTER_ANKHEG:
+        resref = guessResourceRef(resref, "DG1");
+        bamEntry = ResourceFactory.getResourceEntry(resref + "DG1.BAM");
+        if (bamEntry != null) {
+          tableEntries.add(String.format("0x%04x %s 6 24 5 * %s * * * * * * * * *", animationId, resref, palette));
+        }
+        break;
+      case TOWN_STATIC:
+        resref = guessResourceRef(resref, "");
+        bamEntry = ResourceFactory.getResourceEntry(resref + ".BAM");
+        if (bamEntry != null) {
+          int falseColor = SpriteUtils.bamHasFalseColors(bamEntry) ? 1 : 0;
+          tableEntries.add(String.format("0x%04x %s 7 16 3 * %s * * * %d * * * * *", animationId, resref, palette, falseColor));
+        }
+        break;
+      case CHARACTER:
+        bamEntry = ResourceFactory.getResourceEntry(resref + "1G1.BAM");
+        if (bamEntry != null) {
+          int falseColor = SpriteUtils.bamHasFalseColors(bamEntry) ? 1 : 0;
+          int split = ResourceFactory.resourceExists(resref + "1G15.BAM") ? 1 : 0;
+          tableEntries.add(String.format("0x%04x %s 8 16 3 * * * * * %d %d 1 * * *", animationId, resref, falseColor, split));
+        }
+        break;
+      case CHARACTER_OLD:
+        bamEntry = ResourceFactory.getResourceEntry(resref + "1G1.BAM");
+        if (bamEntry != null) {
+          int falseColor = SpriteUtils.bamHasFalseColors(bamEntry) ? 1 : 0;
+          tableEntries.add(String.format("0x%04x %s 9 16 3 * * * * * %d * * * * *", animationId, resref, falseColor));
+        }
+        break;
+      case MONSTER:
+        resref = guessResourceRef(resref, "G1");
+        bamEntry = ResourceFactory.getResourceEntry(resref + "G1.BAM");
+        if (bamEntry != null) {
+          int split = ResourceFactory.resourceExists(resref + "G15.BAM") ? 1 : 0;
+          int falseColor = SpriteUtils.bamHasFalseColors(bamEntry) ? 1 : 0;
+          tableEntries.add(String.format("0x%04x %s 10 16 3 * %s * * * %d %d * * * *", animationId, resref, palette, falseColor, split));
+          tableEntries.add(String.format("0x%04x %s 11 16 3 * %s * * * %d * * * * *", animationId, resref, palette, falseColor));
+        }
+        break;
+      case MONSTER_OLD:
+        resref = guessResourceRef(resref, "G1");
+        bamEntry = ResourceFactory.getResourceEntry(resref + "G1.BAM");
+        if (bamEntry != null) {
+          int falseColor = SpriteUtils.bamHasFalseColors(bamEntry) ? 1 : 0;
+          tableEntries.add(String.format("0x%04x %s 11 16 3 * %s * * * %d * * * * *", animationId, resref, palette, falseColor));
+        }
+        break;
+      case MONSTER_LAYERED:
+        resref = guessResourceRef(resref, "G1");
+        bamEntry = ResourceFactory.getResourceEntry(resref + "G1.BAM");
+        if (bamEntry != null) {
+          tableEntries.add(String.format("0x%04x %s 4 16 3 * * * * * * * * * * *", animationId, resref));
+        }
+        break;
+      case MONSTER_LARGE:
+        resref = guessResourceRef(resref, "G1");
+        bamEntry = ResourceFactory.getResourceEntry(resref + "G1.BAM");
+        if (bamEntry != null) {
+          int falseColor = SpriteUtils.bamHasFalseColors(bamEntry) ? 1 : 0;
+          tableEntries.add(String.format("0x%04x %s 12 16 3 * %s * * * %d * * * * *", animationId, resref, palette, falseColor));
+        }
+        break;
+      case MONSTER_LARGE_16:
+        resref = guessResourceRef(resref, "G1");
+        bamEntry = ResourceFactory.getResourceEntry(resref + "G1.BAM");
+        if (bamEntry != null) {
+          int falseColor = SpriteUtils.bamHasFalseColors(bamEntry) ? 1 : 0;
+          tableEntries.add(String.format("0x%04x %s 13 16 3 * %s * * * %d * * * * *", animationId, resref, palette, falseColor));
+        }
+        break;
+      case AMBIENT_STATIC:
+        resref = guessResourceRef(resref, "G1");
+        bamEntry = ResourceFactory.getResourceEntry(resref + "G1.BAM");
+        if (bamEntry != null) {
+          int falseColor = SpriteUtils.bamHasFalseColors(bamEntry) ? 1 : 0;
+          tableEntries.add(String.format("0x%04x %s 14 16 3 * %s * * * %d * * * * *", animationId, resref, palette, falseColor));
+        }
+        break;
+      case AMBIENT:
+        resref = guessResourceRef(resref, "G1");
+        bamEntry = ResourceFactory.getResourceEntry(resref + "G1.BAM");
+        if (bamEntry != null) {
+          int falseColor = SpriteUtils.bamHasFalseColors(bamEntry) ? 1 : 0;
+          tableEntries.add(String.format("0x%04x %s 15 16 3 * %s * * * %d * * * * *", animationId, resref, palette, falseColor));
+        }
+        break;
+      case FLYING:
+        resref = guessResourceRef(resref, "");
+        bamEntry = ResourceFactory.getResourceEntry(resref + ".BAM");
+        if (bamEntry != null) {
+          int falseColor = SpriteUtils.bamHasFalseColors(bamEntry) ? 1 : 0;
+          tableEntries.add(String.format("0x%04x %s 16 16 3 * %s * * * %d * * * * *", animationId, resref, palette, falseColor));
+        }
+        break;
+      case MONSTER_ICEWIND:
+      {
+        boolean found = false;
+        if (resref.length() >= 4 && !found) {
+          for (final String suffix : new String[] { "A1", "A2", "A3", "A4", "CA", "DE", "GH", "GU", "SC", "SD", "SL", "SP", "TW", "WK" }) {
+            if (ResourceFactory.resourceExists(resref + suffix + ".BAM")) {
+              found = true;
+              break;
+            }
+          }
+        }
+        if (found) {
+          tableEntries.add(String.format("0x%04x %s 17 24 3 * %s * * * * * * * * *", animationId, resref, palette));
+        }
+        break;
+      }
+      default:
+    }
+
+    if (!tableEntries.isEmpty()) {
+      for (final String line : tableEntries) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("2DA V1.0").append('\n');
+        sb.append("*").append('\n');
+        sb.append("  RESREF TYPE ELLIPSE SPACE BLENDING PALETTE PALETTE2 RESREF2 TRANSLUCENT CLOWN SPLIT HELMET WEAPON HEIGHT HEIGHT_SHIELD").append('\n');
+        sb.append(line).append('\n');
+        ResourceEntry entry = new BufferedResourceEntry(ByteBuffer.wrap(sb.toString().getBytes()), Integer.toString(animationId, 16) + ".2DA");
+        Table2da table = new Table2da(entry);
+        retVal.addAll(SpriteTables.processTable(Profile.getGame(), table, animationId));
+      }
+    }
+
+    return retVal;
+  }
+
+  // Helper method: attempts to find an existing resource with the specified name parts.
+  // Returns the resref of the matching resource. Returns the original resref otherwise.
+  private static String guessResourceRef(String resref, String suffix)
+  {
+    String retVal = resref;
+    if (retVal == null) {
+      return retVal;
+    }
+
+    if (suffix == null) {
+      suffix = "";
+    }
+
+    while (retVal.length() >= 4) {
+      if (ResourceFactory.resourceExists(retVal + suffix + ".BAM")) {
+        return retVal;
+      }
+      retVal = retVal.substring(0, resref.length() - 1);
+    }
+
+    return resref;
+  }
+
+  // Attempts to find potential PST-specific IniMap instances
+  private static List<IniMap> guessIniMapsPst(int animationId)
+  {
+    List<IniMap> retVal = new ArrayList<>();
+    String resref = null;
+
+    IniMap resIni = IniMapCache.get("RESDATA.INI", true);
+    if (resIni == null) {
+      return retVal;
+    }
+
+    // only regular animations are considered
+    int id = animationId & 0x0fff;
+    IniMapSection iniSection = resIni.getSection(Integer.toString(id));
+    if (iniSection == null) {
+      iniSection = resIni.getSection("0x" + Integer.toString(id, 16));
+    }
+    if (iniSection == null) {
+      return retVal;
+    }
+
+    int clown = 0;
+    for (final Sequence seq : Sequence.values()) {
+      String cmd = MonsterPlanescapeDecoder.getActionCommand(seq);
+      if (cmd != null) {
+        String key = iniSection.getAsString(cmd);
+        if (key != null && key.length() >= 7) {
+          ResourceEntry bamEntry = ResourceFactory.getResourceEntry(key + "b.bam");
+          if (bamEntry != null) {
+            clown = SpriteUtils.bamHasFalseColors(bamEntry) ? 1 : 0;
+            resref = key.substring(0, 1) + key.substring(4, key.length()) + "b";
+            break;
+          }
+        }
+      }
+    }
+
+    if (resref != null) {
+      int armor = iniSection.getAsInteger("armor", 0);
+      int bestiary = iniSection.getAsInteger("bestiary", 0);
+
+      StringBuilder sb = new StringBuilder();
+      sb.append("2DA V1.0").append('\n');
+      sb.append("*").append('\n');
+      sb.append("         RESREF   RESREF2  TYPE     ELLIPSE  SPACE    CLOWN    ARMOR    BESTIARY").append('\n');
+      sb.append(String.format("0x%04x  %s  *  18  16  3  %d  %d  %d", id, resref, clown, armor, bestiary)).append('\n');
+      ResourceEntry entry = new BufferedResourceEntry(ByteBuffer.wrap(sb.toString().getBytes()), Integer.toString(animationId, 16) + ".2DA");
+      Table2da table = new Table2da(entry);
+      retVal = SpriteTables.processTable(Profile.getGame(), table, animationId);
+    }
+
+    return retVal;
+  }
+
 
   private SpriteUtils()
   {

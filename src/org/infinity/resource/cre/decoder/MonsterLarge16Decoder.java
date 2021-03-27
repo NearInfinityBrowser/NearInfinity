@@ -65,7 +65,7 @@ public class MonsterLarge16Decoder extends SpriteDecoder
     }
     int falseColor = SpriteTables.valueToInt(data, SpriteTables.COLUMN_CLOWN, 0);
 
-    List<String> lines = processTableDataGeneral(data, ANIMATION_TYPE);
+    List<String> lines = SpriteUtils.processTableDataGeneral(data, ANIMATION_TYPE);
     lines.add("[monster_large16]");
     lines.add("false_color=" + falseColor);
     lines.add("resref=" + resref);

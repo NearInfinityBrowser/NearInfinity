@@ -75,7 +75,7 @@ public class MonsterLayeredSpellDecoder extends SpriteDecoder
     String resrefWeapon1 = SpriteTables.valueToString(data, SpriteTables.COLUMN_HEIGHT, "");
     String resrefWeapon2 = SpriteTables.valueToString(data, SpriteTables.COLUMN_HEIGHT_SHIELD, "");
 
-    List<String> lines = processTableDataGeneral(data, ANIMATION_TYPE);
+    List<String> lines = SpriteUtils.processTableDataGeneral(data, ANIMATION_TYPE);
     lines.add("[monster_layered_spell]");
     lines.add("dual_attack=" + dualAttack);
     lines.add("false_color=" + falseColor);

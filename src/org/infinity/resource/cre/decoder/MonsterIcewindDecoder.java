@@ -77,7 +77,7 @@ public class MonsterIcewindDecoder extends SpriteDecoder
     int translucent = SpriteTables.valueToInt(data, SpriteTables.COLUMN_TRANSLUCENT, 0);
     int leftHanded = SpriteTables.valueToInt(data, SpriteTables.COLUMN_WEAPON, 0);
 
-    List<String> lines = processTableDataGeneral(data, ANIMATION_TYPE);
+    List<String> lines = SpriteUtils.processTableDataGeneral(data, ANIMATION_TYPE);
     lines.add("[monster_icewind]");
     lines.add("weapon_left_hand=" + leftHanded);
     lines.add("translucent=" + translucent);

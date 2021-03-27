@@ -62,7 +62,7 @@ public class TownStaticDecoder extends SpriteDecoder
     }
     int falseColor = SpriteTables.valueToInt(data, SpriteTables.COLUMN_CLOWN, 0);
 
-    List<String> lines = processTableDataGeneral(data, ANIMATION_TYPE);
+    List<String> lines = SpriteUtils.processTableDataGeneral(data, ANIMATION_TYPE);
     lines.add("[town_static]");
     lines.add("false_color=" + falseColor);
     lines.add("resref=" + resref);

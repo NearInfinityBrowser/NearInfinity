@@ -80,7 +80,7 @@ public class MonsterQuadrantDecoder extends QuadrantsBaseDecoder
       extendDirectionTest = 5;  // TBC
     }
 
-    List<String> lines = processTableDataGeneral(data, ANIMATION_TYPE);
+    List<String> lines = SpriteUtils.processTableDataGeneral(data, ANIMATION_TYPE);
     lines.add("[monster_quadrant]");
     lines.add("false_color=" + falseColor);
     lines.add("caster=" + caster);

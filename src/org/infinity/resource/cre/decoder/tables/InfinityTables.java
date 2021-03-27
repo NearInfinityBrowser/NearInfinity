@@ -15,6 +15,7 @@ import java.util.Objects;
 import org.infinity.resource.Profile;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.util.AnimationInfo;
+import org.infinity.resource.cre.decoder.util.SpriteUtils;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapEntry;
@@ -80,7 +81,7 @@ public class InfinityTables
       // determining SpriteDecoder class instance
       int classType = SpriteTables.valueToInt(data, SpriteTables.COLUMN_TYPE, -1);
       AnimationInfo.Type animType = AnimationInfo.Type.values()[classType];
-      Class<? extends SpriteDecoder> cls = SpriteDecoder.getSpriteDecoderClass(animType);
+      Class<? extends SpriteDecoder> cls = SpriteUtils.getSpriteDecoderClass(animType);
       if (cls != null) {
         // calling method of signature: public static IniMap processTableData(String[] data);
         Method method = cls.getMethod("processTableData", String[].class);

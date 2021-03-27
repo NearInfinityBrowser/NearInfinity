@@ -95,7 +95,7 @@ public class MonsterMultiNewDecoder extends QuadrantsBaseDecoder
     int splitBams = SpriteTables.valueToInt(data, SpriteTables.COLUMN_SPLIT, 0);
     int translucent = SpriteTables.valueToInt(data, SpriteTables.COLUMN_TRANSLUCENT, 0);
 
-    List<String> lines = processTableDataGeneral(data, ANIMATION_TYPE);
+    List<String> lines = SpriteUtils.processTableDataGeneral(data, ANIMATION_TYPE);
     lines.add("[multi_new]");
     lines.add("false_color=" + falseColor);
     lines.add("quadrants=4");

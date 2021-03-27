@@ -179,7 +179,7 @@ public class CharacterDecoder extends CharacterBaseDecoder
     String heightCodeShield = SpriteTables.valueToString(data, SpriteTables.COLUMN_HEIGHT_SHIELD, "");
     String resrefSpecific = SpriteTables.valueToString(data, SpriteTables.COLUMN_RESREF2, "");
 
-    List<String> lines = processTableDataGeneral(data, ANIMATION_TYPE);
+    List<String> lines = SpriteUtils.processTableDataGeneral(data, ANIMATION_TYPE);
     lines.add("[character]");
     lines.add("equip_helmet=" + equipHelmet);
     lines.add("split_bams=" + splitBams);
