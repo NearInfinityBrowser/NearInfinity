@@ -98,12 +98,15 @@ public class CreatureViewer extends ChildFrame
   public RenderPanel getRenderPanel() { return panelCanvas; }
 
   /** Shows an error dialog with the specified message. */
-  public void showErrorMessage(String msg)
+  public void showErrorMessage(String msg, String title)
   {
     if (msg == null || msg.isEmpty()) {
       msg = "An error has occurred.";
     }
-    JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
+    if (title == null || title.isEmpty()) {
+      title = "Error";
+    }
+    JOptionPane.showMessageDialog(this, msg, title, JOptionPane.ERROR_MESSAGE);
   }
 
 //--------------------- Begin Class ChildFrame ---------------------

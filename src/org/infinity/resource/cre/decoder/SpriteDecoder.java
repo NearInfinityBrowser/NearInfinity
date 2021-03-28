@@ -197,7 +197,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     Objects.requireNonNull(cre, "CRE resource cannot be null");
     int animationId = ((IsNumeric)cre.getAttribute(CreResource.CRE_ANIMATION)).getValue();
     Class<? extends SpriteDecoder> spriteClass =
-        Objects.requireNonNull(SpriteUtils.detectAnimationType(animationId), "Could not determine animation type");
+        Objects.requireNonNull(SpriteUtils.detectAnimationType(animationId), String.format("Creature animation is not available: 0x%04x", animationId));
     try {
       Constructor<? extends SpriteDecoder> ctor =
           Objects.requireNonNull(spriteClass.getConstructor(CreResource.class), "No matching constructor found");

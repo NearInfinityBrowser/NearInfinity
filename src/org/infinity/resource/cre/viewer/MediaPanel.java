@@ -787,7 +787,7 @@ public class MediaPanel extends JPanel
             loadSequence(seq);
           } catch (Exception ex) {
             ex.printStackTrace();
-            getViewer().showErrorMessage("Could not load animation sequence.\nError: " + ex.getMessage());
+            getViewer().showErrorMessage(ex.getMessage(), "Sequence selection");
           } finally {
             WindowBlocker.blockWindow(getViewer(), false);
           }

@@ -136,7 +136,7 @@ public class CreatureControlPanel extends JPanel
       getControlModel().resetDecoder(cre);
     } catch (Exception e) {
       e.printStackTrace();
-      getViewer().showErrorMessage("Could not load creature animation.\nError: " + e.getMessage());
+      getViewer().showErrorMessage(e.getMessage(), "Loading creature");
     }
 
     getViewer().getSettingsPanel().reset();
@@ -163,7 +163,7 @@ public class CreatureControlPanel extends JPanel
     // this is a good default width for all selection controls in this panel
     cbCreSelection.setPrototypeDisplayValue(CreatureItem.getDefault());
     int defWidth = cbCreSelection.getPreferredSize().width * 5 / 4;
-    setPreferredWidth(cbCreSelection, defWidth);
+//    setPreferredWidth(cbCreSelection, defWidth);
     cbCreSelection.addActionListener(listeners);
     updateToolTip(cbCreSelection);
 
@@ -179,14 +179,14 @@ public class CreatureControlPanel extends JPanel
         }
       }
     });
-    setPreferredWidth(cbCreAnimation, defWidth);
+//    setPreferredWidth(cbCreAnimation, defWidth);
     cbCreAnimation.setEditable(true);
     cbCreAnimation.addActionListener(listeners);
     updateToolTip(cbCreAnimation);
 
     JLabel l3 = new JLabel("Status:");
     cbCreAllegiance = new JComboBox<>(model.getModelAllegiance());
-    setPreferredWidth(cbCreAllegiance, defWidth);
+//    setPreferredWidth(cbCreAllegiance, defWidth);
     cbCreAllegiance.addActionListener(listeners);
     updateToolTip(cbCreAllegiance);
 
@@ -506,7 +506,7 @@ public class CreatureControlPanel extends JPanel
           updateToolTip(cbCreSelection);
         } catch (Exception ex) {
           ex.printStackTrace();
-          getViewer().showErrorMessage("Could not load the creature resource.\nError: " + ex.getMessage());
+          getViewer().showErrorMessage(ex.getMessage(), "Creature selection");
         }
       }
       else if (e.getSource() == cbCreAnimation) {
