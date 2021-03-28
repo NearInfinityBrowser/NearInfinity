@@ -195,7 +195,7 @@ public class CreatureAnimationModel extends AbstractListModel<CreatureAnimationM
 //--------------------- End Interface MutableComboBoxModel ---------------------
 
   /**
-   * Helper method: Attempts to convert the specified argument into a meaning numeric value.
+   * Helper method: Attempts to convert the specified argument into a meaningful numeric value.
    * An {@code AnimateEntry} object returns the associted animation id.
    * A string is parsed and returns as decimal or hexadecimal number.
    * Returns -1 if argument could not be converted.
@@ -296,7 +296,8 @@ public class CreatureAnimationModel extends AbstractListModel<CreatureAnimationM
     @Override
     public int compareTo(AnimateEntry o)
     {
-      return id - o.id;
+      // sort by symbolic name
+      return toString().compareTo(o.toString());
     }
 
     @Override
