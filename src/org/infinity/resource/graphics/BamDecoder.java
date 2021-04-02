@@ -416,16 +416,20 @@ public abstract class BamDecoder
       sharedBamSize = calculateSharedBamSize(sharedBamSize, isSharedPerCycle(), false);
     }
 
-    // Calculates a shared canvas size for the current BAM.
-    // cycleBased: true=for current cycle only, false=for all available frames
-    // isMirrored: true=mirror along the x axis, false=no mirroring
-    // To get the top-left corner of the selected frame:
-    // For unmirrored frames:
-    //   left = -sharedBamSize.x - frameCenterX()
-    //   top  = -sharedBamSize.y - frameCenterY()
-    // For mirrored frames:
-    //   left = -sharedBamSize.x - (frameWidth() - frameCenterX() - 1)
-    //   top  = -sharedBamSize.y - frameCenterY()
+    /**
+     * Calculates a shared canvas size for the current BAM.
+     * To get the top-left corner of the selected frame:
+     * <p>For unmirrored frames:
+     *   <pre>left = -sharedBamSize.x - frameCenterX()</pre>
+     *   <pre>top  = -sharedBamSize.y - frameCenterY()</pre>
+     * <p>For mirrored frames:
+     *   <pre>left = -sharedBamSize.x - (frameWidth() - frameCenterX() - 1)</pre>
+     *   <pre>top  = -sharedBamSize.y - frameCenterY()</pre>
+     * @param rect Reuse this {@code Rectangle} instance if available.
+     * @param cycleBased {@code true} for current cycle only, {@code false} for all available frames
+     * @param isMirrored {@code true}: mirror along the x axis, {@code false}: no mirroring
+     * @return the update rectangle
+     */
     protected Rectangle calculateSharedBamSize(Rectangle rect, boolean cycleBased, boolean isMirrored)
     {
       if (rect == null) {

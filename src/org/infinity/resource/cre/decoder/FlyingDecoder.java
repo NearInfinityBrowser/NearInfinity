@@ -109,8 +109,8 @@ public class FlyingDecoder extends SpriteDecoder
 
     ResourceEntry entry = ResourceFactory.getResourceEntry(getAnimationResref() + ".BAM");
     if (SpriteUtils.bamCyclesExist(entry, cycleIndex, SeqDef.DIR_FULL_W.length)) {
-      retVal = SeqDef.createSequence(seq, SeqDef.DIR_FULL_W, false, entry, cycleIndex);
-      SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_E, true, entry, cycleIndex + 1);
+      retVal = SeqDef.createSequence(seq, SeqDef.DIR_FULL_W, false, entry, cycleIndex, null);
+      SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_FULL_E, true, entry, cycleIndex + 1, null);
       retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
     }
 

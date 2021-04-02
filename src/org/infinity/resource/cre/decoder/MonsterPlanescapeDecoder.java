@@ -538,10 +538,10 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
         }
 
         if (directions != null && SpriteUtils.bamCyclesExist(entry, 0, directions.length)) {
-          SeqDef tmp = SeqDef.createSequence(seq, directions, false, entry, 0);
+          SeqDef tmp = SeqDef.createSequence(seq, directions, false, entry, 0, null);
           retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
           if (mirror) {
-            tmp = SeqDef.createSequence(seq, directionsE, true, entry, 1);
+            tmp = SeqDef.createSequence(seq, directionsE, true, entry, 1, null);
             retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
           }
         }

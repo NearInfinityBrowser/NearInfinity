@@ -4,6 +4,8 @@
 
 package org.infinity.resource.cre.decoder.util;
 
+import java.awt.AlphaComposite;
+import java.awt.Composite;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -17,8 +19,11 @@ import org.infinity.resource.key.ResourceEntry;
 /**
  * Definition of an animation sequence.
  */
-public class SeqDef
+public class SeqDef implements Cloneable
 {
+  /** Definition of an empty {@code SeqDef} object. */
+  public static final SeqDef DEFAULT = new SeqDef(Sequence.NONE, new DirDef[0]);
+
   /** Full set of 16 directions (east & west). */
   public static final Direction[] DIR_FULL = Direction.values();
   /** Reduced set of 8 directions (east & west) */
@@ -49,6 +54,16 @@ public class SeqDef
     this.sequence = Objects.requireNonNull(seq, "Sequence cannot be null");
     this.directions = new ArrayList<>();
     addDirections(dirs);
+  }
+
+  public SeqDef(SeqDef sd)
+  {
+    Objects.requireNonNull(sd, "SeqDef instance cannot be null");
+    this.sequence = sd.sequence;
+    this.directions = new ArrayList<>();
+    for (final DirDef dd : sd.directions) {
+      addDirections(new DirDef(dd));
+    }
   }
 
   /** Returns the sequence type this definition is assigned to. */
@@ -87,6 +102,12 @@ public class SeqDef
       }
     }
     return retVal;
+  }
+
+  @Override
+  public SeqDef clone()
+  {
+    return new SeqDef(this);
   }
 
   @Override
@@ -148,25 +169,7 @@ public class SeqDef
 
   /**
    * Convenience method: Creates a fully defined sequence if specified directions are found within a single BAM resource.
-   * Sprite type is assumed to be {@link SegmentDef.SpriteType#AVATAR}.
-   * Behavior is assumed to be {@link SegmentDef.Behavior#REPEAT}.
-   * @param seq the animation {@link SpriteDecoder.Sequence}.
-   * @param directions List of directions to add. Cycle indices are advanced accordingly for each direction.
-   * @param mirrored indicates whether cycle indices are calculated in reversed direction
-   * @param bamResource the BAM resource used for all cycle definitions.
-   * @param cycleOfs the first BAM cycle index. Advanced by one for each direction.
-   *                 Cycle indices are processed in reversed direction if {@code mirrored} is {@code true}.
-   */
-  public static SeqDef createSequence(Sequence seq, Direction[] directions, boolean mirrored,
-                                      ResourceEntry bamResource, int cycleOfs)
-  {
-    return createSequence(seq, directions, mirrored,
-                          new ArrayList<SegmentDef>() {{ add(new SegmentDef(null, bamResource, cycleOfs)); }});
-  }
-
-  /**
-   * Convenience method: Creates a fully defined sequence if specified directions are found within a single BAM resource.
-   * Behavior is assumed to be {@link SegmentDef.Behavior#REPEAT}.
+   * Behavior is assumed to be {@link SegmentDef.Behavior#REPEAT}. Composite object is initialized with {@link AlphaComposite#SrcOver}.
    * @param seq the animation {@link SpriteDecoder.Sequence}.
    * @param directions List of directions to add. Cycle indices are advanced accordingly for each direction.
    * @param mirrored indicates whether cycle indices are calculated in reversed direction
@@ -184,6 +187,7 @@ public class SeqDef
 
   /**
    * Convenience method: Creates a fully defined sequence if specified directions are found within a single BAM resource.
+   * Composite object is initialized with {@link AlphaComposite#SrcOver}.
    * @param seq the animation {@link SpriteDecoder.Sequence}.
    * @param directions List of directions to add. Cycle indices are advanced accordingly for each direction.
    * @param mirrored indicates whether cycle indices are calculated in reversed direction
@@ -198,7 +202,27 @@ public class SeqDef
                                       SegmentDef.Behavior behavior)
   {
     return createSequence(seq, directions, mirrored,
-                          new ArrayList<SegmentDef>() {{ add(new SegmentDef(null, bamResource, cycleOfs, type, behavior)); }});
+        new ArrayList<SegmentDef>() {{ add(new SegmentDef(null, bamResource, cycleOfs, type, behavior)); }});
+  }
+
+  /**
+   * Convenience method: Creates a fully defined sequence if specified directions are found within a single BAM resource.
+   * @param seq the animation {@link SpriteDecoder.Sequence}.
+   * @param directions List of directions to add. Cycle indices are advanced accordingly for each direction.
+   * @param mirrored indicates whether cycle indices are calculated in reversed direction
+   * @param bamResource the BAM resource used for all cycle definitions.
+   * @param cycleOfs the first BAM cycle index. Advanced by one for each direction.
+   *                 Cycle indices are processed in reversed direction if {@code mirrored} is {@code true}.
+   * @param type the {@link SegmentDef.SpriteType} assigned to all cycle definitions.
+   * @param behavior the {@link SegmentDef.Behavior} assigned to all cycle definitions.
+   * @param composite the {@link Composite} object used for rendering sprite frames onto the canvas.
+   */
+  public static SeqDef createSequence(Sequence seq, Direction[] directions, boolean mirrored,
+                                      ResourceEntry bamResource, int cycleOfs, SegmentDef.SpriteType type,
+                                      SegmentDef.Behavior behavior, Composite composite)
+  {
+    return createSequence(seq, directions, mirrored,
+                          new ArrayList<SegmentDef>() {{ add(new SegmentDef(null, bamResource, cycleOfs, type, behavior, composite)); }});
   }
 
   /**

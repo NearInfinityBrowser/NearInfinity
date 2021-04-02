@@ -4,6 +4,8 @@
 
 package org.infinity.resource.cre.decoder.util;
 
+import java.awt.AlphaComposite;
+import java.awt.Composite;
 import java.util.EnumMap;
 import java.util.Objects;
 
@@ -12,7 +14,7 @@ import org.infinity.resource.key.ResourceEntry;
 /**
  * Definition of a single segment within a cycle definition.
  */
-public class SegmentDef
+public class SegmentDef implements Cloneable
 {
   /** Indicates the sprite type for this particular BAM segment (such as avatar, weapon, shield or helmet). */
   public enum SpriteType {
@@ -80,6 +82,7 @@ public class SegmentDef
   private final SpriteType type;
   private final Behavior behavior;
   private final int numFrames;
+  private final Composite composite;
 
   private CycleDef parent;
   private int curFrame;
@@ -120,25 +123,27 @@ public class SegmentDef
 
   /**
    * Creates a new independent segment definition with the specified parameters.
-   * Sprite type is assumed to be {@link SpriteType#AVATAR}. Behavior is assumed to be {@link Behavior#REPEAT}.
-   * @param entry the BAM resource
-   * @param cycleIdx the BAM cycle index
-   */
-  public SegmentDef(ResourceEntry entry, int cycleIdx)
-  {
-    this(null, entry, cycleIdx, SpriteType.AVATAR, null);
-  }
-
-  /**
-   * Creates a new independent segment definition with the specified parameters.
-   * Behavior is assumed to be {@link Behavior#REPEAT}.
+   * Behavior is assumed to be {@link Behavior#REPEAT}. Composite object is initialized with {@link AlphaComposite#SrcOver}.
    * @param entry the BAM resource
    * @param cycleIdx the BAM cycle index
    * @param type the sprite type of this segment.
    */
   public SegmentDef(ResourceEntry entry, int cycleIdx, SpriteType type)
   {
-    this(null, entry, cycleIdx, type, null);
+    this(null, entry, cycleIdx, type, null, null);
+  }
+
+  /**
+   * Creates a new independent segment definition with the specified parameters.
+   * Composite object is initialized with {@link AlphaComposite#SrcOver}.
+   * @param entry the BAM resource
+   * @param cycleIdx the BAM cycle index
+   * @param type the sprite type of this segment.
+   * @param behavior the playback behavior of this segment.
+   */
+  public SegmentDef(ResourceEntry entry, int cycleIdx, SpriteType type, Behavior behavior)
+  {
+    this(null, entry, cycleIdx, type, behavior, null);
   }
 
   /**
@@ -147,27 +152,16 @@ public class SegmentDef
    * @param cycleIdx the BAM cycle index
    * @param type the sprite type of this segment.
    * @param behavior the playback behavior of this segment.
+   * @param composite the {@link Composite} object used for rendering sprite frames onto the canvas.
    */
-  public SegmentDef(ResourceEntry entry, int cycleIdx, SpriteType type, Behavior behavior)
+  public SegmentDef(ResourceEntry entry, int cycleIdx, SpriteType type, Behavior behavior, Composite composite)
   {
-    this(null, entry, cycleIdx, type, behavior);
+    this(null, entry, cycleIdx, type, behavior, composite);
   }
 
   /**
    * Creates a new segment definition with the specified parameters linked to the specified {@link CycleDef} instance.
-   * Sprite type is assumed to be {@link SpriteType#AVATAR}. Behavior is assumed to be {@link Behavior#REPEAT}.
-   * @param parent the parent {@code CycleDef} instance.
-   * @param entry the BAM resource
-   * @param cycleIdx the BAM cycle index
-   */
-  public SegmentDef(CycleDef parent, ResourceEntry entry, int cycleIdx)
-  {
-    this(parent, entry, cycleIdx, SpriteType.AVATAR, null);
-  }
-
-  /**
-   * Creates a new segment definition with the specified parameters linked to the specified {@link CycleDef} instance.
-   * Behavior is assumed to be {@link Behavior#REPEAT}.
+   * Behavior is assumed to be {@link Behavior#REPEAT}. Composite object is initialized with {@link AlphaComposite#SrcOver}.
    * @param parent the parent {@code CycleDef} instance.
    * @param entry the BAM resource
    * @param cycleIdx the BAM cycle index
@@ -175,7 +169,21 @@ public class SegmentDef
    */
   public SegmentDef(CycleDef parent, ResourceEntry entry, int cycleIdx, SpriteType type)
   {
-    this(parent, entry, cycleIdx, type, null);
+    this(parent, entry, cycleIdx, type, null, null);
+  }
+
+  /**
+   * Creates a new segment definition with the specified parameters linked to the specified {@link CycleDef} instance.
+   * Composite object is initialized with {@link AlphaComposite#SrcOver}.
+   * @param parent the parent {@code CycleDef} instance.
+   * @param entry the BAM resource
+   * @param cycleIdx the BAM cycle index
+   * @param type the spriter type of this segment.
+   * @param behavior the playback behavior of this segment.
+   */
+  public SegmentDef(CycleDef parent, ResourceEntry entry, int cycleIdx, SpriteType type, Behavior behavior)
+  {
+    this(parent, entry, cycleIdx, type, behavior, null);
   }
 
   /**
@@ -185,8 +193,9 @@ public class SegmentDef
    * @param cycleIdx the BAM cycle index
    * @param type the spriter type of this segment.
    * @param behavior the playback behavior of this segment.
+   * @param composite the {@link Composite} object used for rendering sprite frames onto the canvas.
    */
-  public SegmentDef(CycleDef parent, ResourceEntry entry, int cycleIdx, SpriteType type, Behavior behavior)
+  public SegmentDef(CycleDef parent, ResourceEntry entry, int cycleIdx, SpriteType type, Behavior behavior, Composite composite)
   {
     this.parent = parent;
     this.bamEntry = Objects.requireNonNull(entry, "BAM resource entry cannot be null");
@@ -194,7 +203,26 @@ public class SegmentDef
     this.type = (type != null) ? type : SpriteType.AVATAR;
     this.behavior = (behavior != null) ? behavior : Behavior.REPEAT;
     this.numFrames = SpriteUtils.getBamCycleFrames(this.bamEntry, this.cycleIndex);
+    this.composite = (composite != null) ? composite : AlphaComposite.SrcOver;
     reset();
+  }
+
+  /**
+   * Creates a new segment definition with the attributes defined in the specified {@code SegmentDef} argument.
+   * Parent attribute is set to {@code null}.
+   * @param sd the {@code SegmentDef} object to clone.
+   */
+  public SegmentDef(SegmentDef sd)
+  {
+    Objects.requireNonNull(sd, "SegmentDef instance cannot be null");
+    this.parent = null;
+    this.bamEntry = sd.bamEntry;
+    this.cycleIndex = sd.cycleIndex;
+    this.type = sd.type;
+    this.behavior = sd.behavior;
+    this.numFrames = sd.numFrames;
+    this.curFrame = sd.curFrame;
+    this.composite = sd.composite;
   }
 
   /** Returns the parent {@link CycleDef} instance linked with this object. */
@@ -205,6 +233,9 @@ public class SegmentDef
 
   /** Returns the BAM resource entry associated with the segment. */
   public ResourceEntry getEntry() { return bamEntry; }
+
+  /** Returns the {@link Composite} object used to render the sprite frames onto a canvas. */
+  public Composite getComposite() { return composite; }
 
   /** Returns the cycle index associated with the segment */
   public int getCycleIndex() { return cycleIndex; }
@@ -298,6 +329,12 @@ public class SegmentDef
       default:
         curFrame = 0;
     }
+  }
+
+  @Override
+  public SegmentDef clone()
+  {
+    return new SegmentDef(this);
   }
 
   @Override

@@ -17,7 +17,7 @@ import org.infinity.resource.key.ResourceEntry;
 /**
  * Definition of a single cycle for a specific direction in an animation sequence.
  */
-public class CycleDef
+public class CycleDef implements Cloneable
 {
   private final ArrayList<SegmentDef> cycles = new ArrayList<>();
 
@@ -84,10 +84,31 @@ public class CycleDef
     addCycle(bamResource, cycle, type, behavior);
   }
 
+  /**
+   * Creates a new cycle definition with the specified parameters linked to the specified {@link DirDef} instance.
+   * @param parent the parent {@code DirDef} instance
+   * @param cycleInfo collection of fully defined {@code SegmentDef} instances that are added to this cycle definition.
+   */
   public CycleDef(DirDef parent, Collection<SegmentDef> cycleInfo)
   {
     this.parent = parent;
     addCycles(cycleInfo);
+  }
+
+  /**
+   * Creates a new cycle definition with the attributes defined in the specified {@code CycleDef} argument.
+   * Parent attribute is set to {@code null}.
+   * @param sd the {@code CycleDef} object to clone.
+   */
+  public CycleDef(CycleDef cd)
+  {
+    Objects.requireNonNull(cd, "CycleDef instance cannot be null");
+    this.parent = null;
+    List<SegmentDef> list = new ArrayList<>();
+    for (final SegmentDef sd : cd.cycles) {
+      list.add(new SegmentDef(sd));
+    }
+    addCycles(list);
   }
 
   /** Returns the parent {@link DirDef} instance linked to this object. */
@@ -132,13 +153,13 @@ public class CycleDef
   /** Advances the animation by one frame for all segment definitions according to their respective behavior. */
   public void advance()
   {
-    this.cycles.forEach(sd -> sd.advance());
+    this.cycles.forEach(SegmentDef::advance);
   }
 
   /** Resets BAM cycles in all segment definitions back to the first frame. */
   public void reset()
   {
-    this.cycles.forEach(sd -> sd.reset());
+    this.cycles.forEach(SegmentDef::reset);
   }
 
   /** Determines the minimum number of frames in the whole list of segment definitions. */
@@ -151,6 +172,12 @@ public class CycleDef
   public int getMaximumFrames()
   {
     return cycles.stream().mapToInt(v -> v.getFrameCount()).max().orElse(0);
+  }
+
+  @Override
+  public CycleDef clone()
+  {
+    return new CycleDef(this);
   }
 
   @Override

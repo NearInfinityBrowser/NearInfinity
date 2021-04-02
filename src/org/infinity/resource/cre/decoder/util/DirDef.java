@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Definition of a single direction in an animation sequence.
  */
-public class DirDef
+public class DirDef implements Cloneable
 {
   private final Direction direction;
   private final CycleDef cycle;
@@ -44,6 +44,21 @@ public class DirDef
     this.mirrored = mirrored;
   }
 
+  /**
+   * Creates a new direction definition with the attributes defined in the specified {@code DirDef} argument.
+   * Parent attribute is set to {@code null}.
+   * @param dd the {@code DirDef} object to clone.
+   */
+  public DirDef(DirDef dd)
+  {
+    Objects.requireNonNull(dd, "DirDef instance cannot be null");
+    this.parent = null;
+    this.direction = dd.direction;
+    this.cycle = new CycleDef(dd.cycle);
+    this.cycle.setParent(this);
+    this.mirrored = dd.mirrored;
+  }
+
   /** Returns the parent {@link SeqDef} instance linked to this object. */
   public SeqDef getParent() { return parent; }
 
@@ -67,6 +82,12 @@ public class DirDef
 
   /** Resets BAM cycles in all segment definitions in the associated cycle back to the first frame. */
   public void reset() { cycle.reset(); }
+
+  @Override
+  public DirDef clone()
+  {
+    return new DirDef(this);
+  }
 
   @Override
   public String toString()

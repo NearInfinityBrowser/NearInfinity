@@ -875,14 +875,14 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
   /**
    * Returns whether a creature animation reload has been requested.
-   * Call {@link #applyPendingChanges()} to apply the changes.
+   * Call {@link #applyAnimationChanges()} to apply the changes.
    */
   public boolean hasAnimationChanged()
   {
     return animationChanged;
   }
 
-  /** Call to request a creature animation reload by the method {@link #applyPendingChanges()}. */
+  /** Call to request a creature animation reload by the method {@link #applyAnimationChanges()}. */
   public void setAnimationChanged()
   {
     animationChanged = true;
@@ -891,7 +891,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     }
   }
 
-  /** Call to cancel the request of a creature animation reload by the method {@link #applyPendingChanges()}. */
+  /** Call to cancel the request of a creature animation reload by the method {@link #applyAnimationChanges()}. */
   public void resetAnimationChanged()
   {
     animationChanged = false;
