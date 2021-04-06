@@ -221,7 +221,7 @@ public abstract class BamDecoder
   {
     String retVal = "entry=" + ((bamEntry != null) ? bamEntry.toString() : "(null)");
     retVal += ", Type=" + ((type != null) ? type.toString() : "(null)");
-    return retVal;
+    return "[" + retVal + "]";
   }
 
 //-------------------------- INNER CLASSES --------------------------
@@ -378,7 +378,7 @@ public abstract class BamDecoder
 
     /** Returns the index of the active cycle. */
     public abstract int cycleGet();
-    /** Sets the active cycle. (Default: first available cycle) */
+    /** Sets the active cycle. Returns whether the specified cycle could be set. */
     public abstract boolean cycleSet(int cycleIdx);
 
     /** Returns whether the active cycle can be advanced by at least one more frame. */
@@ -399,7 +399,7 @@ public abstract class BamDecoder
 
     /** Returns the index of the currently selected frame in the active cycle. */
     public abstract int cycleGetFrameIndex();
-    /** Selects the specified frame in the active cycle. */
+    /** Selects the specified frame in the active cycle. Returns whether the specified frame index could be set. */
     public abstract boolean cycleSetFrameIndex(int frameIdx);
 
     /** Translates the active cycle's frame index into an absolute frame index. Returns -1 if cycle doesn't contain frames. */

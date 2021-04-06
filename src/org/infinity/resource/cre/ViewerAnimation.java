@@ -245,6 +245,7 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
   @Override
   protected boolean windowClosing(boolean forced) throws Exception
   {
+    pause();
     if (getDecoder() != null) {
       getDecoder().close();
     }
@@ -261,8 +262,7 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
   {
     if (timer == event.getSource()) {
       if (getController().cycleFrameCount() > 0) {
-        curFrame += 1;
-        curFrame %= getController().cycleFrameCount();
+        curFrame = (curFrame + 1) % getController().cycleFrameCount();
       }
       showFrame();
     }

@@ -416,6 +416,14 @@ public class BamV1Decoder extends BamDecoder
     public void resetCenter() { overrideCenterX = centerX; overrideCenterY = centerY; }
 
     public boolean isCompressed() { return compressed; }
+
+    @Override
+    public String toString()
+    {
+      return "[width=" + getWidth() + ", height=" + getHeight() +
+             ", centerX=" + getCenterX() + ", centerY=" + getCenterY() +
+             ", compressed=" + Boolean.toString(isCompressed()) + "]" ;
+    }
   }
 
 
@@ -559,10 +567,12 @@ public class BamV1Decoder extends BamDecoder
     @Override
     public boolean cycleSet(int cycleIdx)
     {
-      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size() && currentCycle != cycleIdx) {
-        currentCycle = cycleIdx;
-        if (isSharedPerCycle()) {
-          updateSharedBamSize();
+      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
+        if (currentCycle != cycleIdx) {
+          currentCycle = cycleIdx;
+          if (isSharedPerCycle()) {
+            updateSharedBamSize();
+          }
         }
         return true;
       } else {

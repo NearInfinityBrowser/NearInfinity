@@ -408,6 +408,13 @@ public class BamV2Decoder extends BamDecoder
 
     public Image getImage() { return frame; }
 
+    @Override
+    public String toString()
+    {
+      return "[width=" + getWidth() + ", height=" + getHeight() +
+             ", centerX=" + getCenterX() + ", centerY=" + getCenterY() + "]" ;
+    }
+
     private void decodeImage(ByteBuffer buffer, int ofsBlocks, int start, int count)
     {
       frame = null;
