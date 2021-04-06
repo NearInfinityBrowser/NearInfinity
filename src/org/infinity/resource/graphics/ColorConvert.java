@@ -774,8 +774,11 @@ public class ColorConvert
             byte[] palette = new byte[colorCount*4];
             is.read(palette);
             int[] retVal = new int[colorCount];
-            for (int i =0; i < colorCount; i++) {
-              retVal[i] = 0xff000000 | (DynamicArray.getInt(palette, i << 2) & 0x00ffffff);
+            for (int i = 0; i < colorCount; i++) {
+              retVal[i] = DynamicArray.getInt(palette, i << 2);
+              if ((retVal[i] & 0xff000000) == 0) {
+                retVal[i] |= 0xff000000;
+              }
             }
             return retVal;
           } else {

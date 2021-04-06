@@ -448,13 +448,6 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
   }
 
   @Override
-  protected void createSequence(Sequence seq) throws Exception
-  {
-    SeqDef sd = Objects.requireNonNull(getSequenceDefinition(seq), "Sequence not available: " + (seq != null ? seq : "(null)"));
-    createAnimation(sd, null, FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_SRC_FRAME, FN_AFTER_DST_FRAME);
-  }
-
-  @Override
   protected void createSequence(Sequence seq, Direction[] directions) throws Exception
   {
     SeqDef sd = Objects.requireNonNull(getSequenceDefinition(seq), "Sequence not available: " + (seq != null ? seq : "(null)"));

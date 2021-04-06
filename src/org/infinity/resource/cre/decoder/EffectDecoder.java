@@ -5,7 +5,9 @@
 package org.infinity.resource.cre.decoder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 import org.infinity.resource.ResourceFactory;
@@ -16,9 +18,11 @@ import org.infinity.resource.cre.decoder.util.CycleDef;
 import org.infinity.resource.cre.decoder.util.DecoderAttribute;
 import org.infinity.resource.cre.decoder.util.DirDef;
 import org.infinity.resource.cre.decoder.util.Direction;
+import org.infinity.resource.cre.decoder.util.SegmentDef;
 import org.infinity.resource.cre.decoder.util.SeqDef;
 import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
+import org.infinity.resource.graphics.BamV1Decoder.BamV1Control;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapSection;
@@ -49,6 +53,30 @@ public class EffectDecoder extends SpriteDecoder
   public static final DecoderAttribute KEY_CYCLE                  = DecoderAttribute.with("cycle", DecoderAttribute.DataType.INT);
   // A secondary resref to consider if random_render == 1
   public static final DecoderAttribute KEY_RESREF2                = DecoderAttribute.with("resref2", DecoderAttribute.DataType.STRING);
+
+  protected final BeforeSourceBam FN_BEFORE_SRC_BAM = new BeforeSourceBam() {
+    @Override
+    public void accept(BamV1Control control, SegmentDef sd)
+    {
+      if (isPaletteReplacementEnabled() && sd.getSpriteType() == SegmentDef.SpriteType.AVATAR) {
+        int[] palette = getNewPaletteData(sd.getEntry());
+        if (palette != null) {
+          SpriteUtils.applyNewPalette(control, palette);
+        }
+      }
+
+      if (isFalseColor()) {
+        SpriteUtils.fixShadowColor(control, isTransparentShadow());
+        if (isPaletteReplacementEnabled()) {
+          applyFalseColors(control, sd);
+        }
+      }
+
+      if (isTranslucencyEnabled() && isTranslucent()) {
+        applyTranslucency(control);
+      }
+    }
+  };
 
   /**
    * A helper method that parses the specified data array and generates a {@link IniMap} instance out of it.
@@ -205,6 +233,16 @@ public class EffectDecoder extends SpriteDecoder
     setPaperdollResref(section.getAsString(KEY_RESREF_PAPERDOLL.getName(), ""));
     setArmorBaseResref(section.getAsString(KEY_RESREF_ARMOR_BASE.getName(), ""));
     setArmorSpecificResref(section.getAsString(KEY_RESREF_ARMOR_SPECIFIC.getName(), ""));
+  }
+
+  @Override
+  protected void createSequence(Sequence seq, Direction[] directions) throws Exception
+  {
+    SeqDef sd = Objects.requireNonNull(getSequenceDefinition(seq), "Sequence not available: " + (seq != null ? seq : "(null)"));
+    if (directions == null) {
+      directions = Direction.values();
+    }
+    createAnimation(sd, Arrays.asList(directions), FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_SRC_FRAME, FN_AFTER_DST_FRAME);
   }
 
   @Override
