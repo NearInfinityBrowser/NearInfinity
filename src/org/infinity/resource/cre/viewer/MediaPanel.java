@@ -37,6 +37,7 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.util.Direction;
 import org.infinity.resource.cre.decoder.util.Sequence;
+import org.infinity.resource.cre.decoder.util.SpriteUtils;
 import org.infinity.resource.cre.viewer.icon.Icons;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 
@@ -103,6 +104,7 @@ public class MediaPanel extends JPanel
       return;
     }
 
+    SpriteUtils.clearBamCache();
     SettingsPanel settings = getViewer().getSettingsPanel();
     decoder.setAutoApplyChanges(false);
     decoder.setPaletteReplacementEnabled(settings.isPaletteReplacementEnabled());
