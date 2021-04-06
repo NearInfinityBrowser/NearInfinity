@@ -73,7 +73,7 @@ public class SettingsPanel extends JPanel
 
   private static int indexZoom, indexFrameRate, indexBackground;
   private static boolean isFiltering, isBlending, isTranslucent, isSelectionCircle, isOrnateSelectionCircle, isPersonalSpace,
-                         isPaletteReplacementEnabled, isShowAvatar, isShowHelmet, isShowShield, isShowWeapon,
+                         isTintEnabled, isPaletteReplacementEnabled, isShowAvatar, isShowHelmet, isShowShield, isShowWeapon,
                          isShowBorders;
 
   static {
@@ -91,6 +91,7 @@ public class SettingsPanel extends JPanel
     isShowShield = true;
     isShowWeapon = true;
     isShowBorders = false;
+    isTintEnabled = true;
     isPaletteReplacementEnabled = true;
   }
 
@@ -102,7 +103,8 @@ public class SettingsPanel extends JPanel
   private JComboBox<Backgrounds.BackgroundInfo> cbBackground;
   private JButton bCenter;
   private JCheckBox cbFiltering, cbBlending, cbTranslucent, cbSelectionCircle, cbOrnateSelectionCircle, cbPersonalSpace,
-                    cbPaletteReplacementEnabled, cbShowAvatar, cbShowHelmet, cbShowShield, cbShowWeapon, cbShowBorders;
+                    cbTintEnabled, cbPaletteReplacementEnabled, cbShowAvatar, cbShowHelmet, cbShowShield, cbShowWeapon,
+                    cbShowBorders;
   private AttributesPanel panelAttributes;
 
   /** Returns a list of background info instances available for the specified game. */
@@ -279,6 +281,18 @@ public class SettingsPanel extends JPanel
     }
   }
 
+  /** Returns whether tint effects (e.g. from opcodes 51/52) are enabled. */
+  public boolean isTintEnabled() { return isTintEnabled; }
+
+  private void setTintEnabled(boolean b)
+  {
+    if (isTintEnabled != b) {
+      isTintEnabled = b;
+      cbTintEnabled.setSelected(isTintEnabled);
+      getViewer().getMediaPanel().reset(true);
+    }
+  }
+
   /** Returns whether palette replacement (full palette or false colors) is enabled. */
   public boolean isPaletteReplacementEnabled() { return isPaletteReplacementEnabled; }
 
@@ -424,12 +438,16 @@ public class SettingsPanel extends JPanel
     cbFiltering.addActionListener(listeners);
 
     cbBlending = new JCheckBox("Enable blending", isBlending);
-    cbBlending.setToolTipText("Affects only creature animations with special blending attributes (e.g. movanic devas or wisps)");
+    cbBlending.setToolTipText("Affects only creature animations with special blending attributes (e.g. movanic devas or wisps).");
     cbBlending.addActionListener(listeners);
 
     cbTranslucent = new JCheckBox("Enable translucency", isTranslucent);
-    cbTranslucent.setToolTipText("Affects only creature animations with translucency effect (e.g. ghosts or air elementals)");
+    cbTranslucent.setToolTipText("Affects only creature animations with translucency effect (e.g. ghosts or air elementals).");
     cbTranslucent.addActionListener(listeners);
+
+    cbTintEnabled = new JCheckBox("Enable tint", isTintEnabled);
+    cbTintEnabled.setToolTipText("Includes color modifications defined by effect opcodes 8, 51 and 52.");
+    cbTintEnabled.addActionListener(listeners);
 
     cbPaletteReplacementEnabled = new JCheckBox("Enable palette replacement", isPaletteReplacementEnabled);
     cbPaletteReplacementEnabled.setToolTipText("Enable full palette or false color palette replacement.");
@@ -502,10 +520,17 @@ public class SettingsPanel extends JPanel
 
     c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    panel2.add(cbPaletteReplacementEnabled, c);
+    panel2.add(cbTintEnabled, c);
     c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
     panel2.add(cbShowBorders, c);
+
+    c = ViewerUtil.setGBC(c, 0, 6, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
+    panel2.add(cbPaletteReplacementEnabled, c);
+    c = ViewerUtil.setGBC(c, 1, 6, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
+    panel2.add(new JPanel(), c);
 
 
     // attributes table panel
@@ -566,6 +591,9 @@ public class SettingsPanel extends JPanel
       }
       else if (e.getSource() == cbTranslucent) {
         setTranslucencyEnabled(cbTranslucent.isSelected());
+      }
+      else if (e.getSource() == cbTintEnabled) {
+        setTintEnabled(cbTintEnabled.isSelected());
       }
       else if (e.getSource() == cbPaletteReplacementEnabled) {
         setPaletteReplacementEnabled(cbPaletteReplacementEnabled.isSelected());

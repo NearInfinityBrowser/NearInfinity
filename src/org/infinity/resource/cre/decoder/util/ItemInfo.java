@@ -788,33 +788,37 @@ public class ItemInfo implements Comparable<ItemInfo>
   // Processes a global effect: only "set color" effect is considered
   private void parseEffect(EffectInfo info)
   {
-    if (info.getOpcode() == 7) {
-      // set color
-      if (info.getTarget() == 1 && info.getTiming() == 2) {
-        // self target; on equip
-        SegmentDef.SpriteType type = null;
-        int location = info.getParameter2() & 0xf;
-        switch ((info.getParameter2() >> 4) & 0xf) {
-          case 0:
-            type = SegmentDef.SpriteType.AVATAR;
-            break;
-          case 1:
-            type = SegmentDef.SpriteType.WEAPON;
-            break;
-          case 2:
-            type = SegmentDef.SpriteType.SHIELD;
-            break;
-          case 3:
-            type = SegmentDef.SpriteType.HELMET;
-            break;
-          default:
-            if ((info.getParameter2() & 0xff) == 0xff) {
+    switch (info.getOpcode()) {
+      case ColorInfo.OPCODE_SET_COLOR:
+      case ColorInfo.OPCODE_SET_COLOR_GLOW:
+      case ColorInfo.OPCODE_TINT_SOLID:
+      case ColorInfo.OPCODE_TINT_BRIGHT:
+        if (info.getTarget() == 1 && info.getTiming() == 2) {
+          // self target; when equipped
+          SegmentDef.SpriteType type = null;
+          int location = info.getParameter2() & 0xf;
+          switch ((info.getParameter2() >> 4) & 0xf) {
+            case 0:
               type = SegmentDef.SpriteType.AVATAR;
-              location = -1;
-            }
+              break;
+            case 1:
+              type = SegmentDef.SpriteType.WEAPON;
+              break;
+            case 2:
+              type = SegmentDef.SpriteType.SHIELD;
+              break;
+            case 3:
+              type = SegmentDef.SpriteType.HELMET;
+              break;
+            default:
+              if ((info.getParameter2() & 0xff) == 0xff) {
+                type = SegmentDef.SpriteType.AVATAR;
+                location = -1;
+              }
+          }
+          getColorInfo().add(type, info.getOpcode(), location, info.getParameter1());
         }
-        getColorInfo().add(type, location, info.getParameter1());
-      }
+        break;
     }
   }
 
@@ -1009,8 +1013,8 @@ public class ItemInfo implements Comparable<ItemInfo>
       this.opcode = buf.getShort(0x0);
       this.target = buf.getByte(0x2);
       this.power = buf.getByte(0x3);
-      this.parameter1 = buf.getShort(0x4);
-      this.parameter2 = buf.getShort(0x8);
+      this.parameter1 = buf.getInt(0x4);
+      this.parameter2 = buf.getInt(0x8);
       this.timing = buf.getByte(0xc);
       this.dispelResist = buf.getByte(0xd);
       this.duration = buf.getByte(0xe);

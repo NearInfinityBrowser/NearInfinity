@@ -806,6 +806,65 @@ public class SpriteUtils
   }
 
   /**
+   * Modifies the specified range of palette entries according to the opcode and color specifications.
+   * @param palette ARGB palette to modify.
+   * @param startOfs index of first color entry to modify.
+   * @param length number of color entries to modify.
+   * @param opcode effect opcode to apply. Supported opcodes: 8, 51, 52
+   * @param color color value associated with the opcode.
+   * @return the modified palette.
+   */
+  public static int[] tintColors(int[] palette, int startOfs, int length, int opcode, int color)
+  {
+    int[] retVal = palette;
+
+    switch (opcode) {
+      case ColorInfo.OPCODE_SET_COLOR_GLOW:
+      case ColorInfo.OPCODE_TINT_SOLID:
+      case ColorInfo.OPCODE_TINT_BRIGHT:
+        break;
+      default:
+        return retVal;
+    }
+
+    if (palette != null) {
+      retVal = Arrays.copyOf(palette, palette.length);
+      startOfs = Math.max(0, Math.min(retVal.length - 1, startOfs));
+      length = Math.max(0, Math.min(retVal.length - startOfs, length));
+
+      int dr = (color >> 16) & 0xff;
+      int dg = (color >> 8) & 0xff;
+      int db = color & 0xff;
+      for (int i = 0; i < length; i++) {
+        int sr = (retVal[startOfs + i] >> 16) & 0xff;
+        int sg = (retVal[startOfs + i] >> 8) & 0xff;
+        int sb = retVal[startOfs + i] & 0xff;
+        switch (opcode) {
+          case ColorInfo.OPCODE_SET_COLOR_GLOW:
+            sr = Math.min(255, sr + dr - (sr >>> 2));
+            sg = Math.min(255, sg + dg - (sg >>> 2));
+            sb = Math.min(255, sb + db - (sb >>> 2));
+            break;
+          case ColorInfo.OPCODE_TINT_SOLID:
+            sr = Math.min(255, dr * sr / 255);
+            sg = Math.min(255, dg * sg / 255);
+            sb = Math.min(255, db * sb / 255);
+            break;
+          case ColorInfo.OPCODE_TINT_BRIGHT:
+            sr = Math.min(255, sr + (dr * (sr >>> 3)));
+            sg = Math.min(255, sg + (dg * (sg >>> 3)));
+            sb = Math.min(255, sb + (db * (sb >>> 3)));
+            break;
+        }
+        retVal[startOfs + i] = (retVal[startOfs + i] & 0xff000000) | (sr << 16) | (sg << 8) | sb;
+      }
+    }
+
+    return retVal;
+  }
+
+
+  /**
    * Calculates a dimension that can contain all the specified source frames.
    * @param frames one or more source frames.
    * @return A rectangle object where x and y indicate the top-left corner relative to the center point.

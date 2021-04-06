@@ -422,8 +422,11 @@ public class CreatureInfo
 
     if (itemInfo != null) {
       HashSet<Integer> set = new HashSet<>();
-      for (Iterator<Integer> iter = itemInfo.getColorInfo().getLocationIterator(type); iter.hasNext(); ) {
-        set.add(iter.next());
+      for (Iterator<Couple<Integer, Integer>> iter = itemInfo.getColorInfo().getEffectIterator(type); iter.hasNext(); ) {
+        Couple<Integer, Integer> pair = iter.next();
+        if (pair.getValue0().intValue() == ColorInfo.OPCODE_SET_COLOR) {
+          set.add(pair.getValue1());
+        }
       }
       retVal = set.size();
     }
@@ -484,7 +487,7 @@ public class CreatureInfo
     }
 
     if (itemInfo != null) {
-      retVal = itemInfo.getColorInfo().getValue(type, locationIndex);
+      retVal = itemInfo.getColorInfo().getValue(type, ColorInfo.OPCODE_SET_COLOR, locationIndex);
     }
 
     return retVal;
@@ -493,7 +496,8 @@ public class CreatureInfo
   /**
    * Returns the color entry of the specified location index for the avatar sprite
    * after applying all equipment and effect colors as well as the source of the color value.
-   * @param locationIndex the color location index. Available range: [0, 6]
+   * @param opcode filter by this opcode.
+   * @param locationIndex the color location index. Available range: [-1, 6]
    * @return a tuple with the color entry as well as a {@code Boolean} value indicating whether random colors are allowed.
    * Returns {@code -1} for the color entry if value could not be determined.
    */
@@ -506,7 +510,7 @@ public class CreatureInfo
    * Returns the color entry of the location index for the specified sprite overlay type
    * after applying all equipment and effect colors as well as the source of the color value.
    * @param type the {@link SegmentDef.SpriteType SpriteType} target
-   * @param locationIndex the color location index. Available range: [0, 6]
+   * @param locationIndex the color location index. Available range: [-1, 6]
    * @return a tuple with the color entry as well as a {@code Boolean} value indicating whether random colors are allowed.
    * Returns {@code -1} for the color entry if value could not be determined.
    */
@@ -528,7 +532,7 @@ public class CreatureInfo
     // checking equipped items
     ItemInfo[] itemInfos = getEffectiveItemInfo();
     for (final ItemInfo info : itemInfos) {
-      int v = info.getColorInfo().getValue(type, locationIndex);
+      int v = info.getColorInfo().getValue(type, ColorInfo.OPCODE_SET_COLOR, locationIndex);
       if (v >= 0) {
         retVal.setValue0(v);
         retVal.setValue1(Boolean.FALSE);
@@ -536,7 +540,7 @@ public class CreatureInfo
     }
 
     // checking creature effects
-    int v = getColorInfo().getValue(type, locationIndex);
+    int v = getColorInfo().getValue(type, ColorInfo.OPCODE_SET_COLOR, locationIndex);
     if (v >= 0) {
       retVal.setValue0(v);
       retVal.setValue1(Boolean.FALSE);
@@ -545,6 +549,77 @@ public class CreatureInfo
     return retVal;
   }
 
+  /**
+   * Returns the color value of the specified location index for the specified sprite overlay type.
+   * @param type the sprite overlay type.
+   * @param opcode the opcode to filter.
+   * @param locationIndex the color location index.
+   * @return color entry index. Returns -1 if color value is not available.
+   */
+  public int getTintValue(SegmentDef.SpriteType type, int opcode, int locationIndex)
+  {
+    if (type == null) {
+      type = SegmentDef.SpriteType.AVATAR;
+    }
+
+    return getColorInfo().getValue(type, opcode, locationIndex);
+  }
+
+  /**
+   * Returns the color tint value of the location index for the specified sprite overlay type
+   * after applying all equipment and effect colors as well as the source of the color value.
+   * @param type the {@link SegmentDef.SpriteType SpriteType} target
+   * @param locationIndex the color location index. Available range: [-1, 6]
+   * @return a tuple with the effect opcode as well as the RGB color value.
+   * Returns {@code -1} for each of the tuple elements if value could not be determined.
+   */
+  public Couple<Integer, Integer> getEffectiveTintValue(SegmentDef.SpriteType type, int locationIndex)
+  {
+    Couple<Integer, Integer> retVal = Couple.with(-1, -1);
+
+    if (type == null) {
+      type = SegmentDef.SpriteType.AVATAR;
+    }
+
+    int opcode, value;
+
+    // checking equipped items
+    ItemInfo[] itemInfos = getEffectiveItemInfo();
+    for (final ItemInfo info : itemInfos) {
+      opcode = ColorInfo.OPCODE_TINT_BRIGHT;
+      value = info.getColorInfo().getValue(type, opcode, locationIndex);
+      if (value == -1) {
+        opcode = ColorInfo.OPCODE_TINT_SOLID;
+        value = info.getColorInfo().getValue(type, opcode, locationIndex);
+        if (value == -1) {
+          opcode = ColorInfo.OPCODE_SET_COLOR_GLOW;
+          value = info.getColorInfo().getValue(type, opcode, locationIndex);
+        }
+      }
+      if (value != -1) {
+        retVal.setValue0(opcode);
+        retVal.setValue1(value);
+      }
+    }
+
+    // checking creature effects
+    opcode = ColorInfo.OPCODE_TINT_BRIGHT;
+    value = getColorInfo().getValue(type, opcode, locationIndex);
+    if (value == -1) {
+      opcode = ColorInfo.OPCODE_TINT_SOLID;
+      value = getColorInfo().getValue(type, opcode, locationIndex);
+      if (value == -1) {
+        opcode = ColorInfo.OPCODE_SET_COLOR_GLOW;
+        value = getColorInfo().getValue(type, opcode, locationIndex);
+      }
+    }
+    if (value != -1) {
+      retVal.setValue0(opcode);
+      retVal.setValue1(value);
+    }
+
+    return retVal;
+  }
 
   /** Returns the creature resource version. */
   private String getCreatureVersion()
@@ -701,11 +776,14 @@ public class CreatureInfo
 
     int opcode = ((IsNumeric)se).getValue();
     switch (opcode) {
-      case 7: // Set color
+      case ColorInfo.OPCODE_SET_COLOR:
+      case ColorInfo.OPCODE_SET_COLOR_GLOW:
+      case ColorInfo.OPCODE_TINT_SOLID:
+      case ColorInfo.OPCODE_TINT_BRIGHT:
       {
-        se = as.getAttribute(ofsParam1);
+        se = as.getAttribute(as.getOffset() + ofsParam1);
         int param1 = (se instanceof IsNumeric) ? ((IsNumeric)se).getValue() : -1;
-        se = as.getAttribute(ofsParam2);
+        se = as.getAttribute(as.getOffset() + ofsParam2);
         int param2 = (se instanceof IsNumeric) ? ((IsNumeric)se).getValue() : -1;
 
         if (param1 != -1 && param2 != -1) {
@@ -731,7 +809,8 @@ public class CreatureInfo
                 location = -1;
               }
           }
-          getColorInfo().add(type, location, param1);
+
+          getColorInfo().add(type, opcode, location, param1);
         }
         break;
       }

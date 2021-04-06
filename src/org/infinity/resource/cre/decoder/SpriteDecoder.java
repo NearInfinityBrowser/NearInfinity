@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -116,6 +117,10 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
         applyFalseColors(control, sd);
       }
 
+      if (isTintEnabled()) {
+        applyColorTint(control, sd);
+      }
+
       if (isTranslucencyEnabled() && isTranslucent()) {
         applyTranslucency(control);
       }
@@ -178,6 +183,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   private boolean showBoundingBox;
   private boolean transparentShadow;
   private boolean translucencyEnabled;
+  private boolean tintEnabled;
   private boolean paletteReplacementEnabled;
   private boolean renderSpriteAvatar;
   private boolean renderSpriteWeapon;
@@ -255,6 +261,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     this.showBoundingBox = false;
     this.transparentShadow = true;
     this.translucencyEnabled = true;
+    this.tintEnabled = true;
     this.paletteReplacementEnabled = true;
     this.renderSpriteAvatar = true;
     this.renderSpriteWeapon = true;
@@ -348,6 +355,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   {
     frameClear();
     directionMap.clear();
+    SpriteUtils.clearBamCache();
   }
 
   /**
@@ -594,6 +602,22 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
         SpriteUtils.clearBamCache();
         spriteChanged();
       }
+    }
+  }
+
+  /** Returns whether tint effects are applied to the creature animation. */
+  public boolean isTintEnabled()
+  {
+    return tintEnabled;
+  }
+
+  /** Sets whether tint effects are applied to the creature animation. */
+  public void setTintEnabled(boolean b)
+  {
+    if (tintEnabled != b) {
+      tintEnabled = b;
+      SpriteUtils.clearBamCache();
+      spriteChanged();
     }
   }
 
@@ -1085,6 +1109,9 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       return;
     }
 
+    // Ensure that BeforeSourceBam function is applied only once per source BAM
+    HashSet<BamV1Control> bamControlSet = new HashSet<>();
+
     for (final DirDef dd : definition.getDirections()) {
       if (!directions.contains(dd.getDirection())) {
         continue;
@@ -1113,7 +1140,8 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
           srcCtrl.cycleSet(sd.getCycleIndex());
 
           if (sd.getCurrentFrame() >= 0) {
-            if (beforeSrcBam != null) {
+            if (beforeSrcBam != null && !bamControlSet.contains(srcCtrl)) {
+              bamControlSet.add(srcCtrl);
               beforeSrcBam.accept(srcCtrl, sd);
             }
             frameInfo.add(new FrameInfo(srcCtrl, sd));
@@ -1439,7 +1467,8 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     final Map<Integer, int[]> colorRanges = new HashMap<Integer, int[]>();
     for (int loc = 0; loc < 7; loc++) {
       int ofs = getColorOffset(loc);
-      Couple<Integer, Boolean> colorInfo = getCreatureInfo().getEffectiveColorValue(sd.getSpriteType(), loc);
+      Couple<Integer, Boolean> colorInfo =
+          getCreatureInfo().getEffectiveColorValue(sd.getSpriteType(), loc);
       int colIdx = colorInfo.getValue0().intValue();
       boolean allowRandom = colorInfo.getValue1().booleanValue();
       if (ofs > 0 && colIdx >= 0) {
@@ -1457,7 +1486,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
         ColorInfo colorInfo = itemInfo.getColorInfo();
         for (int loc = 0; loc < 7; loc++) {
           int ofs = getColorOffset(loc);
-          int colIdx = colorInfo.getValue(SegmentDef.SpriteType.WEAPON, loc);
+          int colIdx = colorInfo.getValue(SegmentDef.SpriteType.WEAPON, ColorInfo.OPCODE_SET_COLOR, loc);
           if (ofs > 0 && colIdx >= 0) {
             int[] range = getColorData(colIdx, false);
             if (range != null) {
@@ -1501,6 +1530,75 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       // fixing special palette entries
       palette[2] = 0xFF000000;
       palette[3] = 0xFF000000;
+    }
+
+    control.setExternalPalette(palette);
+  }
+
+  /**
+   * Modifies BAM palette with tint colors from selected effect opcodes.
+   * @param control the BAM controller.
+   */
+  protected void applyColorTint(BamV1Control control, SegmentDef sd)
+  {
+    if (control == null || sd == null ||
+        getAnimationType() == AnimationInfo.Type.MONSTER_PLANESCAPE) {
+      return;
+    }
+
+    int[] palette = control.getCurrentPalette();
+    Couple<Integer, Integer> fullTint = Couple.with(-1, -1);  // stores info for later
+    // color locations >= 0: affects only false color BAMs directly; data is stored for full palette tint though
+    for (int loc = 0; loc < 7; loc++) {
+      int ofs = getColorOffset(loc);
+      Couple<Integer, Integer> colorInfo = getCreatureInfo().getEffectiveTintValue(sd.getSpriteType(), loc);
+      int opcode = colorInfo.getValue0().intValue();
+      int color = colorInfo.getValue1().intValue();
+      if (ofs > 0 && opcode >= 0 && color >= 0) {
+        // applying tint to color range
+        if (isFalseColor()) {
+          palette = SpriteUtils.tintColors(palette, ofs, 12, opcode, color);
+        } else {
+          fullTint.setValue0(colorInfo.getValue0());
+          fullTint.setValue1(colorInfo.getValue1());
+        }
+      }
+    }
+
+    if (isFalseColor()) {
+      // preparing offset array
+      final int srcOfs = 4;
+      final int dstOfs = 88;
+      final int srcLen = 12;
+      final int dstLen = 8;
+      final int[] offsets = new int[7];
+      for (int i = 0; i < offsets.length; i++) {
+        offsets[i] = srcOfs + i * srcLen;
+      }
+
+      // calculating mixed ranges
+      int k = 0;
+      for (int i = 0; i < offsets.length - 1; i++) {
+        int ofs1 = offsets[i];
+        for (int j = i + 1; j < offsets.length; j++, k++) {
+          int ofs2 = offsets[j];
+          int ofs3 = dstOfs + k * dstLen;
+          palette = SpriteUtils.interpolateColors(palette, ofs1, ofs2, srcLen, ofs3, dstLen, false);
+        }
+      }
+    }
+
+    // color location -1: affects whole palette (except transparency and shadow color)
+    Couple<Integer, Integer> colorInfo = getCreatureInfo().getEffectiveTintValue(sd.getSpriteType(), -1);
+    if (colorInfo.getValue0() >= 0 && colorInfo.getValue1() >= 0) {
+      fullTint.setValue0(colorInfo.getValue0());
+      fullTint.setValue1(colorInfo.getValue1());
+    }
+    int opcode = fullTint.getValue0().intValue();
+    int color = fullTint.getValue1().intValue();
+    if (opcode >= 0 && color >= 0) {
+      // applying tint to whole palette
+      palette = SpriteUtils.tintColors(palette, 2, 254, opcode, color);
     }
 
     control.setExternalPalette(palette);
@@ -1583,6 +1681,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     hash = 31 * hash + Boolean.valueOf(showBoundingBox).hashCode();
     hash = 31 * hash + Boolean.valueOf(transparentShadow).hashCode();
     hash = 31 * hash + Boolean.valueOf(translucencyEnabled).hashCode();
+    hash = 31 * hash + Boolean.valueOf(tintEnabled).hashCode();
     hash = 31 * hash + Boolean.valueOf(paletteReplacementEnabled).hashCode();
     hash = 31 * hash + Boolean.valueOf(renderSpriteAvatar).hashCode();
     hash = 31 * hash + Boolean.valueOf(renderSpriteWeapon).hashCode();
@@ -1618,6 +1717,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       retVal &= (this.showBoundingBox == other.showBoundingBox);
       retVal &= (this.transparentShadow == other.transparentShadow);
       retVal &= (this.translucencyEnabled == other.translucencyEnabled);
+      retVal &= (this.tintEnabled == other.tintEnabled);
       retVal &= (this.paletteReplacementEnabled == other.paletteReplacementEnabled);
       retVal &= (this.renderSpriteAvatar == other.renderSpriteAvatar);
       retVal &= (this.renderSpriteWeapon == other.renderSpriteWeapon);

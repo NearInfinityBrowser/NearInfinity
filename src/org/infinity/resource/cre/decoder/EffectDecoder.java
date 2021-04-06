@@ -72,6 +72,10 @@ public class EffectDecoder extends SpriteDecoder
         }
       }
 
+      if (isTintEnabled()) {
+        applyColorTint(control, sd);
+      }
+
       if (isTranslucencyEnabled() && isTranslucent()) {
         applyTranslucency(control);
       }
