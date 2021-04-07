@@ -121,6 +121,10 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
         applyColorTint(control, sd);
       }
 
+      if (isPaletteReplacementEnabled() && isFalseColor()) {
+        applyColorEffects(control, sd);
+      }
+
       if (isTranslucencyEnabled() && isTranslucent()) {
         applyTranslucency(control);
       }
@@ -1533,6 +1537,58 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     }
 
     control.setExternalPalette(palette);
+  }
+
+  /**
+   * Replaces false colors with special color effects applied to the CRE resource.
+   * Currently supported: stoneskin/petrification, frozen state, burned state.
+   * @param control the BAM controller.
+   */
+  protected void applyColorEffects(BamV1Control control, SegmentDef sd)
+  {
+    if (control == null || sd == null ||
+        getAnimationType() == AnimationInfo.Type.MONSTER_PLANESCAPE) {
+      return;
+    }
+
+    boolean isStoneEffect = getCreatureInfo().isStoneEffect();
+    boolean isFrozenEffect = getCreatureInfo().isFrozenEffect();
+    boolean isBurnedEffect = getCreatureInfo().isBurnedEffect();
+
+    if (isStoneEffect || isFrozenEffect) {
+      // isStoneEffect: includes stoneskin effect, petrification/stone death status
+      // isFrozenEffect: includes frozen death status
+      int colorIdx = isStoneEffect ? 72 : 71;
+      int[] range = getColorData(colorIdx, false);
+      int[] palette = control.getCurrentPalette();
+
+      // replacing base ranges
+      for (int i = 0; i < 7; i++) {
+        int ofs = 4 + (i * range.length);
+        palette = SpriteUtils.replaceColors(palette, range, ofs, range.length, false);
+      }
+
+      // calculating mixed ranges
+      int k = 0;
+      for (int i = 0; i < 6; i++) {
+        int ofs1 = 4 + (i * 12);
+        for (int j = i + 1; j < 7; j++, k++) {
+          int ofs2 = 4 + (j * 12);
+          int ofs3 = 88 + (k * 8);
+          palette = SpriteUtils.interpolateColors(palette, ofs1, ofs2, 12, ofs3, 8, false);
+        }
+      }
+
+      control.setExternalPalette(palette);
+    } else if (isBurnedEffect) {
+      // isBurnedEffect: includes flame death status
+      int opcode = 51;
+      int color = 0x4b4b4b;
+      int[] palette = control.getCurrentPalette();
+      palette = SpriteUtils.tintColors(palette, 2, 254, opcode, color);
+      control.setExternalPalette(palette);
+    }
+
   }
 
   /**

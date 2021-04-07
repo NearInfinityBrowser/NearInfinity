@@ -55,6 +55,21 @@ public abstract class LayerObjectActor extends LayerObject
       Sequence.PST_DIE_BACKWARD,
       Sequence.PST_DIE_COLLAPSE,
   };
+  // Potential sequences for "frozen death" state
+  private static final Sequence[] FROZEN_DEATH_SEQUENCE = {
+      Sequence.STANCE,
+      Sequence.STANCE2,
+      Sequence.PST_STANCE,
+      Sequence.STAND,
+      Sequence.STAND2,
+      Sequence.STAND3,
+      Sequence.STAND_EMERGED,
+      Sequence.TWITCH,
+      Sequence.DIE,
+      Sequence.PST_DIE_FORWARD,
+      Sequence.PST_DIE_BACKWARD,
+      Sequence.PST_DIE_COLLAPSE,
+  };
   // Potential sequences for "unconscious" state
   private static final Sequence[] SLEEP_SEQUENCE = {
       Sequence.SLEEP,
@@ -174,11 +189,16 @@ public abstract class LayerObjectActor extends LayerObject
     ActorAnimationProvider retVal = null;
     SpriteDecoder decoder = null;
 
-    final int maskDeath = 0xfc0;  // actor is dead?
-    final int maskSleep = 0x1;    // actor is unconscious?
+    final int maskDeath = 0xf00;  // actor uses regular death sequence?
+    final int maskFrozenDeath = 0x40; // actor status is "frozen death"?
+    final int maskStoneDeath = 0x80;  // actor status is "stone death"?
+    final int maskSleep = 0x01;   // actor uses sleep sequence?
     int status = ((IsNumeric)cre.getAttribute(CreResource.CRE_STATUS)).getValue();
     boolean isDead = (status & maskDeath) != 0;
+    boolean isFrozenDeath = (status & maskFrozenDeath) != 0;
+    boolean isStoneDeath = (status & maskStoneDeath) != 0;
     boolean isUnconscious = (status & maskSleep) != 0;
+    boolean isStillFrame = isDead || isFrozenDeath || isStoneDeath || isUnconscious;
 
     // loading SpriteDecoder instance from cache if available
     String key = createKey(cre);
@@ -193,6 +213,8 @@ public abstract class LayerObjectActor extends LayerObject
       // check for special animation sequence
       if (isDead) {
         sequence = getMatchingSequence(decoder, DEATH_SEQUENCE);
+      } else if (isFrozenDeath) {
+        sequence = getMatchingSequence(decoder, FROZEN_DEATH_SEQUENCE);
       } else if (isUnconscious) {
         sequence = getMatchingSequence(decoder, SLEEP_SEQUENCE);
       }
@@ -243,7 +265,7 @@ public abstract class LayerObjectActor extends LayerObject
     retVal = new ActorAnimationProvider(decoder);
     retVal.setActive(true);
 
-    if (isDead || isUnconscious) {
+    if (isStillFrame) {
       // using second last frame to avoid glitches for selected creature animations
       retVal.setStartFrame(-2);
       retVal.setFrameCap(-2);

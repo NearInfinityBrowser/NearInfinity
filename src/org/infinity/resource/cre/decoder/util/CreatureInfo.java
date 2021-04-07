@@ -102,6 +102,28 @@ public class CreatureInfo
     return ((getStatus() & (1 << 2)) != 0);
   }
 
+  /**
+   * Returns {@code true} if the creature is under the stoneskin effect or status is set to petrification/stone death.
+   */
+  public boolean isStoneEffect()
+  {
+    return ((getStatus() & (1 << 7)) != 0) ||
+           isEffectActive(SegmentDef.SpriteType.AVATAR, ColorInfo.OPCODE_PETRIFICATION, -1) ||
+           isEffectActive(SegmentDef.SpriteType.AVATAR, ColorInfo.OPCODE_STONESKIN, -1);
+  }
+
+  /** Returns {@code true} if the creature status is set to "frozen death". */
+  public boolean isFrozenEffect()
+  {
+    return ((getStatus() & (1 << 6)) != 0);
+  }
+
+  /** Returns {@code true} if the creature status is set to "flame death". */
+  public boolean isBurnedEffect()
+  {
+    return ((getStatus() & (1 << 9)) != 0);
+  }
+
   /** Returns the creature animation id. */
   public int getAnimationId() { return ((IsNumeric)cre.getAttribute(CreResource.CRE_ANIMATION)).getValue(); }
 
@@ -621,6 +643,38 @@ public class CreatureInfo
     return retVal;
   }
 
+  /**
+   * Returns whether the specified effect is active with the given parameters.
+   * @param type the {@link SegmentDef.SpriteType SpriteType} target
+   * @param opcode the effect opcode to filter.
+   * @param location the color location index. Available range: [-1, 6]
+   * @return {@code true} if the effect with matching parameters exists. Returns {@code false} otherwise.
+   */
+  public boolean isEffectActive(SegmentDef.SpriteType type, int opcode, int location)
+  {
+    boolean retVal = false;
+
+    if (type == null) {
+      type = SegmentDef.SpriteType.AVATAR;
+    }
+
+    // checking creature effects
+    retVal = (getColorInfo().getValue(type, opcode, location) >= 0);
+
+    if (!retVal) {
+      // checking equipped items
+      ItemInfo[] itemInfos = getEffectiveItemInfo();
+      for (final ItemInfo info : itemInfos) {
+        retVal = (info.getColorInfo().getValue(type, opcode, location) >= 0);
+        if (retVal) {
+          break;
+        }
+      }
+    }
+
+    return retVal;
+  }
+
   /** Returns the creature resource version. */
   private String getCreatureVersion()
   {
@@ -814,6 +868,10 @@ public class CreatureInfo
         }
         break;
       }
+      case ColorInfo.OPCODE_PETRIFICATION:
+      case ColorInfo.OPCODE_STONESKIN:
+        getColorInfo().add(SegmentDef.SpriteType.AVATAR, opcode, -1, 0);
+        break;
     }
   }
 

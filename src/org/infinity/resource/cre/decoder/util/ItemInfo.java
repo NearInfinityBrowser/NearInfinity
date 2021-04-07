@@ -819,6 +819,10 @@ public class ItemInfo implements Comparable<ItemInfo>
           getColorInfo().add(type, info.getOpcode(), location, info.getParameter1());
         }
         break;
+      case ColorInfo.OPCODE_PETRIFICATION:
+      case ColorInfo.OPCODE_STONESKIN:
+        getColorInfo().add(SegmentDef.SpriteType.AVATAR, info.getOpcode(), -1, 0);
+        break;
     }
   }
 
