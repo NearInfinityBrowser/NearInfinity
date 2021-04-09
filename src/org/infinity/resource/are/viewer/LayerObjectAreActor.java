@@ -10,20 +10,20 @@ import java.util.EnumMap;
 
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.IsReference;
 import org.infinity.datatype.IsTextual;
-import org.infinity.datatype.ResourceRef;
-import org.infinity.datatype.TextString;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.AnimatedLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.icon.Icons;
+import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.StructEntry;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.are.Actor;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.viewer.icon.ViewerIcons;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.key.ResourceEntry;
 
 /**
  * Handles specific layer type: ARE/Actor
@@ -57,16 +57,19 @@ public class LayerObjectAreActor extends LayerObjectActor
       location.y = ((IsNumeric)actor.getAttribute(Actor.ARE_ACTOR_POS_Y)).getValue();
       scheduleFlags = ((Flag)actor.getAttribute(Actor.ARE_ACTOR_PRESENT_AT));
 
-      StructEntry obj = actor.getAttribute(Actor.ARE_ACTOR_CHARACTER);
-      if (obj instanceof TextString) {
-        // ARE in saved game
-        cre = (CreResource)actor.getAttribute(Actor.ARE_ACTOR_CRE_FILE);
-      }
-      else if (obj instanceof ResourceRef) {
-        final ResourceRef creRef = (ResourceRef)obj;
-        if (!creRef.isEmpty()) {
-          cre = new CreResource(ResourceFactory.getResourceEntry(creRef.getResourceName()));
+      boolean isReference = ((Flag)actor.getAttribute(Actor.ARE_ACTOR_FLAGS)).isFlagSet(0);
+      if (isReference) {
+        // external CRE resource?
+        ResourceEntry creEntry = ResourceFactory.getResourceEntry(((IsReference)actor.getAttribute(Actor.ARE_ACTOR_CHARACTER)).getResourceName());
+        if (creEntry != null) {
+          Resource res = ResourceFactory.getResource(creEntry);
+          if (res instanceof CreResource) {
+            cre = (CreResource)res;
+          }
         }
+      } else {
+        // attached CRE resource?
+        cre = (CreResource)actor.getAttribute(Actor.ARE_ACTOR_CRE_FILE);
       }
 
       if (cre != null) {
