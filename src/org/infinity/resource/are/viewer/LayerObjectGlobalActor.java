@@ -59,7 +59,7 @@ public class LayerObjectGlobalActor extends LayerObjectActor
       }
     } else {
       // external resource?
-      String creRes = ((IsTextual)this.npc.getAttribute(PartyNPC.GAM_NPC_NAME)).getText();
+      String creRes = ((IsTextual)this.npc.getAttribute(PartyNPC.GAM_NPC_CHARACTER)).getText();
       ResourceEntry entry = ResourceFactory.getResourceEntry(creRes + ".CRE");
       if (entry != null) {
         Resource res = ResourceFactory.getResource(entry);
