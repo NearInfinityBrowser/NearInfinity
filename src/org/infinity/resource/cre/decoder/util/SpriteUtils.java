@@ -28,6 +28,7 @@ import org.infinity.resource.cre.decoder.AmbientDecoder;
 import org.infinity.resource.cre.decoder.AmbientStaticDecoder;
 import org.infinity.resource.cre.decoder.CharacterDecoder;
 import org.infinity.resource.cre.decoder.CharacterOldDecoder;
+import org.infinity.resource.cre.decoder.PlaceholderDecoder;
 import org.infinity.resource.cre.decoder.EffectDecoder;
 import org.infinity.resource.cre.decoder.FlyingDecoder;
 import org.infinity.resource.cre.decoder.MonsterAnkhegDecoder;
@@ -1090,6 +1091,11 @@ public class SpriteUtils
             }
           }
         }
+      }
+
+      if (retVal == null) {
+        // No luck yet? Fall back to placeholder animation!
+        retVal = PlaceholderDecoder.class;
       }
     }
 

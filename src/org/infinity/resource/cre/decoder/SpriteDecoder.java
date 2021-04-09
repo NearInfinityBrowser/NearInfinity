@@ -257,7 +257,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     setAttribute(KEY_ANIMATION_SECTION, type.getSectionName());
     this.creInfo = new CreatureInfo(this, cre);
     this.ini = Objects.requireNonNull(SpriteUtils.getAnimationInfo(getAnimationId()),
-                                      "No INI data available for animation id: " + getAnimationId());
+                                      String.format("No INI data available for animation id: 0x%04x", getAnimationId()));
     this.currentSequence = Sequence.NONE;
     this.showCircle = false;
     this.selectionCircleBitmap = (Profile.getGame() == Profile.Game.PST) || (Profile.getGame() == Profile.Game.PSTEE);

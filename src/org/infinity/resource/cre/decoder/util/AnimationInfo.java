@@ -169,7 +169,14 @@ public class AnimationInfo
     /** Animation type: F000 */
     MONSTER_PLANESCAPE(0xf000, "monster_planescape", Arrays.asList(
         Couple.with(TYPE_GAME_PSTEE, RANGE_MONSTER_PLANESCAPE),
-        Couple.with(TYPE_GAME_PST, RANGE_MONSTER_PLANESCAPE_EX)));    // type=18
+        Couple.with(TYPE_GAME_PST, RANGE_MONSTER_PLANESCAPE_EX))),    // type=18
+
+    /** Pseudo animation type: fallback option for non-existing animations */
+    PLACEHOLDER(new int[] {0x0000, 0x1000, 0x2000, 0x3000, 0x4000, 0x5000, 0x6000, 0x7000,
+                           0x8000, 0x9000, 0xa000, 0xb000, 0xc000, 0xd000, 0xe000, 0xf000},
+          "placeholder",
+          Arrays.asList(Couple.with(TYPE_GAME_ALL, Arrays.asList(new NumberRange(0x0000, 0xffff)))),
+          Arrays.asList(new NumberRange(0x0000, 0xffff)));
 
     private final EnumMap<Profile.Game, List<NumberRange>> rangeMap = new EnumMap<>(Profile.Game.class);
     private final List<NumberRange> iaRanges;
