@@ -30,7 +30,7 @@ import org.infinity.resource.cre.CreResource;
  */
 public class LayerObjectAreActor extends LayerObjectActor
 {
-  private static EnumMap<Allegiance, Image[]> ICONS = new EnumMap<Allegiance, Image[]>(Allegiance.class) {{
+  private static final EnumMap<Allegiance, Image[]> ICONS = new EnumMap<Allegiance, Image[]>(Allegiance.class) {{
     put(Allegiance.GOOD, new Image[] {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_G_1),
                                       Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_G_2)});
     put(Allegiance.NEUTRAL, new Image[] {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ARE_ACTOR_B_1),

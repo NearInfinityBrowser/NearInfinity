@@ -6,19 +6,30 @@ package org.infinity.resource.are.viewer;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingWorker;
 
+import org.infinity.datatype.IsTextual;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.AnimatedLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
+import org.infinity.resource.Profile;
+import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
+import org.infinity.resource.StructEntry;
 import org.infinity.resource.are.Actor;
 import org.infinity.resource.are.AreResource;
+import org.infinity.resource.gam.GamResource;
+import org.infinity.resource.gam.PartyNPC;
+import org.infinity.resource.key.FileResourceEntry;
+import org.infinity.resource.key.ResourceEntry;
+
 import static org.infinity.resource.are.AreResource.ARE_NUM_ACTORS;
 import static org.infinity.resource.are.AreResource.ARE_OFFSET_ACTORS;
 import org.infinity.resource.text.PlainTextResource;
@@ -54,7 +65,7 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
     loadLayerItems(ARE_OFFSET_ACTORS, ARE_NUM_ACTORS,
                    Actor.class, a -> new LayerObjectAreActor(parent, a));
 
-    final List<LayerObjectActor> list = getLayerObjects();
+    final List<LayerObjectActor> objectList = getLayerObjects();
     // loading actors from associated INI
     final String iniFile = parent.getResourceEntry().getResourceName().toUpperCase(Locale.ENGLISH).replace(".ARE", ".INI");
     IniMap ini = ResourceFactory.resourceExists(iniFile) ? IniMapCache.get(iniFile) : null;
@@ -69,9 +80,48 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
               PlainTextResource iniRes = new PlainTextResource(ResourceFactory.getResourceEntry(iniFile));
               LayerObjectActor obj = new LayerObjectIniActor(iniRes, section, j);
               setListeners(obj);
-              list.add(obj);
+              objectList.add(obj);
             } catch (Exception e) {
               e.printStackTrace();
+            }
+          }
+        }
+      }
+    }
+
+    // loading global actors from save's baldur.gam or default .gam
+    ResourceEntry areEntry = parent.getResourceEntry();
+    if (areEntry != null) {
+      // loading associated GAM resource
+      ResourceEntry gamEntry = null;
+      Path arePath = areEntry.getActualPath();
+      if (arePath != null) {
+        Path gamPath = arePath.getParent().resolve((String)Profile.getProperty(Profile.Key.GET_GAM_NAME));
+        if (Files.isRegularFile(gamPath)) {
+          gamEntry = new FileResourceEntry(gamPath, false);
+        }
+      }
+      if (gamEntry == null) {
+        gamEntry = ResourceFactory.getResourceEntry(Profile.getProperty(Profile.Key.GET_GAM_NAME));
+      }
+
+      // scanning global NPCs
+      if (gamEntry != null) {
+        Resource res = ResourceFactory.getResource(gamEntry);
+        if (res instanceof GamResource) {
+          GamResource gamRes = (GamResource)res;
+          List<StructEntry> npcList = gamRes.getFields(PartyNPC.class);
+          for (int i = 0, cnt = npcList.size(); i < cnt; i++) {
+            PartyNPC npc = (PartyNPC)npcList.get(i);
+            String area = ((IsTextual)npc.getAttribute(PartyNPC.GAM_NPC_CURRENT_AREA)).getText();
+            if (areEntry.getResourceRef().equalsIgnoreCase(area)) {
+              try {
+                LayerObjectActor loa = new LayerObjectGlobalActor(gamRes, npc);
+                setListeners(loa);
+                objectList.add(loa);
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
             }
           }
         }

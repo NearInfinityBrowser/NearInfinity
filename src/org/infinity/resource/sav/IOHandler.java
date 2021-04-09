@@ -103,6 +103,7 @@ public final class IOHandler implements Writeable
     }
     Files.createDirectory(tempFolder);
 
+    // placing content of .sav resource in the temporary folder
     final List<ResourceEntry> entries = new ArrayList<>(fileEntries.size());
     for (final SavResourceEntry entry: fileEntries) {
       Path file = tempFolder.resolve(entry.getResourceName());
@@ -111,6 +112,15 @@ public final class IOHandler implements Writeable
       }
       entries.add(new FileResourceEntry(file));
     }
+
+    // placing copy of associated .gam resource in the temporary folder
+    String gamFile = Profile.getProperty(Profile.Key.GET_GAM_NAME);
+    Path srcFile = entry.getActualPath().getParent().resolve(gamFile);
+    if (Files.isRegularFile(srcFile)) {
+      Path dstFile = tempFolder.resolve(gamFile);
+      Files.copy(srcFile, dstFile);
+    }
+
     return entries;
   }
 

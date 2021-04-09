@@ -424,6 +424,8 @@ public final class Profile implements FileWatcher.FileWatchListener
     IS_SUPPORTED_KITS,
     /** Property: ({@code String}) The name of the ALIGNMENT IDS resource. */
     GET_IDS_ALIGNMENT,
+    /** Property: ({@code String}) The name of the .GAM file that is stored in saved games. */
+    GET_GAM_NAME,
     /** Property: ({@code Boolean}) Indices whether overlays in tilesets are stenciled. */
     IS_TILESET_STENCILED,
   }
@@ -2282,6 +2284,21 @@ public final class Profile implements FileWatcher.FileWatchListener
 
     // the actual name of the "Alignment" IDS resource
     addEntry(Key.GET_IDS_ALIGNMENT, Type.STRING, (engine == Engine.IWD2) ? "ALIGNMNT.IDS" : "ALIGNMEN.IDS");
+
+    // the GAM filename used in saved games
+    switch (engine) {
+      case IWD:
+        addEntry(Key.GET_GAM_NAME, Type.STRING, "ICEWIND.GAM");
+        break;
+      case IWD2:
+        addEntry(Key.GET_GAM_NAME, Type.STRING, "ICEWIND2.GAM");
+        break;
+      case PST:
+        addEntry(Key.GET_GAM_NAME, Type.STRING, "TORMENT.GAM");
+        break;
+      default:
+        addEntry(Key.GET_GAM_NAME, Type.STRING, "BALDUR.GAM");
+    }
 
     // display mode of overlays in tilesets
     addEntry(Key.IS_TILESET_STENCILED, Type.BOOLEAN, (engine == Engine.BG2 || game == Game.BG2EE));

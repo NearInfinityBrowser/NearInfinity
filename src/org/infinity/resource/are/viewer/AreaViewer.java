@@ -36,6 +36,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -1519,7 +1520,41 @@ public class AreaViewer extends ChildFrame
         }
       }
       // Window not found, creating and returning a new one
-      return new ViewFrame(NearInfinity.getInstance(), as);
+      List<AbstractStruct> structChain = new ArrayList<>();
+      structChain.add(as);
+      AbstractStruct as2 = as;
+      while (as2.getParent() != null) {
+        structChain.add(0, as2.getParent());
+        as2 = as2.getParent();
+      }
+
+      if (map.getAre() == structChain.get(0)) {
+        // no need to create the whole Viewable chain
+        return new ViewFrame(NearInfinity.getInstance(), as);
+      }
+
+      // recycling existing Viewables if possible
+      Window wnd = NearInfinity.getInstance();
+      for (final Iterator<ChildFrame> iter = ChildFrame.getFrameIterator(cf -> cf instanceof ViewFrame &&
+                                                                               ((ViewFrame)cf).getViewable() instanceof AbstractStruct);
+          iter.hasNext(); ) {
+        ViewFrame vf = (ViewFrame)iter.next();
+        AbstractStruct struct = (AbstractStruct)vf.getViewable();
+        if (struct.getResourceEntry() != null &&
+            struct.getResourceEntry().equals(structChain.get(0).getResourceEntry())) {
+          structChain.remove(0);
+          wnd = vf;
+          break;
+        }
+      }
+
+      // creating Viewable chain
+      for (int i = 0; i < structChain.size(); i++) {
+        wnd = new ViewFrame(wnd, structChain.get(i));
+      }
+      if (wnd != null && wnd != NearInfinity.getInstance()) {
+        return wnd;
+      }
     }
     // Last resort: returning NearInfinity instance
     return NearInfinity.getInstance();
