@@ -121,7 +121,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
         applyColorTint(control, sd);
       }
 
-      if (isPaletteReplacementEnabled() && isFalseColor()) {
+      if (isPaletteReplacementEnabled() && isFalseColor() && sd.getSpriteType() == SegmentDef.SpriteType.AVATAR) {
         applyColorEffects(control, sd);
       }
 
