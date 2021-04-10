@@ -34,7 +34,6 @@ import org.infinity.datatype.Unknown;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.StructViewer;
 import org.infinity.resource.are.Actor;
-import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
@@ -136,8 +135,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
                 so.incValue(amount);
               }
             }
-            else if (!(so.getSection().equals(datatype.getClass()) ||
-                (Profile.getEngine() == Profile.Engine.IWD2 && superStruct instanceof CreResource))) {
+            else if (!so.getSection().equals(datatype.getClass())) {
               so.incValue(amount);
             }
           }
