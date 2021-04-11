@@ -11,12 +11,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -28,10 +25,8 @@ import org.infinity.datatype.EffectType;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
-import org.infinity.gui.ChildFrame;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.ViewerUtil.ListValueRenderer;
-import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Effect;
 import org.infinity.resource.Effect2;
@@ -197,24 +192,6 @@ public final class Viewer extends JPanel
       imagePanel = ViewerUtil.makeImagePanel((ResourceRef)cre.getAttribute(CreResource.CRE_PORTRAIT_SMALL), true);
     }
 
-    JButton bViewAnimation = new JButton("View creature animation", Icons.getIcon(Icons.ICON_VOLUME_16));
-    bViewAnimation.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e)
-      {
-        ViewerAnimation va = ChildFrame.getFirstFrame(ViewerAnimation.class);
-        if (va == null) {
-          va = new ViewerAnimation(cre);
-        } else if (!va.isVisible()) {
-          va.setVisible(true);
-          va.toFront();
-        } else {
-          va.toFront();
-        }
-      }
-    });
-    bViewAnimation.setMargin(new Insets(8, 8, 8, 4));
-
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel leftPanel = new JPanel(gbl);
@@ -225,8 +202,6 @@ public final class Viewer extends JPanel
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbl.setConstraints(imagePanel, gbc);
     leftPanel.add(imagePanel);
-    gbl.setConstraints(bViewAnimation, gbc);
-    leftPanel.add(bViewAnimation);
     gbc.weighty = 1.0;
     gbl.setConstraints(effectPanel, gbc);
     leftPanel.add(effectPanel);

@@ -5,6 +5,7 @@
 package org.infinity.resource.cre;
 
 import java.awt.AlphaComposite;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -14,6 +15,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
 
@@ -22,6 +25,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -33,9 +37,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import org.infinity.NearInfinity;
-import org.infinity.datatype.IsNumeric;
-import org.infinity.datatype.IsTextual;
-import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.gui.RenderCanvas;
 import org.infinity.gui.ViewerUtil;
@@ -45,14 +46,12 @@ import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
 import org.infinity.resource.cre.viewer.CreatureViewer;
-import org.infinity.resource.gam.PartyNPC;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
-import org.infinity.util.StringTable;
 
 /**
  * A basic creature animation viewer.
  */
-public class ViewerAnimation extends ChildFrame implements ActionListener
+public class ViewerAnimation extends JComponent implements ActionListener
 {
   private static final Color COLOR_TRANSPARENT = new Color(0, true);
   private static final int ANIM_DELAY = 1000 / 15;    // 15 fps in milliseconds
@@ -63,6 +62,7 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
 
   private final CreResource cre;
 
+  private boolean initialized;
   private SpriteDecoder decoder;
   private PseudoBamControl bamControl;
   private RenderCanvas rcDisplay;
@@ -77,21 +77,8 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
 
   public ViewerAnimation(CreResource cre)
   {
-    super("", true);
     this.cre = Objects.requireNonNull(cre);
-    try {
-      this.decoder = SpriteDecoder.importSprite(getCre());
-
-      init();
-    } catch (Exception e) {
-      e.printStackTrace();
-      JOptionPane.showMessageDialog(this, "Creature animation could not be loaded.\nError message: " + e.getMessage(),
-                                    "Error", JOptionPane.ERROR_MESSAGE);
-      this.bamControl = null;
-      this.decoder = null;
-      close();
-      return;
-    }
+    init();
   }
 
   public CreResource getCre()
@@ -240,20 +227,38 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     showFrame();
   }
 
-//--------------------- Begin Class ChildFrame ---------------------
+  /** Loads the creature animation associated with the current CRE resource. */
+  public void open()
+  {
+    // loading animation on demand
+    if (!isInitialized()) {
+      try {
+        WindowBlocker.blockWindow(true);
+        initAnimation();
+      } catch (Exception ex) {
+        ex.printStackTrace();
+        WindowBlocker.blockWindow(false);
+        JOptionPane.showMessageDialog(NearInfinity.getInstance(),
+                                      "Creature animation could not be loaded.\nError message: " + ex.getMessage(),
+                                      "Error", JOptionPane.ERROR_MESSAGE);
+      } finally {
+        WindowBlocker.blockWindow(false);
+      }
+    }
+  }
 
-  @Override
-  protected boolean windowClosing(boolean forced) throws Exception
+  /** Cleans up resources. */
+  public void close()
   {
     pause();
+    setInitialized(false);
     if (getDecoder() != null) {
       getDecoder().close();
     }
     SpriteUtils.clearCache();
-    return true;
+    this.bamControl = null;
+    this.decoder = null;
   }
-
-//--------------------- End Class ChildFrame ---------------------
 
 //--------------------- Begin Interface ActionListener ---------------------
 
@@ -269,7 +274,7 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     else if (cbSequences == event.getSource()) {
       Sequence seq = cbSequences.getModel().getElementAt(cbSequences.getSelectedIndex());
       try {
-        WindowBlocker.blockWindow(this, true);
+        WindowBlocker.blockWindow(true);
         setAnimationSequence(seq);
         updateControls();
       } catch (Exception e) {
@@ -277,40 +282,40 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
         JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         cbSequences.setSelectedItem(getAnimationSequence());
       } finally {
-        WindowBlocker.blockWindow(this, false);
+        WindowBlocker.blockWindow(false);
       }
     }
     else if (cbZoom == event.getSource()) {
       try {
-        WindowBlocker.blockWindow(this, true);
+        WindowBlocker.blockWindow(true);
         zoom = cbZoom.isSelected();
         updateCanvasSize();
       } finally {
-        WindowBlocker.blockWindow(this, false);
+        WindowBlocker.blockWindow(false);
       }
     }
     else if (cbShowCircle == event.getSource()) {
       try {
-        WindowBlocker.blockWindow(this, true);
+        WindowBlocker.blockWindow(true);
         showSelectionCircle = cbShowCircle.isSelected();
         getDecoder().setSelectionCircleEnabled(showSelectionCircle);
         resetAnimationSequence();
       } catch (Exception e) {
         e.printStackTrace();
       } finally {
-        WindowBlocker.blockWindow(this, false);
+        WindowBlocker.blockWindow(false);
       }
     }
     else if (cbShowSpace == event.getSource()) {
       try {
-        WindowBlocker.blockWindow(this, true);
+        WindowBlocker.blockWindow(true);
         showPersonalSpace = cbShowSpace.isSelected();
         getDecoder().setPersonalSpaceVisible(showPersonalSpace);
         resetAnimationSequence();
       } catch (Exception e) {
         e.printStackTrace();
       } finally {
-        WindowBlocker.blockWindow(this, false);
+        WindowBlocker.blockWindow(false);
       }
     }
     else if (bPrevCycle == event.getSource()) {
@@ -360,18 +365,18 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     else if (bOpenBrowser == event.getSource()) {
       CreatureViewer cv = ChildFrame.show(CreatureViewer.class, () -> new CreatureViewer(getCre()));
       if (cv != null) {
+        pause();
         if (getCre() != cv.getCreResource()) {
           cv.setCreResource(getCre());
         }
         cv.toFront();
       }
-      close();
     }
   }
 
 //--------------------- End Interface ActionListener ---------------------
 
-  private void init() throws Exception
+  private void init()
   {
     rcDisplay = new RenderCanvas(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB));
     rcDisplay.setHorizontalAlignment(SwingConstants.CENTER);
@@ -403,21 +408,12 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     JLabel lSequence = new JLabel("Sequence:");
     DefaultComboBoxModel<Sequence> modelSequences = new DefaultComboBoxModel<>();
     cbSequences = new JComboBox<>(modelSequences);
-    for (final Sequence seq : Sequence.values()) {
-      if (getDecoder().isSequenceAvailable(seq)) {
-        modelSequences.addElement(seq);
-      }
-    }
-    cbSequences.setEnabled(cbSequences.getItemCount() > 0);
-    cbSequences.addActionListener(this);
 
     cbZoom = new JCheckBox("Zoom", zoom);
     cbZoom.addActionListener(this);
-    getDecoder().setSelectionCircleEnabled(showSelectionCircle);
-    cbShowCircle = new JCheckBox("Show selection circle", getDecoder().isSelectionCircleEnabled());
+    cbShowCircle = new JCheckBox("Show selection circle", showSelectionCircle);
     cbShowCircle.addActionListener(this);
-    getDecoder().setPersonalSpaceVisible(showPersonalSpace);
-    cbShowSpace = new JCheckBox("Show personal space", getDecoder().isPersonalSpaceVisible());
+    cbShowSpace = new JCheckBox("Show personal space", showPersonalSpace);
     cbShowSpace.addActionListener(this);
 
     bOpenBrowser = new JButton("Open in browser", Icons.getIcon(Icons.ICON_CRE_VIEWER_24));
@@ -488,49 +484,47 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
     pRow2.add(new JPanel(), c);
 
 
-    setLayout(new GridBagLayout());
+    JPanel pMain = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
                           GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0);
-    add(scrollDisplay, c);
+    pMain.add(scrollDisplay, c);
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    add(pRow1, c);
+    pMain.add(pRow1, c);
     c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.CENTER,
         GridBagConstraints.HORIZONTAL, new Insets(8, 0, 8, 0), 0, 0);
-    add(pRow2, c);
+    pMain.add(pRow2, c);
 
-    // determining creature resource and name
-    String resName, name;
-    if (getCre().getResourceEntry() != null) {
-      resName = getCre().getResourceEntry().getResourceName();
-    } else if (getCre().getParent() != null) {
-      resName = getCre().getParent().getName();
-    } else {
-      resName = getCre().getName();
-    }
+    setLayout(new BorderLayout());
+    add(pMain, BorderLayout.CENTER);
 
-    int strref = ((IsNumeric)getCre().getAttribute(CreResource.CRE_NAME)).getValue();
-    if (!StringTable.isValidStringRef(strref)) {
-      strref = ((IsNumeric)getCre().getAttribute(CreResource.CRE_NAME)).getValue();
-    }
-    if (StringTable.isValidStringRef(strref)) {
-      name = StringTable.getStringRef(strref);
-    } else if (getCre().getParent() instanceof PartyNPC) {
-      name = ((IsTextual)getCre().getParent().getAttribute(PartyNPC.GAM_NPC_NAME)).getText();
-    } else {
-      name = "";
-    }
+    setInitialized(false);
 
-    if (!name.isEmpty()) {
-      setTitle(String.format("%s (%s)", resName, name));
-    } else {
-      setTitle(resName);
-    }
+    addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentShown(ComponentEvent e)
+      {
+        // loading animation on demand
+        open();
+      }
+    });
+  }
 
-    Dimension dim = NearInfinity.getInstance().getSize();
-    setSize(dim.width - 200, dim.height - 45);
-    Center.center(this, NearInfinity.getInstance().getBounds());
-    setVisible(true);
+  private void initAnimation() throws Exception
+  {
+    this.decoder = SpriteDecoder.importSprite(getCre());
+    getDecoder().setSelectionCircleEnabled(showSelectionCircle);
+    getDecoder().setPersonalSpaceVisible(showPersonalSpace);
+
+    // preparing sequence list
+    DefaultComboBoxModel<Sequence> modelSequences = (DefaultComboBoxModel<Sequence>)cbSequences.getModel();
+    for (final Sequence seq : Sequence.values()) {
+      if (getDecoder().isSequenceAvailable(seq)) {
+        modelSequences.addElement(seq);
+      }
+    }
+    cbSequences.setEnabled(cbSequences.getItemCount() > 0);
+    cbSequences.addActionListener(this);
 
     // loading animation sequence
     if (cbSequences.isEnabled()) {
@@ -545,6 +539,27 @@ public class ViewerAnimation extends ChildFrame implements ActionListener
       Sequence seq = cbSequences.getModel().getElementAt(seqIdx);
       cbSequences.setSelectedItem(seq);
       setAnimationSequence(seq);
+    }
+
+    setInitialized(true);
+  }
+
+  private boolean isInitialized()
+  {
+    return initialized;
+  }
+
+  private void setInitialized(boolean b)
+  {
+    initialized = b;
+    JComponent[] controls = new JComponent[] {
+        bNextCycle, bPrevCycle, bNextFrame, bPrevFrame, bOpenBrowser, bPlay,
+        lCurCycle, lCurFrame, cbSequences, cbShowCircle, cbShowSpace, cbZoom
+    };
+    for (final JComponent c : controls) {
+      if (c != null) {
+        c.setEnabled(initialized);
+      }
     }
   }
 

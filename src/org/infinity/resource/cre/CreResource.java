@@ -48,7 +48,6 @@ import org.infinity.datatype.UpdateEvent;
 import org.infinity.datatype.UpdateListener;
 import org.infinity.gui.ButtonPanel;
 import org.infinity.gui.ButtonPopupMenu;
-import org.infinity.gui.ChildFrame;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.StructHexViewer;
@@ -424,6 +423,12 @@ public final class CreResource extends AbstractStruct
   public static final String CRE_SELECTED_WEAPON_SLOT         = "Weapon slot selected";
   public static final String CRE_SELECTED_WEAPON_ABILITY      = "Weapon ability selected";
 
+  public static final String TAB_ANIMATION    = "Animation";
+
+  public static final int TAB_INDEX_VIEW      = 0;
+  public static final int TAB_INDEX_ANIMATION = 1;
+  public static final int TAB_INDEX_RAW       = 2;
+
   private static final LongIntegerHashMap<String> m_magetype = new LongIntegerHashMap<String>();
   private static final LongIntegerHashMap<String> m_colorPlacement = new LongIntegerHashMap<String>();
   public static final String[] s_flag = {
@@ -741,9 +746,9 @@ public final class CreResource extends AbstractStruct
   @Override
   public void close() throws Exception
   {
-    ViewerAnimation va = ChildFrame.getFirstFrame(ViewerAnimation.class);
-    if (va != null) {
-      va.close();
+    JComponent c = getViewerTab(TAB_INDEX_ANIMATION);
+    if (c instanceof ViewerAnimation) {
+      ((ViewerAnimation)c).close();
     }
     super.close();
   }
@@ -786,16 +791,18 @@ public final class CreResource extends AbstractStruct
   @Override
   public int getViewerTabCount()
   {
-    return showRawTab() ? 2 : 1;
+    return showRawTab() ? 3 : 2;
   }
 
   @Override
   public String getViewerTabName(int index)
   {
     switch (index) {
-      case 0:
+      case TAB_INDEX_VIEW:
         return StructViewer.TAB_VIEW;
-      case 1:
+      case TAB_INDEX_ANIMATION:
+        return TAB_ANIMATION;
+      case TAB_INDEX_RAW:
         return showRawTab() ? StructViewer.TAB_RAW : null;
     }
     return null;
@@ -805,9 +812,11 @@ public final class CreResource extends AbstractStruct
   public JComponent getViewerTab(int index)
   {
     switch (index) {
-      case 0:
+      case TAB_INDEX_VIEW:
         return new Viewer(this);
-      case 1:
+      case TAB_INDEX_ANIMATION:
+        return new ViewerAnimation(this);
+      case TAB_INDEX_RAW:
         if (showRawTab() && hexViewer == null) {
           hexViewer = new StructHexViewer(this, new BasicColorMap(this, true));
         }
@@ -819,7 +828,7 @@ public final class CreResource extends AbstractStruct
   @Override
   public boolean viewerTabAddedBefore(int index)
   {
-    return (index == 0);
+    return (index < TAB_INDEX_RAW);
   }
   //</editor-fold>
 
