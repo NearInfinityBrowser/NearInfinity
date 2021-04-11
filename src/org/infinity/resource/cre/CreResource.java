@@ -434,6 +434,14 @@ public final class CreResource extends AbstractStruct
     "Holding item", "Reset bit 16", null, null, "EE: No exploding death", null, "EE: Ignore nightmare mode",
     "EE: No tooltip", "Allegiance tracking", "General tracking", "Race tracking", "Class tracking",
     "Specifics tracking", "Gender tracking", "Alignment tracking", "Uninterruptible"};
+  public static final String[] s_flag_iwd2 = {
+      "No flags set", "Damage don't stop casting", "No corpse", "Permanent corpse",
+      null, null, null, null, null, null, "Fallen paladin", "Fallen ranger",
+      "Export allowed", null, "Quest critical", "Can activate non-NPC triggers", "Enabled",
+      "Seen party", "Invulnerable", "Non threatening enemy", "No talk", "Ignore return to start", "Ignore inhibit AI",
+      null, null, "Allegiance tracking", "General tracking", "Race tracking", "Class tracking",
+      "Specifics tracking", "Gender tracking", "Alignment tracking", "Corpse related?"
+  };
   public static final String[] s_feats1 = {
     "No feats selected", "Aegis of rime", "Ambidexterity", "Aqua mortis", "Armor proficiency", "Armored arcana",
     "Arterial strike", "Blind fight", "Bullheaded", "Cleave", "Combat casting", "Courteous magocracy", "Crippling strike",
@@ -941,7 +949,7 @@ public final class CreResource extends AbstractStruct
         addField(new Unknown(buffer, offset + 161, 1));
         for (int i = 0; i < 3; i++) {
           addField(new IdsBitmap(buffer, offset + 162 + (i * 2), 2,
-                                 String.format(CHR_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS"));
+                                 String.format(CHR_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
         }
         for (int i = 0; i < 3; i++) {
           addField(new DecNumber(buffer, offset + 168 + (i * 2), 2,
@@ -1013,21 +1021,21 @@ public final class CreResource extends AbstractStruct
   {
     addField(new StringRef(buffer, offset, CRE_NAME));
     addField(new StringRef(buffer, offset + 4, CRE_TOOLTIP));
-    addField(new Flag(buffer, offset + 8, 4, CRE_FLAGS, s_flag)); // ToDo: figure these out whenever
+    addField(new Flag(buffer, offset + 8, 4, CRE_FLAGS, s_flag_iwd2));
     addField(new DecNumber(buffer, offset + 12, 4, CRE_XP_VALUE));
     addField(new DecNumber(buffer, offset + 16, 4, CRE_XP));
     addField(new DecNumber(buffer, offset + 20, 4, CRE_GOLD));
     addField(uniqueIdsFlag(new IdsFlag(buffer, offset + 24, 4, CRE_STATUS, "STATE.IDS"), "STATE.IDS", '_'));
     addField(new DecNumber(buffer, offset + 28, 2, CRE_HP_CURRENT));
     addField(new DecNumber(buffer, offset + 30, 2, CRE_HP_MAX));
-    addField(new IdsBitmap(buffer, offset + 32, 4, CRE_ANIMATION, "ANIMATE.IDS"));
-    addField(new ColorValue(buffer, offset + 36, 1, CRE_COLOR_METAL, true));
-    addField(new ColorValue(buffer, offset + 37, 1, CRE_COLOR_MINOR, true));
-    addField(new ColorValue(buffer, offset + 38, 1, CRE_COLOR_MAJOR, true));
-    addField(new ColorValue(buffer, offset + 39, 1, CRE_COLOR_SKIN, true));
-    addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER, true));
-    addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR, true));
-    addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR, true));
+    addField(new AnimateBitmap(buffer, offset + 32, 4, CRE_ANIMATION));
+    addField(new ColorValue(buffer, offset + 36, 1, CRE_COLOR_METAL, false));
+    addField(new ColorValue(buffer, offset + 37, 1, CRE_COLOR_MINOR, false));
+    addField(new ColorValue(buffer, offset + 38, 1, CRE_COLOR_MAJOR, false));
+    addField(new ColorValue(buffer, offset + 39, 1, CRE_COLOR_SKIN, false));
+    addField(new ColorValue(buffer, offset + 40, 1, CRE_COLOR_LEATHER, false));
+    addField(new ColorValue(buffer, offset + 41, 1, CRE_COLOR_ARMOR, false));
+    addField(new ColorValue(buffer, offset + 42, 1, CRE_COLOR_HAIR, false));
     Bitmap effect_version = addField(new Bitmap(buffer, offset + 43, 1, CRE_EFFECT_VERSION, s_effversion));
     effect_version.addUpdateListener(this);
     addField(new ResourceRef(buffer, offset + 44, CRE_PORTRAIT_SMALL, "BMP"));
@@ -1097,8 +1105,8 @@ public final class CreResource extends AbstractStruct
 
     addField(new ResourceRef(buffer, offset + 420, CRE_SCRIPT_TEAM, "BCS"));
     addField(new ResourceRef(buffer, offset + 428, CRE_SCRIPT_SPECIAL_1, "BCS"));
-    addField(new DecNumber(buffer, offset + 436, 2, CRE_ENCHANTMENT_LEVEL));
-    addField(new Unknown(buffer, offset + 438, 2));
+    addField(new DecNumber(buffer, offset + 436, 1, CRE_ENCHANTMENT_LEVEL));
+    addField(new Unknown(buffer, offset + 437, 3));
     addField(new Flag(buffer, offset + 440, 4, CRE_FEATS_1, s_feats1));
     addField(new Flag(buffer, offset + 444, 4, CRE_FEATS_2, s_feats2));
     addField(new Flag(buffer, offset + 448, 4, CRE_FEATS_3, s_feats3));
@@ -1205,7 +1213,8 @@ public final class CreResource extends AbstractStruct
     addField(new DecNumber(buffer, offset + 906, 2, CRE_IDENTIFIER_LOCAL));
     addField(new TextString(buffer, offset + 908, 32, CRE_SCRIPT_NAME));
     addField(new IdsBitmap(buffer, offset + 940, 2, CRE_CLASS_2, "CLASS.IDS"));
-    addField(new IdsBitmap(buffer, offset + 942, 4, CRE_CLASS_MASK, "CLASSMSK.IDS"));
+    addField(new IdsBitmap(buffer, offset + 942, 2, CRE_CLASS_MASK, "CLASSMSK.IDS"));
+    addField(new Unknown(buffer, offset + 944, 2));
 
     // Bard spells
     for (int i = 0; i < 9; i++) {
