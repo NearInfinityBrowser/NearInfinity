@@ -111,10 +111,11 @@ public final class Backgrounds
   public static class BackgroundInfo
   {
     private final EnumSet<Profile.Game> games;
-    private final String label;
-    private final String imageName;
-    private final Color color;
-    private final Point center;
+
+    private String label;
+    private Color color;
+    private String imageName;
+    private Point center;
 
     public BackgroundInfo(String label, Color bgColor)
     {
@@ -136,8 +137,18 @@ public final class Backgrounds
     /** Returns the descriptive label of the background entry. */
     public String getLabel() { return label; }
 
+    public void setLabel(String l)
+    {
+      if (!this.label.equals(l)) {
+        this.label = Objects.requireNonNull(l, "Description label required");
+      }
+    }
+
     /** Returns the background image filename. Returns {@code null} if background image has not been defined. */
     public String getImageName() { return imageName; }
+
+    /** Sets a new background image filename. Specify {@code null} to clear background image. */
+    public void setImageName(String name) { this.imageName = name; }
 
     /** Returns the background image. Returns {@code null} if no background image is defined. */
     public Image getImage() { return hasImage() ? Backgrounds.getImage(imageName) : null; }
@@ -151,8 +162,14 @@ public final class Backgrounds
       return retVal;
     }
 
+    /** Sets a new background color. Specify {@code null} to use system-dependent color. */
+    public void setColor(Color col) { this.color = col; }
+
     /** Returns the center point of the associated image. Returns {@code null} if center has not been defined. */
     public Point getCenter() { return center; }
+
+    /** Sets a new center point for the image. */
+    public void setCenter(Point p) { this.center = p; }
 
     /** Returns whether the background is available for the current game. */
     public boolean isAvailable() { return (games == null) || games.contains(Profile.getGame()); }

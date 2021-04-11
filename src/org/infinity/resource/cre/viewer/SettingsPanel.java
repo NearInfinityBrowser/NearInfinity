@@ -6,6 +6,7 @@ package org.infinity.resource.cre.viewer;
 
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Composite;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -20,16 +21,20 @@ import java.util.stream.Collectors;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.colorchooser.AbstractColorChooserPanel;
 
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.Profile;
 import org.infinity.resource.cre.viewer.bg.Backgrounds;
 import org.infinity.resource.cre.viewer.bg.Backgrounds.BackgroundInfo;
 import org.infinity.resource.cre.viewer.icon.Icons;
+import org.infinity.util.tuples.Monuple;
 
 /**
  * This panel provides controls for visual settings and includes a table view of creature animation attributes.
@@ -49,6 +54,8 @@ public class SettingsPanel extends JPanel
     add(Backgrounds.BG_COLOR_BLACK);
     add(Backgrounds.BG_COLOR_LIGHT_GRAY);
     add(Backgrounds.BG_COLOR_GRAY);
+    // REMEMBER: has to be last entry in list
+    add(new Backgrounds.BackgroundInfo("Customize color...", Color.WHITE));
   }};
 
   // Available items for zoom selection list
@@ -187,8 +194,22 @@ public class SettingsPanel extends JPanel
 
   private void setBackgroundInfoIndex(int index)
   {
-    if (index != indexBackground) {
+    if (index != indexBackground || index == cbBackground.getModel().getSize() - 1) {
       if (index >= 0 && index < cbBackground.getModel().getSize()) {
+        if (index == cbBackground.getModel().getSize() - 1) {
+          // special: define custom color
+          Backgrounds.BackgroundInfo info = cbBackground.getModel().getElementAt(index);
+          Color color = getCustomColor(info.getColor());
+          if (color != null) {
+            info = cbBackground.getModel().getElementAt(index);
+            info.setColor(color);
+            info.setLabel(String.format("Customize color: RGB(%d,%d,%d)", color.getRed(), color.getGreen(), color.getBlue()));
+          } else {
+            cbBackground.setSelectedIndex(indexBackground);
+            return;
+          }
+        }
+
         indexBackground = index;
         cbBackground.setSelectedIndex(indexBackground);
         applyBackgroundInfo();
@@ -556,6 +577,42 @@ public class SettingsPanel extends JPanel
 
     setLayout(new BorderLayout());
     add(scroll, BorderLayout.CENTER);
+  }
+
+  /** Returns a color from user input. */
+  private Color getCustomColor(Color defColor)
+  {
+    final JColorChooser cc = new JColorChooser((defColor != null) ? defColor : Color.WHITE);
+
+    // We only need the RGB panel
+    AbstractColorChooserPanel rgbPanel = null;
+    for (final AbstractColorChooserPanel panel : cc.getChooserPanels()) {
+      if (panel.getDisplayName().toUpperCase().contains("RGB")) {
+        rgbPanel = panel;
+      }
+    }
+    if (rgbPanel != null) {
+      for (final AbstractColorChooserPanel panel : cc.getChooserPanels()) {
+        if (panel != rgbPanel) {
+          cc.removeChooserPanel(panel);
+        }
+      }
+    }
+
+    final Monuple<Color> retVal = Monuple.with(null);
+    JDialog dlg = null;
+    try {
+      // Returns color value without alpha component
+      dlg = JColorChooser.createDialog(getViewer(), "Choose background color", true, cc,
+                                       evt -> retVal.setValue0(new Color(cc.getColor().getRGB(), false)), null);
+      dlg.setVisible(true);
+    } finally {
+      if (dlg != null) {
+        dlg.dispose();
+        dlg = null;
+      }
+    }
+    return retVal.getValue0();
   }
 
 //-------------------------- INNER CLASSES --------------------------
