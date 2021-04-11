@@ -94,7 +94,9 @@ public abstract class CharacterBaseDecoder extends SpriteDecoder
     ItemInfo itm = getCreatureInfo().getEquippedArmor();
     if (itm != null) {
       String code = itm.getAppearance();
-      retVal = Math.max(1, Math.min(getMaxArmorCode(), Misc.toNumber(code.substring(0, 1), 1)));
+      if (!code.isEmpty()) {
+        retVal = Math.max(1, Math.min(getMaxArmorCode(), Misc.toNumber(code.substring(0, 1), 1)));
+      }
     }
     return retVal;
   }
