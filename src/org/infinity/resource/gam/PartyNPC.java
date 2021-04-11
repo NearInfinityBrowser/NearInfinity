@@ -87,7 +87,8 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
   public static final LongIntegerHashMap<String> m_partyOrder = new LongIntegerHashMap<String>();
 //  private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<String>();
 
-  private static final String[] s_selected = {"Not selected", "Selected", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Dead" };
+  private static final String[] s_selected = {"Not selected", "Selected", null, null, null, null, null, null, null,
+                                              null, null, null, null, null, null, null, "Dead" };
 
   static {
     m_partyOrder.put(0L, "Slot 1");
@@ -96,8 +97,7 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
     m_partyOrder.put(3L, "Slot 4");
     m_partyOrder.put(4L, "Slot 5");
     m_partyOrder.put(5L, "Slot 6");
-//    partyOrder.put(0x8000L, "In party, dead");
-    m_partyOrder.put(0xffffL, "Not in party");
+    m_partyOrder.put(-1L, "Not in party");
 
 //    m_selected.put(0L, "Not selected");
 //    m_selected.put(1L, "Selected");
@@ -194,7 +194,7 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new Flag(buffer, offset, 2, GAM_NPC_SELECTION_STATE, s_selected));
-    addField(new HashBitmap(buffer, offset + 2, 2, GAM_NPC_PARTY_POSITION, m_partyOrder));
+    addField(new HashBitmap(buffer, offset + 2, 2, GAM_NPC_PARTY_POSITION, m_partyOrder, true, true));
     HexNumber creOffset = new HexNumber(buffer, offset + 4, 4, GAM_NPC_OFFSET_CRE);
     addField(creOffset);
     addField(new DecNumber(buffer, offset + 8, 4, GAM_NPC_CRE_SIZE));

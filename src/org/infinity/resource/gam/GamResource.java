@@ -306,7 +306,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       addField(new DecNumber(buffer, offset + 14 + (i * 2), 2, String.format(GAM_FORMATION_BUTTON_FMT, i+1)));
     }
     addField(new DecNumber(buffer, offset + 24, 4, GAM_PARTY_GOLD));
-    addField(new HashBitmap(buffer, offset + 28, 2, GAM_VIEW_PLAYER_AREA, PartyNPC.m_partyOrder));
+    addField(new HashBitmap(buffer, offset + 28, 2, GAM_VIEW_PLAYER_AREA, PartyNPC.m_partyOrder, true, true));
     addField(new Flag(buffer, offset + 30, 2, GAM_WEATHER, s_weather));
     SectionOffset offset_partynpc = new SectionOffset(buffer, offset + 32, GAM_OFFSET_PARTY_MEMBERS,
                                                       PartyNPC.class);
