@@ -197,7 +197,22 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   private boolean autoApplyChanges;
 
   /**
-   * Convenience method for loading the animation of the specified CRE resource.
+   * Creates a new {@code SpriteDecoder} instance based on the specified animation id.
+   * @param animationId the creature animation id in the range [0, 0xffff].
+   * @return A {@code SpriteDecoder} instance with processed animation data.
+   * @throws Exception if the creature animation could not be loaded.
+   */
+  public static SpriteDecoder importSprite(int animationId) throws Exception
+  {
+    if (animationId < 0 || animationId > 0xffff) {
+      throw new IllegalArgumentException(String.format("Animation id is out of range: 0x%04x", animationId));
+    }
+    CreResource cre = SpriteUtils.getPseudoCre(animationId, null, null);
+    return importSprite(cre);
+  }
+
+  /**
+   * Creates a new {@code SpriteDecoder} instance based on the specified CRE resource.
    * @param cre The CRE resource instance.
    * @return A {@code SpriteDecoder} instance with processed animation data.
    * @throws Exception if the specified resource could not be processed.
