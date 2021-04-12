@@ -1296,7 +1296,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
    */
   protected Dimension getPersonalSpaceSize(boolean scaled)
   {
-    int size = (Math.max(1, getPersonalSpace()) - 1) | 1;
+    int size = Math.max(0, (getPersonalSpace() - 1) | 1);
     if (scaled) {
       return new Dimension(size * 16, size * 12);
     } else {
@@ -1331,12 +1331,16 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
 
     // creating personal space pattern (unscaled)
     Dimension dim = getPersonalSpaceSize(false);
+    if (dim.width == 0 || dim.height == 0) {
+      // personal space is not defined
+      return new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+    }
     BufferedImage image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
     int[] bitmap = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
     int cx = dim.width / 2;
     int cy = dim.height / 2;
     int c = color.getRGB();
-    int maxDist = dim.width * dim.width / 4;
+    float maxDist = (dim.width / 2.0f) * (dim.height / 2.0f);
     for (int y = 0; y < dim.height; y++) {
       for (int x = 0; x < dim.width; x++) {
         int ofs = y * dim.width + x;
@@ -1372,6 +1376,9 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   {
     Dimension dim = new Dimension();
     dim.width = Math.max(0, getEllipse());
+    if (dim.width == 0) {
+      return dim;
+    }
     if (isSelectionCircleBitmap()) {
       dim.width += 4; // compensation for missing stroke size
     }
@@ -1406,6 +1413,9 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   {
     if (g != null) {
       Dimension dim = getSelectionCircleSize();
+      if (dim.width == 0 || dim.height == 0) {
+        return;
+      }
 
       if (isSelectionCircleBitmap()) {
         Image image = getCreatureInfo().isStatusPanic() ? SpriteUtils.getAllegianceImage(-1)
