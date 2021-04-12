@@ -5,6 +5,8 @@
 package org.infinity.resource.cre.viewer;
 
 import java.awt.BorderLayout;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Objects;
@@ -114,6 +116,7 @@ public class CreatureViewer extends ChildFrame
   @Override
   protected boolean windowClosing(boolean forced) throws Exception
   {
+    getMediaPanel().pause();
     cleanup();
     return true;
   }
@@ -158,6 +161,7 @@ public class CreatureViewer extends ChildFrame
     add(panelCreature, BorderLayout.PAGE_START);
     add(mainCentralPanel, BorderLayout.CENTER);
 
+    addComponentListener(listeners);
     setIconImage(Icons.getImage(Icons.ICON_CRE_VIEWER_24));
     setTitle("Creature Animation Browser");
     setSize(NearInfinity.getInstance().getPreferredSize());
@@ -251,7 +255,7 @@ public class CreatureViewer extends ChildFrame
 
 //-------------------------- INNER CLASSES --------------------------
 
-  private class Listeners implements PropertyChangeListener
+  private class Listeners implements PropertyChangeListener, ComponentListener
   {
     public Listeners()
     {
@@ -282,6 +286,31 @@ public class CreatureViewer extends ChildFrame
     }
 
     //--------------------- End Interface PropertyChangeListener ---------------------
+
+    //--------------------- Begin Interface ComponentListener ---------------------
+
+    @Override
+    public void componentResized(ComponentEvent e)
+    {
+    }
+
+    @Override
+    public void componentMoved(ComponentEvent e)
+    {
+    }
+
+    @Override
+    public void componentShown(ComponentEvent e)
+    {
+    }
+
+    @Override
+    public void componentHidden(ComponentEvent e)
+    {
+      getMediaPanel().pause();
+    }
+
+    //--------------------- End Interface ComponentListener ---------------------
   }
 
   /** Represents a supplier of results. */
