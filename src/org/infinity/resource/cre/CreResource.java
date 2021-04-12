@@ -828,7 +828,7 @@ public final class CreResource extends AbstractStruct
   @Override
   public boolean viewerTabAddedBefore(int index)
   {
-    return (index < TAB_INDEX_RAW);
+    return (index == 0);
   }
   //</editor-fold>
 
