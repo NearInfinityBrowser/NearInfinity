@@ -2330,7 +2330,7 @@ public final class Profile implements FileWatcher.FileWatchListener
           try (RandomAccessFile raf = new RandomAccessFile(exeFile, "r")) {
             // checking key signatures
             final int[] sigCheckV1 = { 0x3db6d84, 0xc6004c48, 0x54464958, 0x004141de, 0xf9 };
-            final int[] sigCheckV2 = { 0x3db6d84, 0xc6004c48, 0x54464958, 0x0041412d, 0xf9 };
+            final int[] sigCheckV2 = { 0x3db6d84, 0x34004c48, 0x54464958, 0x0041412d, 0xf9 };
             long ofs[] = { 0x40742cL, 0x40a8daL, 0x7536e7L, 0x407713L };
             int sig[] = new int[ofs.length + 1];
             for (int i = 0; i < ofs.length; i++) {
