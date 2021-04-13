@@ -175,9 +175,9 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final ButtonPanel buttonPanel = new ButtonPanel();
   private final JPopupMenu popupmenu = new JPopupMenu();
   private final InfinityTextArea tatext = new InfinityTextArea(true);
-  private final StructTable table = new StructTable();
   private final HashMap<Integer, StructEntry> entryMap = new HashMap<>();
   private final HashMap<Viewable, ViewFrame> viewMap = new HashMap<>();
+  private final StructTable table;
   private JMenuItem miFindAttribute, miFindReferences, miFindStateReferences, miFindRefToItem;
   private Editable editable;
   private JTabbedPane tabbedPane;
@@ -220,7 +220,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public StructViewer(AbstractStruct struct)
   {
     this.struct = struct;
-    struct.addTableModelListener(this);
+    this.struct.addTableModelListener(this);
+    this.table = new StructTable(this.struct);
     table.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
     table.getSelectionModel().addListSelectionListener(this);
@@ -274,6 +275,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         return this;
       }
     });
+    table.setDefaultEditor(Object.class, new StructCellEditor());
 
     popupmenu.add(miCopyValue);
     popupmenu.add(miPasteValue);
@@ -1543,10 +1545,13 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     }
   }
 
-  private final class StructTable extends JTable implements Printable
+  private static final class StructTable extends JTable implements Printable
   {
-    private StructTable()
+    private final AbstractStruct struct;
+
+    private StructTable(AbstractStruct struct)
     {
+      this.struct = struct;
     }
 
     @Override

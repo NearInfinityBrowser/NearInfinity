@@ -165,22 +165,36 @@ public class DecNumber extends Datatype implements InlineEditable, IsNumeric
     return retVal;
   }
 
-  /** Attempts to parse the specified string into a decimal or, optionally, hexadecimal number. */
-  static long parseNumber(Object value, int size, boolean negativeAllowed, boolean hexAllowed) throws Exception
+  /** Attempts to parse the specified object into a decimal or, optionally, hexadecimal number. */
+  public static long parseNumber(Object value, int size, boolean negativeAllowed, boolean hexAllowed) throws Exception
   {
     if (value == null) {
       throw new NullPointerException();
     }
-    String s = value.toString().trim().toLowerCase(Locale.ENGLISH);
-    int radix = 10;
-    if (hexAllowed && s.startsWith("0x")) {
-      s = s.substring(2);
-      radix = 16;
-    } else if (hexAllowed && s.endsWith("h")) {
-      s = s.substring(0, s.length() - 1).trim();
-      radix = 16;
+
+    long newNumber;
+    if (value instanceof IsNumeric) {
+      newNumber = ((IsNumeric)value).getLongValue();
+    } else {
+      String s;
+      if (value instanceof IsTextual) {
+        s = ((IsTextual)value).getText();
+      } else {
+        s = (value != null) ? value.toString() : "";
+      }
+      s = s.toLowerCase(Locale.ENGLISH);
+
+      int radix = 10;
+      if (hexAllowed && s.startsWith("0x")) {
+        s = s.substring(2);
+        radix = 16;
+      } else if (hexAllowed && s.endsWith("h")) {
+        s = s.substring(0, s.length() - 1).trim();
+        radix = 16;
+      }
+      newNumber = Long.parseLong(s, radix);
     }
-    long newNumber = Long.parseLong(s, radix);
+
     long discard = negativeAllowed ? 1L : 0L;
     long maxNum = (1L << ((long)size*8L - discard)) - 1L;
     long minNum = negativeAllowed ? -(maxNum+1L) : 0;
