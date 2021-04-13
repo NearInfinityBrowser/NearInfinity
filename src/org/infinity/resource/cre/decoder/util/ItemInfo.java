@@ -78,6 +78,10 @@ public class ItemInfo implements Comparable<ItemInfo>
    * This predicate returns {@code true} only if the item can be equipped in an equipment slot (except item slots).
    */
   public static final ItemPredicate FILTER_EQUIPPABLE = (info) -> {
+    if ((info.getFlags() & (1 << 2)) == 0) {
+      // cleared bit 2 (droppable) indicates "meta-equipment"
+      return true;
+    }
     switch (info.getCategory()) {
       case 1:   // Amulets
       case 2:   // Armor
@@ -498,6 +502,17 @@ public class ItemInfo implements Comparable<ItemInfo>
 
   /** Returns the item flags. */
   public int getFlags() { return flags; }
+
+  /**
+   * Updates the undroppable flag (bit 2) of the item. The undroppable flag can be overridden by CRE item structures.
+   * @param override specify whether droppable flag should be overridden.
+   */
+  public void overrideDroppableFlag(boolean override)
+  {
+    if (override) {
+      flags &= ~(1 << 2);   // Note: item flags specify "droppable" bit
+    }
+  }
 
   /** Returns the item category. */
   public int getCategory() { return category; }

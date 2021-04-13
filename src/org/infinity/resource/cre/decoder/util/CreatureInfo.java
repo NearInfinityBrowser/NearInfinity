@@ -16,6 +16,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 import org.infinity.datatype.EffectType;
+import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsTextual;
 import org.infinity.resource.AbstractStruct;
@@ -914,19 +915,23 @@ public class CreatureInfo
   private void initEquipmentItem(ItemSlots slot, int itemIndex, List<StructEntry> itemList)
   {
     ResourceEntry itmEntry = null;
+    boolean isUndroppable = false;
     if (itemIndex == 1000) {
       // weapon: fists
       itmEntry = getFistWeapon();
     } else if (itemIndex >= 0 && itemIndex < itemList.size()) {
       if (itemList.get(itemIndex) instanceof Item) {
-        String itmResref = ((IsTextual)((Item)itemList.get(itemIndex)).getAttribute(Item.CRE_ITEM_RESREF)).getText();
+        Item itm = (Item)itemList.get(itemIndex);
+        String itmResref = ((IsTextual)itm.getAttribute(Item.CRE_ITEM_RESREF)).getText();
         itmEntry = ResourceFactory.getResourceEntry(itmResref + ".ITM");
+        isUndroppable = ((Flag)itm.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3);
       }
     }
 
     if (itmEntry != null) {
       try {
         ItemInfo itemInfo = ItemInfo.get(itmEntry);
+        itemInfo.overrideDroppableFlag(isUndroppable);
         equipment.put(slot, itemInfo);
       } catch (Exception e) {
         e.printStackTrace();

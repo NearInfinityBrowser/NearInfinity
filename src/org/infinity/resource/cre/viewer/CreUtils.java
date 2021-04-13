@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsReference;
 import org.infinity.datatype.IsTextual;
@@ -128,12 +129,16 @@ public class CreUtils
     boolean isPST = (Profile.getGame() == Profile.Game.PSTEE) ||
                     ((IsTextual)cre.getAttribute(CreResource.COMMON_VERSION)).getText().equalsIgnoreCase("V1.2");
     String fieldName = isPST ? CreResource.CRE_ITEM_SLOT_RIGHT_EARRING : CreResource.CRE_ITEM_SLOT_HELMET;
-    ResourceEntry itemEntry = getEquippedItem(cre, fieldName);
-    if (itemEntry != null) {
-      try {
-        retVal = ItemInfo.get(itemEntry);
-      } catch (Exception e) {
-        e.printStackTrace();
+    Item item = getEquippedItem(cre, fieldName);
+    if (item != null) {
+      ResourceEntry itemEntry = ResourceFactory.getResourceEntry(((IsReference)item.getAttribute(Item.CRE_ITEM_RESREF)).getResourceName());
+      if (itemEntry != null) {
+        try {
+          retVal = ItemInfo.get(itemEntry);
+          retVal.overrideDroppableFlag(((Flag)item.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3));
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
     }
     return retVal;
@@ -161,12 +166,16 @@ public class CreUtils
     boolean isPST = (Profile.getGame() == Profile.Game.PSTEE) ||
                     ((IsTextual)cre.getAttribute(CreResource.COMMON_VERSION)).getText().equalsIgnoreCase("V1.2");
     String fieldName = isPST ? CreResource.CRE_ITEM_SLOT_CHEST : CreResource.CRE_ITEM_SLOT_ARMOR;
-    ResourceEntry itemEntry = getEquippedItem(cre, fieldName);
-    if (itemEntry != null) {
-      try {
-        retVal = ItemInfo.get(itemEntry);
-      } catch (Exception e) {
-        e.printStackTrace();
+    Item item = getEquippedItem(cre, fieldName);
+    if (item != null) {
+      ResourceEntry itemEntry = ResourceFactory.getResourceEntry(((IsReference)item.getAttribute(Item.CRE_ITEM_RESREF)).getResourceName());
+      if (itemEntry != null) {
+        try {
+          retVal = ItemInfo.get(itemEntry);
+          retVal.overrideDroppableFlag(((Flag)item.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3));
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
     }
     return retVal;
@@ -202,12 +211,16 @@ public class CreUtils
     } else {
       fieldName = CreResource.CRE_ITEM_SLOT_SHIELD;
     }
-    ResourceEntry itemEntry = getEquippedItem(cre, fieldName);
-    if (itemEntry != null) {
-      try {
-        retVal = ItemInfo.get(itemEntry);
-      } catch (Exception e) {
-        e.printStackTrace();
+    Item item = getEquippedItem(cre, fieldName);
+    if (item != null) {
+      ResourceEntry itemEntry = ResourceFactory.getResourceEntry(((IsReference)item.getAttribute(Item.CRE_ITEM_RESREF)).getResourceName());
+      if (itemEntry != null) {
+        try {
+          retVal = ItemInfo.get(itemEntry);
+          retVal.overrideDroppableFlag(((Flag)item.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3));
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
     }
     return retVal;
@@ -241,12 +254,16 @@ public class CreUtils
     Objects.requireNonNull(cre);
     ItemInfo retVal = null;
     String fieldName = String.format(CreResource.CRE_ITEM_SLOT_WEAPON_FMT, 1);
-    ResourceEntry itemEntry = getEquippedItem(cre, fieldName);
-    if (itemEntry != null) {
-      try {
-        retVal = ItemInfo.get(itemEntry);
-      } catch (Exception e) {
-        e.printStackTrace();
+    Item item = getEquippedItem(cre, fieldName);
+    if (item != null) {
+      ResourceEntry itemEntry = ResourceFactory.getResourceEntry(((IsReference)item.getAttribute(Item.CRE_ITEM_RESREF)).getResourceName());
+      if (itemEntry != null) {
+        try {
+          retVal = ItemInfo.get(itemEntry);
+          retVal.overrideDroppableFlag(((Flag)item.getAttribute(Item.CRE_ITEM_FLAGS)).isFlagSet(3));
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
     }
     return retVal;
@@ -457,18 +474,18 @@ public class CreUtils
     return retVal;
   }
 
-  /** Helper method: Returns the ITM resource entry referenced by the specified item slot. */
-  private static ResourceEntry getEquippedItem(CreResource cre, String slotName)
+  /** Helper method: Returns the item structure referenced by the specified item slot. */
+  private static Item getEquippedItem(CreResource cre, String slotName)
   {
-    ResourceEntry retVal = null;
+    Item retVal = null;
     int idx = ((IsNumeric)Objects.requireNonNull(cre).getAttribute(Objects.requireNonNull(slotName))).getValue();
     if (idx >= 0) {
       int numItems = ((IsNumeric)cre.getAttribute(CreResource.CRE_NUM_ITEMS)).getValue();
       if (idx < numItems) {
         List<StructEntry> itemList = cre.getFields(Item.class);
         if (idx < itemList.size() && itemList.get(idx) instanceof Item) {
-          Item item = (Item)itemList.get(idx);
-          retVal = ResourceFactory.getResourceEntry(((IsReference)item.getAttribute(Item.CRE_ITEM_RESREF)).getResourceName());
+          retVal = (Item)itemList.get(idx);
+//          retVal = ResourceFactory.getResourceEntry(((IsReference)item.getAttribute(Item.CRE_ITEM_RESREF)).getResourceName());
         }
       }
     }
