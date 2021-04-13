@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2005 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package org.infinity.resource.cre.viewer.icon;
+package org.infinity.resource.cre.browser.icon;
 
 import java.awt.Image;
 import java.net.URL;

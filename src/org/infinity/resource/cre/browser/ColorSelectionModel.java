@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package org.infinity.resource.cre.viewer;
+package org.infinity.resource.cre.browser;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

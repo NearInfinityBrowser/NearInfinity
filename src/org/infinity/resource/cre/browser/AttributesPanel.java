@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package org.infinity.resource.cre.viewer;
+package org.infinity.resource.cre.browser;
 
 import java.awt.Dimension;
 import java.awt.Font;
@@ -33,26 +33,26 @@ import org.infinity.resource.key.ResourceEntry;
  */
 public class AttributesPanel extends JPanel implements ActionListener
 {
-  private final CreatureViewer viewer;
+  private final CreatureBrowser browser;
 
   private JTable tableAnimation;
   private DecoderAttributesTableModel tableModel;
   private JButton bIni;
 
-  public AttributesPanel(CreatureViewer viewer)
+  public AttributesPanel(CreatureBrowser viewer)
   {
     super();
-    this.viewer = Objects.requireNonNull(viewer);
+    this.browser = Objects.requireNonNull(viewer);
     init();
   }
 
   /** Returns the associated {@code CreatureViewer} instance. */
-  public CreatureViewer getViewer() { return viewer; }
+  public CreatureBrowser getBrowser() { return browser; }
 
   /** Discards and reloads the current settings and attributes list. */
   public void reset()
   {
-    SpriteDecoder decoder = getViewer().getDecoder();
+    SpriteDecoder decoder = getBrowser().getDecoder();
     tableModel.setDecoder(decoder);
     bIni.setEnabled(getIniResource() != null);
   }
@@ -64,8 +64,8 @@ public class AttributesPanel extends JPanel implements ActionListener
   private ResourceEntry getIniResource()
   {
     ResourceEntry retVal = null;
-    if (getViewer().getDecoder() != null) {
-      String iniResref = String.format("%04X", getViewer().getDecoder().getAnimationId());
+    if (getBrowser().getDecoder() != null) {
+      String iniResref = String.format("%04X", getBrowser().getDecoder().getAnimationId());
       if (iniResref.length() == 4) {
         retVal = ResourceFactory.getResourceEntry(iniResref + ".INI");
       }
@@ -123,9 +123,9 @@ public class AttributesPanel extends JPanel implements ActionListener
     if (e.getSource() == bIni) {
       ResourceEntry entry = getIniResource();
       if (entry != null) {
-        new ViewFrame(getViewer(), ResourceFactory.getResource(entry));
+        new ViewFrame(getBrowser(), ResourceFactory.getResource(entry));
       } else {
-        JOptionPane.showMessageDialog(getViewer(), "Unable to open INI resource.", "View/Edit INI",
+        JOptionPane.showMessageDialog(getBrowser(), "Unable to open INI resource.", "View/Edit INI",
                                       JOptionPane.ERROR_MESSAGE);
       }
     }

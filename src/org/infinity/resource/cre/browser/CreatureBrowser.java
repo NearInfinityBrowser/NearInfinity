@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package org.infinity.resource.cre.viewer;
+package org.infinity.resource.cre.browser;
 
 import java.awt.BorderLayout;
 import java.awt.event.ComponentEvent;
@@ -29,9 +29,9 @@ import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
 
 /**
- * The Creature Viewer implements a highly customizable viewer for creature animations.
+ * The Creature Browser implements a highly customizable browser and viewer for creature animations.
  */
-public class CreatureViewer extends ChildFrame
+public class CreatureBrowser extends ChildFrame
 {
   private final ConcurrentLinkedQueue<TaskInfo> actionQueue = new ConcurrentLinkedQueue<>();
   private final Listeners listeners = new Listeners();
@@ -44,18 +44,18 @@ public class CreatureViewer extends ChildFrame
   private SwingWorker<TaskInfo, Void> worker;
 
   /**
-   * Creates an instance of the creature viewer with a (virtual) default creature.
+   * Creates an instance of the creature browser with a (virtual) default creature.
    */
-  public CreatureViewer()
+  public CreatureBrowser()
   {
     this(null);
   }
 
   /**
-   * Creates an instance of the creature viewer and loads the specified CRE resource.
+   * Creates an instance of the creature browser and loads the specified CRE resource.
    * @param cre the CRE resource to load
    */
-  public CreatureViewer(CreResource cre)
+  public CreatureBrowser(CreResource cre)
   {
     super("");
     init();
@@ -175,7 +175,7 @@ public class CreatureViewer extends ChildFrame
     SpriteUtils.clearCache();
   }
 
-  /** Background task: Loads the selected creature and initializes the viewer. */
+  /** Background task: Loads the selected creature and initializes the browser. */
   private Object taskSetCreResource() throws Exception
   {
     ProgressMonitor pm = new ProgressMonitor(this, "Initializing controls...", " ", 0, 2);
@@ -229,7 +229,7 @@ public class CreatureViewer extends ChildFrame
           WindowBlocker blocker = null;
           try {
             if (retVal.blockWindow) {
-              blocker = new WindowBlocker(CreatureViewer.this);
+              blocker = new WindowBlocker(CreatureBrowser.this);
               blocker.setBlocked(true);
             }
             retVal.result = retVal.action.get();

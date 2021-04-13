@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package org.infinity.resource.cre.viewer;
+package org.infinity.resource.cre.browser;
 
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
@@ -31,9 +31,9 @@ import javax.swing.colorchooser.AbstractColorChooserPanel;
 
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.Profile;
-import org.infinity.resource.cre.viewer.bg.Backgrounds;
-import org.infinity.resource.cre.viewer.bg.Backgrounds.BackgroundInfo;
-import org.infinity.resource.cre.viewer.icon.Icons;
+import org.infinity.resource.cre.browser.bg.Backgrounds;
+import org.infinity.resource.cre.browser.bg.Backgrounds.BackgroundInfo;
+import org.infinity.resource.cre.browser.icon.Icons;
 import org.infinity.util.tuples.Monuple;
 
 /**
@@ -103,7 +103,7 @@ public class SettingsPanel extends JPanel
   }
 
   private final Listeners listeners = new Listeners();
-  private final CreatureViewer viewer;
+  private final CreatureBrowser browser;
 
   private JComboBox<ItemString<Integer>> cbZoom;
   private JComboBox<ItemString<Integer>> cbFrameRate;
@@ -123,15 +123,15 @@ public class SettingsPanel extends JPanel
         .collect(Collectors.toList());
   }
 
-  public SettingsPanel(CreatureViewer viewer)
+  public SettingsPanel(CreatureBrowser browser)
   {
     super();
-    this.viewer = Objects.requireNonNull(viewer);
+    this.browser = Objects.requireNonNull(browser);
     init();
   }
 
-  /** Returns the associated {@code CreatureViewer} instance. */
-  public CreatureViewer getViewer() { return viewer; }
+  /** Returns the associated {@code CreatureBrowser} instance. */
+  public CreatureBrowser getBrowser() { return browser; }
 
   /** Discards and reloads the current settings and attributes list. */
   public void reset()
@@ -157,8 +157,8 @@ public class SettingsPanel extends JPanel
       if (index >= 0 && index < cbZoom.getModel().getSize()) {
         indexZoom = index;
         cbZoom.setSelectedIndex(indexZoom);
-        getViewer().getRenderPanel().setZoom((float)getZoom() / 100.0f);
-        getViewer().getRenderPanel().updateCanvas();
+        getBrowser().getRenderPanel().setZoom((float)getZoom() / 100.0f);
+        getBrowser().getRenderPanel().updateCanvas();
       } else {
         throw new IndexOutOfBoundsException();
       }
@@ -182,7 +182,7 @@ public class SettingsPanel extends JPanel
       if (index >= 0 && index < cbFrameRate.getModel().getSize()) {
         indexFrameRate = index;
         cbFrameRate.setSelectedIndex(indexFrameRate);
-        getViewer().getMediaPanel().setFrameRate(getFrameRate());
+        getBrowser().getMediaPanel().setFrameRate(getFrameRate());
       } else {
         throw new IndexOutOfBoundsException();
       }
@@ -223,10 +223,10 @@ public class SettingsPanel extends JPanel
   {
     Backgrounds.BackgroundInfo info = getBackgroundInfo();
     if (info != null) {
-      getViewer().getRenderPanel().setBackgroundColor(info.getColor());
-      getViewer().getRenderPanel().setBackgroundImage(info.getImage());
-      getViewer().getRenderPanel().setBackgroundCenter(info.getCenter());
-      getViewer().getRenderPanel().updateCanvas();
+      getBrowser().getRenderPanel().setBackgroundColor(info.getColor());
+      getBrowser().getRenderPanel().setBackgroundImage(info.getImage());
+      getBrowser().getRenderPanel().setBackgroundCenter(info.getCenter());
+      getBrowser().getRenderPanel().updateCanvas();
     }
   }
 
@@ -238,7 +238,7 @@ public class SettingsPanel extends JPanel
     if (isFiltering != b) {
       isFiltering = b;
       cbFiltering.setSelected(isFiltering);
-      getViewer().getRenderPanel().setFilterEnabled(isFiltering);
+      getBrowser().getRenderPanel().setFilterEnabled(isFiltering);
     }
   }
 
@@ -250,7 +250,7 @@ public class SettingsPanel extends JPanel
     if (isBlending != b) {
       isBlending = b;
       cbBlending.setSelected(isBlending);
-      getViewer().getRenderPanel().setComposite(getComposite());
+      getBrowser().getRenderPanel().setComposite(getComposite());
     }
   }
 
@@ -262,7 +262,7 @@ public class SettingsPanel extends JPanel
     if (isTranslucent != b) {
       isTranslucent = b;
       cbTranslucent.setSelected(isTranslucent);
-      getViewer().getMediaPanel().reset(true);
+      getBrowser().getMediaPanel().reset(true);
     }
   }
 
@@ -274,7 +274,7 @@ public class SettingsPanel extends JPanel
     if (isSelectionCircle != b) {
       isSelectionCircle = b;
       cbSelectionCircle.setSelected(isSelectionCircle);
-      getViewer().getMediaPanel().reset(true);
+      getBrowser().getMediaPanel().reset(true);
     }
   }
 
@@ -286,7 +286,7 @@ public class SettingsPanel extends JPanel
     if (isOrnateSelectionCircle != b) {
       isOrnateSelectionCircle = b;
       cbOrnateSelectionCircle.setSelected(isOrnateSelectionCircle);
-      getViewer().getMediaPanel().reset(true);
+      getBrowser().getMediaPanel().reset(true);
     }
   }
 
@@ -298,7 +298,7 @@ public class SettingsPanel extends JPanel
     if (isPersonalSpace != b) {
       isPersonalSpace = b;
       cbPersonalSpace.setSelected(isPersonalSpace);
-      getViewer().getMediaPanel().reset(true);
+      getBrowser().getMediaPanel().reset(true);
     }
   }
 
@@ -310,7 +310,7 @@ public class SettingsPanel extends JPanel
     if (isTintEnabled != b) {
       isTintEnabled = b;
       cbTintEnabled.setSelected(isTintEnabled);
-      getViewer().getMediaPanel().reset(true);
+      getBrowser().getMediaPanel().reset(true);
     }
   }
 
@@ -322,7 +322,7 @@ public class SettingsPanel extends JPanel
     if (isPaletteReplacementEnabled != b) {
       isPaletteReplacementEnabled = b;
       cbPaletteReplacementEnabled.setSelected(isPaletteReplacementEnabled);
-      getViewer().getMediaPanel().reset(true);
+      getBrowser().getMediaPanel().reset(true);
     }
   }
 
@@ -334,7 +334,7 @@ public class SettingsPanel extends JPanel
     if (isShowAvatar != b) {
       isShowAvatar = b;
       cbShowAvatar.setSelected(isShowAvatar);
-      getViewer().getMediaPanel().reset(true);
+      getBrowser().getMediaPanel().reset(true);
     }
   }
 
@@ -346,7 +346,7 @@ public class SettingsPanel extends JPanel
     if (isShowHelmet != b) {
       isShowHelmet = b;
       cbShowHelmet.setSelected(isShowHelmet);
-      getViewer().getMediaPanel().reset(true);
+      getBrowser().getMediaPanel().reset(true);
     }
   }
 
@@ -358,7 +358,7 @@ public class SettingsPanel extends JPanel
     if (isShowShield != b) {
       isShowShield = b;
       cbShowShield.setSelected(isShowShield);
-      getViewer().getMediaPanel().reset(true);
+      getBrowser().getMediaPanel().reset(true);
     }
   }
 
@@ -370,7 +370,7 @@ public class SettingsPanel extends JPanel
     if (isShowWeapon != b) {
       isShowWeapon = b;
       cbShowWeapon.setSelected(isShowWeapon);
-      getViewer().getMediaPanel().reset(true);
+      getBrowser().getMediaPanel().reset(true);
     }
   }
 
@@ -382,7 +382,7 @@ public class SettingsPanel extends JPanel
     if (isShowBorders != b) {
       isShowBorders = b;
       cbShowBorders.setSelected(isShowBorders);
-      getViewer().getMediaPanel().reset(true);
+      getBrowser().getMediaPanel().reset(true);
     }
   }
 
@@ -390,8 +390,8 @@ public class SettingsPanel extends JPanel
   public Composite getComposite()
   {
     Composite retVal = AlphaComposite.SrcOver;
-    if (getViewer().getDecoder() != null && isBlendingEnabled()) {
-      retVal = getViewer().getDecoder().getComposite();
+    if (getBrowser().getDecoder() != null && isBlendingEnabled()) {
+      retVal = getBrowser().getDecoder().getComposite();
     }
     return retVal;
   }
@@ -555,7 +555,7 @@ public class SettingsPanel extends JPanel
 
 
     // attributes table panel
-    panelAttributes = new AttributesPanel(getViewer());
+    panelAttributes = new AttributesPanel(getBrowser());
 
 
     // combining panels
@@ -603,7 +603,7 @@ public class SettingsPanel extends JPanel
     JDialog dlg = null;
     try {
       // Returns color value without alpha component
-      dlg = JColorChooser.createDialog(getViewer(), "Choose background color", true, cc,
+      dlg = JColorChooser.createDialog(getBrowser(), "Choose background color", true, cc,
                                        evt -> retVal.setValue0(new Color(cc.getColor().getRGB(), false)), null);
       dlg.setVisible(true);
     } finally {
@@ -629,7 +629,7 @@ public class SettingsPanel extends JPanel
     public void actionPerformed(ActionEvent e)
     {
       if (e.getSource() == bCenter) {
-        getViewer().getRenderPanel().centerOnSprite();
+        getBrowser().getRenderPanel().centerOnSprite();
       }
       else if (e.getSource() == cbZoom) {
         setZoomIndex(cbZoom.getSelectedIndex());

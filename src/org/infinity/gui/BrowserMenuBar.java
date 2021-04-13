@@ -84,7 +84,7 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.StructureFactory;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.ViewableContainer;
-import org.infinity.resource.cre.viewer.CreatureViewer;
+import org.infinity.resource.cre.browser.CreatureBrowser;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.Keyfile;
 import org.infinity.resource.key.ResourceEntry;
@@ -1690,7 +1690,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     public void actionPerformed(ActionEvent event)
     {
       if (event.getSource() == toolCreatureBrowser) {
-        ChildFrame.show(CreatureViewer.class, () -> new CreatureViewer());
+        ChildFrame.show(CreatureBrowser.class, () -> new CreatureBrowser());
       }
       else if (event.getSource() == toolInfinityAmp) {
         ChildFrame.show(InfinityAmp.class, () -> new InfinityAmp());

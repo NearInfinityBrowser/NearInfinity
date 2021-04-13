@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package org.infinity.resource.cre.viewer;
+package org.infinity.resource.cre.browser;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -11,14 +11,14 @@ import java.util.Objects;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.browser.ColorSelectionModel.ColorEntry;
+import org.infinity.resource.cre.browser.CreatureAnimationModel.AnimateEntry;
+import org.infinity.resource.cre.browser.CreatureSelectionModel.CreatureItem;
+import org.infinity.resource.cre.browser.CreatureStatusModel.StatusEntry;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.util.CreatureInfo;
 import org.infinity.resource.cre.decoder.util.ItemInfo;
 import org.infinity.resource.cre.decoder.util.ItemInfo.ItemPredicate;
-import org.infinity.resource.cre.viewer.ColorSelectionModel.ColorEntry;
-import org.infinity.resource.cre.viewer.CreatureStatusModel.StatusEntry;
-import org.infinity.resource.cre.viewer.CreatureAnimationModel.AnimateEntry;
-import org.infinity.resource.cre.viewer.CreatureSelectionModel.CreatureItem;
 import org.infinity.resource.key.ResourceEntry;
 
 /**

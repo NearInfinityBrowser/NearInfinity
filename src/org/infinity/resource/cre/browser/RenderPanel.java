@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package org.infinity.resource.cre.viewer;
+package org.infinity.resource.cre.browser;
 
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
@@ -41,7 +41,7 @@ public class RenderPanel extends JPanel
   private static final float POS_REL_Y = 2.0f / 3.0f;
 
   private final Listeners listeners = new Listeners();
-  private final CreatureViewer viewer;
+  private final CreatureBrowser browser;
   // storage for scroll pane view size to track view size changes
   private Dimension viewSize = new Dimension();
 
@@ -62,18 +62,15 @@ public class RenderPanel extends JPanel
   // storage for background image content that is overwritten by the animation frame
   private Image frameBackground;
 
-  public RenderPanel(CreatureViewer viewer)
+  public RenderPanel(CreatureBrowser browser)
   {
     super();
-    this.viewer = Objects.requireNonNull(viewer);
+    this.browser = Objects.requireNonNull(browser);
     init();
   }
 
-  /** Returns the associated {@code CreatureViewer} instance. */
-  public CreatureViewer getViewer()
-  {
-    return viewer;
-  }
+  /** Returns the associated {@code CreatureBrowser} instance. */
+  public CreatureBrowser getBrowser() { return browser; }
 
   /** Returns the current background color of the panel. */
   public Color getBackgroundColor()

@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package org.infinity.resource.cre.viewer;
+package org.infinity.resource.cre.browser;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -34,11 +34,11 @@ import javax.swing.text.JTextComponent;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.cre.CreResource;
+import org.infinity.resource.cre.browser.ColorSelectionModel.ColorEntry;
+import org.infinity.resource.cre.browser.CreatureSelectionModel.CreatureItem;
 import org.infinity.resource.cre.decoder.MonsterPlanescapeDecoder;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.util.ItemInfo;
-import org.infinity.resource.cre.viewer.ColorSelectionModel.ColorEntry;
-import org.infinity.resource.cre.viewer.CreatureSelectionModel.CreatureItem;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
@@ -58,7 +58,7 @@ public class CreatureControlPanel extends JPanel
   private final List<JComboBox<ColorSelectionModel.ColorEntry>> colorControls = new ArrayList<>();
   private final Listeners listeners = new Listeners();
 
-  private final CreatureViewer viewer;
+  private final CreatureBrowser browser;
 
   private CreatureControlModel model;
   private JComboBox<CreatureSelectionModel.CreatureItem> cbCreSelection;
@@ -73,15 +73,15 @@ public class CreatureControlPanel extends JPanel
   private JScrollPane scrollShown;
   private CardLayout layoutMain;
 
-  public CreatureControlPanel(CreatureViewer viewer)
+  public CreatureControlPanel(CreatureBrowser browser)
   {
     super();
-    this.viewer = viewer;
+    this.browser = browser;
     init();
   }
 
-  /** Returns the associated {@code CreatureViewer} instance. */
-  public CreatureViewer getViewer() { return viewer; }
+  /** Returns the associated {@code CreatureBrowser} instance. */
+  public CreatureBrowser getBrowser() { return browser; }
 
   public CreatureControlModel getControlModel() { return model; }
 
@@ -136,11 +136,11 @@ public class CreatureControlPanel extends JPanel
       getControlModel().resetDecoder(cre);
     } catch (Exception e) {
       e.printStackTrace();
-      getViewer().showErrorMessage(e.getMessage(), "Loading creature");
+      getBrowser().showErrorMessage(e.getMessage(), "Loading creature");
     }
 
-    getViewer().getSettingsPanel().reset();
-    getViewer().getMediaPanel().reset(true);
+    getBrowser().getSettingsPanel().reset();
+    getBrowser().getMediaPanel().reset(true);
     getControlModel().resetModified();
   }
 
@@ -412,7 +412,7 @@ public class CreatureControlPanel extends JPanel
   {
     boolean retVal = true;
     if (getControlModel().canReset()) {
-      retVal = (JOptionPane.showConfirmDialog(getViewer(),
+      retVal = (JOptionPane.showConfirmDialog(getBrowser(),
                                               "Creature settings have been modified. Do you want to revert these changes?",
                                               "Revert changes",
                                               JOptionPane.YES_NO_OPTION,
@@ -506,7 +506,7 @@ public class CreatureControlPanel extends JPanel
           updateToolTip(cbCreSelection);
         } catch (Exception ex) {
           ex.printStackTrace();
-          getViewer().showErrorMessage(ex.getMessage(), "Creature selection");
+          getBrowser().showErrorMessage(ex.getMessage(), "Creature selection");
         }
       }
       else if (e.getSource() == cbCreAnimation) {

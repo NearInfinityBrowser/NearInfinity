@@ -42,10 +42,10 @@ import org.infinity.gui.RenderCanvas;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
+import org.infinity.resource.cre.browser.CreatureBrowser;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
-import org.infinity.resource.cre.viewer.CreatureViewer;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 
 /**
@@ -363,7 +363,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
       updateControls();
     }
     else if (bOpenBrowser == event.getSource()) {
-      CreatureViewer cv = ChildFrame.show(CreatureViewer.class, () -> new CreatureViewer(getCre()));
+      CreatureBrowser cv = ChildFrame.show(CreatureBrowser.class, () -> new CreatureBrowser(getCre()));
       if (cv != null) {
         pause();
         if (getCre() != cv.getCreResource()) {

@@ -2,7 +2,7 @@
 // Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
-package org.infinity.resource.cre.viewer;
+package org.infinity.resource.cre.browser;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
@@ -34,10 +34,10 @@ import javax.swing.event.ChangeListener;
 
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.resource.cre.browser.icon.Icons;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.util.Direction;
 import org.infinity.resource.cre.decoder.util.Sequence;
-import org.infinity.resource.cre.viewer.icon.Icons;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 
 /**
@@ -54,7 +54,7 @@ public class MediaPanel extends JPanel
   // mapping of slider value to direction
   private final HashMap<Integer, Direction> directionMap = new HashMap<>();
   private final Listeners listeners = new Listeners();
-  private final CreatureViewer viewer;
+  private final CreatureBrowser browser;
 
   private JButton bHome, bEnd, bStepBack, bStepForward, bPlay, bStop;
   private DefaultComboBoxModel<Sequence> modelSequences;
@@ -67,15 +67,15 @@ public class MediaPanel extends JPanel
   private Timer timer;
   private int curFrame, curCycle;
 
-  public MediaPanel(CreatureViewer viewer)
+  public MediaPanel(CreatureBrowser browser)
   {
     super();
-    this.viewer = Objects.requireNonNull(viewer);
+    this.browser = Objects.requireNonNull(browser);
     init();
   }
 
-  /** Returns the associated {@code CreatureViewer} instance. */
-  public CreatureViewer getViewer() { return viewer; }
+  /** Returns the associated {@code CreatureBrowser} instance. */
+  public CreatureBrowser getBrowser() { return browser; }
 
   /**
    * Discards the current animation state and initializes a new animation.
@@ -98,12 +98,12 @@ public class MediaPanel extends JPanel
     curFrame = curCycle = -1;
     updateControls();
 
-    SpriteDecoder decoder = getViewer().getDecoder();
+    SpriteDecoder decoder = getBrowser().getDecoder();
     if (decoder == null) {
       return;
     }
 
-    SettingsPanel settings = getViewer().getSettingsPanel();
+    SettingsPanel settings = getBrowser().getSettingsPanel();
     decoder.setAutoApplyChanges(false);
     decoder.setPaletteReplacementEnabled(settings.isPaletteReplacementEnabled());
     decoder.setTintEnabled(settings.isTintEnabled());
@@ -120,7 +120,7 @@ public class MediaPanel extends JPanel
     decoder.setAutoApplyChanges(true);
 
     setController(decoder.createControl());
-    getViewer().getRenderPanel().setComposite(getViewer().getSettingsPanel().getComposite());
+    getBrowser().getRenderPanel().setComposite(getBrowser().getSettingsPanel().getComposite());
     initSequences(decoder, oldSequence);
     initDirection(decoder, oldDir);
     setCurrentFrame(oldFrameIdx);
@@ -193,8 +193,8 @@ public class MediaPanel extends JPanel
         frameIdx = Math.max(0, Math.min(getController().cycleFrameCount() - 1, frameIdx));
         getController().cycleSetFrameIndex(frameIdx);
         curFrame = getController().cycleGetFrameIndex();
-        getViewer().getRenderPanel().setFrame(getController());
-        getViewer().getRenderPanel().updateCanvas();
+        getBrowser().getRenderPanel().setFrame(getController());
+        getBrowser().getRenderPanel().updateCanvas();
         updateLabels();
       }
     }
@@ -288,13 +288,13 @@ public class MediaPanel extends JPanel
 
   public void loadSequence(Sequence seq) throws IllegalArgumentException
   {
-    SpriteDecoder decoder = getViewer().getDecoder();
-    RenderPanel renderer = getViewer().getRenderPanel();
+    SpriteDecoder decoder = getBrowser().getDecoder();
+    RenderPanel renderer = getBrowser().getRenderPanel();
     Direction oldDir = getDirection(getCurrentDirection());
     boolean isRunning = isRunning();
     pause();
     try {
-      if (!getViewer().getDecoder().loadSequence(seq)) {
+      if (!getBrowser().getDecoder().loadSequence(seq)) {
         throw new Exception();
       }
     } catch (Exception e) {
@@ -765,7 +765,7 @@ public class MediaPanel extends JPanel
       if (e.getSource() == slDirection) {
         Direction dir = getDirection(slDirection.getValue());
         lDirection.setText(dir.toString());
-        int cycle = getViewer().getDecoder().getDirectionMap().getOrDefault(dir, -1).intValue();
+        int cycle = getBrowser().getDecoder().getDirectionMap().getOrDefault(dir, -1).intValue();
         if (cycle >= 0) {
           setCurrentCycle(cycle);
         }
@@ -784,13 +784,13 @@ public class MediaPanel extends JPanel
             e.getItem() instanceof Sequence) {
           final Sequence seq = (Sequence)e.getItem();
           try {
-            WindowBlocker.blockWindow(getViewer(), true);
+            WindowBlocker.blockWindow(getBrowser(), true);
             loadSequence(seq);
           } catch (Exception ex) {
             ex.printStackTrace();
-            getViewer().showErrorMessage(ex.getMessage(), "Sequence selection");
+            getBrowser().showErrorMessage(ex.getMessage(), "Sequence selection");
           } finally {
-            WindowBlocker.blockWindow(getViewer(), false);
+            WindowBlocker.blockWindow(getBrowser(), false);
           }
         }
       }
