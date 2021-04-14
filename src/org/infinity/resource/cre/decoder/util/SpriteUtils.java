@@ -882,10 +882,10 @@ public class SpriteUtils
         int frameIdx = fi.getFrame();
         frameIdx = ctrl.cycleGetFrameIndexAbsolute(fi.getCycle(), frameIdx);
         FrameEntry entry = fi.getController().getDecoder().getFrameInfo(frameIdx);
-        left = Math.min(left, -entry.getCenterX());
-        top = Math.min(top, -entry.getCenterY());
-        right = Math.max(right, entry.getWidth() - entry.getCenterX());
-        bottom = Math.max(bottom, entry.getHeight() - entry.getCenterY());
+        left = Math.min(left, -entry.getCenterX() + fi.getCenterShift().x);
+        top = Math.min(top, -entry.getCenterY() + fi.getCenterShift().y);
+        right = Math.max(right, entry.getWidth() - entry.getCenterX() + fi.getCenterShift().x);
+        bottom = Math.max(bottom, entry.getHeight() - entry.getCenterY() + fi.getCenterShift().y);
       }
 
       retVal.x = left;

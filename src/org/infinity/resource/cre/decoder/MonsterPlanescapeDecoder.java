@@ -78,8 +78,10 @@ public class MonsterPlanescapeDecoder extends SpriteDecoder
         applyFalseColors(control, sd);
       }
 
-      if (isTranslucent()) {
-        applyTranslucency(control);
+      if ((isTranslucencyEnabled() && isTranslucent()) ||
+          (isBlurEnabled() && isBlurred())) {
+        int minVal = (isBlurEnabled() && isBlurred()) ? 64 : 255;
+        applyTranslucency(control, minVal);
       }
     }
   };

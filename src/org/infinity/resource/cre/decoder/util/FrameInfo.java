@@ -6,6 +6,7 @@ package org.infinity.resource.cre.decoder.util;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Point;
 import java.awt.Stroke;
 import java.util.EnumMap;
 import java.util.Objects;
@@ -33,11 +34,18 @@ public class FrameInfo
 
   private final BamV1Control bamControl;
   private final SegmentDef segmentDef;
+  private final Point centerShift;
 
   public FrameInfo(BamV1Control bamControl, SegmentDef sd)
   {
+    this(bamControl, sd, null);
+  }
+
+  public FrameInfo(BamV1Control bamControl, SegmentDef sd, Point centerShift)
+  {
     this.bamControl = Objects.requireNonNull(bamControl, "BAM controller cannot be null");
     this.segmentDef = Objects.requireNonNull(sd, "Segment definition cannot be null");
+    this.centerShift = (centerShift != null) ? new Point(centerShift) : new Point();
   }
 
   /** Returns the BAM control instance. */
@@ -51,10 +59,13 @@ public class FrameInfo
   /** Returns the frame index relative to the cycle. */
   public int getFrame() { return segmentDef.getCurrentFrame(); }
 
+  /** Returns the amount of pixels the frame center deviates from the original position. */
+  public Point getCenterShift() { return centerShift; }
+
   @Override
   public String toString()
   {
-    return "cycle=" + getCycle() + ", frame=" + getFrame();
+    return "cycle=" + getCycle() + ", frame=" + getFrame() + ", centerShift=" + centerShift.toString();
   }
 
   @Override
@@ -63,6 +74,7 @@ public class FrameInfo
     int hash = 7;
     hash = 31 * hash + ((bamControl == null) ? 0 : bamControl.hashCode());
     hash = 31 * hash + ((segmentDef == null) ? 0 : segmentDef.hashCode());
+    hash = 31 * hash + ((centerShift == null) ? 0 : centerShift.hashCode());
     return hash;
   }
 
@@ -80,6 +92,8 @@ public class FrameInfo
                      (this.bamControl != null && this.bamControl.equals(other.bamControl));
     retVal &= (this.segmentDef == null && other.segmentDef == null) ||
               (this.segmentDef != null && this.segmentDef.equals(other.segmentDef));
+    retVal &= (this.centerShift == null && other.centerShift == null) ||
+              (this.centerShift != null && this.centerShift.equals(other.centerShift));
     return retVal;
   }
 }

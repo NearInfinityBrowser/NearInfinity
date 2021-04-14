@@ -76,8 +76,10 @@ public class EffectDecoder extends SpriteDecoder
         applyColorTint(control, sd);
       }
 
-      if (isTranslucencyEnabled() && isTranslucent()) {
-        applyTranslucency(control);
+      if ((isTranslucencyEnabled() && isTranslucent()) ||
+          (isBlurEnabled() && isBlurred())) {
+        int minVal = (isBlurEnabled() && isBlurred()) ? 64 : 255;
+        applyTranslucency(control, minVal);
       }
     }
   };

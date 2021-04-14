@@ -29,7 +29,6 @@ import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.Item;
 import org.infinity.resource.cre.decoder.MonsterPlanescapeDecoder;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
-import org.infinity.resource.cre.decoder.util.ItemInfo.EffectInfo;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.Table2da;
@@ -125,6 +124,12 @@ public class CreatureInfo
     return ((getStatus() & (1 << 9)) != 0);
   }
 
+  /** Returns {@code true} if the creature is under the effect of blur. */
+  public boolean isBlurEffect()
+  {
+    return isEffectActive(SegmentDef.SpriteType.AVATAR, ColorInfo.OPCODE_BLUR, -1);
+  }
+
   /** Returns the creature animation id. */
   public int getAnimationId() { return ((IsNumeric)cre.getAttribute(CreResource.CRE_ANIMATION)).getValue(); }
 
@@ -160,18 +165,17 @@ public class CreatureInfo
     for (final ItemSlots slot : ItemSlots.values()) {
       ItemInfo info = getItemInfo(slot);
       if (info != null) {
-        EffectInfo effectInfo = info.getEffectStream()
-            .filter(ei -> ei.getOpcode() == 66 &&   // translucency
-                          ei.getTiming() == 2 &&    // when equipped
-                          ei.getParameter2() == 0)  // draw instantly
-            .findAny()
-            .orElse(null);
-        if (effectInfo != null) {
-          // we need inverted amount
-          int amount = Math.max(0, Math.min(255, effectInfo.getParameter1()));
+        int amount = info.getColorInfo().getValue(SegmentDef.SpriteType.AVATAR, ColorInfo.OPCODE_TRANSLUCENCY, -1);
+        if (amount >= 0) {
           retVal = Math.max(retVal, 255 - amount);
         }
       }
+    }
+
+    // getting translucency from creature effect
+    int amount = getColorInfo().getValue(SegmentDef.SpriteType.AVATAR, ColorInfo.OPCODE_TRANSLUCENCY, -1);
+    if (amount >= 0) {
+      retVal = Math.max(retVal, 255 - amount);
     }
 
     if (retVal < 0) {
@@ -869,6 +873,19 @@ public class CreatureInfo
         }
         break;
       }
+      case ColorInfo.OPCODE_TRANSLUCENCY:
+      {
+        se = as.getAttribute(as.getOffset() + ofsParam2);
+        int param2 = (se instanceof IsNumeric) ? ((IsNumeric)se).getValue() : 0;
+        if (param2 == 0) {
+          se = as.getAttribute(as.getOffset() + ofsParam1);
+          int param1 = (se instanceof IsNumeric) ? ((IsNumeric)se).getValue() : 0;
+          param1 = Math.max(0, Math.min(255, param1));
+          getColorInfo().add(SegmentDef.SpriteType.AVATAR, opcode, -1, param1);
+        }
+        break;
+      }
+      case ColorInfo.OPCODE_BLUR:
       case ColorInfo.OPCODE_PETRIFICATION:
       case ColorInfo.OPCODE_STONESKIN:
         getColorInfo().add(SegmentDef.SpriteType.AVATAR, opcode, -1, 0);

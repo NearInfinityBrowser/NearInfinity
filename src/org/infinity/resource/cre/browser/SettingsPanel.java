@@ -80,8 +80,8 @@ public class SettingsPanel extends JPanel
 
   private static int indexZoom, indexFrameRate, indexBackground;
   private static boolean isFiltering, isBlending, isTranslucent, isSelectionCircle, isOrnateSelectionCircle, isPersonalSpace,
-                         isTintEnabled, isPaletteReplacementEnabled, isShowAvatar, isShowHelmet, isShowShield, isShowWeapon,
-                         isShowBorders;
+                         isTintEnabled, isBlurEnabled, isPaletteReplacementEnabled, isShowBorders,
+                         isShowAvatar, isShowHelmet, isShowShield, isShowWeapon;
 
   static {
     indexZoom = 1;        // 100 % (original)
@@ -99,6 +99,7 @@ public class SettingsPanel extends JPanel
     isShowWeapon = true;
     isShowBorders = false;
     isTintEnabled = true;
+    isBlurEnabled = true;
     isPaletteReplacementEnabled = true;
   }
 
@@ -110,8 +111,8 @@ public class SettingsPanel extends JPanel
   private JComboBox<Backgrounds.BackgroundInfo> cbBackground;
   private JButton bCenter;
   private JCheckBox cbFiltering, cbBlending, cbTranslucent, cbSelectionCircle, cbOrnateSelectionCircle, cbPersonalSpace,
-                    cbTintEnabled, cbPaletteReplacementEnabled, cbShowAvatar, cbShowHelmet, cbShowShield, cbShowWeapon,
-                    cbShowBorders;
+                    cbTintEnabled, cbBlurEnabled, cbPaletteReplacementEnabled, cbShowBorders,
+                    cbShowAvatar, cbShowHelmet, cbShowShield, cbShowWeapon;
   private AttributesPanel panelAttributes;
 
   /** Returns a list of background info instances available for the specified game. */
@@ -314,6 +315,18 @@ public class SettingsPanel extends JPanel
     }
   }
 
+  /** Returns whether blur effect (opcode 66) is enabled. */
+  public boolean isBlurEnabled() { return isBlurEnabled; }
+
+  private void setBlurEnabled(boolean b)
+  {
+    if (isBlurEnabled != b) {
+      isBlurEnabled = b;
+      cbBlurEnabled.setSelected(isBlurEnabled);
+      getBrowser().getMediaPanel().reset(true);
+    }
+  }
+
   /** Returns whether palette replacement (full palette or false colors) is enabled. */
   public boolean isPaletteReplacementEnabled() { return isPaletteReplacementEnabled; }
 
@@ -466,9 +479,12 @@ public class SettingsPanel extends JPanel
     cbTranslucent.setToolTipText("Affects only creature animations with translucency effect (e.g. ghosts or air elementals).");
     cbTranslucent.addActionListener(listeners);
 
-    cbTintEnabled = new JCheckBox("Enable tint", isTintEnabled);
+    cbTintEnabled = new JCheckBox("Enable tint effect", isTintEnabled);
     cbTintEnabled.setToolTipText("Includes color modifications defined by effect opcodes 8, 51 and 52.");
     cbTintEnabled.addActionListener(listeners);
+
+    cbBlurEnabled = new JCheckBox("Enable blur effect", isBlurEnabled);
+    cbBlurEnabled.addActionListener(listeners);
 
     cbPaletteReplacementEnabled = new JCheckBox("Enable palette replacement", isPaletteReplacementEnabled);
     cbPaletteReplacementEnabled.setToolTipText("Enable full palette or false color palette replacement.");
@@ -541,17 +557,17 @@ public class SettingsPanel extends JPanel
 
     c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    panel2.add(cbTintEnabled, c);
+    panel2.add(cbBlurEnabled, c);
     c = ViewerUtil.setGBC(c, 1, 5, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
     panel2.add(cbShowBorders, c);
 
     c = ViewerUtil.setGBC(c, 0, 6, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-    panel2.add(cbPaletteReplacementEnabled, c);
+    panel2.add(cbTintEnabled, c);
     c = ViewerUtil.setGBC(c, 1, 6, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(8, 16, 0, 0), 0, 0);
-    panel2.add(new JPanel(), c);
+    panel2.add(cbPaletteReplacementEnabled, c);
 
 
     // attributes table panel
@@ -651,6 +667,9 @@ public class SettingsPanel extends JPanel
       }
       else if (e.getSource() == cbTintEnabled) {
         setTintEnabled(cbTintEnabled.isSelected());
+      }
+      else if (e.getSource() == cbBlurEnabled) {
+        setBlurEnabled(cbBlurEnabled.isSelected());
       }
       else if (e.getSource() == cbPaletteReplacementEnabled) {
         setPaletteReplacementEnabled(cbPaletteReplacementEnabled.isSelected());

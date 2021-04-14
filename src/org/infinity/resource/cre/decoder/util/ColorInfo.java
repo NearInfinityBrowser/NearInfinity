@@ -26,6 +26,10 @@ public class ColorInfo
   public static final int OPCODE_TINT_SOLID     = 51;
   /** Effect opcode 52: Character tint bright */
   public static final int OPCODE_TINT_BRIGHT    = 52;
+  /** Effect opcode 64: Blur */
+  public static final int OPCODE_BLUR           = 65;
+  /** Effect opcode 64: Translucency */
+  public static final int OPCODE_TRANSLUCENCY   = 66;
   /** Effect opcode 134: Petrification */
   public static final int OPCODE_PETRIFICATION  = 134;
   /** Effect opcode 218: Stoneskin */

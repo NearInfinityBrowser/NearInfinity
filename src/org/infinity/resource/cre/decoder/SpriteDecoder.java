@@ -125,8 +125,10 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
         applyColorEffects(control, sd);
       }
 
-      if (isTranslucencyEnabled() && isTranslucent()) {
-        applyTranslucency(control);
+      if ((isTranslucencyEnabled() && isTranslucent()) ||
+          (isBlurEnabled() && isBlurred())) {
+        int minVal = (isBlurEnabled() && isBlurred()) ? 64 : 255;
+        applyTranslucency(control, minVal);
       }
     }
   };
@@ -188,6 +190,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   private boolean transparentShadow;
   private boolean translucencyEnabled;
   private boolean tintEnabled;
+  private boolean blurEnabled;
   private boolean paletteReplacementEnabled;
   private boolean renderSpriteAvatar;
   private boolean renderSpriteWeapon;
@@ -281,6 +284,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     this.transparentShadow = true;
     this.translucencyEnabled = true;
     this.tintEnabled = true;
+    this.blurEnabled = true;
     this.paletteReplacementEnabled = true;
     this.renderSpriteAvatar = true;
     this.renderSpriteWeapon = true;
@@ -640,6 +644,22 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     }
   }
 
+  /** Returns whether blur effect is applied to the creature animation. */
+  public boolean isBlurEnabled()
+  {
+    return blurEnabled;
+  }
+
+  /** Sets whether blur effect is applied to the creature animation. */
+  public void setBlurEnabled(boolean b)
+  {
+    if (blurEnabled != b) {
+      blurEnabled = b;
+      SpriteUtils.clearBamCache();
+      spriteChanged();
+    }
+  }
+
   /** Returns whether any kind of palette replacement (full palette or false colors) is enabled. */
   public boolean isPaletteReplacementEnabled()
   {
@@ -836,6 +856,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   protected void setTranslucent(boolean b)
   {
     setAttribute(KEY_TRANSLUCENT, b);
+  }
+
+  /** Returns whether the blur effect is active for the creature animation. */
+  public boolean isBlurred()
+  {
+    return getCreatureInfo().isBlurEffect();
   }
 
   /** Call this method whenever the visibility of the selection circle has been changed. */
@@ -1110,6 +1136,58 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     createAnimation(sd, Arrays.asList(directions), FN_BEFORE_SRC_BAM, FN_BEFORE_SRC_FRAME, FN_AFTER_SRC_FRAME, FN_AFTER_DST_FRAME);
   }
 
+  /** Returns the number of sprite instances to render by the current blur state of the creature animation. */
+  protected int getBlurInstanceCount()
+  {
+    return isBlurred() ? 4 : 1;
+  }
+
+  protected Point getBlurInstanceShift(Point pt, Direction dir, int idx)
+  {
+    Point retVal = (pt != null) ? pt : new Point();
+    if (isBlurred()) {
+      int dist = Math.max(0, idx) * 9;  // distance between images: 9 pixels
+      // shift position depends on sprite direction and specified index
+      int dirValue = ((dir != null) ? dir.getValue() : 0) & ~1; // truncate to nearest semi-cardinal direction
+      switch (dirValue) {
+        case 2:   // SW
+          retVal.x = dist / 2;
+          retVal.y = -dist / 2;
+          break;
+        case 4:   // W
+          retVal.x = dist;
+          retVal.y = 0;
+          break;
+        case 6:   // NW
+          retVal.x = dist / 2;
+          retVal.y = dist / 2;
+          break;
+        case 8:   // N
+          retVal.x = 0;
+          retVal.y = dist;
+          break;
+        case 10:  // NE
+          retVal.x = -dist / 2;
+          retVal.y = dist / 2;
+          break;
+        case 12:  // E
+          retVal.x = -dist;
+          retVal.y = 0;
+          break;
+        case 14:  // SE
+          retVal.x = -dist / 2;
+          retVal.y = -dist / 2;
+          break;
+        default:  // S
+          retVal.x = 0;
+          retVal.y = -dist;
+      }
+    } else {
+      retVal.x = retVal.y = 0;
+    }
+    return retVal;
+  }
+
   protected void createAnimation(SeqDef definition, List<Direction> directions,
                                  BeforeSourceBam beforeSrcBam,
                                  BeforeSourceFrame beforeSrcFrame,
@@ -1144,27 +1222,37 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       final ArrayList<FrameInfo> frameInfo = new ArrayList<>();
       for (int frame = 0; frame < frameCount; frame++) {
         frameInfo.clear();
-        for (final SegmentDef sd : cd.getCycles()) {
-          // checking visibility of sprite types
-          boolean skip = (sd.getSpriteType() == SegmentDef.SpriteType.AVATAR) && !getRenderAvatar();
-          skip |= (sd.getSpriteType() == SegmentDef.SpriteType.WEAPON) && !getRenderWeapon();
-          skip |= (sd.getSpriteType() == SegmentDef.SpriteType.SHIELD) && !getRenderShield();
-          skip |= (sd.getSpriteType() == SegmentDef.SpriteType.HELMET) && !getRenderHelmet();
-          if (skip) {
-            continue;
+        int copyCount = isBlurEnabled() ? getBlurInstanceCount() : 1;
+        Point centerShift = new Point();
+        for (int copyIdx = copyCount - 1; copyIdx >= 0; copyIdx--) {
+          if (isBlurEnabled()) {
+            centerShift = getBlurInstanceShift(centerShift, dd.getDirection(), copyIdx);
           }
-
-          entry = sd.getEntry();
-          srcCtrl = Objects.requireNonNull(SpriteUtils.loadBamController(entry));
-          srcCtrl.cycleSet(sd.getCycleIndex());
-
-          if (sd.getCurrentFrame() >= 0) {
-            if (beforeSrcBam != null && !bamControlSet.contains(srcCtrl)) {
-              bamControlSet.add(srcCtrl);
-              beforeSrcBam.accept(srcCtrl, sd);
+          for (final SegmentDef sd : cd.getCycles()) {
+            // checking visibility of sprite types
+            boolean skip = (sd.getSpriteType() == SegmentDef.SpriteType.AVATAR) && !getRenderAvatar();
+            skip |= (sd.getSpriteType() == SegmentDef.SpriteType.WEAPON) && !getRenderWeapon();
+            skip |= (sd.getSpriteType() == SegmentDef.SpriteType.SHIELD) && !getRenderShield();
+            skip |= (sd.getSpriteType() == SegmentDef.SpriteType.HELMET) && !getRenderHelmet();
+            if (skip) {
+              continue;
             }
-            frameInfo.add(new FrameInfo(srcCtrl, sd));
+
+            entry = sd.getEntry();
+            srcCtrl = Objects.requireNonNull(SpriteUtils.loadBamController(entry));
+            srcCtrl.cycleSet(sd.getCycleIndex());
+
+            if (sd.getCurrentFrame() >= 0) {
+              if (beforeSrcBam != null && !bamControlSet.contains(srcCtrl)) {
+                bamControlSet.add(srcCtrl);
+                beforeSrcBam.accept(srcCtrl, sd);
+              }
+              frameInfo.add(new FrameInfo(srcCtrl, sd, centerShift));
+            }
           }
+        }
+
+        for (final SegmentDef sd : cd.getCycles()) {
           sd.advance();
         }
 
@@ -1243,8 +1331,8 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
             srcImage = beforeSrcFrame.apply(fi.getSegmentDefinition(), srcImage, g);
           }
           FrameEntry entry = ctrl.getDecoder().getFrameInfo(ctrl.cycleGetFrameIndexAbsolute());
-          int x = -rect.x - entry.getCenterX();
-          int y = -rect.y - entry.getCenterY();
+          int x = -rect.x - entry.getCenterX() + fi.getCenterShift().x;
+          int y = -rect.y - entry.getCenterY() + fi.getCenterShift().y;
 
           if (isBoundingBoxVisible() && entry.getWidth() > 2 && entry.getHeight() > 2) {
             // drawing bounding box around sprite elements
@@ -1706,11 +1794,18 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   /**
    * Applies translucency to the specified paletted image.
    * @param control the BAM controller.
+   * @param minTranslucency the minimum amount of translucency to apply.
    */
-  protected void applyTranslucency(BamV1Control control)
+  protected void applyTranslucency(BamV1Control control, int minTranslucency)
   {
     if (control != null) {
-      int alpha = getCreatureInfo().getEffectiveTranslucency();
+      int alpha = minTranslucency;
+      if (isTranslucencyEnabled()) {
+        int value = getCreatureInfo().getEffectiveTranslucency();
+        if (value > 0) {
+          alpha = Math.min(alpha, value);
+        }
+      }
       int[] palette = control.getCurrentPalette();
 
       // shadow color (alpha relative to semi-transparency of shadow)
@@ -1763,6 +1858,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     hash = 31 * hash + Boolean.valueOf(transparentShadow).hashCode();
     hash = 31 * hash + Boolean.valueOf(translucencyEnabled).hashCode();
     hash = 31 * hash + Boolean.valueOf(tintEnabled).hashCode();
+    hash = 31 * hash + Boolean.valueOf(blurEnabled).hashCode();
     hash = 31 * hash + Boolean.valueOf(paletteReplacementEnabled).hashCode();
     hash = 31 * hash + Boolean.valueOf(renderSpriteAvatar).hashCode();
     hash = 31 * hash + Boolean.valueOf(renderSpriteWeapon).hashCode();
@@ -1799,6 +1895,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       retVal &= (this.transparentShadow == other.transparentShadow);
       retVal &= (this.translucencyEnabled == other.translucencyEnabled);
       retVal &= (this.tintEnabled == other.tintEnabled);
+      retVal &= (this.blurEnabled == other.blurEnabled);
       retVal &= (this.paletteReplacementEnabled == other.paletteReplacementEnabled);
       retVal &= (this.renderSpriteAvatar == other.renderSpriteAvatar);
       retVal &= (this.renderSpriteWeapon == other.renderSpriteWeapon);

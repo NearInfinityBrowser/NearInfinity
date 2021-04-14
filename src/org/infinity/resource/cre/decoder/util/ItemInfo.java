@@ -834,6 +834,13 @@ public class ItemInfo implements Comparable<ItemInfo>
           getColorInfo().add(type, info.getOpcode(), location, info.getParameter1());
         }
         break;
+      case ColorInfo.OPCODE_TRANSLUCENCY:
+        if (info.getParameter2() == 0) {
+          int param1 = Math.max(0, Math.min(255, info.getParameter1()));
+          getColorInfo().add(SegmentDef.SpriteType.AVATAR, info.getOpcode(), -1, param1);
+        }
+        break;
+      case ColorInfo.OPCODE_BLUR:
       case ColorInfo.OPCODE_PETRIFICATION:
       case ColorInfo.OPCODE_STONESKIN:
         getColorInfo().add(SegmentDef.SpriteType.AVATAR, info.getOpcode(), -1, 0);
