@@ -289,10 +289,17 @@ public class CharacterDecoder extends CharacterBaseDecoder
   {
     if (v < 0) {
       // autodetection: requires fully initialized resref definitions
-      for (int i = 9; i > 0 && v < 0; i--) {
-        String resref = getArmorSpecificResref();
-        if (!resref.isEmpty() && ResourceFactory.resourceExists(resref + i + "G1.BAM")) {
-          v = i;
+      final String[] resrefs = { getArmorBaseResref(), getArmorSpecificResref() };
+      if (getArmorBaseResref().equalsIgnoreCase(getArmorSpecificResref())) {
+        resrefs[1] = null;
+      }
+      for (final String resref : resrefs) {
+        if (resref != null && !resref.isEmpty()) {
+          for (int i = 1; i < 10; i++) {
+            if (ResourceFactory.resourceExists(resref + i + "G1.BAM")) {
+              v = Math.max(v, i);
+            }
+          }
         }
       }
     }
