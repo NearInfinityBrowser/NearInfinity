@@ -820,9 +820,9 @@ public class SpriteUtils
     int[] retVal = palette;
 
     switch (opcode) {
-      case ColorInfo.OPCODE_SET_COLOR_GLOW:
-      case ColorInfo.OPCODE_TINT_SOLID:
-      case ColorInfo.OPCODE_TINT_BRIGHT:
+      case EffectInfo.OPCODE_SET_COLOR_GLOW:
+      case EffectInfo.OPCODE_TINT_SOLID:
+      case EffectInfo.OPCODE_TINT_BRIGHT:
         break;
       default:
         return retVal;
@@ -841,17 +841,17 @@ public class SpriteUtils
         int sg = (retVal[startOfs + i] >> 8) & 0xff;
         int sb = retVal[startOfs + i] & 0xff;
         switch (opcode) {
-          case ColorInfo.OPCODE_SET_COLOR_GLOW:
+          case EffectInfo.OPCODE_SET_COLOR_GLOW:
             sr = Math.min(255, sr + dr - (sr >>> 2));
             sg = Math.min(255, sg + dg - (sg >>> 2));
             sb = Math.min(255, sb + db - (sb >>> 2));
             break;
-          case ColorInfo.OPCODE_TINT_SOLID:
+          case EffectInfo.OPCODE_TINT_SOLID:
             sr = Math.min(255, dr * sr / 255);
             sg = Math.min(255, dg * sg / 255);
             sb = Math.min(255, db * sb / 255);
             break;
-          case ColorInfo.OPCODE_TINT_BRIGHT:
+          case EffectInfo.OPCODE_TINT_BRIGHT:
             sr = Math.min(255, sr + (dr * (sr >>> 3)));
             sg = Math.min(255, sg + (dg * (sg >>> 3)));
             sb = Math.min(255, sb + (db * (sb >>> 3)));

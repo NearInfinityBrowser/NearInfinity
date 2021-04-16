@@ -38,12 +38,12 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.decoder.util.AnimationInfo;
-import org.infinity.resource.cre.decoder.util.ColorInfo;
 import org.infinity.resource.cre.decoder.util.CreatureInfo;
 import org.infinity.resource.cre.decoder.util.CycleDef;
 import org.infinity.resource.cre.decoder.util.DecoderAttribute;
 import org.infinity.resource.cre.decoder.util.DirDef;
 import org.infinity.resource.cre.decoder.util.Direction;
+import org.infinity.resource.cre.decoder.util.EffectInfo;
 import org.infinity.resource.cre.decoder.util.FrameInfo;
 import org.infinity.resource.cre.decoder.util.ItemInfo;
 import org.infinity.resource.cre.decoder.util.SegmentDef;
@@ -1600,12 +1600,15 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     if (sd.getSpriteType() == SegmentDef.SpriteType.SHIELD) {
       ItemInfo itemInfo = getCreatureInfo().getEquippedShield();
       if (itemInfo != null && itemInfo.getSlotType() == ItemInfo.SlotType.WEAPON) {
-        ColorInfo colorInfo = itemInfo.getColorInfo();
-        for (int loc = 0; loc < 7; loc++) {
+        EffectInfo effectInfo = itemInfo.getEffectInfo();
+        List<EffectInfo.Effect> fxList = effectInfo.getEffects(getCreatureInfo(),
+                                                               SegmentDef.SpriteType.WEAPON,
+                                                               EffectInfo.OPCODE_SET_COLOR);
+        for (final EffectInfo.Effect fx : fxList) {
+          int loc = fx.getParameter2() & 0xf;
           int ofs = getColorOffset(loc);
-          int colIdx = colorInfo.getValue(SegmentDef.SpriteType.WEAPON, ColorInfo.OPCODE_SET_COLOR, loc);
-          if (ofs > 0 && colIdx >= 0) {
-            int[] range = getColorData(colIdx, false);
+          if (ofs > 0) {
+            int[] range = getColorData(fx.getParameter1(), false);
             if (range != null) {
               colorRanges.put(ofs, range);
             }

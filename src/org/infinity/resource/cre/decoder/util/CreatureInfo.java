@@ -10,12 +10,11 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.function.Predicate;
 
-import org.infinity.datatype.EffectType;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.IsTextual;
@@ -73,7 +72,7 @@ public class CreatureInfo
   }
 
   private final EnumMap<ItemSlots, ItemInfo> equipment = new EnumMap<>(ItemSlots.class);
-  private final ColorInfo colorInfo = new ColorInfo();  // storage for color-related effects applied to the creature
+  private final EffectInfo effectInfo;
   private final SpriteDecoder decoder;
   private final CreResource cre;
 
@@ -81,11 +80,15 @@ public class CreatureInfo
 
   public CreatureInfo(SpriteDecoder decoder, CreResource cre) throws Exception
   {
+    this.effectInfo = new EffectInfo();
     this.decoder = Objects.requireNonNull(decoder, "SpriteDecoder instance cannot be null");
     this.cre = Objects.requireNonNull(cre, "CRE resource cannot be null");
     this.allegianceOverride = OVERRIDE_NONE;
     init();
   }
+
+  /** Returns the {@code SpriteDecoder} instance associated with the creature resource. */
+  public SpriteDecoder getDecoder() { return decoder; }
 
   /** Returns the {@code CreResource} instance of the creature resource. */
   public CreResource getCreResource() { return cre; }
@@ -107,9 +110,7 @@ public class CreatureInfo
    */
   public boolean isStoneEffect()
   {
-    return ((getStatus() & (1 << 7)) != 0) ||
-           isEffectActive(SegmentDef.SpriteType.AVATAR, ColorInfo.OPCODE_PETRIFICATION, -1) ||
-           isEffectActive(SegmentDef.SpriteType.AVATAR, ColorInfo.OPCODE_STONESKIN, -1);
+    return ((getStatus() & (1 << 7)) != 0) || isEffectActive(SegmentDef.SpriteType.AVATAR, EffectInfo.FILTER_STONE_EFFECT);
   }
 
   /** Returns {@code true} if the creature status is set to "frozen death". */
@@ -127,7 +128,7 @@ public class CreatureInfo
   /** Returns {@code true} if the creature is under the effect of blur. */
   public boolean isBlurEffect()
   {
-    return isEffectActive(SegmentDef.SpriteType.AVATAR, ColorInfo.OPCODE_BLUR, -1);
+    return isEffectActive(SegmentDef.SpriteType.AVATAR, EffectInfo.FILTER_BLUR_EFFECT);
   }
 
   /** Returns the creature animation id. */
@@ -165,16 +166,18 @@ public class CreatureInfo
     for (final ItemSlots slot : ItemSlots.values()) {
       ItemInfo info = getItemInfo(slot);
       if (info != null) {
-        int amount = info.getColorInfo().getValue(SegmentDef.SpriteType.AVATAR, ColorInfo.OPCODE_TRANSLUCENCY, -1);
-        if (amount >= 0) {
+        EffectInfo.Effect fx = info.getEffectInfo().getFirstEffect(this, SegmentDef.SpriteType.AVATAR, EffectInfo.FILTER_TRANSLUCENCY_EFFECT);
+        if (fx != null && fx.getParameter2() == 0) {
+          int amount = Math.max(0, Math.min(255, fx.getParameter1()));
           retVal = Math.max(retVal, 255 - amount);
         }
       }
     }
 
     // getting translucency from creature effect
-    int amount = getColorInfo().getValue(SegmentDef.SpriteType.AVATAR, ColorInfo.OPCODE_TRANSLUCENCY, -1);
-    if (amount >= 0) {
+    EffectInfo.Effect fx = getEffectInfo().getFirstEffect(this, SegmentDef.SpriteType.AVATAR, EffectInfo.FILTER_TRANSLUCENCY_EFFECT);
+    if (fx != null && fx.getParameter2() == 0) {
+      int amount = Math.max(0, Math.min(255, fx.getParameter1()));
       retVal = Math.max(retVal, 255 - amount);
     }
 
@@ -388,11 +391,8 @@ public class CreatureInfo
     return items.toArray(new ItemInfo[items.size()]);
   }
 
-  /**
-   * Provides access to the {@link ColorInfo} instance which contains color definitions
-   * set by effects applied to the creature.
-   */
-  public ColorInfo getColorInfo() { return colorInfo; }
+  /** Provides access to the {@link EffectInfo} instance which manages effects attached to the current creature. */
+  public EffectInfo getEffectInfo() { return effectInfo; }
 
   /**
    * Returns the number of defined color entries for the creature.
@@ -449,11 +449,9 @@ public class CreatureInfo
 
     if (itemInfo != null) {
       HashSet<Integer> set = new HashSet<>();
-      for (Iterator<Couple<Integer, Integer>> iter = itemInfo.getColorInfo().getEffectIterator(type); iter.hasNext(); ) {
-        Couple<Integer, Integer> pair = iter.next();
-        if (pair.getValue0().intValue() == ColorInfo.OPCODE_SET_COLOR) {
-          set.add(pair.getValue1());
-        }
+      List<EffectInfo.Effect> fxList = itemInfo.getEffectInfo().getEffects(this, type, EffectInfo.FILTER_COLOR_EFFECT);
+      for (final EffectInfo.Effect fx : fxList) {
+        set.add(fx.getParameter2() & 0xf);
       }
       retVal = set.size();
     }
@@ -514,7 +512,10 @@ public class CreatureInfo
     }
 
     if (itemInfo != null) {
-      retVal = itemInfo.getColorInfo().getValue(type, ColorInfo.OPCODE_SET_COLOR, locationIndex);
+      EffectInfo.Effect fx = itemInfo.getEffectInfo().getColorByLocation(this, type, EffectInfo.OPCODE_SET_COLOR, locationIndex);
+      if (fx != null) {
+        retVal = fx.getParameter1();
+      }
     }
 
     return retVal;
@@ -559,17 +560,17 @@ public class CreatureInfo
     // checking equipped items
     ItemInfo[] itemInfos = getEffectiveItemInfo();
     for (final ItemInfo info : itemInfos) {
-      int v = info.getColorInfo().getValue(type, ColorInfo.OPCODE_SET_COLOR, locationIndex);
-      if (v >= 0) {
-        retVal.setValue0(v);
+      EffectInfo.Effect fx = info.getEffectInfo().getColorByLocation(this, type, EffectInfo.OPCODE_SET_COLOR, locationIndex);
+      if (fx != null) {
+        retVal.setValue0(fx.getParameter1());
         retVal.setValue1(Boolean.FALSE);
       }
     }
 
     // checking creature effects
-    int v = getColorInfo().getValue(type, ColorInfo.OPCODE_SET_COLOR, locationIndex);
-    if (v >= 0) {
-      retVal.setValue0(v);
+    EffectInfo.Effect fx = getEffectInfo().getColorByLocation(this, type, EffectInfo.OPCODE_SET_COLOR, locationIndex);
+    if (fx != null) {
+      retVal.setValue0(fx.getParameter1());
       retVal.setValue1(Boolean.FALSE);
     }
 
@@ -589,7 +590,8 @@ public class CreatureInfo
       type = SegmentDef.SpriteType.AVATAR;
     }
 
-    return getColorInfo().getValue(type, opcode, locationIndex);
+    EffectInfo.Effect fx = getEffectInfo().getColorByLocation(this, type, opcode, locationIndex);
+    return (fx != null) ? EffectInfo.swapBytes(fx.getParameter1()) : -1;
   }
 
   /**
@@ -608,19 +610,18 @@ public class CreatureInfo
       type = SegmentDef.SpriteType.AVATAR;
     }
 
-    int opcode, value;
+    final int[] opcodes = {EffectInfo.OPCODE_TINT_BRIGHT, EffectInfo.OPCODE_TINT_SOLID, EffectInfo.OPCODE_SET_COLOR_GLOW};
 
     // checking equipped items
+    int opcode = -1, value = -1;
     ItemInfo[] itemInfos = getEffectiveItemInfo();
     for (final ItemInfo info : itemInfos) {
-      opcode = ColorInfo.OPCODE_TINT_BRIGHT;
-      value = info.getColorInfo().getValue(type, opcode, locationIndex);
-      if (value == -1) {
-        opcode = ColorInfo.OPCODE_TINT_SOLID;
-        value = info.getColorInfo().getValue(type, opcode, locationIndex);
-        if (value == -1) {
-          opcode = ColorInfo.OPCODE_SET_COLOR_GLOW;
-          value = info.getColorInfo().getValue(type, opcode, locationIndex);
+      for (final int code : opcodes) {
+        final EffectInfo.Effect fx = info.getEffectInfo().getColorByLocation(this, type, code, locationIndex);
+        if (fx != null) {
+          opcode = code;
+          value = EffectInfo.swapBytes(fx.getParameter1());
+          break;
         }
       }
       if (value != -1) {
@@ -630,14 +631,13 @@ public class CreatureInfo
     }
 
     // checking creature effects
-    opcode = ColorInfo.OPCODE_TINT_BRIGHT;
-    value = getColorInfo().getValue(type, opcode, locationIndex);
-    if (value == -1) {
-      opcode = ColorInfo.OPCODE_TINT_SOLID;
-      value = getColorInfo().getValue(type, opcode, locationIndex);
-      if (value == -1) {
-        opcode = ColorInfo.OPCODE_SET_COLOR_GLOW;
-        value = getColorInfo().getValue(type, opcode, locationIndex);
+    opcode = value = -1;
+    for (final int code : opcodes) {
+      final EffectInfo.Effect fx = getEffectInfo().getColorByLocation(this, type, code, locationIndex);
+      if (fx != null) {
+        opcode = code;
+        value = EffectInfo.swapBytes(fx.getParameter1());
+        break;
       }
     }
     if (value != -1) {
@@ -649,29 +649,37 @@ public class CreatureInfo
   }
 
   /**
-   * Returns whether the specified effect is active with the given parameters.
-   * @param type the {@link SegmentDef.SpriteType SpriteType} target
+   * Returns whether the specified effect is active.
+   * @param type the {@link SegmentDef.SpriteType SpriteType} target.
    * @param opcode the effect opcode to filter.
-   * @param location the color location index. Available range: [-1, 6]
    * @return {@code true} if the effect with matching parameters exists. Returns {@code false} otherwise.
    */
-  public boolean isEffectActive(SegmentDef.SpriteType type, int opcode, int location)
+  public boolean isEffectActive(SegmentDef.SpriteType type, int opcode)
+  {
+    return isEffectActive(type, (fx) -> fx.getOpcode() == opcode);
+  }
+
+  /**
+   * Returns whether the specified effect is active with the given parameters.
+   * @param type the {@link SegmentDef.SpriteType SpriteType} target
+   * @param pred the predicate to filter.
+   * @return {@code true} if the effect with matching parameters exists. Returns {@code false} otherwise.
+   */
+  public boolean isEffectActive(SegmentDef.SpriteType type, Predicate<EffectInfo.Effect> pred)
   {
     boolean retVal = false;
 
-    if (type == null) {
-      type = SegmentDef.SpriteType.AVATAR;
-    }
-
     // checking creature effects
-    retVal = (getColorInfo().getValue(type, opcode, location) >= 0);
+    EffectInfo.Effect fx = getEffectInfo().getFirstEffect(this, type, pred);
+    retVal = (fx != null);
 
     if (!retVal) {
       // checking equipped items
       ItemInfo[] itemInfos = getEffectiveItemInfo();
       for (final ItemInfo info : itemInfos) {
-        retVal = (info.getColorInfo().getValue(type, opcode, location) >= 0);
-        if (retVal) {
+        fx = info.getEffectInfo().getFirstEffect(this, type, pred);
+        if (fx != null) {
+          retVal = true;
           break;
         }
       }
@@ -820,76 +828,10 @@ public class CreatureInfo
 
   private void initEffect(AbstractStruct as)
   {
-    if (as == null) {
-      return;
-    }
-    StructEntry se = as.getField(EffectType.class, 0);
-    if (!(se instanceof EffectType)) {
-      return;
-    }
-
-    int fxType = (as instanceof Effect2) ? 1 : 0;
-    int ofsParam1 = (fxType == 1) ? 0x14 : 0x04;
-    int ofsParam2 = (fxType == 1) ? 0x18 : 0x08;
-//    int ofsSpecial = (fxType == 1) ? 0x40 : 0x2c;
-
-    int opcode = ((IsNumeric)se).getValue();
-    switch (opcode) {
-      case ColorInfo.OPCODE_SET_COLOR:
-      case ColorInfo.OPCODE_SET_COLOR_GLOW:
-      case ColorInfo.OPCODE_TINT_SOLID:
-      case ColorInfo.OPCODE_TINT_BRIGHT:
-      {
-        se = as.getAttribute(as.getOffset() + ofsParam1);
-        int param1 = (se instanceof IsNumeric) ? ((IsNumeric)se).getValue() : -1;
-        se = as.getAttribute(as.getOffset() + ofsParam2);
-        int param2 = (se instanceof IsNumeric) ? ((IsNumeric)se).getValue() : -1;
-
-        if (param1 != -1 && param2 != -1) {
-          SegmentDef.SpriteType type = null;
-          int location = param2 & 0xf;
-          switch ((param2 >> 4) & 0xf) {
-            case 0:
-              type = SegmentDef.SpriteType.AVATAR;
-              break;
-            case 1:
-              type = SegmentDef.SpriteType.WEAPON;
-              break;
-            case 2:
-              type = SegmentDef.SpriteType.SHIELD;
-              break;
-            case 3:
-              type = SegmentDef.SpriteType.HELMET;
-              break;
-            default:
-              if ((param2 & 0xff) == 0xff) {
-                // affect all sprite colors
-                type = SegmentDef.SpriteType.AVATAR;
-                location = -1;
-              }
-          }
-
-          getColorInfo().add(type, opcode, location, param1);
-        }
-        break;
-      }
-      case ColorInfo.OPCODE_TRANSLUCENCY:
-      {
-        se = as.getAttribute(as.getOffset() + ofsParam2);
-        int param2 = (se instanceof IsNumeric) ? ((IsNumeric)se).getValue() : 0;
-        if (param2 == 0) {
-          se = as.getAttribute(as.getOffset() + ofsParam1);
-          int param1 = (se instanceof IsNumeric) ? ((IsNumeric)se).getValue() : 0;
-          param1 = Math.max(0, Math.min(255, param1));
-          getColorInfo().add(SegmentDef.SpriteType.AVATAR, opcode, -1, param1);
-        }
-        break;
-      }
-      case ColorInfo.OPCODE_BLUR:
-      case ColorInfo.OPCODE_PETRIFICATION:
-      case ColorInfo.OPCODE_STONESKIN:
-        getColorInfo().add(SegmentDef.SpriteType.AVATAR, opcode, -1, 0);
-        break;
+    if (as instanceof Effect) {
+      getEffectInfo().add(new EffectInfo.Effect((Effect)as));
+    } else if (as instanceof Effect2) {
+      getEffectInfo().add(new EffectInfo.Effect((Effect2)as));
     }
   }
 
@@ -1173,7 +1115,7 @@ public class CreatureInfo
   {
     int hash = 7;
     hash = 31 * hash + ((equipment == null) ? 0 : equipment.hashCode());
-    hash = 31 * hash + ((colorInfo == null) ? 0 : colorInfo.hashCode());
+    hash = 31 * hash + ((effectInfo == null) ? 0 : effectInfo.hashCode());
     hash = 31 * hash + ((decoder == null) ? 0 : decoder.hashCode());
     hash = 31 * hash + ((cre == null) ? 0 : cre.hashCode());
     hash = 31 * hash + Integer.valueOf(allegianceOverride).hashCode();
@@ -1192,8 +1134,8 @@ public class CreatureInfo
     CreatureInfo other = (CreatureInfo)o;
     boolean retVal = (this.equipment == null && other.equipment == null) ||
                      (this.equipment != null && this.equipment.equals(other.equipment));
-    retVal &= (this.colorInfo == null && other.colorInfo == null) ||
-              (this.colorInfo != null && this.colorInfo.equals(other.colorInfo));
+    retVal &= (this.effectInfo == null && other.effectInfo == null) ||
+              (this.effectInfo != null && this.effectInfo.equals(other.effectInfo));
     retVal &= (this.decoder == null && other.decoder == null) ||
               (this.decoder != null && this.decoder.equals(other.decoder));
     retVal &= (this.cre == null && other.cre == null) ||

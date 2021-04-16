@@ -6,6 +6,7 @@ package org.infinity.resource.cre.decoder.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -175,7 +176,7 @@ public class ItemInfo implements Comparable<ItemInfo>
     boolean retVal = FILTER_WEAPON.test(info);
     retVal &= (info.getAbilityCount() > 0);
     if (retVal) {
-      AbilityInfo ai = info.getAbility(0);
+      AbilityEntry ai = info.getAbility(0);
       retVal = (ai.getAbilityType() == 1) &&
                (ai.getLauncher() == 0);
     }
@@ -217,7 +218,7 @@ public class ItemInfo implements Comparable<ItemInfo>
     boolean retVal = FILTER_WEAPON.test(info);
     retVal &= (info.getAbilityCount() > 0);
     if (retVal) {
-      AbilityInfo ai = info.getAbility(0);
+      AbilityEntry ai = info.getAbility(0);
       retVal &= (ai.getLauncher() == 0);
       retVal &= (ai.getAbilityType() == 2) || (ai.getAbilityType() == 4);
     }
@@ -232,7 +233,7 @@ public class ItemInfo implements Comparable<ItemInfo>
     boolean retVal = FILTER_WEAPON.test(info);
     retVal &= (info.getAbilityCount() > 0);
     if (retVal) {
-      AbilityInfo ai = info.getAbility(0);
+      AbilityEntry ai = info.getAbility(0);
       retVal &= (ai.getLauncher() == 0);
       retVal &= (ai.getAbilityType() == 4);
     }
@@ -306,9 +307,9 @@ public class ItemInfo implements Comparable<ItemInfo>
 
   private static final HashMap<ResourceEntry, ItemInfo> ITEM_CACHE = new HashMap<>();
 
-  private final ColorInfo colorInfo = new ColorInfo();
-  private final List<AbilityInfo> abilityInfo = new ArrayList<>();
-  private final List<EffectInfo> effectsInfo = new ArrayList<>();
+  private final EffectInfo effectInfo = new EffectInfo();
+  private final List<AbilityEntry> abilityEntries = new ArrayList<>();
+  private final List<EffectEntry> effectsEntries = new ArrayList<>();
   private final ResourceEntry itmEntry;
 
   private String name;
@@ -325,21 +326,21 @@ public class ItemInfo implements Comparable<ItemInfo>
   /**
    * Returns the {@code ItemInfo} structure based on the specified item resource. Entries are retrieved from cache
    * for improved performance.
-   * @param entry the ITM {@code ResourceEntry}
+   * @param itmEntry the ITM {@code ResourceEntry}
    * @return the {@code ItemInfo} structure with relevant item details.
    * @throws Exception if the ITM resource could not be loaded.
    */
-  public static ItemInfo get(ResourceEntry entry) throws Exception
+  public static ItemInfo get(ResourceEntry itmEntry) throws Exception
   {
     ItemInfo retVal = null;
-    if (entry == null) {
+    if (itmEntry == null) {
       return EMPTY;
     }
     synchronized (ITEM_CACHE) {
-      retVal = ITEM_CACHE.get(entry);
+      retVal = ITEM_CACHE.get(itmEntry);
       if (retVal == null) {
-        retVal = new ItemInfo(entry);
-        ITEM_CACHE.put(entry, retVal);
+        retVal = new ItemInfo(itmEntry);
+        ITEM_CACHE.put(itmEntry, retVal);
       }
     }
     return retVal;
@@ -348,19 +349,19 @@ public class ItemInfo implements Comparable<ItemInfo>
   /**
    * Functions the same as {@link #get(ResourceEntry)} excepts that available cache entries will be updated with the
    * new item data.
-   * @param entry the ITM {@code ResourceEntry}
+   * @param itmEntry the ITM {@code ResourceEntry}
    * @return the {@code ItemInfo} structure with relevant item details.
    * @throws Exception if the ITM resource could not be loaded.
    */
-  public static ItemInfo getValidated(ResourceEntry entry) throws Exception
+  public static ItemInfo getValidated(ResourceEntry itmEntry) throws Exception
   {
     ItemInfo retVal = null;
-    if (entry == null) {
+    if (itmEntry == null) {
       return EMPTY;
     }
     synchronized (ITEM_CACHE) {
-      retVal = new ItemInfo(entry);
-      ITEM_CACHE.put(entry, retVal);
+      retVal = new ItemInfo(itmEntry);
+      ITEM_CACHE.put(itmEntry, retVal);
     }
     return retVal;
   }
@@ -535,29 +536,29 @@ public class ItemInfo implements Comparable<ItemInfo>
   /** Returns the enchantment value of the item. */
   public int getEnchantment() { return enchantment; }
 
-  /** Provides access to the {@link ColorInfo} instance associated with the item. */
-  public ColorInfo getColorInfo() { return colorInfo; }
+  /** Provides access to the {@link EffectInfo} instance associated with the item. */
+  public EffectInfo getEffectInfo() { return effectInfo; }
 
   /** Returns number of defined item abilities. */
-  public int getAbilityCount() { return abilityInfo.size(); }
+  public int getAbilityCount() { return abilityEntries.size(); }
 
   /** Returns the specified ability structure. */
-  public AbilityInfo getAbility(int index) throws IndexOutOfBoundsException { return abilityInfo.get(index); }
+  public AbilityEntry getAbility(int index) throws IndexOutOfBoundsException { return abilityEntries.get(index); }
 
   /** Returns a sequential {@link Stream} of the {@code AbilityInfo} list. */
-  public Stream<AbilityInfo> getAbilityStream() { return abilityInfo.stream(); }
+  public Stream<AbilityEntry> getAbilityStream() { return abilityEntries.stream(); }
 
   /** Returns the type of the specified ability. */
-  public int getAbilityType(int index) { return (index >= 0 && index < abilityInfo.size()) ? abilityInfo.get(index).getAbilityType() : -1; }
+  public int getAbilityType(int index) { return (index >= 0 && index < abilityEntries.size()) ? abilityEntries.get(index).getAbilityType() : -1; }
 
   /** Returns the number of defined global item effects. */
-  public int getGlobalEffectsCount() { return effectsInfo.size(); }
+  public int getGlobalEffectsCount() { return effectsEntries.size(); }
 
   /** Returns the specified global item effect. */
-  public EffectInfo getGlobalEffect(int index) throws IndexOutOfBoundsException { return effectsInfo.get(index); }
+  public EffectEntry getGlobalEffect(int index) throws IndexOutOfBoundsException { return effectsEntries.get(index); }
 
   /** Returns a sequential {@link Stream} of the {@code EffectInfo} list. */
-  public Stream<EffectInfo> getEffectStream() { return effectsInfo.stream(); }
+  public Stream<EffectEntry> getEffectStream() { return effectsEntries.stream(); }
 
   /** Returns the most suitable item slot type compatible with the current item. */
   public SlotType getSlotType()
@@ -764,9 +765,9 @@ public class ItemInfo implements Comparable<ItemInfo>
         for (int i = 0; i < numFx; i++) {
           Misc.requireCondition(is.read(effect) == effect.length, "Could not read effect " + i + ": " + itmEntry);
           curOfs += effect.length;
-          EffectInfo ei = new EffectInfo(effect);
-          effectsInfo.add(ei);
-          parseEffect(ei);
+          EffectEntry ei = new EffectEntry(effect);
+          effectsEntries.add(ei);
+          parseEffect(effect);
         }
       }
 
@@ -779,7 +780,7 @@ public class ItemInfo implements Comparable<ItemInfo>
         for (int i = 0; i < numAbil; i++) {
           Misc.requireCondition(is.read(ability) == ability.length, "Could not read ability " + i + ": " + itmEntry);
           curOfs += ability.length;
-          abilityInfo.add(new AbilityInfo(ability));
+          abilityEntries.add(new AbilityEntry(ability));
         }
       }
 
@@ -792,60 +793,18 @@ public class ItemInfo implements Comparable<ItemInfo>
         for (int i = 0; i < numFx; i++) {
           Misc.requireCondition(is.read(effect) == effect.length, "Could not read effect " + i + ": " + itmEntry);
           curOfs += effect.length;
-          EffectInfo ei = new EffectInfo(effect);
-          effectsInfo.add(ei);
-          parseEffect(ei);
+          EffectEntry ei = new EffectEntry(effect);
+          effectsEntries.add(ei);
+          parseEffect(effect);
         }
       }
     }
   }
 
-  // Processes a global effect: only "set color" effect is considered
-  private void parseEffect(EffectInfo info)
+  // Processes a global effect
+  private void parseEffect(byte[] data)
   {
-    switch (info.getOpcode()) {
-      case ColorInfo.OPCODE_SET_COLOR:
-      case ColorInfo.OPCODE_SET_COLOR_GLOW:
-      case ColorInfo.OPCODE_TINT_SOLID:
-      case ColorInfo.OPCODE_TINT_BRIGHT:
-        if (info.getTarget() == 1 && info.getTiming() == 2) {
-          // self target; when equipped
-          SegmentDef.SpriteType type = null;
-          int location = info.getParameter2() & 0xf;
-          switch ((info.getParameter2() >> 4) & 0xf) {
-            case 0:
-              type = SegmentDef.SpriteType.AVATAR;
-              break;
-            case 1:
-              type = SegmentDef.SpriteType.WEAPON;
-              break;
-            case 2:
-              type = SegmentDef.SpriteType.SHIELD;
-              break;
-            case 3:
-              type = SegmentDef.SpriteType.HELMET;
-              break;
-            default:
-              if ((info.getParameter2() & 0xff) == 0xff) {
-                type = SegmentDef.SpriteType.AVATAR;
-                location = -1;
-              }
-          }
-          getColorInfo().add(type, info.getOpcode(), location, info.getParameter1());
-        }
-        break;
-      case ColorInfo.OPCODE_TRANSLUCENCY:
-        if (info.getParameter2() == 0) {
-          int param1 = Math.max(0, Math.min(255, info.getParameter1()));
-          getColorInfo().add(SegmentDef.SpriteType.AVATAR, info.getOpcode(), -1, param1);
-        }
-        break;
-      case ColorInfo.OPCODE_BLUR:
-      case ColorInfo.OPCODE_PETRIFICATION:
-      case ColorInfo.OPCODE_STONESKIN:
-        getColorInfo().add(SegmentDef.SpriteType.AVATAR, info.getOpcode(), -1, 0);
-        break;
-    }
+    getEffectInfo().add(EffectInfo.Effect.fromEffectV1(ByteBuffer.wrap(data), 0));
   }
 
 //--------------------- Begin Interface Comparable ---------------------
@@ -866,9 +825,9 @@ public class ItemInfo implements Comparable<ItemInfo>
   public int hashCode()
   {
     int hash = 7;
-    hash = 31 * hash + colorInfo.hashCode();
-    hash = 31 * hash + abilityInfo.hashCode();
-    hash = 31 * hash + effectsInfo.hashCode();
+    hash = 31 * hash + effectInfo.hashCode();
+    hash = 31 * hash + abilityEntries.hashCode();
+    hash = 31 * hash + effectsEntries.hashCode();
     hash = 31 * hash + ((itmEntry == null) ? 0 : itmEntry.hashCode());
     hash = 31 * hash + ((name == null) ? 0 : name.hashCode());
     hash = 31 * hash + ((nameIdentified == null) ? 0 : nameIdentified.hashCode());
@@ -893,12 +852,12 @@ public class ItemInfo implements Comparable<ItemInfo>
       return false;
     }
     ItemInfo other = (ItemInfo)o;
-    boolean retVal = (this.colorInfo == null && other.colorInfo == null) ||
-                     (this.colorInfo != null && this.colorInfo.equals(other.colorInfo));
-    retVal &= (this.abilityInfo == null && other.abilityInfo == null) ||
-              (this.abilityInfo != null && this.abilityInfo.equals(other.abilityInfo));
-    retVal &= (this.effectsInfo == null && other.effectsInfo == null) ||
-              (this.effectsInfo != null && this.effectsInfo.equals(other.effectsInfo));
+    boolean retVal = (this.effectInfo == null && other.effectInfo == null) ||
+                     (this.effectInfo != null && this.effectInfo.equals(other.effectInfo));
+    retVal &= (this.abilityEntries == null && other.abilityEntries == null) ||
+              (this.abilityEntries != null && this.abilityEntries.equals(other.abilityEntries));
+    retVal &= (this.effectsEntries == null && other.effectsEntries == null) ||
+              (this.effectsEntries != null && this.effectsEntries.equals(other.effectsEntries));
     retVal &= (this.itmEntry == null && other.itmEntry == null) ||
               (this.itmEntry != null && this.itmEntry.equals(other.itmEntry));
     retVal &= (this.name == null && other.name == null) ||
@@ -936,7 +895,7 @@ public class ItemInfo implements Comparable<ItemInfo>
 //-------------------------- INNER CLASSES --------------------------
 
   /** Storage class for relevant ability attributes. */
-  public static class AbilityInfo
+  public static class AbilityEntry
   {
     private final int type;
     private final int location;
@@ -953,7 +912,7 @@ public class ItemInfo implements Comparable<ItemInfo>
     private final boolean isBullet;
 
     /** Parses the item ability structure described by the byte array. */
-    private AbilityInfo(byte[] ability)
+    private AbilityEntry(byte[] ability)
     {
       Objects.requireNonNull(ability);
       DynamicArray buf = DynamicArray.wrap(ability, DynamicArray.ElementType.BYTE);
@@ -1016,7 +975,7 @@ public class ItemInfo implements Comparable<ItemInfo>
   }
 
   /** Storage class for relevant global effects attributes. */
-  public static class EffectInfo
+  public static class EffectEntry
   {
     private final int opcode;
     private final int target;
@@ -1032,7 +991,7 @@ public class ItemInfo implements Comparable<ItemInfo>
     private final int special;
 
     /** Parses the EFF V1 structure described by the byte array. */
-    private EffectInfo(byte[] effect)
+    private EffectEntry(byte[] effect)
     {
       Objects.requireNonNull(effect);
       DynamicArray buf = DynamicArray.wrap(effect, DynamicArray.ElementType.BYTE);
