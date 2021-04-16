@@ -319,8 +319,11 @@ public class CharacterDecoder extends CharacterBaseDecoder
         String suffix = SegmentDef.fixBehaviorSuffix(entry.getValue().getValue0());
         if (suffix.startsWith("G")) {
           for (int i = 1; i <= getMaxArmorCode(); i++) {
-            String resref = (i < getMaxArmorCode()) ? resref1 : resref2;
-            files.add(resref + i + suffix + ".BAM");
+            String resref = resref2 + i + suffix + ".BAM";
+            if (!ResourceFactory.resourceExists(resref)) {
+              resref = resref1 + i + suffix + ".BAM";
+            }
+            files.add(resref);
           }
         }
       }
@@ -336,9 +339,12 @@ public class CharacterDecoder extends CharacterBaseDecoder
       // generating file list
       retVal = new ArrayList<String>() {{
         for (int i = 1; i <= getMaxArmorCode(); i++) {
-          String resref = (i < getMaxArmorCode()) ? resref1 : resref2;
           for (final String a : actionSet) {
-            add(resref + i + a + ".BAM");
+            String resref = resref2 + i + a + ".BAM";
+            if (!ResourceFactory.resourceExists(resref)) {
+              resref = resref1 + i + a + ".BAM";
+            }
+            add(resref);
           }
         }
       }};
