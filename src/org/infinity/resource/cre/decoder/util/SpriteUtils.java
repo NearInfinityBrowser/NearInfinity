@@ -519,7 +519,7 @@ public class SpriteUtils
     boolean retVal = false;
     try {
       BamV1Decoder.BamV1Control control = loadBamController(entry);
-      int[] palette = control.getCurrentPalette();
+      int[] palette = control.getPalette();
       if (Profile.getGame() == Profile.Game.PST || Profile.getGame() == Profile.Game.PSTEE) {
         retVal = (palette[224] & 0xffffff) == 0x0000ff;
         retVal &= (palette[240] & 0xffffff) == 0x00009f;
