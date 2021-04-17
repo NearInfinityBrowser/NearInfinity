@@ -99,6 +99,20 @@ public class ZipCentralHeader extends ZipLocalHeader
   }
 
   @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + versionCreated;
+    hash = 31 * hash + idxDisk;
+    hash = 31 * hash + attribInternal;
+    hash = 31 * hash + Long.hashCode(attribExternal);
+    hash = 31 * hash + Long.hashCode(ofsLocalHeader);
+    hash = 31 * hash + ((comment == null) ? 0 : comment.hashCode());
+    hash = 31 * hash + ((localHeader == null) ? 0 : localHeader.hashCode());
+    return hash;
+  }
+
+  @Override
   public boolean equals(Object o)
   {
     if (this == o) {

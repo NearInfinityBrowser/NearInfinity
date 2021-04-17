@@ -76,7 +76,7 @@ final class Window extends AbstractStruct // implements AddRemovable
   /** Returns the number of controls associated with this panel. */
   public int getControlCount()
   {
-    return (int)((UnsignDecNumber)getAttribute(CHU_WINDOW_NUM_CONTROLS)).getValue();
+    return ((UnsignDecNumber)getAttribute(CHU_WINDOW_NUM_CONTROLS)).getValue();
   }
 
   /** Returns the given control. Index is relative to the controls associated with this panel. */
@@ -123,8 +123,8 @@ final class Window extends AbstractStruct // implements AddRemovable
 
   public int readControls(ByteBuffer buffer) throws Exception
   {
-    int numctrl = (int)((UnsignDecNumber)getAttribute(CHU_WINDOW_NUM_CONTROLS)).getValue();
-    int first = (int)((UnsignDecNumber)getAttribute(CHU_WINDOW_FIRST_CONTROL_INDEX)).getValue();
+    int numctrl = ((UnsignDecNumber)getAttribute(CHU_WINDOW_NUM_CONTROLS)).getValue();
+    int first = ((UnsignDecNumber)getAttribute(CHU_WINDOW_FIRST_CONTROL_INDEX)).getValue();
     int controlsoffset = getParent().getControlsOffset() + (first*8);
     int endoffset = controlsoffset;
     for (int i = 0; i < numctrl; i++) {

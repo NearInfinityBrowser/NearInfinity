@@ -246,7 +246,7 @@ public class FontChooser extends JComponent
    **/
   public String getSelectedFontFamily()
   {
-    String fontName = (String) getFontFamilyList().getSelectedValue();
+    String fontName = getFontFamilyList().getSelectedValue();
     return fontName;
   }
 
@@ -284,7 +284,7 @@ public class FontChooser extends JComponent
         fontSize = Integer.parseInt(fontSizeString);
         break;
       } catch (NumberFormatException e) {
-        fontSizeString = (String) getFontSizeList().getSelectedValue();
+        fontSizeString = getFontSizeList().getSelectedValue();
         getFontSizeTextField().setText(fontSizeString);
       }
     }

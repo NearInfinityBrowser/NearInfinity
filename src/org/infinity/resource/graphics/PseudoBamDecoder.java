@@ -751,7 +751,7 @@ public class PseudoBamDecoder extends BamDecoder
                 cnt++;
                 srcIdx++;
               }
-              dstData[dstIdx++] = (byte)rleIndex;
+              dstData[dstIdx++] = rleIndex;
               dstData[dstIdx++] = (byte)cnt;
             } else {
               // uncompressed pixels
@@ -807,7 +807,7 @@ public class PseudoBamDecoder extends BamDecoder
       System.arraycopy("BAM V1  ".getBytes(), 0, bamData, 0, 8);
       DynamicArray.putShort(bamData, 0x08, (short)listFrames.size());
       DynamicArray.putByte(bamData, 0x0a, (byte)listCycles.size());
-      DynamicArray.putByte(bamData, 0x0b, (byte)rleIndex);
+      DynamicArray.putByte(bamData, 0x0b, rleIndex);
       DynamicArray.putInt(bamData, 0x0c, ofsFrameEntries);
       DynamicArray.putInt(bamData, 0x10, ofsPalette);
       DynamicArray.putInt(bamData, 0x14, ofsLookup);
@@ -2136,6 +2136,20 @@ public class PseudoBamDecoder extends BamDecoder
       this.height = height;
       this.dx = dx;
       this.dy = dy;
+    }
+
+    @Override
+    public int hashCode()
+    {
+      int hash = 7;
+      hash = 31 * hash + page;
+      hash = 31 * hash + sx;
+      hash = 31 * hash + sy;
+      hash = 31 * hash + width;
+      hash = 31 * hash + height;
+      hash = 31 * hash + dx;
+      hash = 31 * hash + dy;
+      return hash;
     }
 
     @Override

@@ -223,6 +223,19 @@ public class Keyfile
   }
 
   @Override
+  public int hashCode()
+  {
+    int hash = 7;
+    hash = 31 * hash + ((keyFile == null) ? 0 : keyFile.hashCode());
+    hash = 31 * hash + ((keyList == null) ? 0 : keyList.hashCode());
+    hash = 31 * hash + ((extMap == null) ? 0 : extMap.hashCode());
+    hash = 31 * hash + ((resourceIcons == null) ? 0 : resourceIcons.hashCode());
+    hash = 31 * hash + ((biffEntries == null) ? 0 : biffEntries.hashCode());
+    hash = 31 * hash + ((resourceEntries == null) ? 0 : resourceEntries.hashCode());
+    return hash;
+  }
+
+  @Override
   public boolean equals(Object o)
   {
     if (o == this) {

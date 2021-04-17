@@ -2566,7 +2566,7 @@ public class ConvertToBam extends ChildFrame
           }
         } else {
           // Everything else
-          ImageReader reader = (ImageReader)ImageIO.getImageReadersBySuffix(entry.getExtension()).next();
+          ImageReader reader = ImageIO.getImageReadersBySuffix(entry.getExtension()).next();
           reader.setInput(ImageIO.createImageInputStream(is), false);
           int numFrames = reader.getNumImages(true);
           images = new BufferedImage[numFrames];

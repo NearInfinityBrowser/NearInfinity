@@ -47,7 +47,6 @@ import org.infinity.NearInfinity;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.resource.key.ResourceTreeFolder;
 import org.infinity.resource.key.ResourceTreeModel;
 import org.infinity.util.DataString;
 import org.infinity.util.Platform;
@@ -2438,7 +2437,7 @@ public final class Profile implements FileWatcher.FileWatchListener
             if (FileEx.create(path).isDirectory()) {
               String folderName = path.getFileName().toString();
               if (model.getFolder(folderName) == null) {
-                model.addDirectory((ResourceTreeFolder)model.getRoot(), path, false);
+                model.addDirectory(model.getRoot(), path, false);
               }
             }
           }

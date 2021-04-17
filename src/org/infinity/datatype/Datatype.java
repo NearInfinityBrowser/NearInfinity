@@ -242,8 +242,8 @@ public abstract class Datatype implements StructEntry
    */
   protected void firePropertyChange(Object oldValue, Object newValue)
   {
-    if (parent instanceof AbstractStruct) {
-      ((AbstractStruct)parent).propertyChange(new PropertyChangeEvent(parent, getName(), oldValue, newValue));
+    if (parent != null) {
+      parent.propertyChange(new PropertyChangeEvent(parent, getName(), oldValue, newValue));
     }
   }
 

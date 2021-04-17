@@ -218,7 +218,7 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       if (killVarName == null) return null;
 
       final SectionOffset offset = game.getSectionOffset(KillVariable.class);
-      KillVariable var = (KillVariable)game.getAttribute(offset.getValue(), KillVariable.class, false);
+      KillVariable var = game.getAttribute(offset.getValue(), KillVariable.class, false);
       if (var == null) return null;
 
       final List<StructEntry> fields = game.getFields();

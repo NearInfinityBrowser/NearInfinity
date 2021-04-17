@@ -206,6 +206,17 @@ public class ZipNode
   }
 
   @Override
+  public int hashCode()
+  {
+    int hash = 7;
+    hash = 31 * hash + ((children == null) ? 0 : children.hashCode());
+    hash = 31 * hash + ((header == null) ? 0 : header.hashCode());
+    hash = 31 * hash + ((endHeader == null) ? 0 : endHeader.hashCode());
+    hash = 31 * hash + ((name == null) ? 0 : name.hashCode());
+    return hash;
+  }
+
+  @Override
   public boolean equals(Object o)
   {
     if (o == this) {

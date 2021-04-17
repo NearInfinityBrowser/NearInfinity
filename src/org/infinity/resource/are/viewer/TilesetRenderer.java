@@ -941,7 +941,11 @@ public class TilesetRenderer extends RenderCanvas
           int[] srcSec = null;
           tileIdx = tile.getSecondaryIndex();
           if (tileIdx >= 0) {
-            srcSec = listTilesets.get(0).listTileData.get(tileIdx);
+            if (tileIdx < listTilesets.get(0).listTileData.size()) {
+              srcSec = listTilesets.get(0).listTileData.get(tileIdx);
+            } else {
+              System.err.println("Invalid tile index: " + tileIdx + " of " + listTilesets.get(0).listTileData.size());
+            }
           }
 
           // determining correct rendering mode
@@ -1167,7 +1171,7 @@ public class TilesetRenderer extends RenderCanvas
 
             // initializing overlay flags
             IsNumeric drawOverlays = (IsNumeric)tile.getAttribute(Tilemap.WED_TILEMAP_DRAW_OVERLAYS);
-            int flags = (int)drawOverlays.getValue() & 255;
+            int flags = drawOverlays.getValue() & 255;
 
             listTiles.add(new Tile(x, y, count, tileIdx, tileIdx2, flags, isTisPalette));
             curOfs += tile.getSize();

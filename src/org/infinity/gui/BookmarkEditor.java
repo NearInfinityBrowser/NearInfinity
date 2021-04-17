@@ -305,7 +305,7 @@ public class BookmarkEditor extends JDialog implements ActionListener, FocusList
     // updating bookmark list
     listBookmarks.clear();
     for (int i = 0, size = modelEntries.size(); i < size; i++) {
-      listBookmarks.add((BrowserMenuBar.Bookmark)modelEntries.get(i));
+      listBookmarks.add(modelEntries.get(i));
     }
     accepted = true;
     setVisible(false);
@@ -534,7 +534,7 @@ public class BookmarkEditor extends JDialog implements ActionListener, FocusList
     if (event.getSource() == tfName) {
       int idx = listEntries.getSelectedIndex();
       if (idx >= 0) {
-        BrowserMenuBar.Bookmark bookmark = (BrowserMenuBar.Bookmark)modelEntries.get(idx);
+        BrowserMenuBar.Bookmark bookmark = modelEntries.get(idx);
         if (!tfName.getText().trim().isEmpty()) {
           // update name in selected entry
           bookmark.setName(tfName.getText().trim());

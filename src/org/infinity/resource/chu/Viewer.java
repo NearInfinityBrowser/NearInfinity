@@ -182,7 +182,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
         setPreview(p.getImage());
       }
     } else if (e.getSource() == controlsList) {
-      BaseControl c = (BaseControl)controlsList.getSelectedValue();
+      BaseControl c = controlsList.getSelectedValue();
       if (c != null) {
         // updating properties panel
         getProperties().updateProperties(c);
@@ -224,7 +224,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
   {
     if (e.getSource() == panelsList) {
       if (e.getClickCount() == 2 && !e.isConsumed()) {
-        Panel p = (Panel)panelsList.getSelectedValue();
+        Panel p = panelsList.getSelectedValue();
         if (p != null) {
           StructViewer v = getResource().getViewer();
           if (v != null) {
@@ -234,9 +234,9 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       }
     } else if (e.getSource() == controlsList) {
       if (e.getClickCount() == 2 && !e.isConsumed()) {
-        Panel p = (Panel)panelsList.getSelectedValue();
+        Panel p = panelsList.getSelectedValue();
         if (p != null) {
-          BaseControl c = (BaseControl)controlsList.getSelectedValue();
+          BaseControl c = controlsList.getSelectedValue();
           if (c != null && !c.isEmpty()) {
             StructViewer v = getResource().getViewer();
             if (v != null) {
@@ -911,7 +911,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
       // recreating controls
       int numControls = getViewer().getControls().getSize();
       for (int i = 0; i < numControls; i++) {
-        BaseControl control = (BaseControl)getViewer().getControls().getElementAt(i);
+        BaseControl control = getViewer().getControls().getElementAt(i);
         if (control != null) {
           control.updateImage();
         }
@@ -985,7 +985,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
           // 2. drawing control elements onto the panel
           int numControls = getViewer().getControls().getSize();
           for (int i = 0; i < numControls; i++) {
-            BaseControl control = (BaseControl)getViewer().getControls().getElementAt(i);
+            BaseControl control = getViewer().getControls().getElementAt(i);
             if (control != null) {
               Image ctrlImage = control.getImage();
               if (ctrlImage != null) {

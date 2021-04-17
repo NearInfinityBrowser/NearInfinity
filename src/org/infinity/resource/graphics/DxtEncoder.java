@@ -2391,6 +2391,16 @@ public final class DxtEncoder
     }
 
     @Override
+    public int hashCode()
+    {
+      int hash = 7;
+      hash = 31 * hash + Float.hashCode(vx);
+      hash = 31 * hash + Float.hashCode(vy);
+      hash = 31 * hash + Float.hashCode(vz);
+      return hash;
+    }
+
+    @Override
     public boolean equals(Object o)
     {
       if (o instanceof Vec3) {
@@ -2567,6 +2577,17 @@ public final class DxtEncoder
     public Vec4(final float x, final float y, final float z, final float w)
     {
       vx = x; vy = y; vz = z; vw = w;
+    }
+
+    @Override
+    public int hashCode()
+    {
+      int hash = 7;
+      hash = 31 * hash + Float.hashCode(vx);
+      hash = 31 * hash + Float.hashCode(vy);
+      hash = 31 * hash + Float.hashCode(vz);
+      hash = 31 * hash + Float.hashCode(vw);
+      return hash;
     }
 
     @Override

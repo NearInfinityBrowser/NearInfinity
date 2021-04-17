@@ -220,6 +220,18 @@ private static LongIntegerHashMap<RefEntry> createMap(List<RefEntry> resources)
     }
 
     @Override
+    public int hashCode()
+    {
+      int hash = 7;
+      hash = 31 * hash + Long.hashCode(value);
+      hash = 31 * hash + ((name == null) ? 0 : name.hashCode());
+      hash = 31 * hash + ((entry == null) ? 0 : entry.hashCode());
+      hash = 31 * hash + ((searchString == null) ? 0 : searchString.hashCode());
+      hash = 31 * hash + ((desc == null) ? 0 : desc.hashCode());
+      return hash;
+    }
+
+    @Override
     public boolean equals(Object o)
     {
       return desc.equalsIgnoreCase(Misc.safeToString(o));

@@ -87,21 +87,44 @@ public class BIFFEntry implements Writeable, Comparable<BIFFEntry>
 //--------------------- End Interface Writeable ---------------------
 
   @Override
+  public int hashCode()
+  {
+    int hash = 7;
+    hash = 31 * hash + location;
+    hash = 31 * hash + ((keyFile == null) ? 0 : keyFile.hashCode());
+    hash = 31 * hash + ((biffFile == null) ? 0 : biffFile.hashCode());
+    hash = 31 * hash + ((fileName == null) ? 0 : fileName.hashCode());
+    hash = 31 * hash + index;
+    hash = 31 * hash + fileSize;
+    hash = 31 * hash + stringOffset;
+    hash = 31 * hash + (int)separatorChar;
+    return hash;
+  }
+
+  @Override
   public boolean equals(Object o)
   {
     if (this == o) {
       return true;
-    } else if (o instanceof BIFFEntry) {
-      BIFFEntry other = (BIFFEntry)o;
-      boolean bRet = (keyFile == null && other.keyFile == null) ||
-                     (keyFile != null && keyFile.equals(other.keyFile));
-      bRet &= (biffFile == null && other.biffFile == null) ||
-              (biffFile != null && biffFile.equals(other.biffFile));
-      bRet &= (fileSize == other.fileSize) && (stringOffset == other.stringOffset);
-      return bRet;
-    } else {
+    }
+
+    if (!(o instanceof BIFFEntry)) {
       return false;
     }
+
+    BIFFEntry other = (BIFFEntry)o;
+    boolean retVal = (location == other.location);
+    retVal &= (keyFile == null && other.keyFile == null) ||
+              (keyFile != null && keyFile.equals(other.keyFile));
+    retVal &= (biffFile == null && other.biffFile == null) ||
+              (biffFile != null && biffFile.equals(other.biffFile));
+    retVal &= (fileName == null && other.fileName == null) ||
+              (fileName != null && fileName.equals(other.fileName));
+    retVal &= (index == other.index);
+    retVal &= (fileSize == other.fileSize);
+    retVal &= (stringOffset == other.stringOffset);
+    retVal &= (separatorChar == other.separatorChar);
+    return retVal;
   }
 
   @Override

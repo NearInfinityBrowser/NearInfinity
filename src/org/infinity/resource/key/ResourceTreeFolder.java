@@ -287,7 +287,7 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     @Override
     public synchronized SortedSet<T> headSet(T toElement)
     {
-      int toIdx = Collections.binarySearch(this, (T)toElement);
+      int toIdx = Collections.binarySearch(this, toElement);
       if (toIdx < 0) {
         toIdx = ~toIdx;
       } else {
@@ -308,11 +308,11 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     @Override
     public synchronized SortedSet<T> subSet(T fromElement, T toElement)
     {
-      int fromIdx = Collections.binarySearch(this, (T)fromElement);
+      int fromIdx = Collections.binarySearch(this, fromElement);
       if (fromIdx < 0) {
         fromIdx = ~fromIdx;
       }
-      int toIdx = Collections.binarySearch(this, (T)toElement);
+      int toIdx = Collections.binarySearch(this, toElement);
       if (toIdx < 0) {
         toIdx = ~toIdx;
       } else {
@@ -324,7 +324,7 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     @Override
     public synchronized SortedSet<T> tailSet(T fromElement)
     {
-      int fromIdx = Collections.binarySearch(this, (T)fromElement);
+      int fromIdx = Collections.binarySearch(this, fromElement);
       if (fromIdx < 0) {
         fromIdx = ~fromIdx;
       }

@@ -485,6 +485,17 @@ public class BasicColorMap implements IColormap
 //    public void setColorIndex(int index) { this.index = index & 1; }
 
     @Override
+    public int hashCode()
+    {
+      int hash = 7;
+      hash = 31 * hash + offset;
+      hash = 31 * hash + size;
+      hash = 31 * hash + index;
+      hash = 31 * hash + ((color == null) ? 0 : color.hashCode());
+      return hash;
+    }
+
+    @Override
     public boolean equals(Object o)
     {
       if (o instanceof ColoredBlock) {
