@@ -664,6 +664,12 @@ public class TilesetRenderer extends RenderCanvas
       if (so != null && sc != null) {
         for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
           Overlay ovl = (Overlay)wed.getAttribute(curOfs, false);
+          if (i == 0) {
+            if (Profile.getGame() == Profile.Game.BG1EE || Profile.getGame() == Profile.Game.BG1SoD) {
+              // updating overlay rendering mode (BG1-style or BG2-style)
+              blendedOverlays &= (((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_MOVEMENT_TYPE)).getValue() == 2);
+            }
+          }
           if (ovl != null) {
             listTilesets.add(new Tileset(wed, ovl));
             curOfs += ovl.getSize();
