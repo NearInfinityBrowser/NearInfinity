@@ -2305,7 +2305,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           try {
             // L&F description is only available from class instance
             Class<?> cls = Class.forName(info[i].getClassName());
-            Object o = cls.newInstance();
+            Object o = cls.getDeclaredConstructor().newInstance();
             if (o instanceof LookAndFeel)
               dbmi.setToolTipText(((LookAndFeel)o).getDescription());
           } catch (Exception ex) {

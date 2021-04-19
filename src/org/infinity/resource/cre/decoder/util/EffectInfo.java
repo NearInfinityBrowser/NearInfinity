@@ -313,14 +313,38 @@ public class EffectInfo
              ((fx.getParameter2() & 0xf) == locationIndex);
     };
 
-    List<Effect> list = getEffects(creInfo, type, pred);
-    if (!list.isEmpty()) {
-      return list.get(0);
-    }
-
-    return null;
+    return getFirstEffect(creInfo, type, pred);
   }
 
+  /**
+   * Adds the specified effect and associates it with the {@code SpriteType} defined by the effect.
+   * <p>Indirectly created effects (e.g. via opcode 146) are correctly resolved and added.
+   * @param effect the effect to add.
+   */
+  public void add(Effect effect)
+  {
+    if (effect == null) {
+      throw new NullPointerException("Effect parameter cannot be null");
+    }
+
+    List<Effect> effects = resolveEffect(null, effect);
+    for (final Effect fx : effects) {
+      SegmentDef.SpriteType type = getEffectType(fx);
+      Set<Effect> set = effectMap.get(type);
+      if (set == null) {
+        set = new HashSet<>();
+        effectMap.put(type, set);
+      }
+      set.add(fx);
+    }
+  }
+
+  /**
+   * Checks if the specified effect is available for the given creature.
+   * @param effect the effect to check
+   * @param creInfo the creature target
+   * @return {@code true} if the effect is valid for the target. Returns {@code false} otherwise.
+   */
   protected boolean isEffectValid(Effect effect, CreatureInfo creInfo)
   {
     boolean retVal = true;
@@ -346,29 +370,6 @@ public class EffectInfo
     }
 
     return retVal;
-  }
-
-  /**
-   * Adds the specified effect and associates it with the {@code SpriteType} defined by the effect.
-   * <p>Indirectly created effects (e.g. via opcode 146) are correctly resolved and added.
-   * @param effect the effect to add.
-   */
-  public void add(Effect effect)
-  {
-    if (effect == null) {
-      throw new NullPointerException("Effect parameter cannot be null");
-    }
-
-    List<Effect> effects = resolveEffect(null, effect);
-    for (final Effect fx : effects) {
-      SegmentDef.SpriteType type = getEffectType(fx);
-      Set<Effect> set = effectMap.get(type);
-      if (set == null) {
-        set = new HashSet<>();
-        effectMap.put(type, set);
-      }
-      set.add(fx);
-    }
   }
 
   /** Determines the sprite type target defined by this effect. Only relevant for color-related effects. */
