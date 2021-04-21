@@ -930,16 +930,20 @@ public final class CreResource extends AbstractStruct
     TextString version = new TextString(buffer, offset + 4, 4, COMMON_VERSION);
     addField(version);
     if (signature.toString().equalsIgnoreCase("CHR ")) {
+      IdsBitmap bitmap;
+      final IdsMapEntry entryNone = new IdsMapEntry(-1L, "NONE");
       addField(new TextString(buffer, offset + 8, 32, CHR_NAME));
       HexNumber structOffset = new HexNumber(buffer, offset + 40, 4, CHR_OFFSET_CRE);
       addField(structOffset);
       addField(new HexNumber(buffer, offset + 44, 4, CHR_CRE_SIZE));
       if (version.toString().equalsIgnoreCase("V2.2")) {
         for (int i = 0; i < 4; i++) {
-          addField(new IdsBitmap(buffer, offset + 48 + (i * 4), 2,
-                                 String.format(CHR_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS"));
-          addField(new IdsBitmap(buffer, offset + 50 + (i * 4), 2,
-                                 String.format(CHR_QUICK_SHIELD_SLOT_FMT, i+1), "SLOTS.IDS"));
+          bitmap = addField(new IdsBitmap(buffer, offset + 48 + (i * 4), 2,
+                                          String.format(CHR_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+          bitmap.addIdsMapEntry(entryNone);
+          bitmap = addField(new IdsBitmap(buffer, offset + 50 + (i * 4), 2,
+                                          String.format(CHR_QUICK_SHIELD_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+          bitmap.addIdsMapEntry(entryNone);
         }
         for (int i = 0; i < 4; i++) {
           addField(new DecNumber(buffer, offset + 64 + (i * 4), 2,
@@ -957,8 +961,9 @@ public final class CreResource extends AbstractStruct
         }
         addField(new Unknown(buffer, offset + 161, 1));
         for (int i = 0; i < 3; i++) {
-          addField(new IdsBitmap(buffer, offset + 162 + (i * 2), 2,
-                                 String.format(CHR_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+          bitmap = addField(new IdsBitmap(buffer, offset + 162 + (i * 2), 2,
+                                          String.format(CHR_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+          bitmap.addIdsMapEntry(entryNone);
         }
         for (int i = 0; i < 3; i++) {
           addField(new DecNumber(buffer, offset + 168 + (i * 2), 2,
@@ -985,8 +990,9 @@ public final class CreResource extends AbstractStruct
                version.toString().equalsIgnoreCase("V2.0") ||
                version.toString().equalsIgnoreCase("V2.1")) {
         for (int i = 0; i < 4; i++) {
-          addField(new IdsBitmap(buffer, offset + 48 + (i * 2), 2,
-                                 String.format(CHR_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS"));
+          bitmap = addField(new IdsBitmap(buffer, offset + 48 + (i * 2), 2,
+                                          String.format(CHR_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+          bitmap.addIdsMapEntry(entryNone);
         }
         for (int i = 0; i < 4; i++) {
           addField(new DecNumber(buffer, offset + 56 + (i * 2), 2,
@@ -997,8 +1003,9 @@ public final class CreResource extends AbstractStruct
                                    String.format(CHR_QUICK_SPELL_FMT, i+1), "SPL"));
         }
         for (int i = 0; i < 3; i++) {
-          addField(new IdsBitmap(buffer, offset + 88 + (i * 2), 2,
-                                 String.format(CHR_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS"));
+          bitmap = addField(new IdsBitmap(buffer, offset + 88 + (i * 2), 2,
+                                          String.format(CHR_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+          bitmap.addIdsMapEntry(entryNone);
         }
         for (int i = 0; i < 3; i++) {
           addField(new DecNumber(buffer, offset + 94 + (i * 2), 2,
@@ -1648,9 +1655,9 @@ public final class CreResource extends AbstractStruct
         addField(new Unknown(buffer, offset + 572, 2));
       }
       if (ResourceFactory.resourceExists("MAGESPEC.IDS")) {
-        addField(new IdsBitmap(buffer, offset + 574, 2, CRE_MAGE_TYPE, "MAGESPEC.IDS"));
+        addField(new IdsBitmap(buffer, offset + 574, 2, CRE_MAGE_TYPE, "MAGESPEC.IDS", true, true, false));
       } else {
-        addField(new HashBitmap(buffer, offset + 574, 2, CRE_MAGE_TYPE, m_magetype));
+        addField(new HashBitmap(buffer, offset + 574, 2, CRE_MAGE_TYPE, m_magetype, true, false, true));
       }
     }
     addField(new ResourceRef(buffer, offset + 576, CRE_SCRIPT_OVERRIDE, "BCS"));

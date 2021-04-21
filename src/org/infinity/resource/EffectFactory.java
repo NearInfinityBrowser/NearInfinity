@@ -3011,7 +3011,7 @@ public final class EffectFactory
                                         "Inventory 19", "Inventory 20", "Magic weapon", "Weapon 1",
                                         "Weapon 2", "Weapon 3", "Weapon 4"}));
         } else {
-          s.add(new IdsBitmap(buffer, offset, 4, "Slot", "SLOTS.IDS"));
+          s.add(new IdsBitmap(buffer, offset, 4, "Slot", "SLOTS.IDS", true, false, true));
         }
         s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         restype = "ITM";
