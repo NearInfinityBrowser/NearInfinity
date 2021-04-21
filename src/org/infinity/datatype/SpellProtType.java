@@ -303,9 +303,9 @@ public class SpellProtType extends Bitmap
               break;
             case 0x102: // circle size
               if (isBitwiseRelation(rel) && value != -1) {
-                label = String.format("Circle size %s %d [0x%x]", getRelation(rel), value, value);
+                label = String.format("Personal space %s %d [0x%x]", getRelation(rel), value, value);
               } else {
-                label = String.format("Circle size %s %d", getRelation(rel), value);
+                label = String.format("Personal space %s %d", getRelation(rel), value);
               }
               break;
             case 0x103: // use two rows of splprot.2da
