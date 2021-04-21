@@ -36,9 +36,9 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
 import org.infinity.resource.cre.browser.icon.Icons;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
+import org.infinity.resource.cre.decoder.SpriteDecoder.SpriteBamControl;
 import org.infinity.resource.cre.decoder.util.Direction;
 import org.infinity.resource.cre.decoder.util.Sequence;
-import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 
 /**
  * This panel provides controls for animation playback and related visual options.
@@ -63,7 +63,7 @@ public class MediaPanel extends JPanel
   private JSlider slDirection;
   private JLabel lDirection;
   private JLabel lFrameCur, lFrameMax;
-  private PseudoBamControl controller;
+  private SpriteBamControl controller;
   private Timer timer;
   private int curFrame, curCycle;
 
@@ -130,17 +130,17 @@ public class MediaPanel extends JPanel
   }
 
   /** Returns the currently assigned BAM controller for the creature animation. */
-  public PseudoBamControl getController() { return controller; }
+  public SpriteBamControl getController() { return controller; }
 
   /** Sets the BAM controller for the creature animation. */
-  protected void setController(PseudoBamControl controller)
+  protected void setController(SpriteBamControl controller)
   {
     if (this.controller == null && controller != null ||
         this.controller != null && !this.controller.equals(controller)) {
       pause();
       this.controller = controller;
       if (this.controller != null) {
-        this.controller.setMode(PseudoBamControl.Mode.SHARED);
+        this.controller.setMode(SpriteBamControl.Mode.SHARED);
         this.controller.setSharedPerCycle(false);
       }
     }

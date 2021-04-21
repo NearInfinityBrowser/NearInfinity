@@ -44,9 +44,9 @@ import org.infinity.gui.WindowBlocker;
 import org.infinity.icon.Icons;
 import org.infinity.resource.cre.browser.CreatureBrowser;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
+import org.infinity.resource.cre.decoder.SpriteDecoder.SpriteBamControl;
 import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
-import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 
 /**
  * A basic creature animation viewer.
@@ -64,7 +64,8 @@ public class ViewerAnimation extends JComponent implements ActionListener
 
   private boolean initialized;
   private SpriteDecoder decoder;
-  private PseudoBamControl bamControl;
+  private SpriteBamControl bamControl;
+  private BufferedImage tmpImage;
   private RenderCanvas rcDisplay;
   private int curCycle, curFrame;
   private Timer timer;
@@ -93,12 +94,12 @@ public class ViewerAnimation extends JComponent implements ActionListener
   }
 
   /** Returns the {@code BamControl} instance linked to the {@code SpriteDecoder}. */
-  public PseudoBamControl getController()
+  public SpriteBamControl getController()
   {
     return bamControl;
   }
 
-  private void setController(PseudoBamControl ctrl)
+  private void setController(SpriteBamControl ctrl)
   {
     this.bamControl = Objects.requireNonNull(ctrl, "BamControl cannot be null");
   }
@@ -124,7 +125,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
   private void resetAnimationSequence() throws Exception
   {
     setController(getDecoder().createControl());
-    getController().setMode(PseudoBamControl.Mode.SHARED);
+    getController().setMode(SpriteBamControl.Mode.SHARED);
     getController().setSharedPerCycle(false);
     if (curCycle < getController().cycleCount()) {
       getController().cycleSet(curCycle);
@@ -146,6 +147,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
     boolean imageChanged = !dim.equals(new Dimension(rcDisplay.getImage().getWidth(null), rcDisplay.getImage().getHeight(null)));
     boolean sizeChanged = !dimDisplay.equals(rcDisplay.getPreferredSize());
     if (imageChanged || sizeChanged) {
+      tmpImage = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
       rcDisplay.setImage(new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB));
       if (sizeChanged) {
         rcDisplay.setPreferredSize(dimDisplay);
@@ -163,19 +165,36 @@ public class ViewerAnimation extends JComponent implements ActionListener
   /** Updates display with content of the current animation frame. */
   public void updateCanvas()
   {
-    BufferedImage image = (BufferedImage)rcDisplay.getImage();
-    Graphics2D g = image.createGraphics();
+    // pre-rendering new frame
+    Graphics2D g = tmpImage.createGraphics();
     try {
       g.setComposite(AlphaComposite.Src);
       g.setColor(COLOR_TRANSPARENT);
-      g.fillRect(0, 0, image.getWidth(), image.getHeight());
+      g.fillRect(0, 0, tmpImage.getWidth(), tmpImage.getHeight());
+    } finally {
+      g.dispose();
+      g = null;
+    }
+    getController().cycleGetFrame(tmpImage);
+
+    g = (Graphics2D)rcDisplay.getImage().getGraphics();
+    try {
+      // clearing old content
+      g.setComposite(AlphaComposite.Src);
+      g.setColor(COLOR_TRANSPARENT);
+      g.fillRect(0, 0, rcDisplay.getImage().getWidth(null), rcDisplay.getImage().getHeight(null));
+
+      // drawing markers
+      getController().getVisualMarkers(g, null);
+
+      // drawing animation frame
+      g.setComposite(AlphaComposite.SrcOver);
+      g.drawImage(tmpImage, 0, 0, null);
     } finally {
       g.dispose();
       g = null;
     }
 
-    // rendering new frame
-    getController().cycleGetFrame(image);
     rcDisplay.repaint();
   }
 
@@ -299,7 +318,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
         WindowBlocker.blockWindow(true);
         showSelectionCircle = cbShowCircle.isSelected();
         getDecoder().setSelectionCircleEnabled(showSelectionCircle);
-        resetAnimationSequence();
+        updateCanvas();
       } catch (Exception e) {
         e.printStackTrace();
       } finally {
@@ -311,7 +330,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
         WindowBlocker.blockWindow(true);
         showPersonalSpace = cbShowSpace.isSelected();
         getDecoder().setPersonalSpaceVisible(showPersonalSpace);
-        resetAnimationSequence();
+        updateCanvas();
       } catch (Exception e) {
         e.printStackTrace();
       } finally {
@@ -378,6 +397,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
 
   private void init()
   {
+    tmpImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
     rcDisplay = new RenderCanvas(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB));
     rcDisplay.setHorizontalAlignment(SwingConstants.CENTER);
     rcDisplay.setVerticalAlignment(SwingConstants.CENTER);

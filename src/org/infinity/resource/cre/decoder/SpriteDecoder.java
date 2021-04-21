@@ -53,6 +53,7 @@ import org.infinity.resource.cre.decoder.util.SpriteUtils;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder;
 import org.infinity.resource.graphics.BamV1Decoder.BamV1Control;
+import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.BlendingComposite;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
@@ -182,6 +183,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   /** Cache for creature animation attributes. */
   private final TreeMap<DecoderAttribute, Object> attributesMap;
 
+  private BufferedImage imageCircle;
   private Sequence currentSequence;
   private boolean showCircle;
   private boolean selectionCircleBitmap;
@@ -867,13 +869,14 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   /** Call this method whenever the visibility of the selection circle has been changed. */
   public void selectionCircleChanged()
   {
-    setAnimationChanged();
+    // force recaching
+    imageCircle = null;
   }
 
   /** Call this method whenever the visibility of personal space has been changed. */
   public void personalSpaceChanged()
   {
-    setAnimationChanged();
+    // nothing to do
   }
 
   /** Call this method whenever the visibility of any sprite types has been changed. */
@@ -885,7 +888,8 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   /** Call this method whenever the allegiance value has been changed. */
   public void allegianceChanged()
   {
-    setAnimationChanged();
+    // force recaching
+    imageCircle = null;
   }
 
   /**
@@ -964,6 +968,12 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   public void resetAnimationChanged()
   {
     animationChanged = false;
+  }
+
+  @Override
+  public SpriteBamControl createControl()
+  {
+    return new SpriteBamControl(this);
   }
 
   /**
@@ -1286,17 +1296,13 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     }
 
     // include personal space region in image size
-    if (isPersonalSpaceVisible()) {
-      rect = SpriteUtils.updateFrameDimension(rect, getPersonalSpaceSize(true));
-    }
+    rect = SpriteUtils.updateFrameDimension(rect, getPersonalSpaceSize(true));
 
     // include selection circle in image size
     float circleStrokeSize = getSelectionCircleStrokeSize();
-    if (isSelectionCircleEnabled()) {
-      Dimension dim = getSelectionCircleSize();
-      rect = SpriteUtils.updateFrameDimension(rect, new Dimension(2 * (dim.width + (int)circleStrokeSize),
-                                                                  2 * (dim.height + (int)circleStrokeSize)));
-    }
+    Dimension dim = getSelectionCircleSize();
+    rect = SpriteUtils.updateFrameDimension(rect, new Dimension(2 * (dim.width + (int)circleStrokeSize),
+                                                                2 * (dim.height + (int)circleStrokeSize)));
 
     // creating target image
     BufferedImage image;
@@ -1307,18 +1313,6 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
         g.setComposite(AlphaComposite.SrcOver);
         g.setColor(new Color(0, true));
         g.fillRect(0, 0, image.getWidth(), image.getHeight());
-
-        Point center = new Point(-rect.x, -rect.y);
-
-        if (isPersonalSpaceVisible()) {
-          // Drawing personal space region
-          drawPersonalSpace(g, center, null, 0.5f);
-        }
-
-        if (isSelectionCircleEnabled()) {
-          // Drawing selection circle
-          drawSelectionCircle(g, center, circleStrokeSize);
-        }
 
         // drawing source frames to target image
         for (final FrameInfo fi : sourceFrames) {
@@ -1468,7 +1462,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
       return dim;
     }
     if (isSelectionCircleBitmap()) {
-      dim.width += 4; // compensation for missing stroke size
+      dim.width += 2; // compensation for missing stroke size
     }
     dim.height = dim.width * 4 / 7;   // ratio 1.75
     if (dim.height % 7 > 3) {
@@ -1505,23 +1499,43 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
         return;
       }
 
+      Image image;
       if (isSelectionCircleBitmap()) {
-        Image image = getCreatureInfo().isStatusPanic() ? SpriteUtils.getAllegianceImage(-1)
-                                                        : SpriteUtils.getAllegianceImage(getCreatureInfo().getAllegiance());
-        Object oldHints = g.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g.drawImage(image, center.x - dim.width, center.y - dim.height, 2 * dim.width, 2 * dim.height, null);
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, (oldHints != null) ? oldHints : RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        // fetching ornate selection circle image
+        image = getCreatureInfo().isStatusPanic() ? SpriteUtils.getAllegianceImage(-1)
+                                                  : SpriteUtils.getAllegianceImage(getCreatureInfo().getAllegiance());
       } else {
-        Color color = getCreatureInfo().isStatusPanic() ? SpriteUtils.getAllegianceColor(-1)
-                                                        : SpriteUtils.getAllegianceColor(getCreatureInfo().getAllegiance());
-        Object oldHints = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(color);
-        g.setStroke(new BasicStroke(strokeSize));
-        g.drawOval(center.x - dim.width, center.y - dim.height, 2 * dim.width, 2 * dim.height);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, (oldHints != null) ? oldHints : RenderingHints.VALUE_ANTIALIAS_DEFAULT);
+        if (imageCircle == null) {
+          // pregenerating circle graphics
+          int stroke = (int)Math.ceil(strokeSize);
+          imageCircle = ColorConvert.createCompatibleImage((dim.width + stroke) * 2 + 1, (dim.height + stroke) * 2 + 1, true);
+          Graphics2D g2 = imageCircle.createGraphics();
+          try {
+            Color color = getCreatureInfo().isStatusPanic() ? SpriteUtils.getAllegianceColor(-1)
+                                                            : SpriteUtils.getAllegianceColor(getCreatureInfo().getAllegiance());
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(color);
+            g2.setStroke(new BasicStroke(strokeSize));
+            g2.drawOval((imageCircle.getWidth() / 2) - dim.width,
+                        (imageCircle.getHeight() / 2) - dim.height,
+                        2 * dim.width,
+                        2 * dim.height);
+          } finally {
+            g2.dispose();
+            g2 = null;
+          }
+        }
+        image = imageCircle;
+        // adjusting drawing size
+        dim.width = image.getWidth(null) / 2;
+        dim.height = image.getHeight(null) / 2;
       }
+
+      // drawing selection circle
+      Object oldHints = g.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
+      g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      g.drawImage(image, center.x - dim.width, center.y - dim.height, 2 * dim.width, 2 * dim.height, null);
+      g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, (oldHints != null) ? oldHints : RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
     }
   }
 
@@ -1911,6 +1925,128 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   }
 
 //-------------------------- INNER CLASSES --------------------------
+
+  /**
+   * Specialized controller for creature animations.
+   */
+  public static class SpriteBamControl extends PseudoBamControl
+  {
+    protected SpriteBamControl(SpriteDecoder decoder)
+    {
+      super(decoder);
+    }
+
+    @Override
+    public SpriteDecoder getDecoder()
+    {
+      return (SpriteDecoder)super.getDecoder();
+    }
+
+    /**
+     * A convenience method that draws personal space marker and/or selection circle onto the canvas specified by the
+     * {@code Graphics2D} instance based on current decoder settings.
+     * Frame dimension and center position are taken into account and based on the currently selected cycle frame.
+     * @param g the {@code Graphics2D} instance used to render the graphics.
+     * @param offset amount of pixels to move the center point by. Specify {@code null} for no change.
+     */
+    public void getVisualMarkers(Graphics2D g, Point offset)
+    {
+      getVisualMarkers(g, offset, cycleGetFrameIndex(), getDecoder().isPersonalSpaceVisible(),
+                       getDecoder().isSelectionCircleEnabled());
+    }
+
+    /**
+     * A convenience method that draws personal space marker and/or selection circle onto the canvas specified by the
+     * {@code Graphics2D} instance.
+     * Frame dimension and center position are taken into account and based on the currently selected cycle frame.
+     * @param g the {@code Graphics2D} instance used to render the graphics.
+     * @param offset amount of pixels to move the center point by. Specify {@code null} for no change.
+     * @param drawPersonalSpace whether to draw the personal space marker.
+     * @param drawSelectionCircle whether to draw the selection circle.
+     */
+    public void getVisualMarkers(Graphics2D g, Point offset, boolean drawPersonalSpace, boolean drawSelectionCircle)
+    {
+      getVisualMarkers(g, offset, cycleGetFrameIndex(), drawPersonalSpace, drawSelectionCircle);
+    }
+
+    /**
+     * A convenience method that draws personal space marker and/or selection circle onto the canvas specified by the
+     * {@code Graphics2D} instance based on current decoder settings.
+     * Frame dimension and center position are taken into account by the specified relative frame index.
+     * @param g the {@code Graphics2D} instance used to render the graphics.
+     * @param offset amount of pixels to move the center point by. Specify {@code null} for no change.
+     * @param frameIdx the frame index relative to current cycle.
+     */
+    public void getVisualMarkers(Graphics2D g, Point offset, int frameIdx)
+    {
+      getVisualMarkers(g, offset, frameIdx, getDecoder().isPersonalSpaceVisible(),
+                       getDecoder().isSelectionCircleEnabled());
+    }
+
+    /**
+     * A convenience method that draws personal space marker and/or selection circle onto the canvas specified by the
+     * {@code Graphics2D} instance.
+     * Frame dimension and center position are taken into account by the specified relative frame index.
+     * @param g the {@code Graphics2D} instance used to render the graphics.
+     * @param offset amount of pixels to move the center point by. Specify {@code null} for no change.
+     * @param frameIdx the frame index relative to current cycle.
+     * @param drawPersonalSpace whether to draw the personal space marker.
+     * @param drawSelectionCircle whether to draw the selection circle.
+     */
+    public void getVisualMarkers(Graphics2D g, Point offset, int frameIdx,
+                                 boolean drawPersonalSpace, boolean drawSelectionCircle)
+    {
+      if (g == null || (drawPersonalSpace == false && drawSelectionCircle == false)) {
+        return;
+      }
+
+      frameIdx = cycleGetFrameIndexAbsolute(frameIdx);
+      if (frameIdx < 0) {
+        return;
+      }
+
+      // getting frame dimension and center
+      PseudoBamFrameEntry entry = getDecoder().getFrameInfo(frameIdx);
+      Point center;
+      int w, h;
+      if (getMode() == BamDecoder.BamControl.Mode.SHARED) {
+        updateSharedBamSize();
+        Dimension d = getSharedDimension();
+        center = getSharedOrigin();
+        center.x = -center.x;
+        center.y = -center.y;
+        w = d.width;
+        h = d.height;
+      } else {
+        w = entry.getWidth();
+        h = entry.getHeight();
+        center = new Point(entry.getCenterX(), entry.getCenterY());
+      }
+
+      if (w <= 0 || h <= 0) {
+        return;
+      }
+
+      if (offset != null) {
+        center.x += offset.x;
+        center.y += offset.y;
+      }
+
+      // drawing markers
+      Composite comp = g.getComposite();
+      g.setComposite(AlphaComposite.SrcOver);
+      if (drawPersonalSpace) {
+        getDecoder().drawPersonalSpace(g, center, null, 0.5f);
+      }
+      if (drawSelectionCircle) {
+        getDecoder().drawSelectionCircle(g, center, getDecoder().getSelectionCircleStrokeSize());
+      }
+      if (comp != null) {
+        g.setComposite(comp);
+      }
+    }
+  }
+
 
   /**
    * Represents an operation that is called once per source BAM resource when creating a creature animation.

@@ -15,9 +15,9 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import org.infinity.resource.cre.decoder.SpriteDecoder;
+import org.infinity.resource.cre.decoder.SpriteDecoder.SpriteBamControl;
 import org.infinity.resource.cre.decoder.util.Direction;
 import org.infinity.resource.graphics.ColorConvert;
-import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 
 /**
  * Implements functionality for properly displaying actor sprites.
@@ -27,7 +27,7 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
   private static final Color TransparentColor = new Color(0, true);
 
   private SpriteDecoder decoder;
-  private PseudoBamControl control;
+  private SpriteBamControl control;
   private boolean isLooping, isSelectionCircleEnabled, isPersonalSpaceEnabled;
   private int lighting, orientation, cycle, startFrame, endFrame;
   private Rectangle imageRect;
@@ -48,7 +48,7 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
   {
     this.decoder = Objects.requireNonNull(decoder, "Sprite decoder cannot be null");
     control = this.decoder.createControl();
-    control.setMode(PseudoBamControl.Mode.INDIVIDUAL);
+    control.setMode(SpriteBamControl.Mode.INDIVIDUAL);
     control.setSharedPerCycle(false);
     control.cycleSet(getCycle());
     resetFrame();
@@ -283,18 +283,32 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
   {
     BufferedImage image = (BufferedImage)getImage();
     if (image != null) {
+      Graphics2D g;
       if (isActive()) {
-        // clearing old content
-        Graphics2D g = image.createGraphics();
+        g = image.createGraphics();
         try {
-          g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+          // clearing old content
+          g.setComposite(AlphaComposite.Src);
           g.setColor(TransparentColor);
           g.fillRect(0, 0, image.getWidth(), image.getHeight());
+        } finally {
+          g.dispose();
+          g = null;
+        }
+
+        g = image.createGraphics();
+        try {
+          int frameIndex = control.cycleGetFrameIndexAbsolute();
+          int left = -imageRect.x - decoder.getFrameInfo(frameIndex).getCenterX();
+          int top = -imageRect.y - decoder.getFrameInfo(frameIndex).getCenterY();
+          Point pos = new Point(left, top);
+
+          // rendering visual markers
+          control.getVisualMarkers(g, pos);
 
           // rendering frame
           // fetching frame data
           BufferedImage working = getWorkingImage();
-          int frameIndex = control.cycleGetFrameIndexAbsolute();
           int[] buffer = ((DataBufferInt)working.getRaster().getDataBuffer()).getData();
           Arrays.fill(buffer, 0);
           decoder.frameGet(control, frameIndex, working);
@@ -312,8 +326,6 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
           buffer = null;
 
           // rendering frame
-          int left = -imageRect.x - decoder.getFrameInfo(frameIndex).getCenterX();
-          int top = -imageRect.y - decoder.getFrameInfo(frameIndex).getCenterY();
           g.drawImage(working, left, top, left+frameWidth, top+frameHeight, 0, 0, frameWidth, frameHeight, null);
         } finally {
           g.dispose();
@@ -321,9 +333,9 @@ public class ActorAnimationProvider extends AbstractAnimationProvider
         }
       } else {
         // draw placeholder instead
-        Graphics2D g = image.createGraphics();
+        g = image.createGraphics();
         try {
-          g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+          g.setComposite(AlphaComposite.Src);
           g.setColor(TransparentColor);
           g.fillRect(0, 0, image.getWidth(), image.getHeight());
         } finally {

@@ -28,8 +28,8 @@ import javax.swing.event.ChangeListener;
 
 import org.infinity.gui.RenderCanvas;
 import org.infinity.gui.ViewerUtil;
+import org.infinity.resource.cre.decoder.SpriteDecoder.SpriteBamControl;
 import org.infinity.resource.graphics.ColorConvert;
-import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 
 /**
  * This panel handles drawing background and creature animations.
@@ -193,7 +193,7 @@ public class RenderPanel extends JPanel
   }
 
   /** Stores the active BAM frame and frame center from the specified {@code PseudoBamControl} object internally for display. */
-  public void setFrame(PseudoBamControl ctrl)
+  public void setFrame(SpriteBamControl ctrl)
   {
     if (ctrl != null) {
       if (frameBounds == null) {
@@ -374,7 +374,13 @@ public class RenderPanel extends JPanel
       int y = (backgroundCenter != null) ? backgroundCenter.y : -frameBounds.y;
 
       Graphics2D g = (Graphics2D)rcCanvas.getImage().getGraphics();
+      Point pos = new Point(x + frameBounds.x, y + frameBounds.y);
       try {
+        // drawing markers
+        SpriteBamControl ctrl = getBrowser().getMediaPanel().getController();
+        ctrl.getVisualMarkers(g, pos);
+
+        // drawing frame
         g.setComposite(getComposite());
         g.drawImage(frame, x + frameBounds.x, y + frameBounds.y, null);
       } finally {

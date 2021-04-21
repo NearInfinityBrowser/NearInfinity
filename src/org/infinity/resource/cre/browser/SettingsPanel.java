@@ -84,23 +84,7 @@ public class SettingsPanel extends JPanel
                          isShowAvatar, isShowHelmet, isShowShield, isShowWeapon;
 
   static {
-    indexZoom = 1;        // 100 % (original)
-    indexFrameRate = 3;   // 15 fps (original)
-    indexBackground = 0;  // System color
-    isFiltering = false;
-    isBlending = true;
-    isTranslucent = true;
-    isSelectionCircle = false;
-    isOrnateSelectionCircle = (Profile.getGame() == Profile.Game.PST) || (Profile.getGame() == Profile.Game.PSTEE);
-    isPersonalSpace = false;
-    isShowAvatar = true;
-    isShowHelmet = true;
-    isShowShield = true;
-    isShowWeapon = true;
-    isShowBorders = false;
-    isTintEnabled = true;
-    isBlurEnabled = true;
-    isPaletteReplacementEnabled = true;
+    resetSettings();
   }
 
   private final Listeners listeners = new Listeners();
@@ -124,10 +108,33 @@ public class SettingsPanel extends JPanel
         .collect(Collectors.toList());
   }
 
+  /** Initializes global settings with sane defaults. */
+  private static void resetSettings()
+  {
+    indexZoom = 1;        // 100 % (original)
+    indexFrameRate = 3;   // 15 fps (original)
+    indexBackground = 0;  // System color
+    isFiltering = false;
+    isBlending = true;
+    isTranslucent = true;
+    isSelectionCircle = false;
+    isOrnateSelectionCircle = (Profile.getGame() == Profile.Game.PST) || (Profile.getGame() == Profile.Game.PSTEE);
+    isPersonalSpace = false;
+    isShowAvatar = true;
+    isShowHelmet = true;
+    isShowShield = true;
+    isShowWeapon = true;
+    isShowBorders = false;
+    isTintEnabled = true;
+    isBlurEnabled = true;
+    isPaletteReplacementEnabled = true;
+  }
+
   public SettingsPanel(CreatureBrowser browser)
   {
     super();
     this.browser = Objects.requireNonNull(browser);
+    resetSettings();
     init();
   }
 
@@ -275,7 +282,8 @@ public class SettingsPanel extends JPanel
     if (isSelectionCircle != b) {
       isSelectionCircle = b;
       cbSelectionCircle.setSelected(isSelectionCircle);
-      getBrowser().getMediaPanel().reset(true);
+      getBrowser().getDecoder().setSelectionCircleEnabled(isSelectionCircle);
+      getBrowser().getRenderPanel().updateCanvas();
     }
   }
 
@@ -287,7 +295,8 @@ public class SettingsPanel extends JPanel
     if (isOrnateSelectionCircle != b) {
       isOrnateSelectionCircle = b;
       cbOrnateSelectionCircle.setSelected(isOrnateSelectionCircle);
-      getBrowser().getMediaPanel().reset(true);
+      getBrowser().getDecoder().setSelectionCircleBitmap(isOrnateSelectionCircle);
+      getBrowser().getRenderPanel().updateCanvas();
     }
   }
 
@@ -299,7 +308,8 @@ public class SettingsPanel extends JPanel
     if (isPersonalSpace != b) {
       isPersonalSpace = b;
       cbPersonalSpace.setSelected(isPersonalSpace);
-      getBrowser().getMediaPanel().reset(true);
+      getBrowser().getDecoder().setPersonalSpaceVisible(isPersonalSpace);
+      getBrowser().getRenderPanel().updateCanvas();
     }
   }
 
