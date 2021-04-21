@@ -16,6 +16,7 @@ import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
 import org.infinity.datatype.Bitmap;
+import org.infinity.datatype.ColorValue;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IdsBitmap;
@@ -480,7 +481,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
     if (isV11) {
       addField(new ResourceRef(buffer, 114, ITM_DIALOG, "DLG"));
       addField(new StringRef(buffer, 122, ITM_SPEAKER_NAME));
-      addField(new IdsBitmap(buffer, 126, 2, ITM_WEAPON_COLOR, "CLOWNCLR.IDS"));
+      addField(new ColorValue(buffer, 126, 2, ITM_WEAPON_COLOR, true, "PAL32.BMP"));
       addField(new Unknown(buffer, 128, 26));
     }
     else if (isV20) {
