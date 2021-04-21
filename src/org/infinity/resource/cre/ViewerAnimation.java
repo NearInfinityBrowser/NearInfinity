@@ -59,6 +59,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
   private static boolean zoom = false;
   private static boolean showSelectionCircle = false;
   private static boolean showPersonalSpace = false;
+  private static boolean showOverlayBorders = false;
 
   private final CreResource cre;
 
@@ -74,7 +75,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
   private JToggleButton bPlay;
   private JLabel lCurCycle, lCurFrame;
   private JComboBox<Sequence> cbSequences;
-  private JCheckBox cbShowCircle, cbShowSpace, cbZoom;
+  private JCheckBox cbShowCircle, cbShowSpace, cbShowBorders, cbZoom;
 
   public ViewerAnimation(CreResource cre)
   {
@@ -314,23 +315,21 @@ public class ViewerAnimation extends JComponent implements ActionListener
       }
     }
     else if (cbShowCircle == event.getSource()) {
-      try {
-        WindowBlocker.blockWindow(true);
-        showSelectionCircle = cbShowCircle.isSelected();
-        getDecoder().setSelectionCircleEnabled(showSelectionCircle);
-        updateCanvas();
-      } catch (Exception e) {
-        e.printStackTrace();
-      } finally {
-        WindowBlocker.blockWindow(false);
-      }
+      showSelectionCircle = cbShowCircle.isSelected();
+      getDecoder().setSelectionCircleEnabled(showSelectionCircle);
+      updateCanvas();
     }
     else if (cbShowSpace == event.getSource()) {
+      showPersonalSpace = cbShowSpace.isSelected();
+      getDecoder().setPersonalSpaceVisible(showPersonalSpace);
+      updateCanvas();
+    }
+    else if (cbShowBorders == event.getSource()) {
       try {
         WindowBlocker.blockWindow(true);
-        showPersonalSpace = cbShowSpace.isSelected();
-        getDecoder().setPersonalSpaceVisible(showPersonalSpace);
-        updateCanvas();
+        showOverlayBorders = cbShowBorders.isSelected();
+        getDecoder().setBoundingBoxVisible(showOverlayBorders);
+        resetAnimationSequence();
       } catch (Exception e) {
         e.printStackTrace();
       } finally {
@@ -435,6 +434,8 @@ public class ViewerAnimation extends JComponent implements ActionListener
     cbShowCircle.addActionListener(this);
     cbShowSpace = new JCheckBox("Show personal space", showPersonalSpace);
     cbShowSpace.addActionListener(this);
+    cbShowBorders = new JCheckBox("Show overlay borders", showOverlayBorders);
+    cbShowBorders.addActionListener(this);
 
     bOpenBrowser = new JButton("Open in browser", Icons.getIcon(Icons.ICON_CRE_VIEWER_24));
     bOpenBrowser.setToolTipText("Open in Creature Animation Browser");
@@ -499,7 +500,10 @@ public class ViewerAnimation extends JComponent implements ActionListener
     c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
     pRow2.add(cbShowSpace, c);
-    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
+    pRow2.add(cbShowBorders, c);
+    c = ViewerUtil.setGBC(c, 5, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pRow2.add(new JPanel(), c);
 
@@ -533,6 +537,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
   private void initAnimation() throws Exception
   {
     this.decoder = SpriteDecoder.importSprite(getCre());
+    getDecoder().setBoundingBoxVisible(showOverlayBorders);
     getDecoder().setSelectionCircleEnabled(showSelectionCircle);
     getDecoder().setPersonalSpaceVisible(showPersonalSpace);
 
@@ -574,7 +579,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
     initialized = b;
     JComponent[] controls = new JComponent[] {
         bNextCycle, bPrevCycle, bNextFrame, bPrevFrame, bOpenBrowser, bPlay,
-        lCurCycle, lCurFrame, cbSequences, cbShowCircle, cbShowSpace, cbZoom
+        lCurCycle, lCurFrame, cbSequences, cbShowCircle, cbShowSpace, cbShowBorders, cbZoom
     };
     for (final JComponent c : controls) {
       if (c != null) {

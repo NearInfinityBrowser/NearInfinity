@@ -65,17 +65,21 @@ public class SettingsPanel extends JPanel
     add(ItemString.with("200 %", 200));
     add(ItemString.with("300 %", 300));
     add(ItemString.with("400 %", 400));
+    add(ItemString.with("500 %", 500));
   }};
 
   // Available items for frame rate selection list
   private static final Vector<ItemString<Integer>> frameRateList = new Vector<ItemString<Integer>>() {{
     add(ItemString.with("1 frames/sec.", 1));
+    add(ItemString.with("2 frames/sec.", 2));
     add(ItemString.with("5 frames/sec.", 5));
     add(ItemString.with("10 frames/sec.", 10));
     add(ItemString.with("15 frames/sec. (original)", 15));
     add(ItemString.with("20 frames/sec.", 20));
     add(ItemString.with("25 frames/sec.", 25));
     add(ItemString.with("30 frames/sec.", 30));
+    add(ItemString.with("50 frames/sec.", 50));
+    add(ItemString.with("60 frames/sec.", 60));
   }};
 
   private static int indexZoom, indexFrameRate, indexBackground;
@@ -526,7 +530,7 @@ public class SettingsPanel extends JPanel
     cbShowWeapon.addActionListener(listeners);
 
     cbShowBorders = new JCheckBox("Show overlay borders", isShowBorders);
-    cbShowBorders.setToolTipText("Draw borders around individual segments of the creature animation.");
+    cbShowBorders.setToolTipText("Draw bounding boxes around individual segments of the creature animation.");
     cbShowBorders.addActionListener(listeners);
 
     JPanel panel2 = new JPanel(new GridBagLayout());
