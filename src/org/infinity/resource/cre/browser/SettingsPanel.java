@@ -116,7 +116,7 @@ public class SettingsPanel extends JPanel
   private static void resetSettings()
   {
     indexZoom = 1;        // 100 % (original)
-    indexFrameRate = 3;   // 15 fps (original)
+    indexFrameRate = 4;   // 15 fps (original)
     indexBackground = 0;  // System color
     isFiltering = false;
     isBlending = true;
