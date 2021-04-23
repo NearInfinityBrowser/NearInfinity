@@ -39,20 +39,17 @@ public abstract class MosDecoder
   {
     Type retVal = Type.INVALID;
     if (mosEntry != null) {
-      try {
-        InputStream is = mosEntry.getResourceDataAsStream();
-        if (is != null) {
-          String signature = StreamUtils.readString(is, 4);
-          String version = StreamUtils.readString(is, 4);
-          is.close();
-          if ("MOSC".equals(signature)) {
-            retVal = Type.MOSC;
-          } else if ("MOS ".equals(signature)) {
-            if ("V1  ".equals(version)) {
-              retVal = Type.MOSV1;
-            } else if ("V2  ".equals(version)) {
-              retVal = Type.MOSV2;
-            }
+      try (InputStream is = mosEntry.getResourceDataAsStream()) {
+        String signature = StreamUtils.readString(is, 4);
+        String version = StreamUtils.readString(is, 4);
+        is.close();
+        if ("MOSC".equals(signature)) {
+          retVal = Type.MOSC;
+        } else if ("MOS ".equals(signature)) {
+          if ("V1  ".equals(version)) {
+            retVal = Type.MOSV1;
+          } else if ("V2  ".equals(version)) {
+            retVal = Type.MOSV2;
           }
         }
       } catch (Exception e) {

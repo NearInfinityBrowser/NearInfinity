@@ -869,9 +869,7 @@ public class StringTable
 
     if (callback != null) { callback.init(tableMale._getNumEntries()); }
     boolean retVal = true;
-    PrintWriter writer = null;
-    try {
-      writer = new PrintWriter(outFile.toFile(), getCharset().name());
+    try (PrintWriter writer = new PrintWriter(outFile.toFile(), getCharset().name())) {
       String newline = System.getProperty("line.separator");
       // writing header
       String niPath = Utils.getJarFileName(NearInfinity.class);
@@ -947,7 +945,6 @@ public class StringTable
       e.printStackTrace();
       retVal = false;
     } finally {
-      if (writer != null) { writer.close(); }
       if (callback != null) { callback.done(retVal); }
     }
 
@@ -1452,9 +1449,7 @@ public class StringTable
     synchronized (entries) {
       if (callback != null) { callback.init(_getNumEntries()); }
       boolean success = false;
-      PrintWriter writer = null;
-      try {
-        writer = new PrintWriter(outFile.toFile(), getCharset().name());
+      try (PrintWriter writer = new PrintWriter(outFile.toFile(), getCharset().name())) {
         String newline = System.getProperty("line.separator");
         for (int idx = 0; idx < _getNumEntries(); idx++) {
           if (callback != null) {
@@ -1472,7 +1467,6 @@ public class StringTable
         success = false;
         throw e;
       } finally {
-        writer.close();
         if (callback != null) { callback.done(success); }
       }
     }

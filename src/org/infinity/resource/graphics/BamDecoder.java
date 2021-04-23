@@ -46,20 +46,16 @@ public abstract class BamDecoder
   {
     Type retVal = Type.INVALID;
     if (bamEntry != null) {
-      try {
-        InputStream is = bamEntry.getResourceDataAsStream();
-        if (is != null) {
-          String signature = StreamUtils.readString(is, 4);
-          String version = StreamUtils.readString(is, 4);
-          is.close();
-          if ("BAMC".equals(signature)) {
-            retVal = Type.BAMC;
-          } else if ("BAM ".equals(signature)) {
-            if ("V1  ".equals(version)) {
-              retVal = Type.BAMV1;
-            } else if ("V2  ".equals(version)) {
-              retVal = Type.BAMV2;
-            }
+      try (InputStream is = bamEntry.getResourceDataAsStream()) {
+        String signature = StreamUtils.readString(is, 4);
+        String version = StreamUtils.readString(is, 4);
+        if ("BAMC".equals(signature)) {
+          retVal = Type.BAMC;
+        } else if ("BAM ".equals(signature)) {
+          if ("V1  ".equals(version)) {
+            retVal = Type.BAMV1;
+          } else if ("V2  ".equals(version)) {
+            retVal = Type.BAMV2;
           }
         }
       } catch (Exception e) {

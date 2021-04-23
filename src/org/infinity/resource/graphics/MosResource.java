@@ -592,44 +592,37 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
   {
     boolean retVal = false;
     if (index >= 0 && index <= 99999) {
-      try {
-        InputStream is = entry.getResourceDataAsStream();
-        if (is != null) {
-          try {
-            // parsing resource header
-            byte[] sig = new byte[8];
-            byte[] buf = new byte[16];
-            long len;
-            long curOfs = 0;
-            if ((len = is.read(sig)) != sig.length) throw new Exception();
-            if (!"MOS V2  ".equals(DynamicArray.getString(sig, 0, 8))) throw new Exception();
-            curOfs += len;
-            if ((len = is.read(buf)) != buf.length) throw new Exception();
-            curOfs += len;
-            int numBlocks = DynamicArray.getInt(buf, 8);
-            int ofsBlocks = DynamicArray.getInt(buf, 12);
-            curOfs = ofsBlocks - curOfs;
-            if (curOfs > 0) {
-              do {
-                len = is.skip(curOfs);
-                if (len <= 0) throw new Exception();
-                curOfs -= len;
-              } while (curOfs > 0);
-            }
+      try (InputStream is = entry.getResourceDataAsStream()) {
+        // parsing resource header
+        byte[] sig = new byte[8];
+        byte[] buf = new byte[16];
+        long len;
+        long curOfs = 0;
+        if ((len = is.read(sig)) != sig.length) throw new Exception();
+        if (!"MOS V2  ".equals(DynamicArray.getString(sig, 0, 8))) throw new Exception();
+        curOfs += len;
+        if ((len = is.read(buf)) != buf.length) throw new Exception();
+        curOfs += len;
+        int numBlocks = DynamicArray.getInt(buf, 8);
+        int ofsBlocks = DynamicArray.getInt(buf, 12);
+        curOfs = ofsBlocks - curOfs;
+        if (curOfs > 0) {
+          do {
+            len = is.skip(curOfs);
+            if (len <= 0) throw new Exception();
+            curOfs -= len;
+          } while (curOfs > 0);
+        }
 
-            // parsing blocks
-            buf = new byte[28];
-            for (int i = 0; i < numBlocks && !retVal; i++) {
-              if (is.read(buf) != buf.length) throw new Exception();
-              int curIndex = DynamicArray.getInt(buf, 0);
-              retVal = (curIndex == index);
-            }
-          } finally {
-            is.close();
-            is = null;
-          }
+        // parsing blocks
+        buf = new byte[28];
+        for (int i = 0; i < numBlocks && !retVal; i++) {
+          if (is.read(buf) != buf.length) throw new Exception();
+          int curIndex = DynamicArray.getInt(buf, 0);
+          retVal = (curIndex == index);
         }
       } catch (Exception e) {
+        e.printStackTrace();
       }
     }
     return retVal;

@@ -366,28 +366,15 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
         }
       }
 
-      InputStream is = null;
-      try {
-        is = ClassLoader.getSystemResourceAsStream(schemePath);
-        if (is != null) {
-          try {
-            Theme theme = Theme.load(is);
-            if (theme != null) {
-              theme.apply(edit);
-            }
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
+      try (InputStream is = ClassLoader.getSystemResourceAsStream(schemePath)) {
+        Theme theme = Theme.load(is);
+        if (theme != null) {
+          theme.apply(edit);
         }
-      } finally {
-        if (is != null) {
-          try {
-            is.close();
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-          is = null;
-        }
+      } catch (NullPointerException e) {
+        // ignore
+      } catch (IOException e) {
+        e.printStackTrace();
       }
 
 

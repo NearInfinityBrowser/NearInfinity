@@ -26,8 +26,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
-import javax.swing.JComponent;
 
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileSystemView;
@@ -85,11 +85,11 @@ import org.infinity.resource.video.MveResource;
 import org.infinity.resource.video.WbmResource;
 import org.infinity.resource.wed.WedResource;
 import org.infinity.resource.wmp.WmpResource;
-import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.CreMapCache;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.Misc;
+import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.FileWatcher;
@@ -783,14 +783,16 @@ public final class ResourceFactory implements FileWatchListener
           try {
             Process p = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v personal");
             p.waitFor();
-            InputStream in = p.getInputStream();
-            byte[] b = new byte[in.available()];
-            in.read(b);
-            in.close();
+            byte[] b;
+            try (InputStream in = p.getInputStream()) {
+              b = new byte[in.available()];
+              in.read(b);
+            }
             String[] splitted = new String(b).split("\\s\\s+");
             userPrefix = splitted[splitted.length-1];
             userPath = FileManager.resolve(userPrefix, EE_DIR);
           } catch (Throwable t) {
+            t.printStackTrace();
             return null;
           }
         } else if (osName.contains("mac") || osName.contains("darwin")) {
