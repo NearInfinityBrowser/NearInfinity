@@ -159,10 +159,11 @@ public class Unknown extends Datatype implements Editable, IsBinary
   @Override
   public ByteBuffer getData()
   {
-    buffer.position(0);
-    ByteBuffer bb = StreamUtils.getByteBuffer(buffer.remaining());
-    buffer.put(bb);
-    bb.position(0);
+    ByteBuffer bb = ByteBuffer.allocate(buffer.capacity());
+    buffer.rewind();
+    bb.put(buffer);
+    buffer.rewind();
+    bb.flip();
     return bb;
   }
 
