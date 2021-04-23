@@ -122,7 +122,6 @@ public final class DlgResource extends AbstractStruct
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -135,9 +134,7 @@ public final class DlgResource extends AbstractStruct
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -181,9 +178,7 @@ public final class DlgResource extends AbstractStruct
   {
     return (index == 0);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Writeable">
   @Override
   public void write(OutputStream os) throws IOException
   {
@@ -209,9 +204,7 @@ public final class DlgResource extends AbstractStruct
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent e)
   {
@@ -238,9 +231,7 @@ public final class DlgResource extends AbstractStruct
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -278,9 +269,7 @@ public final class DlgResource extends AbstractStruct
   {
     updateReferences(datatype, false);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -357,7 +346,6 @@ public final class DlgResource extends AbstractStruct
     }
     return offset + textSize;
   }
-  //</editor-fold>
 
   /**
    * Returns state with specified number from this dialog.

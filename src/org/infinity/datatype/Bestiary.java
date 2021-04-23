@@ -100,7 +100,6 @@ public final class Bestiary extends Datatype implements Editable, TableModel
   /** Color, used to highligth background of party members. */
   private static final Color PARTY_COLOR = Color.CYAN;
 
-  //<editor-fold defaultstate="collapsed" desc="Creatures">
   /**
    * List of used entries in a bestiary field. Other bytes in the {@link #known}
    * field are unused.
@@ -109,7 +108,6 @@ public final class Bestiary extends Datatype implements Editable, TableModel
    * hardcoded in the game.
    */
   private final List<Creature> creatures;
-  //</editor-fold>
   /**
    * If byte contains non zero value, then player knowns creature from {@link #creatures}
    * array. Only first 88 bytes is used ({@code creatures.length}).
@@ -409,7 +407,6 @@ public final class Bestiary extends Datatype implements Editable, TableModel
       setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ListSelectionListener">
     @Override
     public void valueChanged(ListSelectionEvent e)
     {
@@ -431,17 +428,13 @@ public final class Bestiary extends Datatype implements Editable, TableModel
         revalidate();
       }
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="TableModelListener">
     @Override
     public void tableChanged(TableModelEvent e)
     {
       container.actionPerformed(new ActionEvent(e.getSource(), ACTION_PERFORMED, UPDATE_VALUE));
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="MouseListener">
     @Override
     public void mouseClicked(MouseEvent e)
     {
@@ -466,9 +459,7 @@ public final class Bestiary extends Datatype implements Editable, TableModel
 
     @Override
     public void mouseExited(MouseEvent e) {}
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent e)
     {
@@ -516,7 +507,6 @@ public final class Bestiary extends Datatype implements Editable, TableModel
         }
       }
     }
-    //</editor-fold>
 
     /**
      * Setup context menu and show it for table.
@@ -577,7 +567,6 @@ public final class Bestiary extends Datatype implements Editable, TableModel
     creatures = readCreatures();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Editable">
   @Override
   public JComponent edit(ActionListener container) { return new Viewer(container); }
 
@@ -592,17 +581,13 @@ public final class Bestiary extends Datatype implements Editable, TableModel
 
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     os.write(known);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -610,9 +595,7 @@ public final class Bestiary extends Datatype implements Editable, TableModel
     buffer.get(known);
     return offset + known.length;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="TableModel">
   @Override
   public int getRowCount() { return creatures.size(); }
   @Override
@@ -679,7 +662,6 @@ public final class Bestiary extends Datatype implements Editable, TableModel
   {
     listenerList.remove(TableModelListener.class, l);
   }
-  //</editor-fold>
 
   /**
    * Returns {@code true} if specified creature is included in the bestiary.

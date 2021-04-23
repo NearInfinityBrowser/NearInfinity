@@ -185,7 +185,6 @@ public final class MusResource implements Closeable, Referenceable, TextResource
     resourceChanged = false;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -199,9 +198,7 @@ public final class MusResource implements Closeable, Referenceable, TextResource
       ResourceFactory.exportResource(entry, panel.getTopLevelAncestor());
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Closeable">
   @Override
   public void close() throws Exception
   {
@@ -213,9 +210,7 @@ public final class MusResource implements Closeable, Referenceable, TextResource
       viewer.close();
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Referenceable">
   @Override
   public boolean isReferenceable()
   {
@@ -227,9 +222,7 @@ public final class MusResource implements Closeable, Referenceable, TextResource
   {
     new SongReferenceSearcher(entry, parent);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="DocumentListener">
   @Override
   public void insertUpdate(DocumentEvent event)
   {
@@ -247,9 +240,7 @@ public final class MusResource implements Closeable, Referenceable, TextResource
   {
     setDocumentModified(true);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="ItemListener">
   @Override
   public void itemStateChanged(ItemEvent event)
   {
@@ -265,17 +256,13 @@ public final class MusResource implements Closeable, Referenceable, TextResource
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Resource">
   @Override
   public ResourceEntry getResourceEntry()
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="TextResource">
   @Override
   public String getText()
   {
@@ -315,9 +302,7 @@ public final class MusResource implements Closeable, Referenceable, TextResource
     } catch (IllegalArgumentException e) {
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Viewable">
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
@@ -340,9 +325,7 @@ public final class MusResource implements Closeable, Referenceable, TextResource
     }
     return panel;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
@@ -352,7 +335,6 @@ public final class MusResource implements Closeable, Referenceable, TextResource
       StreamUtils.writeString(os, editor.getText(), editor.getText().length());
     }
   }
-  //</editor-fold>
 
   public Viewer getViewer()
   {

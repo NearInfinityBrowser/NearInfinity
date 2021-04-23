@@ -89,7 +89,6 @@ public class LayerObjectDoorPoly extends LayerObject
     }
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -130,7 +129,6 @@ public class LayerObjectDoorPoly extends LayerObject
       items[i].setShape(poly);
     }
   }
-  //</editor-fold>
 
   /**
    * Returns an array of layer items of the specified state.

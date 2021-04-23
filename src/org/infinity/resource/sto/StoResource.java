@@ -100,7 +100,6 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -116,9 +115,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -163,9 +160,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
   {
     return (index == 0);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -290,9 +285,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
     }
     return endoffset;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -332,7 +325,6 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
       hexViewer.dataModified();
     }
   }
-  //</editor-fold>
 
   /**
    * Checks whether the specified resource entry matches all available search options.

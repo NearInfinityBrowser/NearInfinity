@@ -65,7 +65,6 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
     super(superStruct, ITM_ABIL + " " + number, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -77,17 +76,13 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -111,9 +106,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -174,6 +167,5 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
 
     return offset + 56;
   }
-  //</editor-fold>
 }
 

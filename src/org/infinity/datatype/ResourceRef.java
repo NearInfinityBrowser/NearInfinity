@@ -94,7 +94,6 @@ public class ResourceRef extends Datatype
     read(h_buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -105,9 +104,7 @@ public class ResourceRef extends Datatype
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Editable">
   @Override
   public JComponent edit(final ActionListener container)
   {
@@ -249,17 +246,13 @@ public class ResourceRef extends Datatype
 
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="ListSelectionListener">
   @Override
   public void valueChanged(ListSelectionEvent e)
   {
     bView.setEnabled(isEditable(list.getSelectedValue()));
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
@@ -276,9 +269,7 @@ public class ResourceRef extends Datatype
       StreamUtils.writeString(os, resname, getSize());
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -299,7 +290,6 @@ public class ResourceRef extends Datatype
 
     return offset + getSize();
   }
-  //</editor-fold>
 
   @Override
   public String toString()
@@ -335,15 +325,12 @@ public class ResourceRef extends Datatype
     return retVal;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="IsTextual">
   @Override
   public String getText()
   {
     return resname;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="IsReference">
   @Override
   public String getResourceName()
   {
@@ -352,7 +339,6 @@ public class ResourceRef extends Datatype
     }
     return resname;
   }
-  //</editor-fold>
 
   public boolean isEmpty()
   {

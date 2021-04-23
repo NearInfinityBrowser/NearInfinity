@@ -132,7 +132,6 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="UpdateListener">
   @Override
   public boolean valueUpdated(UpdateEvent event)
   {
@@ -198,9 +197,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
     }
     return false;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -230,9 +227,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
   {
     return false;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -306,9 +301,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
 
     return offset;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -348,7 +341,6 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
       hexViewer.dataModified();
     }
   }
-  //</editor-fold>
 
   /** Updates current IDS targeting to IWD style and returns true if changes have been made. */
   private boolean setIwdStyleIdsType(AbstractStruct struct, int offset, int nr)

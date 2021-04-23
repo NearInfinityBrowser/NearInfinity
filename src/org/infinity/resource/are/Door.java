@@ -94,7 +94,6 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     super(superStruct, ARE_DOOR + " " + nr, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -107,17 +106,13 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasVertices">
   @Override
   public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
@@ -168,9 +163,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     }
     return count;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
@@ -196,9 +189,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
       datatype.setOffset(offset + 4 * (index - 1));
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -256,5 +247,4 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     addField(new Unknown(buffer, offset + 192, 8));
     return offset + 200;
   }
-  //</editor-fold>
 }

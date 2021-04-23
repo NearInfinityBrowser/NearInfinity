@@ -43,7 +43,6 @@ public final class Door extends AbstractStruct implements AddRemovable, HasChild
     super(superStruct, WED_DOOR + " " + number, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -55,17 +54,13 @@ public final class Door extends AbstractStruct implements AddRemovable, HasChild
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
@@ -75,7 +70,6 @@ public final class Door extends AbstractStruct implements AddRemovable, HasChild
       datatype.setOffset(offset + index * 2);
     }
   }
-  //</editor-fold>
 
   public DecNumber getTilemapIndex()
   {
@@ -115,7 +109,6 @@ public final class Door extends AbstractStruct implements AddRemovable, HasChild
     }
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -156,5 +149,4 @@ public final class Door extends AbstractStruct implements AddRemovable, HasChild
     }
     return offset + 26;
   }
-  //</editor-fold>
 }

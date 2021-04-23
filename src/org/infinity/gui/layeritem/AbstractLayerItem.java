@@ -160,7 +160,6 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
     }
   }
 
-  //<editor-fold defaultstate="collapsed" desc="MouseListener">
   @Override
   public void mouseClicked(MouseEvent event)
   {
@@ -197,9 +196,7 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
       setItemState(ItemState.NORMAL);
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="MouseMotionListener">
   @Override
   public void mouseDragged(MouseEvent event)
   {
@@ -214,16 +211,13 @@ public abstract class AbstractLayerItem extends JComponent implements MouseListe
       setItemState(ItemState.NORMAL);
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="JComponent">
   @Override
   public boolean contains(int x, int y)
   {
     // Non-visible parts of the component are disregarded by mouse events
     return isMouseOver(new Point(x, y));
   }
-  //</editor-fold>
 
   /** Returns whether the mouse cursor is over the relevant part of the component. */
   protected boolean isMouseOver(Point pt)

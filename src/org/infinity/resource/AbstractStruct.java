@@ -193,7 +193,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Closeable">
   @Override
   public void close() throws Exception
   {
@@ -204,9 +203,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       viewer.close();
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Referenceable">
   @Override
   public boolean isReferenceable()
   {
@@ -218,17 +215,13 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   {
     new ReferenceSearcher(getResourceEntry(), parent);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Comparable">
   @Override
   public int compareTo(StructEntry o)
   {
     return getOffset() - o.getOffset();
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="StructEntry">
   @Override
   public AbstractStruct clone() throws CloneNotSupportedException
   {
@@ -340,9 +333,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       addPropertyChangeListener(parent);
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="TableModel">
   @Override
   public int getRowCount()
   {
@@ -432,9 +423,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Viewable">
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
@@ -444,9 +433,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
     return viewer;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
@@ -455,7 +442,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       e.write(os);
     }
   }
-  //</editor-fold>
 
   @Override
   public String toString()

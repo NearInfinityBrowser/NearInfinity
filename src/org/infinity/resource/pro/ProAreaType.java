@@ -103,13 +103,11 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable, U
     super(superStruct, PRO_AREA, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return false;   // can not be removed manually
   }
-  //</editor-fold>
 
   @Override
   public boolean valueUpdated(UpdateEvent event)

@@ -230,7 +230,6 @@ public class AreaViewer extends ChildFrame
     workerInitGui.execute();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ChildFrame">
   @Override
   public void close()
   {
@@ -256,7 +255,6 @@ public class AreaViewer extends ChildFrame
     System.gc();
     super.close();
   }
-  //</editor-fold>
 
   /**
    * Returns the tileset renderer for this viewer instance.
@@ -3007,7 +3005,6 @@ public class AreaViewer extends ChildFrame
       return listeners.toArray(new ChangeListener[listeners.size()]);
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -3021,9 +3018,7 @@ public class AreaViewer extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="ChangeListener">
     @Override
     public void stateChanged(ChangeEvent event)
     {
@@ -3038,7 +3033,6 @@ public class AreaViewer extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     /** Fires a stateChanged event for all registered listeners. */
     private void fireStateChanged()

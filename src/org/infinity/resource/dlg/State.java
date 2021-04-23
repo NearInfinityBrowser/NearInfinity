@@ -41,7 +41,6 @@ public final class State extends AbstractStruct implements AddRemovable, TreeIte
     nr = count;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="TreeItemEntry">
   @Override
   public DlgResource getParent() { return (DlgResource)super.getParent(); }
 
@@ -53,7 +52,6 @@ public final class State extends AbstractStruct implements AddRemovable, TreeIte
   {
     return (StringRef)getAttribute(DLG_STATE_RESPONSE, false);
   }
-  //</editor-fold>
 
   public int getFirstTrans()
   {

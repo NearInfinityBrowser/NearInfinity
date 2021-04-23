@@ -59,7 +59,6 @@ public class LayerObjectProTrap extends LayerObject
     item.setVisible(isVisible());
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -86,5 +85,4 @@ public class LayerObjectProTrap extends LayerObject
                            (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
     }
   }
-  //</editor-fold>
 }

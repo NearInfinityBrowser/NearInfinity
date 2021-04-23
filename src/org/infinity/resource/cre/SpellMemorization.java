@@ -36,15 +36,12 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
     super(cre, CRE_MEMORIZATION + " " + nr, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -56,9 +53,7 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
@@ -72,9 +67,7 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
       ((AbstractStruct)datatype).realignStructOffsets();
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -86,7 +79,6 @@ public final class SpellMemorization extends AbstractStruct implements AddRemova
     addField(new DecNumber(buffer, offset + 12, 4, CRE_MEMORIZATION_SPELL_COUNT));
     return offset + 16;
   }
-  //</editor-fold>
 
   public void readMemorizedSpells(ByteBuffer buffer, int offset) throws Exception
   {

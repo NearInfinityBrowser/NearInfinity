@@ -232,7 +232,6 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
     validate();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerItemListener">
   @Override
   public void layerItemChanged(LayerItemEvent event)
   {
@@ -240,7 +239,6 @@ public class IconLayerItem extends AbstractLayerItem implements LayerItemListene
       setCurrentImage(getItemState());
     }
   }
-  //</editor-fold>
 
   /** Returns whether the mouse cursor is over the relevant part of the component. */
   @Override

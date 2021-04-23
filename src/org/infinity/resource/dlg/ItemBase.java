@@ -88,13 +88,11 @@ abstract class ItemBase implements TreeNode
    */
   public abstract void traverseChildren(Consumer<ItemBase> action);
 
-  //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
   public abstract ItemBase getChildAt(int childIndex);
 
   @Override
   public abstract Enumeration<? extends ItemBase> children();
-  //</editor-fold>
 
   /**
    * Returns string that can be used to display in the tree.
@@ -129,23 +127,19 @@ abstract class ItemBase implements TreeNode
 /** Auxiliary class, being the parent for states, for a type safety. */
 abstract class StateOwnerItem extends ItemBase
 {
-  //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
   public abstract StateItem getChildAt(int childIndex);
 
   @Override
   public abstract Enumeration<? extends StateItem> children();
-  //</editor-fold>
 }
 
 /** Auxiliary class, being the parent for transitions, for a type safety. */
 abstract class TransitionOwnerItem extends ItemBase implements Iterable<TransitionItem>
 {
-  //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
   public abstract TransitionItem getChildAt(int childIndex);
 
   @Override
   public abstract Enumeration<? extends TransitionItem> children();
-  //</editor-fold>
 }

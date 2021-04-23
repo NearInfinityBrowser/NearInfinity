@@ -75,7 +75,6 @@ public class IniMapSection implements Iterable<IniMapEntry>
     return entries.size();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Get values">
   /**
    * Returns the first instance with {@code "key"} matching the key value of the
    * entry. Performs case-insensitive search.
@@ -188,7 +187,6 @@ public class IniMapSection implements Iterable<IniMapEntry>
     final IniMapEntry entry = getEntry(key);
     return entry == null ? null : entry.getStringRefValue();
   }
-  //</editor-fold>
 
   @Override
   public Iterator<IniMapEntry> iterator() { return entries.iterator(); }

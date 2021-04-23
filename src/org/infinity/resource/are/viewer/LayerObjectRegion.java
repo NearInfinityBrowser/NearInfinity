@@ -74,7 +74,6 @@ public class LayerObjectRegion extends LayerObject
     item.setVisible(isVisible());
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -104,7 +103,6 @@ public class LayerObjectRegion extends LayerObject
       item.setShape(poly);
     }
   }
-  //</editor-fold>
 
   private String getAttributes()
   {

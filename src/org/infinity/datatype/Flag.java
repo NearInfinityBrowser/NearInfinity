@@ -74,7 +74,6 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     setFlagDescriptions(length, stable, 1);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -88,9 +87,7 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     }
     container.actionPerformed(new ActionEvent(this, 0, StructViewer.UPDATE_VALUE));
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Editable">
   @Override
   public JComponent edit(ActionListener container)
   {
@@ -172,15 +169,12 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     return true;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Writeable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     writeLong(os, value);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -201,8 +195,6 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
 
     return offset + getSize();
   }
-  //</editor-fold>
-  //</editor-fold>
 
   @Override
   public String toString()
@@ -258,7 +250,6 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     return (value & bitnr) == bitnr;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="IsNumeric">
   @Override
   public long getLongValue()
   {
@@ -270,7 +261,6 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
   {
     return (int)value;
   }
-  //</editor-fold>
 
   public void setValue(long newValue)
   {

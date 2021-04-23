@@ -41,7 +41,6 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
    */
   private boolean dirty = false;
 
-  //<editor-fold defaultstate="collapsed" desc="Internal classes">
   /** Represents one quest in the file. */
   public static final class Quest
   {
@@ -214,7 +213,6 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
     /** Quest is finished. */
     Completed;
   }
-  //</editor-fold>
 
   public QuestsResource() throws Exception
   {
@@ -238,7 +236,6 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
     return pane;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="DocumentListener">
   @Override
   public void changedUpdate(DocumentEvent event)
   {
@@ -259,9 +256,7 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
     super.removeUpdate(event);
     dirty = true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="ChangeListener">
   @Override
   public void stateChanged(ChangeEvent e)
   {
@@ -272,7 +267,6 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
       dirty = false;
     }
   }
-  //</editor-fold>
 
   public List<Quest> readQuests()
   {

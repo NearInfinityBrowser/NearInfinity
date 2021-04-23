@@ -208,7 +208,6 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
     }
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent e)
   {
@@ -229,9 +228,7 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="MouseListener">
   @Override
   public void mouseClicked(MouseEvent e)
   {
@@ -272,7 +269,6 @@ final public class LinkButton extends JLabel implements MouseListener, ActionLis
   public void mouseExited(MouseEvent e)
   {
   }
-  //</editor-fold>
 
   public void removeActionListener(ActionListener listener)
   {

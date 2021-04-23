@@ -47,7 +47,6 @@ public final class Transition extends AbstractStruct implements AddRemovable, Tr
     this.nr = nr;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="TreeItemEntry">
   @Override
   public DlgResource getParent() { return (DlgResource)super.getParent(); }
 
@@ -60,7 +59,6 @@ public final class Transition extends AbstractStruct implements AddRemovable, Tr
   {
     return (StringRef)getAttribute(DLG_TRANS_TEXT, false);
   }
-  //</editor-fold>
 
   public int getActionIndex()
   {

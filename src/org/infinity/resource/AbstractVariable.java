@@ -90,13 +90,11 @@ public class AbstractVariable extends AbstractStruct implements AddRemovable
     super(superStruct, name, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
-  //</editor-fold>
 
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception

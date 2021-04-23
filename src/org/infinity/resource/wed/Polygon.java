@@ -37,7 +37,6 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
     super(superStruct, name, buffer, offset, 8);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -49,17 +48,13 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
@@ -74,7 +69,6 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
       ((AbstractStruct)datatype).realignStructOffsets();
     }
   }
-  //</editor-fold>
 
   public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
@@ -101,7 +95,6 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
     return count;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -115,5 +108,4 @@ public abstract class Polygon extends AbstractStruct implements AddRemovable, Ha
     addField(new DecNumber(buffer, offset + 16, 2, WED_POLY_MAX_COORD_Y));
     return offset + 18;
   }
-  //</editor-fold>
 }

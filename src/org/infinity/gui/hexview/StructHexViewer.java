@@ -189,7 +189,6 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
     initGui();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="IHexViewListener">
   @Override
   public void stateChanged(HexViewEvent event)
   {
@@ -206,17 +205,13 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       updateStatusBar(offset);
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="IDataChangedListener">
   @Override
   public void dataChanged(DataChangedEvent event)
   {
     getStruct().setStructChanged(true);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -326,9 +321,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       getHexView().requestFocusInWindow();
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="ChangeListener">
   @Override
   public void stateChanged(ChangeEvent e)
   {
@@ -347,9 +340,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Closeable">
   @Override
   public void close() throws Exception
   {
@@ -371,7 +362,6 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       findData = null;
     }
   }
-  //</editor-fold>
 
   /** Returns the associated resource structure. */
   public AbstractStruct getStruct()

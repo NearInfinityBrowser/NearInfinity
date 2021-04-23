@@ -75,9 +75,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
   {
     super(superStruct, ARE_TRIGGER + " " + number, buffer, offset);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -89,17 +87,13 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasVertices">
   @Override
   public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
@@ -127,9 +121,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     ((DecNumber)getAttribute(ARE_TRIGGER_NUM_VERTICES)).setValue(count);
     return count;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
@@ -141,9 +133,7 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
       ((AbstractStruct)datatype).realignStructOffsets();
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -200,5 +190,4 @@ public final class ITEPoint extends AbstractStruct implements AddRemovable, HasV
     }
     return offset + 196;
   }
-  //</editor-fold>
 }

@@ -72,7 +72,6 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     super(superStruct, ARE_CONTAINER + " " + nr, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -84,17 +83,13 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -118,9 +113,7 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasVertices">
   @Override
   public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
@@ -148,7 +141,6 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     ((DecNumber)getAttribute(ARE_CONTAINER_NUM_VERTICES)).setValue(count);
     return count;
   }
-  //</editor-fold>
 
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
@@ -196,7 +188,6 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     return count;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -229,5 +220,4 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     addField(new Unknown(buffer, offset + 136, 56));
     return offset + 192;
   }
-  //</editor-fold>
 }

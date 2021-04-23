@@ -59,7 +59,6 @@ public class LayerObjectSpawnPoint extends LayerObject
     item.setVisible(isVisible());
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -96,5 +95,4 @@ public class LayerObjectSpawnPoint extends LayerObject
       return false;
     }
   }
-  //</editor-fold>
 }

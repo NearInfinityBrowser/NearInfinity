@@ -324,7 +324,6 @@ public class AnimatedLayerItem extends AbstractLayerItem
     super.setVisible(aFlag);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerItemListener">
   @Override
   public void layerItemChanged(LayerItemEvent event)
   {
@@ -332,9 +331,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
       updateDisplay(false);
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -363,9 +360,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="PropertyChangeListener">
   @Override
   public void propertyChange(PropertyChangeEvent event)
   {
@@ -377,7 +372,6 @@ public class AnimatedLayerItem extends AbstractLayerItem
       }
     }
   }
-  //</editor-fold>
 
   @Override
   public void repaint()

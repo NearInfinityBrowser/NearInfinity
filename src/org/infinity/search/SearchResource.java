@@ -136,7 +136,6 @@ public class SearchResource extends ChildFrame
     }).execute();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -190,9 +189,7 @@ public class SearchResource extends ChildFrame
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="PropertyChangeListener">
   @Override
   public void propertyChange(PropertyChangeEvent event)
   {
@@ -204,9 +201,7 @@ public class SearchResource extends ChildFrame
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Runnable">
   @Override
   public void run()
   {
@@ -276,7 +271,6 @@ public class SearchResource extends ChildFrame
       }
     }
   }
-  //</editor-fold>
 
   /** Initialize dialog. */
   private void init() throws Exception
@@ -658,7 +652,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -699,7 +692,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -931,7 +923,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -992,7 +983,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -1421,7 +1411,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -1473,7 +1462,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -1726,7 +1714,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -1785,7 +1772,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -2175,7 +2161,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -2231,7 +2216,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -2493,7 +2477,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -2551,7 +2534,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -2879,7 +2861,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -2945,7 +2926,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -3263,7 +3243,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -3300,7 +3279,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -3479,7 +3457,6 @@ public class SearchResource extends ChildFrame
       init(table);
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -3497,7 +3474,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public Couple<Object, Object> getOptionFlags()
     {
@@ -3625,7 +3601,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -3640,7 +3615,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -3764,7 +3738,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -3800,7 +3773,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -3998,7 +3970,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4022,7 +3993,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -4098,7 +4068,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4113,7 +4082,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int classIdx)
     {
@@ -4206,7 +4174,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4221,7 +4188,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -4308,7 +4274,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4322,7 +4287,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -4430,7 +4394,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4444,7 +4407,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -4561,7 +4523,6 @@ public class SearchResource extends ChildFrame
       add(panel, BorderLayout.CENTER);
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4575,7 +4536,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -4616,7 +4576,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4630,7 +4589,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -4741,7 +4699,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4756,7 +4713,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int statID)
     {
@@ -4872,7 +4828,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4940,7 +4895,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int itemID)
     {
@@ -5211,7 +5165,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -5261,7 +5214,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int spellID)
     {
@@ -5460,7 +5412,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -5474,7 +5425,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int index)
     {

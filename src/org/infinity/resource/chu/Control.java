@@ -114,16 +114,13 @@ final class Control extends AbstractStruct // implements AddRemovable
     this.size = size;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     getFields().get(0).write(os);
     getFields().get(1).write(os);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -131,7 +128,6 @@ final class Control extends AbstractStruct // implements AddRemovable
     addField(new HexNumber(buffer, offset + 4, 4, CHU_CONTROL_LENGTH));
     return offset + 8;
   }
-  //</editor-fold>
 
   /** Returns the control id. */
   public int getControlId()

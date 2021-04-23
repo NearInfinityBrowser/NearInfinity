@@ -130,7 +130,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   private final HelpMenu helpMenu;
   private final Preferences prefsGui, prefsProfiles;
 
-  //<editor-fold defaultstate="collapsed" desc="Enumerations">
   /** Determines, in which virtual folder show resources from Override folder. */
   public enum OverrideMode
   {
@@ -204,7 +203,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
     private ViewMode(String title) { this.title = title; }
   }
-  //</editor-fold>
 
   public static BrowserMenuBar getInstance()
   {
@@ -668,7 +666,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     gameMenu.storePreferences();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Debug helpers">
   @Override
   public boolean dispatchKeyEvent(KeyEvent e)
   {
@@ -728,7 +725,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     }
     return null;
   }
-  //</editor-fold>
 
 // -------------------------- INNER CLASSES --------------------------
 

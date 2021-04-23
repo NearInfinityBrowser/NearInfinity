@@ -753,7 +753,6 @@ public final class CreResource extends AbstractStruct
     super.close();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -779,15 +778,12 @@ public final class CreResource extends AbstractStruct
     return entry;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -830,7 +826,6 @@ public final class CreResource extends AbstractStruct
   {
     return (index == 0);
   }
-  //</editor-fold>
 
   // Needed for embedded CRE resources
   private boolean showRawTab()
@@ -842,15 +837,12 @@ public final class CreResource extends AbstractStruct
     return hasRawTab.booleanValue();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatFields(os);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -918,9 +910,7 @@ public final class CreResource extends AbstractStruct
       hexViewer.dataModified();
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -1027,7 +1017,6 @@ public final class CreResource extends AbstractStruct
     }
     return readOther(version.toString(), buffer, offset);
   }
-  //</editor-fold>
 
   ////////////////////////
   // Icewind Dale 2
@@ -2161,7 +2150,6 @@ public final class CreResource extends AbstractStruct
     return retVal;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ItemListener">
   @Override
   public void itemStateChanged(ItemEvent event)
   {
@@ -2174,9 +2162,7 @@ public final class CreResource extends AbstractStruct
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="UpdateListener">
   @Override
   public boolean valueUpdated(UpdateEvent event)
   {
@@ -2199,7 +2185,6 @@ public final class CreResource extends AbstractStruct
     }
     return false;
   }
-  //</editor-fold>
 
   // Called by "Extended Search"
   // Checks whether the specified resource entry matches all available search options.

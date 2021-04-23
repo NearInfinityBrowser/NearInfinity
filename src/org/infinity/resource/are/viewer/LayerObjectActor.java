@@ -91,7 +91,6 @@ public abstract class LayerObjectActor extends LayerObject
     super("Actor", classType, parent);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public void close()
   {
@@ -322,5 +321,4 @@ public abstract class LayerObjectActor extends LayerObject
     return retVal;
   }
 
-  //</editor-fold>
 }

@@ -136,7 +136,6 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -169,9 +168,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
     }
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -226,17 +223,13 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
   {
     return index == 0 || Profile.getEngine() == Profile.Engine.PST && index == 1;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Writeable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatFields(os);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -284,9 +277,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       hexViewer.dataModified();
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -553,7 +544,6 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
 
     return offset;
   }
-  //</editor-fold>
 
   private void updateOffsets()
   {

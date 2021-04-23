@@ -52,7 +52,6 @@ public final class Iwd2Struct extends AbstractStruct implements HasChildStructs
     setOffset(offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -75,9 +74,7 @@ public final class Iwd2Struct extends AbstractStruct implements HasChildStructs
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void datatypeAdded(AddRemovable datatype)
   {
@@ -95,13 +92,10 @@ public final class Iwd2Struct extends AbstractStruct implements HasChildStructs
   {
     return count.getValue();
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
     return -1;
   }
-  //</editor-fold>
 }

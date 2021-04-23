@@ -30,7 +30,6 @@ final class OrphanStates extends StateOwnerItem implements Iterable<StateItem>
   @Override
   public String toString() { return "Orphan states"; }
 
-  //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
   public StateItem getChildAt(int childIndex) { return states.get(childIndex); }
 
@@ -51,14 +50,10 @@ final class OrphanStates extends StateOwnerItem implements Iterable<StateItem>
 
   @Override
   public Enumeration<? extends StateItem> children() { return enumeration(states); }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Iterable">
   @Override
   public Iterator<StateItem> iterator() { return states.iterator(); }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="ItemBase">
   @Override
   public TreeItemEntry getEntry() { return null; }
 
@@ -76,5 +71,4 @@ final class OrphanStates extends StateOwnerItem implements Iterable<StateItem>
 
   @Override
   public void traverseChildren(Consumer<ItemBase> action) { states.forEach(action); }
-  //</editor-fold>
 }

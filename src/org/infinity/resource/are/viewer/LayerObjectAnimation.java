@@ -198,7 +198,6 @@ public class LayerObjectAnimation extends LayerObject
     items[1] = item2;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public void close()
   {
@@ -264,7 +263,6 @@ public class LayerObjectAnimation extends LayerObject
       return false;
     }
   }
-  //</editor-fold>
 
   /**
    * Sets the lighting condition of the animation. Does nothing if the animation is flagged as

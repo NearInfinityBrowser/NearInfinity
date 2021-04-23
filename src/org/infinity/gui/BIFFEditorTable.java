@@ -142,7 +142,6 @@ final class BIFFEditorTable extends JPanel implements ActionListener
     add(new JScrollPane(table), BorderLayout.CENTER);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -153,7 +152,6 @@ final class BIFFEditorTable extends JPanel implements ActionListener
     else if (event.getSource() == bnew)
       tablemodel.fireTableDataChanged();
   }
-  //</editor-fold>
 
   public void addEntry(ResourceEntry entry, State state)
   {
