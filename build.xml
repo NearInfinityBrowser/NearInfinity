@@ -55,7 +55,8 @@
 
     <jar destfile="${jar.file}"
          basedir="${build.path}"
-         includes="**/*">
+         includes="**/*"
+         level="9">
       <zipgroupfileset dir="." includes="${jorbis.file}"/>
       <zipgroupfileset dir="." includes="${rsyntaxtextarea.file}"/>
       <zipgroupfileset dir="." includes="${jhexview.file}"/>
