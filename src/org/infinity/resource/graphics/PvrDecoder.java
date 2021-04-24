@@ -86,14 +86,14 @@ public class PvrDecoder
     if (entry == null) {
       throw new NullPointerException();
     }
-    try {
+    try (InputStream is = entry.getResourceDataAsStream()) {
       String key = null;
       if (entry instanceof FileResourceEntry) {
         key = ((FileResourceEntry)entry).getActualPath().toString();
       } else {
         key = entry.getResourceName();
       }
-      PvrDecoder decoder = createPvrDecoder(key, entry.getResourceDataAsStream());
+      PvrDecoder decoder = createPvrDecoder(key, is);
       if (decoder != null) {
         return decoder;
       }
@@ -113,9 +113,9 @@ public class PvrDecoder
     if (fileName == null) {
       throw new NullPointerException();
     }
-    try {
+    try (InputStream is = StreamUtils.getInputStream(FileManager.resolve(fileName))) {
       String key = fileName;
-      PvrDecoder decoder = createPvrDecoder(key, StreamUtils.getInputStream(FileManager.resolve(fileName)));
+      PvrDecoder decoder = createPvrDecoder(key, is);
       if (decoder != null) {
         return decoder;
       }
@@ -132,9 +132,9 @@ public class PvrDecoder
    */
   public static PvrDecoder loadPvr(Path file)
   {
-    try {
+    try (InputStream is = StreamUtils.getInputStream(file)) {
       String key = file.getFileName().toString();
-      PvrDecoder decoder = createPvrDecoder(key, StreamUtils.getInputStream(file));
+      PvrDecoder decoder = createPvrDecoder(key, is);
       if (decoder != null) {
         return decoder;
       }

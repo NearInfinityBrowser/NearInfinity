@@ -61,8 +61,6 @@ import org.infinity.util.IniMapSection;
 import org.infinity.util.Misc;
 import org.infinity.util.tuples.Couple;
 
-import sun.security.rsa.RSAUtil.KeyType;
-
 /**
  * Specialized BAM decoder for creature animation sprites.
  */
@@ -327,7 +325,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   /**
    * Stores the attribute key and value along with the autodetected data type.
    * @param key the attribute name.
-   * @param value the value in one of the data types covered by {@link KeyType}.
+   * @param value the value in one of the data types covered by {@link DecoderAttribute.DataType}.
    */
   protected void setAttribute(DecoderAttribute att, Object value)
   {

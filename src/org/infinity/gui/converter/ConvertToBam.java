@@ -2553,8 +2553,7 @@ public class ConvertToBam extends ChildFrame
   {
     boolean retVal = false;
     if (listIndex >= 0 && entry != null) {
-      try {
-        InputStream is = entry.getResourceDataAsStream();
+      try (InputStream is = entry.getResourceDataAsStream()) {
         BufferedImage[] images;
         if (entry.getExtension().equalsIgnoreCase("gif")) {
           // Potential GIF animation

@@ -19,6 +19,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -650,8 +651,8 @@ public class PltResource implements Resource, Closeable, Writeable, ItemListener
     {
       ResourceEntry entry = ResourceFactory.getResourceEntry(PAL_RESOURCE);
       if (entry != null) {
-        try {
-          BufferedImage image = ImageIO.read(entry.getResourceDataAsStream());
+        try (InputStream is = entry.getResourceDataAsStream()) {
+          BufferedImage image = ImageIO.read(is);
 
           // preparing fixed color ranges
           int[] buffer = null;
