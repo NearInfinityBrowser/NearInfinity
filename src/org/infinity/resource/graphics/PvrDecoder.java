@@ -63,7 +63,7 @@ public class PvrDecoder
   }
 
   // The global cache list for PVR objects. The "key" has to be a unique String (e.g. filename or integer as string)
-  private static final Map<String, PvrDecoder> pvrCache = new LinkedHashMap<String, PvrDecoder>();
+  private static final Map<String, PvrDecoder> pvrCache = new LinkedHashMap<>();
   // The max. number of cache entries to hold
   private static int MaxCacheEntries = 32;
 

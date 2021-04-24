@@ -4,7 +4,31 @@
 
 package org.infinity.util.io.zip;
 
-import static org.infinity.util.io.zip.ZipConstants.*;
+import static org.infinity.util.io.zip.ZipConstants.CENCOM;
+import static org.infinity.util.io.zip.ZipConstants.CENEXT;
+import static org.infinity.util.io.zip.ZipConstants.CENHDR;
+import static org.infinity.util.io.zip.ZipConstants.CENNAM;
+import static org.infinity.util.io.zip.ZipConstants.CENSIG;
+import static org.infinity.util.io.zip.ZipConstants.ENDCOM;
+import static org.infinity.util.io.zip.ZipConstants.ENDHDR;
+import static org.infinity.util.io.zip.ZipConstants.ENDSIG;
+import static org.infinity.util.io.zip.ZipConstants.END_MAXLEN;
+import static org.infinity.util.io.zip.ZipConstants.LL;
+import static org.infinity.util.io.zip.ZipConstants.LOCHDR;
+import static org.infinity.util.io.zip.ZipConstants.LOCLEN;
+import static org.infinity.util.io.zip.ZipConstants.LOCSIG;
+import static org.infinity.util.io.zip.ZipConstants.LOCSIZ;
+import static org.infinity.util.io.zip.ZipConstants.READBLOCKSZ;
+import static org.infinity.util.io.zip.ZipConstants.ZIP64_ENDHDR;
+import static org.infinity.util.io.zip.ZipConstants.ZIP64_ENDOFF;
+import static org.infinity.util.io.zip.ZipConstants.ZIP64_ENDSIG;
+import static org.infinity.util.io.zip.ZipConstants.ZIP64_ENDSIZ;
+import static org.infinity.util.io.zip.ZipConstants.ZIP64_ENDTOT;
+import static org.infinity.util.io.zip.ZipConstants.ZIP64_LOCHDR;
+import static org.infinity.util.io.zip.ZipConstants.ZIP64_LOCOFF;
+import static org.infinity.util.io.zip.ZipConstants.ZIP64_LOCSIG;
+import static org.infinity.util.io.zip.ZipConstants.ZIP64_MINVAL;
+import static org.infinity.util.io.zip.ZipConstants.ZIP64_MINVAL32;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -40,7 +64,7 @@ public class ZipCentralEndHeader extends ZipBaseHeader
   public byte[] comment;
 
 
-  public ZipCentralEndHeader(ByteBuffer buffer, long absOffset) throws IOException
+  public ZipCentralEndHeader(ByteBuffer buffer, long absOffset)
   {
     super(absOffset, buffer.getInt());
     long headerStart = buffer.position() - 4L;

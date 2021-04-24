@@ -429,8 +429,8 @@ public final class CreResource extends AbstractStruct
   public static final int TAB_INDEX_ANIMATION = 1;
   public static final int TAB_INDEX_RAW       = 2;
 
-  private static final LongIntegerHashMap<String> m_magetype = new LongIntegerHashMap<String>();
-  private static final LongIntegerHashMap<String> m_colorPlacement = new LongIntegerHashMap<String>();
+  private static final LongIntegerHashMap<String> m_magetype = new LongIntegerHashMap<>();
+  private static final LongIntegerHashMap<String> m_colorPlacement = new LongIntegerHashMap<>();
   public static final String[] s_flag = {
     "No flags set", "Identified", "No corpse", "Permanent corpse",
     "Original class: Fighter", "Original class: Mage", "Original class: Cleric", "Original class: Thief",
@@ -576,7 +576,7 @@ public final class CreResource extends AbstractStruct
               entries.add(entry);
             }
           } else {
-            Set<ResourceEntry> entries = new HashSet<ResourceEntry>();
+            Set<ResourceEntry> entries = new HashSet<>();
             entries.add(entry);
             synchronized (scriptNames) {
               scriptNames.put(scriptName, entries);
@@ -2237,7 +2237,7 @@ public final class CreResource extends AbstractStruct
               SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellDomain)};
           final String spellTypesStruct = SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellBard_Spell);
           final String spellTypesRef = SearchOptions.getResourceName(SearchOptions.CRE_IWD2SpellBard_Spell_ResRef);
-          List<Datatype> listSpells = new ArrayList<Datatype>(64);
+          List<Datatype> listSpells = new ArrayList<>(64);
           for (int i = 0; i < spellTypes.length; i++) {
             for (int j = 1; j < 10; j++) {
               String label = String.format(spellTypes[i], j);

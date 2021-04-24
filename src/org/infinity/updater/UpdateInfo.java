@@ -78,7 +78,7 @@ public class UpdateInfo
   private static final String ATTR_VERSION      = "version";
   private static final String ATTR_TYPE         = "type";
 
-  private final EnumMap<ReleaseType, Release> releases = new EnumMap<ReleaseType, Release>(ReleaseType.class);
+  private final EnumMap<ReleaseType, Release> releases = new EnumMap<>(ReleaseType.class);
 
   private General general;
   private int version;
@@ -279,7 +279,7 @@ public class UpdateInfo
       throw new Exception("Update.xml: Node \"" + NODE_GENERAL + "\" expected");
     }
 
-    List<String> serverList = new ArrayList<String>();
+    List<String> serverList = new ArrayList<>();
     List<Couple<String, String>> infoList = new ArrayList<>();
 
     NodeList children = elemGeneral.getChildNodes();
@@ -402,7 +402,7 @@ public class UpdateInfo
 
     // processing optional element "changelog"
     if (elemChangelog != null) {
-      changelog = new ArrayList<String>();
+      changelog = new ArrayList<>();
       children = elemChangelog.getElementsByTagName(NODE_ENTRY);
       for (int idx = 0, size = children.getLength(); idx < size; idx++) {
         Element elem = (Element)children.item(idx);
@@ -427,7 +427,7 @@ public class UpdateInfo
   // Manages "General" information
   public static class General
   {
-    private final List<String> servers = new ArrayList<String>();
+    private final List<String> servers = new ArrayList<>();
     private final List<Couple<String, String>> information = new ArrayList<>();
 
     private General(List<String> servers, List<Couple<String, String>> information) throws Exception
@@ -500,7 +500,7 @@ public class UpdateInfo
   // Manages "Release" information
   public static class Release
   {
-    private final List<String> changelog = new ArrayList<String>();
+    private final List<String> changelog = new ArrayList<>();
     private final ReleaseType type;
     private String fileName, link, linkManual, version, hash;
     private FileType linkType;

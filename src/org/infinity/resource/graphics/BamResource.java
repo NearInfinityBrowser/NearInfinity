@@ -549,7 +549,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       miExportFramesPNG.addActionListener(this);
     }
 
-    List<JMenuItem> list = new ArrayList<JMenuItem>();
+    List<JMenuItem> list = new ArrayList<>();
     if (miExport != null) {
       list.add(miExport);
     }
@@ -955,7 +955,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       int numCycles = bamControl.cycleCount();
       boolean hasSemiTrans = false;
       int maxWidth = 0, maxHeight = 0;
-      List<String> issues = new ArrayList<String>(10);
+      List<String> issues = new ArrayList<>(10);
 
       // checking for issues
       BamDecoder.BamControl control = decoder.createControl();
@@ -1079,7 +1079,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       int[] chainedImageData = ((DataBufferInt)composedImage.getRaster().getDataBuffer()).getData();
       int[] palette = ColorConvert.medianCut(chainedImageData, hasTransparency ? 255 : 256, ignoreAlpha);
       // initializing color cache
-      IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(1536);
+      IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(1536);
       for (int i = 0; i < palette.length; i++) {
         colorCache.put(palette[i], (byte)i);
       }
@@ -1093,7 +1093,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       }
 
       // 2. encoding frames
-      List<byte[]> frameList = new ArrayList<byte[]>(frameCount);
+      List<byte[]> frameList = new ArrayList<>(frameCount);
       int colorShift = hasTransparency ? 1 : 0;   // considers transparent color index
       for (int i = 0; i < frameCount; i++) {
         if (decoder.frameGet(control, i) != null) {
@@ -1257,7 +1257,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       @Override
       public List<byte[]> doInBackground()
       {
-        List<byte[]> list = new Vector<byte[]>(1);
+        List<byte[]> list = new Vector<>(1);
         try {
           byte[] buf = convertToBamV1(exportCompressed);
           if (buf != null) {

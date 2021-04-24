@@ -22,8 +22,8 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.RenderCanvas;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.ColorConvert;
+import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.TisDecoder;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.wed.Door;
@@ -66,11 +66,11 @@ public class TilesetRenderer extends RenderCanvas
   public static final int LightingAdjustmentShift = 10;   // use in place of division
 
   // keeps track of registered listener objects
-  private final List<TilesetChangeListener> listChangeListener = new ArrayList<TilesetChangeListener>();
+  private final List<TilesetChangeListener> listChangeListener = new ArrayList<>();
   // graphics data for all tiles of each overlay
-  private final List<Tileset> listTilesets = new ArrayList<Tileset>(MaxOverlays);
+  private final List<Tileset> listTilesets = new ArrayList<>(MaxOverlays);
   // array of tile indices used for closed door states for each door structure
-  private final List<DoorInfo> listDoorTileIndices = new ArrayList<DoorInfo>();
+  private final List<DoorInfo> listDoorTileIndices = new ArrayList<>();
 
   private final BufferedImage workingTile = ColorConvert.createCompatibleImage(64, 64, true); // internally used for drawing tile graphics
   private WedResource wed;                // current wed resource
@@ -1084,11 +1084,11 @@ public class TilesetRenderer extends RenderCanvas
   private static class Tileset
   {
     // graphics data for all tiles of this overlay (as int arrays of 64*64 pixels)
-    public final List<int[]> listTileData = new ArrayList<int[]>();
+    public final List<int[]> listTileData = new ArrayList<>();
     // info structures for all tiles of this overlay
-    public final List<Tile> listTiles = new ArrayList<Tile>();
+    public final List<Tile> listTiles = new ArrayList<>();
     // lists references to all tiles containing overlays from listTiles
-    public final List<Tile> listOverlayTiles = new ArrayList<Tile>();
+    public final List<Tile> listOverlayTiles = new ArrayList<>();
 
     public int tilesX, tilesY;    // stores number of tiles per row/column
     public boolean isTisPalette;  // whether tileset is palette-based

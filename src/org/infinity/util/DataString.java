@@ -43,7 +43,7 @@ public class DataString<T> implements CharSequence, Comparable<CharSequence>
    */
   public static <T> DataString<T> with(String s, T data)
   {
-    return new DataString<T>(s, data);
+    return new DataString<>(s, data);
   }
 
   /**
@@ -57,7 +57,7 @@ public class DataString<T> implements CharSequence, Comparable<CharSequence>
    */
   public static <T> DataString<T> with(String s, T data, String fmt)
   {
-    return new DataString<T>(s, data, fmt);
+    return new DataString<>(s, data, fmt);
   }
 
   /**

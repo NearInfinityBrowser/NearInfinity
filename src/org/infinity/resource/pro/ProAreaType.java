@@ -54,7 +54,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable, U
   public static final String PRO_AREA_ANIMATION_GRANULARITY         = "Animation granularity";
   public static final String PRO_AREA_ANIMATION_GRANULARITY_DIVIDER = "Animation granularity divider";
 
-  public static final LongIntegerHashMap<String> m_proj = new LongIntegerHashMap<String>();
+  public static final LongIntegerHashMap<String> m_proj = new LongIntegerHashMap<>();
   public static final String[] s_areaflags = {"Trap not visible", "Trap visible", "Triggered by inanimates",
                                               "Triggered by condition", "Delayed trigger", "Secondary projectile",
                                               "Fragments", "Affect only enemies", "Affect only allies*;Only in combination with \"Affect only enemies (6)\"",

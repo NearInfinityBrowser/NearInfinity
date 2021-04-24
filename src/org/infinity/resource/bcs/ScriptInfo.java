@@ -511,7 +511,7 @@ public class ScriptInfo
     for (final Map.Entry<Function.FunctionType, List<String>> entry : obj.FUNCTION_SIGNATURES.entrySet()) {
       List<String> oldList = entry.getValue();
       if (oldList != null) {
-        this.FUNCTION_SIGNATURES.put(entry.getKey(), new ArrayList<String>(oldList));
+        this.FUNCTION_SIGNATURES.put(entry.getKey(), new ArrayList<>(oldList));
       }
     }
     this.FUNCTION_PARAM_COMMENT.putAll(obj.FUNCTION_PARAM_COMMENT);

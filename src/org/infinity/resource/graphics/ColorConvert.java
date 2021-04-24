@@ -684,7 +684,7 @@ public class ColorConvert
 
     if (desiredColors > 0 && desiredColors <= MAX_COLORS && palette.length >= desiredColors) {
       final PriorityQueue<PixelBlock> blockQueue =
-          new PriorityQueue<PixelBlock>(desiredColors, PixelBlock.PixelBlockComparator);
+          new PriorityQueue<>(desiredColors, PixelBlock.PixelBlockComparator);
 
       final Pixel[] p = new Pixel[pixels.length];
       int mask = ignoreAlpha ? 0xff000000: 0;

@@ -1111,7 +1111,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   private void setAppIcon()
   {
-    List<Image> list = new ArrayList<Image>();
+    List<Image> list = new ArrayList<>();
     for (int i = 4; i < 8; i++) {
       list.add(Icons.getImage(String.format("App%d.png", 1 << i)));
     }

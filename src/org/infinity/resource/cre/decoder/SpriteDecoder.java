@@ -50,16 +50,18 @@ import org.infinity.resource.cre.decoder.util.SegmentDef;
 import org.infinity.resource.cre.decoder.util.SeqDef;
 import org.infinity.resource.cre.decoder.util.Sequence;
 import org.infinity.resource.cre.decoder.util.SpriteUtils;
+import org.infinity.resource.graphics.BamDecoder;
+import org.infinity.resource.graphics.BamV1Decoder.BamV1Control;
+import org.infinity.resource.graphics.BlendingComposite;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.PseudoBamDecoder;
-import org.infinity.resource.graphics.BamV1Decoder.BamV1Control;
-import org.infinity.resource.graphics.BamDecoder;
-import org.infinity.resource.graphics.BlendingComposite;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapSection;
 import org.infinity.util.Misc;
 import org.infinity.util.tuples.Couple;
+
+import sun.security.rsa.RSAUtil.KeyType;
 
 /**
  * Specialized BAM decoder for creature animation sprites.
@@ -979,6 +981,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
   /**
    * Returns the preferred compositor for rendering the sprite on the target surface.
    */
+  @Override
   public Composite getComposite()
   {
     int blending = ((isBrightest() ? 1 : 0) << 0) | ((isMultiplyBlend() ? 1 : 0) << 1);
@@ -1595,7 +1598,7 @@ public abstract class SpriteDecoder extends PseudoBamDecoder
     }
 
     // preparations
-    final Map<Integer, int[]> colorRanges = new HashMap<Integer, int[]>();
+    final Map<Integer, int[]> colorRanges = new HashMap<>();
     for (int loc = 0; loc < 7; loc++) {
       int ofs = getColorOffset(loc);
       Couple<Integer, Boolean> colorInfo =

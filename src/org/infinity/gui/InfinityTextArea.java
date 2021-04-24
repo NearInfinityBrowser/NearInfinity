@@ -104,7 +104,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
   /** BCS color scheme based on WeiDU Highlighter for Notepad++ */
   public static final String SchemeBCS = "org/infinity/resource/text/modes/ThemeBCSLight.xml";
 
-  private static EnumMap<Scheme, String> SchemeMap = new EnumMap<Scheme, String>(Scheme.class);
+  private static EnumMap<Scheme, String> SchemeMap = new EnumMap<>(Scheme.class);
 
   static {
     // adding custom code folding definitions

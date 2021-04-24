@@ -3440,7 +3440,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify flags. */
-  private static final class FlagsPanel extends BasePanel implements ActionListener
+  private static final class FlagsPanel extends BasePanel
   {
     private final int size;
     private final JCheckBox[] cbFlags;
@@ -3581,7 +3581,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify effect opcodes for CRE resources. */
-  private static final class EffectsPanel extends BasePanel implements ActionListener
+  private static final class EffectsPanel extends BasePanel
   {
     private static final int MaxEntryCount     = 16;
 
@@ -3670,7 +3670,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify custom filters for the selected resource type. */
-  private static final class CustomFilterPanel extends BasePanel implements ActionListener
+  private static final class CustomFilterPanel extends BasePanel
   {
     private static final int FILTER_STRING    = 0;
     private static final int FILTER_NUMBER    = 1;
@@ -3950,7 +3950,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify spell effect timing modes. */
-  private static final class TimingModePanel extends BasePanel implements ActionListener
+  private static final class TimingModePanel extends BasePanel
   {
     public static final int TIMING_MODE     = 0;
     public static final int TIMING_DURATION = 1;
@@ -4051,7 +4051,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify creature level ranges. */
-  private static final class CreLevelPanel extends BasePanel implements ActionListener
+  private static final class CreLevelPanel extends BasePanel
   {
     private static final String[] LABELS = {
       "First class level:",
@@ -4135,7 +4135,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify creature level ranges (IWD2-specific). */
-  private static final class CreLevelIWD2Panel extends BasePanel implements ActionListener
+  private static final class CreLevelIWD2Panel extends BasePanel
   {
     public static final int LEVEL_TOTAL     = 0;
     public static final int LEVEL_BARBARIAN = 1;
@@ -4238,7 +4238,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify creature types. */
-  private static final class CreTypePanel extends BasePanel implements ActionListener
+  private static final class CreTypePanel extends BasePanel
   {
     public static final int TYPE_GENERAL    = 0;
     public static final int TYPE_CLASS      = 1;
@@ -4364,7 +4364,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify game-specific settings for CRE resources. */
-  private static final class CreGameSpecificPanel extends BasePanel implements ActionListener
+  private static final class CreGameSpecificPanel extends BasePanel
   {
     public static final int TYPE_FEATS1     = 0;
     public static final int TYPE_FEATS2     = 1;
@@ -4475,7 +4475,7 @@ public class SearchResource extends ChildFrame
   }
 
   /** Panel with several filters by resource reference. */
-  private static class ResourcesFilterPanel extends BasePanel implements ActionListener
+  private static class ResourcesFilterPanel extends BasePanel
   {
     private final JCheckBox[] cbLabel;
     private final JComboBox<ResourceEntry>[] cbItems;
@@ -4550,7 +4550,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify usability flags. */
-  private static final class ItmUsabilityPanel extends BasePanel implements ActionListener
+  private static final class ItmUsabilityPanel extends BasePanel
   {
     public static final int ITEM_UNUSABLE       = 0;
     public static final int ITEM_KITSUNUSABLE1  = 1;
@@ -4667,7 +4667,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify minimum stats ranges. */
-  private static final class ItmStatsPanel extends BasePanel implements ActionListener
+  private static final class ItmStatsPanel extends BasePanel
   {
     // supported stats
     public static final int STAT_LEVEL      = 0;
@@ -4778,7 +4778,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify item ability properties. */
-  private static final class ItmAbilityPanel extends BasePanel implements ActionListener
+  private static final class ItmAbilityPanel extends BasePanel
   {
     private static final int ITEM_TYPE        = 0;
     private static final int ITEM_TARGET      = 1;
@@ -5127,7 +5127,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify spell ability properties. */
-  private static final class SplAbilityPanel extends BasePanel implements ActionListener
+  private static final class SplAbilityPanel extends BasePanel
   {
     private static final int SPELL_TYPE       = 0;
     private static final int SPELL_LOCATION   = 1;
@@ -5393,7 +5393,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify item categories allowed in STO resources. */
-  private static final class StoCategoriesPanel extends BasePanel implements ActionListener
+  private static final class StoCategoriesPanel extends BasePanel
   {
     private static final int MaxEntryCount = 16;
 

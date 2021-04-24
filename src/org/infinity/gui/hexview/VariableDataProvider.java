@@ -19,7 +19,7 @@ import tv.porst.jhexview.SimpleDataProvider;
  */
 public class VariableDataProvider implements IDataProvider
 {
-  private final List<IDataChangedListener> listeners = new ArrayList<IDataChangedListener>();
+  private final List<IDataChangedListener> listeners = new ArrayList<>();
 
   private byte[] buffer;
 

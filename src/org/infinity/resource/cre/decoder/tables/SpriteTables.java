@@ -276,7 +276,7 @@ public class SpriteTables
     if (Profile.<Integer>getProperty(Profile.Key.GET_INFINITY_ANIMATIONS) > 0) {
       return InfinityTables.createIniMaps(animationId);
     }
-    return new ArrayList<IniMap>();
+    return new ArrayList<>();
   }
 
 
@@ -356,7 +356,7 @@ public class SpriteTables
   {
     List<String> retVal = TableMaps.get(game);
     if (retVal == null) {
-      retVal = new ArrayList<String>();
+      retVal = new ArrayList<>();
     }
     return retVal;
   }

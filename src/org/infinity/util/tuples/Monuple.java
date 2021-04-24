@@ -24,7 +24,7 @@ public class Monuple<A> extends Tuple implements TupleValue0<A>
    */
   public static <A> Monuple<A> with(A value0)
   {
-    return new Monuple<A>(value0);
+    return new Monuple<>(value0);
   }
 
   /**
@@ -41,7 +41,7 @@ public class Monuple<A> extends Tuple implements TupleValue0<A>
     if (arr.length < SIZE) {
       throw new IllegalArgumentException("Array must contain at least 1 element");
     }
-    return new Monuple<T>(arr[0]);
+    return new Monuple<>(arr[0]);
   }
 
   /**
@@ -59,7 +59,7 @@ public class Monuple<A> extends Tuple implements TupleValue0<A>
       throw new IllegalArgumentException("Collection must contain at least 1 element");
     }
     Iterator<T> iter = col.iterator();
-    return new Monuple<T>(iter.next());
+    return new Monuple<>(iter.next());
   }
 
   /**
@@ -100,7 +100,7 @@ public class Monuple<A> extends Tuple implements TupleValue0<A>
     } else {
       el0 = null;
     }
-    return new Monuple<T>(el0);
+    return new Monuple<>(el0);
   }
 
   /**

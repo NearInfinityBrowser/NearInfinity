@@ -150,7 +150,7 @@ public class ConvertToTis extends ChildFrame
         progress.setMillisToPopup(0);
       }
 
-      IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(2048);   // caching RGBColor -> index
+      IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(2048);   // caching RGBColor -> index
       for (int tileIdx = 0; tileIdx < tileCount; tileIdx++) {
         if (showProgress) {
           if (progress.isCanceled()) {
@@ -293,8 +293,8 @@ public class ConvertToTis extends ChildFrame
 
     // preparing variables
     ProgressMonitor progress = null;
-    List<BinPack2D> pageList = new ArrayList<BinPack2D>();
-    List<TileEntry> entryList = new ArrayList<TileEntry>(tileCount);
+    List<BinPack2D> pageList = new ArrayList<>();
+    List<TileEntry> entryList = new ArrayList<>(tileCount);
 
     byte[] dst = new byte[24 + tileCount*12];   // header + tiles
     int dstOfs = 0;   // current start offset for write operations
@@ -1068,7 +1068,7 @@ public class ConvertToTis extends ChildFrame
   // Return value: First list element is used for success message, second element for error message.
   private List<String> convert()
   {
-    List<String> ret = new Vector<String>(2);
+    List<String> ret = new Vector<>(2);
 
     // validating input file
     Path inFile = FileManager.resolve(inFileName);

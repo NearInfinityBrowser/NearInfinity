@@ -281,7 +281,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
         }
       }
     }
-    List<JMenuItem> list = new ArrayList<JMenuItem>();
+    List<JMenuItem> list = new ArrayList<>();
     if (miExport != null)
       list.add(miExport);
     if (miExportMOSV1 != null)
@@ -478,7 +478,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
       progress.setMillisToPopup(2000);
 
       // creating list of tiles as int[] arrays
-      List<int[]> tileList = new ArrayList<int[]>(cols*rows);
+      List<int[]> tileList = new ArrayList<>(cols*rows);
       for (int y = 0; y < rows; y++) {
         for (int x = 0; x < cols; x++) {
           int tileX = x * 64;
@@ -497,7 +497,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
       byte[] tilePalette = new byte[1024];
       byte[] tileData = new byte[64*64];
       int curPalOfs = palOfs, curTableOfs = tableOfs, curDataOfs = dataOfs;
-      IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(1536);   // caching RGBColor -> index
+      IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(1536);   // caching RGBColor -> index
       for (int tileIdx = 0; tileIdx < tileList.size(); tileIdx++) {
         colorCache.clear();
         if (progress.isCanceled()) {
@@ -571,7 +571,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
       @Override
       public List<byte[]> doInBackground()
       {
-        List<byte[]> list = new Vector<byte[]>(1);
+        List<byte[]> list = new Vector<>(1);
         try {
           byte[] buf = convertToMosV1(exportCompressed);
           if (buf != null) {

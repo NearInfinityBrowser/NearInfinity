@@ -20,8 +20,8 @@ import tv.porst.jhexview.IDataProvider;
  */
 public class ResourceDataProvider implements IDataProvider
 {
-  private final ArrayList<IDataChangedListener> listeners = new ArrayList<IDataChangedListener>();
-  private final HashMap<Integer, Byte> modifiedMap = new HashMap<Integer, Byte>();
+  private final ArrayList<IDataChangedListener> listeners = new ArrayList<>();
+  private final HashMap<Integer, Byte> modifiedMap = new HashMap<>();
   private final ResourceEntry entry;
 
   private int size;

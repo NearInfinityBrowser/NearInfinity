@@ -26,7 +26,7 @@ public class Couple<A, B> extends Tuple implements TupleValue0<A>, TupleValue1<B
    */
   public static <A, B> Couple<A, B> with(A value0, B value1)
   {
-    return new Couple<A, B>(value0, value1);
+    return new Couple<>(value0, value1);
   }
 
   /**
@@ -43,7 +43,7 @@ public class Couple<A, B> extends Tuple implements TupleValue0<A>, TupleValue1<B
     if (arr.length < SIZE) {
       throw new IllegalArgumentException(String.format("Array must contain at least %d elements", SIZE));
     }
-    return new Couple<T, T>(arr[0], arr[1]);
+    return new Couple<>(arr[0], arr[1]);
   }
 
   /**
@@ -63,7 +63,7 @@ public class Couple<A, B> extends Tuple implements TupleValue0<A>, TupleValue1<B
     Iterator<T> iter = col.iterator();
     T el0 = iter.next();
     T el1 = iter.next();
-    return new Couple<T, T>(el0, el1);
+    return new Couple<>(el0, el1);
   }
 
   /**
@@ -100,7 +100,7 @@ public class Couple<A, B> extends Tuple implements TupleValue0<A>, TupleValue1<B
 
     T el0 = iter.hasNext() ? iter.next() : null;
     T el1 = iter.hasNext() ? iter.next() : null;
-    return new Couple<T, T>(el0, el1);
+    return new Couple<>(el0, el1);
   }
 
   /**

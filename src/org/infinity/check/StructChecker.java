@@ -48,7 +48,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
 {
   private static final String[] FILETYPES = {"ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM",
                                              "PRO", "SPL", "STO", "VEF", "VVC", "WED", "WMP"};
-  private static final HashMap<String, StructInfo> fileInfo = new HashMap<String, StructInfo>();
+  private static final HashMap<String, StructInfo> fileInfo = new HashMap<>();
   static {
     fileInfo.put("ARE", new StructInfo("AREA", new String[]{"V1.0", "V9.1"}));
     fileInfo.put("CHR", new StructInfo("CHR ", new String[]{"V1.0", "V1.2", "V2.0", "V2.1", "V2.2", "V9.0"}));

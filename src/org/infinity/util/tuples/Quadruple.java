@@ -31,7 +31,7 @@ public class Quadruple<A, B, C, D> extends Tuple
    */
   public static <A, B, C, D> Quadruple<A, B, C, D> with(A value0, B value1, C value2, D value3)
   {
-    return new Quadruple<A, B, C, D>(value0, value1, value2, value3);
+    return new Quadruple<>(value0, value1, value2, value3);
   }
 
   /**
@@ -48,7 +48,7 @@ public class Quadruple<A, B, C, D> extends Tuple
     if (arr.length < SIZE) {
       throw new IllegalArgumentException(String.format("Array must contain at least %d elements", SIZE));
     }
-    return new Quadruple<T, T, T, T>(arr[0], arr[1], arr[2], arr[3]);
+    return new Quadruple<>(arr[0], arr[1], arr[2], arr[3]);
   }
 
   /**
@@ -70,7 +70,7 @@ public class Quadruple<A, B, C, D> extends Tuple
     T el1 = iter.next();
     T el2 = iter.next();
     T el3 = iter.next();
-    return new Quadruple<T, T, T, T>(el0, el1, el2, el3);
+    return new Quadruple<>(el0, el1, el2, el3);
   }
 
   /**
@@ -109,7 +109,7 @@ public class Quadruple<A, B, C, D> extends Tuple
     T el1 = iter.hasNext() ? iter.next() : null;
     T el2 = iter.hasNext() ? iter.next() : null;
     T el3 = iter.hasNext() ? iter.next() : null;
-    return new Quadruple<T, T, T, T>(el0, el1, el2, el3);
+    return new Quadruple<>(el0, el1, el2, el3);
   }
 
   /**

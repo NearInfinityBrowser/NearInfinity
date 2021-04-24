@@ -20,8 +20,7 @@ public class SharedResourceCache
     ACTOR
   }
 
-  private static EnumMap<Type, HashMap<Object, DataWrapper>> tables =
-      new EnumMap<Type, HashMap<Object, DataWrapper>>(Type.class);
+  private static EnumMap<Type, HashMap<Object, DataWrapper>> tables = new EnumMap<>(Type.class);
 
   static {
     for (final Type type : Type.values()) {

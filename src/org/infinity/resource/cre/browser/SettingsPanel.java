@@ -432,7 +432,7 @@ public class SettingsPanel extends JPanel
 
     // selection controls
     JLabel l1 = new JLabel("Zoom:");
-    cbZoom = new JComboBox<SettingsPanel.ItemString<Integer>>(zoomList);
+    cbZoom = new JComboBox<>(zoomList);
     cbZoom.setPrototypeDisplayValue(zoomList.get(1));
     cbZoom.setSelectedIndex(indexZoom);
     cbZoom.addActionListener(listeners);
@@ -442,14 +442,14 @@ public class SettingsPanel extends JPanel
     bCenter.addActionListener(listeners);
 
     JLabel l2 = new JLabel("Frame rate:");
-    cbFrameRate = new JComboBox<SettingsPanel.ItemString<Integer>>(frameRateList);
+    cbFrameRate = new JComboBox<>(frameRateList);
     cbFrameRate.setPrototypeDisplayValue(frameRateList.get(2));
     cbFrameRate.setSelectedIndex(indexFrameRate);
     cbFrameRate.addActionListener(listeners);
 
     JLabel l3 = new JLabel("Background:");
     List<Backgrounds.BackgroundInfo> bgList = getBackgrounds(Profile.getGame());
-    cbBackground = new JComboBox<Backgrounds.BackgroundInfo>(bgList.toArray(new Backgrounds.BackgroundInfo[bgList.size()]));
+    cbBackground = new JComboBox<>(bgList.toArray(new Backgrounds.BackgroundInfo[bgList.size()]));
     cbBackground.setPrototypeDisplayValue(backgroundList.get(1));
     cbBackground.setSelectedIndex(indexBackground);
     cbBackground.addActionListener(listeners);
@@ -729,7 +729,7 @@ public class SettingsPanel extends JPanel
 
     public static <T> ItemString<T> with(String text, T data)
     {
-      return new ItemString<T>(text, data);
+      return new ItemString<>(text, data);
     }
 
     public ItemString(String text, T data)

@@ -4,7 +4,10 @@
 
 package org.infinity.util.io.zip;
 
-import static org.infinity.util.io.zip.ZipConstants.*;
+import static org.infinity.util.io.zip.ZipConstants.CENSIG;
+import static org.infinity.util.io.zip.ZipConstants.LOCEXT;
+import static org.infinity.util.io.zip.ZipConstants.LOCHDR;
+import static org.infinity.util.io.zip.ZipConstants.LOCNAM;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -39,7 +42,7 @@ public class ZipCentralHeader extends ZipLocalHeader
   // Cached local header
   private ZipLocalHeader localHeader;
 
-  public ZipCentralHeader(ByteBuffer buffer, long absOffset) throws IOException
+  public ZipCentralHeader(ByteBuffer buffer, long absOffset)
   {
     super(absOffset, buffer.getInt() & 0xffffffffL);
     long headerStart = buffer.position() - 4L;
@@ -137,7 +140,7 @@ public class ZipCentralHeader extends ZipLocalHeader
       } else {
         return 0;
       }
-    } else if (o instanceof ZipBaseHeader) {
+    } else if (o != null) {
       return super.compareTo(o);
     } else {
       throw new NullPointerException();

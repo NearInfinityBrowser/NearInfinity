@@ -737,11 +737,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
                             gameProperties, gameBookmarkAdd, gameBookmarkEdit, gameRecentClear;
 
     private final JMenu gameRecent = new JMenu("Recently opened games");
-    private final List<RecentGame> recentList = new ArrayList<RecentGame>();
+    private final List<RecentGame> recentList = new ArrayList<>();
     private final JPopupMenu.Separator gameRecentSeparator = new JPopupMenu.Separator();
 
     private final JMenu gameBookmarks = new JMenu("Bookmarked games");
-    private final List<Bookmark> bookmarkList = new ArrayList<Bookmark>();
+    private final List<Bookmark> bookmarkList = new ArrayList<>();
     private final JPopupMenu.Separator gameBookmarkSeparator = new JPopupMenu.Separator();
 
     private GameMenu()
@@ -783,7 +783,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
           String path = getPrefsProfiles().get(Bookmark.getBinaryPathKey(os, i), null);
           if (path != null) {
             if (binPaths == null)
-              binPaths = new EnumMap<Platform.OS, List<String>>(Platform.OS.class);
+              binPaths = new EnumMap<>(Platform.OS.class);
             List<String> list = Bookmark.unpackBinPaths(os, path);
             binPaths.put(os, list);
           }
@@ -1725,9 +1725,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       else if (event.getSource() == dumpDebugInfo) {
         dumpDebugInfo();
       }
-      else if (event.getSource() == toolCleanKeyfile)
+      else if (event.getSource() == toolCleanKeyfile) {
 //        cleanKeyfile();
-        ;
+      }
       else if (event.getSource() == toolDropZone) {
         ChildFrame.show(BcsDropFrame.class, () -> new BcsDropFrame());
       }
@@ -1782,7 +1782,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       new Font(Font.MONOSPACED, Font.PLAIN, 12), new Font(Font.SERIF, Font.PLAIN, 12),
       new Font(Font.SANS_SERIF, Font.PLAIN, 12), new Font(Font.DIALOG, Font.PLAIN, 12), null};
     private static final String DefaultCharset = "Auto";
-    private static final List<String[]> CharsetsUsed = new ArrayList<String[]>();
+    private static final List<String[]> CharsetsUsed = new ArrayList<>();
     /** BCS indentations to use when decompiling (indent, title). */
     private static final String[][] BCSINDENT = { {"  ", "2 Spaces"},
                                                   {"    ", "4 Spaces"},
@@ -1919,7 +1919,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private int optionFixedInternal;
 
     /** Stores available languages in BG(2)EE. */
-    private final HashMap<JRadioButtonMenuItem, String> gameLanguage = new HashMap<JRadioButtonMenuItem, String>();
+    private final HashMap<JRadioButtonMenuItem, String> gameLanguage = new HashMap<>();
 
     private OptionsMenu()
     {

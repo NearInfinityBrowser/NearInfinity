@@ -22,8 +22,8 @@ import javax.swing.event.ChangeListener;
  */
 public class FilteredListModel<E> extends AbstractListModel<E>
 {
-  private final Vector<E> list = new Vector<E>();
-  private final Vector<E> filteredList = new Vector<E>();
+  private final Vector<E> list = new Vector<>();
+  private final Vector<E> filteredList = new Vector<>();
   private final ArrayList<ChangeListener> listeners = new ArrayList<>();
 
   private boolean filtered;
@@ -94,7 +94,7 @@ public class FilteredListModel<E> extends AbstractListModel<E>
   public void removeFilterChangeListener(ChangeListener listener)
   {
     if (listener != null) {
-      while (listeners.remove(listener)) ;
+      while (listeners.remove(listener)) {}
     }
   }
 

@@ -85,8 +85,8 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
   public static final String GAM_NPC_STAT_FAV_WEAPON_FMT        = "Favorite weapon %d";
   public static final String GAM_NPC_STAT_FAV_WEAPON_COUNT_FMT  = "Favorite weapon counter %d";
 
-  public static final LongIntegerHashMap<String> m_partyOrder = new LongIntegerHashMap<String>();
-//  private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<String>();
+  public static final LongIntegerHashMap<String> m_partyOrder = new LongIntegerHashMap<>();
+//  private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<>();
 
   private static final String[] s_selected = {"Not selected", "Selected", null, null, null, null, null, null, null,
                                               null, null, null, null, null, null, null, "Dead" };

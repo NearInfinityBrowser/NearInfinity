@@ -509,7 +509,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
     miExportPNG = new JMenuItem("as PNG");
     miExportPNG.addActionListener(this);
 
-    List<JMenuItem> list = new ArrayList<JMenuItem>();
+    List<JMenuItem> list = new ArrayList<>();
     if (miExport != null)
       list.add(miExport);
     if (miExportPaletteTis != null) {
@@ -618,7 +618,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       if (decoder != null) {
         int tileCount = decoder.getTileCount();
         defaultWidth = calcTileWidth(entry, tileCount);
-        tileImages = new ArrayList<Image>(tileCount);
+        tileImages = new ArrayList<>(tileCount);
         for (int tileIdx = 0; tileIdx < tileCount; tileIdx++) {
           BufferedImage image = ColorConvert.createCompatibleImage(64, 64, Transparency.BITMASK);
           decoder.getTile(tileIdx, image);
@@ -632,7 +632,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
       e.printStackTrace();
       WindowBlocker.blockWindow(false);
       if (tileImages == null)
-        tileImages = new ArrayList<Image>();
+        tileImages = new ArrayList<>();
       if (tileImages.isEmpty())
         tileImages.add(ColorConvert.createCompatibleImage(1, 1, Transparency.BITMASK));
       JOptionPane.showMessageDialog(NearInfinity.getInstance(),
@@ -676,7 +676,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           BufferedImage image =
               ColorConvert.createCompatibleImage(decoder.getTileWidth(), decoder.getTileHeight(),
                                                  Transparency.BITMASK);
-          IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(1800);   // caching RGBColor -> index
+          IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(1800);   // caching RGBColor -> index
           for (int tileIdx = 0; tileIdx < decoder.getTileCount(); tileIdx++) {
             colorCache.clear();
             if (progress != null && progress.isCanceled()) {
@@ -816,7 +816,7 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           }
           boolean[] markedTiles = new boolean[numTiles];
           Arrays.fill(markedTiles, false);
-          List<TileRect> listRegions = new ArrayList<TileRect>(256);
+          List<TileRect> listRegions = new ArrayList<>(256);
 
           // divide primary tiles into regions
           int pw = (tisWidth + pageDim - 1) / pageDim;
@@ -924,8 +924,8 @@ public class TisResource implements Resource, Closeable, Referenceable, ActionLi
           }
 
           // packing tileset regions
-          List<ConvertToTis.TileEntry> entryList = new ArrayList<ConvertToTis.TileEntry>(numTiles);
-          List<BinPack2D> pageList = new ArrayList<BinPack2D>();
+          List<ConvertToTis.TileEntry> entryList = new ArrayList<>(numTiles);
+          List<BinPack2D> pageList = new ArrayList<>();
           for (TileRect rect: listRegions) {
             Dimension space = new Dimension(rect.bounds);
             int pageIndex = -1;

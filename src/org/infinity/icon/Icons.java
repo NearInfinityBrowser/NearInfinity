@@ -82,7 +82,7 @@ public class Icons
   public static final String ICON_YELLOW_CIRCLE_20    = "YellowCircle20.gif";
   public static final String ICON_ZOOM_16             = "Zoom16.gif";
 
-  private static final Map<URL, ImageIcon> ICONMAP = new HashMap<URL, ImageIcon>(100);
+  private static final Map<URL, ImageIcon> ICONMAP = new HashMap<>(100);
 
   /**
    * Returns an ImageIcon object of the specified graphics filename.

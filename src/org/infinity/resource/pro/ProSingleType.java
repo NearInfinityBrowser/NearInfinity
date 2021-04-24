@@ -40,7 +40,7 @@ public final class ProSingleType extends AbstractStruct implements AddRemovable
   public static final String PRO_SINGLE_TRAILING_ANIMATION_DELAY_FMT  = "Trailing animation delay %d";
   public static final String PRO_SINGLE_TRAIL_FLAGS                   = "Trail flags";
 
-  public static final LongIntegerHashMap<String> m_facetarget = new LongIntegerHashMap<String>();
+  public static final LongIntegerHashMap<String> m_facetarget = new LongIntegerHashMap<>();
   public static final String[] s_flags = {"No flags set", "Colored BAM", "Creates smoke", "Colored smoke",
                                           "Not light source", "Modify for height", "Casts shadow",
                                           "Light spot enabled", "Translucent", "Mid-level brighten", "Blended"};

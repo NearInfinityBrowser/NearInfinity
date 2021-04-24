@@ -186,7 +186,7 @@ public class BafResource implements TextResource, Writeable, Closeable, ItemList
         java.util.List<ResourceEntry> files = ResourceFactory.getResources("BAF");
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
-        java.util.List<ResourceEntry> files = new ArrayList<ResourceEntry>(1);
+        java.util.List<ResourceEntry> files = new ArrayList<>(1);
         files.add(entry);
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       }

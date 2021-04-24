@@ -85,6 +85,7 @@ public class StructCellEditor extends AbstractCellEditor implements TableCellEdi
    * Forwards the message from the {@code CellEditor} to the {@code delegate}.
    * @see StructEditorDelegate#isCellEditable(EventObject)
    */
+  @Override
   public boolean isCellEditable(EventObject anEvent)
   {
     return delegate.isCellEditable(anEvent);
@@ -94,6 +95,7 @@ public class StructCellEditor extends AbstractCellEditor implements TableCellEdi
    * Forwards the message from the {@code CellEditor} to the {@code delegate}.
    * @see StructEditorDelegate#shouldSelectCell(EventObject)
    */
+  @Override
   public boolean shouldSelectCell(EventObject anEvent)
   {
     return delegate.shouldSelectCell(anEvent);
@@ -103,6 +105,7 @@ public class StructCellEditor extends AbstractCellEditor implements TableCellEdi
    * Forwards the message from the {@code CellEditor} to the {@code delegate}.
    * @see StructEditorDelegate#stopCellEditing
    */
+  @Override
   public boolean stopCellEditing()
   {
     return delegate.stopCellEditing();
@@ -112,6 +115,7 @@ public class StructCellEditor extends AbstractCellEditor implements TableCellEdi
    * Forwards the message from the {@code CellEditor} to the {@code delegate}.
    * @see StructEditorDelegate#cancelCellEditing
    */
+  @Override
   public void cancelCellEditing()
   {
     delegate.cancelCellEditing();
@@ -234,6 +238,7 @@ public class StructCellEditor extends AbstractCellEditor implements TableCellEdi
      * @param e the action event
      * @see #stopCellEditing
      */
+    @Override
     public void actionPerformed(ActionEvent e)
     {
       StructCellEditor.this.stopCellEditing();
@@ -244,6 +249,7 @@ public class StructCellEditor extends AbstractCellEditor implements TableCellEdi
      * @param e the action event
      * @see #stopCellEditing
      */
+    @Override
     public void itemStateChanged(ItemEvent e)
     {
       StructCellEditor.this.stopCellEditing();

@@ -279,7 +279,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
     FlowLayout flow = new FlowLayout(FlowLayout.LEFT, 8, 4);
     JPanel pSupportList = new JPanel(flow);
     pSupportList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-    List<JLabel> listTypes = new ArrayList<JLabel>();
+    List<JLabel> listTypes = new ArrayList<>();
     int maxWidth = 0, maxHeight = 0;
     // preparing entries
     for (Iterator<Profile.Key> iter = RES_TYPES.keySet().iterator(); iter.hasNext();) {

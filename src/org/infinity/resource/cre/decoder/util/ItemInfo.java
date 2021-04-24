@@ -1060,6 +1060,7 @@ public class ItemInfo implements Comparable<ItemInfo>
       return (t) -> test(t) && other.test(t);
     }
 
+    @Override
     default ItemPredicate negate()
     {
       return (t) -> !test(t);

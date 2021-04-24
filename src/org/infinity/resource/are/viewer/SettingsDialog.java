@@ -266,7 +266,7 @@ public class SettingsDialog extends JDialog
     settingsChanged = false;
 
     // Initializing layer items order
-    modelLayers = new SimpleListModel<LayerEntry>();
+    modelLayers = new SimpleListModel<>();
     listLayers = new JList<>(modelLayers);
     listLayers.setCellRenderer(new IndexedCellRenderer(1));
     listLayers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -490,7 +490,7 @@ public class SettingsDialog extends JDialog
     JPanel pMiniMap = new JPanel(new GridBagLayout());
     pMiniMap.setBorder(BorderFactory.createTitledBorder("Mini map opacity: "));
 
-    Hashtable<Integer, JLabel> table = new Hashtable<Integer, JLabel>();
+    Hashtable<Integer, JLabel> table = new Hashtable<>();
     for (int i = 0; i <= 100; i+=25) {
       table.put(Integer.valueOf(i), new JLabel(String.format("%d%%", i)));
     }

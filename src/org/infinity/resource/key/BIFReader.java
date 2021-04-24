@@ -175,7 +175,7 @@ public class BIFReader extends AbstractBIFFReader
   }
 
   // Returns an inflater input stream
-  private InflaterInputStream getInflaterInputStream() throws IOException
+  private InflaterInputStream getInflaterInputStream()
   {
     return new InflaterInputStream(new ByteBufferInputStream(mappedBuffer.duplicate()));
   }

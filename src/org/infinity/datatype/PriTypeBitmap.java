@@ -23,7 +23,7 @@ public class PriTypeBitmap extends HashBitmap
   private static final String[] s_school = {"None", "Abjurer", "Conjurer", "Diviner", "Enchanter",
                                             "Illusionist", "Invoker", "Necromancer", "Transmuter",
                                             "Generalist"};
-  private static final LongIntegerHashMap<String> typeMap = new LongIntegerHashMap<String>();
+  private static final LongIntegerHashMap<String> typeMap = new LongIntegerHashMap<>();
 
   static {
     if (ResourceFactory.resourceExists("MSCHOOL.2DA")) {

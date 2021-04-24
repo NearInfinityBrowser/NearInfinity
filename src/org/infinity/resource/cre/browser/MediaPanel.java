@@ -580,7 +580,7 @@ public class MediaPanel extends JPanel
     lDirection.setText(dir.toString());
     String text = "";
     if (getController() != null) {
-      int cycle = ((SpriteDecoder)getController().getDecoder()).getDirectionMap().getOrDefault(dir, -1);
+      int cycle = getController().getDecoder().getDirectionMap().getOrDefault(dir, -1);
       text = "Cycle: " + cycle;
     }
     lDirection.setToolTipText(text);
@@ -643,7 +643,7 @@ public class MediaPanel extends JPanel
       int min = -directions.size() + 1;
       int max = directions.size();
       // duplicate list entries
-      directions.addAll(new ArrayList<Integer>(directions));
+      directions.addAll(new ArrayList<>(directions));
       // remove excess entries from left (negative) side
       while (directions.size() > 1 && directions.get(0) > Direction.N.getValue()) {
         directions.remove(0);

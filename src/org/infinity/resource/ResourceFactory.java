@@ -263,7 +263,7 @@ public final class ResourceFactory implements FileWatchListener
       if (cls != null) {
         Constructor<? extends Resource> con = cls.getConstructor(ResourceEntry.class);
         if (con != null)
-          res = (Resource)con.newInstance(entry);
+          res = con.newInstance(entry);
       }
     } catch (Exception e) {
       if (NearInfinity.getInstance() != null && !BrowserMenuBar.getInstance().ignoreReadErrors()) {

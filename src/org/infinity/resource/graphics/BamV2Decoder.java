@@ -33,8 +33,8 @@ import org.infinity.util.io.StreamUtils;
 public class BamV2Decoder extends BamDecoder
 {
   private final TreeSet<Integer> pvrIndices = new TreeSet<>();
-  private final List<BamV2FrameEntry> listFrames = new ArrayList<BamV2FrameEntry>();
-  private final List<CycleEntry> listCycles = new ArrayList<CycleEntry>();
+  private final List<BamV2FrameEntry> listFrames = new ArrayList<>();
+  private final List<CycleEntry> listCycles = new ArrayList<>();
   private final BamV2FrameEntry defaultFrameInfo = new BamV2FrameEntry(null, 0, 0);
 
   private BamV2Control defaultControl;

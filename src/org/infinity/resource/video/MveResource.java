@@ -378,7 +378,7 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
         decoder.setDefaultAudioOutput(new AudioQueue());
 
         // prebuffering audio and searching for first video frame
-        LinkedList<byte[]> audioQueue = new LinkedList<byte[]>();
+        LinkedList<byte[]> audioQueue = new LinkedList<>();
         while (decoder.hasNextFrame()) {
           decoder.processNextFrame();
           if (!decoder.frameHasVideo()) {

@@ -45,7 +45,7 @@ public class ButtonPopupMenu extends JButton
   private final ScrollPopupMenu menu = new ScrollPopupMenu();
   private final PopupListener listener = new PopupListener();
   private final PopupItemListener itemListener = new PopupItemListener();
-  private List<JComponent> items = new ArrayList<JComponent>();
+  private List<JComponent> items = new ArrayList<>();
   private JMenuItem selected;
   private Align menuAlign;
 
@@ -218,7 +218,7 @@ public class ButtonPopupMenu extends JButton
    */
   public void setMenuItems(JMenuItem[] menuItems, boolean sorted)
   {
-    List<JMenuItem> list = new ArrayList<JMenuItem>();
+    List<JMenuItem> list = new ArrayList<>();
     if (menuItems != null) {
       Collections.addAll(list, menuItems);
     }
@@ -245,7 +245,7 @@ public class ButtonPopupMenu extends JButton
     if (menuItems != null) {
       List<JMenuItem> preparedList;
       if (sorted) {
-        preparedList = new ArrayList<JMenuItem>(menuItems);
+        preparedList = new ArrayList<>(menuItems);
         Collections.sort(preparedList, menuItemComparator);
       } else {
         preparedList = menuItems;
@@ -270,7 +270,7 @@ public class ButtonPopupMenu extends JButton
    */
   public List<JMenuItem> getMenuItems()
   {
-    List<JMenuItem> list = new ArrayList<JMenuItem>(items.size());
+    List<JMenuItem> list = new ArrayList<>(items.size());
     for (final JComponent c: items) {
       if (c instanceof JMenuItem) {
         list.add((JMenuItem)c);
@@ -328,6 +328,7 @@ public class ButtonPopupMenu extends JButton
   /**
    * Removes the menu item at the specified index from the popup menu.
    */
+  @Override
   public void remove(int pos)
   {
     if (pos < 0 || pos >= items.size()) {
@@ -341,6 +342,7 @@ public class ButtonPopupMenu extends JButton
   /**
    * Removes all items from the popup menu.
    */
+  @Override
   public void removeAll()
   {
     for (int i = items.size() - 1; i >= 0; i--) {

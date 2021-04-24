@@ -311,7 +311,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         List<ResourceEntry> files = ResourceFactory.getResources("DLG");
         new DialogSearcher(files, getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
-        List<ResourceEntry> files = new ArrayList<ResourceEntry>();
+        List<ResourceEntry> files = new ArrayList<>();
         files.add(dlg.getResourceEntry());
         new DialogSearcher(files, getTopLevelAncestor());
       }

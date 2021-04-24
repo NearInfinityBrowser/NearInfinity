@@ -86,7 +86,7 @@ public class Updater
 
   private static Updater instance = null;
 
-  private final List<String> serverList = new ArrayList<String>();
+  private final List<String> serverList = new ArrayList<>();
 
   private Preferences prefs;
   private String hash, version, timestamp;

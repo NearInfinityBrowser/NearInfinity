@@ -6,7 +6,7 @@ package org.infinity.datatype;
 
 import java.nio.ByteBuffer;
 
-public class UnsignDecNumber extends DecNumber implements InlineEditable
+public class UnsignDecNumber extends DecNumber
 {
   public UnsignDecNumber(ByteBuffer buffer, int offset, int length, String name)
   {

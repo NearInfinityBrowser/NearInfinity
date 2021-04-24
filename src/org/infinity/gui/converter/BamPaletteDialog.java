@@ -69,7 +69,7 @@ class BamPaletteDialog extends JDialog
   private static final String FmtInfoHexRGB = "#%02X%02X%02X%02X";
 
   // Stores all available color values of the current BAM and their number of occurence for faster palette creation
-  private final LinkedHashMap<Integer, Integer> colorMap = new LinkedHashMap<Integer, Integer>();
+  private final LinkedHashMap<Integer, Integer> colorMap = new LinkedHashMap<>();
   private final int[][] palettes = new int[2][];
 
   private ConvertToBam converter;

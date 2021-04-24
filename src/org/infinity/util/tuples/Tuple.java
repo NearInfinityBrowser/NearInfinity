@@ -66,6 +66,7 @@ public abstract class Tuple implements Iterable<Object>, Comparable<Tuple>
   /**
    * Returns an iterator over the elements in this tuple in proper sequence.
    */
+  @Override
   public Iterator<Object> iterator()
   {
     return this.valueList.iterator();
@@ -204,7 +205,7 @@ public abstract class Tuple implements Iterable<Object>, Comparable<Tuple>
    */
   public List<Object> toList()
   {
-    return Collections.unmodifiableList(new ArrayList<Object>(valueList));
+    return Collections.unmodifiableList(new ArrayList<>(valueList));
   }
 
   /**

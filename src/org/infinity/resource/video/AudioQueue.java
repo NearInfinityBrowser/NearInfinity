@@ -19,7 +19,7 @@ public class AudioQueue
    */
   public AudioQueue()
   {
-    deque = new ArrayDeque<AudioBlock>();
+    deque = new ArrayDeque<>();
   }
 
   /**

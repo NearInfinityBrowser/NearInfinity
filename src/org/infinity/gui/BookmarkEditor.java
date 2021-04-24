@@ -60,8 +60,8 @@ import org.infinity.util.io.FileManager;
  */
 public class BookmarkEditor extends JDialog implements ActionListener, FocusListener, ListSelectionListener, ItemListener
 {
-  private final SimpleListModel<Bookmark> modelEntries = new SimpleListModel<Bookmark>();
-  private final JList<Bookmark> listEntries = new JList<Bookmark>(modelEntries);
+  private final SimpleListModel<Bookmark> modelEntries = new SimpleListModel<>();
+  private final JList<Bookmark> listEntries = new JList<>(modelEntries);
   private final JButton bUp = new JButton("Up");
   private final JButton bDown = new JButton("Down");
   private final JButton bRemove = new JButton("Remove");
@@ -73,12 +73,12 @@ public class BookmarkEditor extends JDialog implements ActionListener, FocusList
   private final JTextField tfName = new JTextField();
   private final JTextField tfPath = createReadOnlyField(null, true);
   private final DefaultComboBoxModel<Platform.OS> cbPlatformModel =
-      new DefaultComboBoxModel<Platform.OS>(BrowserMenuBar.Bookmark.getSupportedOS());
+      new DefaultComboBoxModel<>(BrowserMenuBar.Bookmark.getSupportedOS());
   private final JComboBox<Platform.OS> cbPlatform = new JComboBox<>(cbPlatformModel);
   private final EnumMap<Platform.OS, DefaultListModel<Path>> listBinPathModels = new EnumMap<>(Platform.OS.class);
-  private final JList<Path> listBinPaths = new JList<Path>();
+  private final JList<Path> listBinPaths = new JList<>();
 
-  private final List<BrowserMenuBar.Bookmark> listBookmarks = new ArrayList<BrowserMenuBar.Bookmark>();
+  private final List<BrowserMenuBar.Bookmark> listBookmarks = new ArrayList<>();
 
   private boolean accepted;
 

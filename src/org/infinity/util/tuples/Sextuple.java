@@ -33,7 +33,7 @@ public class Sextuple<A, B, C, D, E, F> extends Tuple
    */
   public static <A, B, C, D, E, F> Sextuple<A, B, C, D, E, F> with(A value0, B value1, C value2, D value3, E value4, F value5)
   {
-    return new Sextuple<A, B, C, D, E, F>(value0, value1, value2, value3, value4, value5);
+    return new Sextuple<>(value0, value1, value2, value3, value4, value5);
   }
 
   /**
@@ -50,7 +50,7 @@ public class Sextuple<A, B, C, D, E, F> extends Tuple
     if (arr.length < SIZE) {
       throw new IllegalArgumentException(String.format("Array must contain at least %d elements", SIZE));
     }
-    return new Sextuple<T, T, T, T, T, T>(arr[0], arr[1], arr[2], arr[3], arr[4], arr[5]);
+    return new Sextuple<>(arr[0], arr[1], arr[2], arr[3], arr[4], arr[5]);
   }
 
   /**
@@ -74,7 +74,7 @@ public class Sextuple<A, B, C, D, E, F> extends Tuple
     T el3 = iter.next();
     T el4 = iter.next();
     T el5 = iter.next();
-    return new Sextuple<T, T, T, T, T, T>(el0, el1, el2, el3, el4, el5);
+    return new Sextuple<>(el0, el1, el2, el3, el4, el5);
   }
 
   /**
@@ -115,7 +115,7 @@ public class Sextuple<A, B, C, D, E, F> extends Tuple
     T el3 = iter.hasNext() ? iter.next() : null;
     T el4 = iter.hasNext() ? iter.next() : null;
     T el5 = iter.hasNext() ? iter.next() : null;
-    return new Sextuple<T, T, T, T, T, T>(el0, el1, el2, el3, el4, el5);
+    return new Sextuple<>(el0, el1, el2, el3, el4, el5);
   }
 
   /**

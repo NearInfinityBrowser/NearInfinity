@@ -84,7 +84,7 @@ public class IniMapEntry
   {
     String[] retVal = null;
     if (value != null) {
-      List<String> results = new ArrayList<String>();
+      List<String> results = new ArrayList<>();
       try {
         Matcher matcher = Pattern.compile(pattern).matcher(value);
         while (matcher.find()) {
@@ -112,7 +112,7 @@ public class IniMapEntry
   {
     int[] retVal = null;
     if (value != null && Pattern.matches("^\\[(-?\\d+\\.?)+\\]$", value)) {
-      List<String> results = new ArrayList<String>();
+      List<String> results = new ArrayList<>();
       Pattern p = Pattern.compile("-?\\d+");
       Matcher m = p.matcher(value);
       while (m.find()) {
@@ -141,7 +141,7 @@ public class IniMapEntry
   {
     int[] retVal = null;
     if (value != null && Pattern.matches("^\\[[-0-9]+\\.[-0-9]+(:[0-9]+)?\\]$", value)) {
-      List<String> results = new ArrayList<String>();
+      List<String> results = new ArrayList<>();
       Pattern p = Pattern.compile("-?\\d+");
       Matcher m = p.matcher(value);
       while (m.find()) {

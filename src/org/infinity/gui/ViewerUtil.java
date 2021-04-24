@@ -55,10 +55,10 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.graphics.BamDecoder;
+import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.BamResource;
 import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.MosResource;
-import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
@@ -405,7 +405,7 @@ public final class ViewerUtil
     private final AbstractStruct struct;
     private final Class<? extends StructEntry> listClass;
     private final JList<Object> list;
-    private final SimpleListModel<Object> listModel = new SimpleListModel<Object>();
+    private final SimpleListModel<Object> listModel = new SimpleListModel<>();
     private final JButton bOpen = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
 
     private StructListPanel(String title, AbstractStruct struct,

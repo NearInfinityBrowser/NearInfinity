@@ -54,11 +54,11 @@ import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.graphics.BamDecoder;
-import org.infinity.resource.graphics.MosDecoder;
-import org.infinity.resource.graphics.MosV1Decoder;
 import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.BamDecoder.FrameEntry;
 import org.infinity.resource.graphics.BamV1Decoder.BamV1Control;
+import org.infinity.resource.graphics.MosDecoder;
+import org.infinity.resource.graphics.MosV1Decoder;
 import org.infinity.util.StringTable;
 
 
@@ -426,7 +426,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
   // Data model for the panels list
   private class ListPanelsModel extends AbstractListModel<Panel>
   {
-    private final List<Panel> listPanels = new ArrayList<Panel>();
+    private final List<Panel> listPanels = new ArrayList<>();
     private final Viewer viewer;
 
     public ListPanelsModel(Viewer viewer)
@@ -474,7 +474,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
   // Data model for the controls list
   private class ListControlsModel extends AbstractListModel<BaseControl>
   {
-    private final List<BaseControl> listControls = new ArrayList<BaseControl>();
+    private final List<BaseControl> listControls = new ArrayList<>();
     private final Viewer viewer;
 
     private Window panel;
@@ -574,7 +574,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     private static final String FMT_POSITION = "X: %d, Y: %d";
     private static final String FMT_SIZE = "W: %d, H: %d";
 
-    private final List<ChangeListener> listeners = new ArrayList<ChangeListener>();
+    private final List<ChangeListener> listeners = new ArrayList<>();
     private final JRadioButton[] rbButtonState = new JRadioButton[4];
 
     private JLabel lPosition, lSize;
@@ -1344,7 +1344,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
     private static final int SELECTED   = 2;
     private static final int DISABLED   = 3;
 
-    private static final HashSet<String> ignoreResourceSet = new HashSet<String>();
+    private static final HashSet<String> ignoreResourceSet = new HashSet<>();
 
     static {
       // XXX: ignore a set of known background BAMs with cycle and frame indices
@@ -1586,7 +1586,7 @@ final class Viewer extends JPanel implements ActionListener, TableModelListener,
   // Manages the visual appearance of text fields
   private static class TextFieldControl extends BaseControl
   {
-    private static final HashSet<String> ignoreResourceSet = new HashSet<String>();
+    private static final HashSet<String> ignoreResourceSet = new HashSet<>();
 
     static {
       // XXX: ignore a set of known background MOS resources

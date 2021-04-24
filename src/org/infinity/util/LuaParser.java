@@ -91,7 +91,7 @@ public class LuaParser
       name = Pattern.quote(name);
 
     LuaEntry root = new LuaEntry(0);
-    root.children = new ArrayList<LuaEntry>();
+    root.children = new ArrayList<>();
 
     // search for table definitions
     // Example: mytable = {"value1", "value2"}
@@ -153,7 +153,7 @@ public class LuaParser
             if (retVal == null)
               retVal = (key.length() > 0) ? new LuaEntry(key.toString()) : new LuaEntry(parent);
             if (retVal.children == null)
-              retVal.children = new ArrayList<LuaEntry>();
+              retVal.children = new ArrayList<>();
             LuaEntry el = ParseElement(buffer, retVal);
             if (el != null)
               retVal.children.add(el);
@@ -223,7 +223,7 @@ public class LuaParser
             buffer.position(buffer.position() + 4);
           } else if (ch == '{') {
             if (retVal.children == null)
-              retVal.children = new ArrayList<LuaEntry>();
+              retVal.children = new ArrayList<>();
             LuaEntry el = ParseElement(buffer, retVal);
             if (el != null)
               retVal.children.add(el);

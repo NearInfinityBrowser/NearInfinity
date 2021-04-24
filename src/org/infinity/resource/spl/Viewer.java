@@ -28,8 +28,8 @@ import org.infinity.util.IdsMapEntry;
 
 public final class Viewer extends JPanel
 {
-  private static final HashMap<Integer, String> SpellPrefix = new HashMap<Integer, String>();
-  private static final HashMap<String, Integer> SpellType = new HashMap<String, Integer>();
+  private static final HashMap<Integer, String> SpellPrefix = new HashMap<>();
+  private static final HashMap<String, Integer> SpellType = new HashMap<>();
   static {
     SpellPrefix.put(Integer.valueOf(0), "MARW");
     SpellPrefix.put(Integer.valueOf(1), "SPPR");

@@ -33,7 +33,7 @@ public final class LayerManager
     LayerType.WALL_POLY
   };
 
-  private static final EnumMap<LayerType, String> LayerLabels = new EnumMap<LayerType, String>(LayerType.class);
+  private static final EnumMap<LayerType, String> LayerLabels = new EnumMap<>(LayerType.class);
   static {
     LayerLabels.put(LayerType.ACTOR, "Actors");
     LayerLabels.put(LayerType.REGION, "Regions");

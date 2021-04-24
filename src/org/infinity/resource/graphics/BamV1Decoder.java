@@ -25,8 +25,8 @@ import org.infinity.util.io.StreamUtils;
  */
 public class BamV1Decoder extends BamDecoder
 {
-  private final List<BamV1FrameEntry> listFrames = new ArrayList<BamV1FrameEntry>();
-  private final List<CycleEntry> listCycles = new ArrayList<CycleEntry>();
+  private final List<BamV1FrameEntry> listFrames = new ArrayList<>();
+  private final List<CycleEntry> listCycles = new ArrayList<>();
   private final BamV1FrameEntry defaultFrameInfo = new BamV1FrameEntry(null, 0);
 
   private BamV1Control defaultControl;

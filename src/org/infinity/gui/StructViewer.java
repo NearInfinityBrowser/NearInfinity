@@ -102,9 +102,9 @@ import org.infinity.search.advanced.AdvancedSearch;
 import org.infinity.search.advanced.SearchOptions;
 import org.infinity.util.Misc;
 import org.infinity.util.StructClipboard;
-import org.infinity.util.tuples.Couple;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
+import org.infinity.util.tuples.Couple;
 
 public final class StructViewer extends JPanel implements ListSelectionListener, ActionListener,
                                                           ItemListener, ChangeListener, TableModelListener,
@@ -801,7 +801,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                              selected instanceof TextBitmap) &&
                             !(selected instanceof AbstractCode));
       miReset.setEnabled(isDataType && isReadable &&
-                         getCachedStructEntry(((Datatype)selected).getOffset()) instanceof Readable &&
+                         getCachedStructEntry(((Datatype)selected).getOffset()) != null &&
                          !(selected instanceof AbstractCode));
       miAddToAdvSearch.setEnabled(!(selected instanceof AbstractStruct || selected instanceof Unknown));
       miGotoOffset.setEnabled(selected instanceof SectionOffset|| selected instanceof SectionCount);
@@ -1251,7 +1251,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         newentry = new TextString(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miReset) {
         newentry = removeCachedStructEntry(entry.getOffset());
-        if (newentry == null || !(newentry instanceof Readable)) {
+        if (newentry == null) {
           newentry = entry;
         } else {
           ((Readable)newentry).read(bb, 0);

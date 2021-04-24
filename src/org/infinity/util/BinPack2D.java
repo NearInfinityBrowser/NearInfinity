@@ -35,8 +35,8 @@ public class BinPack2D
     CONTACT_POINT_RULE,
   }
 
-  private final List<Rectangle> usedRectangles = new ArrayList<Rectangle>();
-  private final List<Rectangle> freeRectangles = new ArrayList<Rectangle>();
+  private final List<Rectangle> usedRectangles = new ArrayList<>();
+  private final List<Rectangle> freeRectangles = new ArrayList<>();
 
   private int binWidth, binHeight;
 

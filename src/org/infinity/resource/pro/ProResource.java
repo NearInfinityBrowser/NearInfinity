@@ -97,7 +97,7 @@ public final class ProResource extends AbstractStruct implements Resource, HasVi
     "Touch projectile", "Negate IDS1", "Negate IDS2", "Use either IDS", "Delayed payload",
     "Limited path count", "IWD style check", "Caster affected"};
 
-  public static final LongIntegerHashMap<String> m_projtype = new LongIntegerHashMap<String>();
+  public static final LongIntegerHashMap<String> m_projtype = new LongIntegerHashMap<>();
   static {
     m_projtype.put(1L, "No BAM");
     m_projtype.put(2L, "Single target");

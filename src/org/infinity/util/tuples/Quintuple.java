@@ -32,7 +32,7 @@ public class Quintuple<A, B, C, D, E> extends Tuple
    */
   public static <A, B, C, D, E> Quintuple<A, B, C, D, E> with(A value0, B value1, C value2, D value3, E value4)
   {
-    return new Quintuple<A, B, C, D, E>(value0, value1, value2, value3, value4);
+    return new Quintuple<>(value0, value1, value2, value3, value4);
   }
 
   /**
@@ -49,7 +49,7 @@ public class Quintuple<A, B, C, D, E> extends Tuple
     if (arr.length < SIZE) {
       throw new IllegalArgumentException(String.format("Array must contain at least %d elements", SIZE));
     }
-    return new Quintuple<T, T, T, T, T>(arr[0], arr[1], arr[2], arr[3], arr[4]);
+    return new Quintuple<>(arr[0], arr[1], arr[2], arr[3], arr[4]);
   }
 
   /**
@@ -72,7 +72,7 @@ public class Quintuple<A, B, C, D, E> extends Tuple
     T el2 = iter.next();
     T el3 = iter.next();
     T el4 = iter.next();
-    return new Quintuple<T, T, T, T, T>(el0, el1, el2, el3, el4);
+    return new Quintuple<>(el0, el1, el2, el3, el4);
   }
 
   /**
@@ -112,7 +112,7 @@ public class Quintuple<A, B, C, D, E> extends Tuple
     T el2 = iter.hasNext() ? iter.next() : null;
     T el3 = iter.hasNext() ? iter.next() : null;
     T el4 = iter.hasNext() ? iter.next() : null;
-    return new Quintuple<T, T, T, T, T>(el0, el1, el2, el3, el4);
+    return new Quintuple<>(el0, el1, el2, el3, el4);
   }
 
   /**

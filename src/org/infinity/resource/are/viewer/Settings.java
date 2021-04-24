@@ -334,7 +334,7 @@ public class Settings
 
   public static List<ViewerConstants.LayerStackingType> getDefaultLayerOrder()
   {
-    List<ViewerConstants.LayerStackingType> list = new ArrayList<ViewerConstants.LayerStackingType>();
+    List<ViewerConstants.LayerStackingType> list = new ArrayList<>();
     Collections.addAll(list, DefaultLayerOrder);
     return list;
   }

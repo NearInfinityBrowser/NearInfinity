@@ -139,7 +139,7 @@ public class ConvertToMos extends ChildFrame
       }
 
       // creating list of tiles as int[] arrays
-      List<int[]> tileList = new ArrayList<int[]>(cols*rows);
+      List<int[]> tileList = new ArrayList<>(cols*rows);
       for (int y = 0; y < rows; y++) {
         for (int x = 0; x < cols; x++) {
           int tileX = x * 64;
@@ -157,7 +157,7 @@ public class ConvertToMos extends ChildFrame
       byte[] tilePalette = new byte[1024];
       byte[] tileData = new byte[64*64];
       int curPalOfs = palOfs, curTableOfs = tableOfs, curDataOfs = dataOfs;
-      IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(1536);   // caching RGBColor -> index
+      IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(1536);   // caching RGBColor -> index
       for (int tileIdx = 0; tileIdx < tileList.size(); tileIdx++) {
         colorCache.clear();
         if (showProgress) {
@@ -287,8 +287,8 @@ public class ConvertToMos extends ChildFrame
     ProgressMonitor progress = null;
     int width = img.getWidth();
     int height = img.getHeight();
-    List<BinPack2D> pageList = new ArrayList<BinPack2D>();
-    List<MosEntry> entryList = new ArrayList<MosEntry>();
+    List<BinPack2D> pageList = new ArrayList<>();
+    List<MosEntry> entryList = new ArrayList<>();
 
     try {
       if (showProgress) {
@@ -972,7 +972,7 @@ public class ConvertToMos extends ChildFrame
 
   private List<String> convert()
   {
-    List<String> result = new Vector<String>(2);
+    List<String> result = new Vector<>(2);
 
     // validating input file
     Path inFile = FileManager.resolve(tfInputV1.getText());

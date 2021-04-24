@@ -28,7 +28,7 @@ public class Icons
   public static final String ICON_CIRCLE_RED     = "circle_red.png";
   public static final String ICON_CIRCLE_YELLOW  = "circle_yellow.png";
 
-  private static final Map<URL, ImageIcon> ICONMAP = new HashMap<URL, ImageIcon>(20);
+  private static final Map<URL, ImageIcon> ICONMAP = new HashMap<>(20);
 
   /**
    * Returns an ImageIcon object of the specified graphics filename.

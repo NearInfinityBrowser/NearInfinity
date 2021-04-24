@@ -44,6 +44,7 @@ public class BlendingComposite implements Composite
      * src={@code GL_DST_COLOR}, dst={@code GL_ONE}.
      */
     MULTIPLY {
+      @Override
       void blend(int[] src, int[] dst, int[] result) {
         result[0] = Math.min(255, ((src[0] * dst[0]) + (dst[0] << 8)) >>> 8);
         result[1] = Math.min(255, ((src[1] * dst[1]) + (dst[1] << 8)) >>> 8);
@@ -58,6 +59,7 @@ public class BlendingComposite implements Composite
      * src={@code GL_SRC_COLOR}, dst={@code GL_ONE}.
      */
     BRIGHTEST_MULTIPLY {
+      @Override
       void blend(int[] src, int[] dst, int[] result) {
         result[0] = Math.min(255, ((src[0] * src[0]) + (dst[0] << 8)) >>> 8);
         result[1] = Math.min(255, ((src[1] * src[1]) + (dst[1] << 8)) >>> 8);

@@ -32,7 +32,7 @@ public class BCSFoldParser implements FoldParser
   @Override
   public List<Fold> getFolds(RSyntaxTextArea textArea)
   {
-    List<Fold> folds = new ArrayList<Fold>();
+    List<Fold> folds = new ArrayList<>();
 
     Fold curFold = null;
     int lineCount = textArea.getLineCount();

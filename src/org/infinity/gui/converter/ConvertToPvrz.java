@@ -542,14 +542,14 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
       targetPath = FileManager.resolve(tfTargetDir.getText());
     }
     if (!FileEx.create(targetPath).isDirectory()) {
-      List<String> l = new Vector<String>(2);
+      List<String> l = new Vector<>(2);
       l.add(null);
       l.add("Invalid target directory specified. No conversion takes place.");
       return l;
     }
 
     if (lInputModel.isEmpty()) {
-      List<String> l = new Vector<String>(2);
+      List<String> l = new Vector<>(2);
       l.add(null);
       l.add("No source file(s) specified. No conversion takes place.");
       return l;
@@ -720,7 +720,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
               if (progress.isCanceled()) {
                 progress.close();
                 progress = null;
-                List<String> l = new Vector<String>(2);
+                List<String> l = new Vector<>(2);
                 l.add(null);
                 l.add("Conversion cancelled.");
                 return l;
@@ -773,7 +773,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
     progress = null;
 
     // constructing failure/success message
-    List<String> l = new Vector<String>(2);
+    List<String> l = new Vector<>(2);
     StringBuilder sb = new StringBuilder();
     if (warnings == 0 && errors == 0) {
       sb.append("Conversion finished successfully.");

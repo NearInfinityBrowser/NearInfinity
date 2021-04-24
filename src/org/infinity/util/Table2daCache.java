@@ -11,7 +11,7 @@ import org.infinity.resource.key.ResourceEntry;
 
 public class Table2daCache
 {
-  private static final HashMap<ResourceEntry, Table2da> map = new HashMap<ResourceEntry, Table2da>();
+  private static final HashMap<ResourceEntry, Table2da> map = new HashMap<>();
 
   /** Removes the specified 2DA resource from the cache. */
   public static synchronized void cacheInvalid(ResourceEntry entry)

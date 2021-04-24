@@ -12,7 +12,7 @@ import org.infinity.resource.key.ResourceEntry;
 
 public class IniMapCache
 {
-  private static final HashMap<ResourceEntry, IniMap> map = new HashMap<ResourceEntry, IniMap>();
+  private static final HashMap<ResourceEntry, IniMap> map = new HashMap<>();
 
   public static void cacheInvalid(ResourceEntry entry)
   {

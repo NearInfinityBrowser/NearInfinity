@@ -278,7 +278,7 @@ public class SearchOptions
   public static final String VVC_Custom4          = "VVC.+Custom.3";
 
 
-  private final HashMap<String, Object> mapOptions = new HashMap<String, Object>();
+  private final HashMap<String, Object> mapOptions = new HashMap<>();
   private final String resourceType;
 
   /**

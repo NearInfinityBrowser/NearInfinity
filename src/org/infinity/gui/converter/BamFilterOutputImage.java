@@ -133,7 +133,7 @@ public class BamFilterOutputImage extends BamFilterBaseOutput implements ItemLis
 
     JLabel l1 = new JLabel("Image output format:");
     JLabel l2 = new JLabel("Digits for frame index:");
-    cbImageType = new JComboBox<String>(new String[]{"PNG", "BMP"});
+    cbImageType = new JComboBox<>(new String[]{"PNG", "BMP"});
     cbImageType.setEditable(false);
     cbImageType.setPreferredSize(new Dimension(cbImageType.getPreferredSize().width + 16, cbImageType.getPreferredSize().height));
     cbImageType.setSelectedIndex(0);

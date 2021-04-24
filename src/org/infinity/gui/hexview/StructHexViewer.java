@@ -612,7 +612,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
             list.remove(0);
           }
         } else {
-          list = new ArrayList<StructEntry>();
+          list = new ArrayList<>();
         }
 
         // removing invalid models and controls

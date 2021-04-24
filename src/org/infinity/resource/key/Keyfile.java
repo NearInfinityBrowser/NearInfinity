@@ -270,7 +270,7 @@ public class Keyfile
    * Overrides current key file mapping with data from the specified key file.
    * @param keyFile The key file containing new entries.
    */
-  public void addKeyfile(Path keyFile) throws IOException
+  public void addKeyfile(Path keyFile)
   {
     if (keyFile == null) {
       throw new NullPointerException("No DLC keyfile specified");

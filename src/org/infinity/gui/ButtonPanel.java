@@ -88,7 +88,7 @@ public class ButtonPanel extends JPanel
 
   private static final int DefaultGapSize = 4;
 
-  private final List<Entry> listControls = new ArrayList<Entry>();
+  private final List<Entry> listControls = new ArrayList<>();
 
   private int gapSize;
 

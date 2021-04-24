@@ -1475,7 +1475,7 @@ public class StringTable
 //-------------------------- INNER CLASSES --------------------------
 
   // Manages a single string entry
-  public static class StringEntry extends AbstractStruct implements Cloneable
+  public static class StringEntry extends AbstractStruct
   {
     // Default entry for non-existing indices
     private static final StringEntry INVALID = new StringEntry(null, FLAGS_HAS_TEXT, "", 0, 0, "No such index");

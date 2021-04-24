@@ -31,9 +31,9 @@ public class MapTree<K, V> implements Cloneable
   /** Creates a path of MapTree objects, starting from the root node up to the specified node. */
   public static <K, V> Collection<MapTree<K, V>> getNodePath(MapTree<K, V> node)
   {
-    Collection<MapTree<K, V>> retVal = new Vector<MapTree<K, V>>();
+    Collection<MapTree<K, V>> retVal = new Vector<>();
     if (node != null) {
-      Stack<MapTree<K, V>> stack = new Stack<MapTree<K,V>>();
+      Stack<MapTree<K, V>> stack = new Stack<>();
       MapTree<K, V> curNode = node;
       while (curNode != null) {
         stack.push(curNode);
@@ -71,7 +71,7 @@ public class MapTree<K, V> implements Cloneable
       throw new NullPointerException("key must not be null");
     }
     this.parent = null;
-    this.children = new HashMap<K, MapTree<K,V>>();
+    this.children = new HashMap<>();
     this.key = key;
     this.value = value;
   }
@@ -86,7 +86,7 @@ public class MapTree<K, V> implements Cloneable
   @SuppressWarnings("unchecked")
   public Object clone()
   {
-    MapTree<K, V> node = new MapTree<K, V>(key, value);
+    MapTree<K, V> node = new MapTree<>(key, value);
     for (Iterator<MapTree<K, V>> iter = children.values().iterator(); iter.hasNext();) {
       node.addChild((MapTree<K, V>)iter.next().clone());
     }
@@ -172,7 +172,7 @@ public class MapTree<K, V> implements Cloneable
    */
   public Collection<MapTree<K, V>> findNodes(K key)
   {
-    Collection<MapTree<K, V>> retVal = new Vector<MapTree<K, V>>();
+    Collection<MapTree<K, V>> retVal = new Vector<>();
     if (key != null) {
       retVal = findNodesRecursive(retVal, parent, key, false);
     }
@@ -246,7 +246,7 @@ public class MapTree<K, V> implements Cloneable
    */
   public Collection<MapTree<K, V>> removeChildren(Collection<K> keys)
   {
-    Collection<MapTree<K, V>> retVal = new Vector<MapTree<K, V>>();
+    Collection<MapTree<K, V>> retVal = new Vector<>();
     if (keys != null && !keys.isEmpty()) {
       for (Iterator<K> iter = keys.iterator(); iter.hasNext();) {
         MapTree<K, V> node = removeChild(iter.next());
@@ -302,7 +302,7 @@ public class MapTree<K, V> implements Cloneable
                                                                     boolean firstMatch)
   {
     if (retVal == null) {
-      retVal = new Vector<MapTree<K, V>>();
+      retVal = new Vector<>();
     }
 
     if (firstMatch && !retVal.isEmpty()) {

@@ -28,7 +28,7 @@ public class Triple<A, B, C> extends Tuple implements TupleValue0<A>, TupleValue
    */
   public static <A, B, C> Triple<A, B, C> with(A value0, B value1, C value2)
   {
-    return new Triple<A, B, C>(value0, value1, value2);
+    return new Triple<>(value0, value1, value2);
   }
 
   /**
@@ -45,7 +45,7 @@ public class Triple<A, B, C> extends Tuple implements TupleValue0<A>, TupleValue
     if (arr.length < SIZE) {
       throw new IllegalArgumentException(String.format("Array must contain at least %d elements", SIZE));
     }
-    return new Triple<T, T, T>(arr[0], arr[1], arr[2]);
+    return new Triple<>(arr[0], arr[1], arr[2]);
   }
 
   /**
@@ -66,7 +66,7 @@ public class Triple<A, B, C> extends Tuple implements TupleValue0<A>, TupleValue
     T el0 = iter.next();
     T el1 = iter.next();
     T el2 = iter.next();
-    return new Triple<T, T, T>(el0, el1, el2);
+    return new Triple<>(el0, el1, el2);
   }
 
   /**
@@ -104,7 +104,7 @@ public class Triple<A, B, C> extends Tuple implements TupleValue0<A>, TupleValue
     T el0 = iter.hasNext() ? iter.next() : null;
     T el1 = iter.hasNext() ? iter.next() : null;
     T el2 = iter.hasNext() ? iter.next() : null;
-    return new Triple<T, T, T>(el0, el1, el2);
+    return new Triple<>(el0, el1, el2);
   }
 
   /**

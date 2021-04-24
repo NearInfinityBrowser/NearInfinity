@@ -432,13 +432,13 @@ public final class Profile implements FileWatcher.FileWatchListener
   // Container for Property entries
   private static final EnumMap<Key, Profile.Property> properties = new EnumMap<>(Key.class);
   // Unique titles for all supported games
-  private static final EnumMap<Game, String> GAME_TITLE = new EnumMap<Game, String>(Game.class);
+  private static final EnumMap<Game, String> GAME_TITLE = new EnumMap<>(Game.class);
   // List of supported extra folders for all supported games
-  private static final EnumMap<Game, List<String>> GAME_EXTRA_FOLDERS = new EnumMap<Game, List<String>>(Game.class);
+  private static final EnumMap<Game, List<String>> GAME_EXTRA_FOLDERS = new EnumMap<>(Game.class);
   // List of supported saved game folders for all supported games
-  private static final EnumMap<Game, List<String>> GAME_SAVE_FOLDERS = new EnumMap<Game, List<String>>(Game.class);
+  private static final EnumMap<Game, List<String>> GAME_SAVE_FOLDERS = new EnumMap<>(Game.class);
   // Home folder name for Enhanced Edition Games
-  private static final EnumMap<Game, String> GAME_HOME_FOLDER = new EnumMap<Game, String>(Game.class);
+  private static final EnumMap<Game, String> GAME_HOME_FOLDER = new EnumMap<>(Game.class);
   // Set of resource extensions supported by Infinity Engine games
   private static final HashSet<String> SUPPORTED_RESOURCE_TYPES = new HashSet<>();
   private static final HashMap<String, String> KNOWN_EQUIPPED_APPEARANCE = new HashMap<>();
@@ -972,7 +972,7 @@ public final class Profile implements FileWatcher.FileWatchListener
    */
   public static String[] getAvailableResourceTypes(boolean ignoreGame)
   {
-    ArrayList<String> list = new ArrayList<String>();
+    ArrayList<String> list = new ArrayList<>();
     if (ignoreGame ||
         (Boolean)getProperty(Key.IS_SUPPORTED_2DA))     { list.add("2DA"); }
     if (ignoreGame ||
@@ -1136,7 +1136,7 @@ public final class Profile implements FileWatcher.FileWatchListener
       // space for "no type"
       codes.add("  ");
 
-      retVal = new TreeMap<String, String>();
+      retVal = new TreeMap<>();
       for (final String code: codes) {
         String desc = KNOWN_EQUIPPED_APPEARANCE.get(code);
         if (desc != null) {
@@ -1346,7 +1346,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     addEntry(Key.GET_GLOBAL_NEARINFINITY_VERSION, Type.STRING, NearInfinity.getVersion());
 
     // setting list of supported games and associated data
-    List<Game> gameList = new ArrayList<Game>();
+    List<Game> gameList = new ArrayList<>();
     Collections.addAll(gameList, Game.values());
 
     addEntry(Key.GET_GLOBAL_GAMES, Type.LIST, gameList);
@@ -1371,7 +1371,7 @@ public final class Profile implements FileWatcher.FileWatchListener
   {
     DEFAULT_GAME_BINARIES.clear();
     EnumMap<Platform.OS, List<String>> osMap;
-    List<String> emptyList = new ArrayList<>();;
+    List<String> emptyList = new ArrayList<>();
     List<String> list;
 
     // BG1 & BG1TotSC (Windows)
@@ -1687,7 +1687,7 @@ public final class Profile implements FileWatcher.FileWatchListener
     Game game = null;
 
     // Preparing available root paths
-    List<Path> gameRoots = new ArrayList<Path>();
+    List<Path> gameRoots = new ArrayList<>();
     if (Profile.getGameRoot() != null) {
       gameRoots.add(Profile.getGameRoot());
     }
@@ -1984,7 +1984,7 @@ public final class Profile implements FileWatcher.FileWatchListener
         addEntry(Key.GET_GAME_LANG_FOLDER, Type.PATH, langRoot);
         List<Path> langPaths = ResourceFactory.getAvailableGameLanguages();
         addEntry(Key.GET_GAME_LANG_FOLDERS_AVAILABLE, Type.LIST, langPaths);
-        List<String> languages = new ArrayList<String>(langPaths.size());
+        List<String> languages = new ArrayList<>(langPaths.size());
         langPaths.forEach((path) -> languages.add(path.getFileName().toString()));
         addEntry(Key.GET_GAME_LANG_FOLDER_NAMES_AVAILABLE, Type.LIST, languages);
         listRoots.add(langRoot);

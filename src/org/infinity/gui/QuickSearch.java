@@ -75,7 +75,7 @@ public class QuickSearch extends JPanel implements Runnable
     }
     this.parent = parent;
     this.tree = tree;
-    this.resourceTree = new MapTree<Character, List<ResourceEntry>>(Character.valueOf('\0'), null);
+    this.resourceTree = new MapTree<>(Character.valueOf('\0'), null);
     this.command = Command.IDLE;
     new Thread(this).start();   // updating list of matching resources is done in the background
     init();
@@ -256,7 +256,7 @@ public class QuickSearch extends JPanel implements Runnable
     if (list != null) {
       list.clear();
     } else {
-      list = new Vector<ResourceEntry>();
+      list = new Vector<>();
       resourceTree.setValue(list);
     }
 
@@ -274,7 +274,7 @@ public class QuickSearch extends JPanel implements Runnable
   private SortedSet<ResourceEntry> generateResourceList(ResourceTreeFolder folder, SortedSet<ResourceEntry> set)
   {
     if (set == null) {
-      set = new TreeSet<ResourceEntry>();
+      set = new TreeSet<>();
     }
 
     if (folder != null) {
@@ -309,8 +309,7 @@ public class QuickSearch extends JPanel implements Runnable
         retVal.setValue(new Vector<ResourceEntry>());
       }
     } else {
-      retVal = new MapTree<Character, List<ResourceEntry>>(Character.valueOf(ch),
-                                                           new Vector<ResourceEntry>());
+      retVal = new MapTree<>(Character.valueOf(ch), new Vector<ResourceEntry>());
     }
     node.addChild(retVal);
 

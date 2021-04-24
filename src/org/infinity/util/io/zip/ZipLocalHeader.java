@@ -4,9 +4,8 @@
 
 package org.infinity.util.io.zip;
 
-import static org.infinity.util.io.zip.ZipConstants.*;
+import static org.infinity.util.io.zip.ZipConstants.LOCSIG;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -47,12 +46,12 @@ public class ZipLocalHeader extends ZipBaseHeader
   /** Optional extra data. (Is never {@code null}) */
   public byte[] extra;
 
-  protected ZipLocalHeader(long offset, long signature) throws IOException
+  protected ZipLocalHeader(long offset, long signature)
   {
     super(offset, signature);
   }
 
-  public ZipLocalHeader(ByteBuffer buffer, long absOffset) throws IOException
+  public ZipLocalHeader(ByteBuffer buffer, long absOffset)
   {
     super(absOffset, buffer.getInt());
     long headerStart = buffer.position() - 4L;

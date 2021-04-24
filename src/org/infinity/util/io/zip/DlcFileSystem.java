@@ -11,11 +11,11 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.AccessMode;
 import java.nio.file.ClosedFileSystemException;
 import java.nio.file.DirectoryStream;
@@ -61,9 +61,8 @@ import org.infinity.util.io.ByteBufferInputStream;
  */
 public class DlcFileSystem extends FileSystem
 {
-  private static final Set<String> supportedFileAttributeViews =
-      Collections.unmodifiableSet(new HashSet<String>(
-          Arrays.asList(DlcFileAttributeView.VIEW_BASIC, DlcFileAttributeView.VIEW_ZIP)));
+  private static final Set<String> supportedFileAttributeViews = Collections.unmodifiableSet(
+      new HashSet<>(Arrays.asList(DlcFileAttributeView.VIEW_BASIC, DlcFileAttributeView.VIEW_ZIP)));
 
   private static final String GLOB_SYNTAX = "glob";
   private static final String REGEX_SYNTAX = "regex";
@@ -265,7 +264,7 @@ public class DlcFileSystem extends FileSystem
     return new DlcFileStore(path);
   }
 
-  DlcFileAttributes getFileAttributes(byte[] path) throws IOException
+  DlcFileAttributes getFileAttributes(byte[] path)
   {
     ZipNode folder = null;
     beginRead();
@@ -282,7 +281,7 @@ public class DlcFileSystem extends FileSystem
     }
   }
 
-  boolean exists(byte[] path) throws IOException
+  boolean exists(byte[] path)
   {
     beginRead();
     try {
@@ -293,7 +292,7 @@ public class DlcFileSystem extends FileSystem
     }
   }
 
-  boolean isDirectory(byte[] path) throws IOException
+  boolean isDirectory(byte[] path)
   {
     beginRead();
     try {
@@ -688,7 +687,7 @@ public class DlcFileSystem extends FileSystem
     }
   }
 
-  private void checkWritable() throws IOException
+  private void checkWritable()
   {
     throw new ReadOnlyFileSystemException();
   }
@@ -717,7 +716,7 @@ public class DlcFileSystem extends FileSystem
     rwlock.readLock().unlock();
   }
 
-  private void ensureOpen() throws IOException
+  private void ensureOpen()
   {
     if (!isOpen) {
       throw new ClosedFileSystemException();

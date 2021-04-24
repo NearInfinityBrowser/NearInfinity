@@ -57,9 +57,9 @@ public class PseudoBamDecoder extends BamDecoder
   private static final Color TransparentColor = new Color(0, true);
 
   private final PseudoBamFrameEntry defaultFrameInfo = new PseudoBamFrameEntry(null, 0, 0);
-  private final HashMap<String, Object> mapOptions = new HashMap<String, Object>();
+  private final HashMap<String, Object> mapOptions = new HashMap<>();
 
-  private List<PseudoBamCycleEntry> listCycles = new ArrayList<PseudoBamCycleEntry>();
+  private List<PseudoBamCycleEntry> listCycles = new ArrayList<>();
   private List<PseudoBamFrameEntry> listFrames;
   private PseudoBamControl defaultControl;
 
@@ -163,7 +163,7 @@ public class PseudoBamDecoder extends BamDecoder
     if (framesList != null) {
       listFrames = framesList;
     } else {
-      listFrames = new ArrayList<PseudoBamFrameEntry>();
+      listFrames = new ArrayList<>();
     }
   }
 
@@ -185,7 +185,7 @@ public class PseudoBamDecoder extends BamDecoder
     if (cyclesList != null) {
       listCycles = cyclesList;
     } else {
-      listCycles = new ArrayList<PseudoBamCycleEntry>();
+      listCycles = new ArrayList<>();
     }
   }
 
@@ -726,7 +726,7 @@ public class PseudoBamDecoder extends BamDecoder
       control.setSharedPerCycle(false);
       Dimension dimFrame = control.calculateSharedCanvas(false).getSize();
       int maxImageSize = (dimFrame.width*dimFrame.height*3) / 2;    // about 1.5x of max. size
-      List<byte[]> listFrameData = new ArrayList<byte[]>(listFrames.size());
+      List<byte[]> listFrameData = new ArrayList<>(listFrames.size());
 
       // encoding frames
       Object o = getOption(OPTION_INT_RLEINDEX);
@@ -779,7 +779,7 @@ public class PseudoBamDecoder extends BamDecoder
       }
 
       // creating cycles table and frame lookup table
-      List<Integer> listFrameLookup = new ArrayList<Integer>();
+      List<Integer> listFrameLookup = new ArrayList<>();
       int lookupSize = 0;
       for (int i = 0; i < listCycles.size(); i++) {
         listFrameLookup.add(Integer.valueOf(lookupSize));
@@ -908,8 +908,8 @@ public class PseudoBamDecoder extends BamDecoder
 
       // preparing output path for PVRZ files
       Path pvrzFilePath = fileName.toAbsolutePath().getParent();
-      List<FrameDataV2> listFrameData = new ArrayList<FrameDataV2>(listFrames.size());
-      List<BinPack2D> listGrid = new ArrayList<BinPack2D>();
+      List<FrameDataV2> listFrameData = new ArrayList<>(listFrames.size());
+      List<BinPack2D> listGrid = new ArrayList<>();
 
       // initializing progress monitor
       if (progress != null) {
@@ -926,8 +926,8 @@ public class PseudoBamDecoder extends BamDecoder
       }
 
       // generating remaining info blocks
-      List<FrameDataV2> listFrameDataBlocks = new ArrayList<FrameDataV2>();
-      List<PseudoBamFrameEntry> listFrameEntries = new ArrayList<PseudoBamFrameEntry>();
+      List<FrameDataV2> listFrameDataBlocks = new ArrayList<>();
+      List<PseudoBamFrameEntry> listFrameEntries = new ArrayList<>();
       List<Couple<Short, Short>> listCycleData = new ArrayList<>(listCycles.size());
       int frameStartIndex = 0;    // keeps track of current start index of frame entries
       int blockStartIndex = 0;    // keeps track of current start index of frame data blocks
@@ -1046,7 +1046,7 @@ public class PseudoBamDecoder extends BamDecoder
       // adding pixels of all available frames to the hashset
       HashMap<Integer, Integer> newMap;
       if (colorMap == null) {
-        newMap = new HashMap<Integer, Integer>();
+        newMap = new HashMap<>();
         for (int i = 0; i < listFrames.size(); i++) {
           registerColors(newMap, listFrames.get(i).frame);
         }
@@ -1080,7 +1080,7 @@ public class PseudoBamDecoder extends BamDecoder
       }
 
       // removing duplicate entries from the palette
-      HashSet<Integer> colorSet = new HashSet<Integer>();
+      HashSet<Integer> colorSet = new HashSet<>();
       for (int i = 0; i < retVal.length; i++) {
         colorSet.add(Integer.valueOf(retVal[i]));
       }
@@ -1400,7 +1400,7 @@ public class PseudoBamDecoder extends BamDecoder
   /** Provides information for a single frame entry */
   public static class PseudoBamFrameEntry implements FrameEntry
   {
-    private final HashMap<String, Object> mapOptions = new HashMap<String, Object>();
+    private final HashMap<String, Object> mapOptions = new HashMap<>();
 
     private int width, height, centerX, centerY;
     private int overrideCenterX, overrideCenterY;
@@ -2005,11 +2005,11 @@ public class PseudoBamDecoder extends BamDecoder
   public static class PseudoBamCycleEntry
   {
     private final List<Integer> frames;   // stores abs. frame indices that define this cycle
-    private final HashMap<String, Object> mapOptions = new HashMap<String, Object>();
+    private final HashMap<String, Object> mapOptions = new HashMap<>();
 
     protected PseudoBamCycleEntry(int[] indices)
     {
-      frames = new ArrayList<Integer>();
+      frames = new ArrayList<>();
       add(indices);
     }
 

@@ -208,7 +208,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
       retVal.setOffset(offset);
       ((AbstractStruct)retVal).realignStructOffsets();
     } else {
-      retVal = (StructEntry)clone();
+      retVal = clone();
     }
 
     return retVal;

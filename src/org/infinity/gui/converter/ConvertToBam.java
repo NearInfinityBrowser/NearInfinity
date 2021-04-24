@@ -100,12 +100,12 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.graphics.BamDecoder;
+import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.BamV1Decoder;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.resource.graphics.GifSequenceReader;
 import org.infinity.resource.graphics.PseudoBamDecoder;
-import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamCycleEntry;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
@@ -176,7 +176,7 @@ public class ConvertToBam extends ChildFrame
   // BamDecoder instance containing the final result of the current BAM structure
   private final PseudoBamDecoder bamDecoderFinal = new PseudoBamDecoder();
   // Frame image lists (use BAM_ORIGINAL/BAM_FINAL constants for access)
-  private final List<List<PseudoBamFrameEntry>> listFrameEntries = new ArrayList<List<PseudoBamFrameEntry>>(2);
+  private final List<List<PseudoBamFrameEntry>> listFrameEntries = new ArrayList<>(2);
   // Frame entry used for preview in filter tab
   private final PseudoBamFrameEntry entryFilterPreview = new PseudoBamFrameEntry(null, 0, 0);
   // The palette dialog instance for BAM v1 export
@@ -1637,7 +1637,7 @@ public class ConvertToBam extends ChildFrame
     GridBagConstraints c = new GridBagConstraints();
 
     // creating "Filters" section
-    Vector<BamFilterFactory.FilterInfo> filters = new Vector<BamFilterFactory.FilterInfo>();
+    Vector<BamFilterFactory.FilterInfo> filters = new Vector<>();
     for (int i = 0; i < BamFilterFactory.getFilterInfoSize(); i++) {
       filters.add(BamFilterFactory.getFilterInfo(i));
     }
@@ -1697,7 +1697,7 @@ public class ConvertToBam extends ChildFrame
                           GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pFiltersDesc.add(taFiltersDesc, c);
 
-    modelFilters = new SimpleListModel<BamFilterBase>();
+    modelFilters = new SimpleListModel<>();
     listFilters = new JList<>(modelFilters);
     listFilters.setCellRenderer(new IndexedCellRenderer());
     listFilters.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -3881,7 +3881,7 @@ public class ConvertToBam extends ChildFrame
 
   private List<String> convert()
   {
-    List<String> result = new Vector<String>(2);
+    List<String> result = new Vector<>(2);
     try {
       updateFilteredBamDecoder(getBamVersion(), false);
       List<BamFilterBaseOutput> outList = createOutputFilterList();
@@ -3930,7 +3930,7 @@ public class ConvertToBam extends ChildFrame
       // processing each filter that exists before the selected filter
       PseudoBamFrameEntry entry = entryFilterPreview;
       for (int i = 0; i < curFilterIdx; i++) {
-        if (modelFilters.get(i) instanceof BamFilterBase) {
+        if (modelFilters.get(i) != null) {
           BamFilterBase filter = modelFilters.get(i);
           entry = filter.updatePreview(entry);
         }
@@ -4021,8 +4021,8 @@ public class ConvertToBam extends ChildFrame
   /** Creates a sorted list including all selected filters in the post-processing tab. */
   private List<BamFilterBase> createFilterList(boolean includeOutputFilters)
   {
-    List<BamFilterBase> retVal = new ArrayList<BamFilterBase>();
-    List<BamFilterBase> outFilters = new ArrayList<BamFilterBase>();
+    List<BamFilterBase> retVal = new ArrayList<>();
+    List<BamFilterBase> outFilters = new ArrayList<>();
     for (int i = 0; i < modelFilters.size(); i++) {
       BamFilterBase filter = modelFilters.get(i);
       if (filter instanceof BamFilterBaseOutput) {
@@ -4047,7 +4047,7 @@ public class ConvertToBam extends ChildFrame
   /** Creates a list of selected output filters only. */
   private List<BamFilterBaseOutput> createOutputFilterList()
   {
-    List<BamFilterBaseOutput> retVal = new ArrayList<BamFilterBaseOutput>();
+    List<BamFilterBaseOutput> retVal = new ArrayList<>();
     for (int i = 0; i < modelFilters.size(); i++) {
       if (modelFilters.get(i) instanceof BamFilterBaseOutput) {
         retVal.add((BamFilterBaseOutput)modelFilters.get(i));
@@ -4101,7 +4101,7 @@ public class ConvertToBam extends ChildFrame
         if (transIndex < 0) {
           transIndex = 0;
         }
-        HashMap<Integer, Byte> colorCache = new HashMap<Integer, Byte>(4096);
+        HashMap<Integer, Byte> colorCache = new HashMap<>(4096);
         for (int i = 0; i < palette.length; i++) {
           if (i != transIndex) {
             colorCache.put(Integer.valueOf(palette[i]), Byte.valueOf((byte)i));
@@ -4196,7 +4196,7 @@ public class ConvertToBam extends ChildFrame
         if (transIndex < 0) {
           transIndex = 0;
         }
-        HashMap<Integer, Byte> colorCache = new HashMap<Integer, Byte>(4096);
+        HashMap<Integer, Byte> colorCache = new HashMap<>(4096);
         for (int i = 0; i < palette.length; i++) {
           if (i != transIndex) {
             colorCache.put(Integer.valueOf(palette[i]), Byte.valueOf((byte)i));
@@ -5401,7 +5401,7 @@ public class ConvertToBam extends ChildFrame
         bam.getPaletteDialog().clear();
 
         // applying frames
-        HashMap<ResourceEntry, SourceData> sourceMap = new HashMap<ResourceEntry, SourceData>();
+        HashMap<ResourceEntry, SourceData> sourceMap = new HashMap<>();
         for (int i = 0; i < frames.length; i++) {
           SourceFrame frame = frames[i];
           SourceData data = sourceMap.get(frame.entry);
