@@ -159,6 +159,8 @@ public final class Profile implements FileWatcher.FileWatchListener
     GET_GLOBAL_DIALOG_NAME,
     /** Property: ({@code String}) Returns "{@code dialogf.tlk}". */
     GET_GLOBAL_DIALOG_NAME_FEMALE,
+    /** Property: ({@code Boolean}) Returns whether NI checks for case-sensitive filesystems before accessing files. */
+    GET_GLOBAL_FILE_CASE_CHECK,
 
     // Static properties which require an additional parameter.
     /** Property: ({@code String}) Returns the game's title. Extra parameter: Desired {@link Game}. */
@@ -1364,6 +1366,9 @@ public final class Profile implements FileWatcher.FileWatchListener
     // setting dialog.tlk file names
     addEntry(Key.GET_GLOBAL_DIALOG_NAME, Type.STRING, "dialog.tlk");
     addEntry(Key.GET_GLOBAL_DIALOG_NAME_FEMALE, Type.STRING, "dialogf.tlk");
+
+    // setting misc. properties
+    addEntry(Key.GET_GLOBAL_FILE_CASE_CHECK, Type.BOOLEAN, Boolean.valueOf(true));
   }
 
   // Initializes a list of potential executable filenames for each game and platform
