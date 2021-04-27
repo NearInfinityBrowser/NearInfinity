@@ -978,7 +978,7 @@ public class CreatureInfo
     // check if item requires a launcher
     int abilityIndex = ((IsNumeric)cre.getAttribute(CreResource.CRE_SELECTED_WEAPON_ABILITY)).getValue();
     int numAbil = info.getAbilityCount();
-    abilityIndex = Math.min(abilityIndex, numAbil - 1);
+    abilityIndex = Math.max(0, Math.min(abilityIndex, numAbil - 1));
     if (abilityIndex < 0) {
       return retVal;
     }
