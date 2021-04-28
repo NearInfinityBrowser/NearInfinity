@@ -16,6 +16,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.function.BiFunction;
 
 import javax.swing.JButton;
@@ -29,7 +30,6 @@ import org.infinity.gui.TextListPanel;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.Misc;
 
 /**
@@ -65,7 +65,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
     }
   };
 
-  private final LongIntegerHashMap<T> itemMap;
+  private final TreeMap<Long, T> itemMap;
   private final List<JButton> buttonList;
 
   private BiFunction<Long, T, String> formatter;
@@ -85,7 +85,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
    * @param name field name
    * @param items a collection of number-to-symbol mappings
    */
-  public AbstractBitmap(ByteBuffer buffer, int offset, int length, String name, LongIntegerHashMap<T> items)
+  public AbstractBitmap(ByteBuffer buffer, int offset, int length, String name, TreeMap<Long, T> items)
   {
     this(buffer, offset, length, name, items, null, false);
   }
@@ -100,7 +100,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
    * @param items a collection of number-to-symbol mappings
    * @param formatter a function that is used to produce the textual output
    */
-  public AbstractBitmap(ByteBuffer buffer, int offset, int length, String name, LongIntegerHashMap<T> items,
+  public AbstractBitmap(ByteBuffer buffer, int offset, int length, String name, TreeMap<Long, T> items,
       BiFunction<Long, T, String> formatter)
   {
     this(buffer, offset, length, name, items, formatter, false);
@@ -117,7 +117,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
    * @param formatter a function that is used to produce the textual output
    * @param signed indicates whether numeric value is treated as a signed value
    */
-  public AbstractBitmap(ByteBuffer buffer, int offset, int length, String name, LongIntegerHashMap<T> items,
+  public AbstractBitmap(ByteBuffer buffer, int offset, int length, String name, TreeMap<Long, T> items,
                         BiFunction<Long, T, String> formatter, boolean signed)
   {
     super(offset, length, name);
@@ -319,7 +319,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
   /**
    * Returns the bitmap table used to associated numeric values with symbolic data.
    */
-  public LongIntegerHashMap<T> getBitmap()
+  public TreeMap<Long, T> getBitmap()
   {
     return itemMap;
   }

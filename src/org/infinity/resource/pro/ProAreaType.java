@@ -5,6 +5,7 @@
 package org.infinity.resource.pro;
 
 import java.nio.ByteBuffer;
+import java.util.TreeMap;
 
 import org.infinity.datatype.ColorValue;
 import org.infinity.datatype.DecNumber;
@@ -22,7 +23,6 @@ import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
-import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.io.StreamUtils;
 
 public final class ProAreaType extends AbstractStruct implements AddRemovable, UpdateListener
@@ -54,7 +54,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable, U
   public static final String PRO_AREA_ANIMATION_GRANULARITY         = "Animation granularity";
   public static final String PRO_AREA_ANIMATION_GRANULARITY_DIVIDER = "Animation granularity divider";
 
-  public static final LongIntegerHashMap<String> m_proj = new LongIntegerHashMap<>();
+  public static final TreeMap<Long, String> m_proj = new TreeMap<>();
   public static final String[] s_areaflags = {"Trap not visible", "Trap visible", "Triggered by inanimates",
                                               "Triggered by condition", "Delayed trigger", "Secondary projectile",
                                               "Fragments", "Affect only enemies", "Affect only allies*;Only in combination with \"Affect only enemies (6)\"",

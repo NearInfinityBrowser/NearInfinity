@@ -5,13 +5,14 @@
 package org.infinity.datatype;
 
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
 import java.nio.ByteBuffer;
+import java.util.TreeMap;
 import java.util.function.BiFunction;
 
 import javax.swing.JComponent;
 
 import org.infinity.resource.AbstractStruct;
-import org.infinity.util.LongIntegerHashMap;
 
 /**
  * Field that represents an integer enumeration of some values.
@@ -73,9 +74,9 @@ public class Bitmap extends AbstractBitmap<String>
 
   //--------------------- End Interface Editable ---------------------
 
-  private static LongIntegerHashMap<String> createMap(String[] symbols)
+  private static TreeMap<Long, String> createMap(String[] symbols)
   {
-    LongIntegerHashMap<String> retVal = new LongIntegerHashMap<>();
+    TreeMap<Long, String> retVal = new TreeMap<>();
     for (int i = 0; i < symbols.length; i++) {
       String symbol = (symbols[i] != null) ? symbols[i] : "(Unlabeled)";
       retVal.put(Long.valueOf(i), symbol);

@@ -6,6 +6,7 @@ package org.infinity.datatype;
 
 import java.awt.event.ActionListener;
 import java.nio.ByteBuffer;
+import java.util.TreeMap;
 import java.util.function.BiFunction;
 
 import javax.swing.JComponent;
@@ -13,7 +14,6 @@ import javax.swing.JComponent;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
-import org.infinity.util.LongIntegerHashMap;
 
 public class IdsBitmap extends AbstractBitmap<IdsMapEntry>
 {
@@ -75,12 +75,12 @@ public class IdsBitmap extends AbstractBitmap<IdsMapEntry>
     getBitmap().putIfAbsent(entry.getID(), entry);
   }
 
-  private static LongIntegerHashMap<IdsMapEntry> createResourceList(String resource)
+  private static TreeMap<Long, IdsMapEntry> createResourceList(String resource)
   {
-    LongIntegerHashMap<IdsMapEntry> retVal = null;
+    TreeMap<Long, IdsMapEntry> retVal = null;
     IdsMap idsMap = IdsMapCache.get(resource);
     if (idsMap != null) {
-      retVal = new LongIntegerHashMap<>();
+      retVal = new TreeMap<>();
       for (final IdsMapEntry e: idsMap.getAllValues()) {
         final long id = e.getID();
         retVal.put(id, new IdsMapEntry(id, e.getSymbol()));

@@ -6,9 +6,11 @@ package org.infinity.datatype;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.function.BiFunction;
 
 import javax.swing.JButton;
@@ -18,7 +20,6 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
-import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.Misc;
 
 /**
@@ -161,9 +162,9 @@ public class ResourceBitmap extends AbstractBitmap<ResourceBitmap.RefEntry> impl
     return defaultLabel;
   }
 
-private static LongIntegerHashMap<RefEntry> createMap(List<RefEntry> resources)
+private static TreeMap<Long, RefEntry> createMap(List<RefEntry> resources)
   {
-    LongIntegerHashMap<RefEntry> retVal = new LongIntegerHashMap<>();
+  TreeMap<Long, RefEntry> retVal = new TreeMap<>();
     if (resources != null) {
       for (final RefEntry entry : resources) {
         if (entry != null) {

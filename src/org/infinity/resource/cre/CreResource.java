@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -73,7 +74,6 @@ import org.infinity.util.IniMap;
 import org.infinity.util.IniMapCache;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
-import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
@@ -429,8 +429,8 @@ public final class CreResource extends AbstractStruct
   public static final int TAB_INDEX_ANIMATION = 1;
   public static final int TAB_INDEX_RAW       = 2;
 
-  private static final LongIntegerHashMap<String> m_magetype = new LongIntegerHashMap<>();
-  private static final LongIntegerHashMap<String> m_colorPlacement = new LongIntegerHashMap<>();
+  private static final TreeMap<Long, String> m_magetype = new TreeMap<>();
+  private static final TreeMap<Long, String> m_colorPlacement = new TreeMap<>();
   public static final String[] s_flag = {
     "No flags set", "Identified", "No corpse", "Permanent corpse",
     "Original class: Fighter", "Original class: Mage", "Original class: Cleric", "Original class: Thief",

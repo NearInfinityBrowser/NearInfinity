@@ -5,6 +5,7 @@
 package org.infinity.resource.gam;
 
 import java.nio.ByteBuffer;
+import java.util.TreeMap;
 
 import javax.swing.JComponent;
 
@@ -27,7 +28,6 @@ import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
 import org.infinity.util.IdsMapEntry;
-import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.io.StreamUtils;
 
 public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemovable
@@ -85,8 +85,8 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
   public static final String GAM_NPC_STAT_FAV_WEAPON_FMT        = "Favorite weapon %d";
   public static final String GAM_NPC_STAT_FAV_WEAPON_COUNT_FMT  = "Favorite weapon counter %d";
 
-  public static final LongIntegerHashMap<String> m_partyOrder = new LongIntegerHashMap<>();
-//  private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<>();
+  public static final TreeMap<Long, String> m_partyOrder = new TreeMap<>();
+//  private static final TreeMap<Long, String> m_selected = new TreeMap<>();
 
   private static final String[] s_selected = {"Not selected", "Selected", null, null, null, null, null, null, null,
                                               null, null, null, null, null, null, null, "Dead" };

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import org.infinity.datatype.AnimateBitmap;
@@ -40,7 +41,6 @@ import org.infinity.datatype.UpdateListener;
 import org.infinity.resource.are.AutomapNote;
 import org.infinity.resource.itm.ItmResource;
 import org.infinity.util.IdsMapEntry;
-import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
@@ -130,10 +130,10 @@ public final class EffectFactory
   }
 
   // contains IDS mappings for BGEE's opcode 319 "Item Usability"
-  public static final LongIntegerHashMap<String> m_duration = new LongIntegerHashMap<>();
-  public static final LongIntegerHashMap<String> m_colorloc = new LongIntegerHashMap<>();
-  public static final LongIntegerHashMap<String> m_proj_iwd = new LongIntegerHashMap<>();
-  public static final LongIntegerHashMap<String> m_inctype = new LongIntegerHashMap<>();
+  public static final TreeMap<Long, String> m_duration = new TreeMap<>();
+  public static final TreeMap<Long, String> m_colorloc = new TreeMap<>();
+  public static final TreeMap<Long, String> m_proj_iwd = new TreeMap<>();
+  public static final TreeMap<Long, String> m_inctype = new TreeMap<>();
   public static final String[] s_inctype = {"Increment", "Set", "Set % of"};
   public static final String[] s_buttontype = {
     "Unknown", "Unknown", "Bard Song", "Cast Spell", "Find Traps",
@@ -928,7 +928,7 @@ public final class EffectFactory
   private static boolean updateOpcode232(AbstractStruct struct) throws Exception
   {
     if (struct != null) {
-      if (Profile.getEngine() == Profile.Engine.BG2 || Profile.isEnhancedEdition()) {
+      if (Profile.isEnhancedEdition()) {
         int opcode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 232) {
           int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
@@ -2104,7 +2104,7 @@ public final class EffectFactory
         if (Profile.getEngine() == Profile.Engine.PST || Profile.getEngine() == Profile.Engine.IWD2) {
           s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
         } else {
-          final LongIntegerHashMap<String> idsmap = new LongIntegerHashMap<>();
+          final TreeMap<Long, String> idsmap = new TreeMap<>();
           idsmap.put(0L, "Charmed (neutral)");
           idsmap.put(1L, "Charmed (hostile)");
           idsmap.put(2L, "Dire charmed (neutral)");
@@ -2698,11 +2698,11 @@ public final class EffectFactory
           ids.addIdsMapEntry(new IdsMapEntry(0L, "None"));
           s.add(ids);
         } else {
-          LongIntegerHashMap<String> idsmap;
+          TreeMap<Long, String> idsmap;
           if (Profile.getEngine() == Profile.Engine.IWD || Profile.getEngine() == Profile.Engine.IWD2) {
             idsmap = m_proj_iwd;
           } else {
-            idsmap = new LongIntegerHashMap<>();
+            idsmap = new TreeMap<>();
             idsmap.put(0L, "None");
             idsmap.put(4L, "Arrow");
             idsmap.put(9L, "Axe");
@@ -2958,7 +2958,7 @@ public final class EffectFactory
 
       case 140: // Casting glow
       {
-        final LongIntegerHashMap<String> m_castglow = new LongIntegerHashMap<>();
+        final TreeMap<Long, String> m_castglow = new TreeMap<>();
         if (Profile.isEnhancedEdition()) {
           m_castglow.put(0L, "Use projectile");
         }
@@ -3660,7 +3660,7 @@ public final class EffectFactory
 
       case 237: // Set image type
       {
-        final LongIntegerHashMap<String> map = new LongIntegerHashMap<>();
+        final TreeMap<Long, String> map = new TreeMap<>();
         map.put(0L, "Player1");
         map.put(1L, "Player2");
         map.put(2L, "Player3");
@@ -3695,7 +3695,7 @@ public final class EffectFactory
 
       case 241: // Control creature
       {
-        final LongIntegerHashMap<String> map = new LongIntegerHashMap<>();
+        final TreeMap<Long, String> map = new TreeMap<>();
         map.put(0L, "Charmed (neutral)");
         map.put(1L, "Charmed (hostile)");
         map.put(2L, "Dire charmed (neutral)");
@@ -3731,7 +3731,7 @@ public final class EffectFactory
       case 248: // Melee hit effect
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (Profile.isEnhancedEdition()) {
-          LongIntegerHashMap<String> map = new LongIntegerHashMap<>();
+          TreeMap<Long, String> map = new TreeMap<>();
           map.put(0L, "Default");
           map.put(4L, "Fists only");
           s.add(new HashBitmap(buffer, offset + 4, 4, "Type", map, false));
@@ -3975,7 +3975,7 @@ public final class EffectFactory
       case 303: // Backstab every hit
         s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
         if (isTobEx) {
-          LongIntegerHashMap<String> idsmap = new LongIntegerHashMap<>();
+          TreeMap<Long, String> idsmap = new TreeMap<>();
           idsmap.put(0L, "Normal conditions");
           idsmap.put(1L, "Ignore visual state and position");
           idsmap.put(2L, "Ignore visual state only");
@@ -4695,7 +4695,7 @@ public final class EffectFactory
 
       case 195: // Tint screen
       {
-        final LongIntegerHashMap<String> m_fadeType = new LongIntegerHashMap<>();
+        final TreeMap<Long, String> m_fadeType = new TreeMap<>();
         m_fadeType.put(0L, "Quick fade light->dark->light");
         m_fadeType.put(1L, "Quick fade light->dark->light");
         m_fadeType.put(2L, "Quick fade light->dark, instant fade light");
@@ -4988,7 +4988,7 @@ public final class EffectFactory
 
       case 263: // Evil turn undead
       {
-        final LongIntegerHashMap<String> map = new LongIntegerHashMap<>();
+        final TreeMap<Long, String> map = new TreeMap<>();
         map.put(0L, "Charmed (neutral)");
         map.put(1L, "Charmed (hostile)");
         map.put(2L, "Dire charmed (neutral)");
@@ -5232,7 +5232,7 @@ public final class EffectFactory
 
       case 263: // Evil turn undead
       {
-        final LongIntegerHashMap<String> map = new LongIntegerHashMap<>();
+        final TreeMap<Long, String> map = new TreeMap<>();
         map.put(0L, "Charmed (neutral)");
         map.put(1L, "Charmed (hostile)");
         map.put(2L, "Dire charmed (neutral)");

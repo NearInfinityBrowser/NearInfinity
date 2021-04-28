@@ -4,11 +4,12 @@
 
 package org.infinity.datatype;
 
+import java.beans.PropertyChangeEvent;
 import java.nio.ByteBuffer;
+import java.util.TreeMap;
 import java.util.function.BiFunction;
 
 import org.infinity.resource.AbstractStruct;
-import org.infinity.util.LongIntegerHashMap;
 
 /**
  * Field that represents an integer enumeration of some values.
@@ -39,24 +40,24 @@ public class HashBitmap extends AbstractBitmap<String>
     }
   };
 
-  public HashBitmap(ByteBuffer buffer, int offset, int length, String name, LongIntegerHashMap<String> idsmap)
+  public HashBitmap(ByteBuffer buffer, int offset, int length, String name, TreeMap<Long, String> idsmap)
   {
     this(buffer, offset, length, name, idsmap, true, false, false);
   }
 
-  public HashBitmap(ByteBuffer buffer, int offset, int length, String name, LongIntegerHashMap<String> idsmap,
+  public HashBitmap(ByteBuffer buffer, int offset, int length, String name, TreeMap<Long, String> idsmap,
                     boolean sortByName)
   {
     this(buffer, offset, length, name, idsmap, sortByName, false, false);
   }
 
-  public HashBitmap(ByteBuffer buffer, int offset, int length, String name, LongIntegerHashMap<String> idsmap,
+  public HashBitmap(ByteBuffer buffer, int offset, int length, String name, TreeMap<Long, String> idsmap,
                     boolean sortByName, boolean signed)
   {
     this(buffer, offset, length, name, idsmap, sortByName, signed, false);
   }
 
-  public HashBitmap(ByteBuffer buffer, int offset, int length, String name, LongIntegerHashMap<String> idsmap,
+  public HashBitmap(ByteBuffer buffer, int offset, int length, String name, TreeMap<Long, String> idsmap,
                     boolean sortByName, boolean signed, boolean showAsHex)
   {
     super(buffer, offset, length, name, idsmap, null, signed);
