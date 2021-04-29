@@ -3582,37 +3582,45 @@ public final class EffectFactory
 
       case 232: // Cast spell on condition
       {
-        s.add(new Bitmap(buffer, offset, 4, "Target",
-                         new String[]{"Caster", "Last hit by", "Nearest enemy", "Anyone"}));
+        s.add(new Bitmap(buffer, offset, 4, "Target", new String[]{"Myself", "LastHitter", "NearestEnemyOf", "Anyone"}));
+        final List<String> cndList = new ArrayList<String>() {{
+          add("HitBy([ANYONE]) / instant");
+          add("See(NearestEnemyOf(Myself)) / per round");
+          add("HPPercentLT(Myself,50) / per round");
+          add("HPPercentLT(Myself,25) / per round");
+          add("HPPercentLT(Myself,10) / per round");
+          add("StateCheck(Myself,STATE_HELPLESS) / per round");
+          add("StateCheck(Myself,STATE_POISONED) / per round");
+          add("AttackedBy([ANYONE]) / instant");
+          add("Range([ANYONE],4) / per round");
+          add("Range([ANYONE],10) / per round");
+          add("-Crash- / per round");
+          add("TookDamage() / instant");
+          if (Profile.isEnhancedEdition()) {
+            add("Killed([ANYONE]) / instant");
+            add("TimeOfDay('Special') / per round");
+            add("Range([ANYONE],'Special') / per round");
+            add("StateCheck(Myself,'Special') / per round");
+            add("Died(Myself) / instant");
+            add("Died([ANYONE]) / instant");
+            add("TurnedBy([ANYONE]) / instant");
+            add("HPLT(Myself,'Special') / per round");
+            add("HPPercentLT(Myself,'Special') / per round");
+            add("CheckSpellState(Myself,'Special') / per round");
+          }
+        }};
+        final String[] conditions = cndList.toArray(new String[cndList.size()]);
         if (Profile.isEnhancedEdition()) {
-          Bitmap item = new Bitmap(buffer, offset + 4, 4, "Condition",
-                                   new String[]{"Target hit", "Enemy sighted", "HP below 50%",
-                                                "HP below 25%", "HP below 10%", "If helpless",
-                                                "If poisoned", "When attacked",
-                                                "Target in range 4'", "Target in range 10'",
-                                                "Unknown (every round)", "Took damage", "Actor killed",
-                                                "Time of day is 'Special'",
-                                                "Target in 'Special' range",
-                                                "Target's state is 'Special'", "Target dies",
-                                                "Target died", "Target turned by",
-                                                "Target HP < 'Special'", "Target HP % < 'Special'",
-                                                "Target's spell state is 'Special'"});
+          Bitmap item = new Bitmap(buffer, offset + 4, 4, "Condition", conditions);
           s.add(item);
           if (parent != null && parent instanceof UpdateListener) {
             item.addUpdateListener((UpdateListener)parent);
           }
+        } else if (isTobEx) {
+          s.add(new Bitmap(buffer, offset + 4, 2, "Condition", conditions));
+          s.add(new DecNumber(buffer, offset + 6, 2, "Trigger check period"));
         } else {
-          String[] condition = new String[]{"Target hit", "Enemy sighted", "HP below 50%",
-                                            "HP below 25%", "HP below 10%", "If helpless",
-                                            "If poisoned", "When attacked",
-                                            "Target in range 4'", "Target in range 10'",
-                                            "Unknown (every round)", "Took damage"};
-          if (isTobEx) {
-            s.add(new Bitmap(buffer, offset + 4, 2, "Condition", condition));
-            s.add(new DecNumber(buffer, offset + 6, 2, "Trigger check period"));
-          } else {
-            s.add(new Bitmap(buffer, offset + 4, 4, "Condition", condition));
-          }
+          s.add(new Bitmap(buffer, offset + 4, 4, "Condition", conditions));
         }
         restype = "SPL";
         break;
