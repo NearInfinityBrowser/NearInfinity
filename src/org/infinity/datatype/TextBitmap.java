@@ -121,10 +121,13 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
     if (index == -1) {
       return false;
     }
+    String oldString = getText();
     setValue(ids[index]);
 
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (getText().equals(oldString)) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }
@@ -171,6 +174,26 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
         return text + " - " + names[i];
       }
     return text;
+  }
+
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + ((text == null) ? 0 : text.hashCode());
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof TextBitmap)) {
+      return false;
+    }
+    TextBitmap other = (TextBitmap)o;
+    boolean retVal = (text == null && other.text == null) ||
+                     (text != null && text.equals(other.text));
+    return retVal;
   }
 
 //--------------------- Begin Interface IsTextual ---------------------

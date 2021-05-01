@@ -208,7 +208,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
     add(splitv, BorderLayout.CENTER);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent e)
   {
@@ -277,9 +276,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="TreeSelectionListener">
   @Override
   public void valueChanged(TreeSelectionEvent e)
   {
@@ -297,9 +294,7 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="PropertyChangeListener">
   @Override
   public void propertyChange(PropertyChangeEvent event)
   {
@@ -314,7 +309,6 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
       }
     }
   }
-  //</editor-fold>
 
   /**
    * Selects specified dialog state or transition in the tree. If such entry not

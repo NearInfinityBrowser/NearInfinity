@@ -86,17 +86,37 @@ public final class BIFFResourceEntry extends ResourceEntry implements Writeable
 // --------------------- End Interface Writeable ---------------------
 
   @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + ((resourceName == null) ? 0 : resourceName.hashCode());
+    hash = 31 * hash + type;
+    hash = 31 * hash + ((extension == null) ? 0 : extension.hashCode());
+    hash = 31 * hash + Boolean.hashCode(hasOverride);
+    hash = 31 * hash + locator;
+    return hash;
+  }
+
+  @Override
   public boolean equals(Object o)
   {
     if (o == this) {
       return true;
-    } else if (o instanceof BIFFResourceEntry) {
-      BIFFResourceEntry other = (BIFFResourceEntry)o;
-      return (locator == other.locator) &&
-             (type == other.type) &&
-             resourceName.equalsIgnoreCase(other.resourceName);
     }
-    return false;
+
+    if (!(o instanceof BIFFResourceEntry)) {
+      return false;
+    }
+
+    BIFFResourceEntry other = (BIFFResourceEntry)o;
+    boolean retVal = (resourceName == null && other.resourceName == null) ||
+                     (resourceName != null && resourceName.equalsIgnoreCase(other.resourceName));
+    retVal &= (type == other.type);
+    retVal &= (extension == null && other.extension == null) ||
+              (extension != null && extension.equalsIgnoreCase(other.extension));
+    retVal &= (hasOverride == other.hasOverride);
+    retVal &= (locator == other.locator);
+    return retVal;
   }
 
   @Override

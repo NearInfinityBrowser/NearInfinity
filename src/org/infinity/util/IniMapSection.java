@@ -75,7 +75,6 @@ public class IniMapSection implements Iterable<IniMapEntry>
     return entries.size();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Get values">
   /**
    * Returns the first instance with {@code "key"} matching the key value of the
    * entry. Performs case-insensitive search.
@@ -110,12 +109,28 @@ public class IniMapSection implements Iterable<IniMapEntry>
    */
   public String getAsString(String key)
   {
+    return getAsString(key, null);
+  }
+  /**
+   * Returns value for specified key as string. Returns a default value if key or
+   * value are not present.
+   *
+   * @param key Name of value in key-value pair. This key must not contain spaces
+   *        because all spaces are cut off during parsing if ini-file, so key with
+   *        leading or trailing spaces never will be found
+   *
+   * @return Value of first key-value pair, which key equals (ignoring case) parameter
+   *         {@code key}, or {@code defValue}, if no such pair exists or value is
+   *         not defined.
+   */
+  public String getAsString(String key, String defValue)
+  {
     final IniMapEntry entry = getEntry(key);
-    return entry == null ? null : entry.getValue();
+    return entry == null ? defValue : entry.getValue();
   }
   /**
    * Returns value for specified key as integer or returns default value, if key
-   * or valus is not presented in the file.
+   * or value is not presented in the file.
    *
    * @param key Name of value in key-value pair. This key must not contain spaces
    *        because all spaces are cut off during parsing if ini-file, so key with
@@ -132,6 +147,26 @@ public class IniMapSection implements Iterable<IniMapEntry>
   {
     final IniMapEntry entry = getEntry(key);
     return entry == null ? defValue : entry.getIntValue(defValue);
+  }
+  /**
+   * Returns value for specified key as double or returns default value, if key
+   * or value is not presented in the file.
+   *
+   * @param key Name of value in key-value pair. This key must not contain spaces
+   *        because all spaces are cut off during parsing if ini-file, so key with
+   *        leading or trailing spaces never will be found
+   * @param defValue Default value that will be returned, if key or value does not exist
+   *
+   * @return Value of first key-value pair, which key equals (ignoring case) parameter
+   *         {@code key}, converted to integer, or {@code defValue}, if no such pair
+   *         exists or value is not defined
+   *
+   * @throws NumberFormatException If value is not a double
+   */
+  public double getAsDouble(String key, double defValue)
+  {
+    final IniMapEntry entry = getEntry(key);
+    return entry == null ? defValue : entry.getDoubleValue(defValue);
   }
   /**
    * Returns value for specified key as string reference. {@link StringRef#getName}
@@ -152,7 +187,6 @@ public class IniMapSection implements Iterable<IniMapEntry>
     final IniMapEntry entry = getEntry(key);
     return entry == null ? null : entry.getStringRefValue();
   }
-  //</editor-fold>
 
   @Override
   public Iterator<IniMapEntry> iterator() { return entries.iterator(); }

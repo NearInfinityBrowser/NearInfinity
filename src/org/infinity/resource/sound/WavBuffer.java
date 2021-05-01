@@ -152,7 +152,7 @@ public class WavBuffer extends AudioBuffer
     private static final short ID_TYPE_PCM    = 0x01;           // PCM
     private static final short ID_TYPE_ADPCM  = 0x11;           // IMA ADPCM
     private static final HashSet<Short> s_audioTypes =
-        new HashSet<Short>(Arrays.asList(new Short[]{ID_TYPE_PCM, ID_TYPE_ADPCM}));
+        new HashSet<>(Arrays.asList(new Short[]{ID_TYPE_PCM, ID_TYPE_ADPCM}));
 
     private final AudioOverride override;
     private int sampleRate, samplesPerBlock, samplesPerChannel, dataSize;

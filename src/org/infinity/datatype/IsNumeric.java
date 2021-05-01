@@ -6,6 +6,9 @@ package org.infinity.datatype;
 
 public interface IsNumeric
 {
+  /** Returns the current value as {@code long}. */
   long getLongValue();
+
+  /** Returns the current value as {@code int}. */
   int getValue();
 }

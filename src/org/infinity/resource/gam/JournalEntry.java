@@ -5,6 +5,7 @@
 package org.infinity.resource.gam;
 
 import java.nio.ByteBuffer;
+import java.util.TreeMap;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
@@ -15,7 +16,6 @@ import org.infinity.datatype.UnsignDecNumber;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.resource.Profile;
-import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.io.StreamUtils;
 
 public final class JournalEntry extends AbstractStruct implements AddRemovable
@@ -28,7 +28,7 @@ public final class JournalEntry extends AbstractStruct implements AddRemovable
   public static final String GAM_JOURNAL_SECTION  = "Section";
   public static final String GAM_JOURNAL_SOURCE   = "Text source";
 
-  private static final LongIntegerHashMap<String> m_source = new LongIntegerHashMap<String>();
+  private static final TreeMap<Long, String> m_source = new TreeMap<>();
   public static final String s_section[] = new String[]{"User notes", "Quests", "Done quests",
                                                         "Journal"};
 

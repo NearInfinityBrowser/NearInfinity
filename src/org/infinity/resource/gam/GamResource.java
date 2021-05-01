@@ -121,7 +121,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       "Normal windows", "Party AI disabled", "Larger text window", "Largest text window", null,
       "Fullscreen mode", "Left pane hidden", "Right pane hidden", "Unsupported"};
   public static final String[] s_configuration_iwd2 = {
-      "Normal windows", "Party AI disabled", null, null, null, "Fullscreen mode", null,
+      "Normal windows", "Party AI enabled", null, null, null, "Fullscreen mode", "Toolbar hidden",
       "Console hidden", "Automap notes hidden"};
   public static final String[] s_version_bg1 = {"Restrict XP to BG1 limit", "Restrict XP to TotSC limit"};
   public static final String[] s_familiar_owner = {
@@ -136,7 +136,6 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -169,9 +168,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
     }
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -226,17 +223,13 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
   {
     return index == 0 || Profile.getEngine() == Profile.Engine.PST && index == 1;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Writeable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatFields(os);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -284,9 +277,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       hexViewer.dataModified();
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -306,7 +297,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       addField(new DecNumber(buffer, offset + 14 + (i * 2), 2, String.format(GAM_FORMATION_BUTTON_FMT, i+1)));
     }
     addField(new DecNumber(buffer, offset + 24, 4, GAM_PARTY_GOLD));
-    addField(new HashBitmap(buffer, offset + 28, 2, GAM_VIEW_PLAYER_AREA, PartyNPC.m_partyOrder));
+    addField(new HashBitmap(buffer, offset + 28, 2, GAM_VIEW_PLAYER_AREA, PartyNPC.m_partyOrder, true, true));
     addField(new Flag(buffer, offset + 30, 2, GAM_WEATHER, s_weather));
     SectionOffset offset_partynpc = new SectionOffset(buffer, offset + 32, GAM_OFFSET_PARTY_MEMBERS,
                                                       PartyNPC.class);
@@ -404,7 +395,7 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
       }
     }
     else if (Profile.getEngine() == Profile.Engine.IWD2) { // V2.2 (V1.1 & V2.0 in BIFF)
-      addField(new Unknown(buffer, offset + 84, 4));
+      addField(new DecNumber(buffer, offset + 84, 4, GAM_REPUTATION));
       addField(new ResourceRef(buffer, offset + 88, GAM_MASTER_AREA, "ARE"));
       addField(new Flag(buffer, offset + 96, 4, GAM_CONFIGURATION, s_configuration_iwd2));
       numIWD2 = new SectionCount(buffer, offset + 100, 4, GAM_NUM_UNKNOWN, UnknownSection3.class);
@@ -553,7 +544,6 @@ public final class GamResource extends AbstractStruct implements Resource, HasCh
 
     return offset;
   }
-  //</editor-fold>
 
   private void updateOffsets()
   {

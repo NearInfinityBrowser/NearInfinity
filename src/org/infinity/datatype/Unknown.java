@@ -117,10 +117,13 @@ public class Unknown extends Datatype implements Editable, IsBinary
     if (newData == null) {
       return false;
     }
+    ByteBuffer oldBuffer = getData();
     setValue(newData);
 
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (getData().compareTo(oldBuffer) != 0) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }
@@ -156,9 +159,11 @@ public class Unknown extends Datatype implements Editable, IsBinary
   @Override
   public ByteBuffer getData()
   {
-    buffer.position(0);
-    ByteBuffer bb = StreamUtils.getByteBuffer(buffer.remaining());
-    buffer.put(bb);
+    ByteBuffer bb = ByteBuffer.allocate(buffer.capacity());
+    buffer.rewind();
+    bb.put(buffer);
+    buffer.rewind();
+    bb.flip();
     return bb;
   }
 
@@ -182,6 +187,28 @@ public class Unknown extends Datatype implements Editable, IsBinary
       return sb.toString();
     } else
       return "";
+  }
+
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + ((buffer == null || buffer.array() == null) ? 0 : buffer.array().hashCode());
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof Unknown)) {
+      return false;
+    }
+    Unknown other = (Unknown)o;
+    byte[] arr1 = (buffer != null && buffer.array() != null) ? buffer.array() : null;
+    byte[] arr2 = (other.buffer != null && other.buffer.array() != null) ? other.buffer.array() : null;
+    boolean retVal = (arr1 == null && arr2 == null) ||
+                     (arr1 != null && arr1.equals(arr2));
+    return retVal;
   }
 
   protected void setValue(byte[] newValue)

@@ -103,13 +103,13 @@ public class BIFFReader extends AbstractBIFFReader
           buffer = StreamUtils.getByteBuffer(remaining);
           StreamUtils.copyBytes(header, buffer, header.limit());
           remaining -= header.limit();
-          while (channel.read(buffer) > 0);
+          while (channel.read(buffer) > 0) {}
         } finally {
           blocker.setBlocked(false);
         }
       } else {
         buffer = StreamUtils.getByteBuffer(entry.size);
-        while (channel.read(buffer) > 0);
+        while (channel.read(buffer) > 0) {}
       }
 
       buffer.position(0);
@@ -139,7 +139,7 @@ public class BIFFReader extends AbstractBIFFReader
     }
   }
 
-  private void init(ByteBuffer buffer, int numFiles, int numTilesets) throws IOException
+  private void init(ByteBuffer buffer, int numFiles, int numTilesets)
   {
     // reading file entries
     for (int i = 0; i < numFiles; i++) {

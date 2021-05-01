@@ -17,8 +17,8 @@ import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
 
-import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.ViewFrame;
 import org.infinity.gui.ViewerUtil;
@@ -48,7 +48,7 @@ final class ViewerArea extends JPanel implements ActionListener
     JPanel infoPane = makeInfoPanel(areaEntry);
     JComponent icon = ViewerUtil.makeBamPanel(
             (ResourceRef)areaEntry.getParent().getAttribute(MapEntry.WMP_MAP_ICONS),
-            ((DecNumber)areaEntry.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue(),
+            ((IsNumeric)areaEntry.getAttribute(AreaEntry.WMP_AREA_ICON_INDEX)).getValue(),
             0);
     JPanel linkPanelN = ViewerUtil.makeListPanel("North links", areaEntry, AreaLinkNorth.class, AreaLink.WMP_LINK_TARGET_ENTRANCE);
     JPanel linkPanelS = ViewerUtil.makeListPanel("South links", areaEntry, AreaLinkSouth.class, AreaLink.WMP_LINK_TARGET_ENTRANCE);

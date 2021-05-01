@@ -48,7 +48,8 @@ public final class DxtEncoder
    * @return A data block containing the DXT-encoded image.
    * @throws Exception
    */
-  static public byte[] encodeImage(int[] pixels, int width, int height, DxtType dxtType) throws Exception
+  static public byte[] encodeImage(final int[] pixels, final int width, final int height,
+                                   final DxtType dxtType) throws Exception
   {
     // consistency check
     if (dxtType == null)
@@ -60,7 +61,7 @@ public final class DxtEncoder
     if (pixels == null || pixels.length < width*height)
       throw new Exception("Insufficient source data.");
 
-    int size = calcImageSize(width, height, dxtType);
+    final int size = calcImageSize(width, height, dxtType);
     byte[] output = new byte[size];
     try {
       encodeImage(pixels, width, height, output, dxtType);
@@ -81,8 +82,8 @@ public final class DxtEncoder
    * @param dxtType The compression type to use.
    * @throws Exception
    */
-  static public void encodeImage(int[] pixels, int width, int height, byte[] output,
-                              DxtType dxtType) throws Exception
+  static public void encodeImage(final int[] pixels, final int width, final int height, final byte[] output,
+                                 final DxtType dxtType) throws Exception
   {
     // consistency check
     if (dxtType == null)
@@ -98,10 +99,10 @@ public final class DxtEncoder
                           calcImageSize(width, height, dxtType), (output == null) ? 0 : output.length));
 
     int outputOfs = 0;    // points to the end of encoded data
-    int bw = width / 4;
-    int bh = height / 4;
-    int[] inBlock = new int[16];
-    byte[] outBlock = new byte[calcBlockSize(dxtType)];
+    final int bw = width / 4;
+    final int bh = height / 4;
+    final int[] inBlock = new int[16];
+    final byte[] outBlock = new byte[calcBlockSize(dxtType)];
     for (int y = 0; y < bh; y++) {
       for (int x = 0; x < bw; x++) {
         // create 4x4 block of pixels for DXTn compression
@@ -124,7 +125,7 @@ public final class DxtEncoder
    * @param block Data block to store the compressed DXTn data in.
    * @param dxtType The DXT type to use.
    */
-  public static void encodeBlock(int[] pixels, byte[] block, DxtType dxtType) throws Exception
+  public static void encodeBlock(final int[] pixels, final byte[] block, final DxtType dxtType) throws Exception
   {
     if (pixels == null || pixels.length < 16)
       throw new Exception("Insufficient source data.");
@@ -132,14 +133,14 @@ public final class DxtEncoder
       throw new Exception(String.format("Insufficient output space. Needed: %d bytes, available: %d bytes",
                           calcBlockSize(dxtType), (block == null) ? 0 : block.length));
 
-    byte[] colorBlock = new byte[8];
+    final byte[] colorBlock = new byte[8];
     byte[] alphaBlock = null;
     if (dxtType == DxtType.DXT3 || dxtType == DxtType.DXT5) {
       alphaBlock = new byte[8];
     }
 
     // create the minimal point set
-    ColorSet colors = new ColorSet(pixels, dxtType);
+    final ColorSet colors = new ColorSet(pixels, dxtType);
 
     // check the compression type and compress color
     ColorFit fit = null;
@@ -179,7 +180,7 @@ public final class DxtEncoder
    * @param dxtType The desired compression.
    * @return The number of bytes to hold the compressed data of a 4x4 block of pixels.
    */
-  public static int calcBlockSize(DxtType dxtType)
+  public static int calcBlockSize(final DxtType dxtType)
   {
     if (dxtType != null) {
       switch (dxtType) {
@@ -200,7 +201,7 @@ public final class DxtEncoder
    * @param dxtType The desired compression type.
    * @return The number of bytes required to hold the compressed image data.
    */
-  public static int calcImageSize(int width, int height, DxtType dxtType)
+  public static int calcImageSize(int width, int height, final DxtType dxtType)
   {
     if (width <= 0 || height <= 0 || dxtType == null)
       return 0;
@@ -223,12 +224,12 @@ public final class DxtEncoder
     private boolean transparent;
 
     // Extracts the color component at the specified pos (0..3 = blue,green,red,alpha)
-    public static int argb(int color, int pos)
+    public static int argb(final int color, final int pos)
     {
       return (color >>> ((pos & 3) << 3)) & 0xff;
     }
 
-    public ColorSet(int[] pixels, DxtType dxtType)
+    public ColorSet(final int[] pixels, final DxtType dxtType)
     {
       points = new Vec3[16];
       weights = new float[16];
@@ -236,7 +237,7 @@ public final class DxtEncoder
       count = 0;
       transparent = false;
 
-      boolean isDXT1 = (dxtType == DxtType.DXT1);
+      final boolean isDXT1 = (dxtType == DxtType.DXT1);
 
       // create minimal set
       for (int i = 0; i < 16; i++) {
@@ -252,12 +253,12 @@ public final class DxtEncoder
           // allocate new points
           if (j == i) {
             // normalize coordinates to [0, 1]
-            float x = (float)argb(pixels[i], 2) / 255.0f;
-            float y = (float)argb(pixels[i], 1) / 255.0f;
-            float z = (float)argb(pixels[i], 0) / 255.0f;
+            final float x = (float)argb(pixels[i], 2) / 255.0f;
+            final float y = (float)argb(pixels[i], 1) / 255.0f;
+            final float z = (float)argb(pixels[i], 0) / 255.0f;
 
             // ensure there is always non-zero weight even for zero alpha
-            float w = (float)(argb(pixels[i], 3) + 1) / 256.0f;
+            final float w = (float)(argb(pixels[i], 3) + 1) / 256.0f;
 
             // add the points
             points[count] = new Vec3(x, y, z);
@@ -269,15 +270,15 @@ public final class DxtEncoder
           }
 
           // check for a match
-          boolean match = (argb(pixels[i], 0) == argb(pixels[j], 0) &&
-                           argb(pixels[i], 1) == argb(pixels[j], 1) &&
-                           argb(pixels[i], 2) == argb(pixels[j], 2) &&
-                           (argb(pixels[j], 3) >= 128 || !isDXT1));
+          final boolean match = (argb(pixels[i], 0) == argb(pixels[j], 0) &&
+                                 argb(pixels[i], 1) == argb(pixels[j], 1) &&
+                                 argb(pixels[i], 2) == argb(pixels[j], 2) &&
+                                 (argb(pixels[j], 3) >= 128 || !isDXT1));
           if (match) {
             // get the index of the match
-            int index = remap[j];
+            final int index = remap[j];
             // ensure there is always non-zero weight even for zero alpha
-            float w = (float)(argb(pixels[i], 3) + 1) / 256.0f;
+            final float w = (float)(argb(pixels[i], 3) + 1) / 256.0f;
             // map to this point and increase the weight
             weights[index] += w;
             remap[i] = index;
@@ -300,10 +301,10 @@ public final class DxtEncoder
 
     public boolean isTransparent() { return transparent; }
 
-    public void remapIndices(int[] source, int[] target)
+    public void remapIndices(final int[] source, final int[] target)
     {
       for (int i = 0; i < 16; i++) {
-        int j = remap[i];
+        final int j = remap[i];
         target[i] = (j == -1) ? 3 : source[j];
       }
     }
@@ -312,8 +313,8 @@ public final class DxtEncoder
 
   private static abstract class ColorFit
   {
-    protected ColorSet colors;
-    protected DxtType dxtType;
+    protected final ColorSet colors;
+    protected final DxtType dxtType;
 
     public ColorFit(ColorSet colors, DxtType dxtType)
     {
@@ -321,9 +322,9 @@ public final class DxtEncoder
       this.dxtType = dxtType;
     }
 
-    public void compress(byte[] block)
+    public void compress(final byte[] block)
     {
-      boolean isDXT1 = (dxtType == DxtType.DXT1);
+      final boolean isDXT1 = (dxtType == DxtType.DXT1);
       if (isDXT1) {
         compress3(block);
         if (!colors.isTransparent()) {
@@ -334,8 +335,8 @@ public final class DxtEncoder
       }
     }
 
-    protected abstract void compress3(byte[] block);
-    protected abstract void compress4(byte[] block);
+    protected abstract void compress3(final byte[] block);
+    protected abstract void compress4(final byte[] block);
   }
 
 
@@ -348,7 +349,7 @@ public final class DxtEncoder
     private int error;
     private int bestError;
 
-    public SingleColorFit(ColorSet colors, DxtType dxtType)
+    public SingleColorFit(final ColorSet colors, final DxtType dxtType)
     {
       super(colors, dxtType);
       color = new int[3];
@@ -356,7 +357,7 @@ public final class DxtEncoder
       end = new Vec3();
 
       // grab the single color
-      Vec3 value = this.colors.getPoints()[0];
+      final Vec3 value = this.colors.getPoints()[0];
       color[0] = Misc.floatToInt(255.0f*value.x(), 255);
       color[1] = Misc.floatToInt(255.0f*value.y(), 255);
       color[2] = Misc.floatToInt(255.0f*value.z(), 255);
@@ -366,10 +367,10 @@ public final class DxtEncoder
     }
 
     @Override
-    protected void compress3(byte[] block)
+    protected void compress3(final byte[] block)
     {
       // build the table of lookups
-      SingleColorLookup[][] lookups = new SingleColorLookup[][]{
+      final SingleColorLookup[][] lookups = new SingleColorLookup[][]{
           Lookups.lookup53, Lookups.lookup63, Lookups.lookup53
       };
 
@@ -379,7 +380,7 @@ public final class DxtEncoder
       // build the block if we win
       if (error < bestError) {
         // remap indices
-        int[] indices = new int[16];
+        final int[] indices = new int[16];
         colors.remapIndices(new int[]{index}, indices);
 
         // save the block
@@ -391,10 +392,10 @@ public final class DxtEncoder
     }
 
     @Override
-    protected void compress4(byte[] block)
+    protected void compress4(final byte[] block)
     {
       // build the table of lookups
-      SingleColorLookup[][] lookups = new SingleColorLookup[][]{
+      final SingleColorLookup[][] lookups = new SingleColorLookup[][]{
           Lookups.lookup54, Lookups.lookup64, Lookups.lookup54
       };
 
@@ -404,7 +405,7 @@ public final class DxtEncoder
       // build the block if we win
       if (error < bestError) {
         // remap indices
-        int[] indices = new int[16];
+        final int[] indices = new int[16];
         colors.remapIndices(new int[]{index}, indices);
 
         // save the block
@@ -415,23 +416,23 @@ public final class DxtEncoder
       }
     }
 
-    protected void computeEndPoints(SingleColorLookup[][] lookups)
+    protected void computeEndPoints(final SingleColorLookup[][] lookups)
     {
       // check each index combination (endpoint or intermediate)
       this.error = Integer.MAX_VALUE;
       for (int index = 0; index < 2; index++) {
-        SourceBlock[] sources = new SourceBlock[3];
+        final SourceBlock[] sources = new SourceBlock[3];
         int error = 0;
         for (int channel = 0; channel < 3; channel++) {
           // grab the lookup table and index for this channel
-          SingleColorLookup[] lookup = lookups[channel];
-          int target = color[channel];
+          final SingleColorLookup[] lookup = lookups[channel];
+          final int target = color[channel];
 
           // store a pointer to the source for this channel
           sources[channel] = lookup[target].sources[index];
 
           // accumulate the error
-          int diff = sources[channel].error;
+          final int diff = sources[channel].error;
           error += diff * diff;
         }
 
@@ -455,7 +456,7 @@ public final class DxtEncoder
     private Vec3 metric, start, end;
     private float bestError;
 
-    public RangeFit(ColorSet colors, DxtType dxtType)
+    public RangeFit(final ColorSet colors, final DxtType dxtType)
     {
       super(colors, dxtType);
 
@@ -466,15 +467,15 @@ public final class DxtEncoder
       bestError = Float.MAX_VALUE;
 
       // cache some values
-      int count = this.colors.getCount();
-      Vec3[] values = this.colors.getPoints();
-      float[] weights = this.colors.getWeights();
+      final int count = this.colors.getCount();
+      final Vec3[] values = this.colors.getPoints();
+      final float[] weights = this.colors.getWeights();
 
       // get the covariance matrix
-      Sym3x3 covariance = Sym3x3.computeWeightedCovariance(count, values, weights);
+      final Sym3x3 covariance = Sym3x3.computeWeightedCovariance(count, values, weights);
 
       // compute the principle component
-      Vec3 principle = Sym3x3.computePrincipleComponent(covariance);
+      final Vec3 principle = Sym3x3.computePrincipleComponent(covariance);
 
       // get the min and max range as the codebook endpoints
       Vec3 start = new Vec3();
@@ -486,7 +487,7 @@ public final class DxtEncoder
         start = end = values[0];
         min = max = Vec3.dot(values[0], principle);
         for (int i = 1; i < count; i++) {
-          float val = Vec3.dot(values[i], principle);
+          final float val = Vec3.dot(values[i], principle);
           if (val < min) {
             start = values[i];
             min = val;
@@ -512,20 +513,20 @@ public final class DxtEncoder
     }
 
     @Override
-    protected void compress3(byte[] block)
+    protected void compress3(final byte[] block)
     {
       // cache some values
-      int count = colors.getCount();
-      Vec3[] values = colors.getPoints();
+      final int count = colors.getCount();
+      final Vec3[] values = colors.getPoints();
 
       // create a codebook
-      Vec3[] codes = new Vec3[3];
+      final Vec3[] codes = new Vec3[3];
       codes[0] = start;
       codes[1] = end;
       codes[2] = Vec3.mul(start, 0.5f).add(Vec3.mul(end, 0.5f));
 
       // match each point to the closest code
-      int[] closest = new int[16];
+      final int[] closest = new int[16];
       float error = 0.0f;
       for (int i = 0; i < count; i++) {
         // find the closest code
@@ -549,7 +550,7 @@ public final class DxtEncoder
       // save this scheme if it wins
       if (error < bestError) {
         // remap the indices
-        int[] indices = new int[16];
+        final int[] indices = new int[16];
         colors.remapIndices(closest, indices);
 
         // save the block
@@ -561,21 +562,21 @@ public final class DxtEncoder
     }
 
     @Override
-    protected void compress4(byte[] block)
+    protected void compress4(final byte[] block)
     {
       // cache some values
-      int count = colors.getCount();
-      Vec3[] values = colors.getPoints();
+      final int count = colors.getCount();
+      final Vec3[] values = colors.getPoints();
 
       // create a codebook
-      Vec3[] codes = new Vec3[4];
+      final Vec3[] codes = new Vec3[4];
       codes[0] = start;
       codes[1] = end;
       codes[2] = Vec3.mul(start, 2.0f/3.0f).add(Vec3.mul(end, 1.0f/3.0f));
       codes[3] = Vec3.mul(start, 1.0f/3.0f).add(Vec3.mul(end, 2.0f/3.0f));
 
       // match each point to the closest code
-      int[] closest = new int[16];
+      final int[] closest = new int[16];
       float error = 0.0f;
       for (int i = 0; i < count; i++) {
         // find the closest code
@@ -618,12 +619,13 @@ public final class DxtEncoder
     private final int[] order;
     private final Vec4[] pointsWeights;
 
-    private Vec3 principle;
+    private final Vec3 principle;
+    private final Vec4 metric;
+
     private Vec4 xsum_wsum;
-    private Vec4 metric;
     private Vec4 bestError;
 
-    public ClusterFit(ColorSet colors, DxtType dxtType)
+    public ClusterFit(final ColorSet colors, final DxtType dxtType)
     {
       super(colors, dxtType);
       order = new int[16*IterationCount];
@@ -636,16 +638,16 @@ public final class DxtEncoder
       metric = new Vec4(0.2126f, 0.7152f, 0.0722f, 0.0f);
 
       // get the covariance matrix
-      Sym3x3 covariance = Sym3x3.computeWeightedCovariance(this.colors.getCount(),
-                                                           this.colors.getPoints(),
-                                                           this.colors.getWeights());
+      final Sym3x3 covariance = Sym3x3.computeWeightedCovariance(this.colors.getCount(),
+                                                                 this.colors.getPoints(),
+                                                                 this.colors.getWeights());
 
       // compute the principle component
       principle = Sym3x3.computePrincipleComponent(covariance);
     }
 
     @Override
-    protected void compress3(byte[] block)
+    protected void compress3(final byte[] block)
     {
       // declare variables
       final int count = colors.getCount();
@@ -664,33 +666,33 @@ public final class DxtEncoder
       Vec4 bestStart = new Vec4();
       Vec4 bestEnd = new Vec4();
       Vec4 bestError = this.bestError;
-      int[] bestIndices = new int[16];
+      final int[] bestIndices = new int[16];
       int bestIteration = 0;
       int bestI = 0, bestJ = 0;
 
       // loop over iterations (we avoid the case that all points in first or last cluster)
       for (int iterIndex = 0; ; ) {
         // first cluster [0, i) is at the start
-        Vec4 part0 = new Vec4();
+        final Vec4 part0 = new Vec4();
         for (int i = 0; i < count; i++) {
           // second cluster [i, j) is half along
-          Vec4 part1 = (i == 0) ? (Vec4)pointsWeights[0].clone() : new Vec4();
-          int jmin = (i == 0) ? 1 : i;
+          final Vec4 part1 = (i == 0) ? (Vec4)pointsWeights[0].clone() : new Vec4();
+          final int jmin = (i == 0) ? 1 : i;
           for (int j = jmin; ; ) {
             // last cluster [j, count) is at the end
-            Vec4 part2 = Vec4.sub(xsum_wsum, part1).sub(part0);
+            final Vec4 part2 = Vec4.sub(xsum_wsum, part1).sub(part0);
 
             // compute least squares terms directly
-            Vec4 alphaXSum = Vec4.multiplyAdd(part1, halfHalf2, part0);
-            Vec4 alpha2Sum = alphaXSum.splatW();
+            final Vec4 alphaXSum = Vec4.multiplyAdd(part1, halfHalf2, part0);
+            final Vec4 alpha2Sum = alphaXSum.splatW();
 
-            Vec4 betaXSum = Vec4.multiplyAdd(part1, halfHalf2, part2);
-            Vec4 beta2Sum = betaXSum.splatW();
+            final Vec4 betaXSum = Vec4.multiplyAdd(part1, halfHalf2, part2);
+            final Vec4 beta2Sum = betaXSum.splatW();
 
-            Vec4 alphaBetaSum = Vec4.mul(part1, halfHalf2).splatW();
+            final Vec4 alphaBetaSum = Vec4.mul(part1, halfHalf2).splatW();
 
             // compute the least squares optimal points
-            Vec4 factor = Vec4.reciprocal(Vec4.negMulSub(alphaBetaSum, alphaBetaSum, Vec4.mul(alpha2Sum, beta2Sum)));
+            final Vec4 factor = Vec4.reciprocal(Vec4.negMulSub(alphaBetaSum, alphaBetaSum, Vec4.mul(alpha2Sum, beta2Sum)));
             Vec4 a = Vec4.negMulSub(betaXSum, alphaBetaSum, Vec4.mul(alphaXSum, beta2Sum)).mul(factor);
             Vec4 b = Vec4.negMulSub(alphaXSum, alphaBetaSum, Vec4.mul(betaXSum, alpha2Sum)).mul(factor);
 
@@ -701,14 +703,14 @@ public final class DxtEncoder
             b = Vec4.truncate(Vec4.multiplyAdd(grid, b, half)).mul(gridrcp);
 
             // compute the error (we skip the constant xxsum)
-            Vec4 e1 = Vec4.multiplyAdd(Vec4.mul(a, a), alpha2Sum, Vec4.mul(b, b).mul(beta2Sum));
-            Vec4 e2 = Vec4.negMulSub(a, alphaXSum, Vec4.mul(a, b).mul(alphaBetaSum));
-            Vec4 e3 = Vec4.negMulSub(b, betaXSum, e2);
-            Vec4 e4 = Vec4.multiplyAdd(two, e3, e1);
+            final Vec4 e1 = Vec4.multiplyAdd(Vec4.mul(a, a), alpha2Sum, Vec4.mul(b, b).mul(beta2Sum));
+            final Vec4 e2 = Vec4.negMulSub(a, alphaXSum, Vec4.mul(a, b).mul(alphaBetaSum));
+            final Vec4 e3 = Vec4.negMulSub(b, betaXSum, e2);
+            final Vec4 e4 = Vec4.multiplyAdd(two, e3, e1);
 
             // apply the metric to the error terms
-            Vec4 e5 = Vec4.mul(e4, metric);
-            Vec4 error = Vec4.add(e5.splatX(), e5.splatY()).add(e5.splatZ());
+            final Vec4 e5 = Vec4.mul(e4, metric);
+            final Vec4 error = Vec4.add(e5.splatX(), e5.splatY()).add(e5.splatZ());
 
             // keep the solution if it wins
             if (Vec4.compareAnyLessThan(error, bestError)) {
@@ -739,7 +741,7 @@ public final class DxtEncoder
           break;
 
         // stop if a new iteration is an ordering that has already been tried
-        Vec3 axis = Vec4.sub(bestEnd, bestStart).getVec3();
+        final Vec3 axis = Vec4.sub(bestEnd, bestStart).getVec3();
         if (!constructOrdering(axis, iterIndex))
           break;
       }
@@ -747,8 +749,8 @@ public final class DxtEncoder
       // save the block if necessary
       if (Vec4.compareAnyLessThan(bestError, this.bestError)) {
         // remap the indices
-        int orderIdx = 16*bestIteration;
-        int[] unordered = new int[16];
+        final int orderIdx = 16*bestIteration;
+        final int[] unordered = new int[16];
         for (int m = 0; m < bestI; m++)
           unordered[order[orderIdx+m]] = 0;
         for (int m = bestI; m < bestJ; m++)
@@ -767,7 +769,7 @@ public final class DxtEncoder
     }
 
     @Override
-    protected void compress4(byte[] block)
+    protected void compress4(final byte[] block)
     {
       // declare variables
       final int count = colors.getCount();
@@ -788,39 +790,39 @@ public final class DxtEncoder
       Vec4 bestStart = new Vec4();
       Vec4 bestEnd = new Vec4();
       Vec4 bestError = this.bestError;
-      int[] bestIndices = new int[16];
+      final int[] bestIndices = new int[16];
       int bestIteration = 0;
       int bestI = 0, bestJ = 0, bestK = 0;
 
       // loop over iterations (we avoid the case all points in first or last cluster)
       for (int iterIndex = 0; ; ) {
         // first cluster [0, i) is at the start
-        Vec4 part0 = new Vec4();
+        final Vec4 part0 = new Vec4();
         for (int i = 0; i < count; i++) {
           // second cluster [i, j) is one third along
-          Vec4 part1 = new Vec4();
+          final Vec4 part1 = new Vec4();
           for (int j = i; ; ) {
             // third cluster [j, k) is two thirds along
-            Vec4 part2 = (j == 0) ? (Vec4)pointsWeights[0].clone() : new Vec4();
-            int kmin = (j == 0) ? 1 : j;
+            final Vec4 part2 = (j == 0) ? (Vec4)pointsWeights[0].clone() : new Vec4();
+            final int kmin = (j == 0) ? 1 : j;
             for (int k = kmin; ; ) {
               // last cluster [k, count) is at the end
-              Vec4 part3 = Vec4.sub(xsum_wsum, part2).sub(part1).sub(part0);
+              final Vec4 part3 = Vec4.sub(xsum_wsum, part2).sub(part1).sub(part0);
 
               // compute least squares terms directly
-              Vec4 alphaXSum = Vec4.multiplyAdd(part2, oneThirdOneThird2,
-                                                Vec4.multiplyAdd(part1, twoThirdsTwoThirds2, part0));
-              Vec4 alpha2Sum = alphaXSum.splatW();
+              final Vec4 alphaXSum = Vec4.multiplyAdd(part2, oneThirdOneThird2,
+                                                      Vec4.multiplyAdd(part1, twoThirdsTwoThirds2, part0));
+              final Vec4 alpha2Sum = alphaXSum.splatW();
 
-              Vec4 betaXSum = Vec4.multiplyAdd(part1, oneThirdOneThird2,
-                                               Vec4.multiplyAdd(part2, twoThirdsTwoThirds2, part3));
-              Vec4 beta2Sum = betaXSum.splatW();
+              final Vec4 betaXSum = Vec4.multiplyAdd(part1, oneThirdOneThird2,
+                                                     Vec4.multiplyAdd(part2, twoThirdsTwoThirds2, part3));
+              final Vec4 beta2Sum = betaXSum.splatW();
 
-              Vec4 alphaBetaSum = Vec4.mul(twoNineth, Vec4.add(part1, part2).splatW());
+              final Vec4 alphaBetaSum = Vec4.mul(twoNineth, Vec4.add(part1, part2).splatW());
 
               // compute the least-squares optimal points
-              Vec4 factor = Vec4.reciprocal(Vec4.negMulSub(alphaBetaSum, alphaBetaSum,
-                                            Vec4.mul(alpha2Sum, beta2Sum)));
+              final Vec4 factor = Vec4.reciprocal(Vec4.negMulSub(alphaBetaSum, alphaBetaSum,
+                                                  Vec4.mul(alpha2Sum, beta2Sum)));
               Vec4 a = Vec4.negMulSub(betaXSum, alphaBetaSum, Vec4.mul(alphaXSum, beta2Sum)).mul(factor);
               Vec4 b = Vec4.negMulSub(alphaXSum, alphaBetaSum, Vec4.mul(betaXSum, alpha2Sum)).mul(factor);
 
@@ -831,14 +833,14 @@ public final class DxtEncoder
               b = Vec4.truncate(Vec4.multiplyAdd(grid, b, half)).mul(gridrcp);
 
               // compute the error (we skip the constant xxsum)
-              Vec4 e1 = Vec4.multiplyAdd(Vec4.mul(a, a), alpha2Sum, Vec4.mul(b, b).mul(beta2Sum));
-              Vec4 e2 = Vec4.negMulSub(a, alphaXSum, Vec4.mul(a, b).mul(alphaBetaSum));
-              Vec4 e3 = Vec4.negMulSub(b, betaXSum, e2);
-              Vec4 e4 = Vec4.multiplyAdd(two, e3, e1);
+              final Vec4 e1 = Vec4.multiplyAdd(Vec4.mul(a, a), alpha2Sum, Vec4.mul(b, b).mul(beta2Sum));
+              final Vec4 e2 = Vec4.negMulSub(a, alphaXSum, Vec4.mul(a, b).mul(alphaBetaSum));
+              final Vec4 e3 = Vec4.negMulSub(b, betaXSum, e2);
+              final Vec4 e4 = Vec4.multiplyAdd(two, e3, e1);
 
               // apply the metric to the error term
-              Vec4 e5 = Vec4.mul(e4, metric);
-              Vec4 error = Vec4.add(e5.splatX(), e5.splatY()).add(e5.splatZ());
+              final Vec4 e5 = Vec4.mul(e4, metric);
+              final Vec4 error = Vec4.add(e5.splatX(), e5.splatY()).add(e5.splatZ());
 
               // keep the solution if it wins
               if (Vec4.compareAnyLessThan(error, bestError)) {
@@ -875,7 +877,7 @@ public final class DxtEncoder
           break;
 
         // stop if a new iteration is an ordering that has already been tried
-        Vec3 axis = Vec4.sub(bestEnd, bestStart).getVec3();
+        final Vec3 axis = Vec4.sub(bestEnd, bestStart).getVec3();
         if (!constructOrdering(axis, iterIndex))
           break;
       }
@@ -883,8 +885,8 @@ public final class DxtEncoder
       // save the block if necessary
       if (Vec4.compareAnyLessThan(bestError, this.bestError)) {
         // remap the indices
-        int orderIdx = 16*bestIteration;
-        int[] unordered = new int[16];
+        final int orderIdx = 16*bestIteration;
+        final int[] unordered = new int[16];
         for (int m = 0; m < bestI; m++)
           unordered[order[orderIdx+m]] = 0;
         for (int m = bestI; m < bestJ; m++)
@@ -904,15 +906,15 @@ public final class DxtEncoder
       }
     }
 
-    private boolean constructOrdering(Vec3 axis, int iteration)
+    private boolean constructOrdering(final Vec3 axis, final int iteration)
     {
       // cache some values
       final int count = colors.getCount();
       final Vec3[] values = colors.getPoints();
 
       // build list of dot products
-      float[] dps = new float[16];
-      int orderIdx = 16*iteration;
+      final float[] dps = new float[16];
+      final int orderIdx = 16*iteration;
       for (int i = 0; i < count; i++) {
         dps[i] = Vec3.dot(values[i], axis);
         order[orderIdx+i] = i;
@@ -921,14 +923,14 @@ public final class DxtEncoder
       // stable sort using them
       for (int i = 0; i < count; i++) {
         for (int j = i; j > 0 && dps[j] < dps[j-1]; j--) {
-          float tmp1 = dps[j]; dps[j] = dps[j-1]; dps[j-1] = tmp1;
-          int tmp2 = order[orderIdx+j]; order[orderIdx+j] = order[orderIdx+j-1]; order[orderIdx+j-1] = tmp2;
+          final float tmp1 = dps[j]; dps[j] = dps[j-1]; dps[j-1] = tmp1;
+          final int tmp2 = order[orderIdx+j]; order[orderIdx+j] = order[orderIdx+j-1]; order[orderIdx+j-1] = tmp2;
         }
       }
 
       // check this ordering is unique
       for (int it = 0; it < iteration; it++) {
-        int prevIdx = 16*it;
+        final int prevIdx = 16*it;
         boolean same = true;
         for (int i = 0; i < count; i++) {
           if (order[orderIdx+i] != order[prevIdx+i]) {
@@ -946,9 +948,9 @@ public final class DxtEncoder
       xsum_wsum = new Vec4();
       for (int i = 0; i < count; i++) {
         int j = order[orderIdx+i];
-        Vec4 p = new Vec4(unweighted[j].x(), unweighted[j].y(), unweighted[j].z(), 1.0f);
-        Vec4 w = new Vec4(weights[j]);
-        Vec4 x = Vec4.mul(p, w);
+        final Vec4 p = new Vec4(unweighted[j].x(), unweighted[j].y(), unweighted[j].z(), 1.0f);
+        final Vec4 w = new Vec4(weights[j]);
+        final Vec4 x = Vec4.mul(p, w);
         pointsWeights[i] = x;
         xsum_wsum.add(x);
       }
@@ -959,20 +961,20 @@ public final class DxtEncoder
 
   private static final class ColorBlock
   {
-    public static void writeColorBlock3(Vec3 start, Vec3 end, int[] indices, byte[] block)
+    public static void writeColorBlock3(final Vec3 start, final Vec3 end, final int[] indices, final byte[] block)
     {
       // get the packed values
       int a = floatTo565(start);
       int b = floatTo565(end);
 
       // remap the indices
-      int[] remapped = new int[16];
+      final int[] remapped = new int[16];
       if (a <= b) {
         // use the indices directly
         System.arraycopy(indices, 0, remapped, 0, 16);
       } else {
         // swap a and b
-        int tmp = a; a = b; b = tmp;
+        final int tmp = a; a = b; b = tmp;
         for (int i = 0; i < 16; i++) {
           if (indices[i] == 0) {
             remapped[i] = 1;
@@ -988,17 +990,17 @@ public final class DxtEncoder
       writeColorBlock(a, b, remapped, block);
     }
 
-    public static void writeColorBlock4(Vec3 start, Vec3 end, int[] indices, byte[] block)
+    public static void writeColorBlock4(final Vec3 start, final Vec3 end, final int[] indices, final byte[] block)
     {
       // get the packed values
       int a = floatTo565(start);
       int b = floatTo565(end);
 
       // remap the indices
-      int[] remapped = new int[16];
+      final int[] remapped = new int[16];
       if (a < b) {
         // swap a and b
-        int tmp = a; a = b; b = tmp;
+        final int tmp = a; a = b; b = tmp;
         for (int i = 0; i < 16; i++) {
           remapped[i] = (indices[i] ^ 1) & 3;
         }
@@ -1016,18 +1018,18 @@ public final class DxtEncoder
       writeColorBlock(a, b, remapped, block);
     }
 
-    private static int floatTo565(Vec3 color)
+    private static int floatTo565(final Vec3 color)
     {
       // get the components in the correct range
-      int r = Misc.floatToInt(31.0f*color.x(), 31);
-      int g = Misc.floatToInt(63.0f*color.y(), 63);
-      int b = Misc.floatToInt(31.0f*color.z(), 31);
+      final int r = Misc.floatToInt(31.0f*color.x(), 31);
+      final int g = Misc.floatToInt(63.0f*color.y(), 63);
+      final int b = Misc.floatToInt(31.0f*color.z(), 31);
 
       // pack the color into a single value
       return ((r << 11) | (g << 5) | b) & 0xffff;
     }
 
-    private static void writeColorBlock(int a, int b, int[] indices, byte[] block)
+    private static void writeColorBlock(final int a, final int b, final int[] indices, final byte[] block)
     {
       // write the endpoints
       block[0] = (byte)(a & 0xff);
@@ -1037,7 +1039,7 @@ public final class DxtEncoder
 
       // write the indices
       for (int i = 0; i < 4; i++) {
-        int idx = 4*i;
+        final int idx = 4*i;
         block[i+4] = (byte)((indices[idx+0]) | (indices[idx+1] << 2) |
                             (indices[idx+2] << 4) | (indices[idx+3] << 6));
       }
@@ -1046,22 +1048,22 @@ public final class DxtEncoder
 
   private static final class Alpha
   {
-    public static void compressAlphaDxt3(int[] pixels, byte[] block)
+    public static void compressAlphaDxt3(final int[] pixels, final byte[] block)
     {
       // quantize and pack the alpha values pairwise
       for (int i = 0; i < 8; i++) {
         // quantize down to 4 bits
-        float alpha1 = (float)ColorSet.argb(pixels[2*i], 3) * (15.0f / 255.0f);
-        float alpha2 = (float)ColorSet.argb(pixels[2*i+1], 3) * (15.0f / 255.0f);
-        int quant1 = Misc.floatToInt(alpha1, 15);
-        int quant2 = Misc.floatToInt(alpha2, 15);
+        final float alpha1 = (float)ColorSet.argb(pixels[2*i], 3) * (15.0f / 255.0f);
+        final float alpha2 = (float)ColorSet.argb(pixels[2*i+1], 3) * (15.0f / 255.0f);
+        final int quant1 = Misc.floatToInt(alpha1, 15);
+        final int quant2 = Misc.floatToInt(alpha2, 15);
 
         // pack into the byte
         block[i] = (byte)(quant1 | (quant2 << 4));
       }
     }
 
-    public static void compressAlphaDxt5(int[] pixels, byte[] block)
+    public static void compressAlphaDxt5(final int[] pixels, final byte[] block)
     {
       // get the range for 5-alpha and 7-alpha interpolation
       int min5 = 255;
@@ -1088,7 +1090,7 @@ public final class DxtEncoder
         min7 = max7;
 
       // fix the range to be the minimum in each case
-      int[] minmax = new int[2];
+      final int[] minmax = new int[2];
       minmax[0] = min5; minmax[1] = max5;
       fixRange(minmax, 5);
       min5 = minmax[0]; max5 = minmax[1];
@@ -1097,7 +1099,7 @@ public final class DxtEncoder
       min7 = minmax[0]; max7 = minmax[1];
 
       // set up the 5-alpha code book
-      int[] codes5 = new int[8];
+      final int[] codes5 = new int[8];
       codes5[0] = min5;
       codes5[1] = max5;
       for (int i = 1; i < 5; i++) {
@@ -1107,7 +1109,7 @@ public final class DxtEncoder
       codes5[7] = 255;
 
       // set up the 7-alpha code book
-      int[] codes7 = new int[8];
+      final int[] codes7 = new int[8];
       codes7[0] = min7;
       codes7[1] = max7;
       for (int i = 1; i < 7; i++) {
@@ -1115,10 +1117,10 @@ public final class DxtEncoder
       }
 
       // fit the data to both code books
-      int[] indices5 = new int[16];
-      int[] indices7 = new int[16];
-      int err5 = fitCodes(pixels, codes5, indices5);
-      int err7 = fitCodes(pixels, codes7, indices7);
+      final int[] indices5 = new int[16];
+      final int[] indices7 = new int[16];
+      final int err5 = fitCodes(pixels, codes5, indices5);
+      final int err7 = fitCodes(pixels, codes7, indices7);
 
       // save the block with the least error
       if (err5 <= err7) {
@@ -1128,7 +1130,7 @@ public final class DxtEncoder
       }
     }
 
-    private static void fixRange(int[] minMax, int steps)
+    private static void fixRange(final int[] minMax, final int steps)
     {
       if (minMax[1] - minMax[0] < steps)
         minMax[1] = Math.min(minMax[0] + steps, 255);
@@ -1142,7 +1144,7 @@ public final class DxtEncoder
       int err = 0;
       for (int i = 0; i < 16; i++) {
         // find the least error and corresponding index
-        int value = ColorSet.argb(pixels[i], 3);
+        final int value = ColorSet.argb(pixels[i], 3);
         int least = Integer.MAX_VALUE;
         int index = 0;
         for (int j = 0; j < 8; j++) {
@@ -1166,7 +1168,7 @@ public final class DxtEncoder
       return err;
     }
 
-    private static void writeAlphaBlock(int alpha0, int alpha1, int[] indices, byte[] block)
+    private static void writeAlphaBlock(final int alpha0, final int alpha1, final int[] indices, final byte[] block)
     {
       // write the first two bytes
       block[0] = (byte)(alpha0 & 0xff);
@@ -1183,20 +1185,20 @@ public final class DxtEncoder
 
         // store in 3 bytes
         for (int j = 0; j < 3; j++) {
-          byte b = (byte)((value >>> (8*j)) & 0xff);
+          final byte b = (byte)((value >>> (8*j)) & 0xff);
           block[dstIdx++] = b;
         }
       }
     }
 
-    private static void writeAlphaBlock5(int alpha0, int alpha1, int[] indices, byte[] block)
+    private static void writeAlphaBlock5(final int alpha0, final int alpha1, final int[] indices, final byte[] block)
     {
       // check the relative values of the endpoints
       if (alpha0 > alpha1) {
         // swap the indices
-        int[] swapped = new int[16];
+        final int[] swapped = new int[16];
         for (int i = 0; i < 16; i++) {
-          int index = indices[i];
+          final int index = indices[i];
           if (index == 0) {
             swapped[i] = 1;
           } else if (index == 1) {
@@ -1217,13 +1219,13 @@ public final class DxtEncoder
       }
     }
 
-    private static void writeAlphaBlock7(int alpha0, int alpha1, int[] indices, byte[] block)
+    private static void writeAlphaBlock7(final int alpha0, final int alpha1, final int[] indices, final byte[] block)
     {
       if (alpha0 < alpha1) {
         // swap the indices
-        int[] swapped = new int[16];
+        final int[] swapped = new int[16];
         for (int i = 0; i < 16; i++) {
-          int index = indices[i];
+          final int index = indices[i];
           if (index == 0) {
             swapped[i] = 1;
           } else if (index == 1) {
@@ -1247,7 +1249,7 @@ public final class DxtEncoder
   {
     public final int start, end, error;
 
-    public SourceBlock(int start, int end, int error)
+    public SourceBlock(final int start, final int end, final int error)
     {
       this.start = start;
       this.end = end;
@@ -1259,7 +1261,7 @@ public final class DxtEncoder
   {
     public final SourceBlock[] sources;
 
-    public SingleColorLookup(SourceBlock sb1, SourceBlock sb2)
+    public SingleColorLookup(final SourceBlock sb1, final SourceBlock sb2)
     {
       sources = new SourceBlock[]{sb1, sb2};
     }
@@ -2308,67 +2310,67 @@ public final class DxtEncoder
   {
     float vx, vy, vz;
 
-    public static Vec3 neg(Vec3 v)
+    public static Vec3 neg(final Vec3 v)
     {
       return new Vec3(-v.vx, -v.vy, -v.vz);
     }
 
-    public static Vec3 add(Vec3 v1, Vec3 v2)
+    public static Vec3 add(final Vec3 v1, final Vec3 v2)
     {
       return new Vec3(v1.vx + v2.vx, v1.vy + v2.vy, v1.vz + v2.vz);
     }
 
-    public static Vec3 sub(Vec3 v1, Vec3 v2)
+    public static Vec3 sub(final Vec3 v1, final Vec3 v2)
     {
       return new Vec3(v1.vx - v2.vx, v1.vy - v2.vy, v1.vz - v2.vz);
     }
 
-    public static Vec3 mul(Vec3 v1, Vec3 v2)
+    public static Vec3 mul(final Vec3 v1, final Vec3 v2)
     {
       return new Vec3(v1.vx * v2.vx, v1.vy * v2.vy, v1.vz * v2.vz);
     }
 
-    public static Vec3 mul(Vec3 v, float s)
+    public static Vec3 mul(final Vec3 v, final float s)
     {
       return new Vec3(v.vx * s, v.vy * s, v.vz * s);
     }
 
-    public static Vec3 div(Vec3 v1, Vec3 v2)
+    public static Vec3 div(final Vec3 v1, final Vec3 v2)
     {
       return new Vec3(v1.vx / v2.vx, v1.vy / v2.vy, v1.vz / v2.vz);
     }
 
-    public static Vec3 div(Vec3 v, float s)
+    public static Vec3 div(final Vec3 v, final float s)
     {
-      float t = 1.0f / s;
+      final float t = 1.0f / s;
       return new Vec3(v.vx * t, v.vy * t, v.vz * t);
     }
 
-    public static float dot(Vec3 v1, Vec3 v2)
+    public static float dot(final Vec3 v1, final Vec3 v2)
     {
       return v1.vx*v2.vx + v1.vy*v2.vy + v1.vz*v2.vz;
     }
 
-    public static Vec3 min(Vec3 v1, Vec3 v2)
+    public static Vec3 min(final Vec3 v1, final Vec3 v2)
     {
       v1.fixNaN(); v2.fixNaN();
       return new Vec3(Math.min(v1.vx, v2.vx), Math.min(v1.vy, v2.vy), Math.min(v1.vz, v2.vz));
     }
 
-    public static Vec3 max(Vec3 v1, Vec3 v2)
+    public static Vec3 max(final Vec3 v1, final Vec3 v2)
     {
       v1.fixNaN(); v2.fixNaN();
       return new Vec3(Math.max(v1.vx, v2.vx), Math.max(v1.vy, v2.vy), Math.max(v1.vz, v2.vz));
     }
 
-    public static Vec3 truncate(Vec3 v)
+    public static Vec3 truncate(final Vec3 v)
     {
       return new Vec3((v.vx > 0.0f) ? (float)Math.floor(v.vx) : (float)Math.ceil(v.vx),
                       (v.vy > 0.0f) ? (float)Math.floor(v.vy) : (float)Math.ceil(v.vy),
                       (v.vz > 0.0f) ? (float)Math.floor(v.vz) : (float)Math.ceil(v.vz));
     }
 
-    public static float lengthSquared(Vec3 v)
+    public static float lengthSquared(final Vec3 v)
     {
       return v.vx*v.vx + v.vy*v.vy + v.vz*v.vz;
     }
@@ -2378,14 +2380,24 @@ public final class DxtEncoder
       vx = 0.0f; vy = 0.0f; vz = 0.0f;
     }
 
-    public Vec3(float s)
+    public Vec3(final float s)
     {
       vx = s; vy = s; vz = s;
     }
 
-    public Vec3(float x, float y, float z)
+    public Vec3(final float x, final float y, final float z)
     {
       vx = x; vy = y; vz = z;
+    }
+
+    @Override
+    public int hashCode()
+    {
+      int hash = 7;
+      hash = 31 * hash + Float.hashCode(vx);
+      hash = 31 * hash + Float.hashCode(vy);
+      hash = 31 * hash + Float.hashCode(vz);
+      return hash;
     }
 
     @Override
@@ -2416,7 +2428,7 @@ public final class DxtEncoder
     public float y() { return vy; }
     public float z() { return vz; }
 
-    public Vec3 add(Vec3 v)
+    public Vec3 add(final Vec3 v)
     {
       vx += v.vx;
       vy += v.vy;
@@ -2424,7 +2436,7 @@ public final class DxtEncoder
       return this;
     }
 
-    public Vec3 sub(Vec3 v)
+    public Vec3 sub(final Vec3 v)
     {
       vx -= v.vx;
       vy -= v.vy;
@@ -2432,7 +2444,7 @@ public final class DxtEncoder
       return this;
     }
 
-    public Vec3 mul(Vec3 v)
+    public Vec3 mul(final Vec3 v)
     {
       vx *= v.vx;
       vy *= v.vy;
@@ -2440,7 +2452,7 @@ public final class DxtEncoder
       return this;
     }
 
-    public Vec3 mul(float s)
+    public Vec3 mul(final float s)
     {
       vx *= s;
       vy *= s;
@@ -2448,7 +2460,7 @@ public final class DxtEncoder
       return this;
     }
 
-    public Vec3 div(Vec3 v)
+    public Vec3 div(final Vec3 v)
     {
       vx /= v.vx;
       vy /= v.vy;
@@ -2456,16 +2468,16 @@ public final class DxtEncoder
       return this;
     }
 
-    public Vec3 div(float s)
+    public Vec3 div(final float s)
     {
-      float t = 1.0f / s;
+      final float t = 1.0f / s;
       vx *= t;
       vy *= t;
       vz *= t;
       return this;
     }
 
-    public float dot(Vec3 v)
+    public float dot(final Vec3 v)
     {
       return vx*v.vx + vy*v.vy + vz*v.vz;
     }
@@ -2490,37 +2502,37 @@ public final class DxtEncoder
 //      return new Vec4(-v.vx, -v.vy, -v.vz, -v.vw);
 //    }
 
-    public static Vec4 add(Vec4 v1, Vec4 v2)
+    public static Vec4 add(final Vec4 v1, final Vec4 v2)
     {
       return new Vec4(v1.vx + v2.vx, v1.vy + v2.vy, v1.vz + v2.vz, v1.vw + v2.vw);
     }
 
-    public static Vec4 sub(Vec4 v1, Vec4 v2)
+    public static Vec4 sub(final Vec4 v1, final Vec4 v2)
     {
       return new Vec4(v1.vx - v2.vx, v1.vy - v2.vy, v1.vz - v2.vz, v1.vw - v2.vw);
     }
 
-    public static Vec4 mul(Vec4 v1, Vec4 v2)
+    public static Vec4 mul(final Vec4 v1, final Vec4 v2)
     {
       return new Vec4(v1.vx * v2.vx, v1.vy * v2.vy, v1.vz * v2.vz, v1.vw * v2.vw);
     }
 
-    public static Vec4 multiplyAdd(Vec4 v1, Vec4 v2, Vec4 v3)
+    public static Vec4 multiplyAdd(final Vec4 v1, final Vec4 v2, final Vec4 v3)
     {
       return new Vec4(v1.vx*v2.vx + v3.vx, v1.vy*v2.vy + v3.vy, v1.vz*v2.vz + v3.vz, v1.vw*v2.vw + v3.vw);
     }
 
-    public static Vec4 negMulSub(Vec4 v1, Vec4 v2, Vec4 v3)
+    public static Vec4 negMulSub(final Vec4 v1, final Vec4 v2, final Vec4 v3)
     {
       return new Vec4(v3.vx - v1.vx*v2.vx, v3.vy - v1.vy*v2.vy, v3.vz - v1.vz*v2.vz, v3.vw - v1.vw*v2.vw);
     }
 
-    public static Vec4 reciprocal(Vec4 v)
+    public static Vec4 reciprocal(final Vec4 v)
     {
       return new Vec4(1.0f / v.vx, 1.0f / v.vy, 1.0f / v.vz, 1.0f / v.vw);
     }
 
-    public static Vec4 min(Vec4 v1, Vec4 v2)
+    public static Vec4 min(final Vec4 v1, final Vec4 v2)
     {
       v1.fixNaN(); v2.fixNaN();
       return new Vec4(Math.min(v1.vx, v2.vx),
@@ -2530,7 +2542,7 @@ public final class DxtEncoder
 
     }
 
-    public static Vec4 max(Vec4 v1, Vec4 v2)
+    public static Vec4 max(final Vec4 v1, final Vec4 v2)
     {
       v1.fixNaN(); v2.fixNaN();
       return new Vec4(Math.max(v1.vx, v2.vx),
@@ -2539,7 +2551,7 @@ public final class DxtEncoder
                       Math.max(v1.vw, v2.vw));
     }
 
-    public static Vec4 truncate(Vec4 v)
+    public static Vec4 truncate(final Vec4 v)
     {
       return new Vec4((v.vx > 0.0f) ? (float)Math.floor(v.vx) : (float)Math.ceil(v.vx),
                       (v.vy > 0.0f) ? (float)Math.floor(v.vy) : (float)Math.ceil(v.vy),
@@ -2547,7 +2559,7 @@ public final class DxtEncoder
                       (v.vw > 0.0f) ? (float)Math.floor(v.vw) : (float)Math.ceil(v.vw));
     }
 
-    public static boolean compareAnyLessThan(Vec4 v1, Vec4 v2)
+    public static boolean compareAnyLessThan(final Vec4 v1, final Vec4 v2)
     {
       return (v1.vx < v2.vx || v1.vy < v2.vy || v1.vz < v2.vz || v1.vw < v2.vw);
     }
@@ -2557,14 +2569,25 @@ public final class DxtEncoder
       vx = 0.0f; vy = 0.0f; vz = 0.0f; vw = 0.0f;
     }
 
-    public Vec4(float s)
+    public Vec4(final float s)
     {
       vx = s; vy = s; vz = s; vw = s;
     }
 
-    public Vec4(float x, float y, float z, float w)
+    public Vec4(final float x, final float y, final float z, final float w)
     {
       vx = x; vy = y; vz = z; vw = w;
+    }
+
+    @Override
+    public int hashCode()
+    {
+      int hash = 7;
+      hash = 31 * hash + Float.hashCode(vx);
+      hash = 31 * hash + Float.hashCode(vy);
+      hash = 31 * hash + Float.hashCode(vz);
+      hash = 31 * hash + Float.hashCode(vw);
+      return hash;
     }
 
     @Override
@@ -2603,7 +2626,7 @@ public final class DxtEncoder
     public float z() { return vz; }
     public float w() { return vw; }
 
-    public Vec4 add(Vec4 v)
+    public Vec4 add(final Vec4 v)
     {
       vx += v.vx;
       vy += v.vy;
@@ -2612,7 +2635,7 @@ public final class DxtEncoder
       return this;
     }
 
-    public Vec4 sub(Vec4 v)
+    public Vec4 sub(final Vec4 v)
     {
       vx -= v.vx;
       vy -= v.vy;
@@ -2621,7 +2644,7 @@ public final class DxtEncoder
       return this;
     }
 
-    public Vec4 mul(Vec4 v)
+    public Vec4 mul(final Vec4 v)
     {
       vx *= v.vx;
       vy *= v.vy;
@@ -2648,11 +2671,11 @@ public final class DxtEncoder
 
     private final float[] m;
 
-    public static Sym3x3 computeWeightedCovariance(int count, Vec3[] points, float[] weights)
+    public static Sym3x3 computeWeightedCovariance(final int count, final Vec3[] points, final float[] weights)
     {
       // computing the centroid
       float total = 0.0f;
-      Vec3 centroid = new Vec3();
+      final Vec3 centroid = new Vec3();
       for (int i = 0; i < count; i++) {
         total += weights[i];
         centroid.add(Vec3.mul(points[i], weights[i]));
@@ -2660,10 +2683,10 @@ public final class DxtEncoder
       centroid.div(total);
 
       // accumulating the covariance matrix
-      Sym3x3 covariance = new Sym3x3(0.0f);
+      final Sym3x3 covariance = new Sym3x3(0.0f);
       for (int i = 0; i < count; i++) {
-        Vec3 a = Vec3.sub(points[i], centroid);
-        Vec3 b = Vec3.mul(a, weights[i]);
+        final Vec3 a = Vec3.sub(points[i], centroid);
+        final Vec3 b = Vec3.mul(a, weights[i]);
 
         covariance.m[0] += a.x()*b.x();
         covariance.m[1] += a.x()*b.y();
@@ -2676,28 +2699,28 @@ public final class DxtEncoder
       return covariance;
     }
 
-    public static Vec3 computePrincipleComponent(Sym3x3 matrix)
+    public static Vec3 computePrincipleComponent(final Sym3x3 matrix)
     {
       // computing the cubic coefficients
-      float c0 = matrix.m[0] * matrix.m[3] * matrix.m[5] +
-                 2.0f * matrix.m[1] * matrix.m[2] * matrix.m[4] -
-                 matrix.m[0] * matrix.m[4] * matrix.m[4] -
-                 matrix.m[3] * matrix.m[2] * matrix.m[2] -
-                 matrix.m[5] * matrix.m[1] * matrix.m[1];
-      float c1 = matrix.m[0] * matrix.m[3] +
-                 matrix.m[0] * matrix.m[5] +
-                 matrix.m[3] * matrix.m[5] -
-                 matrix.m[1] * matrix.m[1] -
-                 matrix.m[2] * matrix.m[2] -
-                 matrix.m[4] * matrix.m[4];
-      float c2 = matrix.m[0] + matrix.m[3] + matrix.m[5];
+      final float c0 = matrix.m[0] * matrix.m[3] * matrix.m[5] +
+                       2.0f * matrix.m[1] * matrix.m[2] * matrix.m[4] -
+                       matrix.m[0] * matrix.m[4] * matrix.m[4] -
+                       matrix.m[3] * matrix.m[2] * matrix.m[2] -
+                       matrix.m[5] * matrix.m[1] * matrix.m[1];
+      final float c1 = matrix.m[0] * matrix.m[3] +
+                       matrix.m[0] * matrix.m[5] +
+                       matrix.m[3] * matrix.m[5] -
+                       matrix.m[1] * matrix.m[1] -
+                       matrix.m[2] * matrix.m[2] -
+                       matrix.m[4] * matrix.m[4];
+      final float c2 = matrix.m[0] + matrix.m[3] + matrix.m[5];
 
       // computing the quadratic coefficients
-      float a = c1 - (1.0f/3.0f)*c2*c2;
-      float b = (-2.0f/27.0f)*c2*c2*c2 + (1.0f/3.0f)*c1*c2 - c0;
+      final float a = c1 - (1.0f/3.0f)*c2*c2;
+      final float b = (-2.0f/27.0f)*c2*c2*c2 + (1.0f/3.0f)*c1*c2 - c0;
 
       // computing the root count check
-      float Q = 0.25f*b*b + (1.0f/27.0f)*a*a*a;
+      final float Q = 0.25f*b*b + (1.0f/27.0f)*a*a*a;
 
       // testing the multiplicity
       if (FLT_EPSILON < Q) {
@@ -2705,12 +2728,12 @@ public final class DxtEncoder
         return new Vec3(1.0f);
       } else if (Q < -FLT_EPSILON) {
         // three distinct roots
-        double theta = Math.atan2(Math.sqrt(-Q), -0.5*b);
-        double rho = Math.sqrt(0.25*b*b - Q);
+        final double theta = Math.atan2(Math.sqrt(-Q), -0.5*b);
+        final double rho = Math.sqrt(0.25*b*b - Q);
 
-        float rt = (float)Math.pow(rho, 1.0/3.0);
-        float ct = (float)Math.cos(theta/3.0);
-        float st = (float)Math.sin(theta/3.0);
+        final float rt = (float)Math.pow(rho, 1.0/3.0);
+        final float ct = (float)Math.cos(theta/3.0);
+        final float st = (float)Math.sin(theta/3.0);
 
         float l1 = (1.0f / 3.0f)*c2 + 2.0f*rt*ct;
         float l2 = (1.0f / 3.0f)*c2 - rt*(ct + (float)Math.sqrt(3.0)*st);
@@ -2726,10 +2749,10 @@ public final class DxtEncoder
         return getMultiplicity1Evector(matrix, l1);
       } else {    // if (-FLT_EPSILON <= Q && Q <= FLT_EPSILON)
         // two roots
-        float rt = (float)((b < 0.0f) ? -Math.pow(-0.5*b, 1.0/3.0) : Math.pow(0.5*b, 1.0/3.0));
+        final float rt = (float)((b < 0.0f) ? -Math.pow(-0.5*b, 1.0/3.0) : Math.pow(0.5*b, 1.0/3.0));
 
-        float l1 = (1.0f/3.0f)*c2 + rt;   // repeated
-        float l2 = (1.0f/3.0f)*c2 - 2.0f*rt;
+        final float l1 = (1.0f/3.0f)*c2 + rt;   // repeated
+        final float l2 = (1.0f/3.0f)*c2 - 2.0f*rt;
 
         // getting the eigenvector
         if (Math.abs(l1) > Math.abs(l2)) {
@@ -2740,13 +2763,13 @@ public final class DxtEncoder
       }
     }
 
-    private static Vec3 getMultiplicity1Evector(Sym3x3 matrix, float evalue)
+    private static Vec3 getMultiplicity1Evector(final Sym3x3 matrix, final float evalue)
     {
       if (matrix == null)
         throw new NullPointerException();
 
       // computing M
-      Sym3x3 m = new Sym3x3();
+      final Sym3x3 m = new Sym3x3();
       m.m[0] = matrix.m[0] - evalue;
       m.m[1] = matrix.m[1];
       m.m[2] = matrix.m[2];
@@ -2755,7 +2778,7 @@ public final class DxtEncoder
       m.m[5] = matrix.m[5] - evalue;
 
       // computing U
-      Sym3x3 u = new Sym3x3();
+      final Sym3x3 u = new Sym3x3();
       u.m[0] = m.m[3]*m.m[5] - m.m[4]*m.m[4];
       u.m[1] = m.m[2]*m.m[4] - m.m[1]*m.m[5];
       u.m[2] = m.m[1]*m.m[4] - m.m[2]*m.m[3];
@@ -2786,13 +2809,13 @@ public final class DxtEncoder
       }
     }
 
-    private static Vec3 getMultiplicity2Evector(Sym3x3 matrix, float evalue)
+    private static Vec3 getMultiplicity2Evector(final Sym3x3 matrix, final float evalue)
     {
       if (matrix == null)
         throw new NullPointerException();
 
       // computing M
-      Sym3x3 m = new Sym3x3();
+      final Sym3x3 m = new Sym3x3();
       m.m[0] = matrix.m[0] - evalue;
       m.m[1] = matrix.m[1];
       m.m[2] = matrix.m[2];
@@ -2804,7 +2827,7 @@ public final class DxtEncoder
       float mc = Math.abs(m.m[0]);
       int mi = 0;
       for (int i = 1; i < 6; i++) {
-        float c = Math.abs(m.m[i]);
+        final float c = Math.abs(m.m[i]);
         if (c > mc) {
           mc = c;
           mi = i;
@@ -2834,7 +2857,7 @@ public final class DxtEncoder
       }
     }
 
-    public Sym3x3(float s)
+    public Sym3x3(final float s)
     {
       m = new float[6];
       for (int i = 0; i < m.length; i++) {
@@ -2851,17 +2874,17 @@ public final class DxtEncoder
     @Override
     public Object clone()
     {
-      Sym3x3 s = new Sym3x3();
+      final Sym3x3 s = new Sym3x3();
       s.m[0] = m[0]; s.m[1] = m[1]; s.m[2] = m[2]; s.m[3] = m[3]; s.m[4] = m[4]; s.m[5] = m[5];
       return s;
     }
 
-    public float get(int idx)
+    public float get(final int idx)
     {
       return m[idx];
     }
 
-    public Sym3x3 set(int idx, float s)
+    public Sym3x3 set(final int idx, final float s)
     {
       m[idx] = s;
       return this;
@@ -2870,7 +2893,7 @@ public final class DxtEncoder
 
   private static final class Misc
   {
-    public static int floatToInt(float a, int limit)
+    public static int floatToInt(final float a, final int limit)
     {
       // use ANSI round-to-zero behavior to get round-to-nearest
       int i = (int)(a + 0.5f);

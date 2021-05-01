@@ -60,7 +60,7 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
       public void mouseClicked(MouseEvent e)
       {
         if (e.getClickCount() == 2)
-          insertString(((IdsMapEntry)list.getSelectedValue()).getSymbol());
+          insertString(list.getSelectedValue().getSymbol());
       }
     });
 
@@ -99,7 +99,7 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
     if (event.getSource() == idsfiles)
       refreshList();
     else if (event.getSource() == binsert)
-      insertString(((IdsMapEntry)list.getSelectedValue()).getSymbol());
+      insertString(list.getSelectedValue().getSymbol());
   }
 
 // --------------------- End Interface ActionListener ---------------------

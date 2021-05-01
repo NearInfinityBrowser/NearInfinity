@@ -15,6 +15,7 @@ import javax.swing.ImageIcon;
 import javax.swing.tree.TreeNode;
 
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.SectionCount;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.icon.Icons;
@@ -87,7 +88,6 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
   @Override
   public void traverseChildren(Consumer<ItemBase> action) { states.forEach(action); }
 
-  //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
   public StateItem getChildAt(int childIndex) { return states.get(childIndex); }
 
@@ -108,12 +108,9 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
 
   @Override
   public Enumeration<? extends StateItem> children() { return enumeration(states); }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Iterable">
   @Override
   public Iterator<StateItem> iterator() { return states.iterator(); }
-  //</editor-fold>
 
   /**
    * Extracts specified {@link SectionCount} attribute from dialog.
@@ -124,8 +121,8 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
   private int getAttribute(String attrName)
   {
     final StructEntry entry = getDialog().getAttribute(attrName, false);
-    if (entry instanceof SectionCount) {
-      return ((SectionCount)entry).getValue();
+    if (entry instanceof IsNumeric) {
+      return ((IsNumeric)entry).getValue();
     }
     return 0;
   }

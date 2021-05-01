@@ -43,7 +43,6 @@ public final class SrcResource extends AbstractStruct implements Resource, HasCh
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -55,9 +54,7 @@ public final class SrcResource extends AbstractStruct implements Resource, HasCh
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -86,9 +83,7 @@ public final class SrcResource extends AbstractStruct implements Resource, HasCh
   {
     return false;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -102,9 +97,7 @@ public final class SrcResource extends AbstractStruct implements Resource, HasCh
     }
     return offset;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -144,5 +137,4 @@ public final class SrcResource extends AbstractStruct implements Resource, HasCh
       hexViewer.dataModified();
     }
   }
-  //</editor-fold>
 }

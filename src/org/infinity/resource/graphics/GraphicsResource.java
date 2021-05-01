@@ -9,6 +9,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
@@ -160,8 +161,8 @@ public final class GraphicsResource implements Resource, Referenceable, ActionLi
       }
     }
     if (image == null) {
-      try {
-        image = ImageIO.read(entry.getResourceDataAsStream());
+      try (InputStream is = entry.getResourceDataAsStream()) {
+        image = ImageIO.read(is);
       } catch (Exception e) {
         image = null;
         throw new Exception("Unsupported graphics format");

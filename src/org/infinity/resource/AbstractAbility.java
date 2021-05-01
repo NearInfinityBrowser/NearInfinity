@@ -9,8 +9,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.resource.spl.Ability;
 import org.infinity.resource.spl.SplResource;
 
@@ -362,15 +361,15 @@ public abstract class AbstractAbility extends AbstractStruct
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof Effect && getEffectsCount() >= 1) {
-      final SectionOffset effectOffset = (SectionOffset)getParent().getAttribute(SplResource.SPL_OFFSET_EFFECTS);
-      int effectIndex = ((DecNumber)getAttribute(Ability.ABILITY_FIRST_EFFECT_INDEX)).getValue() + getEffectsCount() - 1;
+      final IsNumeric effectOffset = (IsNumeric)getParent().getAttribute(SplResource.SPL_OFFSET_EFFECTS);
+      int effectIndex = ((IsNumeric)getAttribute(Ability.ABILITY_FIRST_EFFECT_INDEX)).getValue() + getEffectsCount() - 1;
       datatype.setOffset(effectOffset.getValue() + effectIndex * 48);
     }
   }
 
   public int getEffectsCount()
   {
-    return ((SectionCount)getAttribute(Ability.ABILITY_NUM_EFFECTS)).getValue();
+    return ((IsNumeric)getAttribute(Ability.ABILITY_NUM_EFFECTS)).getValue();
   }
 
   public void incEffectsIndex(int value)
@@ -380,7 +379,7 @@ public abstract class AbstractAbility extends AbstractStruct
 
   public int readEffects(ByteBuffer buffer, int off) throws Exception
   {
-    int effect_count = ((SectionCount)getAttribute(Ability.ABILITY_NUM_EFFECTS)).getValue();
+    int effect_count = ((IsNumeric)getAttribute(Ability.ABILITY_NUM_EFFECTS)).getValue();
     for (int i = 0; i < effect_count; i++) {
       Effect eff = new Effect(this, buffer, off, i);
       off = eff.getEndOffset();

@@ -441,6 +441,25 @@ public class ColorPicker extends Datatype implements Editable, IsNumeric, MouseL
                          format.getRed(value), format.getGreen(value), format.getBlue(value));
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + Integer.hashCode(value);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof ColorPicker)) {
+      return false;
+    }
+    ColorPicker other = (ColorPicker)o;
+    boolean retVal = (value == other.value);
+    return retVal;
+  }
+
 //--------------------- Begin Interface IsNumeric ---------------------
 
   @Override

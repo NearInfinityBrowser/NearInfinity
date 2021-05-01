@@ -17,7 +17,7 @@ import javax.swing.AbstractListModel;
  */
 public class SimpleListModel<E> extends AbstractListModel<E>
 {
-  private final Vector<E> delegate = new Vector<E>();
+  private final Vector<E> delegate = new Vector<>();
 
   /** Constructs an empty ListModel object with a default capacity of 10 elements. */
   public SimpleListModel()

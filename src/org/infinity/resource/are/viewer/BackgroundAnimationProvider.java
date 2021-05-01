@@ -7,14 +7,12 @@ package org.infinity.resource.are.viewer;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.Arrays;
 
-import org.infinity.gui.layeritem.BasicAnimationProvider;
 import org.infinity.resource.graphics.BamDecoder;
 import org.infinity.resource.graphics.BamV1Decoder;
 import org.infinity.resource.graphics.ColorConvert;
@@ -22,7 +20,7 @@ import org.infinity.resource.graphics.ColorConvert;
 /**
  * Implements functionality for properly displaying background animations.
  */
-public class BackgroundAnimationProvider implements BasicAnimationProvider
+public class BackgroundAnimationProvider extends AbstractAnimationProvider
 {
   private static final Color TransparentColor = new Color(0, true);
 
@@ -39,13 +37,12 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
 
   private BamDecoder bam;
   private BamDecoder.BamControl control;
-  private boolean isActive, isActiveIgnored, isBlended, isMirrored, isLooping, isSelfIlluminated,
+  private boolean isBlended, isMirrored, isLooping, isSelfIlluminated,
                   isMultiPart, isPaletteEnabled;
   private int lighting, baseAlpha;
   private int firstFrame, lastFrame;
   private int[] palette;    // external palette
   private Rectangle imageRect;
-  private BufferedImage image, working;
 
   public BackgroundAnimationProvider()
   {
@@ -112,40 +109,6 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
           ((BamV1Decoder.BamV1Control)control).setExternalPalette(null);
         }
       }
-      updateGraphics();
-    }
-  }
-
-  /** Returns the active/visibility state of the animation. */
-  public boolean isActive()
-  {
-    return isActive;
-  }
-
-  /** Specify whether to actually display the animation on screen. */
-  public void setActive(boolean set)
-  {
-    if (set != isActive) {
-      isActive = set;
-      updateGraphics();
-    }
-  }
-
-  /**
-   * Returns whether to ignore the activation state of the animation.
-   */
-  public boolean isActiveIgnored()
-  {
-    return isActiveIgnored;
-  }
-
-  /**
-   * Specify whether to ignore the activation state of the animation and display it regardless.
-   */
-  public void setActiveIgnored(boolean set)
-  {
-    if (set != isActiveIgnored) {
-      isActiveIgnored = set;
       updateGraphics();
     }
   }
@@ -341,12 +304,6 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
 //--------------------- Begin Interface BasicAnimationProvider ---------------------
 
   @Override
-  public Image getImage()
-  {
-    return image;
-  }
-
-  @Override
   public boolean advanceFrame()
   {
     boolean retVal = false;
@@ -364,7 +321,7 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
   @Override
   public void resetFrame()
   {
-    control.cycleSetFrameIndex(firstFrame);
+    control.cycleSetFrameIndex(getStartFrame());
     updateGraphics();
   }
 
@@ -385,8 +342,11 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
   // Sets sane default values for all properties
   private void setDefaults()
   {
-    isActive = true;
-    isActiveIgnored = false;
+    setImage(null);
+    setWorkingImage(null);
+    setActive(true);
+    setActiveIgnored(false);
+    imageRect = null;
     isBlended = false;
     isMirrored = false;
     isLooping = true;
@@ -398,25 +358,25 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
     baseAlpha = 255;
     firstFrame = 0;
     lastFrame = -1;
-    imageRect = null;
-    image = null;
-    working = null;
   }
 
   // Updates the global image object to match the shared size of the current BAM (cycle).
   private void updateCanvas()
   {
     imageRect = control.calculateSharedCanvas(isMirrored());
-    if (working == null || image == null ||
+    BufferedImage image = (BufferedImage)getImage();
+    if (getWorkingImage() == null || image == null ||
         image.getWidth() != imageRect.width || image.getHeight() != imageRect.height) {
-      image = ColorConvert.createCompatibleImage(imageRect.width, imageRect.height, true);
-      working = new BufferedImage(imageRect.width, imageRect.height, BufferedImage.TYPE_INT_ARGB);
+      setImage(ColorConvert.createCompatibleImage(imageRect.width, imageRect.height, true));
+      setWorkingImage(new BufferedImage(imageRect.width, imageRect.height, BufferedImage.TYPE_INT_ARGB));
     }
   }
 
   // Renders the current frame
-  private synchronized void updateGraphics()
+  @Override
+  protected synchronized void updateGraphics()
   {
+    BufferedImage image = (BufferedImage)getImage();
     if (image != null) {
       if (isActive() || isActiveIgnored()) {
         // preparing frames
@@ -438,6 +398,7 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
           g.fillRect(0, 0, image.getWidth(), image.getHeight());
 
           // rendering frame
+          BufferedImage working = getWorkingImage();
           for (int i = 0; i < frameIndices.length; i++) {
             // fetching frame data
             int[] buffer = ((DataBufferInt)working.getRaster().getDataBuffer()).getData();
@@ -564,37 +525,6 @@ public class BackgroundAnimationProvider implements BasicAnimationProvider
               a = (a*TableAlpha[((r*LumaR) + (g*LumaG) + (b*LumaB)) >>> 16]) >>> 8;
               if (a > 255) a = 255;
               buffer[ofs+x] = (a << 24) | (pixel & 0x00ffffff);
-            }
-          }
-          ofs += cw;
-        }
-      }
-    }
-  }
-
-  // Applies lightning conditions to all pixels
-  private void applyLighting(int[] buffer, int cw, int ch, int fw, int fh, int lighting)
-  {
-    if (buffer != null && cw > 0 && ch > 0 && fw > 0 && fh > 0) {
-      int maxOfs = fh*cw;
-      if (buffer.length >= maxOfs) {
-        if (lighting < ViewerConstants.LIGHTING_DAY) lighting = ViewerConstants.LIGHTING_DAY;
-          else if (lighting > ViewerConstants.LIGHTING_NIGHT) lighting = ViewerConstants.LIGHTING_NIGHT;
-        int ofs = 0;
-        while (ofs < maxOfs) {
-          for (int x = 0; x < fw; x++) {
-            int pixel = buffer[ofs+x];
-            if ((pixel & 0xff000000) != 0) {
-              int r = (pixel >>> 16) & 0xff;
-              int g = (pixel >>> 8) & 0xff;
-              int b = pixel & 0xff;
-              r = (r*TilesetRenderer.LightingAdjustment[lighting][0]) >>> TilesetRenderer.LightingAdjustmentShift;
-              g = (g*TilesetRenderer.LightingAdjustment[lighting][1]) >>> TilesetRenderer.LightingAdjustmentShift;
-              b = (b*TilesetRenderer.LightingAdjustment[lighting][2]) >>> TilesetRenderer.LightingAdjustmentShift;
-              if (r > 255) r = 255;
-              if (g > 255) g = 255;
-              if (b > 255) b = 255;
-              buffer[ofs+x] = (pixel & 0xff000000) | (r << 16) | (g << 8) | b;
             }
           }
           ofs += cw;

@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.JFormattedTextField.AbstractFormatter;
 
-import org.infinity.util.ObjectString;
+import org.infinity.util.DataString;
 
 /**
  * A simplified NumberFormatter that handles conversion from Object to String and back.
@@ -85,9 +85,9 @@ public class NumberFormatterEx extends AbstractFormatter
     currentValue = convertToNumber(text);
     switch (numberFormat) {
       case hexadecimal:
-        return new ObjectString(String.format(fmtHex, currentValue), currentValue, "");
+        return DataString.with(String.format(fmtHex, currentValue), Long.valueOf(currentValue), "");
       default:
-        return new ObjectString(String.format(fmtDec, currentValue), currentValue, "");
+        return DataString.with(String.format(fmtDec, currentValue), Long.valueOf(currentValue), "");
     }
   }
 
@@ -96,9 +96,9 @@ public class NumberFormatterEx extends AbstractFormatter
   {
     long retVal = currentValue;
     if (value != null) {
-      if (value instanceof ObjectString && ((ObjectString) value).getObject() instanceof Number) {
-        ObjectString os = (ObjectString) value;
-        Number n = (Number) os.getObject();
+      if (value instanceof DataString<?> && ((DataString<?>)value).getData() instanceof Number) {
+        DataString<?> os = (DataString<?>) value;
+        Number n = (Number)os.getData();
         retVal = getBoundedValue(n.longValue());
       } else {
         retVal = convertToNumber(value.toString());
@@ -168,13 +168,13 @@ public class NumberFormatterEx extends AbstractFormatter
   public long getNumericValue(Object value) throws ParseException
   {
     Number n = null;
-    if (value instanceof ObjectString && ((ObjectString) value).getObject() instanceof Number) {
-      n = (Number) ((ObjectString) value).getObject();
+    if (value instanceof DataString<?> && ((DataString<?>)value).getData() instanceof Number) {
+      n = (Number)((DataString<?>)value).getData();
     } else if (value instanceof Number) {
       n = (Number) value;
     } else {
-      ObjectString os = (ObjectString) stringToValue(value.toString());
-      n = (Number) os.getObject();
+      DataString<?> os = (DataString<?>)stringToValue(value.toString());
+      n = (Number)os.getData();
     }
 
     return getBoundedValue(n.longValue());

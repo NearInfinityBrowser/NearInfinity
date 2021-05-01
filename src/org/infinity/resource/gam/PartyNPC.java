@@ -5,6 +5,7 @@
 package org.infinity.resource.gam;
 
 import java.nio.ByteBuffer;
+import java.util.TreeMap;
 
 import javax.swing.JComponent;
 
@@ -26,7 +27,7 @@ import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.cre.CreResource;
-import org.infinity.util.LongIntegerHashMap;
+import org.infinity.util.IdsMapEntry;
 import org.infinity.util.io.StreamUtils;
 
 public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemovable
@@ -84,10 +85,11 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
   public static final String GAM_NPC_STAT_FAV_WEAPON_FMT        = "Favorite weapon %d";
   public static final String GAM_NPC_STAT_FAV_WEAPON_COUNT_FMT  = "Favorite weapon counter %d";
 
-  public static final LongIntegerHashMap<String> m_partyOrder = new LongIntegerHashMap<String>();
-//  private static final LongIntegerHashMap<String> m_selected = new LongIntegerHashMap<String>();
+  public static final TreeMap<Long, String> m_partyOrder = new TreeMap<>();
+//  private static final TreeMap<Long, String> m_selected = new TreeMap<>();
 
-  private static final String[] s_selected = {"Not selected", "Selected", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "Dead" };
+  private static final String[] s_selected = {"Not selected", "Selected", null, null, null, null, null, null, null,
+                                              null, null, null, null, null, null, null, "Dead" };
 
   static {
     m_partyOrder.put(0L, "Slot 1");
@@ -96,8 +98,7 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
     m_partyOrder.put(3L, "Slot 4");
     m_partyOrder.put(4L, "Slot 5");
     m_partyOrder.put(5L, "Slot 6");
-//    partyOrder.put(0x8000L, "In party, dead");
-    m_partyOrder.put(0xffffL, "Not in party");
+    m_partyOrder.put(-1L, "Not in party");
 
 //    m_selected.put(0L, "Not selected");
 //    m_selected.put(1L, "Selected");
@@ -194,7 +195,7 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new Flag(buffer, offset, 2, GAM_NPC_SELECTION_STATE, s_selected));
-    addField(new HashBitmap(buffer, offset + 2, 2, GAM_NPC_PARTY_POSITION, m_partyOrder));
+    addField(new HashBitmap(buffer, offset + 2, 2, GAM_NPC_PARTY_POSITION, m_partyOrder, true, true));
     HexNumber creOffset = new HexNumber(buffer, offset + 4, 4, GAM_NPC_OFFSET_CRE);
     addField(creOffset);
     addField(new DecNumber(buffer, offset + 8, 4, GAM_NPC_CRE_SIZE));
@@ -210,13 +211,16 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
     addField(new DecNumber(buffer, offset + 36, 2, GAM_NPC_VIEWPORT_X));
     addField(new DecNumber(buffer, offset + 38, 2, GAM_NPC_VIEWPORT_Y));
 
+    IdsBitmap bitmap;
+    final IdsMapEntry entryNone = new IdsMapEntry(-1L, "NONE");
     if (Profile.getEngine() == Profile.Engine.BG1) {
       addField(new DecNumber(buffer, offset + 40, 2, GAM_NPC_MODAL_STATE));
       addField(new DecNumber(buffer, offset + 42, 2, GAM_NPC_HAPPINESS));
       addField(new Unknown(buffer, offset + 44, 96, COMMON_UNUSED));
       for (int i = 0; i < 4; i++) {
-        addField(new IdsBitmap(buffer, offset + 140 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS"));
+        bitmap = addField(new IdsBitmap(buffer, offset + 140 + (i * 2), 2,
+                                        String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+        bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 4; i++) {
         addField(new DecNumber(buffer, offset + 148 + (i * 2), 2,
@@ -227,8 +231,9 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
                                  String.format(GAM_NPC_QUICK_SPELL_FMT, i+1), "SPL"));
       }
       for (int i = 0; i < 3; i++) {
-        addField(new IdsBitmap(buffer, offset + 180 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS"));
+        bitmap = addField(new IdsBitmap(buffer, offset + 180 + (i * 2), 2,
+                                        String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+        bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 3; i++) {
         addField(new DecNumber(buffer, offset + 186 + (i * 2), 2,
@@ -253,8 +258,9 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
         addField(new DecNumber(buffer, offset + 138, 2, COMMON_UNKNOWN));
       }
       for (int i = 0; i < 4; i++) {
-        addField(new IdsBitmap(buffer, offset + 140 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS"));
+        bitmap = addField(new IdsBitmap(buffer, offset + 140 + (i * 2), 2,
+                                        String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+        bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 4; i++) {
         addField(new DecNumber(buffer, offset + 148 + (i * 2), 2,
@@ -265,8 +271,9 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
                                  String.format(GAM_NPC_QUICK_SPELL_FMT, i+1), "SPL"));
       }
       for (int i = 0; i < 3; i++) {
-        addField(new IdsBitmap(buffer, offset + 180 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS"));
+        bitmap = addField(new IdsBitmap(buffer, offset + 180 + (i * 2), 2,
+                                        String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+        bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 3; i++) {
         addField(new DecNumber(buffer, offset + 186 + (i * 2), 2,
@@ -312,8 +319,9 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
       addField(new DecNumber(buffer, offset + 40, 2, GAM_NPC_MODAL_STATE));
       addField(new Unknown(buffer, offset + 42, 98));
       for (int i = 0; i < 4; i++) {
-        addField(new IdsBitmap(buffer, offset + 140 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS"));
+        bitmap = addField(new IdsBitmap(buffer, offset + 140 + (i * 2), 2,
+                                        String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+        bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 4; i++) {
         addField(new DecNumber(buffer, offset + 148 + (i * 2), 2,
@@ -324,8 +332,9 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
                                  String.format(GAM_NPC_QUICK_SPELL_FMT, i+1), "SPL"));
       }
       for (int i = 0; i < 3; i++) {
-        addField(new IdsBitmap(buffer, offset + 180 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS"));
+        bitmap = addField(new IdsBitmap(buffer, offset + 180 + (i * 2), 2,
+                                        String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+        bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 3; i++) {
         addField(new DecNumber(buffer, offset + 186 + (i * 2), 2,
@@ -342,10 +351,12 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
       addField(new DecNumber(buffer, offset + 40, 2, GAM_NPC_MODAL_STATE));
       addField(new Unknown(buffer, offset + 42, 98));
       for (int i = 0; i < 4; i++) {
-        addField(new IdsBitmap(buffer, offset + 140 + (i * 4), 2,
-                               String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS"));
-        addField(new IdsBitmap(buffer, offset + 142 + (i * 4), 2,
-                               String.format(GAM_NPC_QUICK_SHIELD_SLOT_FMT, i+1), "SLOTS.IDS"));
+        bitmap = addField(new IdsBitmap(buffer, offset + 140 + (i * 4), 2,
+                                        String.format(GAM_NPC_QUICK_WEAPON_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+        bitmap.addIdsMapEntry(entryNone);
+        bitmap = addField(new IdsBitmap(buffer, offset + 142 + (i * 4), 2,
+                                        String.format(GAM_NPC_QUICK_SHIELD_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+        bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 4; i++) {
         addField(new DecNumber(buffer, offset + 156 + (i * 4), 2,
@@ -363,8 +374,9 @@ public class PartyNPC extends AbstractStruct implements HasViewerTabs, AddRemova
       }
       addField(new Unknown(buffer, offset + 253, 1));
       for (int i = 0; i < 3; i++) {
-        addField(new IdsBitmap(buffer, offset + 254 + (i * 2), 2,
-                               String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS"));
+        bitmap = addField(new IdsBitmap(buffer, offset + 254 + (i * 2), 2,
+                                        String.format(GAM_NPC_QUICK_ITEM_SLOT_FMT, i+1), "SLOTS.IDS", true, false, true));
+        bitmap.addIdsMapEntry(entryNone);
       }
       for (int i = 0; i < 3; i++) {
         addField(new DecNumber(buffer, offset + 260 + (i * 2), 2,

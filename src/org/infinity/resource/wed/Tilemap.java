@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 
@@ -32,7 +33,7 @@ public final class Tilemap extends AbstractStruct // implements AddRemovable
 
   public int getTileCount()
   {
-    return ((DecNumber)getAttribute(WED_TILEMAP_TILE_COUNT_PRI)).getValue();
+    return ((IsNumeric)getAttribute(WED_TILEMAP_TILE_COUNT_PRI)).getValue();
   }
 
   @Override

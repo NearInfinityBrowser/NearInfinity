@@ -246,7 +246,6 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
     label.repaint();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerItemListener">
   @Override
   public void layerItemChanged(LayerItemEvent event)
   {
@@ -254,7 +253,6 @@ public class ShapedLayerItem extends AbstractLayerItem implements LayerItemListe
       updateShape();
     }
   }
-  //</editor-fold>
 
 //----------------------------- INNER CLASSES -----------------------------
 

@@ -186,7 +186,7 @@ public class AdvancedSearchWorker implements Runnable
         Set<StructEntry> groupSet = entry.getValue();
         Map<AbstractStruct, Set<StructEntry>> structureMap = new HashMap<>();
         for (StructEntry se : groupSet) {
-          Set<StructEntry> structureSet = structureMap.computeIfAbsent(se.getParent(), e -> new HashSet<StructEntry>());
+          Set<StructEntry> structureSet = structureMap.computeIfAbsent(se.getParent(), e -> new HashSet<>());
           structureSet.add(se);
         }
 
@@ -225,7 +225,7 @@ public class AdvancedSearchWorker implements Runnable
   // Collect filters grouped by structure
   private void addGroupFilter(Map<List<String>, Set<StructEntry>> groupCache, StructEntry se, SearchOptions so)
   {
-    Set<StructEntry> set = groupCache.computeIfAbsent(so.getStructure(), s -> new HashSet<StructEntry>());
+    Set<StructEntry> set = groupCache.computeIfAbsent(so.getStructure(), s -> new HashSet<>());
     set.add(se);
   }
 
@@ -392,8 +392,7 @@ public class AdvancedSearchWorker implements Runnable
   private boolean isMatchBitfield(StructEntry se, int value, SearchOptions.BitFieldMode mode)
   {
     if (se instanceof Flag) {
-      Flag flag = (Flag)se;
-      int bits = flag.getValue();
+      int bits = ((IsNumeric)se).getValue();
       switch (mode) {
         case Exact:
           return bits == value;

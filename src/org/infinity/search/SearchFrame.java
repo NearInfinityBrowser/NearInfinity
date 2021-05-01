@@ -294,7 +294,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 
     List<ResourceEntry> resources = ResourceFactory.getResources(selectedtype);
     String expr = tfield.getText().toLowerCase(Locale.ENGLISH);
-    List<String> found = new ArrayList<String>();
+    List<String> found = new ArrayList<>();
     cards.show(bpanel, "Progress");
     progress.setMaximum(resources.size());
     for (int i = 0; i < resources.size(); i++) {

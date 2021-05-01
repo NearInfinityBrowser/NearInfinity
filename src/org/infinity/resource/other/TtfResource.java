@@ -61,8 +61,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
   {
     this.entry = entry;
 
-    try {
-      InputStream is = this.entry.getResourceDataAsStream();
+    try (InputStream is = this.entry.getResourceDataAsStream()) {
       font = Font.createFont(Font.TRUETYPE_FONT, is);
     } catch (Exception e) {
       font = null;

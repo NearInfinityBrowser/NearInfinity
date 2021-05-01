@@ -67,16 +67,26 @@ public class Settings
   public static boolean EnableSchedules = getDefaultEnableSchedules();
   // Defines whether to ignore the "Is shown" flag of background animations
   public static boolean OverrideAnimVisibility = getDefaultOverrideAnimVisibility();
+  // Defines whether to draw the selection circle underneath actor sprites
+  public static boolean ShowActorSelectionCircle = getDefaultActorSelectionCircle();
+  // Defines whether to draw the personal space indicator underneath actor sprites
+  public static boolean ShowActorPersonalSpace = getDefaultActorPersonalSpace();
+  // Defines whether accurate sprite filtering is used for actors with advanced blending modes
+  public static boolean UseActorAccurateBlending = getDefaultActorAccurateBlending();
   // Bitmask that controls the collapsed/expanded state of the sidebar controls
   public static int SidebarControls = getDefaultSidebarControls();
+  // Indicates whether to show frames around real actor sprites all the time
+  public static int ShowActorFrame = getDefaultShowActorFrame();
   // Indicates whether to show frames around real background animations all the time
-  public static int ShowFrame = getDefaultShowFrame();
+  public static int ShowAnimationFrame = getDefaultShowAnimationFrame();
   // Interpolation state of map tileset
   public static int InterpolationMap = getDefaultInterpolationMap();
   // Interpolation state of real background animations
   public static int InterpolationAnim = getDefaultInterpolationAnim();
   // Bitmask defining the enabled state of layer items
   public static int LayerFlags = getDefaultLayerFlags();
+  // The visibility state of real actor sprites (icons/still/animated)
+  public static int ShowActorSprites = getDefaultShowRealActors();
   // The visibility state of real background animations (icons/still/animated)
   public static int ShowRealAnimations = getDefaultShowRealAnimations();
   // The current time of day (in hours)
@@ -112,11 +122,16 @@ public class Settings
   private static final String PREFS_DRAWOVERLAYS            = "DrawOverlays";
   private static final String PREFS_DRAWGRID                = "DrawGrid";
   private static final String PREFS_SIDEBARCONTROLS         = "SidebarControls";
-  private static final String PREFS_SHOWFRAME               = "ShowFrame";
+  private static final String PREFS_SHOWACTORFRAME          = "ShowActorFrame";
+  private static final String PREFS_SHOWACTORSELECTION      = "ShowActorSelectionCircle";
+  private static final String PREFS_SHOWACTORSPACE          = "ShowActorPersonalSpace";
+  private static final String PREFS_USEACTORBLENDING        = "UseActorAccurateBlending";
+  private static final String PREFS_SHOWANIMFRAME           = "ShowFrame";
   private static final String PREFS_SHOWAMBIENT             = "ShowAmbientRanges";
   private static final String PREFS_ENABLESCHEDULES         = "EnableSchedules";
   private static final String PREFS_OVERRIDEANIMVISIBILITY  = "OverrideAnimVisibility";
   private static final String PREFS_LAYERFLAGS              = "LayerFlags";
+  private static final String PREFS_SHOWREALACTORS          = "ShowRealActors";
   private static final String PREFS_SHOWREALANIMS           = "ShowRealAnimations";
   private static final String PREFS_TIMEOFDAY               = "TimeOfDay";
   private static final String PREFS_ZOOMFACTOR              = "ZoomFactor";
@@ -155,7 +170,11 @@ public class Settings
       ExportLayers = prefs.getBoolean(PREFS_EXPORTLAYERS,getDefaultExportLayers());
       MouseWheelZoom = prefs.getBoolean(PREFS_MOUSEWHEELZOOM,getDefaultMouseWheelZoom());
       OverrideAnimVisibility = prefs.getBoolean(PREFS_OVERRIDEANIMVISIBILITY, getDefaultOverrideAnimVisibility());
-      ShowFrame = prefs.getInt(PREFS_SHOWFRAME, getDefaultShowFrame());
+      ShowActorFrame = prefs.getInt(PREFS_SHOWACTORFRAME, getDefaultShowActorFrame());
+      ShowActorSelectionCircle = prefs.getBoolean(PREFS_SHOWACTORSELECTION, getDefaultActorSelectionCircle());
+      ShowActorPersonalSpace = prefs.getBoolean(PREFS_SHOWACTORSPACE, getDefaultActorPersonalSpace());
+      UseActorAccurateBlending = prefs.getBoolean(PREFS_USEACTORBLENDING, getDefaultActorAccurateBlending());
+      ShowAnimationFrame = prefs.getInt(PREFS_SHOWANIMFRAME, getDefaultShowAnimationFrame());
       InterpolationMap = prefs.getInt(PREFS_INTERPOLATION_MAP, getDefaultInterpolationMap());
       InterpolationAnim = prefs.getInt(PREFS_INTERPOLATION_ANIMS, getDefaultInterpolationAnim());
       FrameRateOverlays = prefs.getDouble(PREFS_FRAMERATE_OVERLAYS, getDefaultFrameRateOverlays());
@@ -192,6 +211,7 @@ public class Settings
         ShowAmbientRanges = prefs.getBoolean(PREFS_SHOWAMBIENT, getDefaultAmbientRanges());
         SidebarControls = prefs.getInt(PREFS_SIDEBARCONTROLS, getDefaultSidebarControls());
         LayerFlags = prefs.getInt(PREFS_LAYERFLAGS, getDefaultLayerFlags());
+        ShowActorSprites = prefs.getInt(PREFS_SHOWREALACTORS, getDefaultShowRealActors());
         ShowRealAnimations = prefs.getInt(PREFS_SHOWREALANIMS, getDefaultShowRealAnimations());
         TimeOfDay = prefs.getInt(PREFS_TIMEOFDAY, getDefaultTimeOfDay());
         ZoomFactor = prefs.getDouble(PREFS_ZOOMFACTOR, getDefaultZoomFactor());
@@ -217,7 +237,11 @@ public class Settings
     prefs.putBoolean(PREFS_EXPORTLAYERS, ExportLayers);
     prefs.putBoolean(PREFS_MOUSEWHEELZOOM, MouseWheelZoom);
     prefs.putBoolean(PREFS_OVERRIDEANIMVISIBILITY, OverrideAnimVisibility);
-    prefs.putInt(PREFS_SHOWFRAME, ShowFrame);
+    prefs.putInt(PREFS_SHOWACTORFRAME, ShowActorFrame);
+    prefs.putBoolean(PREFS_SHOWACTORSELECTION, ShowActorSelectionCircle);
+    prefs.putBoolean(PREFS_SHOWACTORSPACE, ShowActorPersonalSpace);
+    prefs.putBoolean(PREFS_USEACTORBLENDING, UseActorAccurateBlending);
+    prefs.putInt(PREFS_SHOWANIMFRAME, ShowAnimationFrame);
     prefs.putInt(PREFS_INTERPOLATION_MAP, InterpolationMap);
     prefs.putInt(PREFS_INTERPOLATION_ANIMS, InterpolationAnim);
     prefs.putDouble(PREFS_FRAMERATE_OVERLAYS, FrameRateOverlays);
@@ -248,6 +272,7 @@ public class Settings
       prefs.putBoolean(PREFS_SHOWAMBIENT, ShowAmbientRanges);
       prefs.putInt(PREFS_SIDEBARCONTROLS, SidebarControls);
       prefs.putInt(PREFS_LAYERFLAGS, LayerFlags);
+      prefs.putInt(PREFS_SHOWREALACTORS, ShowActorSprites);
       prefs.putInt(PREFS_SHOWREALANIMS, ShowRealAnimations);
       prefs.putInt(PREFS_TIMEOFDAY, TimeOfDay);
       prefs.putDouble(PREFS_ZOOMFACTOR, ZoomFactor);
@@ -269,6 +294,8 @@ public class Settings
     SidebarControls &= (ViewerConstants.SIDEBAR_VISUALSTATE |
                         ViewerConstants.SIDEBAR_LAYERS |
                         ViewerConstants.SIDEBAR_MINIMAPS);
+    ShowActorSprites = Math.min(Math.max(ShowActorSprites, ViewerConstants.ANIM_SHOW_NONE),
+                                ViewerConstants.ANIM_SHOW_ANIMATED);
     ShowRealAnimations = Math.min(Math.max(ShowRealAnimations, ViewerConstants.ANIM_SHOW_NONE),
                                   ViewerConstants.ANIM_SHOW_ANIMATED);
     TimeOfDay = Math.min(Math.max(TimeOfDay, ViewerConstants.TIME_0), ViewerConstants.TIME_23);
@@ -307,7 +334,7 @@ public class Settings
 
   public static List<ViewerConstants.LayerStackingType> getDefaultLayerOrder()
   {
-    List<ViewerConstants.LayerStackingType> list = new ArrayList<ViewerConstants.LayerStackingType>();
+    List<ViewerConstants.LayerStackingType> list = new ArrayList<>();
     Collections.addAll(list, DefaultLayerOrder);
     return list;
   }
@@ -362,12 +389,32 @@ public class Settings
     return false;
   }
 
+  public static boolean getDefaultActorSelectionCircle()
+  {
+    return true;
+  }
+
+  public static boolean getDefaultActorPersonalSpace()
+  {
+    return false;
+  }
+
+  public static boolean getDefaultActorAccurateBlending()
+  {
+    return true;
+  }
+
   public static int getDefaultSidebarControls()
   {
     return ViewerConstants.SIDEBAR_VISUALSTATE | ViewerConstants.SIDEBAR_LAYERS | ViewerConstants.SIDEBAR_MINIMAPS;
   }
 
-  public static int getDefaultShowFrame()
+  public static int getDefaultShowActorFrame()
+  {
+    return ViewerConstants.FRAME_AUTO;
+  }
+
+  public static int getDefaultShowAnimationFrame()
   {
     return ViewerConstants.FRAME_AUTO;
   }
@@ -385,6 +432,11 @@ public class Settings
   public static int getDefaultLayerFlags()
   {
     return 0;
+  }
+
+  public static int getDefaultShowRealActors()
+  {
+    return ViewerConstants.ANIM_SHOW_NONE;
   }
 
   public static int getDefaultShowRealAnimations()

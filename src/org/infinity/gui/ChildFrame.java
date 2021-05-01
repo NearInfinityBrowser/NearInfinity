@@ -12,6 +12,7 @@ import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import javax.swing.AbstractAction;
@@ -94,6 +95,35 @@ public class ChildFrame extends JFrame
       }
     }
     return null;
+  }
+
+  /**
+   * Returns an iterator over the registered {@code ChildFrame} instances that are compatible with the
+   * specified class type.
+   * @param <T> Class of the filtered instances
+   * @param frameClass Runtime class of the windows to filter
+   * @return An iterator over matching instances. Returns {@code null} if the parameter is {@code null}.
+   */
+  public static <T extends ChildFrame> Iterator<T> getFrameIterator(Class<T> frameClass)
+  {
+    if (frameClass != null) {
+      return windows.stream().filter(frameClass::isInstance).map(frameClass::cast).iterator();
+    }
+    return null;
+  }
+
+  /**
+   * Returns an iterator over the registered {@code ChildFrame} instances that are matching the given predicate.
+   * @param pred Predicate used to filter registered windows
+   * @return An iterator over matching {@code ChildFrame} instances
+   */
+  public static Iterator<ChildFrame> getFrameIterator(Predicate<ChildFrame> pred)
+  {
+    if (pred != null) {
+      return windows.stream().filter(pred).iterator();
+    } else {
+      return windows.iterator();
+    }
   }
 
   /**

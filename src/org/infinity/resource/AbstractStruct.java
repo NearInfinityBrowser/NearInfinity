@@ -34,7 +34,6 @@ import org.infinity.datatype.Unknown;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.StructViewer;
 import org.infinity.resource.are.Actor;
-import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.dlg.AbstractCode;
 import org.infinity.resource.itm.ItmResource;
 import org.infinity.resource.key.ResourceEntry;
@@ -52,6 +51,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   public static final String COMMON_UNKNOWN       = "Unknown";
   public static final String COMMON_UNUSED        = "Unused";
   public static final String COMMON_UNUSED_BYTES  = "Unused bytes?";
+  public static final String SUFFIX_UNUSED        = " (unused)";
 
   // Commonly used string arrays
   public static final String[] OPTION_NOYES       = {"No", "Yes"};
@@ -135,8 +135,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
                 so.incValue(amount);
               }
             }
-            else if (!(so.getSection().equals(datatype.getClass()) ||
-                (Profile.getEngine() == Profile.Engine.IWD2 && superStruct instanceof CreResource))) {
+            else if (!so.getSection().equals(datatype.getClass())) {
               so.incValue(amount);
             }
           }
@@ -194,7 +193,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Closeable">
   @Override
   public void close() throws Exception
   {
@@ -205,9 +203,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       viewer.close();
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Referenceable">
   @Override
   public boolean isReferenceable()
   {
@@ -219,17 +215,13 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
   {
     new ReferenceSearcher(getResourceEntry(), parent);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Comparable">
   @Override
   public int compareTo(StructEntry o)
   {
     return getOffset() - o.getOffset();
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="StructEntry">
   @Override
   public AbstractStruct clone() throws CloneNotSupportedException
   {
@@ -341,9 +333,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       addPropertyChangeListener(parent);
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="TableModel">
   @Override
   public int getRowCount()
   {
@@ -433,9 +423,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Viewable">
   @Override
   public JComponent makeViewer(ViewableContainer container)
   {
@@ -445,9 +433,7 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
     }
     return viewer;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
@@ -456,7 +442,6 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       e.write(os);
     }
   }
-  //</editor-fold>
 
   @Override
   public String toString()
@@ -483,6 +468,35 @@ public abstract class AbstractStruct extends AbstractTableModel implements Struc
       }
     }
     return sb.toString();
+  }
+
+  @Override
+  public int hashCode()
+  {
+    int hash = 7;
+    hash = 31 * hash + ((fields == null) ? 0 : fields.hashCode());
+    hash = 31 * hash + Integer.hashCode(startoffset);
+    hash = 31 * hash + Integer.hashCode(endoffset);
+    hash = 31 * hash + Integer.hashCode(extraoffset);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (o == this) {
+      return true;
+    }
+    if (!(o instanceof AbstractStruct)) {
+      return false;
+    }
+    AbstractStruct other = (AbstractStruct)o;
+    boolean retVal = (fields == null && other.fields == null) ||
+                     (fields != null && fields.equals(other.fields));
+    retVal &= (startoffset == other.startoffset);
+    retVal &= (endoffset == other.endoffset);
+    retVal &= (extraoffset == other.extraoffset);
+    return retVal;
   }
 
   /** Returns the table row index where the specified AddRemovable structure can be inserted. */

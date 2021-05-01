@@ -104,7 +104,7 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
   /** BCS color scheme based on WeiDU Highlighter for Notepad++ */
   public static final String SchemeBCS = "org/infinity/resource/text/modes/ThemeBCSLight.xml";
 
-  private static EnumMap<Scheme, String> SchemeMap = new EnumMap<Scheme, String>(Scheme.class);
+  private static EnumMap<Scheme, String> SchemeMap = new EnumMap<>(Scheme.class);
 
   static {
     // adding custom code folding definitions
@@ -366,28 +366,15 @@ public class InfinityTextArea extends RSyntaxTextArea implements ChangeListener
         }
       }
 
-      InputStream is = null;
-      try {
-        is = ClassLoader.getSystemResourceAsStream(schemePath);
-        if (is != null) {
-          try {
-            Theme theme = Theme.load(is);
-            if (theme != null) {
-              theme.apply(edit);
-            }
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
+      try (InputStream is = ClassLoader.getSystemResourceAsStream(schemePath)) {
+        Theme theme = Theme.load(is);
+        if (theme != null) {
+          theme.apply(edit);
         }
-      } finally {
-        if (is != null) {
-          try {
-            is.close();
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-          is = null;
-        }
+      } catch (NullPointerException e) {
+        // ignore
+      } catch (IOException e) {
+        e.printStackTrace();
       }
 
 

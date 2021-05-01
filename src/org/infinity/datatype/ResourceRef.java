@@ -94,7 +94,6 @@ public class ResourceRef extends Datatype
     read(h_buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -105,9 +104,7 @@ public class ResourceRef extends Datatype
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Editable">
   @Override
   public JComponent edit(final ActionListener container)
   {
@@ -212,12 +209,15 @@ public class ResourceRef extends Datatype
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
+    String oldString = getText();
     final ResourceRefEntry selected = list.getSelectedValue();
     if (selected == NONE) {
       setValue(NONE.name);//FIXME: use null instead of this
 
       // notifying listeners
-      fireValueUpdated(new UpdateEvent(this, struct));
+      if (!getText().equals(oldString)) {
+        fireValueUpdated(new UpdateEvent(this, struct));
+      }
 
       return true;
     }
@@ -240,21 +240,19 @@ public class ResourceRef extends Datatype
     }
 
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (!getText().equals(oldString)) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="ListSelectionListener">
   @Override
   public void valueChanged(ListSelectionEvent e)
   {
     bView.setEnabled(isEditable(list.getSelectedValue()));
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
@@ -271,9 +269,7 @@ public class ResourceRef extends Datatype
       StreamUtils.writeString(os, resname, getSize());
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -294,7 +290,6 @@ public class ResourceRef extends Datatype
 
     return offset + getSize();
   }
-  //</editor-fold>
 
   @Override
   public String toString()
@@ -307,15 +302,35 @@ public class ResourceRef extends Datatype
     return getResourceName();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="IsTextual">
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + ((type == null) ? 0 : type.hashCode());
+    hash = 31 * hash + ((resname == null) ? 0 : resname.hashCode());
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof ResourceRef)) {
+      return false;
+    }
+    ResourceRef other = (ResourceRef)o;
+    boolean retVal = (type == null && other.type == null) ||
+                     (type != null && type.equals(other.type));
+    retVal &= (resname == null && other.resname == null) ||
+              (resname != null && resname.equals(other.resname));
+    return retVal;
+  }
+
   @Override
   public String getText()
   {
     return resname;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="IsReference">
   @Override
   public String getResourceName()
   {
@@ -324,7 +339,6 @@ public class ResourceRef extends Datatype
     }
     return resname;
   }
-  //</editor-fold>
 
   public boolean isEmpty()
   {

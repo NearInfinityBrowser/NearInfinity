@@ -5,7 +5,7 @@
 package org.infinity.resource.graphics;
 
 import java.awt.Dimension;
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -25,8 +25,8 @@ import org.infinity.util.io.StreamUtils;
  */
 public class BamV1Decoder extends BamDecoder
 {
-  private final List<BamV1FrameEntry> listFrames = new ArrayList<BamV1FrameEntry>();
-  private final List<CycleEntry> listCycles = new ArrayList<CycleEntry>();
+  private final List<BamV1FrameEntry> listFrames = new ArrayList<>();
+  private final List<CycleEntry> listCycles = new ArrayList<>();
   private final BamV1FrameEntry defaultFrameInfo = new BamV1FrameEntry(null, 0);
 
   private BamV1Control defaultControl;
@@ -325,8 +325,11 @@ public class BamV1Decoder extends BamDecoder
 
       // rendering resulting image onto the canvas if needed
       if (image != canvas) {
-        Graphics g = canvas.getGraphics();
+        Graphics2D g = (Graphics2D)canvas.getGraphics();
         try {
+          if (getComposite() != null) {
+            g.setComposite(getComposite());
+          }
           g.drawImage(image, 0, 0, null);
         } finally {
           g.dispose();
@@ -338,6 +341,39 @@ public class BamV1Decoder extends BamDecoder
     }
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + ((listFrames == null) ? 0 : listFrames.hashCode());
+    hash = 31 * hash + ((listCycles == null) ? 0 : listCycles.hashCode());
+    hash = 31 * hash + ((bamBuffer == null) ? 0 : bamBuffer.hashCode());
+    hash = 31 * hash + ((bamPalette == null) ? 0 : bamPalette.hashCode());
+    hash = 31 * hash + rleIndex;
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof BamV1Decoder)) {
+      return false;
+    }
+    boolean retVal = super.equals(o);
+    if (retVal) {
+      BamV1Decoder other = (BamV1Decoder)o;
+      retVal &= (this.listFrames == null && other.listFrames == null) ||
+                (this.listFrames != null && this.listFrames.equals(other.listFrames));
+      retVal &= (this.listCycles == null && other.listCycles == null) ||
+                (this.listCycles != null && this.listCycles.equals(other.listCycles));
+      retVal &= (this.bamBuffer == null && other.bamBuffer == null) ||
+                (this.bamBuffer != null && this.bamBuffer.equals(other.bamBuffer));
+      retVal &= (this.bamPalette == null && other.bamPalette == null) ||
+                (this.bamPalette != null && this.bamPalette.equals(other.bamPalette));
+      retVal &= (this.rleIndex == other.rleIndex);
+    }
+    return retVal;
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 
@@ -345,6 +381,7 @@ public class BamV1Decoder extends BamDecoder
   public class BamV1FrameEntry implements BamDecoder.FrameEntry
   {
     private int width, height, centerX, centerY, ofsData;
+    private int overrideCenterX, overrideCenterY;
     private boolean compressed;
 
     private BamV1FrameEntry(ByteBuffer buffer, int ofs)
@@ -352,8 +389,8 @@ public class BamV1Decoder extends BamDecoder
       if (buffer != null && ofs + 12 <= buffer.limit()) {
         width = buffer.getShort(ofs + 0) & 0xffff;
         height = buffer.getShort(ofs + 2) & 0xffff;
-        centerX = buffer.getShort(ofs + 4);
-        centerY = buffer.getShort(ofs + 6);
+        centerX = overrideCenterX = buffer.getShort(ofs + 4);
+        centerY = overrideCenterY = buffer.getShort(ofs + 6);
         ofsData = buffer.getInt(ofs + 8) & 0x7fffffff;
         compressed = (buffer.getInt(ofs + 8) & 0x80000000) == 0;
       } else {
@@ -367,11 +404,26 @@ public class BamV1Decoder extends BamDecoder
     @Override
     public int getHeight() { return height; }
     @Override
-    public int getCenterX() { return centerX; }
+    public int getCenterX() { return overrideCenterX; }
     @Override
-    public int getCenterY() { return centerY; }
+    public int getCenterY() { return overrideCenterY; }
+
+    @Override
+    public void setCenterX(int x) { overrideCenterX = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, x)); }
+    @Override
+    public void setCenterY(int y) { overrideCenterY = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, y)); }
+    @Override
+    public void resetCenter() { overrideCenterX = centerX; overrideCenterY = centerY; }
 
     public boolean isCompressed() { return compressed; }
+
+    @Override
+    public String toString()
+    {
+      return "[width=" + getWidth() + ", height=" + getHeight() +
+             ", centerX=" + getCenterX() + ", centerY=" + getCenterY() +
+             ", compressed=" + Boolean.toString(isCompressed()) + "]" ;
+    }
   }
 
 
@@ -515,10 +567,12 @@ public class BamV1Decoder extends BamDecoder
     @Override
     public boolean cycleSet(int cycleIdx)
     {
-      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size() && currentCycle != cycleIdx) {
-        currentCycle = cycleIdx;
-        if (isSharedPerCycle()) {
-          updateSharedBamSize();
+      if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
+        if (currentCycle != cycleIdx) {
+          currentCycle = cycleIdx;
+          if (isSharedPerCycle()) {
+            updateSharedBamSize();
+          }
         }
         return true;
       } else {

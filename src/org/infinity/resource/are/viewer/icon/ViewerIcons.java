@@ -61,6 +61,12 @@ public class ViewerIcons extends Icons
   public static final String ICON_ITM_AUTOMAP_2         = "itm_Automap2.png";
   public static final String ICON_ITM_ENTRANCE_1        = "itm_Entrance1.png";
   public static final String ICON_ITM_ENTRANCE_2        = "itm_Entrance2.png";
+  public static final String ICON_ITM_GAM_ACTOR_B_1     = "itm_GamActorB1.png";
+  public static final String ICON_ITM_GAM_ACTOR_B_2     = "itm_GamActorB2.png";
+  public static final String ICON_ITM_GAM_ACTOR_G_1     = "itm_GamActorG1.png";
+  public static final String ICON_ITM_GAM_ACTOR_G_2     = "itm_GamActorG2.png";
+  public static final String ICON_ITM_GAM_ACTOR_R_1     = "itm_GamActorR1.png";
+  public static final String ICON_ITM_GAM_ACTOR_R_2     = "itm_GamActorR2.png";
   public static final String ICON_ITM_INI_ACTOR_B_1     = "itm_IniActorB1.png";
   public static final String ICON_ITM_INI_ACTOR_B_2     = "itm_IniActorB2.png";
   public static final String ICON_ITM_INI_ACTOR_G_1     = "itm_IniActorG1.png";

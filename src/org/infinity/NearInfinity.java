@@ -38,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
@@ -91,6 +92,9 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.ViewableContainer;
 import org.infinity.resource.bcs.Signatures;
+import org.infinity.resource.cre.decoder.util.ItemInfo;
+import org.infinity.resource.cre.decoder.util.SpriteUtils;
+import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.key.ResourceTreeModel;
@@ -208,6 +212,8 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     System.out.println("\nOptions:");
     System.out.println("  -v, -version    Display version information.");
     System.out.println("  -h, -help       Display this help.");
+    System.out.println("  -i              Disable support of case-sensitive filesystems");
+    System.out.println("                  (temporary workaround for buggy file access on Linux systems)");
     System.out.println("  -t type         Force the current or specified game to be of");
     System.out.println("                  specific type. (Use with care!)");
     System.out.println("                  Supported game types:");
@@ -232,6 +238,12 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   public static void main(String args[])
   {
+    // TODO: remove option when detection of case-sensitive filesystems has been fixed
+    if (Arrays.asList(args).contains("-i")) {
+      // must be set before first file access through FileManager class
+      Profile.addProperty(Profile.Key.GET_GLOBAL_FILE_CASE_CHECK, Profile.Type.BOOLEAN, Boolean.valueOf(false));
+    }
+
     Profile.Game forcedGame = null;
     Path gameOverride = null;
 
@@ -1043,6 +1055,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     StringTable.resetAll();
     ProRef.clearCache();
     Signatures.clearCache();
+    ColorConvert.clearCache();
+    SpriteUtils.clearCache();
+    ItemInfo.clearCache();
   }
 
   private static void showProgress(String msg, int max)
@@ -1105,7 +1120,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   private void setAppIcon()
   {
-    List<Image> list = new ArrayList<Image>();
+    List<Image> list = new ArrayList<>();
     for (int i = 4; i < 8; i++) {
       list.add(Icons.getImage(String.format("App%d.png", 1 << i)));
     }

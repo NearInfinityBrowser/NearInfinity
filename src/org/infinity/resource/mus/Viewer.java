@@ -33,10 +33,10 @@ import org.infinity.util.SimpleListModel;
 
 public class Viewer extends JPanel implements Runnable, ActionListener
 {
-  private final SimpleListModel<Entry> listModel = new SimpleListModel<Entry>();
+  private final SimpleListModel<Entry> listModel = new SimpleListModel<>();
   private final JList<Entry> list = new JList<>(listModel);
   private final AudioPlayer player = new AudioPlayer();
-  private final List<Entry> entryList = new Vector<Entry>();
+  private final List<Entry> entryList = new Vector<>();
 
   private JLabel playList;
   private JButton bPlay, bEnd, bStop;

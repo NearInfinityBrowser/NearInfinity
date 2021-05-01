@@ -16,19 +16,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import org.infinity.datatype.Bitmap;
-import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.Flag;
-import org.infinity.datatype.HexNumber;
+import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.IsTextual;
 import org.infinity.datatype.ResourceRef;
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
-import org.infinity.datatype.TextString;
 import org.infinity.gui.RenderCanvas;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.ColorConvert;
+import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.TisDecoder;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.wed.Door;
@@ -71,11 +66,11 @@ public class TilesetRenderer extends RenderCanvas
   public static final int LightingAdjustmentShift = 10;   // use in place of division
 
   // keeps track of registered listener objects
-  private final List<TilesetChangeListener> listChangeListener = new ArrayList<TilesetChangeListener>();
+  private final List<TilesetChangeListener> listChangeListener = new ArrayList<>();
   // graphics data for all tiles of each overlay
-  private final List<Tileset> listTilesets = new ArrayList<Tileset>(MaxOverlays);
+  private final List<Tileset> listTilesets = new ArrayList<>(MaxOverlays);
   // array of tile indices used for closed door states for each door structure
-  private final List<DoorInfo> listDoorTileIndices = new ArrayList<DoorInfo>();
+  private final List<DoorInfo> listDoorTileIndices = new ArrayList<>();
 
   private final BufferedImage workingTile = ColorConvert.createCompatibleImage(64, 64, true); // internally used for drawing tile graphics
   private WedResource wed;                // current wed resource
@@ -180,9 +175,12 @@ public class TilesetRenderer extends RenderCanvas
   /**
    * Removes the current map and all associated data from memory.
    */
-  public void clear()
+  public void dispose()
   {
     release(true);
+    if (getImage() instanceof VolatileImage) {
+      ((VolatileImage)getImage()).flush();
+    }
   }
 
   /**
@@ -634,9 +632,12 @@ public class TilesetRenderer extends RenderCanvas
       if (img != null) {
         if (forceUpdate) {
           Graphics2D g = (Graphics2D)img.getGraphics();
-          g.setBackground(new Color(0, true));
-          g.clearRect(0, 0, img.getWidth(null), img.getHeight(null));
-          g.dispose();
+          try {
+            g.setBackground(new Color(0, true));
+            g.clearRect(0, 0, img.getWidth(null), img.getHeight(null));
+          } finally {
+            g.dispose();
+          }
           repaint();
         }
       }
@@ -658,11 +659,17 @@ public class TilesetRenderer extends RenderCanvas
   {
     if (wed != null) {
       // loading overlay structures
-      SectionOffset so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_OVERLAYS);
-      SectionCount sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_OVERLAYS);
+      IsNumeric so = (IsNumeric)wed.getAttribute(WedResource.WED_OFFSET_OVERLAYS);
+      IsNumeric sc = (IsNumeric)wed.getAttribute(WedResource.WED_NUM_OVERLAYS);
       if (so != null && sc != null) {
         for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
           Overlay ovl = (Overlay)wed.getAttribute(curOfs, false);
+          if (i == 0) {
+            if (Profile.getGame() == Profile.Game.BG1EE || Profile.getGame() == Profile.Game.BG1SoD) {
+              // updating overlay rendering mode (BG1-style or BG2-style)
+              blendedOverlays &= (((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_MOVEMENT_TYPE)).getValue() == 2);
+            }
+          }
           if (ovl != null) {
             listTilesets.add(new Tileset(wed, ovl));
             curOfs += ovl.getSize();
@@ -677,22 +684,22 @@ public class TilesetRenderer extends RenderCanvas
       }
 
       // loading door structures
-      so = (SectionOffset)wed.getAttribute(WedResource.WED_OFFSET_DOORS);
-      sc = (SectionCount)wed.getAttribute(WedResource.WED_NUM_DOORS);
-      HexNumber lookupOfs = (HexNumber)wed.getAttribute(WedResource.WED_OFFSET_DOOR_TILEMAP_LOOKUP);
+      so = (IsNumeric)wed.getAttribute(WedResource.WED_OFFSET_DOORS);
+      sc = (IsNumeric)wed.getAttribute(WedResource.WED_NUM_DOORS);
+      IsNumeric lookupOfs = (IsNumeric)wed.getAttribute(WedResource.WED_OFFSET_DOOR_TILEMAP_LOOKUP);
       if (so != null && sc != null && lookupOfs != null) {
         for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
           Door door = (Door)wed.getAttribute(curOfs, false);
           if (door != null) {
-            String name = ((TextString)door.getAttribute(Door.WED_DOOR_NAME)).toString();
-            boolean isClosed = ((Bitmap)door.getAttribute(Door.WED_DOOR_IS_DOOR)).getValue() == 1;
+            String name = ((IsTextual)door.getAttribute(Door.WED_DOOR_NAME)).getText();
+            boolean isClosed = ((IsNumeric)door.getAttribute(Door.WED_DOOR_IS_DOOR)).getValue() == 1;
             final int tileSize = 2;
-            int tileIdx = ((DecNumber)door.getAttribute(Door.WED_DOOR_TILEMAP_LOOKUP_INDEX)).getValue();
-            int tileCount = ((SectionCount)door.getAttribute(Door.WED_DOOR_NUM_TILEMAP_INDICES)).getValue();
+            int tileIdx = ((IsNumeric)door.getAttribute(Door.WED_DOOR_TILEMAP_LOOKUP_INDEX)).getValue();
+            int tileCount = ((IsNumeric)door.getAttribute(Door.WED_DOOR_NUM_TILEMAP_INDICES)).getValue();
             if (tileCount < 0) tileCount = 0;
             int[] indices = new int[tileCount];
             for (int j = 0; j < tileCount; j++) {
-              indices[j] = ((DecNumber)door.getAttribute(lookupOfs.getValue() + (tileIdx+j)*tileSize, false)).getValue();
+              indices[j] = ((IsNumeric)door.getAttribute(lookupOfs.getValue() + (tileIdx+j)*tileSize, false)).getValue();
             }
             listDoorTileIndices.add(new DoorInfo(name, isClosed, indices));
             curOfs += door.getSize();
@@ -940,7 +947,11 @@ public class TilesetRenderer extends RenderCanvas
           int[] srcSec = null;
           tileIdx = tile.getSecondaryIndex();
           if (tileIdx >= 0) {
-            srcSec = listTilesets.get(0).listTileData.get(tileIdx);
+            if (tileIdx < listTilesets.get(0).listTileData.size()) {
+              srcSec = listTilesets.get(0).listTileData.get(tileIdx);
+            } else {
+              System.err.println("Invalid tile index: " + tileIdx + " of " + listTilesets.get(0).listTileData.size());
+            }
           }
 
           // determining correct rendering mode
@@ -1073,11 +1084,11 @@ public class TilesetRenderer extends RenderCanvas
   private static class Tileset
   {
     // graphics data for all tiles of this overlay (as int arrays of 64*64 pixels)
-    public final List<int[]> listTileData = new ArrayList<int[]>();
+    public final List<int[]> listTileData = new ArrayList<>();
     // info structures for all tiles of this overlay
-    public final List<Tile> listTiles = new ArrayList<Tile>();
+    public final List<Tile> listTiles = new ArrayList<>();
     // lists references to all tiles containing overlays from listTiles
-    public final List<Tile> listOverlayTiles = new ArrayList<Tile>();
+    public final List<Tile> listOverlayTiles = new ArrayList<>();
 
     public int tilesX, tilesY;    // stores number of tiles per row/column
     public boolean isTisPalette;  // whether tileset is palette-based
@@ -1130,10 +1141,10 @@ public class TilesetRenderer extends RenderCanvas
         }
 
         // storing tile information
-        tilesX = ((DecNumber)ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
-        tilesY = ((DecNumber)ovl.getAttribute(Overlay.WED_OVERLAY_HEIGHT)).getValue();
-        int mapOfs = ((SectionOffset)ovl.getAttribute(Overlay.WED_OVERLAY_OFFSET_TILEMAP)).getValue();
-        int idxOfs = ((DecNumber)ovl.getAttribute(Overlay.WED_OVERLAY_OFFSET_TILEMAP_LOOKUP)).getValue();
+        tilesX = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_WIDTH)).getValue();
+        tilesY = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_HEIGHT)).getValue();
+        int mapOfs = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_OFFSET_TILEMAP)).getValue();
+        int idxOfs = ((IsNumeric)ovl.getAttribute(Overlay.WED_OVERLAY_OFFSET_TILEMAP_LOOKUP)).getValue();
         int tileCount = tilesX * tilesY;
         for (int i = 0, curOfs = mapOfs; i < tileCount; i++) {
           Tilemap tile = (Tilemap)ovl.getAttribute(curOfs, false);
@@ -1144,13 +1155,13 @@ public class TilesetRenderer extends RenderCanvas
           if (tile != null) {
             // initializing list of primary tile indices
             final int idxSize = 2;
-            int index = ((DecNumber)tile.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_PRI)).getValue();
-            int count = ((DecNumber)tile.getAttribute(Tilemap.WED_TILEMAP_TILE_COUNT_PRI)).getValue();
+            int index = ((IsNumeric)tile.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_PRI)).getValue();
+            int count = ((IsNumeric)tile.getAttribute(Tilemap.WED_TILEMAP_TILE_COUNT_PRI)).getValue();
             if (count < 0) count = 0;
             int[] tileIdx = new int[count];
             for (int j = 0; j < count; j++) {
               if (index >= 0) {
-                DecNumber dn = (DecNumber)ovl.getAttribute(idxOfs + (index+j)*idxSize, false);
+                IsNumeric dn = (IsNumeric)ovl.getAttribute(idxOfs + (index+j)*idxSize, false);
                 if (dn != null) {
                   tileIdx[j] = dn.getValue();
                 } else {
@@ -1162,11 +1173,11 @@ public class TilesetRenderer extends RenderCanvas
             }
 
             // initializing secondary tile index
-            int tileIdx2 = ((DecNumber)tile.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_SEC)).getValue();
+            int tileIdx2 = ((IsNumeric)tile.getAttribute(Tilemap.WED_TILEMAP_TILE_INDEX_SEC)).getValue();
 
             // initializing overlay flags
-            Flag drawOverlays = (Flag)tile.getAttribute(Tilemap.WED_TILEMAP_DRAW_OVERLAYS);
-            int flags = (int)drawOverlays.getValue() & 255;
+            IsNumeric drawOverlays = (IsNumeric)tile.getAttribute(Tilemap.WED_TILEMAP_DRAW_OVERLAYS);
+            int flags = drawOverlays.getValue() & 255;
 
             listTiles.add(new Tile(x, y, count, tileIdx, tileIdx2, flags, isTisPalette));
             curOfs += tile.getSize();

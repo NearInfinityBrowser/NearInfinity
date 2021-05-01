@@ -16,15 +16,18 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 
 import org.infinity.datatype.EffectType;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.AbstractAbility;
 import org.infinity.resource.Effect;
 import org.infinity.resource.Profile;
 import org.infinity.resource.StructEntry;
+import org.infinity.util.StringTable;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 
@@ -38,10 +41,17 @@ final class Viewer extends JPanel
     JPanel abilitiesPanel = ViewerUtil.makeListPanel("Abilities", itm, Ability.class, AbstractAbility.ABILITY_TYPE);
     JPanel fieldPanel = makeFieldPanel(itm);
     JPanel boxPanel = ViewerUtil.makeCheckPanel((Flag)itm.getAttribute(ItmResource.ITM_FLAGS), 1);
-    StructEntry desc = itm.getAttribute(ItmResource.ITM_DESCRIPTION_IDENTIFIED);
-    if (desc.toString().equalsIgnoreCase("No such index"))
-      desc = itm.getAttribute(ItmResource.ITM_DESCRIPTION_GENERAL);
-    JPanel descPanel = ViewerUtil.makeTextAreaPanel(desc);
+
+    StructEntry descGeneral = itm.getAttribute(ItmResource.ITM_DESCRIPTION_GENERAL);
+    StructEntry descIdentified = itm.getAttribute(ItmResource.ITM_DESCRIPTION_IDENTIFIED);
+    JTabbedPane tabbedDescPanel = new JTabbedPane(JTabbedPane.TOP);
+    tabbedDescPanel.addTab(descGeneral.getName(), ViewerUtil.makeTextAreaPanel(descGeneral, false));
+    tabbedDescPanel.setEnabledAt(0, StringTable.isValidStringRef(((IsNumeric)descGeneral).getValue()));
+    tabbedDescPanel.addTab(descIdentified.getName(), ViewerUtil.makeTextAreaPanel(descIdentified, false));
+    tabbedDescPanel.setEnabledAt(1, StringTable.isValidStringRef(((IsNumeric)descIdentified).getValue()));
+    if (tabbedDescPanel.isEnabledAt(1)) {
+      tabbedDescPanel.setSelectedIndex(1);
+    }
 
     JPanel iconPanel = new JPanel(new GridLayout(2, 1, 0, 6));
     iconPanel.add(iconPanel1);
@@ -56,7 +66,7 @@ final class Viewer extends JPanel
     panel2.add(globaleffectsPanel);
 
     JPanel panel3 = new JPanel(new GridLayout(2, 1, 6, 6));
-    panel3.add(descPanel);
+    panel3.add(tabbedDescPanel);
     panel3.add(panel2);
 
     JPanel panel4 = new JPanel(new BorderLayout());

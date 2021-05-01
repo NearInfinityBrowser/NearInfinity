@@ -29,7 +29,7 @@ public class ResourceStructure implements Cloneable
   public ResourceStructure()
   {
     super();
-    list = new Vector<Item>();
+    list = new Vector<>();
     cursize = 0;
   }
 
@@ -329,7 +329,7 @@ public class ResourceStructure implements Cloneable
         if (value instanceof byte[]) {
           this.value = StreamUtils.getByteBuffer((byte[])value);
         } else if (value instanceof ByteBuffer) {
-          this.value = (ByteBuffer)value;
+          this.value = value;
         } else {
           this.value = StreamUtils.getByteBuffer(size);
         }

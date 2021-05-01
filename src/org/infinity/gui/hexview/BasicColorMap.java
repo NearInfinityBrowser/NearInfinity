@@ -39,7 +39,7 @@ public class BasicColorMap implements IColormap
 
   // Color definitions. Each entry consists of two slightly different color tones
   // that will be used alternately.
-  private static final EnumMap<Coloring, Color[]> colorMap = new EnumMap<Coloring, Color[]>(Coloring.class);
+  private static final EnumMap<Coloring, Color[]> colorMap = new EnumMap<>(Coloring.class);
 
   static {
     // Populating color map
@@ -86,8 +86,8 @@ public class BasicColorMap implements IColormap
 
   // Contains color definitions for specific data types.
   // Works only on top-level datatypes that are preferably described by a section offset and count.
-  private final EnumMap<Coloring, Structure> typeMap = new EnumMap<Coloring, Structure>(Coloring.class);
-  private final MapEntry<Long, Color> cachedColor = new MapEntry<Long, Color>();
+  private final EnumMap<Coloring, Structure> typeMap = new EnumMap<>(Coloring.class);
+  private final MapEntry<Long, Color> cachedColor = new MapEntry<>();
   private final AbstractStruct struct;
 
   private List<ColoredBlock> listBlocks;
@@ -156,7 +156,7 @@ public class BasicColorMap implements IColormap
     close();
 
     if (listBlocks == null) {
-      listBlocks = new ArrayList<ColoredBlock>();
+      listBlocks = new ArrayList<>();
     }
 
     if (!listBlocks.isEmpty()) {
@@ -345,7 +345,7 @@ public class BasicColorMap implements IColormap
   private class Structure
   {
     // only used if isTable = true
-    private final List<StructEntry> structures = new ArrayList<StructEntry>();
+    private final List<StructEntry> structures = new ArrayList<>();
 
     private final Class<? extends StructEntry> classType;
 
@@ -483,6 +483,17 @@ public class BasicColorMap implements IColormap
 
     public int getColorIndex() { return index; }
 //    public void setColorIndex(int index) { this.index = index & 1; }
+
+    @Override
+    public int hashCode()
+    {
+      int hash = 7;
+      hash = 31 * hash + offset;
+      hash = 31 * hash + size;
+      hash = 31 * hash + index;
+      hash = 31 * hash + ((color == null) ? 0 : color.hashCode());
+      return hash;
+    }
 
     @Override
     public boolean equals(Object o)

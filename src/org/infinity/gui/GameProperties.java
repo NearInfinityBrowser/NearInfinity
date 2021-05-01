@@ -41,8 +41,8 @@ import org.infinity.NearInfinity;
 import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
-import org.infinity.util.Pair;
 import org.infinity.util.io.FileEx;
+import org.infinity.util.tuples.Couple;
 
 /**
  * Display verbose information about the currently selected game.
@@ -161,7 +161,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
     setLayout(new BorderLayout());
     GridBagConstraints gbc = new GridBagConstraints();
 
-    List<Pair<JComponent>> listControls = new ArrayList<Pair<JComponent>>();
+    List<Couple<JComponent, JComponent>> listControls = new ArrayList<>();
     JLabel l;
     JTextField tf;
     String s;
@@ -173,25 +173,25 @@ public final class GameProperties extends ChildFrame implements ActionListener
     }
     l = new JLabel("Game type:");
     tf = createReadOnlyField(s, true);
-    listControls.add(new Pair<JComponent>(l, tf));
+    listControls.add(Couple.with(l, tf));
 
     // Entry: profile name
     s = Profile.getProperty(Profile.Key.GET_GAME_DESC);
     l = new JLabel("Profile name:");
     tf = createReadOnlyField((s != null) ? s : "n/a", true);
-    listControls.add(new Pair<JComponent>(l, tf));
+    listControls.add(Couple.with(l, tf));
 
     // Entry: game folder
     s = (Profile.getGameRoot()).toString();
     l = new JLabel("Game folder:");
     tf = createReadOnlyField(s, true);
-    listControls.add(new Pair<JComponent>(l, tf));
+    listControls.add(Couple.with(l, tf));
     if (Profile.isEnhancedEdition()) {
       // Entry: home folder
       s = Profile.getHomeRoot().toString();
       l = new JLabel("Home folder:");
       tf = createReadOnlyField(s, true);
-      listControls.add(new Pair<JComponent>(l, tf));
+      listControls.add(Couple.with(l, tf));
 
       // Entry: detected DLC
       List<Path> dlcPaths = Profile.getProperty(Profile.Key.GET_GAME_DLC_FOLDERS_AVAILABLE);
@@ -205,7 +205,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
         }
         l = new JLabel("DLC archives:");
         tf = createReadOnlyField(sb.toString(), true);
-        listControls.add(new Pair<JComponent>(l, tf));
+        listControls.add(Couple.with(l, tf));
       }
 
       // Entry: available languages
@@ -224,19 +224,19 @@ public final class GameProperties extends ChildFrame implements ActionListener
       }
       l = new JLabel("Available languages:");
       tf = createReadOnlyField(sb.toString(), true);
-      listControls.add(new Pair<JComponent>(l, tf));
+      listControls.add(Couple.with(l, tf));
 
       // Entry: language
       s = getLanguageName(Profile.getProperty(Profile.Key.GET_GAME_LANG_FOLDER_NAME));
       l = new JLabel("Current language:");
       tf = createReadOnlyField(s, true);
-      listControls.add(new Pair<JComponent>(l, tf));
+      listControls.add(Couple.with(l, tf));
     }
 
     // Entry: Use female TLK file
     l = new JLabel("Uses female TLK file:");
     tf = createReadOnlyField(Boolean.toString((Profile.getProperty(Profile.Key.GET_GAME_DIALOGF_FILE) != null)), true);
-    listControls.add(new Pair<JComponent>(l, tf));
+    listControls.add(Couple.with(l, tf));
 
     // Entry: game's ini file
     l = new JLabel("Game's INI file:");
@@ -253,19 +253,19 @@ public final class GameProperties extends ChildFrame implements ActionListener
     gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                             GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pIni.add(bEdit, gbc);
-    listControls.add(new Pair<JComponent>(l, pIni));
+    listControls.add(Couple.with(l, pIni));
 
     // adding controls from listControls to dialog
     JPanel pFixed = new JPanel(new GridBagLayout());
     int row = 0;
-    for (Iterator<Pair<JComponent>> iter = listControls.iterator(); iter.hasNext();) {
-      Pair<JComponent> pair = iter.next();
+    for (final Iterator<Couple<JComponent, JComponent>> iter = listControls.iterator(); iter.hasNext();) {
+      Couple<JComponent, JComponent> pair = iter.next();
       gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                               GridBagConstraints.HORIZONTAL, new Insets(8, 0, 0, 0), 0, 0);
-      pFixed.add(pair.getFirst(), gbc);
+      pFixed.add(pair.getValue0(), gbc);
       gbc = ViewerUtil.setGBC(gbc, 1, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                               GridBagConstraints.HORIZONTAL, new Insets(8, 8, 0, 0), 0, 0);
-      pFixed.add(pair.getSecond(), gbc);
+      pFixed.add(pair.getValue1(), gbc);
       row++;
     }
 
@@ -279,7 +279,7 @@ public final class GameProperties extends ChildFrame implements ActionListener
     FlowLayout flow = new FlowLayout(FlowLayout.LEFT, 8, 4);
     JPanel pSupportList = new JPanel(flow);
     pSupportList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-    List<JLabel> listTypes = new ArrayList<JLabel>();
+    List<JLabel> listTypes = new ArrayList<>();
     int maxWidth = 0, maxHeight = 0;
     // preparing entries
     for (Iterator<Profile.Key> iter = RES_TYPES.keySet().iterator(); iter.hasNext();) {

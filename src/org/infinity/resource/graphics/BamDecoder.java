@@ -4,6 +4,8 @@
 
 package org.infinity.resource.graphics;
 
+import java.awt.AlphaComposite;
+import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Point;
@@ -26,6 +28,7 @@ public abstract class BamDecoder
   private final ResourceEntry bamEntry;
 
   private Type type;
+  private Composite composite;
 
   /**
    * Returns whether the specified resource entry points to a valid BAM resource.
@@ -43,20 +46,16 @@ public abstract class BamDecoder
   {
     Type retVal = Type.INVALID;
     if (bamEntry != null) {
-      try {
-        InputStream is = bamEntry.getResourceDataAsStream();
-        if (is != null) {
-          String signature = StreamUtils.readString(is, 4);
-          String version = StreamUtils.readString(is, 4);
-          is.close();
-          if ("BAMC".equals(signature)) {
-            retVal = Type.BAMC;
-          } else if ("BAM ".equals(signature)) {
-            if ("V1  ".equals(version)) {
-              retVal = Type.BAMV1;
-            } else if ("V2  ".equals(version)) {
-              retVal = Type.BAMV2;
-            }
+      try (InputStream is = bamEntry.getResourceDataAsStream()) {
+        String signature = StreamUtils.readString(is, 4);
+        String version = StreamUtils.readString(is, 4);
+        if ("BAMC".equals(signature)) {
+          retVal = Type.BAMC;
+        } else if ("BAM ".equals(signature)) {
+          if ("V1  ".equals(version)) {
+            retVal = Type.BAMV1;
+          } else if ("V2  ".equals(version)) {
+            retVal = Type.BAMV2;
           }
         }
       } catch (Exception e) {
@@ -154,11 +153,30 @@ public abstract class BamDecoder
   /** Draws the specified frame onto the canvas. */
   public abstract void frameGet(BamControl control, int frameIdx, Image canvas);
 
+  /**
+   * Returns the {@link Composite} instance that is used to draw the BAM frame onto a canvas.
+   * <p>By default the {@link AlphaComposite#SrcOver} composite object is used.
+   */
+  public Composite getComposite()
+  {
+    return (composite != null) ? composite : AlphaComposite.SrcOver;
+  }
+
+  /**
+   * Sets a {@link Composite} instance that is used to draw the BAM frame onto a canvas.
+   * Specify {@code null} to use the default {@code Composite}.
+   */
+  public void setComposite(Composite comp)
+  {
+    this.composite = comp;
+  }
+
 
   protected BamDecoder(ResourceEntry bamEntry)
   {
     this.bamEntry = bamEntry;
     this.type = Type.INVALID;
+    this.composite = null;  // use default
   }
 
 
@@ -168,6 +186,39 @@ public abstract class BamDecoder
     this.type = type;
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = 7;
+    hash = 31 * hash + ((type == null) ? 0 : type.hashCode());
+    hash = 31 * hash + ((bamEntry == null) ? 0 : bamEntry.hashCode());
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (o == this) {
+      return true;
+    }
+    if (!(o instanceof BamDecoder)) {
+      return false;
+    }
+    BamDecoder other = (BamDecoder)o;
+    boolean retVal = (this.type == null && other.type == null) ||
+                     (this.type != null && this.type.equals(other.type));
+    retVal &= (this.bamEntry == null && other.bamEntry == null) ||
+              (this.bamEntry != null && this.bamEntry.equals(other.bamEntry));
+    return retVal;
+  }
+
+  @Override
+  public String toString()
+  {
+    String retVal = "entry=" + ((bamEntry != null) ? bamEntry.toString() : "(null)");
+    retVal += ", Type=" + ((type != null) ? type.toString() : "(null)");
+    return "[" + retVal + "]";
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 
@@ -180,6 +231,9 @@ public abstract class BamDecoder
     public int getHeight();
     public int getCenterX();
     public int getCenterY();
+    public void setCenterX(int x);
+    public void setCenterY(int y);
+    public void resetCenter();
   }
 
 
@@ -188,14 +242,19 @@ public abstract class BamDecoder
    */
   public static abstract class BamControl
   {
-    /**
-     * Definitions of how to render BAM frames.<br>
-     * <b>Individual:</b> Each frame is drawn individually. The resulting image dimension is defined
-     *                    by the drawn frame. Does not take frame centers into account.<br>
-     * <b>Shared:</b> Each frame is drawn onto a canvas of fixed dimension that is big enough to hold
-     *                every single frame without cropping or resizing. Takes frame centers into account.
-     */
-    public enum Mode { INDIVIDUAL, SHARED }
+    /** Definitions of how to render BAM frames. */
+    public enum Mode {
+      /**
+       * Each frame is drawn individually. The resulting image dimension is defined by the
+       * drawn frame. Does not take frame centers into account.
+       */
+      INDIVIDUAL,
+      /**
+       * Each frame is drawn onto a canvas of fixed dimension that is big enough to hold
+       * every single frame without cropping or resizing. Takes frame centers into account.
+       */
+      SHARED
+    }
 
     private final BamDecoder parent;
 
@@ -315,7 +374,7 @@ public abstract class BamDecoder
 
     /** Returns the index of the active cycle. */
     public abstract int cycleGet();
-    /** Sets the active cycle. (Default: first available cycle) */
+    /** Sets the active cycle. Returns whether the specified cycle could be set. */
     public abstract boolean cycleSet(int cycleIdx);
 
     /** Returns whether the active cycle can be advanced by at least one more frame. */
@@ -336,7 +395,7 @@ public abstract class BamDecoder
 
     /** Returns the index of the currently selected frame in the active cycle. */
     public abstract int cycleGetFrameIndex();
-    /** Selects the specified frame in the active cycle. */
+    /** Selects the specified frame in the active cycle. Returns whether the specified frame index could be set. */
     public abstract boolean cycleSetFrameIndex(int frameIdx);
 
     /** Translates the active cycle's frame index into an absolute frame index. Returns -1 if cycle doesn't contain frames. */
@@ -353,16 +412,20 @@ public abstract class BamDecoder
       sharedBamSize = calculateSharedBamSize(sharedBamSize, isSharedPerCycle(), false);
     }
 
-    // Calculates a shared canvas size for the current BAM.
-    // cycleBased: true=for current cycle only, false=for all available frames
-    // isMirrored: true=mirror along the x axis, false=no mirroring
-    // To get the top-left corner of the selected frame:
-    // For unmirrored frames:
-    //   left = -sharedBamSize.x - frameCenterX()
-    //   top  = -sharedBamSize.y - frameCenterY()
-    // For mirrored frames:
-    //   left = -sharedBamSize.x - (frameWidth() - frameCenterX() - 1)
-    //   top  = -sharedBamSize.y - frameCenterY()
+    /**
+     * Calculates a shared canvas size for the current BAM.
+     * To get the top-left corner of the selected frame:
+     * <p>For unmirrored frames:
+     *   <pre>left = -sharedBamSize.x - frameCenterX()</pre>
+     *   <pre>top  = -sharedBamSize.y - frameCenterY()</pre>
+     * <p>For mirrored frames:
+     *   <pre>left = -sharedBamSize.x - (frameWidth() - frameCenterX() - 1)</pre>
+     *   <pre>top  = -sharedBamSize.y - frameCenterY()</pre>
+     * @param rect Reuse this {@code Rectangle} instance if available.
+     * @param cycleBased {@code true} for current cycle only, {@code false} for all available frames
+     * @param isMirrored {@code true}: mirror along the x axis, {@code false}: no mirroring
+     * @return the update rectangle
+     */
     protected Rectangle calculateSharedBamSize(Rectangle rect, boolean cycleBased, boolean isMirrored)
     {
       if (rect == null) {
@@ -376,19 +439,21 @@ public abstract class BamDecoder
       if (cycleBased) {
         for (int i = 0; i < cycleFrameCount(); i++) {
           int frame = cycleGetFrameIndexAbsolute(i);
-          int cx = isMirrored ? (parent.getFrameInfo(frame).getWidth() - parent.getFrameInfo(frame).getCenterX() - 1) : parent.getFrameInfo(frame).getCenterX();
+          FrameEntry fe = parent.getFrameInfo(frame);
+          int cx = isMirrored ? (fe.getWidth() - fe.getCenterX() - 1) : fe.getCenterX();
           x1 = Math.min(x1, -cx);
-          y1 = Math.min(y1, -parent.getFrameInfo(frame).getCenterY());
-          x2 = Math.max(x2, parent.getFrameInfo(frame).getWidth() - cx);
-          y2 = Math.max(y2, parent.getFrameInfo(frame).getHeight() - parent.getFrameInfo(frame).getCenterY());
+          y1 = Math.min(y1, -fe.getCenterY());
+          x2 = Math.max(x2, fe.getWidth() - cx);
+          y2 = Math.max(y2, fe.getHeight() - fe.getCenterY());
         }
       } else {
         for (int i = 0; i < parent.frameCount(); i++) {
-          int cx = isMirrored ? (parent.getFrameInfo(i).getWidth() - parent.getFrameInfo(i).getCenterX() - 1) : parent.getFrameInfo(i).getCenterX();
+          FrameEntry fe = parent.getFrameInfo(i);
+          int cx = isMirrored ? (fe.getWidth() - fe.getCenterX() - 1) : fe.getCenterX();
           x1 = Math.min(x1, -cx);
-          y1 = Math.min(y1, -parent.getFrameInfo(i).getCenterY());
-          x2 = Math.max(x2, parent.getFrameInfo(i).getWidth() - cx);
-          y2 = Math.max(y2, parent.getFrameInfo(i).getHeight() - parent.getFrameInfo(i).getCenterY());
+          y1 = Math.min(y1, -fe.getCenterY());
+          x2 = Math.max(x2, fe.getWidth() - cx);
+          y2 = Math.max(y2, fe.getHeight() - fe.getCenterY());
         }
       }
       if (x1 == Integer.MAX_VALUE) x1 = 0;

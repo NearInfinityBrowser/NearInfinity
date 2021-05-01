@@ -85,6 +85,7 @@ public class ConvertToMos extends ChildFrame
    * @param img The source image to convert into a MOS resource.
    * @param mosFileName The name of the resulting MOS file.
    * @param compressed If {@code true}, converts into a compressed BAMC file.
+   * @param fastConvert If {@code true}, uses a fast but less accurate color reduction algorith.
    * @param result Returns more specific information about the conversion process. Data placed in the
    *               first item indicates success, data in the second item indicates failure.
    * @param showProgress Specify whether to show a progress monitor (needs a valid 'parent' parameter).
@@ -138,7 +139,7 @@ public class ConvertToMos extends ChildFrame
       }
 
       // creating list of tiles as int[] arrays
-      List<int[]> tileList = new ArrayList<int[]>(cols*rows);
+      List<int[]> tileList = new ArrayList<>(cols*rows);
       for (int y = 0; y < rows; y++) {
         for (int x = 0; x < cols; x++) {
           int tileX = x * 64;
@@ -156,7 +157,7 @@ public class ConvertToMos extends ChildFrame
       byte[] tilePalette = new byte[1024];
       byte[] tileData = new byte[64*64];
       int curPalOfs = palOfs, curTableOfs = tableOfs, curDataOfs = dataOfs;
-      IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(1536);   // caching RGBColor -> index
+      IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(1536);   // caching RGBColor -> index
       for (int tileIdx = 0; tileIdx < tileList.size(); tileIdx++) {
         colorCache.clear();
         if (showProgress) {
@@ -194,7 +195,7 @@ public class ConvertToMos extends ChildFrame
               if (palIndex != null) {
                 tileData[i] = (byte)(palIndex + 1);
               } else {
-                byte color = (byte)ColorConvert.nearestColorRGB(pixels[i], palette, true);
+                byte color = (byte)ColorConvert.getNearestColor(pixels[i], palette, 0.0, null);
                 tileData[i] = (byte)(color + 1);
                 colorCache.put(pixels[i], color);
               }
@@ -286,8 +287,8 @@ public class ConvertToMos extends ChildFrame
     ProgressMonitor progress = null;
     int width = img.getWidth();
     int height = img.getHeight();
-    List<BinPack2D> pageList = new ArrayList<BinPack2D>();
-    List<MosEntry> entryList = new ArrayList<MosEntry>();
+    List<BinPack2D> pageList = new ArrayList<>();
+    List<MosEntry> entryList = new ArrayList<>();
 
     try {
       if (showProgress) {
@@ -971,7 +972,7 @@ public class ConvertToMos extends ChildFrame
 
   private List<String> convert()
   {
-    List<String> result = new Vector<String>(2);
+    List<String> result = new Vector<>(2);
 
     // validating input file
     Path inFile = FileManager.resolve(tfInputV1.getText());

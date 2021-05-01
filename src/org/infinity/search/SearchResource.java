@@ -60,15 +60,13 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.PlainDocument;
 
 import org.infinity.NearInfinity;
-import org.infinity.datatype.Bitmap;
-import org.infinity.datatype.HashBitmap;
 import org.infinity.datatype.IdsBitmap;
-import org.infinity.datatype.IwdRef;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.KitIdsBitmap;
 import org.infinity.datatype.PriTypeBitmap;
 import org.infinity.datatype.ProRef;
+import org.infinity.datatype.ResourceBitmap;
 import org.infinity.datatype.SecTypeBitmap;
-import org.infinity.datatype.Song2daBitmap;
 import org.infinity.datatype.TextBitmap;
 import org.infinity.gui.ButtonPopupWindow;
 import org.infinity.gui.ChildFrame;
@@ -98,9 +96,9 @@ import org.infinity.resource.ui.ResourceListModel;
 import org.infinity.util.Debugging;
 import org.infinity.util.IdsMapEntry;
 import org.infinity.util.Misc;
-import org.infinity.util.Pair;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.StreamUtils;
+import org.infinity.util.tuples.Couple;
 
 public class SearchResource extends ChildFrame
     implements ActionListener, PropertyChangeListener, Runnable
@@ -138,7 +136,6 @@ public class SearchResource extends ChildFrame
     }).execute();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -192,9 +189,7 @@ public class SearchResource extends ChildFrame
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="PropertyChangeListener">
   @Override
   public void propertyChange(PropertyChangeEvent event)
   {
@@ -206,9 +201,7 @@ public class SearchResource extends ChildFrame
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Runnable">
   @Override
   public void run()
   {
@@ -278,7 +271,6 @@ public class SearchResource extends ChildFrame
       }
     }
   }
-  //</editor-fold>
 
   /** Initialize dialog. */
   private void init() throws Exception
@@ -660,7 +652,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -701,7 +692,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -933,7 +923,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -994,7 +983,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -1423,7 +1411,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -1475,7 +1462,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -1535,17 +1521,17 @@ public class SearchResource extends ChildFrame
       return retVal;
     }
 
-    public Pair<Integer> getOptionEffect()
+    public Couple<Integer, Integer> getOptionEffect()
     {
       return Utils.getRangeValues(cbOptions[ID_Effect], sOpcode);
     }
 
-    public Pair<Integer> getOptionParam1()
+    public Couple<Integer, Integer> getOptionParam1()
     {
       return Utils.getRangeValues(cbOptions[ID_Param1], sParam1);
     }
 
-    public Pair<Integer> getOptionParam2()
+    public Couple<Integer, Integer> getOptionParam2()
     {
       return Utils.getRangeValues(cbOptions[ID_Param2], sParam2);
     }
@@ -1728,7 +1714,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -1787,7 +1772,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -1965,12 +1949,12 @@ public class SearchResource extends ChildFrame
       return Utils.getObjectFromString(cbOptions[ID_Appearance], cbAppearance).toString();
     }
 
-    public Pair<Integer> getOptionPrice()
+    public Couple<Integer, Integer> getOptionPrice()
     {
       return Utils.getRangeValues(cbOptions[ID_Price], sPrice);
     }
 
-    public Pair<Integer> getOptionEnchantment()
+    public Couple<Integer, Integer> getOptionEnchantment()
     {
       return Utils.getRangeValues(cbOptions[ID_Enchantment], sEnchantment);
     }
@@ -2177,7 +2161,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -2233,7 +2216,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -2299,17 +2281,17 @@ public class SearchResource extends ChildFrame
       return (Integer)Utils.getObjectFromString(cbOptions[ID_Type], cbType);
     }
 
-    public Pair<Integer> getOptionSpeed()
+    public Couple<Integer, Integer> getOptionSpeed()
     {
       return Utils.getRangeValues(cbOptions[ID_Speed], sSpeed);
     }
 
-    public Pair<Integer> getOptionTrapSize()
+    public Couple<Integer, Integer> getOptionTrapSize()
     {
       return Utils.getRangeValues(cbOptions[ID_TrapSize], sTrapSize);
     }
 
-    public Pair<Integer> getOptionExplosionSize()
+    public Couple<Integer, Integer> getOptionExplosionSize()
     {
       return Utils.getRangeValues(cbOptions[ID_ExplosionSize], sExplosionSize);
     }
@@ -2495,7 +2477,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -2553,7 +2534,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -2684,7 +2664,7 @@ public class SearchResource extends ChildFrame
       return (Integer)Utils.getObjectFromString(cbOptions[ID_SecondaryType], cbSecondary);
     }
 
-    public Pair<Integer> getOptionLevel()
+    public Couple<Integer, Integer> getOptionLevel()
     {
       return Utils.getRangeValues(cbOptions[ID_Level], sLevel);
     }
@@ -2881,7 +2861,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -2947,7 +2926,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -3047,27 +3025,27 @@ public class SearchResource extends ChildFrame
       return (Integer)Utils.getObjectFromString(cbOptions[ID_Type], cbType);
     }
 
-    public Pair<Integer> getOptionDepreciationRate()
+    public Couple<Integer, Integer> getOptionDepreciationRate()
     {
       return Utils.getRangeValues(cbOptions[ID_Depreciation], sDepreciation);
     }
 
-    public Pair<Integer> getOptionSellMarkup()
+    public Couple<Integer, Integer> getOptionSellMarkup()
     {
       return Utils.getRangeValues(cbOptions[ID_SellMarkup], sSellMarkup);
     }
 
-    public Pair<Integer> getOptionBuyMarkup()
+    public Couple<Integer, Integer> getOptionBuyMarkup()
     {
       return Utils.getRangeValues(cbOptions[ID_BuyMarkup], sBuyMarkup);
     }
 
-    public Pair<Integer> getOptionStealing()
+    public Couple<Integer, Integer> getOptionStealing()
     {
       return Utils.getRangeValues(cbOptions[ID_Stealing], sStealing);
     }
 
-    public Pair<Integer> getOptionCapacity()
+    public Couple<Integer, Integer> getOptionCapacity()
     {
       return Utils.getRangeValues(cbOptions[ID_Capacity], sCapacity);
     }
@@ -3265,7 +3243,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -3302,7 +3279,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     @Override
     public SearchOptions getOptions()
@@ -3464,7 +3440,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify flags. */
-  private static final class FlagsPanel extends BasePanel implements ActionListener
+  private static final class FlagsPanel extends BasePanel
   {
     private final int size;
     private final JCheckBox[] cbFlags;
@@ -3481,7 +3457,6 @@ public class SearchResource extends ChildFrame
       init(table);
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -3499,11 +3474,10 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
-    public Pair<Object> getOptionFlags()
+    public Couple<Object, Object> getOptionFlags()
     {
-      return new Pair<>(getFlagData(), isExact());
+      return Couple.with(getFlagData(), isExact());
     }
 
     private boolean isExact()
@@ -3607,7 +3581,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify effect opcodes for CRE resources. */
-  private static final class EffectsPanel extends BasePanel implements ActionListener
+  private static final class EffectsPanel extends BasePanel
   {
     private static final int MaxEntryCount     = 16;
 
@@ -3627,7 +3601,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -3642,7 +3615,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -3650,7 +3622,7 @@ public class SearchResource extends ChildFrame
       return cbLabel[id].isSelected();
     }
 
-    public Pair<Integer> getOptionEffect(int id)
+    public Couple<Integer, Integer> getOptionEffect(int id)
     {
       return Utils.getRangeValues(cbLabel[id], sEffects[id]);
     }
@@ -3698,7 +3670,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify custom filters for the selected resource type. */
-  private static final class CustomFilterPanel extends BasePanel implements ActionListener
+  private static final class CustomFilterPanel extends BasePanel
   {
     private static final int FILTER_STRING    = 0;
     private static final int FILTER_NUMBER    = 1;
@@ -3766,7 +3738,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -3802,7 +3773,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -3810,23 +3780,23 @@ public class SearchResource extends ChildFrame
       return (cbLabel[id].isSelected() && !tfFieldName[id].getText().isEmpty());
     }
 
-    public Pair<Object> getOptionFilter(int id)
+    public Couple<Object, Object> getOptionFilter(int id)
     {
       if (id < 0) id = 0; else if (id >= entryCount) id = entryCount - 1;
       final String name = tfFieldName[id].getText();
       if (cbLabel[id].isSelected() && !name.isEmpty()) {
         switch (cbFilterType[id].getSelectedIndex()) {
           case FILTER_STRING:
-            return new Pair<>(name, tfFieldValueString[id].getText());
+            return Couple.with(name, tfFieldValueString[id].getText());
           case FILTER_NUMBER:
             final Integer min = (Integer)sFieldValueNumber[id][0].getValue();
             final Integer max = (Integer)sFieldValueNumber[id][1].getValue();
-            return new Pair<>(name, new Pair<>(min, max));
+            return Couple.with(name, Couple.with(min, max));
           case FILTER_RESOURCE:
             final ResourceEntry entry = (ResourceEntry)cbFieldValueResource[id].getSelectedItem();
-            return new Pair<>(name, entry.getResourceName());
+            return Couple.with(name, entry.getResourceName());
           case FILTER_FLAGS:
-            return new Pair<>(name, pFieldValueFlags[id].getOptionFlags());
+            return Couple.with(name, pFieldValueFlags[id].getOptionFlags());
         }
       }
       return null;
@@ -3980,7 +3950,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify spell effect timing modes. */
-  private static final class TimingModePanel extends BasePanel implements ActionListener
+  private static final class TimingModePanel extends BasePanel
   {
     public static final int TIMING_MODE     = 0;
     public static final int TIMING_DURATION = 1;
@@ -4000,7 +3970,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4024,7 +3993,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -4038,7 +4006,7 @@ public class SearchResource extends ChildFrame
           ((IndexedString)cbMode.getSelectedItem()).index : 0;
     }
 
-    public Pair<Integer> getOptionDuration()
+    public Couple<Integer, Integer> getOptionDuration()
     {
       return Utils.getRangeValues(cbTiming[TIMING_DURATION], sDuration);
     }
@@ -4083,7 +4051,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify creature level ranges. */
-  private static final class CreLevelPanel extends BasePanel implements ActionListener
+  private static final class CreLevelPanel extends BasePanel
   {
     private static final String[] LABELS = {
       "First class level:",
@@ -4100,7 +4068,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4115,7 +4082,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int classIdx)
     {
@@ -4123,7 +4089,7 @@ public class SearchResource extends ChildFrame
       return cbLevel[classIdx].isSelected();
     }
 
-    public Pair<Integer> getOptionLevel(int classIdx)
+    public Couple<Integer, Integer> getOptionLevel(int classIdx)
     {
       return Utils.getRangeValues(cbLevel[classIdx], sLevel[classIdx]);
     }
@@ -4169,7 +4135,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify creature level ranges (IWD2-specific). */
-  private static final class CreLevelIWD2Panel extends BasePanel implements ActionListener
+  private static final class CreLevelIWD2Panel extends BasePanel
   {
     public static final int LEVEL_TOTAL     = 0;
     public static final int LEVEL_BARBARIAN = 1;
@@ -4208,7 +4174,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4223,7 +4188,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -4231,7 +4195,7 @@ public class SearchResource extends ChildFrame
       return cbLevel[id].isSelected();
     }
 
-    public Pair<Integer> getOptionLevel(int id)
+    public Couple<Integer, Integer> getOptionLevel(int id)
     {
       return Utils.getRangeValues(cbLevel[id], sLevel[id]);
     }
@@ -4274,7 +4238,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify creature types. */
-  private static final class CreTypePanel extends BasePanel implements ActionListener
+  private static final class CreTypePanel extends BasePanel
   {
     public static final int TYPE_GENERAL    = 0;
     public static final int TYPE_CLASS      = 1;
@@ -4310,7 +4274,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4324,7 +4287,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -4402,7 +4364,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify game-specific settings for CRE resources. */
-  private static final class CreGameSpecificPanel extends BasePanel implements ActionListener
+  private static final class CreGameSpecificPanel extends BasePanel
   {
     public static final int TYPE_FEATS1     = 0;
     public static final int TYPE_FEATS2     = 1;
@@ -4432,7 +4394,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4446,7 +4407,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -4454,10 +4414,10 @@ public class SearchResource extends ChildFrame
       return cbLabel[id].isSelected();
     }
 
-    public Pair<Object> getOptionFlags(int id)
+    public Couple<Object, Object> getOptionFlags(int id)
     {
       if (id < 0) id = 0; else if (id >= LABELS.length) id = LABELS.length - 1;
-      return cbLabel[id].isSelected() ? pFlags[id].getOptionFlags() : new Pair<>(0, false);
+      return cbLabel[id].isSelected() ? pFlags[id].getOptionFlags() : Couple.with(0, false);
     }
 
 
@@ -4515,7 +4475,7 @@ public class SearchResource extends ChildFrame
   }
 
   /** Panel with several filters by resource reference. */
-  private static class ResourcesFilterPanel extends BasePanel implements ActionListener
+  private static class ResourcesFilterPanel extends BasePanel
   {
     private final JCheckBox[] cbLabel;
     private final JComboBox<ResourceEntry>[] cbItems;
@@ -4563,7 +4523,6 @@ public class SearchResource extends ChildFrame
       add(panel, BorderLayout.CENTER);
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4577,7 +4536,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -4592,7 +4550,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify usability flags. */
-  private static final class ItmUsabilityPanel extends BasePanel implements ActionListener
+  private static final class ItmUsabilityPanel extends BasePanel
   {
     public static final int ITEM_UNUSABLE       = 0;
     public static final int ITEM_KITSUNUSABLE1  = 1;
@@ -4618,7 +4576,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4632,7 +4589,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int id)
     {
@@ -4640,9 +4596,9 @@ public class SearchResource extends ChildFrame
       return cbLabel[id].isSelected();
     }
 
-    public Pair<Object> getOptionFlags(int id)
+    public Couple<Object, Object> getOptionFlags(int id)
     {
-      return cbLabel[id].isSelected() ? pFlags[id].getOptionFlags() : new Pair<>(0, false);
+      return cbLabel[id].isSelected() ? pFlags[id].getOptionFlags() : Couple.with(0, false);
     }
 
 
@@ -4711,7 +4667,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify minimum stats ranges. */
-  private static final class ItmStatsPanel extends BasePanel implements ActionListener
+  private static final class ItmStatsPanel extends BasePanel
   {
     // supported stats
     public static final int STAT_LEVEL      = 0;
@@ -4743,7 +4699,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4758,7 +4713,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int statID)
     {
@@ -4768,7 +4722,7 @@ public class SearchResource extends ChildFrame
       return false;
     }
 
-    public Pair<Integer> getOptionValue(int statID)
+    public Couple<Integer, Integer> getOptionValue(int statID)
     {
       return Utils.getRangeValues(cbStats[statID], sStats[statID]);
     }
@@ -4824,7 +4778,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify item ability properties. */
-  private static final class ItmAbilityPanel extends BasePanel implements ActionListener
+  private static final class ItmAbilityPanel extends BasePanel
   {
     private static final int ITEM_TYPE        = 0;
     private static final int ITEM_TARGET      = 1;
@@ -4874,7 +4828,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -4942,7 +4895,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int itemID)
     {
@@ -4988,39 +4940,39 @@ public class SearchResource extends ChildFrame
           ((IndexedString)cbDamageType.getSelectedItem()).index : 0;
     }
 
-    public Pair<Integer> getOptionRange()
+    public Couple<Integer, Integer> getOptionRange()
     {
       return Utils.getRangeValues(cbItems[ITEM_RANGE], sRange);
     }
 
-    public Pair<Integer> getOptionSpeed()
+    public Couple<Integer, Integer> getOptionSpeed()
     {
       return Utils.getRangeValues(cbItems[ITEM_SPEED], sSpeed);
     }
 
-    public Pair<Integer> getOptionDiceCount()
+    public Couple<Integer, Integer> getOptionDiceCount()
     {
       return Utils.getRangeValues(cbItems[ITEM_DICECOUNT], sDiceCount);
     }
 
-    public Pair<Integer> getOptionDiceSize()
+    public Couple<Integer, Integer> getOptionDiceSize()
     {
       return Utils.getRangeValues(cbItems[ITEM_DICESIZE], sDiceSize);
     }
 
-    public Pair<Integer> getOptionCharges()
+    public Couple<Integer, Integer> getOptionCharges()
     {
       return Utils.getRangeValues(cbItems[ITEM_CHARGES], sCharges);
     }
 
-    public Pair<Integer> getOptionEffects(int idx)
+    public Couple<Integer, Integer> getOptionEffects(int idx)
     {
-      return cbItems[ITEM_EFFECTS].isSelected() ? pEffects.getOptionEffect(idx) : new Pair<>(0, 0);
+      return cbItems[ITEM_EFFECTS].isSelected() ? pEffects.getOptionEffect(idx) : Couple.with(0, 0);
     }
 
-    public Pair<Object> getOptionFlags()
+    public Couple<Object, Object> getOptionFlags()
     {
-      return cbItems[ITEM_FLAGS].isSelected() ? flagsPanel.getOptionFlags() : new Pair<>(0, false);
+      return cbItems[ITEM_FLAGS].isSelected() ? flagsPanel.getOptionFlags() : Couple.with(0, false);
     }
 
     private void init()
@@ -5038,10 +4990,12 @@ public class SearchResource extends ChildFrame
       final IndexedString[] pro;
       if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
         ProRef proRef = new ProRef(StreamUtils.getByteBuffer(2), 0, "Projectile");
-        pro = new IndexedString[proRef.getResourceList().size()];
-        for (int i = 0; i < pro.length; i++) {
-          long id = proRef.getResourceList().get(i).getValue();
-          pro[i] = new IndexedString(proRef.getResourceList().get(i).getResourceName(), (int)id);
+        pro = new IndexedString[proRef.getBitmap().size()];
+        int i = 0;
+        for (final ResourceBitmap.RefEntry entry : proRef.getBitmap().values()) {
+          long id = entry.getValue();
+          pro[i] = new IndexedString(entry.getResourceName(), (int)id);
+          i++;
         }
       } else if (Profile.getEngine() == Profile.Engine.PST) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_pst, 0, 0);
@@ -5173,7 +5127,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify spell ability properties. */
-  private static final class SplAbilityPanel extends BasePanel implements ActionListener
+  private static final class SplAbilityPanel extends BasePanel
   {
     private static final int SPELL_TYPE       = 0;
     private static final int SPELL_LOCATION   = 1;
@@ -5211,7 +5165,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -5261,7 +5214,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int spellID)
     {
@@ -5295,17 +5247,17 @@ public class SearchResource extends ChildFrame
           ((IndexedString)cbTarget.getSelectedItem()).index : 0;
     }
 
-    public Pair<Integer> getOptionRange()
+    public Couple<Integer, Integer> getOptionRange()
     {
       return Utils.getRangeValues(cbSpells[SPELL_RANGE], sRange);
     }
 
-    public Pair<Integer> getOptionLevel()
+    public Couple<Integer, Integer> getOptionLevel()
     {
       return Utils.getRangeValues(cbSpells[SPELL_LEVEL], sLevel);
     }
 
-    public Pair<Integer> getOptionSpeed()
+    public Couple<Integer, Integer> getOptionSpeed()
     {
       return Utils.getRangeValues(cbSpells[SPELL_SPEED], sSpeed);
     }
@@ -5316,9 +5268,9 @@ public class SearchResource extends ChildFrame
           ((IndexedString)cbProjectile.getSelectedItem()).index : 0;
     }
 
-    public Pair<Integer> getOptionEffects(int effectIdx)
+    public Couple<Integer, Integer> getOptionEffects(int effectIdx)
     {
-      return cbSpells[SPELL_EFFECTS].isSelected() ? pEffects.getOptionEffect(effectIdx) : new Pair<>(0, 0);
+      return cbSpells[SPELL_EFFECTS].isSelected() ? pEffects.getOptionEffect(effectIdx) : Couple.with(0, 0);
     }
 
 
@@ -5336,10 +5288,12 @@ public class SearchResource extends ChildFrame
       final IndexedString[] pro;
       if (ResourceFactory.resourceExists("PROJECTL.IDS")) {
         ProRef proRef = new ProRef(StreamUtils.getByteBuffer(2), 0, "Projectile");
-        pro = new IndexedString[proRef.getResourceList().size()];
-        for (int i = 0; i < pro.length; i++) {
-          long id = proRef.getResourceList().get(i).getValue();
-          pro[i] = new IndexedString(proRef.getResourceList().get(i).getResourceName(), (int)id);
+        pro = new IndexedString[proRef.getBitmap().size()];
+        int i = 0;
+        for (final ResourceBitmap.RefEntry entry : proRef.getBitmap().values()) {
+          long id = entry.getValue();
+          pro[i] = new IndexedString(entry.getResourceName(), (int)id);
+          i++;
         }
       } else if (Profile.getEngine() == Profile.Engine.PST) {
         pro = IndexedString.createArray(AbstractAbility.s_proj_pst, 1, 0);
@@ -5439,7 +5393,7 @@ public class SearchResource extends ChildFrame
 
 
   /** Creates a dialog that allows to specify item categories allowed in STO resources. */
-  private static final class StoCategoriesPanel extends BasePanel implements ActionListener
+  private static final class StoCategoriesPanel extends BasePanel
   {
     private static final int MaxEntryCount = 16;
 
@@ -5458,7 +5412,6 @@ public class SearchResource extends ChildFrame
       init();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -5472,7 +5425,6 @@ public class SearchResource extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     public boolean isActive(int index)
     {
@@ -5768,7 +5720,7 @@ public class SearchResource extends ChildFrame
 
     public static JComboBox<IdsMapEntry> getIdsMapEntryList(IdsBitmap ids)
     {
-      final SortedMap<Long, IdsMapEntry> map = ids.getHashBitmap();
+      final SortedMap<Long, IdsMapEntry> map = ids.getBitmap();
       final IdsMapEntry[] list = map.values().toArray(new IdsMapEntry[map.size()]);
       Arrays.sort(list);
       return defaultWidth(new AutoComboBox<>(list), 160);
@@ -5812,11 +5764,11 @@ public class SearchResource extends ChildFrame
     }
 
     /** Returns the min/max values of the specified spinner objects. */
-    public static Pair<Integer> getRangeValues(JCheckBox enabled, JSpinner[] spinner)
+    public static Couple<Integer, Integer> getRangeValues(JCheckBox enabled, JSpinner[] spinner)
     {
       return enabled.isSelected()
-          ? new Pair<>((Integer)spinner[0].getValue(), (Integer)spinner[1].getValue())
-          : new Pair<>(0, 0);
+          ? Couple.with((Integer)spinner[0].getValue(), (Integer)spinner[1].getValue())
+          : Couple.with(0, 0);
     }
 
     /** Returns a protype dimension object based on the height of @(code c} and the width of (@code prototype}. */
@@ -5982,18 +5934,8 @@ public class SearchResource extends ChildFrame
         // Check against specific datatypes for more accurate results
         if (curItem instanceof IdsMapEntry) {
           id = Long.toString(((IdsMapEntry)curItem).getID());
-        } else if (curItem instanceof Bitmap) {
-          id = Integer.toString(((Bitmap)curItem).getValue());
-        } else if (curItem instanceof HashBitmap) {
-          id = Long.toString(((HashBitmap)curItem).getValue());
-        } else if (curItem instanceof IdsBitmap) {
-          id = Long.toString(((HashBitmap)curItem).getValue());
-        } else if (curItem instanceof IwdRef) {
-          id = Long.toString(((IwdRef)curItem).getValue());
-        } else if (curItem instanceof ProRef) {
-          id = Long.toString(((ProRef)curItem).getValue());
-        } else if (curItem instanceof Song2daBitmap) {
-          id = Long.toString(((Song2daBitmap)curItem).getValue());
+        } else if (curItem instanceof IsNumeric) {
+          id = Long.toString(((IsNumeric)curItem).getValue());
         } else if (curItem instanceof TextBitmap) {
           id = ((TextBitmap)curItem).getDescription();
         } else {

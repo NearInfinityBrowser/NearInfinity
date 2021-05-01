@@ -33,7 +33,7 @@ public final class LayerManager
     LayerType.WALL_POLY
   };
 
-  private static final EnumMap<LayerType, String> LayerLabels = new EnumMap<LayerType, String>(LayerType.class);
+  private static final EnumMap<LayerType, String> LayerLabels = new EnumMap<>(LayerType.class);
   static {
     LayerLabels.put(LayerType.ACTOR, "Actors");
     LayerLabels.put(LayerType.REGION, "Regions");
@@ -392,6 +392,29 @@ public final class LayerManager
   }
 
   /**
+   * Returns whether to show iconic representations of actors or the real thing.
+   */
+  public boolean isRealActorEnabled()
+  {
+    LayerActor layer = (LayerActor)getLayer(ViewerConstants.LayerType.ACTOR);
+    if (layer != null) {
+      return layer.isRealActorEnabled();
+    }
+    return false;
+  }
+
+  /**
+   * Specify whether to show iconic representations of actors or the real thing.
+   */
+  public void setRealActorEnabled(boolean enable)
+  {
+    LayerActor layer = (LayerActor)getLayer(ViewerConstants.LayerType.ACTOR);
+    if (layer != null) {
+      layer.setRealActorEnabled(enable);
+    }
+  }
+
+  /**
    * Returns whether to show iconic representations of background animations or the real thing.
    */
   public boolean isRealAnimationEnabled()
@@ -411,6 +434,30 @@ public final class LayerManager
     LayerAnimation layer = (LayerAnimation)getLayer(ViewerConstants.LayerType.ANIMATION);
     if (layer != null) {
       layer.setRealAnimationEnabled(enable);
+    }
+  }
+
+  /**
+   * Returns whether real actor sprites are enabled and animated.
+   */
+  public boolean isRealActorPlaying()
+  {
+    LayerActor layer = (LayerActor)getLayer(ViewerConstants.LayerType.ACTOR);
+    if (layer != null) {
+      return layer.isRealActorPlaying();
+    }
+    return false;
+  }
+
+  /**
+   * Specify whether to animate real actor sprites. Setting to {@code true} implicitly
+   * enables real actors.
+   */
+  public void setRealActorPlaying(boolean play)
+  {
+    LayerActor layer = (LayerActor)getLayer(ViewerConstants.LayerType.ACTOR);
+    if (layer != null) {
+      layer.setRealActorPlaying(play);
     }
   }
 
@@ -449,7 +496,7 @@ public final class LayerManager
   }
 
   /**
-   * Sets the interpolation type for real animations
+   * Sets the interpolation type for real animations.
    * @param interpolationType Either one of ViewerConstants.TYPE_NEAREST_NEIGHBOR,
    *                          ViewerConstants.TYPE_NEAREST_BILINEAR or ViewerConstants.TYPE_BICUBIC.
    */
@@ -459,9 +506,13 @@ public final class LayerManager
         interpolationType == ViewerConstants.TYPE_BILINEAR ||
         interpolationType == ViewerConstants.TYPE_BICUBIC) {
       animInterpolationType = interpolationType;
-      LayerAnimation layer = (LayerAnimation)getLayer(LayerType.ANIMATION);
-      if (layer != null) {
-        layer.setRealAnimationInterpolation(animInterpolationType);
+      LayerAnimation layerAnim = (LayerAnimation)getLayer(LayerType.ANIMATION);
+      if (layerAnim != null) {
+        layerAnim.setRealAnimationInterpolation(animInterpolationType);
+      }
+      LayerActor layerActor = (LayerActor)getLayer(LayerType.ACTOR);
+      if (layerActor != null) {
+        layerActor.setRealActorInterpolation(animInterpolationType);
       }
     }
   }
@@ -482,9 +533,13 @@ public final class LayerManager
   public void setRealAnimationForcedInterpolation(boolean forced)
   {
     animForcedInterpolation = forced;
-    LayerAnimation layer = (LayerAnimation)getLayer(LayerType.ANIMATION);
-    if (layer != null) {
-      layer.setRealAnimationForcedInterpolation(animForcedInterpolation);
+    LayerAnimation layerAnim = (LayerAnimation)getLayer(LayerType.ANIMATION);
+    if (layerAnim != null) {
+      layerAnim.setRealAnimationForcedInterpolation(animForcedInterpolation);
+    }
+    LayerActor layerActor = (LayerActor)getLayer(LayerType.ACTOR);
+    if (layerActor != null) {
+      layerActor.setRealActorForcedInterpolation(animForcedInterpolation);
     }
   }
 
@@ -506,9 +561,13 @@ public final class LayerManager
     frameRate = Math.min(Math.max(frameRate, 1.0), 30.0);
     if (frameRate != this.animFrameRate) {
       animFrameRate = frameRate;
-      LayerAnimation layer = (LayerAnimation)getLayer(LayerType.ANIMATION);
-      if (layer != null) {
-        layer.setRealAnimationFrameRate(animFrameRate);
+      LayerAnimation layerAnim = (LayerAnimation)getLayer(LayerType.ANIMATION);
+      if (layerAnim != null) {
+        layerAnim.setRealAnimationFrameRate(animFrameRate);
+      }
+      LayerActor layerActor = (LayerActor)getLayer(LayerType.ACTOR);
+      if (layerActor != null) {
+        layerActor.setRealActorFrameRate(animFrameRate);
       }
     }
   }

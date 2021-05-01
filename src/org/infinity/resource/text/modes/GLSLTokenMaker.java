@@ -3781,6 +3781,7 @@ public class GLSLTokenMaker extends AbstractJFlexCTokenMaker {
    * @return The first {@code Token} in a linked list representing
    *         the syntax highlighted text.
    */
+  @Override
   public Token getTokenList(Segment text, int initialTokenType, int startOffset) {
 
     resetTokenList();
@@ -3919,6 +3920,7 @@ public class GLSLTokenMaker extends AbstractJFlexCTokenMaker {
    *
    * @param newState the new lexical state
    */
+  @Override
   public final void yybegin(int newState) {
     zzLexicalState = newState;
   }

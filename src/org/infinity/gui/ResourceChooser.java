@@ -214,8 +214,7 @@ public class ResourceChooser extends JComponent implements ActionListener
 
   private void resetResourceList(String ext)
   {
-    final List<ResourceEntry> resources = (ext != null) ? ResourceFactory.getResources(ext)
-                                                        : new ArrayList<ResourceEntry>();
+    final List<ResourceEntry> resources = (ext != null) ? ResourceFactory.getResources(ext) : new ArrayList<>();
     if (lpResources != null) {
       // switching type in existing list panel
       RootPaneContainer rpc = (RootPaneContainer)SwingUtilities.getAncestorOfClass(RootPaneContainer.class, this);

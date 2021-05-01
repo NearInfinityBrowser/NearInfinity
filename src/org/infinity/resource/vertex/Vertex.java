@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
@@ -56,7 +57,7 @@ public class Vertex extends AbstractStruct implements AddRemovable
   /** Returns the x coordinate of the vertex. */
   public int getX()
   {
-    DecNumber dn = (DecNumber)getAttribute(getOffset(), false);
+    IsNumeric dn = (IsNumeric)getAttribute(getOffset(), false);
     if (dn != null) {
       return dn.getValue();
     } else {
@@ -76,7 +77,7 @@ public class Vertex extends AbstractStruct implements AddRemovable
   /** Returns the y coordinate of the vertex. */
   public int getY()
   {
-    DecNumber dn = (DecNumber)getAttribute(getOffset() + 2, false);
+    IsNumeric dn = (IsNumeric)getAttribute(getOffset() + 2, false);
     if (dn != null) {
       return dn.getValue();
     } else {

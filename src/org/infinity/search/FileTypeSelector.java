@@ -15,10 +15,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
+
 import org.infinity.icon.Icons;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.key.ResourceEntry;
@@ -31,7 +33,6 @@ import org.infinity.resource.key.ResourceEntry;
  */
 public class FileTypeSelector extends JPanel implements ActionListener
 {
-  //<editor-fold defaultstate="collapsed" desc="Fields">
   /**
    * Stores last chosed array of selected checkboxes for each resource type.
    * Each array has length equals to length of {@link #filetypes}
@@ -52,7 +53,6 @@ public class FileTypeSelector extends JPanel implements ActionListener
   private final JButton bDefault = new JButton("Default", Icons.getIcon(Icons.ICON_UNDO_16));
   /** Button that inverts check state of each checkbox. */
   private final JButton bInvert  = new JButton("Invert", Icons.getIcon(Icons.ICON_REFRESH_16));
-  //</editor-fold>
 
   /**
    * Creates panel with tho columns of checkboxex with abilities to check/unckeck all,
@@ -148,7 +148,6 @@ public class FileTypeSelector extends JPanel implements ActionListener
     return result;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent e) {
     final Object src = e.getSource();
@@ -174,5 +173,4 @@ public class FileTypeSelector extends JPanel implements ActionListener
       }
     }
   }
-  //</editor-fold>
 }

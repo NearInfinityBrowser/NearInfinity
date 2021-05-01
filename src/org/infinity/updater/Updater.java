@@ -11,7 +11,12 @@ import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
 import java.util.jar.JarFile;
 import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
@@ -81,7 +86,7 @@ public class Updater
 
   private static Updater instance = null;
 
-  private final List<String> serverList = new ArrayList<String>();
+  private final List<String> serverList = new ArrayList<>();
 
   private Preferences prefs;
   private String hash, version, timestamp;
@@ -160,21 +165,16 @@ public class Updater
   {
     String jarPath = Utils.getJarFileName(NearInfinity.class);
     if (jarPath != null && !jarPath.isEmpty()) {
-      try {
-        JarFile jf = new JarFile(jarPath);
-        try {
-        ZipEntry manifest = jf.getEntry("META-INF/MANIFEST.MF");
-          if (manifest != null) {
-            Calendar cal = Calendar.getInstance();
-            if (manifest.getTime() >= 0L) {
-              cal.setTimeInMillis(manifest.getTime());
-              return cal;
-            }
+      try (JarFile jf = new JarFile(jarPath)) {
+      ZipEntry manifest = jf.getEntry("META-INF/MANIFEST.MF");
+        if (manifest != null) {
+          Calendar cal = Calendar.getInstance();
+          if (manifest.getTime() >= 0L) {
+            cal.setTimeInMillis(manifest.getTime());
+            return cal;
           }
-        } finally {
-          jf.close();
         }
-      } catch (Exception e) {
+      } catch (IOException e) {
         e.printStackTrace();
       }
     }

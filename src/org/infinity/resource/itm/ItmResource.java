@@ -16,9 +16,11 @@ import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
 import org.infinity.datatype.Bitmap;
+import org.infinity.datatype.ColorValue;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IdsBitmap;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -42,8 +44,13 @@ import org.infinity.resource.StructEntry;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.resource.spl.SplResource;
 import org.infinity.search.SearchOptions;
+import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
+import org.infinity.util.IdsMapEntry;
+import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
+import org.infinity.util.Table2da;
+import org.infinity.util.Table2daCache;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -189,7 +196,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
            "Lawful;Includes Lawful Good, Lawful Neutral and Lawful Evil",
            "Neutral ...;Includes Neutral Good, True Neutral and Neutral Evil",
            null, null, null, null, null, "Elf",
-           "Dwarf", "Half-elf", "Halfling", "Human", "Gnome"
+           "Dwarf", "Half-elf", "Halfling", "Human", "Gnome", "Half-Orc"
           };
   public static final String[] s_kituse1 =
           {"None", "Cleric of Talos", "Cleric of Helm", "Cleric of Lathander",
@@ -203,6 +210,17 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
   public static final String[] s_kituse4 =
           {"None", "Berserker", "Wizard slayer", "Kensai", "Cavalier", "Inquisitor",
            "Undead hunter", "Abjurer", "Conjurer"};
+  public static final String[] s_kituse1_v2 = {"None", "", "", "", "", "", "", "", ""};
+  public static final String[] s_kituse2_v2 =
+          {"None", "Cleric of Lathander", "Cleric of Selune", "Cleric of Helm", "Cleric of Oghma",
+           "Cleric of Tempus", "Cleric of Bane", "Cleric of Mask", "Cleric of Talos"};
+  public static final String[] s_kituse3_v2 =
+          {"None", "Diviner", "Enchanter", "Illusionist", "Invoker", "Necromancer", "Transmuter",
+           "Generalist", "Cleric of Ilmater"};
+  public static final String[] s_kituse4_v2 =
+          {"None", "Paladin of Ilmater", "Paladin of Helm", "Paladin of Mystra",
+           "Monk of the Old Order", "Monk of the Broken Ones", "Monk of the Dark Moon",
+           "Abjurer", "Conjurer"};
 
   private StructHexViewer hexViewer;
 
@@ -223,7 +241,6 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -235,9 +252,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -282,9 +297,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
   {
     return (index == 0);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
@@ -296,9 +309,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -315,7 +326,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
       }
     }
     else if (datatype instanceof Ability) {
-      int effect_count = ((SectionCount)getAttribute(ITM_NUM_GLOBAL_EFFECTS)).getValue();
+      int effect_count = ((IsNumeric)getAttribute(ITM_NUM_GLOBAL_EFFECTS)).getValue();
       for (final StructEntry o : getFields()) {
         if (o instanceof Ability) {
           Ability ability = (Ability)o;
@@ -346,7 +357,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
       }
     }
     else if (datatype instanceof Ability) {
-      int effect_count = ((SectionCount)getAttribute(ITM_NUM_GLOBAL_EFFECTS)).getValue();
+      int effect_count = ((IsNumeric)getAttribute(ITM_NUM_GLOBAL_EFFECTS)).getValue();
       for (final StructEntry o : getFields()) {
         if (o instanceof Ability) {
           Ability ability = (Ability)o;
@@ -366,19 +377,19 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
     super.datatypeRemovedInChild(child, datatype);
     incAbilityEffects(child, datatype, -1);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
     addField(new TextString(buffer, 0, 4, COMMON_SIGNATURE));
     TextString version = new TextString(buffer, 4, 4, COMMON_VERSION);
+    boolean isV10 = version.getText().equalsIgnoreCase("V1  ");
+    boolean isV11 = version.getText().equalsIgnoreCase("V1.1");
+    boolean isV20 = version.getText().equalsIgnoreCase("V2.0");
     addField(version);
     addField(new StringRef(buffer, 8, ITM_NAME_GENERAL));
     addField(new StringRef(buffer, 12, ITM_NAME_IDENTIFIED));
-    if (version.getText().equalsIgnoreCase("V1.1") ||
-        (version.getText().equalsIgnoreCase("V1  ") && Profile.getGame() == Profile.Game.PSTEE)) {
+    if (isV11 || (isV10 && Profile.getGame() == Profile.Game.PSTEE)) {
       addField(new ResourceRef(buffer, 16, ITM_DROP_SOUND, "WAV"));
       if (Profile.getGame() == Profile.Game.PSTEE) {
         addField(new Flag(buffer, 24, 4, ITM_FLAGS, s_flags_pstee));
@@ -394,7 +405,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
       addField(new ResourceRef(buffer, 16, ITM_USED_UP_ITEM, "ITM"));
       addField(new Flag(buffer, 24, 4, ITM_FLAGS, IdsMapCache.getUpdatedIdsFlags(s_flags, "ITEMFLAG.IDS", 4, false, false)));
       addField(new Bitmap(buffer, 28, 2, ITM_CATEGORY, s_categories));
-      if (version.toString().equalsIgnoreCase("V2.0")) {
+      if (isV20) {
         addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, s_usability20));
       } else {
         addField(new Flag(buffer, 30, 4, ITM_UNUSABLE_BY, s_usability));
@@ -405,13 +416,16 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
     addField(new DecNumber(buffer, 38, 2, ITM_MIN_STRENGTH));
     if (ResourceFactory.resourceExists("KIT.IDS")) {
       addField(new DecNumber(buffer, 40, 1, ITM_MIN_STRENGTH_BONUS));
-      addField(new Flag(buffer, 41, 1, ITM_UNUSABLE_BY_1, s_kituse1));
+      if (isV20) {
+        updateKitUsability(s_kituse1_v2, 24, 8, true);
+      }
+      addField(new Flag(buffer, 41, 1, ITM_UNUSABLE_BY_1, isV20 ? s_kituse1_v2 : s_kituse1));
       addField(new DecNumber(buffer, 42, 1, ITM_MIN_INTELLIGENCE));
-      addField(new Flag(buffer, 43, 1, ITM_UNUSABLE_BY_2, s_kituse2));
+      addField(new Flag(buffer, 43, 1, ITM_UNUSABLE_BY_2, isV20 ? s_kituse2_v2 : s_kituse2));
       addField(new DecNumber(buffer, 44, 1, ITM_MIN_DEXTERITY));
-      addField(new Flag(buffer, 45, 1, ITM_UNUSABLE_BY_3, s_kituse3));
+      addField(new Flag(buffer, 45, 1, ITM_UNUSABLE_BY_3, isV20 ? s_kituse3_v2 : s_kituse3));
       addField(new DecNumber(buffer, 46, 1, ITM_MIN_WISDOM));
-      addField(new Flag(buffer, 47, 1, ITM_UNUSABLE_BY_4, s_kituse4));
+      addField(new Flag(buffer, 47, 1, ITM_UNUSABLE_BY_4, isV20 ? s_kituse4_v2 : s_kituse4));
       addField(new DecNumber(buffer, 48, 1, ITM_MIN_CONSTITUTION));
       if (ResourceFactory.resourceExists("PROFTYPE.IDS")) {
         addField(new IdsBitmap(buffer, 49, 1, ITM_WEAPON_PROFICIENCY, "PROFTYPE.IDS"));
@@ -435,7 +449,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
     addField(new DecNumber(buffer, 76, 4, ITM_WEIGHT));
     addField(new StringRef(buffer, 80, ITM_DESCRIPTION_GENERAL));
     addField(new StringRef(buffer, 84, ITM_DESCRIPTION_IDENTIFIED));
-    if (version.toString().equalsIgnoreCase("V1.1")) {
+    if (isV11) {
       addField(new ResourceRef(buffer, 88, ITM_PICK_UP_SOUND, "WAV"));
     } else {
       addField(new ResourceRef(buffer, 88, ITM_DESCRIPTION_IMAGE, "BAM"));
@@ -455,13 +469,13 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
                                                  Effect.class);
     addField(global_count);
 
-    if (version.toString().equalsIgnoreCase("V1.1")) {
+    if (isV11) {
       addField(new ResourceRef(buffer, 114, ITM_DIALOG, "DLG"));
       addField(new StringRef(buffer, 122, ITM_SPEAKER_NAME));
-      addField(new IdsBitmap(buffer, 126, 2, ITM_WEAPON_COLOR, "CLOWNCLR.IDS"));
+      addField(new ColorValue(buffer, 126, 2, ITM_WEAPON_COLOR, true, "PAL32.BMP"));
       addField(new Unknown(buffer, 128, 26));
     }
-    else if (version.toString().equalsIgnoreCase("V2.0")) {
+    else if (isV20) {
       addField(new Unknown(buffer, 114, 16));
     }
 
@@ -485,7 +499,6 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
 
     return Math.max(offset, offset2);
   }
-  //</editor-fold>
 
   private void incAbilityEffects(StructEntry child, AddRemovable datatype, int value)
   {
@@ -501,6 +514,57 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
     }
     if (hexViewer != null) {
       hexViewer.dataModified();
+    }
+  }
+
+  /**
+   * Updates the specified string array with kit names from KIT.IDS.
+   * @param kits The string array for kit names. (First slot is reserved for empty selection string.)
+   * @param offset bit position to start.
+   * @param count number of bits to update.
+   * @param fillMissing whether only empty slots in the string array should be updated.
+   */
+  private void updateKitUsability(String[] kits, int offset, int count, boolean fillMissing)
+  {
+    if (kits != null && offset >= 0 && offset < 32 && count > 0) {
+      IdsMap map = IdsMapCache.get("KIT.IDS");
+      Table2da table = Table2daCache.get("KITLIST.2DA");
+      if (map != null) {
+        for (int i = 0; i < count; i++) {
+          long value = 1L << (offset + i);
+          IdsMapEntry entry = map.get(value);
+          if (entry != null) {
+            if (i + 1 < kits.length && (!fillMissing || kits[i + 1] == null || kits[i + 1].isEmpty())) {
+              int strref = -1;
+              if (table != null) {
+                // try getting proper kit name from kitlist.2da
+                for (int row = 3, rowCount = table.getRowCount(); row < rowCount; row++) {
+                  if (entry.getSymbol().equalsIgnoreCase(table.get(row, 0))) {
+                    strref = Misc.toNumber(table.get(row, 2), -1);  // mixed
+                    if (strref < 0) {
+                      strref = Misc.toNumber(table.get(row, 1), -1);  // lowercase
+                    }
+                  }
+                  if (strref > 0) {
+                    break;
+                  }
+                }
+              }
+              String desc = null;
+              if (strref > 0) {
+                try {
+                  desc = StringTable.getStringRef(strref);
+                } catch (IndexOutOfBoundsException e) {
+                }
+              }
+              if (desc == null || desc.isEmpty()) {
+                desc = entry.getSymbol();
+              }
+              kits[i + 1] = desc;
+            }
+          }
+        }
+      }
     }
   }
 
@@ -521,8 +585,8 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)itm.getAttribute(ITM_OFFSET_EFFECTS, false);
-        DecNumber cnt = (DecNumber)itm.getAttribute(ITM_NUM_GLOBAL_EFFECTS, false);
+        IsNumeric ofs = (IsNumeric)itm.getAttribute(ITM_OFFSET_EFFECTS, false);
+        IsNumeric cnt = (IsNumeric)itm.getAttribute(ITM_NUM_GLOBAL_EFFECTS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           effects = new Effect[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -533,8 +597,8 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
           effects = new Effect[0];
         }
 
-        ofs = (DecNumber)itm.getAttribute(ITM_OFFSET_ABILITIES, false);
-        cnt = (DecNumber)itm.getAttribute(ITM_NUM_ABILITIES, false);
+        ofs = (IsNumeric)itm.getAttribute(ITM_OFFSET_ABILITIES, false);
+        cnt = (IsNumeric)itm.getAttribute(ITM_NUM_ABILITIES, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           abilities = new Ability[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -548,7 +612,7 @@ public final class ItmResource extends AbstractStruct implements Resource, HasCh
         abilityEffects = new Effect[abilities.length][];
         for (int idx = 0; idx < abilities.length; idx++) {
           if (abilities[idx] != null) {
-            cnt = (DecNumber)abilities[idx].getAttribute(AbstractAbility.ABILITY_NUM_EFFECTS, false);
+            cnt = (IsNumeric)abilities[idx].getAttribute(AbstractAbility.ABILITY_NUM_EFFECTS, false);
             if (cnt != null && cnt.getValue() > 0) {
               abilityEffects[idx] = new Effect[cnt.getValue()];
               for (int idx2 = 0; idx2 < cnt.getValue(); idx2++) {

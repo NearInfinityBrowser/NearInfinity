@@ -7,7 +7,6 @@ package org.infinity.resource.graphics;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
@@ -32,9 +31,9 @@ import org.infinity.gui.converter.ConvertToPvrz;
 import org.infinity.resource.Profile;
 import org.infinity.util.BinPack2D;
 import org.infinity.util.DynamicArray;
-import org.infinity.util.Pair;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.infinity.util.tuples.Couple;
 
 /**
  * A decoder that takes individual images as input and simulates a BAM structure.
@@ -58,9 +57,9 @@ public class PseudoBamDecoder extends BamDecoder
   private static final Color TransparentColor = new Color(0, true);
 
   private final PseudoBamFrameEntry defaultFrameInfo = new PseudoBamFrameEntry(null, 0, 0);
-  private final HashMap<String, Object> mapOptions = new HashMap<String, Object>();
+  private final HashMap<String, Object> mapOptions = new HashMap<>();
 
-  private List<PseudoBamCycleEntry> listCycles = new ArrayList<PseudoBamCycleEntry>();
+  private List<PseudoBamCycleEntry> listCycles = new ArrayList<>();
   private List<PseudoBamFrameEntry> listFrames;
   private PseudoBamControl defaultControl;
 
@@ -164,7 +163,7 @@ public class PseudoBamDecoder extends BamDecoder
     if (framesList != null) {
       listFrames = framesList;
     } else {
-      listFrames = new ArrayList<PseudoBamFrameEntry>();
+      listFrames = new ArrayList<>();
     }
   }
 
@@ -186,7 +185,7 @@ public class PseudoBamDecoder extends BamDecoder
     if (cyclesList != null) {
       listCycles = cyclesList;
     } else {
-      listCycles = new ArrayList<PseudoBamCycleEntry>();
+      listCycles = new ArrayList<>();
     }
   }
 
@@ -194,49 +193,54 @@ public class PseudoBamDecoder extends BamDecoder
   /**
    * Adds a new frame to the end of the frame list. Center position defaults to (0, 0).
    * @param image The image to add.
+   * @return The index of the added frame or -1 if frame could not be added.
    */
-  public void frameAdd(BufferedImage image)
+  public int frameAdd(BufferedImage image)
   {
-    frameInsert(listFrames.size(), new BufferedImage[]{image}, new Point[0]);
+    return frameInsert(listFrames.size(), new BufferedImage[]{image}, new Point[0]);
   }
 
   /**
    * Adds a new frame to the end of the frame list.
    * @param image The image to add.
    * @param center The center position of the image.
+   * @return The index of the added frame or -1 if frame could not be added.
    */
-  public void frameAdd(BufferedImage image, Point center)
+  public int frameAdd(BufferedImage image, Point center)
   {
-    frameInsert(listFrames.size(), new BufferedImage[]{image}, new Point[]{center});
+    return frameInsert(listFrames.size(), new BufferedImage[]{image}, new Point[]{center});
   }
 
   /**
    * Adds the list of frames to the end of the frame list. Center positions default to (0, 0).
    * @param images An array containing the images to add.
+   * @return The index of the first added frame or -1 if frames could not be added.
    */
-  public void frameAdd(BufferedImage[] images)
+  public int frameAdd(BufferedImage[] images)
   {
-    frameInsert(listFrames.size(), images, new Point[0]);
+    return frameInsert(listFrames.size(), images, new Point[0]);
   }
 
   /**
    * Adds the list of frames to the end of the frame list.
    * @param images An array containing the images to add.
    * @param centers An array of center positions corresponding with the images.
+   * @return The index of the first added frame or -1 if frames could not be added.
    */
-  public void frameAdd(BufferedImage[] images, Point[] centers)
+  public int frameAdd(BufferedImage[] images, Point[] centers)
   {
-    frameInsert(listFrames.size(), images, centers);
+    return frameInsert(listFrames.size(), images, centers);
   }
 
   /**
    * Inserts a frame at the specified position. Center position defaults to (0, 0).
    * @param frameIdx The position for the frame to insert.
    * @param image The image to insert.
+   * @return The index of the inserted frame or -1 if frame could not be inserted.
    */
-  public void frameInsert(int frameIdx, BufferedImage image)
+  public int frameInsert(int frameIdx, BufferedImage image)
   {
-    frameInsert(frameIdx, new BufferedImage[]{image}, new Point[0]);
+    return frameInsert(frameIdx, new BufferedImage[]{image}, new Point[0]);
   }
 
   /**
@@ -244,20 +248,22 @@ public class PseudoBamDecoder extends BamDecoder
    * @param frameIdx The position for the frame to insert.
    * @param image The image to insert.
    * @param center The center position of the image.
+   * @return The index of the inserted frame or -1 if frame could not be inserted.
    */
-  public void frameInsert(int frameIdx, BufferedImage image, Point center)
+  public int frameInsert(int frameIdx, BufferedImage image, Point center)
   {
-    frameInsert(frameIdx, new BufferedImage[]{image}, new Point[]{center});
+    return frameInsert(frameIdx, new BufferedImage[]{image}, new Point[]{center});
   }
 
   /**
    * Inserts an array of frames at the specified position. Center positions default to (0, 0).
    * @param frameIdx The position for the frames to insert.
    * @param images An array containing the images to insert.
+   * @return The index of the first inserted frame or -1 if frames could not be inserted.
    */
-  public void frameInsert(int frameIdx, BufferedImage[] images)
+  public int frameInsert(int frameIdx, BufferedImage[] images)
   {
-    frameInsert(frameIdx, images, new Point[0]);
+    return frameInsert(frameIdx, images, new Point[0]);
   }
 
   /**
@@ -265,8 +271,9 @@ public class PseudoBamDecoder extends BamDecoder
    * @param frameIdx The position for the frames to insert.
    * @param images An array containing the images to insert.
    * @param centers An array of center positions corresponding with the images.
+   * @return The index of the first inserted frame or -1 if frames could not be inserted.
    */
-  public void frameInsert(int frameIdx, BufferedImage[] images, Point[] centers)
+  public int frameInsert(int frameIdx, BufferedImage[] images, Point[] centers)
   {
     if (frameIdx >= 0 && frameIdx <= listFrames.size() && images != null) {
       for (int i = 0; i < images.length; i++) {
@@ -277,7 +284,9 @@ public class PseudoBamDecoder extends BamDecoder
         }
         listFrames.add(frameIdx+i, new PseudoBamFrameEntry(images[i], x, y));
       }
+      return frameIdx;
     }
+    return -1;
   }
 
   /**
@@ -524,13 +533,13 @@ public class PseudoBamDecoder extends BamDecoder
 
       int dstWidth = dstImage.getWidth();
       int dstHeight = dstImage.getHeight();
-      int srcWidth = listFrames.get(frameIdx).width;
-      int srcHeight = listFrames.get(frameIdx).height;
+      int srcWidth = listFrames.get(frameIdx).getWidth();
+      int srcHeight = listFrames.get(frameIdx).getHeight();
       if (control.getMode() == BamControl.Mode.SHARED) {
         // drawing on shared canvas
         Rectangle shared = control.getSharedRectangle();
-        int srcCenterX = listFrames.get(frameIdx).centerX;
-        int srcCenterY = listFrames.get(frameIdx).centerY;
+        int srcCenterX = listFrames.get(frameIdx).getCenterX();
+        int srcCenterY = listFrames.get(frameIdx).getCenterY();
         int left = -shared.x - srcCenterX;
         int top = -shared.y - srcCenterY;
         int maxWidth = (dstWidth < srcWidth + left) ? dstWidth : srcWidth;
@@ -579,8 +588,11 @@ public class PseudoBamDecoder extends BamDecoder
 
       // rendering resulting image onto the canvas if needed
       if (dstImage != canvas) {
-        Graphics g = canvas.getGraphics();
+        Graphics2D g = (Graphics2D)canvas.getGraphics();
         try {
+          if (getComposite() != null) {
+            g.setComposite(getComposite());
+          }
           g.drawImage(dstImage, 0, 0, null);
         } finally {
           g.dispose();
@@ -617,7 +629,7 @@ public class PseudoBamDecoder extends BamDecoder
    */
   public static boolean isTransparentColor(int color, int threshold)
   {
-    if (threshold < 0) return false;
+    if (threshold < 0) return (color & 0xff000000) == 0;
     final int Green = 0x0000ff00;
     if (threshold < 0) threshold = 0; else if (threshold > 255) threshold = 255;
     boolean isAlpha = (((color >>> 24) & 0xff) < (255 - threshold));
@@ -670,9 +682,9 @@ public class PseudoBamDecoder extends BamDecoder
         }
 
         // checking frame properties
-        if (entry.width <= 0 || entry.width > 65535 || entry.height <= 0 || entry.height > 65535 ||
-            entry.centerX < Short.MIN_VALUE || entry.centerX > Short.MAX_VALUE ||
-            entry.centerY < Short.MIN_VALUE || entry.centerY > Short.MAX_VALUE) {
+        if (entry.getWidth() <= 0 || entry.getWidth() > 65535 || entry.getHeight() <= 0 || entry.getHeight() > 65535 ||
+            entry.getCenterX() < Short.MIN_VALUE || entry.getCenterX() > Short.MAX_VALUE ||
+            entry.getCenterY() < Short.MIN_VALUE || entry.getCenterY() > Short.MAX_VALUE) {
           throw new Exception("Dimensions are out of range for frame index " + i);
         }
 
@@ -714,7 +726,7 @@ public class PseudoBamDecoder extends BamDecoder
       control.setSharedPerCycle(false);
       Dimension dimFrame = control.calculateSharedCanvas(false).getSize();
       int maxImageSize = (dimFrame.width*dimFrame.height*3) / 2;    // about 1.5x of max. size
-      List<byte[]> listFrameData = new ArrayList<byte[]>(listFrames.size());
+      List<byte[]> listFrameData = new ArrayList<>(listFrames.size());
 
       // encoding frames
       Object o = getOption(OPTION_INT_RLEINDEX);
@@ -739,7 +751,7 @@ public class PseudoBamDecoder extends BamDecoder
                 cnt++;
                 srcIdx++;
               }
-              dstData[dstIdx++] = (byte)rleIndex;
+              dstData[dstIdx++] = rleIndex;
               dstData[dstIdx++] = (byte)cnt;
             } else {
               // uncompressed pixels
@@ -767,7 +779,7 @@ public class PseudoBamDecoder extends BamDecoder
       }
 
       // creating cycles table and frame lookup table
-      List<Integer> listFrameLookup = new ArrayList<Integer>();
+      List<Integer> listFrameLookup = new ArrayList<>();
       int lookupSize = 0;
       for (int i = 0; i < listCycles.size(); i++) {
         listFrameLookup.add(Integer.valueOf(lookupSize));
@@ -795,7 +807,7 @@ public class PseudoBamDecoder extends BamDecoder
       System.arraycopy("BAM V1  ".getBytes(), 0, bamData, 0, 8);
       DynamicArray.putShort(bamData, 0x08, (short)listFrames.size());
       DynamicArray.putByte(bamData, 0x0a, (byte)listCycles.size());
-      DynamicArray.putByte(bamData, 0x0b, (byte)rleIndex);
+      DynamicArray.putByte(bamData, 0x0b, rleIndex);
       DynamicArray.putInt(bamData, 0x0c, ofsFrameEntries);
       DynamicArray.putInt(bamData, 0x10, ofsPalette);
       DynamicArray.putInt(bamData, 0x14, ofsLookup);
@@ -803,10 +815,10 @@ public class PseudoBamDecoder extends BamDecoder
       // adding frame entries
       int curOfs = ofsFrameEntries;
       for (int i = 0; i < listFrames.size(); i++) {
-        DynamicArray.putShort(bamData, curOfs, (short)listFrames.get(i).width);
-        DynamicArray.putShort(bamData, curOfs + 2, (short)listFrames.get(i).height);
-        DynamicArray.putShort(bamData, curOfs + 4, (short)listFrames.get(i).centerX);
-        DynamicArray.putShort(bamData, curOfs + 6, (short)listFrames.get(i).centerY);
+        DynamicArray.putShort(bamData, curOfs, (short)listFrames.get(i).getWidth());
+        DynamicArray.putShort(bamData, curOfs + 2, (short)listFrames.get(i).getHeight());
+        DynamicArray.putShort(bamData, curOfs + 4, (short)listFrames.get(i).getCenterX());
+        DynamicArray.putShort(bamData, curOfs + 6, (short)listFrames.get(i).getCenterY());
         DynamicArray.putInt(bamData, curOfs + 8, frameDataOffsets[i]);
         curOfs += FrameEntrySize;
       }
@@ -896,8 +908,8 @@ public class PseudoBamDecoder extends BamDecoder
 
       // preparing output path for PVRZ files
       Path pvrzFilePath = fileName.toAbsolutePath().getParent();
-      List<FrameDataV2> listFrameData = new ArrayList<FrameDataV2>(listFrames.size());
-      List<BinPack2D> listGrid = new ArrayList<BinPack2D>();
+      List<FrameDataV2> listFrameData = new ArrayList<>(listFrames.size());
+      List<BinPack2D> listGrid = new ArrayList<>();
 
       // initializing progress monitor
       if (progress != null) {
@@ -914,17 +926,17 @@ public class PseudoBamDecoder extends BamDecoder
       }
 
       // generating remaining info blocks
-      List<FrameDataV2> listFrameDataBlocks = new ArrayList<FrameDataV2>();
-      List<PseudoBamFrameEntry> listFrameEntries = new ArrayList<PseudoBamFrameEntry>();
-      List<Pair<Short>> listCycleData = new ArrayList<Pair<Short>>(listCycles.size());
+      List<FrameDataV2> listFrameDataBlocks = new ArrayList<>();
+      List<PseudoBamFrameEntry> listFrameEntries = new ArrayList<>();
+      List<Couple<Short, Short>> listCycleData = new ArrayList<>(listCycles.size());
       int frameStartIndex = 0;    // keeps track of current start index of frame entries
       int blockStartIndex = 0;    // keeps track of current start index of frame data blocks
       for (int i = 0; i < listCycles.size(); i++) {
         List<Integer> cycleFrames = listCycles.get(i).frames;
 
         // generating cycle entries
-        Pair<Short> cycle = new Pair<Short>(Short.valueOf((short)cycleFrames.size()),
-                                            Short.valueOf((short)frameStartIndex));
+        Couple<Short, Short> cycle = Couple.with(Short.valueOf((short)cycleFrames.size()),
+                                                 Short.valueOf((short)frameStartIndex));
         listCycleData.add(cycle);
 
         for (int j = 0; j < cycleFrames.size(); j++) {
@@ -933,7 +945,7 @@ public class PseudoBamDecoder extends BamDecoder
             FrameDataV2 frame = listFrameData.get(idx);
             PseudoBamFrameEntry bfe = listFrames.get(idx);
 
-            PseudoBamFrameEntry entry = new PseudoBamFrameEntry(bfe.frame, bfe.centerX, bfe.centerY);
+            PseudoBamFrameEntry entry = new PseudoBamFrameEntry(bfe.frame, bfe.getCenterX(), bfe.getCenterY());
             entry.setOption(OPTION_INT_BLOCKINDEX, Integer.valueOf(blockStartIndex));
             entry.setOption(OPTION_INT_BLOCKCOUNT, Integer.valueOf(1));
             listFrameEntries.add(entry);
@@ -969,10 +981,10 @@ public class PseudoBamDecoder extends BamDecoder
       short v;
       for (int i = 0; i < listFrameEntries.size(); i++) {
         PseudoBamFrameEntry fe = listFrameEntries.get(i);
-        DynamicArray.putShort(bamData, ofs, (short)fe.width);
-        DynamicArray.putShort(bamData, ofs + 2, (short)fe.height);
-        DynamicArray.putShort(bamData, ofs + 4, (short)fe.centerX);
-        DynamicArray.putShort(bamData, ofs + 6, (short)fe.centerY);
+        DynamicArray.putShort(bamData, ofs, (short)fe.getWidth());
+        DynamicArray.putShort(bamData, ofs + 2, (short)fe.getHeight());
+        DynamicArray.putShort(bamData, ofs + 4, (short)fe.getCenterX());
+        DynamicArray.putShort(bamData, ofs + 6, (short)fe.getCenterY());
         o = fe.getOption(OPTION_INT_BLOCKINDEX);
         v = (o != null) ? ((Integer)o).shortValue() : 0;
         DynamicArray.putShort(bamData, ofs + 8, v);
@@ -984,9 +996,9 @@ public class PseudoBamDecoder extends BamDecoder
 
       // writing cycle entries
       for (int i = 0; i < listCycleData.size(); i++) {
-        Pair<Short> entry = listCycleData.get(i);
-        DynamicArray.putShort(bamData, ofs, entry.getFirst().shortValue());
-        DynamicArray.putShort(bamData, ofs + 2, entry.getSecond().shortValue());
+        Couple<Short, Short> entry = listCycleData.get(i);
+        DynamicArray.putShort(bamData, ofs, entry.getValue0().shortValue());
+        DynamicArray.putShort(bamData, ofs + 2, entry.getValue1().shortValue());
         ofs += CycleEntrySize;
       }
 
@@ -1034,7 +1046,7 @@ public class PseudoBamDecoder extends BamDecoder
       // adding pixels of all available frames to the hashset
       HashMap<Integer, Integer> newMap;
       if (colorMap == null) {
-        newMap = new HashMap<Integer, Integer>();
+        newMap = new HashMap<>();
         for (int i = 0; i < listFrames.size(); i++) {
           registerColors(newMap, listFrames.get(i).frame);
         }
@@ -1068,7 +1080,7 @@ public class PseudoBamDecoder extends BamDecoder
       }
 
       // removing duplicate entries from the palette
-      HashSet<Integer> colorSet = new HashSet<Integer>();
+      HashSet<Integer> colorSet = new HashSet<>();
       for (int i = 0; i < retVal.length; i++) {
         colorSet.add(Integer.valueOf(retVal[i]));
       }
@@ -1354,15 +1366,44 @@ public class PseudoBamDecoder extends BamDecoder
     return true;
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + ((mapOptions == null) ? 0 : mapOptions.hashCode());
+    hash = 31 * hash + ((listCycles == null) ? 0 : listCycles.hashCode());
+    hash = 31 * hash + ((listFrames == null) ? 0 : listFrames.hashCode());
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof PseudoBamDecoder)) {
+      return false;
+    }
+    boolean retVal = super.equals(o);
+    if (retVal) {
+      PseudoBamDecoder other = (PseudoBamDecoder)o;
+      retVal &= (this.mapOptions == null && other.mapOptions == null) ||
+                (this.mapOptions != null && this.mapOptions.equals(other.mapOptions));
+      retVal &= (this.listCycles == null && other.listCycles == null) ||
+                (this.listCycles != null && this.listCycles.equals(other.listCycles));
+      retVal &= (this.listFrames == null && other.listFrames == null) ||
+                (this.listFrames != null && this.listFrames.equals(other.listFrames));
+    }
+    return retVal;
+  }
 
 //-------------------------- INNER CLASSES --------------------------
 
   /** Provides information for a single frame entry */
   public static class PseudoBamFrameEntry implements FrameEntry
   {
-    private final HashMap<String, Object> mapOptions = new HashMap<String, Object>();
+    private final HashMap<String, Object> mapOptions = new HashMap<>();
 
     private int width, height, centerX, centerY;
+    private int overrideCenterX, overrideCenterY;
     private BufferedImage frame;
 
     public PseudoBamFrameEntry(BufferedImage image, int centerX, int centerY)
@@ -1370,6 +1411,8 @@ public class PseudoBamDecoder extends BamDecoder
       setFrame(image);
       setCenterX(centerX);
       setCenterY(centerY);
+      this.centerX = getCenterX();
+      this.centerY = getCenterY();
     }
 
     @Override
@@ -1377,23 +1420,16 @@ public class PseudoBamDecoder extends BamDecoder
     @Override
     public int getHeight() { return height; }
     @Override
-    public int getCenterX() { return centerX; }
+    public int getCenterX() { return overrideCenterX; }
     @Override
-    public int getCenterY() { return centerY; }
+    public int getCenterY() { return overrideCenterY; }
 
-    public void setCenterX(int value)
-    {
-      if (value < Short.MIN_VALUE) value = Short.MIN_VALUE;
-        else if (value > Short.MAX_VALUE) value = Short.MAX_VALUE;
-      centerX = value;
-    }
-
-    public void setCenterY(int value)
-    {
-      if (value < Short.MIN_VALUE) value = Short.MIN_VALUE;
-        else if (value > Short.MAX_VALUE) value = Short.MAX_VALUE;
-      centerY = value;
-    }
+    @Override
+    public void setCenterX(int x) { overrideCenterX = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, x)); }
+    @Override
+    public void setCenterY(int y) { overrideCenterY = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, y)); }
+    @Override
+    public void resetCenter() { overrideCenterX = centerX; overrideCenterY = centerY; }
 
     /** Returns the image object of this frame entry. */
     public BufferedImage getFrame()
@@ -1417,7 +1453,10 @@ public class PseudoBamDecoder extends BamDecoder
     @Override
     public Object clone()
     {
-      return new PseudoBamFrameEntry(frame, centerX, centerY);
+      PseudoBamFrameEntry retVal = new PseudoBamFrameEntry(frame, centerX, centerY);
+      retVal.overrideCenterX = overrideCenterX;
+      retVal.overrideCenterY = overrideCenterY;
+      return retVal;
     }
 
     @Override
@@ -1521,32 +1560,37 @@ public class PseudoBamDecoder extends BamDecoder
     }
 
 
-    /** Adds a new empty cycle. */
-    public void cycleAdd()
+    /** Adds a new empty cycle. Returns the index of the added cycle. */
+    public int cycleAdd()
     {
-      cycleInsert(getDecoder().listCycles.size(), null);
+      return cycleInsert(getDecoder().listCycles.size(), null);
     }
 
-    /** Adds a new cycle and initializes it with an array of frame indices. */
-    public void cycleAdd(int[] indices)
+    /** Adds a new cycle and initializes it with an array of frame indices. Returns the index of the added cycle. */
+    public int cycleAdd(int[] indices)
     {
-      cycleInsert(getDecoder().listCycles.size(), indices);
+      return cycleInsert(getDecoder().listCycles.size(), indices);
     }
 
     /** Inserts a new empty cycle at the specified position. */
-    public void cycleInsert(int cycleIdx)
+    public int cycleInsert(int cycleIdx)
     {
-      cycleInsert(cycleIdx, null);
+      return cycleInsert(cycleIdx, null);
     }
 
-    /** Inserts a new cycle at the specified position and initializes it with an array of frame indices. */
-    public void cycleInsert(int cycleIdx, int[] indices)
+    /**
+     * Inserts a new cycle at the specified position and initializes it with an array of frame indices.
+     * Returns the index of the inserted cycle. Returns -1 if the cycle could not be inserted.
+     */
+    public int cycleInsert(int cycleIdx, int[] indices)
     {
       if (cycleIdx >= 0 && cycleIdx <= getDecoder().listCycles.size()) {
         PseudoBamCycleEntry ce = new PseudoBamCycleEntry(indices);
         getDecoder().listCycles.add(cycleIdx, ce);
         update();
+        return cycleIdx;
       }
+      return -1;
     }
 
     /** Removes the cycle at the specified position. */
@@ -1607,20 +1651,24 @@ public class PseudoBamDecoder extends BamDecoder
 
 
     /** Adds frame indices to the specified cycle. */
-    public void cycleAddFrames(int cycleIdx, int[] indices)
+    public int cycleAddFrames(int cycleIdx, int[] indices)
     {
       if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
-        cycleInsertFrames(cycleIdx, getDecoder().listCycles.get(cycleIdx).size(), indices);
+        return cycleInsertFrames(cycleIdx, getDecoder().listCycles.get(cycleIdx).size(), indices);
       }
+      return -1;
     }
 
     /** Inserts frame indices to the cycle at the specified position. */
-    public void cycleInsertFrames(int cycleIdx, int pos, int[] indices)
+    public int cycleInsertFrames(int cycleIdx, int pos, int[] indices)
     {
       if (cycleIdx >= 0 && cycleIdx < getDecoder().listCycles.size()) {
-        getDecoder().listCycles.get(cycleIdx).insert(pos, indices);
-        update();
+        if (getDecoder().listCycles.get(cycleIdx).insert(pos, indices)) {
+          update();
+          return pos;
+        }
       }
+      return -1;
     }
 
     /** Removes one frame index from the cycle at the specified position. */
@@ -1924,7 +1972,6 @@ public class PseudoBamDecoder extends BamDecoder
     {
       currentCycle = currentFrame = -1;
       update();
-      updateSharedBamSize();
     }
 
     // Updates current cycle and frame pointers
@@ -1958,11 +2005,11 @@ public class PseudoBamDecoder extends BamDecoder
   public static class PseudoBamCycleEntry
   {
     private final List<Integer> frames;   // stores abs. frame indices that define this cycle
-    private final HashMap<String, Object> mapOptions = new HashMap<String, Object>();
+    private final HashMap<String, Object> mapOptions = new HashMap<>();
 
     protected PseudoBamCycleEntry(int[] indices)
     {
-      frames = new ArrayList<Integer>();
+      frames = new ArrayList<>();
       add(indices);
     }
 
@@ -2089,6 +2136,20 @@ public class PseudoBamDecoder extends BamDecoder
       this.height = height;
       this.dx = dx;
       this.dy = dy;
+    }
+
+    @Override
+    public int hashCode()
+    {
+      int hash = 7;
+      hash = 31 * hash + page;
+      hash = 31 * hash + sx;
+      hash = 31 * hash + sy;
+      hash = 31 * hash + width;
+      hash = 31 * hash + height;
+      hash = 31 * hash + dx;
+      hash = 31 * hash + dy;
+      return hash;
     }
 
     @Override

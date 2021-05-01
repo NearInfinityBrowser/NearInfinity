@@ -17,13 +17,12 @@ import org.infinity.gui.hexview.BasicColorMap;
 import org.infinity.gui.hexview.ResourceDataProvider;
 import org.infinity.gui.hexview.StructHexViewer;
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.Closeable;
 import org.infinity.resource.HasViewerTabs;
 import org.infinity.resource.Resource;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.io.StreamUtils;
 
-public final class FntResource extends AbstractStruct implements Resource, Closeable, HasViewerTabs
+public final class FntResource extends AbstractStruct implements Resource, HasViewerTabs
 {
   // FNT-specific field labels
   public static final String FNT_NUM_EXTRA_LETTERS = "# extra letters";

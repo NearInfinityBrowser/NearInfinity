@@ -15,17 +15,26 @@ public class SharedResourceCache
 {
   // Identifies the type of cache object to retrieve
   public static enum Type {
-    ICON, ANIMATION/*, Creature*/
+    ICON,
+    ANIMATION,
+    ACTOR
   }
 
-  private static EnumMap<Type, HashMap<Object, DataWrapper>> tables =
-      new EnumMap<Type, HashMap<Object, DataWrapper>>(Type.class);
+  private static EnumMap<Type, HashMap<Object, DataWrapper>> tables = new EnumMap<>(Type.class);
+
   static {
-    tables.put(Type.ICON, new HashMap<Object, DataWrapper>());
-    tables.put(Type.ANIMATION, new HashMap<Object, DataWrapper>());
-//    tables.put(Type.Creature, new HashMap<Object, DataWrapper>());
+    for (final Type type : Type.values()) {
+      tables.put(type, new HashMap<Object, DataWrapper>());
+    }
   }
 
+  /** Removes all entries from the cache. */
+  public static void clearCache()
+  {
+    for (final Type type : Type.values()) {
+      tables.get(type).clear();
+    }
+  }
 
   /**
    * Generates a simple key from the hash code of the specified object.

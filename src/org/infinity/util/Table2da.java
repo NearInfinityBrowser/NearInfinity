@@ -21,8 +21,8 @@ public class Table2da
   /** Row index pointing to row labels. */
   public static final int ROW_HEADER    = 0;
 
-  private final List<String> header = new ArrayList<String>();
-  private final List<List<String>> table = new ArrayList<List<String>>();
+  private final List<String> header = new ArrayList<>();
+  private final List<List<String>> table = new ArrayList<>();
   private final ResourceEntry entry;
   private String defaultValue;
 
@@ -142,7 +142,7 @@ public class Table2da
           String curLine = lines[idx].trim();
           String[] elements = curLine.split("\\s+");
           if (elements.length > 0 && !elements[0].isEmpty()) {
-            List<String> listLine = new ArrayList<String>();
+            List<String> listLine = new ArrayList<>();
             for (final String s: elements) {
               if (!s.isEmpty()) {
                 listLine.add(s);

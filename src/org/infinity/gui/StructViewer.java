@@ -101,10 +101,10 @@ import org.infinity.search.DialogStateReferenceSearcher;
 import org.infinity.search.advanced.AdvancedSearch;
 import org.infinity.search.advanced.SearchOptions;
 import org.infinity.util.Misc;
-import org.infinity.util.Pair;
 import org.infinity.util.StructClipboard;
 import org.infinity.util.io.ByteBufferOutputStream;
 import org.infinity.util.io.StreamUtils;
+import org.infinity.util.tuples.Couple;
 
 public final class StructViewer extends JPanel implements ListSelectionListener, ActionListener,
                                                           ItemListener, ChangeListener, TableModelListener,
@@ -175,16 +175,16 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   private final ButtonPanel buttonPanel = new ButtonPanel();
   private final JPopupMenu popupmenu = new JPopupMenu();
   private final InfinityTextArea tatext = new InfinityTextArea(true);
-  private final StructTable table = new StructTable();
   private final HashMap<Integer, StructEntry> entryMap = new HashMap<>();
   private final HashMap<Viewable, ViewFrame> viewMap = new HashMap<>();
+  private final StructTable table;
   private JMenuItem miFindAttribute, miFindReferences, miFindStateReferences, miFindRefToItem;
   private Editable editable;
   private JTabbedPane tabbedPane;
   private JSplitPane splitv;
   private boolean splitterSet;
   private int oldSplitterHeight;
-  private Pair<Integer> storedSelection;
+  private Couple<Integer, Integer> storedSelection;
 
   private static JMenuItem createMenuItem(String cmd, String text, Icon icon, ActionListener l)
   {
@@ -220,7 +220,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public StructViewer(AbstractStruct struct)
   {
     this.struct = struct;
-    struct.addTableModelListener(this);
+    this.struct.addTableModelListener(this);
+    this.table = new StructTable(this.struct);
     table.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
     table.getSelectionModel().addListSelectionListener(this);
@@ -274,6 +275,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         return this;
       }
     });
+    table.setDefaultEditor(Object.class, new StructCellEditor());
 
     popupmenu.add(miCopyValue);
     popupmenu.add(miPasteValue);
@@ -799,7 +801,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
                              selected instanceof TextBitmap) &&
                             !(selected instanceof AbstractCode));
       miReset.setEnabled(isDataType && isReadable &&
-                         getCachedStructEntry(((Datatype)selected).getOffset()) instanceof Readable &&
+                         getCachedStructEntry(((Datatype)selected).getOffset()) != null &&
                          !(selected instanceof AbstractCode));
       miAddToAdvSearch.setEnabled(!(selected instanceof AbstractStruct || selected instanceof Unknown));
       miGotoOffset.setEnabled(selected instanceof SectionOffset|| selected instanceof SectionCount);
@@ -920,7 +922,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
           min = Math.min(min, idx);
           max = Math.max(max, idx);
         }
-        storedSelection = new Pair<Integer>(min, max);
+        storedSelection = Couple.with(min, max);
       }
     }
   }
@@ -929,7 +931,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
   public void restoreCurrentSelection()
   {
     if (storedSelection != null) {
-      table.setRowSelectionInterval(storedSelection.getFirst(), storedSelection.getSecond());
+      table.setRowSelectionInterval(storedSelection.getValue0(), storedSelection.getValue1());
       storedSelection = null;
     }
   }
@@ -1249,7 +1251,7 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         newentry = new TextString(bb, 0, entry.getSize(), entry.getName());
       } else if (menuitem == miReset) {
         newentry = removeCachedStructEntry(entry.getOffset());
-        if (newentry == null || !(newentry instanceof Readable)) {
+        if (newentry == null) {
           newentry = entry;
         } else {
           ((Readable)newentry).read(bb, 0);
@@ -1543,10 +1545,13 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
     }
   }
 
-  private final class StructTable extends JTable implements Printable
+  private static final class StructTable extends JTable implements Printable
   {
-    private StructTable()
+    private final AbstractStruct struct;
+
+    private StructTable(AbstractStruct struct)
     {
+      this.struct = struct;
     }
 
     @Override

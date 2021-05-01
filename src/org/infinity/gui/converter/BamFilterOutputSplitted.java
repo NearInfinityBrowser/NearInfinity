@@ -340,7 +340,7 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
       }
 
       // calculating individual splits for each frame
-      List<List<Rectangle>> listSegments = new ArrayList<List<Rectangle>>(decoder.frameCount());
+      List<List<Rectangle>> listSegments = new ArrayList<>(decoder.frameCount());
       int segmentCount = segmentsX*segmentsY;
       for (int frameIdx = 0; frameIdx < decoder.frameCount(); frameIdx++) {
         listSegments.add(new ArrayList<Rectangle>(segmentCount));
@@ -386,7 +386,7 @@ public class BamFilterOutputSplitted extends BamFilterBaseOutput
       // for each segment...
       for (int segIdx = 0; segIdx < segmentCount; segIdx++) {
         // creating segmented frames list
-        List<PseudoBamFrameEntry> framesList = new ArrayList<PseudoBamFrameEntry>(decoder.getFramesList().size());
+        List<PseudoBamFrameEntry> framesList = new ArrayList<>(decoder.getFramesList().size());
         for (int i = 0; i < listSegments.size(); i++) {
           framesList.add(createFrameSegment(decoder.getFramesList().get(i), listSegments.get(i).get(segIdx)));
         }

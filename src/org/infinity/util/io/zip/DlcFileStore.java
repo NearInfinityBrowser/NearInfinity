@@ -113,7 +113,7 @@ public class DlcFileStore extends FileStore
     if (type == null) {
       throw new NullPointerException();
     }
-    return (V) null;
+    return null;
   }
 
   @Override

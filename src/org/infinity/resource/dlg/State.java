@@ -7,6 +7,7 @@ package org.infinity.resource.dlg;
 import java.nio.ByteBuffer;
 
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.StringRef;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
@@ -40,7 +41,6 @@ public final class State extends AbstractStruct implements AddRemovable, TreeIte
     nr = count;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="TreeItemEntry">
   @Override
   public DlgResource getParent() { return (DlgResource)super.getParent(); }
 
@@ -52,11 +52,10 @@ public final class State extends AbstractStruct implements AddRemovable, TreeIte
   {
     return (StringRef)getAttribute(DLG_STATE_RESPONSE, false);
   }
-  //</editor-fold>
 
   public int getFirstTrans()
   {
-    return ((DecNumber)getAttribute(DLG_STATE_FIRST_RESPONSE_INDEX, false)).getValue();
+    return ((IsNumeric)getAttribute(DLG_STATE_FIRST_RESPONSE_INDEX, false)).getValue();
   }
 
   public int getNumber()
@@ -66,12 +65,12 @@ public final class State extends AbstractStruct implements AddRemovable, TreeIte
 
   public int getTransCount()
   {
-    return ((DecNumber)getAttribute(DLG_STATE_NUM_RESPONSES, false)).getValue();
+    return ((IsNumeric)getAttribute(DLG_STATE_NUM_RESPONSES, false)).getValue();
   }
 
   public int getTriggerIndex()
   {
-    return ((DecNumber)getAttribute(DLG_STATE_TRIGGER_INDEX, false)).getValue();
+    return ((IsNumeric)getAttribute(DLG_STATE_TRIGGER_INDEX, false)).getValue();
   }
 
 //--------------------- Begin Interface AddRemovable ---------------------

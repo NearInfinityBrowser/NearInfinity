@@ -11,7 +11,7 @@ import java.util.List;
 
 public class BamFilterFactory
 {
-  private static final List<FilterInfo> FilterInfoList = new ArrayList<FilterInfo>();
+  private static final List<FilterInfo> FilterInfoList = new ArrayList<>();
 
   static {
     // Registering individual BAM filters
@@ -21,6 +21,9 @@ public class BamFilterFactory
     FilterInfoList.add(new FilterInfo(BamFilterColorHSL.getFilterName(),
                                       BamFilterColorHSL.getFilterDesc(),
                                       BamFilterColorHSL.class));
+    FilterInfoList.add(new FilterInfo(BamFilterColorLab.getFilterName(),
+                                      BamFilterColorLab.getFilterDesc(),
+                                      BamFilterColorLab.class));
     FilterInfoList.add(new FilterInfo(BamFilterColorBalance.getFilterName(),
                                       BamFilterColorBalance.getFilterDesc(),
                                       BamFilterColorBalance.class));
@@ -98,7 +101,7 @@ public class BamFilterFactory
   /** Returns a list of all class types compatible with the specified class. */
   public static Collection<Class<? extends BamFilterBase>> getFiltersOf(Class<? extends BamFilterBase> classType)
   {
-    Collection<Class<? extends BamFilterBase>> retVal = new ArrayList<Class<? extends BamFilterBase>>();
+    Collection<Class<? extends BamFilterBase>> retVal = new ArrayList<>();
     if (classType != null) {
       for (int i = 0; i < FilterInfoList.size(); i++) {
         if (classType.isAssignableFrom(FilterInfoList.get(i).getFilterClass())) {
@@ -133,8 +136,8 @@ public class BamFilterFactory
    */
   public static List<BamFilterBase> normalizeFilterList(ConvertToBam parent, List<BamFilterBase> filterList)
   {
-    List<BamFilterBase> retList = new ArrayList<BamFilterBase>();
-    List<BamFilterBase> tmpList = new ArrayList<BamFilterBase>();
+    List<BamFilterBase> retList = new ArrayList<>();
+    List<BamFilterBase> tmpList = new ArrayList<>();
     if (filterList != null) {
       for (int i = 0; i < filterList.size(); i++) {
         if (filterList.get(i) instanceof BamFilterBaseOutput) {

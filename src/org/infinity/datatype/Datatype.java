@@ -64,6 +64,32 @@ public abstract class Datatype implements StructEntry
 
 // --------------------- End Interface Comparable ---------------------
 
+  @Override
+  public int hashCode()
+  {
+    int hash = 7;
+    hash = 31 * hash + length;
+    hash = 31 * hash + ((name == null) ? 0 : name.hashCode());
+    hash = 31 * hash + offset;
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (o == this) {
+      return true;
+    }
+    if (!(o instanceof Datatype)) {
+      return false;
+    }
+    Datatype other = (Datatype)o;
+    boolean retVal = (length == other.length);
+    retVal &= (name == null && other.name == null) ||
+              (name != null && name.equals(other.name));
+    retVal &= (offset == other.offset);
+    return retVal;
+  }
 
 // --------------------- Begin Interface StructEntry ---------------------
 
@@ -216,8 +242,8 @@ public abstract class Datatype implements StructEntry
    */
   protected void firePropertyChange(Object oldValue, Object newValue)
   {
-    if (parent instanceof AbstractStruct) {
-      ((AbstractStruct)parent).propertyChange(new PropertyChangeEvent(parent, getName(), oldValue, newValue));
+    if (parent != null) {
+      parent.propertyChange(new PropertyChangeEvent(parent, getName(), oldValue, newValue));
     }
   }
 

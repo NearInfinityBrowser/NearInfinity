@@ -261,10 +261,13 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
+    long oldValue = getLongValue();
     setValue(getValueFromEditor());
 
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (getLongValue() != oldValue) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }
@@ -307,6 +310,25 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
       fmt = StringTable.Format.NONE;
     }
     return StringTable.getStringRef(value, fmt);
+  }
+
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + Integer.hashCode(value);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof StringRef)) {
+      return false;
+    }
+    StringRef other = (StringRef)o;
+    boolean retVal = (value == other.value);
+    return retVal;
   }
 
 //--------------------- Begin Interface IsNumeric ---------------------

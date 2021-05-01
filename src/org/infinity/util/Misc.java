@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.util.Comparator;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -409,27 +410,60 @@ public class Misc
   public static String prettifySymbol(String symbol)
   {
     if (symbol != null) {
-      StringBuilder sb = new StringBuilder(symbol);
-      boolean upper = true;
-      for (int idx = 0, len = sb.length(); idx < len; idx++) {
-        char ch = sb.charAt(idx);
-        if (upper) {
-          ch = Character.toUpperCase(ch);
-          upper = false;
-        } else {
-          ch = Character.toLowerCase(ch);
-        }
+      StringBuilder sb = new StringBuilder();
+      boolean isUpper = false;
+      boolean isDigit = false;
+      boolean isPrevUpper = false;
+      boolean isPrevDigit = false;
+      boolean toUpper = true;
+      for (int idx = 0, len = symbol.length(); idx < len; idx++) {
+        char ch = symbol.charAt(idx);
         if (" ,-_".indexOf(ch) >= 0) {
-          if (ch == '_') ch =  ' ';
-          if (ch == '-') {
-            sb.insert(idx, " -");
-            ch = ' ';
-            idx += 2;
-            len += 2;
+          // improve spacing
+          switch (ch) {
+            case '_':
+              sb.append(' ');
+              break;
+            case '-':
+              sb.append(" - ");
+              break;
+            default:
+              sb.append(ch);
           }
-          upper = true;
+          toUpper = true;
+        } else {
+          if (toUpper) {
+            ch = Character.toUpperCase(ch);
+            toUpper = false;
+          }
+          isPrevUpper = isUpper;
+          isPrevDigit = isDigit;
+          isUpper = Character.isUpperCase(ch);
+          isDigit = Character.isDigit(ch);
+          if (idx > 0) {
+            // detect word boundaries
+            char chPrev = sb.charAt(sb.length() - 1);
+            if (chPrev != ' ') {
+              if (isUpper && !isPrevUpper && !isPrevDigit) {
+                sb.append(' ');
+              } else if (isDigit && !isPrevDigit) {
+                sb.append(' ');
+              }
+            }
+
+            chPrev = sb.charAt(sb.length() - 1);
+            if (isUpper && chPrev != ' ') {
+              // prevent upper case characters in the middle of words
+              ch = Character.toLowerCase(ch);
+            }
+
+            if (!isUpper && chPrev == ' ') {
+              // new words start with upper case character
+              ch = Character.toUpperCase(ch);
+            }
+          }
+          sb.append(ch);
         }
-        sb.setCharAt(idx, ch);
       }
       symbol = sb.toString();
     }
@@ -539,6 +573,75 @@ public class Misc
   {
     return (o != null) ? o.toString() : "";
   }
+
+  /**
+   * This method throws a general {@link Exception} without message if the specified condition isn't met.
+   * @param cond the condition to meet.
+   * @throws Exception
+   */
+  public static void requireCondition(boolean cond) throws Exception
+  {
+    requireCondition(cond, null, null);
+  }
+
+  /**
+   * This method throws a general {@link Exception} with associated message if the specified condition isn't met.
+   * @param cond the condition to meet.
+   * @param message the exception message. Can be {@code null}.
+   * @throws Exception
+   */
+  public static void requireCondition(boolean cond, String message) throws Exception
+  {
+    requireCondition(cond, message, null);
+  }
+
+  /**
+   * This method throws a specialized exception without message if the specified condition isn't met.
+   * @param cond the condition to meet.
+   * @param classEx the exception class to throw.
+   * @throws Exception
+   */
+  public static void requireCondition(boolean cond, Class<? extends Exception> classEx) throws Exception
+  {
+    requireCondition(cond, null, classEx);
+  }
+
+  /**
+   * This method throws a specialized exception with associated message if the specified condition isn't met.
+   * @param cond the condition to meet.
+   * @param message the exception message. Can be {@code null}.
+   * @param classEx the exception class to throw.
+   * @throws Exception
+   */
+  public static void requireCondition(boolean cond, String message, Class<? extends Exception> classEx) throws Exception
+  {
+    if (!cond) {
+      if (message != null && message.isEmpty())
+      {
+        message = null;
+      }
+
+      if (classEx == null) {
+        classEx = Exception.class;
+      }
+
+      for (final Class<?> cls : new Class<?>[] { classEx, Exception.class }) {
+        Object ex = null;
+        if (message != null) {
+          Constructor<?> ctor = cls.getConstructor(String.class);
+          ex = ctor.newInstance(message);
+        } else {
+          Constructor<?> ctor = cls.getConstructor();
+          ex = ctor.newInstance();
+        }
+
+        if (ex instanceof Exception) {
+          throw (Exception)ex;
+        }
+      }
+    }
+  }
+
 
   // Contains static functions only
   private Misc() {}

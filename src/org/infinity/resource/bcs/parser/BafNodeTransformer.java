@@ -326,7 +326,7 @@ public class BafNodeTransformer
     }
   }
 
-  private void processParamString(ScriptNode funcNode, Signatures.Function.Parameter param, BafNode baf) throws ParseException
+  private void processParamString(ScriptNode funcNode, Signatures.Function.Parameter param, BafNode baf)
   {
     if (baf.getId() != BafParser.JJTPARAM_STR) {
       errors.add(new ScriptMessage("Invalid string: " + baf.jjtGetFirstToken(), baf.jjtGetFirstToken(), baf.jjtGetLastToken()));
@@ -337,7 +337,7 @@ public class BafNodeTransformer
     funcNode.strings.push(s);
   }
 
-  private String processString(BafNode baf) throws ParseException
+  private String processString(BafNode baf)
   {
     if (baf.getId() != BafParser.JJTSTRING) {
       errors.add(new ScriptMessage("Invalid string parameter: " + baf.jjtGetFirstToken(),
@@ -381,7 +381,7 @@ public class BafNodeTransformer
     return s;
   }
 
-  private void processParamNumeric(ScriptNode funcNode, Signatures.Function.Parameter param, BafNode baf) throws ParseException
+  private void processParamNumeric(ScriptNode funcNode, Signatures.Function.Parameter param, BafNode baf)
   {
     if (baf.getId() != BafParser.JJTPARAM_NUM &&
         baf.getId() != BafParser.JJTPARAM_SYM &&
@@ -410,7 +410,7 @@ public class BafNodeTransformer
     funcNode.numbers.push(Long.valueOf(value));
   }
 
-  private long processNumberExpression(String ids, BafNode baf) throws ParseException
+  private long processNumberExpression(String ids, BafNode baf)
   {
     if (baf.getId() != BafParser.JJTSINT &&
         baf.getId() != BafParser.JJTUINT &&
@@ -484,7 +484,7 @@ public class BafNodeTransformer
   }
 
   // Processes numeric or symbolic OR expressions
-  private long processOrExpression(Signatures.Function.Parameter param, BafNode baf) throws ParseException
+  private long processOrExpression(Signatures.Function.Parameter param, BafNode baf)
   {
     if (baf.getId() != BafParser.JJTOR_EXPR) {
       errors.add(new ScriptMessage("Invalid numeric or symbolic expression: " + baf.jjtGetFirstToken(),
@@ -502,7 +502,7 @@ public class BafNodeTransformer
     }
   }
 
-  private void processParamPoint(ScriptNode funcNode, Signatures.Function.Parameter param, BafNode baf) throws ParseException
+  private void processParamPoint(ScriptNode funcNode, Signatures.Function.Parameter param, BafNode baf)
   {
     if (baf.getId() != BafParser.JJTPARAM_TGT) {
       errors.add(new ScriptMessage("Invalid point: " + baf.jjtGetFirstToken(),
@@ -589,7 +589,7 @@ public class BafNodeTransformer
     }
   }
 
-  private void processIdsTarget(ScriptNode objNode, BafNode baf) throws ParseException
+  private void processIdsTarget(ScriptNode objNode, BafNode baf)
   {
     if (baf.getId() != BafParser.JJTTARGET) {
       errors.add(new ScriptMessage("Invalid IDS target: " + baf.jjtGetFirstToken(),
@@ -669,7 +669,7 @@ public class BafNodeTransformer
     }
   }
 
-  private void processObjectName(ScriptNode objNode, BafNode baf) throws ParseException
+  private void processObjectName(ScriptNode objNode, BafNode baf)
   {
     if (baf.getId() != BafParser.JJTNAME) {
       errors.add(new ScriptMessage("Invalid object name: " + baf.jjtGetFirstToken(),
@@ -688,7 +688,7 @@ public class BafNodeTransformer
     }
   }
 
-  private void processRectangle(ScriptNode objNode, BafNode baf) throws ParseException
+  private void processRectangle(ScriptNode objNode, BafNode baf)
   {
     if (baf.getId() != BafParser.JJTRECT) {
       errors.add(new ScriptMessage("Invalid region: " + baf.jjtGetFirstToken(),

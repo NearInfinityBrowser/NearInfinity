@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.HexNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.RemovableDecNumber;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -43,7 +43,6 @@ public final class Door extends AbstractStruct implements AddRemovable, HasChild
     super(superStruct, WED_DOOR + " " + number, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -55,27 +54,22 @@ public final class Door extends AbstractStruct implements AddRemovable, HasChild
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof RemovableDecNumber) {
-      final int offset = ((HexNumber)getParent().getAttribute(WedResource.WED_OFFSET_DOOR_TILEMAP_LOOKUP)).getValue();
+      final int offset = ((IsNumeric)getParent().getAttribute(WedResource.WED_OFFSET_DOOR_TILEMAP_LOOKUP)).getValue();
       int index = getTilemapIndex().getValue();
       datatype.setOffset(offset + index * 2);
     }
   }
-  //</editor-fold>
 
   public DecNumber getTilemapIndex()
   {
@@ -115,7 +109,6 @@ public final class Door extends AbstractStruct implements AddRemovable, HasChild
     }
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -147,7 +140,7 @@ public final class Door extends AbstractStruct implements AddRemovable, HasChild
     }
 
     if (getParent() != null) {
-      final HexNumber offsetTileCell = (HexNumber)getParent().getAttribute(WedResource.WED_OFFSET_DOOR_TILEMAP_LOOKUP);
+      final IsNumeric offsetTileCell = (IsNumeric)getParent().getAttribute(WedResource.WED_OFFSET_DOOR_TILEMAP_LOOKUP);
       for (int i = 0; i < countTileCell.getValue(); i++) {
         addField(new RemovableDecNumber(buffer, offsetTileCell.getValue() +
                                                 2 * (indexTileCell.getValue() + i), 2,
@@ -156,5 +149,4 @@ public final class Door extends AbstractStruct implements AddRemovable, HasChild
     }
     return offset + 26;
   }
-  //</editor-fold>
 }

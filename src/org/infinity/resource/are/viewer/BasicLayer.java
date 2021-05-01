@@ -158,9 +158,10 @@ public abstract class BasicLayer<E extends LayerObject, R extends AbstractStruct
    *
    * @param <T> Type of the items on the layer
    */
-  protected final <T extends StructEntry> void loadLayerItems(String offsetAttribute, String countAttribute,
-                                                              Class<T> itemClass, Function<T, E> newLayerObject)
+  protected <T extends StructEntry> void loadLayerItems(String offsetAttribute, String countAttribute,
+                                                        Class<T> itemClass, Function<T, E> newLayerObject)
   {
+//    long timeStart = System.nanoTime();
     final SectionOffset so = (SectionOffset)parent.getAttribute(offsetAttribute);
     final SectionCount  sc = (SectionCount )parent.getAttribute(countAttribute);
     if (so != null && sc != null) {
@@ -173,6 +174,8 @@ public abstract class BasicLayer<E extends LayerObject, R extends AbstractStruct
       }
       setInitialized(true);
     }
+//    long timeEnd = System.nanoTime();
+//    System.out.printf("Area viewer > load layer items (%s): %,d µs\n", itemClass.getSimpleName(), (timeEnd - timeStart) / 1000);
   }
 
   /** Loads all available objects of this layer. */

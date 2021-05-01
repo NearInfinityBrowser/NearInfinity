@@ -86,7 +86,6 @@ class TransitionItem extends StateOwnerItem
   /** Returns technical name of transition item which uniquely identifying it within dialog. */
   public String getName() { return trans.getName(); }
 
-  //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
   public StateItem getChildAt(int childIndex) { return isMain() && childIndex == 0 ? nextState : null; }
 
@@ -111,7 +110,6 @@ class TransitionItem extends StateOwnerItem
   {
     return enumeration(isLeaf() ? emptyList() : singletonList(nextState));
   }
-  //</editor-fold>
 
   @Override
   public String toString()

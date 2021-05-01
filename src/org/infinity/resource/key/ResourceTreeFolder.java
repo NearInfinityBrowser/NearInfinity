@@ -16,7 +16,7 @@ import java.util.Spliterator;
 public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 {
   private final SortedListSet<ResourceEntry> resourceEntries = new SortedListSet<>();
-  private final List<ResourceTreeFolder> folders = new ArrayList<ResourceTreeFolder>();
+  private final List<ResourceTreeFolder> folders = new ArrayList<>();
   private final ResourceTreeFolder parentFolder;
   private final String folderName;
 
@@ -54,7 +54,7 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 
   public List<ResourceEntry> getResourceEntries(String type)
   {
-    List<ResourceEntry> list = new ArrayList<ResourceEntry>();
+    List<ResourceEntry> list = new ArrayList<>();
     resourceEntries.forEach((entry) -> {
       if (entry.getExtension().equalsIgnoreCase(type)) {
         list.add(entry);
@@ -287,7 +287,7 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     @Override
     public synchronized SortedSet<T> headSet(T toElement)
     {
-      int toIdx = Collections.binarySearch(this, (T)toElement);
+      int toIdx = Collections.binarySearch(this, toElement);
       if (toIdx < 0) {
         toIdx = ~toIdx;
       } else {
@@ -308,11 +308,11 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     @Override
     public synchronized SortedSet<T> subSet(T fromElement, T toElement)
     {
-      int fromIdx = Collections.binarySearch(this, (T)fromElement);
+      int fromIdx = Collections.binarySearch(this, fromElement);
       if (fromIdx < 0) {
         fromIdx = ~fromIdx;
       }
-      int toIdx = Collections.binarySearch(this, (T)toElement);
+      int toIdx = Collections.binarySearch(this, toElement);
       if (toIdx < 0) {
         toIdx = ~toIdx;
       } else {
@@ -324,7 +324,7 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
     @Override
     public synchronized SortedSet<T> tailSet(T fromElement)
     {
-      int fromIdx = Collections.binarySearch(this, (T)fromElement);
+      int fromIdx = Collections.binarySearch(this, fromElement);
       if (fromIdx < 0) {
         fromIdx = ~fromIdx;
       }
@@ -333,7 +333,7 @@ public final class ResourceTreeFolder implements Comparable<ResourceTreeFolder>
 
     private SortedSet<T> getSortedSet(int fromIdx, int toIdx)
     {
-      SortedListSet<T> retVal = new SortedListSet<T>();
+      SortedListSet<T> retVal = new SortedListSet<>();
       for (int idx = fromIdx; idx <= toIdx; idx++) {
         retVal.add(get(idx));
       }

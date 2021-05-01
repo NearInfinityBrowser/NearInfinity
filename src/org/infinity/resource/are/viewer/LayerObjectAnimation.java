@@ -198,7 +198,6 @@ public class LayerObjectAnimation extends LayerObject
     items[1] = item2;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public void close()
   {
@@ -208,10 +207,10 @@ public class LayerObjectAnimation extends LayerObject
       Object key = items[i].getData();
       if (key != null) {
         switch (i) {
-          case ViewerConstants.ANIM_ITEM_ICON:
+          case ViewerConstants.ITEM_ICON:
             SharedResourceCache.remove(SharedResourceCache.Type.ICON, key);
             break;
-          case ViewerConstants.ANIM_ITEM_REAL:
+          case ViewerConstants.ITEM_REAL:
             SharedResourceCache.remove(SharedResourceCache.Type.ANIMATION, key);
             break;
         }
@@ -233,7 +232,7 @@ public class LayerObjectAnimation extends LayerObject
   @Override
   public AbstractLayerItem getLayerItem(int type)
   {
-    type = (type == ViewerConstants.ANIM_ITEM_REAL) ? ViewerConstants.ANIM_ITEM_REAL : ViewerConstants.ANIM_ITEM_ICON;
+    type = (type == ViewerConstants.ITEM_REAL) ? ViewerConstants.ITEM_REAL : ViewerConstants.ITEM_ICON;
     return items[type];
   }
 
@@ -249,7 +248,7 @@ public class LayerObjectAnimation extends LayerObject
     for (int i = 0; i < items.length; i++) {
       items[i].setItemLocation((int)(location.x*zoomFactor + (zoomFactor / 2.0)),
                                (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
-      if (i == ViewerConstants.ANIM_ITEM_REAL) {
+      if (i == ViewerConstants.ITEM_REAL) {
         ((AnimatedLayerItem)items[i]).setZoomFactor(zoomFactor);
       }
     }
@@ -264,7 +263,6 @@ public class LayerObjectAnimation extends LayerObject
       return false;
     }
   }
-  //</editor-fold>
 
   /**
    * Sets the lighting condition of the animation. Does nothing if the animation is flagged as
@@ -274,7 +272,7 @@ public class LayerObjectAnimation extends LayerObject
    */
   public void setLighting(int dayTime)
   {
-    AnimatedLayerItem item = (AnimatedLayerItem)items[ViewerConstants.ANIM_ITEM_REAL];
+    AnimatedLayerItem item = (AnimatedLayerItem)items[ViewerConstants.ITEM_REAL];
     BasicAnimationProvider provider = item.getAnimation();
     if (provider instanceof BackgroundAnimationProvider) {
       BackgroundAnimationProvider anim = (BackgroundAnimationProvider)provider;

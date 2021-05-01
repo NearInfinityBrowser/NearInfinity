@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -33,15 +34,68 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
+import org.infinity.resource.key.FileResourceEntry;
+import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.DynamicArray;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.StreamUtils;
+import org.infinity.util.tuples.Triple;
 
 /**
  * Contains a set of color-related static methods (little endian order only).
  */
 public class ColorConvert
 {
+  /**
+   * A fast but somewhat inaccurate algorithm for calculating a distance between two ARGB values.
+   * It uses predefined weight values for each color component to calculate the distance.
+   */
+  public static final ColorDistanceFunc COLOR_DISTANCE_ARGB = (argb1, argb2, weight) -> {
+    int a1 = (argb1 >> 24) & 0xff;
+    int r1 = (argb1 >> 16) & 0xff;
+    int g1 = (argb1 >> 8) & 0xff;
+    int b1 = argb1 & 0xff;
+    if (a1 != 0xff) {
+      r1 = r1 * a1 / 255;
+      g1 = g1 * a1 / 255;
+      b1 = b1 * a1 / 255;
+    }
+
+    int a2 = (argb2 >> 24) & 0xff;
+    int r2 = (argb2 >> 16) & 0xff;
+    int g2 = (argb2 >> 8) & 0xff;
+    int b2 = argb2 & 0xff;
+    if (a2 != 0xff) {
+      r2 = r2 * a2 / 255;
+      g2 = g2 * a2 / 255;
+      b2 = b2 * a2 / 255;
+    }
+
+    weight = Math.max(0.0, Math.min(2.0, weight));
+    double da = (double)(a1 - a2) * 48.0 * weight;
+    double dr = (double)(r1 - r2) * 14.0;
+    double dg = (double)(g1 - g2) * 28.0;
+    double db = (double)(b1 - b2) * 6.0;
+    return Math.sqrt(da*da + dr*dr + dg*dg + db*db);
+  };
+
+  /**
+   * Returns the distance between the two ARGB values using CIELAB colorspace and CIE94 formula.
+   * This algorithm is slower than the default ARGB distance calculation but more accurate.
+   */
+  public static final ColorDistanceFunc COLOR_DISTANCE_CIE94 = (argb1, argb2, weight) -> {
+    Triple<Double, Double, Double> lab1 = convertRGBtoLab(argb1);
+    Triple<Double, Double, Double> lab2 = convertRGBtoLab(argb2);
+    weight = Math.max(0.0, Math.min(2.0, weight));
+    double alpha1 = (double)((argb1 >> 24) & 0xff) * weight;
+    double alpha2 = (double)((argb2 >> 24) & 0xff) * weight;
+    return getColorDistanceLabCIE94(lab1.getValue0().doubleValue(), lab1.getValue1().doubleValue(), lab1.getValue2().doubleValue(), alpha1,
+                                    lab2.getValue0().doubleValue(), lab2.getValue1().doubleValue(), lab2.getValue2().doubleValue(), alpha2);
+  };
+
+  // Cache for ARGB key -> CIELAB color space values
+  private static final HashMap<Integer, Triple<Double, Double, Double>> ARGB_LAB_CACHE = new HashMap<>();
+
   // max. number of colors for color reduction algorithms
   private static final int MAX_COLORS = 256;
 
@@ -53,7 +107,13 @@ public class ColorConvert
     Red,        // Sort by red color component.
     Green,      // Sort by green color component.
     Blue,       // Sort by blue color component.
-    Alpha       // Sort by alpha component.
+    Alpha,      // Sort by alpha component.
+    Lab,        // Sort by CIELAB L component.
+  }
+
+  public static void clearCache()
+  {
+    ARGB_LAB_CACHE.clear();
   }
 
   /**
@@ -228,50 +288,86 @@ public class ColorConvert
     return d;
   }
 
-  /**
-   * Calculates the nearest color available in the given RGBA palette for the specified color.
-   * @param rgbColor The source color in ARGB format.
-   * @param rgbPalette A palette containing ARGB color entries.
-   * @param ignoreAlpha Whether to exclude alpha component from the calculation.
-   * @return The palette index pointing to the nearest color, or -1 on error.
-   */
-  public static int nearestColorRGB(int rgbColor, int[] rgbPalette, boolean ignoreAlpha)
-  {
-    // TODO: Improve match quality for grayscaled colors
-    int index = -1;
-    if (rgbPalette != null && rgbPalette.length > 0) {
-      int mask = ignoreAlpha ? 0 : 0xff000000;
-      int minDist = Integer.MAX_VALUE;
-      int a = ((rgbColor & mask) >> 24) & 0xff;
-      int r = (rgbColor >> 16) & 0xff;
-      int g = (rgbColor >> 8) & 0xff;
-      int b = rgbColor & 0xff;
+//  /**
+//   * Calculates the nearest color available in the given RGBA palette for the specified color.
+//   * @param rgbColor The source color in ARGB format.
+//   * @param rgbPalette A palette containing ARGB color entries.
+//   * @param ignoreAlpha Whether to exclude alpha component from the calculation.
+//   * @return The palette index pointing to the nearest color, or -1 on error.
+//   */
+//  public static int nearestColorRGB(int rgbColor, int[] rgbPalette, boolean ignoreAlpha)
+//  {
+//    // TODO: Improve match quality for grayscaled colors
+//    int index = -1;
+//    if (rgbPalette != null && rgbPalette.length > 0) {
+//      int mask = ignoreAlpha ? 0 : 0xff000000;
+//      int minDist = Integer.MAX_VALUE;
+//      int a = ((rgbColor & mask) >> 24) & 0xff;
+//      int r = (rgbColor >> 16) & 0xff;
+//      int g = (rgbColor >> 8) & 0xff;
+//      int b = rgbColor & 0xff;
+//
+//      int da, dr, dg, db;
+//      for (int i = 0; i < rgbPalette.length; i++) {
+//        int col = rgbPalette[i];
+//        // Extra check for full transparency
+//        if (a == 0) {
+//          if ((col & 0xff000000) == 0) { return i; }
+//          if (col == 0xff00ff00) { return i; }
+//        }
+//        // Computing weighted distance to compensate for perceived color differences
+//        int a2 = ((rgbPalette[i] & mask) >> 24) & 0xff;
+//        int r2 = (rgbPalette[i] >> 16) & 0xff;
+//        int g2 = (rgbPalette[i] >> 8) & 0xff;
+//        int b2 = rgbPalette[i] & 0xff;
+//        da = (a - a2) * 48;
+//        dr = (r - r2) * 14;
+//        dg = (g - g2) * 28;
+//        db = (b - b2) * 6;
+//        int dist = da*da + dr*dr + dg*dg + db*db;
+//        if (dist < minDist) {
+//          minDist = dist;
+//          index = i;
+//        }
+//      }
+//    }
+//    return index;
+//  }
 
-      int da, dr, dg, db;
-      for (int i = 0; i < rgbPalette.length; i++) {
-        int col = rgbPalette[i];
-        // Extra check for full transparency
-        if (a == 0) {
-          if ((col & 0xff000000) == 0) { return i; }
-          if (col == 0xff00ff00) { return i; }
-        }
-        // Computing weighted distance to compensate for perceived color differences
-        int a2 = ((rgbPalette[i] & mask) >> 24) & 0xff;
-        int r2 = (rgbPalette[i] >> 16) & 0xff;
-        int g2 = (rgbPalette[i] >> 8) & 0xff;
-        int b2 = rgbPalette[i] & 0xff;
-        da = (a - a2) * 48;
-        dr = (r - r2) * 14;
-        dg = (g - g2) * 28;
-        db = (b - b2) * 6;
-        int dist = da*da + dr*dr + dg*dg + db*db;
-        if (dist < minDist) {
-          minDist = dist;
-          index = i;
-        }
+  /**
+   * Calculates the nearest color available in the given palette using the specified color distance function.
+   * @param argb the reference ARGB color.
+   * @param palette palette with ARGB colors to search.
+   * @param alphaWeight Weight factor of the alpha component. Supported range: [0.0, 2.0].
+   *                    A value < 1.0 makes alpha less important for the distance calculation.
+   *                    A value > 1.0 makes alpha more important for the distance calculation.
+   *                    Specify 1.0 to use the unmodified alpha compomponent for the calculation.
+   *                    Specify 0.0 to ignore the alpha part in the calculation.
+   * @param calculator the function for distance calculation. Choose one of the predefined functions or specify a custom
+   *                   instance. Specify {@code null} to use the fastest (but slightly inaccurate) distance calculation.
+   * @return Palette index pointing to the nearest color value. Returns -1 if color entry could not be determined.
+   */
+  public static int getNearestColor(int argb, int[] palette, double alphaWeight, ColorDistanceFunc calculator)
+  {
+    int retVal = -1;
+    if (palette == null) {
+      return retVal;
+    }
+
+    if (calculator == null) {
+      calculator = COLOR_DISTANCE_ARGB;
+    }
+    alphaWeight = Math.max(0.0, Math.min(2.0, alphaWeight));
+    double minDist = Double.MAX_VALUE;
+    for (int i = 0; i < palette.length; i++) {
+      double dist = calculator.calculate(argb, palette[i], alphaWeight);
+      if (dist < minDist) {
+        minDist = dist;
+        retVal = i;
       }
     }
-    return index;
+
+    return retVal;
   }
 
   /**
@@ -291,25 +387,28 @@ public class ColorConvert
 
       switch (type) {
         case Lightness:
-          Arrays.sort(tmpColors, startIndex, tmpColors.length, new CompareByLightness());
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, CompareByLightness);
           break;
         case Saturation:
-          Arrays.sort(tmpColors, startIndex, tmpColors.length, new CompareBySaturation());
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, CompareBySaturation);
           break;
         case Hue:
-          Arrays.sort(tmpColors, startIndex, tmpColors.length, new CompareByHue());
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, CompareByHue);
           break;
         case Red:
-          Arrays.sort(tmpColors, startIndex, tmpColors.length, new CompareByRed());
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, CompareByRed);
           break;
         case Green:
-          Arrays.sort(tmpColors, startIndex, tmpColors.length, new CompareByGreen());
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, CompareByGreen);
           break;
         case Blue:
-          Arrays.sort(tmpColors, startIndex, tmpColors.length, new CompareByBlue());
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, CompareByBlue);
           break;
         case Alpha:
-          Arrays.sort(tmpColors, startIndex, tmpColors.length, new CompareByAlpha());
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, CompareByAlpha);
+          break;
+        case Lab:
+          Arrays.sort(tmpColors, startIndex, tmpColors.length, CompareByLabL);
           break;
         default:
           break;
@@ -327,6 +426,214 @@ public class ColorConvert
         }
       }
     }
+  }
+
+  /**
+   * Converts a single RGB value into the CIELAB colorspace.
+   * @param argb The ARGB value to convert.
+   * @return the converted color value in CIELAB colorspace. Order: L, a, b, alpha
+   *         where L range is [0.0, 100.0], a and b are open-ended (usually between -150 and 150).
+   */
+  public static Triple<Double, Double, Double> convertRGBtoLab(int argb)
+  {
+    Integer key = Integer.valueOf(argb & 0xffffff);
+    Triple<Double, Double, Double> retVal = ARGB_LAB_CACHE.get(key);
+
+    if (retVal == null) {
+      int alpha = (argb >> 24) & 0xff;
+      int red = (argb >> 16) & 0xff;
+      int green = (argb >> 8) & 0xff;
+      int blue = argb & 0xff;
+      if (alpha != 255) {
+        red = red * alpha / 255;
+        green = green * alpha / 255;
+        blue = blue * alpha / 255;
+      }
+
+      // 1. Linearize RGB
+      double r = (double)red / 255.0;
+      double g = (double)green / 255.0;
+      double b = (double)blue / 255.0;
+
+      // 2. Convert to CIEXYZ
+      r = (r > 0.04045) ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
+      g = (g > 0.04045) ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
+      b = (b > 0.04045) ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
+      r *= 100.0;
+      g *= 100.0;
+      b *= 100.0;
+      double x = (r * 0.4124) + (g * 0.3576) + (b * 0.1805);
+      double y = (r * 0.2126) + (g * 0.7152) + (b * 0.0722);
+      double z = (r * 0.0193) + (g * 0.1192) + (b * 0.9505);
+
+      // 3. Convert to Lab
+      x /= 95.047;
+      y /= 100.0;
+      z /= 108.883;
+      x = (x > 0.008856) ? Math.pow(x, 1.0 / 3.0) : (7.787 * x) + (16.0 / 116.0);
+      y = (y > 0.008856) ? Math.pow(y, 1.0 / 3.0) : (7.787 * y) + (16.0 / 116.0);
+      z = (z > 0.008856) ? Math.pow(z, 1.0 / 3.0) : (7.787 * z) + (16.0 / 116.0);
+      Double dstL = Double.valueOf((116.0 * y) - 16.0);
+      Double dstA = Double.valueOf(500.0 * (x - y));
+      Double dstB = Double.valueOf(200.0 * (y - z));
+      retVal = Triple.with(dstL, dstA, dstB);
+
+      ARGB_LAB_CACHE.put(key, retVal);
+    }
+
+    return retVal;
+  }
+
+  /**
+   * Converts a color entry in CIELAB colorspace into an RGB value. Alpha part is set to 0.
+   * @param L the L (lightness) value in range [0.0, 100.0].
+   * @param a the a axis (green-red) value.
+   * @param b the b axis (blue-yellow) value.
+   * @return RGB value where blue is located in the lowest byte, followed by green and red. Highest byte is set to 0.
+   */
+  public static int convertLabToRGB(double L, double a, double b)
+  {
+    // 1. Convert to CIEXYZ
+    double y = (L + 16.0) / 116.0;
+    double x = (a / 500.0) + y;
+    double z = y - (b / 200.0);
+
+    double d = Math.pow(y, 3.0);
+    y = (d > 0.008856) ? d : (y - (16.0 / 116.0)) / 7.787;
+    d = Math.pow(x, 3.0);
+    x = (d > 0.008856) ? d : (x - (16.0 / 116.0)) / 7.787;
+    d = Math.pow(z, 3.0);
+    z = (d > 0.008856) ? d : (z - (16.0 / 116.0)) / 7.787;
+
+    x *= 95.047;
+    y *= 100.0;
+    z *= 108.883;
+
+    // 2. Convert to linear RGB
+    x /= 100.0;
+    y /= 100.0;
+    z /= 100.0;
+    double red = (x * 3.2406) + (y * -1.5372) + (z * -0.4986);
+    double green = (x * -0.9689) + (y * 1.8758) + (z *  0.0415);
+    double blue = (x * 0.0557) + (y * -0.2040) + (z * 1.0570);
+
+    red = (red > 0.0031308) ? 1.055 * Math.pow(red, 1.0 / 2.4) - 0.055 : 12.92 * red;
+    green = (green > 0.0031308) ? 1.055 * Math.pow(green, 1.0 / 2.4) - 0.055 : 12.92 * green;
+    blue = (blue > 0.0031308) ? 1.055 * Math.pow(blue, 1.0 / 2.4) - 0.055 : 12.92 * blue;
+
+    // convert to non-linear RGB
+    int retVal = 0;
+    retVal |= Math.max(0, Math.min(255, (int)(red * 255.0)));
+    retVal <<= 8;
+    retVal |= Math.max(0, Math.min(255, (int)(green * 255.0)));
+    retVal <<= 8;
+    retVal |= Math.max(0, Math.min(255, (int)(blue * 255.0)));
+
+    return retVal;
+  }
+
+  /**
+   * Converts a ARGB palette to a palette in CIELAB colorspace. The returned array contains four components per
+   * color entry: L, a, b and alpha. L range is [0.0, 100.0], a and b are open-ended (usually between -150 and 150),
+   * alpha range is [0.0, 255.0].
+   * @param palette Palette with ARGB color entries
+   * @return array with CIELAB color entries plus alpha component.
+   */
+  public static double[] convertRGBtoLabPalette(int[] palette)
+  {
+    double[] retVal = null;
+    if (palette == null) {
+      return retVal;
+    }
+
+    retVal = new double[palette.length * 4];
+    for (int i = 0; i < palette.length; i++) {
+      int a = (palette[i] >> 24) & 0xff;
+      Triple<Double, Double, Double> entry = convertRGBtoLab(palette[i]);
+      retVal[i * 4] = entry.getValue0().doubleValue();
+      retVal[i * 4 + 1] = entry.getValue1().doubleValue();
+      retVal[i * 4 + 2] = entry.getValue2().doubleValue();
+      retVal[i * 4 + 3] = (double)a;
+    }
+
+    return retVal;
+  }
+
+  /**
+   * Converts a palette in CIELAB colorspace plus alpha into a ARGB palette.
+   * @param palette Palette with L, a, b and alpha component per color entry.
+   * @return array with ARGB color entries packed into single integer per entry.
+   */
+  public static int[] convertLabToRGBPalette(double[] palette)
+  {
+    int[] retVal = null;
+    if (palette == null) {
+      return retVal;
+    }
+
+    retVal = new int[palette.length / 4];
+    for (int i = 0; i < retVal.length; i++) {
+      double L = palette[i * 4];
+      double a = palette[i * 4 + 1];
+      double b = palette[i * 4 + 2];
+
+      int rgba = convertLabToRGB(L, a, b);
+      int alpha = Math.max(0, Math.min(255, (int)palette[i * 4 + 3]));
+      rgba |= (alpha << 24);
+      retVal[i] = rgba;
+    }
+
+    return retVal;
+  }
+
+  /** Calculates the distance between two CIELAB colors based on CIE94 formula. */
+  public static double getColorDistanceLabCIE94(double L1, double a1, double b1, double alpha1,
+                                                double L2, double a2, double b2, double alpha2)
+  {
+    final double kl = 1.0;
+    final double k1 = 0.045;
+    final double k2 = 0.015;
+
+    double deltaL = L1 - L2;
+    double deltaA = a1 - a2;
+    double deltaB = b1 - b2;
+
+    double c1 = Math.sqrt(a1*a1 + b1*b1);
+    double c2 = Math.sqrt(a2*a2 + b2*b2);
+    double deltaC = c1 - c2;
+
+    double deltaH = deltaA*deltaA + deltaB*deltaB - deltaC*deltaC;
+    deltaH = (deltaH < 0.0) ? 0.0 : Math.sqrt(deltaH);
+
+    double sc = 1.0 + k1*c1;
+    double sh = 1.0 + k2*c1;
+
+    double i = Math.pow(deltaL / kl, 2.0) +
+               Math.pow(deltaC / sc, 2.0) +
+               Math.pow(deltaH / sh, 2.0) +
+               (alpha1 - alpha2)*(alpha1 - alpha2);
+
+    return (i < 0.0) ? 0.0 : Math.sqrt(i);
+  }
+
+  /**
+   * Returns the distance between the two ARGB values using CIELAB colorspace and CIE94 formula.
+   * @param argb1 the first ARGB color entry.
+   * @param argb2 the second ARGB color entry.
+   * @param alphaWeight Weight factor of the alpha component. Supported range: [0.0, 2.0].
+   *                    A value < 1.0 makes alpha less important for the distance calculation.
+   *                    A value > 1.0 makes alpha more important for the distance calculation.
+   *                    Specify 0.0 to ignore the alpha part in the calculation.
+   */
+  public static double getRGBColorDistanceLabCIE94(int argb1, int argb2, double alphaWeight)
+  {
+    Triple<Double, Double, Double> lab1 = convertRGBtoLab(argb1);
+    Triple<Double, Double, Double> lab2 = convertRGBtoLab(argb2);
+    alphaWeight = Math.max(0.0, Math.min(2.0, alphaWeight));
+    double alpha1 = (double)((argb1 >> 24) & 0xff) * alphaWeight;
+    double alpha2 = (double)((argb2 >> 24) & 0xff) * alphaWeight;
+    return getColorDistanceLabCIE94(lab1.getValue0().doubleValue(), lab1.getValue1().doubleValue(), lab1.getValue2().doubleValue(), alpha1,
+                                    lab2.getValue0().doubleValue(), lab2.getValue1().doubleValue(), lab2.getValue2().doubleValue(), alpha2);
   }
 
   // Returns each color component as float array {b, g, r, a} in range [0.0, 1.0].
@@ -376,18 +683,16 @@ public class ColorConvert
       throw new NullPointerException();
 
     if (desiredColors > 0 && desiredColors <= MAX_COLORS && palette.length >= desiredColors) {
-      PriorityQueue<PixelBlock> blockQueue =
-          new PriorityQueue<PixelBlock>(desiredColors, PixelBlock.PixelBlockComparator);
+      final PriorityQueue<PixelBlock> blockQueue =
+          new PriorityQueue<>(desiredColors, PixelBlock.PixelBlockComparator);
 
-      Pixel[] p = null;
-      p = new Pixel[pixels.length];
+      final Pixel[] p = new Pixel[pixels.length];
       int mask = ignoreAlpha ? 0xff000000: 0;
-      p = new Pixel[pixels.length];
       for (int i = 0; i < p.length; i++) {
         p[i] = new Pixel(pixels[i] | mask);
       }
 
-      PixelBlock initialBlock = new PixelBlock(p);
+      final PixelBlock initialBlock = new PixelBlock(p);
       initialBlock.shrink();
       blockQueue.add(initialBlock);
       while (blockQueue.size() < desiredColors) {
@@ -398,8 +703,8 @@ public class ColorConvert
         Arrays.sort(longestBlock.getPixels(), longestBlock.offset(),
                     longestBlock.offset() + longestBlock.size(),
                     Pixel.PixelComparator.get(longestBlock.getLongestSideIndex()));
-        PixelBlock block1 = new PixelBlock(longestBlock.getPixels(), ofsBegin, ofsMedian - ofsBegin);
-        PixelBlock block2 = new PixelBlock(longestBlock.getPixels(), ofsMedian, ofsEnd - ofsMedian);
+        final PixelBlock block1 = new PixelBlock(longestBlock.getPixels(), ofsBegin, ofsMedian - ofsBegin);
+        final PixelBlock block2 = new PixelBlock(longestBlock.getPixels(), ofsMedian, ofsEnd - ofsMedian);
         block1.shrink();
         block2.shrink();
         blockQueue.add(block1);
@@ -408,14 +713,14 @@ public class ColorConvert
 
       int palIndex = 0;
       while (!blockQueue.isEmpty() && palIndex < desiredColors) {
-        PixelBlock block = blockQueue.poll();
-        int[] sum = {0, 0, 0, 0};
+        final PixelBlock block = blockQueue.poll();
+        final int[] sum = {0, 0, 0, 0};
         for (int i = 0; i < block.size(); i++) {
           for (int j = 0; j < Pixel.MAX_SIZE; j++) {
             sum[j] += block.getPixel(i).getElement(j);
           }
         }
-        Pixel avgPixel = new Pixel();
+        final Pixel avgPixel = new Pixel();
         if (block.size() > 0) {
           for (int i = 0; i < Pixel.MAX_SIZE; i++) {
             avgPixel.color[i] = (byte)(sum[i] / block.size());
@@ -438,8 +743,19 @@ public class ColorConvert
    */
   public static int[] loadPaletteBMP(Path file) throws Exception
   {
-    if (file != null && FileEx.create(file).isFile()) {
-      try (InputStream is = StreamUtils.getInputStream(file)) {
+    return loadPaletteBMP(new FileResourceEntry(file));
+  }
+
+  /**
+   * Attempts to load a palette from the specified Windows BMP file.
+   * @param entry The BMP resource entry to extract the palette from.
+   * @return The palette as ARGB integers.
+   * @throws Exception on error.
+   */
+  public static int[] loadPaletteBMP(ResourceEntry entry) throws Exception
+  {
+    if (entry != null) {
+      try (InputStream is = entry.getResourceDataAsStream()) {
         byte[] signature = new byte[8];
         is.read(signature);
         if ("BM".equals(new String(signature, 0, 2))) {
@@ -458,19 +774,22 @@ public class ColorConvert
             byte[] palette = new byte[colorCount*4];
             is.read(palette);
             int[] retVal = new int[colorCount];
-            for (int i =0; i < colorCount; i++) {
-              retVal[i] = 0xff000000 | (DynamicArray.getInt(palette, i << 2) & 0x00ffffff);
+            for (int i = 0; i < colorCount; i++) {
+              retVal[i] = DynamicArray.getInt(palette, i << 2);
+              if ((retVal[i] & 0xff000000) == 0) {
+                retVal[i] |= 0xff000000;
+              }
             }
             return retVal;
           } else {
-            throw new Exception("Error loading palette from BMP file " + file.getFileName());
+            throw new Exception("Error loading palette: " + entry.getResourceName());
           }
         } else {
-          throw new Exception("Invalid BMP file " + file.getFileName());
+          throw new Exception("Invalid BMP resource: " + entry.getResourceName());
         }
       } catch (IOException e) {
         e.printStackTrace();
-        throw new Exception("Unable to read BMP file " + file.getFileName());
+        throw new Exception("Unable to read BMP resource: " + entry.getResourceName());
       }
     } else {
       throw new Exception("File does not exist.");
@@ -612,13 +931,18 @@ public class ColorConvert
    */
   public static int[] loadPaletteBAM(Path file, boolean preserveAlpha) throws Exception
   {
-    if (file != null && FileEx.create(file).isFile()) {
-      try (InputStream is = StreamUtils.getInputStream(file)) {
+    return loadPaletteBAM(new FileResourceEntry(file), preserveAlpha);
+  }
+
+  public static int[] loadPaletteBAM(ResourceEntry entry, boolean preserveAlpha) throws Exception
+  {
+    if (entry != null) {
+      try (InputStream is = entry.getResourceDataAsStream()) {
         byte[] signature = new byte[8];
         is.read(signature);
         String s = new String(signature);
         if ("BAM V1  ".equals(s) || "BAMCV1  ".equals(s)) {
-          byte[] bamData = new byte[(int)Files.size(file)];
+          byte[] bamData = new byte[(int)entry.getResourceSize()];
           System.arraycopy(signature, 0, bamData, 0, signature.length);
           is.read(bamData, signature.length, bamData.length - signature.length);
           if ("BAMCV1  ".equals(s)) {
@@ -636,14 +960,14 @@ public class ColorConvert
             }
             return retVal;
           } else {
-            throw new Exception("Error loading palette from BAM file " + file.getFileName());
+            throw new Exception("Error loading palette: " + entry.getResourceName());
           }
         } else {
           throw new Exception("Unsupport file type.");
         }
       } catch (IOException e) {
         e.printStackTrace();
-        throw new Exception("Unable to read BAM file " + file.getFileName());
+        throw new Exception("Unable to read BAM resource: " + entry.getResourceName());
       }
     } else {
       throw new Exception("File does not exist.");
@@ -718,6 +1042,25 @@ public class ColorConvert
 
 //-------------------------- INNER CLASSES --------------------------
 
+  /**
+   * Represents a function to calculate the distance between two ARGB color values.
+   */
+  public interface ColorDistanceFunc
+  {
+    /**
+     * Performs a calculation to determine the distance between the specified ARGB color values. The third argument
+     * indicates how much influence the alpha component should have.
+     * @param argb1 the first ARGB color value.
+     * @param argb2 the second ARGB color value
+     * @param alphaWeight Weight factor of the alpha component. Supported range: [0.0, 2.0].
+     *                    A value < 1.0 makes alpha less important for the distance calculation.
+     *                    A value > 1.0 makes alpha more important for the distance calculation.
+     *                    Specify 0.0 to completely ignore the alpha part in the calculation.
+     * @return the relative distance between the two color values.
+     */
+    double calculate(int argb1, int argb2, double alphaWeight);
+  }
+
   private static class PixelBlock
   {
     private final Pixel minCorner, maxCorner;
@@ -737,8 +1080,8 @@ public class ColorConvert
       this.pixels = pixels;
       this.ofs = ofs;
       this.len = len;
-      minCorner = new Pixel(Byte.MIN_VALUE, Byte.MIN_VALUE, Byte.MIN_VALUE, Byte.MIN_VALUE);
-      maxCorner = new Pixel(Byte.MAX_VALUE, Byte.MAX_VALUE, Byte.MAX_VALUE, Byte.MAX_VALUE);
+      minCorner = new Pixel(0);
+      maxCorner = new Pixel(0xffffffff);
     }
 
     public Pixel[] getPixels()
@@ -807,13 +1150,9 @@ public class ColorConvert
       }
     }
 
-    public static Comparator<PixelBlock> PixelBlockComparator = new Comparator<PixelBlock>() {
-      @Override
-      public int compare(PixelBlock pb1, PixelBlock pb2)
-      {
-        // inverting natural order by switching sides
-        return pb2.getLongestSideLength() - pb1.getLongestSideLength();
-      }
+    public static final Comparator<PixelBlock> PixelBlockComparator = (pb1, pb2) -> {
+      // inverting natural order by switching sides
+      return pb2.getLongestSideLength() - pb1.getLongestSideLength();
     };
   }
 
@@ -835,11 +1174,6 @@ public class ColorConvert
                               (byte)(color & 0xff)};
     }
 
-    public Pixel(byte r, byte g, byte b, byte a)
-    {
-      this.color = new byte[]{a, r, g, b};
-    }
-
     public int toColor()
     {
       return ((color[0] & 0xff) << 24) | ((color[1] & 0xff) << 16) | ((color[2] & 0xff) << 8) | (color[3] & 0xff);
@@ -854,45 +1188,17 @@ public class ColorConvert
       }
     }
 
-    public static List<Comparator<Pixel>> PixelComparator = new ArrayList<Comparator<Pixel>>(MAX_SIZE);
-    static {
-      PixelComparator.add(new Comparator<Pixel>() {
-        @Override
-        public int compare(Pixel p1, Pixel p2)
-        {
-          return p1.getElement(0) - p2.getElement(0);
-        }
-      });
-      PixelComparator.add(new Comparator<Pixel>() {
-        @Override
-        public int compare(Pixel p1, Pixel p2)
-        {
-          return p1.getElement(1) - p2.getElement(1);
-        }
-      });
-      PixelComparator.add(new Comparator<Pixel>() {
-        @Override
-        public int compare(Pixel p1, Pixel p2)
-        {
-          return p1.getElement(2) - p2.getElement(2);
-        }
-      });
-      PixelComparator.add(new Comparator<Pixel>() {
-        @Override
-        public int compare(Pixel p1, Pixel p2)
-        {
-          return p1.getElement(3) - p2.getElement(3);
-        }
-      });
-    }
+    public static final List<Comparator<Pixel>> PixelComparator = new ArrayList<Comparator<Pixel>>(MAX_SIZE) {{
+      add((p1, p2) -> p1.getElement(0) - p2.getElement(0));
+      add((p1, p2) -> p1.getElement(1) - p2.getElement(1));
+      add((p1, p2) -> p1.getElement(2) - p2.getElement(2));
+      add((p1, p2) -> p1.getElement(3) - p2.getElement(3));
+    }};
   }
 
 
   // Compare colors by perceived lightness.
-  private static class CompareByLightness implements Comparator<Integer> {
-    @Override
-    public int compare(Integer c1, Integer c2)
-    {
+  private static final Comparator<Integer> CompareByLightness = (c1, c2) -> {
       Integer[] colors = new Integer[] {c1, c2};
       double[] dist = new double[colors.length];
       for (int i = 0; i < colors.length; i++) {
@@ -905,14 +1211,10 @@ public class ColorConvert
         dist[i] = Math.sqrt(b + g + r + a);
       }
       return (dist[0] < dist[1]) ? -1 : ((dist[0] > dist[1]) ? 1 : 0);
-    }
-  }
+  };
 
   // Compare colors by saturation.
-  private static class CompareBySaturation implements Comparator<Integer> {
-    @Override
-    public int compare(Integer c1, Integer c2)
-    {
+  private static final Comparator<Integer> CompareBySaturation = (c1, c2) -> {
       Integer[] colors = new Integer[] {c1, c2};
       double[] dist = new double[colors.length];
       for (int i = 0; i < colors.length; i++) {
@@ -932,14 +1234,10 @@ public class ColorConvert
         dist[i] = s;
       }
       return (dist[0] < dist[1]) ? -1 : ((dist[0] > dist[1]) ? 1 : 0);
-    }
-  }
+  };
 
   // Compare colors by hue.
-  private static class CompareByHue implements Comparator<Integer> {
-    @Override
-    public int compare(Integer c1, Integer c2)
-    {
+  private static final Comparator<Integer> CompareByHue = (c1, c2) -> {
       Integer[] colors = new Integer[] {c1, c2};
       double[] dist = new double[colors.length];
       for (int i = 0; i < colors.length; i++) {
@@ -970,50 +1268,49 @@ public class ColorConvert
         dist[i] = h;
       }
       return (dist[0] < dist[1]) ? -1 : ((dist[0] > dist[1]) ? 1 : 0);
-    }
-  }
+  };
 
   // Compare colors by red amount.
-  private static class CompareByRed implements Comparator<Integer> {
-    @Override
-    public int compare(Integer c1, Integer c2)
-    {
+  private static final Comparator<Integer> CompareByRed = (c1, c2) -> {
       int dist1 = (c1 >>> 16) & 0xff;
       int dist2 = (c2 >>> 16) & 0xff;
       return dist1 - dist2;
-    }
-  }
+  };
 
   // Compare colors by green amount.
-  private static class CompareByGreen implements Comparator<Integer> {
-    @Override
-    public int compare(Integer c1, Integer c2)
-    {
+  private static final Comparator<Integer> CompareByGreen = (c1, c2) -> {
       int dist1 = (c1 >>> 8) & 0xff;
       int dist2 = (c2 >>> 8) & 0xff;
       return dist1 - dist2;
-    }
-  }
+  };
 
   // Compare colors by blue amount.
-  private static class CompareByBlue implements Comparator<Integer> {
-    @Override
-    public int compare(Integer c1, Integer c2)
-    {
+  private static final Comparator<Integer> CompareByBlue = (c1, c2) -> {
       int dist1 = c1 & 0xff;
       int dist2 = c2 & 0xff;
       return dist1 - dist2;
-    }
-  }
+  };
 
   // Compare colors by alpha.
-  private static class CompareByAlpha implements Comparator<Integer> {
-    @Override
-    public int compare(Integer c1, Integer c2)
-    {
-      int dist1 = (c1 >>> 24) & 0xff;
-      int dist2 = (c2 >>> 24) & 0xff;
-      return dist1 - dist2;
+  private static final Comparator<Integer> CompareByAlpha = (c1, c2) -> {
+    int dist1 = (c1 >>> 24) & 0xff;
+    int dist2 = (c2 >>> 24) & 0xff;
+    return dist1 - dist2;
+  };
+
+  // Compare colors by CIELAB L component.
+  private static final Comparator<Integer> CompareByLabL = (c1, c2) -> {
+    Triple<Double, Double, Double> dist1 = convertRGBtoLab(c1);
+    Triple<Double, Double, Double> dist2 = convertRGBtoLab(c2);
+    if (dist1.getValue0() < dist2.getValue0()) {
+      return -1;
+    } else if (dist1.getValue0() > dist2.getValue0()) {
+      return 1;
+    } else {
+      return 0;
     }
-  }
+//    int dist1 = (c1 >>> 24) & 0xff;
+//    int dist2 = (c2 >>> 24) & 0xff;
+//    return dist1 - dist2;
+  };
 }

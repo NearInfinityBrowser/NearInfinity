@@ -57,7 +57,6 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
   @Override
   public String toString() { return "Dialogues"; }
 
-  //<editor-fold defaultstate="collapsed" desc="TreeModel">
   @Override
   public DlgTreeModel getRoot() { return this; }
 
@@ -129,9 +128,7 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
       listeners.remove(l);
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
   public ItemBase getChildAt(int childIndex)
   {
@@ -181,9 +178,7 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
       }
     };
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="TableModelListener">
   @Override
   public void tableChanged(TableModelEvent e)
   {
@@ -213,9 +208,7 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="PropertyChangeListener">
   @Override
   public void propertyChange(PropertyChangeEvent e)
   {
@@ -265,9 +258,7 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Events">
   /**
    * Updates tree when specified state or transition entry changed.
    *
@@ -337,7 +328,6 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
     }
   }
 
-  //<editor-fold defaultstate="collapsed" desc="State changed">
   /**
    * Changes tree structure accourding to the changes in the
    * {@link State#DLG_STATE_FIRST_RESPONSE_INDEX} property of the state.
@@ -481,9 +471,7 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
     items.clear();
     fireTreeNodesRemoved(parent.getPath(), childIndices, children);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Transition changed">
   /**
    * Changes tree structure accourding to the changes in the
    * {@link Transition#DLG_TRANS_NEXT_DIALOG},
@@ -507,9 +495,7 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
       fireTreeStructureChanged(item.getPath());
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Event emitting">
   private void nodeChanged(ItemBase node)
   {
     final TreeNode parent = node.getParent();
@@ -561,8 +547,6 @@ final class DlgTreeModel implements TreeModel, TreeNode, TableModelListener, Pro
       }
     }
   }
-  //</editor-fold>
-  //</editor-fold>
 
   /**
    * Translates child struct of the dialog that this tree represents, to GUI item.

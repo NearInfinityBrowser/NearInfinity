@@ -100,12 +100,12 @@ import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.graphics.BamDecoder;
+import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.BamV1Decoder;
 import org.infinity.resource.graphics.ColorConvert;
 import org.infinity.resource.graphics.DxtEncoder;
 import org.infinity.resource.graphics.GifSequenceReader;
 import org.infinity.resource.graphics.PseudoBamDecoder;
-import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamControl;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamCycleEntry;
 import org.infinity.resource.graphics.PseudoBamDecoder.PseudoBamFrameEntry;
@@ -115,11 +115,11 @@ import org.infinity.util.IniMap;
 import org.infinity.util.IniMapEntry;
 import org.infinity.util.IniMapSection;
 import org.infinity.util.Misc;
-import org.infinity.util.Pair;
 import org.infinity.util.SimpleListModel;
 import org.infinity.util.io.FileEx;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+import org.infinity.util.tuples.Couple;
 
 public class ConvertToBam extends ChildFrame
   implements ActionListener, PropertyChangeListener, FocusListener, ChangeListener,
@@ -176,7 +176,7 @@ public class ConvertToBam extends ChildFrame
   // BamDecoder instance containing the final result of the current BAM structure
   private final PseudoBamDecoder bamDecoderFinal = new PseudoBamDecoder();
   // Frame image lists (use BAM_ORIGINAL/BAM_FINAL constants for access)
-  private final List<List<PseudoBamFrameEntry>> listFrameEntries = new ArrayList<List<PseudoBamFrameEntry>>(2);
+  private final List<List<PseudoBamFrameEntry>> listFrameEntries = new ArrayList<>(2);
   // Frame entry used for preview in filter tab
   private final PseudoBamFrameEntry entryFilterPreview = new PseudoBamFrameEntry(null, 0, 0);
   // The palette dialog instance for BAM v1 export
@@ -1637,7 +1637,7 @@ public class ConvertToBam extends ChildFrame
     GridBagConstraints c = new GridBagConstraints();
 
     // creating "Filters" section
-    Vector<BamFilterFactory.FilterInfo> filters = new Vector<BamFilterFactory.FilterInfo>();
+    Vector<BamFilterFactory.FilterInfo> filters = new Vector<>();
     for (int i = 0; i < BamFilterFactory.getFilterInfoSize(); i++) {
       filters.add(BamFilterFactory.getFilterInfo(i));
     }
@@ -1697,7 +1697,7 @@ public class ConvertToBam extends ChildFrame
                           GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pFiltersDesc.add(taFiltersDesc, c);
 
-    modelFilters = new SimpleListModel<BamFilterBase>();
+    modelFilters = new SimpleListModel<>();
     listFilters = new JList<>(modelFilters);
     listFilters.setCellRenderer(new IndexedCellRenderer());
     listFilters.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -1855,10 +1855,10 @@ public class ConvertToBam extends ChildFrame
   private void updateFramesList()
   {
     // updating button states
-    Pair<Integer> bounds = getIndexBounds(listFrames.getSelectedIndices());
-    bFramesUp.setEnabled(!modelFrames.isEmpty() && bounds.getFirst() > 0);
-    bFramesDown.setEnabled(!modelFrames.isEmpty() && bounds.getFirst() >= 0 &&
-                           bounds.getSecond() < modelFrames.getSize() - 1);
+    Couple<Integer, Integer> bounds = getIndexBounds(listFrames.getSelectedIndices());
+    bFramesUp.setEnabled(!modelFrames.isEmpty() && bounds.getValue0() > 0);
+    bFramesDown.setEnabled(!modelFrames.isEmpty() && bounds.getValue0() >= 0 &&
+                           bounds.getValue1() < modelFrames.getSize() - 1);
     miFramesRemove.setEnabled(!modelFrames.isEmpty() && !listFrames.isSelectionEmpty());
     miFramesRemoveAll.setEnabled(!modelFrames.isEmpty());
     miFramesDropUnused.setEnabled(!modelFrames.isEmpty());
@@ -1879,16 +1879,16 @@ public class ConvertToBam extends ChildFrame
   private void updateCyclesList()
   {
     listCycles.repaint();
-    Pair<Integer> bounds = getIndexBounds(listCycles.getSelectedIndices());
-    int idx = (bounds.getFirst().compareTo(bounds.getSecond()) == 0) ? bounds.getFirst() : -1;
+    Couple<Integer, Integer> bounds = getIndexBounds(listCycles.getSelectedIndices());
+    int idx = (bounds.getValue0().compareTo(bounds.getValue1()) == 0) ? bounds.getValue0() : -1;
     if (idx >= 0) {
       listCycles.ensureIndexIsVisible(idx);
     }
 
     // updating button states
-    bCyclesUp.setEnabled(!modelCycles.isEmpty() && bounds.getFirst() > 0);
-    bCyclesDown.setEnabled(!modelCycles.isEmpty() && bounds.getFirst() >= 0 &&
-                           bounds.getSecond() < modelCycles.getSize() - 1);
+    bCyclesUp.setEnabled(!modelCycles.isEmpty() && bounds.getValue0() > 0);
+    bCyclesDown.setEnabled(!modelCycles.isEmpty() && bounds.getValue0() >= 0 &&
+                           bounds.getValue1() < modelCycles.getSize() - 1);
     bCyclesRemove.setEnabled(!listCycles.isSelectionEmpty());
     bCyclesRemoveAll.setEnabled(!modelCycles.isEmpty());
 
@@ -1910,10 +1910,10 @@ public class ConvertToBam extends ChildFrame
   private void updateCurrentCycle()
   {
     // updating button states
-    Pair<Integer> bounds = getIndexBounds(listCurCycle.getSelectedIndices());
-    bCurCycleUp.setEnabled(!modelCurCycle.isEmpty() && bounds.getFirst() > 0);
-    bCurCycleDown.setEnabled(!modelCurCycle.isEmpty() && bounds.getFirst() >= 0 &&
-                             bounds.getSecond() < modelCurCycle.getSize() - 1);
+    Couple<Integer, Integer> bounds = getIndexBounds(listCurCycle.getSelectedIndices());
+    bCurCycleUp.setEnabled(!modelCurCycle.isEmpty() && bounds.getValue0() > 0);
+    bCurCycleDown.setEnabled(!modelCurCycle.isEmpty() && bounds.getValue0() >= 0 &&
+                             bounds.getValue1() < modelCurCycle.getSize() - 1);
     bCurCycleAdd.setEnabled(!listFramesAvail.isSelectionEmpty());
     bCurCycleRemove.setEnabled(!listCurCycle.isSelectionEmpty());
     listFramesAvail.invalidate();
@@ -1923,16 +1923,16 @@ public class ConvertToBam extends ChildFrame
 
   private void initCurrentCycle(int cycleIdx)
   {
-    initCurrentCycle(new Pair<Integer>(cycleIdx, cycleIdx));
+    initCurrentCycle(Couple.with(cycleIdx, cycleIdx));
   }
 
   /** Initializes the "Current cycle" section of the Cycles tab. */
-  private void initCurrentCycle(Pair<Integer> cycleIndices)
+  private void initCurrentCycle(Couple<Integer, Integer> cycleIndices)
   {
     if (cycleIndices != null) {
-      if (cycleIndices.getFirst().compareTo(cycleIndices.getSecond()) == 0 &&
-          cycleIndices.getFirst() >= 0 && cycleIndices.getFirst() < modelCycles.getSize()) {
-        int cycleIdx = cycleIndices.getFirst();
+      if (cycleIndices.getValue0().compareTo(cycleIndices.getValue1()) == 0 &&
+          cycleIndices.getValue0() >= 0 && cycleIndices.getValue0() < modelCycles.getSize()) {
+        int cycleIdx = cycleIndices.getValue0();
 
         // enabling components
         listFramesAvail.setEnabled(true);
@@ -1960,7 +1960,7 @@ public class ConvertToBam extends ChildFrame
         listCurCycle.setSelectedIndices(new int[]{});
         listCurCycle.setEnabled(false);
 
-        if (cycleIndices.getFirst() < 0 || cycleIndices.getSecond() < 0) {
+        if (cycleIndices.getValue0() < 0 || cycleIndices.getValue1() < 0) {
           pCurrentCycle.setBorder(BorderFactory.createTitledBorder("No cycle selected "));
         } else {
           pCurrentCycle.setBorder(BorderFactory.createTitledBorder("Too many cycles selected "));
@@ -2067,12 +2067,12 @@ public class ConvertToBam extends ChildFrame
             g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
             float ratioX = (float)imgWidth / (float)image.getWidth(null);
             float ratioY = (float)imgHeight / (float)image.getHeight(null);
-            Pair<Float> minMaxRatio = new Pair<Float>(Math.min(ratioX, ratioY), Math.max(ratioX, ratioY));
-            if ((float)image.getWidth(null)*minMaxRatio.getSecond() < (float)imgWidth &&
-                (float)image.getHeight(null)*minMaxRatio.getSecond() < (float)imgHeight) {
-              ratio = minMaxRatio.getSecond();
+            Couple<Float, Float> minMaxRatio = Couple.with(Math.min(ratioX, ratioY), Math.max(ratioX, ratioY));
+            if ((float)image.getWidth(null)*minMaxRatio.getValue1() < (float)imgWidth &&
+                (float)image.getHeight(null)*minMaxRatio.getValue1() < (float)imgHeight) {
+              ratio = minMaxRatio.getValue1();
             } else {
-              ratio = minMaxRatio.getFirst();
+              ratio = minMaxRatio.getValue0();
             }
             int newWidth = (int)((float)image.getWidth(null)*ratio);
             int newHeight = (int)((float)image.getHeight(null)*ratio);
@@ -2553,8 +2553,7 @@ public class ConvertToBam extends ChildFrame
   {
     boolean retVal = false;
     if (listIndex >= 0 && entry != null) {
-      try {
-        InputStream is = entry.getResourceDataAsStream();
+      try (InputStream is = entry.getResourceDataAsStream()) {
         BufferedImage[] images;
         if (entry.getExtension().equalsIgnoreCase("gif")) {
           // Potential GIF animation
@@ -2566,7 +2565,7 @@ public class ConvertToBam extends ChildFrame
           }
         } else {
           // Everything else
-          ImageReader reader = (ImageReader)ImageIO.getImageReadersBySuffix(entry.getExtension()).next();
+          ImageReader reader = ImageIO.getImageReadersBySuffix(entry.getExtension()).next();
           reader.setInput(ImageIO.createImageInputStream(is), false);
           int numFrames = reader.getNumImages(true);
           images = new BufferedImage[numFrames];
@@ -3151,11 +3150,11 @@ public class ConvertToBam extends ChildFrame
   {
     int[] indices = listFramesAvail.getSelectedIndices();
     if (indices != null && indices.length > 0) {
-      Pair<Integer> dstBounds = getIndexBounds(listCurCycle.getSelectedIndices());
-      int dstIdx = dstBounds.getSecond() + 1;
+      Couple<Integer, Integer> dstBounds = getIndexBounds(listCurCycle.getSelectedIndices());
+      int dstIdx = dstBounds.getValue1() + 1;
       modelCurCycle.insert(dstIdx, indices);
       modelCycles.contentChanged(modelCurCycle.getCycle());
-      listFramesAvail.setSelectedIndices(new int[]{getIndexBounds(indices).getSecond()});
+      listFramesAvail.setSelectedIndices(new int[]{getIndexBounds(indices).getValue1()});
       listCurCycle.setSelectedIndex(dstIdx + indices.length - 1);
       updateCurrentCycle();
     }
@@ -3811,18 +3810,18 @@ public class ConvertToBam extends ChildFrame
 
 
   /** Returns the min/max values from the specified array of indices in a Pair object. */
-  private Pair<Integer> getIndexBounds(int[] indices)
+  private Couple<Integer, Integer> getIndexBounds(int[] indices)
   {
-    Pair<Integer> retVal = new Pair<Integer>(Integer.valueOf(-1), Integer.valueOf(-1));
+    Couple<Integer, Integer> retVal = Couple.with(Integer.valueOf(-1), Integer.valueOf(-1));
     if (indices != null && indices.length > 0) {
-      retVal.setFirst(Integer.valueOf(Integer.MAX_VALUE));
-      retVal.setSecond(Integer.valueOf(Integer.MIN_VALUE));
+      retVal.setValue0(Integer.valueOf(Integer.MAX_VALUE));
+      retVal.setValue1(Integer.valueOf(Integer.MIN_VALUE));
       for (int i = 0; i < indices.length; i++) {
-        if (indices[i] < retVal.getFirst()) {
-          retVal.setFirst(Integer.valueOf(indices[i]));
+        if (indices[i] < retVal.getValue0()) {
+          retVal.setValue0(Integer.valueOf(indices[i]));
         }
-        if (indices[i] > retVal.getSecond()) {
-          retVal.setSecond(Integer.valueOf(indices[i]));
+        if (indices[i] > retVal.getValue1()) {
+          retVal.setValue1(Integer.valueOf(indices[i]));
         }
       }
     }
@@ -3881,7 +3880,7 @@ public class ConvertToBam extends ChildFrame
 
   private List<String> convert()
   {
-    List<String> result = new Vector<String>(2);
+    List<String> result = new Vector<>(2);
     try {
       updateFilteredBamDecoder(getBamVersion(), false);
       List<BamFilterBaseOutput> outList = createOutputFilterList();
@@ -3930,7 +3929,7 @@ public class ConvertToBam extends ChildFrame
       // processing each filter that exists before the selected filter
       PseudoBamFrameEntry entry = entryFilterPreview;
       for (int i = 0; i < curFilterIdx; i++) {
-        if (modelFilters.get(i) instanceof BamFilterBase) {
+        if (modelFilters.get(i) != null) {
           BamFilterBase filter = modelFilters.get(i);
           entry = filter.updatePreview(entry);
         }
@@ -4021,8 +4020,8 @@ public class ConvertToBam extends ChildFrame
   /** Creates a sorted list including all selected filters in the post-processing tab. */
   private List<BamFilterBase> createFilterList(boolean includeOutputFilters)
   {
-    List<BamFilterBase> retVal = new ArrayList<BamFilterBase>();
-    List<BamFilterBase> outFilters = new ArrayList<BamFilterBase>();
+    List<BamFilterBase> retVal = new ArrayList<>();
+    List<BamFilterBase> outFilters = new ArrayList<>();
     for (int i = 0; i < modelFilters.size(); i++) {
       BamFilterBase filter = modelFilters.get(i);
       if (filter instanceof BamFilterBaseOutput) {
@@ -4047,7 +4046,7 @@ public class ConvertToBam extends ChildFrame
   /** Creates a list of selected output filters only. */
   private List<BamFilterBaseOutput> createOutputFilterList()
   {
-    List<BamFilterBaseOutput> retVal = new ArrayList<BamFilterBaseOutput>();
+    List<BamFilterBaseOutput> retVal = new ArrayList<>();
     for (int i = 0; i < modelFilters.size(); i++) {
       if (modelFilters.get(i) instanceof BamFilterBaseOutput) {
         retVal.add((BamFilterBaseOutput)modelFilters.get(i));
@@ -4101,7 +4100,7 @@ public class ConvertToBam extends ChildFrame
         if (transIndex < 0) {
           transIndex = 0;
         }
-        HashMap<Integer, Byte> colorCache = new HashMap<Integer, Byte>(4096);
+        HashMap<Integer, Byte> colorCache = new HashMap<>(4096);
         for (int i = 0; i < palette.length; i++) {
           if (i != transIndex) {
             colorCache.put(Integer.valueOf(palette[i]), Byte.valueOf((byte)i));
@@ -4129,7 +4128,8 @@ public class ConvertToBam extends ChildFrame
                 if (ci >= transIndex) ci++;
                 dstBuf[ofs] = colIdx.byteValue();//(byte)ci;
               } else {
-                byte color = (byte)ColorConvert.nearestColorRGB(srcBuf[ofs], palette, !getUseAlpha());
+                double weight = getUseAlpha() ? 1.0 : 0.0;
+                byte color = (byte)ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, null);
                 dstBuf[ofs] = color;//(byte)ci;
                 colorCache.put(Integer.valueOf(c), Byte.valueOf(color));
               }
@@ -4195,7 +4195,7 @@ public class ConvertToBam extends ChildFrame
         if (transIndex < 0) {
           transIndex = 0;
         }
-        HashMap<Integer, Byte> colorCache = new HashMap<Integer, Byte>(4096);
+        HashMap<Integer, Byte> colorCache = new HashMap<>(4096);
         for (int i = 0; i < palette.length; i++) {
           if (i != transIndex) {
             colorCache.put(Integer.valueOf(palette[i]), Byte.valueOf((byte)i));
@@ -4221,7 +4221,8 @@ public class ConvertToBam extends ChildFrame
               if (ci >= transIndex) ci++;
               dstBuf[ofs] = colIdx.byteValue();
             } else {
-              byte color = (byte)ColorConvert.nearestColorRGB(srcBuf[ofs], palette, !getUseAlpha());
+              double weight = getUseAlpha() ? 1.0 : 0.0;
+              byte color = (byte)ColorConvert.getNearestColor(srcBuf[ofs], palette, weight, null);
               dstBuf[ofs] = color;//(byte)ci;
               colorCache.put(Integer.valueOf(c), Byte.valueOf(color));
             }
@@ -5399,7 +5400,7 @@ public class ConvertToBam extends ChildFrame
         bam.getPaletteDialog().clear();
 
         // applying frames
-        HashMap<ResourceEntry, SourceData> sourceMap = new HashMap<ResourceEntry, SourceData>();
+        HashMap<ResourceEntry, SourceData> sourceMap = new HashMap<>();
         for (int i = 0; i < frames.length; i++) {
           SourceFrame frame = frames[i];
           SourceData data = sourceMap.get(frame.entry);

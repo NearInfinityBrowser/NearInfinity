@@ -9,8 +9,6 @@ import java.awt.Point;
 import java.nio.file.Path;
 
 import org.infinity.datatype.IsNumeric;
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.icon.Icons;
@@ -68,8 +66,8 @@ public class LayerObjectAutomap extends LayerObject
             if (FileEx.create(tohFile).exists()) {
               FileResourceEntry tohEntry = new FileResourceEntry(tohFile);
               TohResource toh = new TohResource(tohEntry);
-              SectionOffset so = (SectionOffset)toh.getAttribute(TohResource.TOH_OFFSET_ENTRIES);
-              SectionCount sc = (SectionCount)toh.getAttribute(TohResource.TOH_NUM_ENTRIES);
+              IsNumeric so = (IsNumeric)toh.getAttribute(TohResource.TOH_OFFSET_ENTRIES);
+              IsNumeric sc = (IsNumeric)toh.getAttribute(TohResource.TOH_NUM_ENTRIES);
               if (so != null && sc != null && sc.getValue() > 0) {
                 for (int i = 0, count = sc.getValue(), curOfs = so.getValue(); i < count; i++) {
                   StrRefEntry2 strref = (StrRefEntry2)toh.getAttribute(curOfs, false);
@@ -97,7 +95,7 @@ public class LayerObjectAutomap extends LayerObject
               FileResourceEntry totEntry = new FileResourceEntry(totFile);
               TohResource toh = new TohResource(tohEntry);
               TotResource tot = new TotResource(totEntry);
-              SectionCount sc = (SectionCount)toh.getAttribute(TohResource.TOH_NUM_ENTRIES);
+              IsNumeric sc = (IsNumeric)toh.getAttribute(TohResource.TOH_NUM_ENTRIES);
               if (sc != null && sc.getValue() > 0) {
                 for (int i = 0, count = sc.getValue(), curOfs = 0x14; i < count; i++) {
                   StrRefEntry strref = (StrRefEntry)toh.getAttribute(curOfs, false);
@@ -133,7 +131,6 @@ public class LayerObjectAutomap extends LayerObject
     item.setVisible(isVisible());
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -160,5 +157,4 @@ public class LayerObjectAutomap extends LayerObject
                            (int)(location.y*zoomFactor + (zoomFactor / 2.0)));
     }
   }
-  //</editor-fold>
 }

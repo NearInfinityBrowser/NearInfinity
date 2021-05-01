@@ -7,6 +7,7 @@ package org.infinity.resource.wed;
 import java.nio.ByteBuffer;
 
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
@@ -30,8 +31,8 @@ public final class Wallgroup extends AbstractStruct implements AddRemovable
 
   public int getNextPolygonIndex()
   {
-    int count = ((DecNumber)getAttribute(WED_WALLGROUP_NUM_POLYGONS)).getValue();
-    int index = ((DecNumber)getAttribute(WED_WALLGROUP_POLYGON_INDEX)).getValue();
+    int count = ((IsNumeric)getAttribute(WED_WALLGROUP_NUM_POLYGONS)).getValue();
+    int index = ((IsNumeric)getAttribute(WED_WALLGROUP_POLYGON_INDEX)).getValue();
     return count + index;
   }
 
