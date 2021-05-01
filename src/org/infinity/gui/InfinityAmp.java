@@ -44,8 +44,8 @@ import org.infinity.util.io.StreamUtils;
 public final class InfinityAmp extends ChildFrame
                                 implements ActionListener, ListSelectionListener, Runnable, Closeable
 {
-  private final SimpleListModel<ResourceEntry> allMusModel = new SimpleListModel<ResourceEntry>();
-  private final SimpleListModel<ResourceEntry> selectedMusModel = new SimpleListModel<ResourceEntry>();
+  private final SimpleListModel<ResourceEntry> allMusModel = new SimpleListModel<>();
+  private final SimpleListModel<ResourceEntry> selectedMusModel = new SimpleListModel<>();
   private final JButton bPlay = new JButton(Icons.getIcon(Icons.ICON_PLAY_16));
   private final JButton bStop = new JButton(Icons.getIcon(Icons.ICON_STOP_16));
   private final JButton bAdd = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
@@ -57,7 +57,7 @@ public final class InfinityAmp extends ChildFrame
   private final JList<ResourceEntry> selectedMusList;
   private final JTextField tfNowPlaying = new JTextField(10);
   private final AudioPlayer player = new AudioPlayer();
-  private List<Entry> entryList = new ArrayList<Entry>();
+  private List<Entry> entryList = new ArrayList<>();
   private boolean keepPlaying = true;
 
   public InfinityAmp()

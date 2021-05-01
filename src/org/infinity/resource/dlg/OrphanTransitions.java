@@ -30,7 +30,6 @@ final class OrphanTransitions extends TransitionOwnerItem
   @Override
   public String toString() { return "Orphan responses"; }
 
-  //<editor-fold defaultstate="collapsed" desc="TreeNode">
   @Override
   public TransitionItem getChildAt(int childIndex) { return trans.get(childIndex); }
 
@@ -51,14 +50,10 @@ final class OrphanTransitions extends TransitionOwnerItem
 
   @Override
   public Enumeration<? extends TransitionItem> children() { return enumeration(trans); }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Iterable">
   @Override
   public Iterator<TransitionItem> iterator() { return trans.iterator(); }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="ItemBase">
   @Override
   public TreeItemEntry getEntry() { return null; }
 
@@ -76,5 +71,4 @@ final class OrphanTransitions extends TransitionOwnerItem
 
   @Override
   public void traverseChildren(Consumer<ItemBase> action) { trans.forEach(action); }
-  //</editor-fold>
 }

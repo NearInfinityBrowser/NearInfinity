@@ -25,10 +25,8 @@ import javax.swing.event.ListSelectionListener;
 
 import org.infinity.NearInfinity;
 import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.Flag;
-import org.infinity.datatype.ResourceRef;
-import org.infinity.datatype.SectionCount;
-import org.infinity.datatype.SectionOffset;
+import org.infinity.datatype.IsNumeric;
+import org.infinity.datatype.IsReference;
 import org.infinity.datatype.TextString;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.Center;
@@ -50,7 +48,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
 {
   private static final String[] FILETYPES = {"ARE", "CHR", "CHU", "CRE", "DLG", "EFF", "GAM", "ITM",
                                              "PRO", "SPL", "STO", "VEF", "VVC", "WED", "WMP"};
-  private static final HashMap<String, StructInfo> fileInfo = new HashMap<String, StructInfo>();
+  private static final HashMap<String, StructInfo> fileInfo = new HashMap<>();
   static {
     fileInfo.put("ARE", new StructInfo("AREA", new String[]{"V1.0", "V9.1"}));
     fileInfo.put("CHR", new StructInfo("CHR ", new String[]{"V1.0", "V1.2", "V2.0", "V2.1", "V2.2", "V9.0"}));
@@ -290,8 +288,8 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
     final List<Corruption> list = new ArrayList<>();
     if (entry.getExtension().equalsIgnoreCase("WED")) {
       final int ovlSize = 0x18; // size of an Overlay structure
-      int ovlCount = ((SectionCount)struct.getAttribute(8, false)).getValue(); // # overlays
-      int ovlStartOfs = ((SectionOffset)struct.getAttribute(16, false)).getValue();  // Overlays offset
+      int ovlCount = ((IsNumeric)struct.getAttribute(8, false)).getValue(); // # overlays
+      int ovlStartOfs = ((IsNumeric)struct.getAttribute(16, false)).getValue();  // Overlays offset
 
       for (int ovlIdx = 0; ovlIdx < ovlCount; ovlIdx++) {
         int ovlOfs = ovlStartOfs + ovlIdx*ovlSize;
@@ -299,11 +297,11 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
         if (overlay == null) {
           continue;
         }
-        int width = ((DecNumber)overlay.getAttribute(ovlOfs + 0, false)).getValue();
-        int height = ((DecNumber)overlay.getAttribute(ovlOfs + 2, false)).getValue();
-        String tisName = ((ResourceRef)overlay.getAttribute(ovlOfs + 4, false)).getResourceName();
-        int tileStartOfs = ((SectionOffset)overlay.getAttribute(ovlOfs + 16, false)).getValue();
-        int indexStartOfs = ((SectionOffset)overlay.getAttribute(ovlOfs + 20, false)).getValue();
+        int width = ((IsNumeric)overlay.getAttribute(ovlOfs + 0, false)).getValue();
+        int height = ((IsNumeric)overlay.getAttribute(ovlOfs + 2, false)).getValue();
+        String tisName = ((IsReference)overlay.getAttribute(ovlOfs + 4, false)).getResourceName();
+        int tileStartOfs = ((IsNumeric)overlay.getAttribute(ovlOfs + 16, false)).getValue();
+        int indexStartOfs = ((IsNumeric)overlay.getAttribute(ovlOfs + 20, false)).getValue();
         if (tisName == null || tisName.isEmpty() || !ResourceFactory.resourceExists(tisName)) {
           continue;
         }
@@ -359,7 +357,7 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
             mapTiles.put(Integer.valueOf(index), (Tilemap)item);
           } else if (item.getOffset() > indexStartOfs && curOfs < indexEndOfs && item instanceof DecNumber) {
             int index = (curOfs - indexStartOfs) / 2;
-            mapIndices.put(Integer.valueOf(index), Integer.valueOf(((DecNumber)item).getValue()));
+            mapIndices.put(Integer.valueOf(index), Integer.valueOf(((IsNumeric)item).getValue()));
           }
         }
         // checking indices
@@ -368,11 +366,11 @@ public final class StructChecker extends AbstractChecker implements ListSelectio
           if (tile != null) {
             int tileOfs = tile.getOffset();
             int tileIdx = (tileOfs - tileStartOfs) / tileSize;
-            int tileIdxPri = ((DecNumber)tile.getAttribute(tileOfs + 0, false)).getValue();
-            int tileCountPri = ((DecNumber)tile.getAttribute(tileOfs + 2, false)).getValue();
-            int tileIdxSec = ((DecNumber)tile.getAttribute(tileOfs + 4, false)).getValue();
-            Flag tileFlag = (Flag)tile.getAttribute(tileOfs + 6, false);
-            int tileFlagValue = (int)tileFlag.getValue();
+            int tileIdxPri = ((IsNumeric)tile.getAttribute(tileOfs + 0, false)).getValue();
+            int tileCountPri = ((IsNumeric)tile.getAttribute(tileOfs + 2, false)).getValue();
+            int tileIdxSec = ((IsNumeric)tile.getAttribute(tileOfs + 4, false)).getValue();
+            IsNumeric tileFlag = (IsNumeric)tile.getAttribute(tileOfs + 6, false);
+            int tileFlagValue = tileFlag.getValue();
             for (int j = tileIdxPri, count = tileIdxPri + tileCountPri; j < count; j++) {
               Integer tileLookupIndex = mapIndices.get(Integer.valueOf(j));
               if (tileLookupIndex != null) {

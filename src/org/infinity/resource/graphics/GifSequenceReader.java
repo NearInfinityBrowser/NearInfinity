@@ -200,7 +200,7 @@ public class GifSequenceReader
   }
 
   // Updates the specified Frame object with metadata
-  private Frame updateMetadata(Frame frame, IIOMetadata meta) throws IOException
+  private Frame updateMetadata(Frame frame, IIOMetadata meta)
   {
     if (frame != null && meta != null) {
       Node tree = meta.getAsTree(metaFormatName);

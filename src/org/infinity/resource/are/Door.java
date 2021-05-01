@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
-import org.infinity.datatype.HexNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.StringRef;
@@ -94,7 +94,6 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     super(superStruct, ARE_DOOR + " " + nr, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -107,40 +106,36 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasVertices">
   @Override
   public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
-    DecNumber firstVertex = (DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_OPEN);
-    DecNumber numVertices = (DecNumber)getAttribute(ARE_DOOR_NUM_VERTICES_OPEN);
+    IsNumeric firstVertex = (IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_OPEN);
+    IsNumeric numVertices = (IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_OPEN);
     for (int i = 0; i < numVertices.getValue(); i++) {
       addField(new OpenVertex(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
     }
 
-    firstVertex = (DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_CLOSED);
-    numVertices = (DecNumber)getAttribute(ARE_DOOR_NUM_VERTICES_CLOSED);
+    firstVertex = (IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_CLOSED);
+    numVertices = (IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_CLOSED);
     for (int i = 0; i < numVertices.getValue(); i++) {
       addField(new ClosedVertex(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
     }
 
-    firstVertex = (DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN);
-    numVertices = (DecNumber)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN);
+    firstVertex = (IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN);
+    numVertices = (IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN);
     for (int i = 0; i < numVertices.getValue(); i++) {
       addField(new OpenVertexImpeded(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
     }
 
-    firstVertex = (DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED);
-    numVertices = (DecNumber)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED);
+    firstVertex = (IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED);
+    numVertices = (IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED);
     for (int i = 0; i < numVertices.getValue(); i++) {
       addField(new ClosedVertexImpeded(this, buffer, offset + 4 * (firstVertex.getValue() + i), i));
     }
@@ -151,13 +146,13 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
   {
     // Must assume that the number is correct
     ((DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_OPEN)).setValue(number);
-    int count = ((DecNumber)getAttribute(ARE_DOOR_NUM_VERTICES_OPEN)).getValue();
+    int count = ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_OPEN)).getValue();
     ((DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_CLOSED)).setValue(number + count);
-    count += ((DecNumber)getAttribute(ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
+    count += ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
     ((DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN)).setValue(number + count);
-    count += ((DecNumber)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN)).getValue();
+    count += ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN)).getValue();
     ((DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED)).setValue(number + count);
-    count += ((DecNumber)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED)).getValue();
+    count += ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED)).getValue();
 
     for (final StructEntry entry : getFields()) {
       if (entry instanceof Vertex) {
@@ -168,37 +163,33 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     }
     return count;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
-    final int offset = ((HexNumber)getParent().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+    final int offset = ((IsNumeric)getParent().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
     if (datatype instanceof OpenVertex) {
-      int index = ((DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_OPEN)).getValue();
-      index += ((DecNumber)getAttribute(ARE_DOOR_NUM_VERTICES_OPEN)).getValue();
+      int index = ((IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_OPEN)).getValue();
+      index += ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_OPEN)).getValue();
       datatype.setOffset(offset + 4 * (index - 1));
     }
     else if (datatype instanceof ClosedVertex) {
-      int index = ((DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_CLOSED)).getValue();
-      index += ((DecNumber)getAttribute(ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
+      int index = ((IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_CLOSED)).getValue();
+      index += ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_CLOSED)).getValue();
       datatype.setOffset(offset + 4 * (index - 1));
     }
     else if (datatype instanceof OpenVertexImpeded) {
-      int index = ((DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN)).getValue();
-      index += ((DecNumber)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN)).getValue();
+      int index = ((IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_OPEN)).getValue();
+      index += ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_OPEN)).getValue();
       datatype.setOffset(offset + 4 * (index - 1));
     }
     else if (datatype instanceof ClosedVertexImpeded) {
-      int index = ((DecNumber)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED)).getValue();
-      index += ((DecNumber)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED)).getValue();
+      int index = ((IsNumeric)getAttribute(ARE_DOOR_FIRST_VERTEX_INDEX_IMPEDED_CLOSED)).getValue();
+      index += ((IsNumeric)getAttribute(ARE_DOOR_NUM_VERTICES_IMPEDED_CLOSED)).getValue();
       datatype.setOffset(offset + 4 * (index - 1));
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -256,5 +247,4 @@ public final class Door extends AbstractStruct implements AddRemovable, HasVerti
     addField(new Unknown(buffer, offset + 192, 8));
     return offset + 200;
   }
-  //</editor-fold>
 }

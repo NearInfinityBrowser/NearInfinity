@@ -36,6 +36,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -135,6 +136,7 @@ public class AreaViewer extends ChildFrame
   private final Point mapCoordinates = new Point();
   private final String windowTitle;
   private final JCheckBox[] cbLayers = new JCheckBox[LayerManager.getLayerTypeCount()];
+  private final JCheckBox[] cbLayerRealActor = new JCheckBox[2];
   private final JCheckBox[] cbLayerRealAnimation = new JCheckBox[2];
   private final JCheckBox[] cbMiniMaps = new JCheckBox[3];
 //  private final JToggleButton[] tbAddLayerItem = new JToggleButton[LayerManager.getLayerTypeCount()];
@@ -228,7 +230,6 @@ public class AreaViewer extends ChildFrame
     workerInitGui.execute();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ChildFrame">
   @Override
   public void close()
   {
@@ -243,18 +244,17 @@ public class AreaViewer extends ChildFrame
     map.clear();
     if (rcCanvas != null) {
       removeLayerItems();
-      rcCanvas.clear();
-      rcCanvas.setImage(null);
+      rcCanvas.dispose();
     }
     if (layerManager != null) {
       layerManager.close();
       layerManager = null;
     }
+    SharedResourceCache.clearCache();
     dispose();
     System.gc();
     super.close();
   }
-  //</editor-fold>
 
   /**
    * Returns the tileset renderer for this viewer instance.
@@ -384,7 +384,17 @@ public class AreaViewer extends ChildFrame
       cbLayers[i].addActionListener(getListeners());
       t2 = new DefaultMutableTreeNode(cbLayers[i]);
       t.add(t2);
-      if (i == LayerManager.getLayerTypeIndex(LayerType.AMBIENT)) {
+      if (i == LayerManager.getLayerTypeIndex(LayerType.ACTOR)) {
+        // Initializing real creature animation checkboxes
+        cbLayerRealActor[0] = new JCheckBox("Show actor animation");
+        cbLayerRealActor[0].addActionListener(getListeners());
+        t3 = new DefaultMutableTreeNode(cbLayerRealActor[0]);
+        t2.add(t3);
+        cbLayerRealActor[1] = new JCheckBox("Animate actor animation");
+        cbLayerRealActor[1].addActionListener(getListeners());
+        t3 = new DefaultMutableTreeNode(cbLayerRealActor[1]);
+        t2.add(t3);
+      } else if (i == LayerManager.getLayerTypeIndex(LayerType.AMBIENT)) {
         // Initializing ambient sound range checkbox
         cbLayerAmbientRange = new JCheckBox("Show local sound ranges");
         cbLayerAmbientRange.addActionListener(getListeners());
@@ -755,6 +765,17 @@ public class AreaViewer extends ChildFrame
       showLayer(LayerManager.getLayerType(i), cbLayers[i].isSelected());
     }
 
+    // initializing actor sprites display
+    // Disabling animated frames for performance and safety reasons
+    if (Settings.ShowActorSprites == ViewerConstants.ANIM_SHOW_ANIMATED) {
+      Settings.ShowActorSprites = ViewerConstants.ANIM_SHOW_STILL;
+    }
+    ((LayerActor)layerManager.getLayer(LayerType.ACTOR)).setRealActorFrameState(Settings.ShowActorFrame);
+    cbLayerRealActor[0].setSelected(Settings.ShowActorSprites == ViewerConstants.ANIM_SHOW_STILL);
+    cbLayerRealActor[1].setSelected(false);
+    updateRealActors();
+    updateRealActorsLighting(getVisualState());
+
     // Setting up ambient sound ranges
     LayerAmbient layerAmbient = (LayerAmbient)layerManager.getLayer(ViewerConstants.LayerType.AMBIENT);
     if (layerAmbient.getLayerObjectCount(ViewerConstants.AMBIENT_TYPE_LOCAL) > 0) {
@@ -768,11 +789,11 @@ public class AreaViewer extends ChildFrame
     if (Settings.ShowRealAnimations == ViewerConstants.ANIM_SHOW_ANIMATED) {
       Settings.ShowRealAnimations = ViewerConstants.ANIM_SHOW_STILL;
     }
-    ((LayerAnimation)layerManager.getLayer(LayerType.ANIMATION)).setRealAnimationFrameState(Settings.ShowFrame);
+    ((LayerAnimation)layerManager.getLayer(LayerType.ANIMATION)).setRealAnimationFrameState(Settings.ShowAnimationFrame);
     cbLayerRealAnimation[0].setSelected(Settings.ShowRealAnimations == ViewerConstants.ANIM_SHOW_STILL);
     cbLayerRealAnimation[1].setSelected(false);
     updateRealAnimation();
-    updateRealAnimationsLighting(getDayTime());
+    updateRealAnimationsLighting(getVisualState());
 
     updateWindowTitle();
     applySettings();
@@ -845,17 +866,21 @@ public class AreaViewer extends ChildFrame
   }
 
 
-  /** Returns the currently selected visual state (day/twilight/night). */
-  private int getVisualState()
+  /** Returns the currently selected visual state (day/twilight/night) depending on whether the map supports day/night cycles. */
+  public int getVisualState()
   {
-    return getDayTime();
+    if (map.hasDayNight()) {
+      return getDayTime();
+    } else {
+      return ViewerConstants.LIGHTING_DAY;
+    }
   }
 
   /** Set the lighting condition of the current map (day/twilight/night) and real background animations. */
   private synchronized void setVisualState(int hour)
   {
-    while (hour < 0) { hour += 24; }
     hour %= 24;
+    while (hour < 0) { hour += 24; }
     int index = ViewerConstants.getDayTime(hour);
     if (!map.hasDayNight()) {
       index = ViewerConstants.LIGHTING_DAY;
@@ -903,7 +928,8 @@ public class AreaViewer extends ChildFrame
 
     updateMiniMap();
     updateToolBarButtons();
-    updateRealAnimationsLighting(getDayTime());
+    updateRealActorsLighting(getVisualState());
+    updateRealAnimationsLighting(getVisualState());
     updateScheduledItems();
     updateWindowTitle();
   }
@@ -1367,6 +1393,7 @@ public class AreaViewer extends ChildFrame
   /** Updates all available layer items. */
   private void reloadLayers()
   {
+    SharedResourceCache.clearCache();
     rcCanvas.reload(true);
     reloadAreLayers(false);
     reloadWedLayers(false);
@@ -1392,6 +1419,8 @@ public class AreaViewer extends ChildFrame
         }
       }
     }
+    updateRealActors();
+    updateRealActorsLighting(getVisualState());
     updateAmbientRange();
     updateRealAnimation();
     updateRealAnimationsLighting(getVisualState());
@@ -1489,7 +1518,41 @@ public class AreaViewer extends ChildFrame
         }
       }
       // Window not found, creating and returning a new one
-      return new ViewFrame(NearInfinity.getInstance(), as);
+      List<AbstractStruct> structChain = new ArrayList<>();
+      structChain.add(as);
+      AbstractStruct as2 = as;
+      while (as2.getParent() != null) {
+        structChain.add(0, as2.getParent());
+        as2 = as2.getParent();
+      }
+
+      if (map.getAre() == structChain.get(0)) {
+        // no need to create the whole Viewable chain
+        return new ViewFrame(NearInfinity.getInstance(), as);
+      }
+
+      // recycling existing Viewables if possible
+      Window wnd = NearInfinity.getInstance();
+      for (final Iterator<ChildFrame> iter = ChildFrame.getFrameIterator(cf -> cf instanceof ViewFrame &&
+                                                                               ((ViewFrame)cf).getViewable() instanceof AbstractStruct);
+          iter.hasNext(); ) {
+        ViewFrame vf = (ViewFrame)iter.next();
+        AbstractStruct struct = (AbstractStruct)vf.getViewable();
+        if (struct.getResourceEntry() != null &&
+            struct.getResourceEntry().equals(structChain.get(0).getResourceEntry())) {
+          structChain.remove(0);
+          wnd = vf;
+          break;
+        }
+      }
+
+      // creating Viewable chain
+      for (int i = 0; i < structChain.size(); i++) {
+        wnd = new ViewFrame(wnd, structChain.get(i));
+      }
+      if (wnd != null && wnd != NearInfinity.getInstance()) {
+        return wnd;
+      }
     }
     // Last resort: returning NearInfinity instance
     return NearInfinity.getInstance();
@@ -1553,6 +1616,19 @@ public class AreaViewer extends ChildFrame
     }
   }
 
+  /** Applies the specified lighting condition to real actor items. */
+  private void updateRealActorsLighting(int visualState)
+  {
+    if (layerManager != null) {
+      List<? extends LayerObject> list = layerManager.getLayerObjects(LayerType.ACTOR);
+      if (list != null) {
+        for (final LayerObject obj : list) {
+          ((LayerObjectActor)obj).setLighting(visualState);
+        }
+      }
+    }
+  }
+
   /** Applies the specified lighting condition to real animation items. */
   private void updateRealAnimationsLighting(int visualState)
   {
@@ -1562,6 +1638,46 @@ public class AreaViewer extends ChildFrame
         for (final LayerObject obj : list) {
           ((LayerObjectAnimation)obj).setLighting(visualState);
         }
+      }
+    }
+  }
+
+  /** Updates the state of real actor checkboxes and their associated functionality. */
+  private void updateRealActors()
+  {
+    if (layerManager != null) {
+      LayerActor layer = (LayerActor)layerManager.getLayer(LayerType.ACTOR);
+      if (layer != null) {
+        JCheckBox cb = cbLayers[LayerManager.getLayerTypeIndex(LayerType.ACTOR)];
+        boolean enabled = cb.isEnabled() && cb.isSelected();
+        cbLayerRealActor[0].setEnabled(enabled);
+        cbLayerRealActor[1].setEnabled(enabled);
+        boolean animEnabled = false;
+        boolean animPlaying = false;
+        if (enabled) {
+          if (cbLayerRealActor[0].isSelected()) {
+            animEnabled = true;
+          } else if (cbLayerRealActor[1].isSelected()) {
+            animEnabled = true;
+            animPlaying = true;
+          }
+        }
+        layer.setRealActorEnabled(animEnabled);
+        layer.setRealActorPlaying(animPlaying);
+      } else {
+        cbLayerRealActor[0].setEnabled(false);
+        cbLayerRealActor[1].setEnabled(false);
+      }
+      updateTreeNode(cbLayerRealActor[0]);
+      updateTreeNode(cbLayerRealActor[1]);
+
+      // Storing settings
+      if (!cbLayerRealActor[0].isSelected() && !cbLayerRealActor[1].isSelected()) {
+        Settings.ShowActorSprites = ViewerConstants.ANIM_SHOW_NONE;
+      } else if (cbLayerRealActor[0].isSelected() && !cbLayerRealActor[1].isSelected()) {
+        Settings.ShowActorSprites = ViewerConstants.ANIM_SHOW_STILL;
+      } else if (!cbLayerRealActor[0].isSelected() && cbLayerRealActor[1].isSelected()) {
+        Settings.ShowActorSprites = ViewerConstants.ANIM_SHOW_ANIMATED;
       }
     }
   }
@@ -1896,8 +2012,14 @@ public class AreaViewer extends ChildFrame
     }
 
     if (layerManager != null) {
+      // applying actor frame settings
+      ((LayerActor)layerManager.getLayer(LayerType.ACTOR)).setRealActorFrameState(Settings.ShowActorFrame);
+      // applying actor selection circle visibility
+      ((LayerActor)layerManager.getLayer(LayerType.ACTOR)).setRealActorSelectionCircleEnabled(Settings.ShowActorSelectionCircle);
+      // applying actor personal space visibility
+      ((LayerActor)layerManager.getLayer(LayerType.ACTOR)).setRealActorPersonalSpaceEnabled(Settings.ShowActorPersonalSpace);
       // applying animation frame settings
-      ((LayerAnimation)layerManager.getLayer(LayerType.ANIMATION)).setRealAnimationFrameState(Settings.ShowFrame);
+      ((LayerAnimation)layerManager.getLayer(LayerType.ANIMATION)).setRealAnimationFrameState(Settings.ShowAnimationFrame);
       // applying animation active override settings
       ((LayerAnimation)layerManager.getLayer(LayerType.ANIMATION)).setRealAnimationActiveIgnored(Settings.OverrideAnimVisibility);
       // applying interpolation settings to animations
@@ -1919,7 +2041,7 @@ public class AreaViewer extends ChildFrame
       if (interval != timerOverlays.getDelay()) {
         timerOverlays.setDelay(interval);
       }
-      // applying frame rate to background animations
+      // applying frame rate to actor sprites and background animations
       layerManager.setRealAnimationFrameRate(Settings.FrameRateAnimations);
     }
   }
@@ -2002,7 +2124,10 @@ public class AreaViewer extends ChildFrame
         LayerType layer = getLayerType(cb);
         if (layer != null) {
           showLayer(layer, cb.isSelected());
-          if (layer == LayerType.AMBIENT) {
+          if (layer == LayerType.ACTOR) {
+            // Taking care of real animation display
+            updateRealActors();
+          } else if (layer == LayerType.AMBIENT) {
             // Taking care of local ambient ranges
             updateAmbientRange();
           } else if (layer == LayerType.ANIMATION) {
@@ -2010,6 +2135,16 @@ public class AreaViewer extends ChildFrame
             updateRealAnimation();
           }
           updateScheduledItems();
+        } else if (cb == cbLayerRealActor[0]) {
+          if (cbLayerRealActor[0].isSelected()) {
+            cbLayerRealActor[1].setSelected(false);
+          }
+          updateRealActors();
+        } else if (cb == cbLayerRealActor[1]) {
+          if (cbLayerRealActor[1].isSelected()) {
+            cbLayerRealActor[0].setSelected(false);
+          }
+          updateRealActors();
         } else if (cb == cbLayerAmbientRange) {
           updateAmbientRange();
         } else if (cb == cbLayerRealAnimation[0]) {
@@ -2870,7 +3005,6 @@ public class AreaViewer extends ChildFrame
       return listeners.toArray(new ChangeListener[listeners.size()]);
     }
 
-    //<editor-fold defaultstate="collapsed" desc="ActionListener">
     @Override
     public void actionPerformed(ActionEvent event)
     {
@@ -2884,9 +3018,7 @@ public class AreaViewer extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="ChangeListener">
     @Override
     public void stateChanged(ChangeEvent event)
     {
@@ -2901,7 +3033,6 @@ public class AreaViewer extends ChildFrame
         }
       }
     }
-    //</editor-fold>
 
     /** Fires a stateChanged event for all registered listeners. */
     private void fireStateChanged()

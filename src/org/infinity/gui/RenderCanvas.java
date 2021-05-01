@@ -4,6 +4,8 @@
 
 package org.infinity.gui;
 
+import java.awt.AlphaComposite;
+import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -29,6 +31,7 @@ public class RenderCanvas extends JComponent implements SwingConstants
   private boolean isScaling, isAutoScale;
   private int scaledWidth, scaledHeight;
   private int verticalAlignment, horizontalAlignment;
+  private Composite composite;
 
   public RenderCanvas()
   {
@@ -62,6 +65,7 @@ public class RenderCanvas extends JComponent implements SwingConstants
     this.verticalAlignment = this.horizontalAlignment = CENTER;
     setInterpolationType(interpolationType);
     setScalingEnabled(scaled);
+    setComposite(null);
     setHorizontalAlignment(horizontalAlign);
     setVerticalAlignment(verticalAlign);
     setImage(image);
@@ -294,6 +298,23 @@ public class RenderCanvas extends JComponent implements SwingConstants
     }
   }
 
+  /**
+   * Returns the {@link Composite} object used to draw the image on the canvas.
+   */
+  public Composite getComposite()
+  {
+    return composite;
+  }
+
+  /**
+   * Sets the {@link Composite} object that is used to draw the image on the canvas.
+   * @param c the {@code Composite} object. Specify {@code null} to use a default composite object.
+   */
+  public void setComposite(Composite c)
+  {
+    composite = (c != null) ? c : AlphaComposite.SrcOver;
+  }
+
 
   protected void update()
   {
@@ -345,12 +366,17 @@ public class RenderCanvas extends JComponent implements SwingConstants
   {
     if (currentImage != null && currentImage.getWidth(null) > 0 && currentImage.getHeight(null) > 0) {
       Graphics2D g2 = (Graphics2D)g;
+      Composite oldComposite = g2.getComposite();
+      g2.setComposite(getComposite());
       Rectangle rect = getCanvasSize();
       if (isScaling) {
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, interpolationType);
         g2.drawImage(currentImage, rect.x, rect.y, rect.width, rect.height, null);
       } else {
         g2.drawImage(currentImage, rect.x, rect.y, null);
+      }
+      if (oldComposite != null) {
+        g2.setComposite(oldComposite);
       }
     }
   }

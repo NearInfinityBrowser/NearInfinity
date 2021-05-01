@@ -480,9 +480,9 @@ public class UpdaterSettings extends JDialog
   // Manages server URL entries
   private class Server
   {
-    private final List<JTextField> listServer = new ArrayList<JTextField>();
-    private final List<JButton> listCheck = new ArrayList<JButton>();
-    private final List<Boolean> listValidated = new ArrayList<Boolean>();
+    private final List<JTextField> listServer = new ArrayList<>();
+    private final List<JButton> listCheck = new ArrayList<>();
+    private final List<Boolean> listValidated = new ArrayList<>();
 
     private final int numServers;
 

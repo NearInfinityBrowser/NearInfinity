@@ -229,7 +229,7 @@ public class TileGrid extends JComponent
    */
   public List<Image> getImageList()
   {
-    return new ArrayList<Image>(imageList);
+    return new ArrayList<>(imageList);
   }
 
   /**
@@ -608,8 +608,8 @@ public class TileGrid extends JComponent
     this.tileWidth = Math.max(tw, 1);
     this.tileHeight = Math.max(th, 1);
     this.bgColor = null;
-    this.imageList = new ArrayList<Image>(1);
-    this.tileList = new ArrayList<TileLabel>();
+    this.imageList = new ArrayList<>(1);
+    this.tileList = new ArrayList<>();
     this.tileBorder = null;
     this.bShowGrid = false;
     this.bShowIcons = true;

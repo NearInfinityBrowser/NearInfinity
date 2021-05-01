@@ -44,7 +44,14 @@ public class FloatNumber extends Datatype implements InlineEditable
       if (getSize() == 4) {
         newValue = Double.valueOf(newValue).floatValue();
       }
+      double oldValue = getValue();
       setValue(newValue);
+
+      // notifying listeners
+      if (getValue() != oldValue) {
+        fireValueUpdated(new UpdateEvent(this, getParent()));
+      }
+
       return true;
     } catch (NumberFormatException e) {
       e.printStackTrace();
@@ -87,6 +94,25 @@ public class FloatNumber extends Datatype implements InlineEditable
   public String toString()
   {
     return Double.toString(value);
+  }
+
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + Double.hashCode(value);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof FloatNumber)) {
+      return false;
+    }
+    FloatNumber other = (FloatNumber)o;
+    boolean retVal = (value == other.value);
+    return retVal;
   }
 
   public double getValue()

@@ -90,13 +90,11 @@ public class AbstractVariable extends AbstractStruct implements AddRemovable
     super(superStruct, name, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
-  //</editor-fold>
 
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
@@ -117,7 +115,7 @@ public class AbstractVariable extends AbstractStruct implements AddRemovable
    */
   public Type getType()
   {
-    final Bitmap type = (Bitmap)getAttribute(VAR_TYPE, false);
+    final IsNumeric type = (IsNumeric)getAttribute(VAR_TYPE, false);
     return Type.values()[type.getValue()];
   }
   /**
@@ -136,7 +134,7 @@ public class AbstractVariable extends AbstractStruct implements AddRemovable
    */
   public Object getValue(Type type)
   {
-    final Bitmap t = (Bitmap)getAttribute(VAR_TYPE, false);
+    final IsNumeric t = (IsNumeric)getAttribute(VAR_TYPE, false);
     return type.ordinal() == t.getValue() ? type.getValue(this) : null;
   }
 }

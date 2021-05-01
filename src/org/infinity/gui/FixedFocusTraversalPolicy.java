@@ -14,7 +14,7 @@ import java.util.Vector;
  */
 public class FixedFocusTraversalPolicy extends FocusTraversalPolicy
 {
-  private final Vector<Component> order = new Vector<Component>();
+  private final Vector<Component> order = new Vector<>();
   private int defaultIndex;
 
   /**

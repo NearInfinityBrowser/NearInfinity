@@ -5,6 +5,7 @@
 package org.infinity.resource.pro;
 
 import java.nio.ByteBuffer;
+import java.util.TreeMap;
 
 import org.infinity.datatype.ColorValue;
 import org.infinity.datatype.DecNumber;
@@ -15,7 +16,6 @@ import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.AddRemovable;
-import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.io.StreamUtils;
 
 public final class ProSingleType extends AbstractStruct implements AddRemovable
@@ -40,7 +40,7 @@ public final class ProSingleType extends AbstractStruct implements AddRemovable
   public static final String PRO_SINGLE_TRAILING_ANIMATION_DELAY_FMT  = "Trailing animation delay %d";
   public static final String PRO_SINGLE_TRAIL_FLAGS                   = "Trail flags";
 
-  public static final LongIntegerHashMap<String> m_facetarget = new LongIntegerHashMap<String>();
+  public static final TreeMap<Long, String> m_facetarget = new TreeMap<>();
   public static final String[] s_flags = {"No flags set", "Colored BAM", "Creates smoke", "Colored smoke",
                                           "Not light source", "Modify for height", "Casts shadow",
                                           "Light spot enabled", "Translucent", "Mid-level brighten", "Blended"};
@@ -90,11 +90,11 @@ public final class ProSingleType extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 26, 2, PRO_SINGLE_LIGHT_SPOT_HEIGHT));
     addField(new ResourceRef(buffer, offset + 28, PRO_SINGLE_PALETTE, "BMP"));
     for (int i = 0; i < 7; i++) {
-      addField(new ColorValue(buffer, offset + 36 + i, 1, String.format(PRO_SINGLE_PRO_COLOR_FMT, i+1)));
+      addField(new ColorValue(buffer, offset + 36 + i, 1, String.format(PRO_SINGLE_PRO_COLOR_FMT, i+1), false));
     }
     addField(new DecNumber(buffer, offset + 43, 1, PRO_SINGLE_SMOKE_PUFF_DELAY));
     for (int i = 0; i < 7; i++) {
-      addField(new ColorValue(buffer, offset + 44 + i, 1, String.format(PRO_SINGLE_SMOKE_COLOR_FMT, i+1)));
+      addField(new ColorValue(buffer, offset + 44 + i, 1, String.format(PRO_SINGLE_SMOKE_COLOR_FMT, i+1), false));
     }
     addField(new HashBitmap(buffer, offset + 51, 1, PRO_SINGLE_FACE_TARGET_GRANULARITY, m_facetarget));
     addField(new IdsBitmap(buffer, offset + 52, 2, PRO_SINGLE_SMOKE_ANIMATION, "ANIMATE.IDS"));

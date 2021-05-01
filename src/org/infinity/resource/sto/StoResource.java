@@ -15,6 +15,7 @@ import javax.swing.JScrollPane;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -79,11 +80,11 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
 //  private static final String[] s_flag = {"Can't do anything", "Can buy", "Can sell", "Can identify",
 //                                          "Can steal", "Can buy cures", "Can donate",
 //                                          "Can buy drinks", "", "", "Quality Bit 0 (BAM)", "Quality Bit 1 (BAM)"};
-  public static final String[] s_flag_bg2 = {"Can only rest", "Can buy", "Can sell", "Can identify",
-                                              "Can steal", "Can donate;Unused in Enhanced Editions", "Can buy cures",
-                                              "Can buy drinks", null, "EE: Disable donation screen;Disables donation screen in temple stores",
-                                              "Tavern quality 1", "Tavern quality 2", null, "Fence", "EE: Ignore reputation",
-                                              "Ex: Toggle recharge", "EE: Can sell critical"};
+  public static final String[] s_flag_bg2 = {"User can only rest", "User can buy", "User can sell", "User can identify",
+                                              "User can steal", "User can donate;Unused in Enhanced Editions", "User can purchase cures",
+                                              "User can purchase drinks", null, "EE: Disable donation screen;Disables donation screen in temple stores",
+                                              "Tavern quality 1", "Tavern quality 2", null, "User can sell stolen goods", "EE: Ignore reputation",
+                                              "Ex: Toggle item recharge", "EE: User can sell critical items"};
   public static final String[] s_rooms = {"No rooms available", "Peasant", "Merchant", "Noble", "Royal"};
 
   private StructHexViewer hexViewer;
@@ -99,7 +100,6 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -115,9 +115,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -162,9 +160,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
   {
     return (index == 0);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -289,9 +285,7 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
     }
     return endoffset;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -331,7 +325,6 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
       hexViewer.dataModified();
     }
   }
-  //</editor-fold>
 
   /**
    * Checks whether the specified resource entry matches all available search options.
@@ -349,8 +342,8 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
         Object o;
 
         // preparations
-        DecNumber ofs = (DecNumber)sto.getAttribute(STO_OFFSET_ITEMS_FOR_SALE, false);
-        DecNumber cnt = (DecNumber)sto.getAttribute(STO_NUM_ITEMS_FOR_SALE, false);
+        IsNumeric ofs = (IsNumeric)sto.getAttribute(STO_OFFSET_ITEMS_FOR_SALE, false);
+        IsNumeric cnt = (IsNumeric)sto.getAttribute(STO_NUM_ITEMS_FOR_SALE, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           String itemLabel = SearchOptions.getResourceName(SearchOptions.STO_Item_Item1);
           items = new ResourceRef[cnt.getValue()];
@@ -376,8 +369,8 @@ public final class StoResource extends AbstractStruct implements Resource, HasCh
           items = new ResourceRef[0];
         }
 
-        ofs = (DecNumber)sto.getAttribute(STO_OFFSET_ITEMS_PURCHASED, false);
-        cnt = (DecNumber)sto.getAttribute(STO_NUM_ITEMS_PURCHASED, false);
+        ofs = (IsNumeric)sto.getAttribute(STO_OFFSET_ITEMS_PURCHASED, false);
+        cnt = (IsNumeric)sto.getAttribute(STO_NUM_ITEMS_PURCHASED, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           purchases = new Bitmap[cnt.getValue()];
           for (int i = 0; i < cnt.getValue(); i++) {

@@ -107,7 +107,6 @@ public class LayerObjectAmbient extends LayerObject
     }
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -168,7 +167,6 @@ public class LayerObjectAmbient extends LayerObject
       return false;
     }
   }
-  //</editor-fold>
 
   /**
    * Returns whether the ambient sound uses a local sound radius.

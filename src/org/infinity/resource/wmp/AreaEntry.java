@@ -10,6 +10,7 @@ import javax.swing.JComponent;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.StringRef;
@@ -105,29 +106,29 @@ final public class AreaEntry extends AbstractStruct implements HasViewerTabs
 
   void readLinks(ByteBuffer buffer, DecNumber linkOffset) throws Exception
   {
-    DecNumber northStart = (DecNumber)getAttribute(WMP_AREA_FIRST_LINK_NORTH);
-    DecNumber northCount = (DecNumber)getAttribute(WMP_AREA_NUM_LINKS_NORTH);
+    IsNumeric northStart = (IsNumeric)getAttribute(WMP_AREA_FIRST_LINK_NORTH);
+    IsNumeric northCount = (IsNumeric)getAttribute(WMP_AREA_NUM_LINKS_NORTH);
     int offset = linkOffset.getValue() + northStart.getValue() * 216;
     for (int i = 0; i < northCount.getValue(); i++) {
       addField(new AreaLinkNorth(this, buffer, offset + i * 216, i));
     }
 
-    DecNumber westStart = (DecNumber)getAttribute(WMP_AREA_FIRST_LINK_WEST);
-    DecNumber westCount = (DecNumber)getAttribute(WMP_AREA_NUM_LINKS_WEST);
+    IsNumeric westStart = (IsNumeric)getAttribute(WMP_AREA_FIRST_LINK_WEST);
+    IsNumeric westCount = (IsNumeric)getAttribute(WMP_AREA_NUM_LINKS_WEST);
     offset = linkOffset.getValue() + westStart.getValue() * 216;
     for (int i = 0; i < westCount.getValue(); i++) {
       addField(new AreaLinkWest(this, buffer, offset + i * 216, i));
     }
 
-    DecNumber southStart = (DecNumber)getAttribute(WMP_AREA_FIRST_LINK_SOUTH);
-    DecNumber southCount = (DecNumber)getAttribute(WMP_AREA_NUM_LINKS_SOUTH);
+    IsNumeric southStart = (IsNumeric)getAttribute(WMP_AREA_FIRST_LINK_SOUTH);
+    IsNumeric southCount = (IsNumeric)getAttribute(WMP_AREA_NUM_LINKS_SOUTH);
     offset = linkOffset.getValue() + southStart.getValue() * 216;
     for (int i = 0; i < southCount.getValue(); i++) {
       addField(new AreaLinkSouth(this, buffer, offset + i * 216, i));
     }
 
-    DecNumber eastStart = (DecNumber)getAttribute(WMP_AREA_FIRST_LINK_EAST);
-    DecNumber eastCount = (DecNumber)getAttribute(WMP_AREA_NUM_LINKS_EAST);
+    IsNumeric eastStart = (IsNumeric)getAttribute(WMP_AREA_FIRST_LINK_EAST);
+    IsNumeric eastCount = (IsNumeric)getAttribute(WMP_AREA_NUM_LINKS_EAST);
     offset = linkOffset.getValue() + eastStart.getValue() * 216;
     for (int i = 0; i < eastCount.getValue(); i++) {
       addField(new AreaLinkEast(this, buffer, offset + i * 216, i));

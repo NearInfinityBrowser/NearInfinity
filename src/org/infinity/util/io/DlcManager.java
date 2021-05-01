@@ -76,7 +76,7 @@ public class DlcManager
     this.fileSystems = new HashMap<>();
   }
 
-  private FileSystem _register(Path dlcFile) throws IOException
+  private FileSystem _register(Path dlcFile)
   {
     FileSystem fs = _getDlc(dlcFile);
     if (fs == null) {
@@ -124,7 +124,7 @@ public class DlcManager
     return null;
   }
 
-  private FileSystem _validateDlc(Path dlcFile) throws IOException
+  private FileSystem _validateDlc(Path dlcFile)
   {
     if (dlcFile == null || !FileEx.create(dlcFile).isFile()) {
       return null;

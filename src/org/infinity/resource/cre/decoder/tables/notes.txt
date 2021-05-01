@@ -1,0 +1,73 @@
+Table format
+~~~~~~~~~~~~
+
+Non-PST: (all games except PST and PST:EE)
+- header column: (int/hex, composite)
+  - contains the numeric animation id (usually in hexadecimal notation)
+  - may contain an optional mask value (separated from id by an underscore)
+    - indicates a slot range that uses the same definitions
+- RESREF (string)
+  - the animation prefix
+- TYPE (int)
+  - an index referring to a SpriteDecoder.AnimationType enum 
+- ELLIPSE (int)
+  - the selection circle radius
+- SPACE (int)
+  - the personal space in search map units
+- BLENDING (int)
+  - a bitfield: bit0=brightest, bit1=multiply_blend, bit2=light_source
+- PALETTE (string)
+  - resref of a replacement palette
+  - meaning depends on animation type
+- PALETTE2 (string)
+  - resref of a secondary replacement palette
+  - meaning depends on animation type
+- TRANSLUCENT (boolean)
+  - whether animation is semi-transparent
+- CLOWN (bool)
+  - whether false color replacement is enabled
+- SPLIT (bool)
+  - whether animations are spread over multiple sub-BAMs
+  - animation type "effect": specifies "random_render" attribute
+- HELMET (bool/int)
+  - animation types "character", "character_old": whether helmet overlay is drawn
+  - animation types "monster_layered", "monster_quadrant": specifies "caster" attribute
+  - animation type "effect": specifies BAM cycle
+- WEAPON (bool)
+  - animation type "character_old": whether weapon overlay is drawn
+  - animation type "monster_iwd": specifies "weapon_left_handed" attribute
+  - animation type "monster_layered": specifies "dual_attack" attribute
+- HEIGHT (string)
+  - animation type "character", "character_old": overlay prefix for weapons and helmets
+  - animation type "monster_layered": specifies "resref_weapon1" attribute
+  - animation type "effect": if SPLIT=1: specifies a second BAM resref to be used randomly
+- HEIGHT_SHIELD (string)
+  - animation type "character": overlay prefix for shields
+  - animation type "monster_layered": specifies "resref_weapon2" attribute
+
+
+PST: (PST and PST:EE only)
+- header column: (int/hex)
+  - contains the base part of the numeric animation id (usually in hexadecimal notation)
+  - high byte value is determined by the animation class
+  - slots with id >= 0x1000 are handled specially
+- RESREF (string)
+  - combination of prefix (one char), resref (3 chars) and suffix (one char)
+    - prefix "c" indicates slot range (PST: 0xE000, PSTEE: 0xF000)
+    - prefix "d" indicates slot range (PST: 0x6000, PSTEE: 0xF000)
+  - action prefix is determined by the animation class
+  - special animation slots are added verbatim
+- RESREF2 (string)
+  - contains a secondary BAM resref used by a small number of special animation slots
+- TYPE (int)
+  - an index referring to a SpriteDecoder.AnimationType enum 
+- ELLIPSE (int)
+  - the selection circle radius
+- SPACE (int)
+  - the personal space in search map units
+- CLOWN (int)
+  - number of false color ranges to replace (* indicates disabled false color replacement)
+- ARMOR (int)
+  - (currently) unused by NI
+- BESTIARY (int)
+  - (currently) unused by NI

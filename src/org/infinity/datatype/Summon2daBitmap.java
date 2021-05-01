@@ -6,9 +6,9 @@ package org.infinity.datatype;
 
 import java.nio.ByteBuffer;
 import java.util.Locale;
+import java.util.TreeMap;
 
 import org.infinity.resource.ResourceFactory;
-import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 
@@ -16,7 +16,7 @@ import org.infinity.util.Table2daCache;
 public class Summon2daBitmap extends HashBitmap
 {
   private static final String TableName = "SMTABLES.2DA";
-  private static final LongIntegerHashMap<String> summonMap = new LongIntegerHashMap<>();
+  private static final TreeMap<Long, String> summonMap = new TreeMap<>();
 
   public Summon2daBitmap(ByteBuffer buffer, int offset, int length, String name)
   {
@@ -28,7 +28,7 @@ public class Summon2daBitmap extends HashBitmap
     return TableName;
   }
 
-  private static synchronized LongIntegerHashMap<String> getSummonTable()
+  private static synchronized TreeMap<Long, String> getSummonTable()
   {
     if (summonMap.isEmpty()) {
       if (ResourceFactory.resourceExists(TableName)) {

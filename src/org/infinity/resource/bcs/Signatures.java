@@ -329,6 +329,17 @@ public class Signatures
     }
 
     @Override
+    public int hashCode()
+    {
+      int hash = 7;
+      hash = 31 * hash + id;
+      hash = 31 * hash + ((name == null) ? 0 : name.hashCode());
+      hash = 31 * hash + ((param == null) ? 0 : param.hashCode());
+      hash = 31 * hash + ((type == null) ? 0 : type.hashCode());
+      return hash;
+    }
+
+    @Override
     public boolean equals(Object obj)
     {
       if (obj instanceof Function) {
@@ -593,6 +604,19 @@ public class Signatures
       private void setColonSeparatedString(boolean b)
       {
         colonSeparated = b;
+      }
+
+      @Override
+      public int hashCode()
+      {
+        int hash = 7;
+        hash = 31 * hash + type;
+        hash = 31 * hash + ((name == null) ? 0 : name.hashCode());
+        hash = 31 * hash + ((idsRef == null) ? 0 : idsRef.hashCode());
+        hash = 31 * hash + ((resType == null) ? 0 : resType.hashCode());
+        hash = 31 * hash + Boolean.hashCode(combinedString);
+        hash = 31 * hash + Boolean.hashCode(colonSeparated);
+        return hash;
       }
 
       @Override

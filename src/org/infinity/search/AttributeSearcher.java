@@ -28,6 +28,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
 import org.infinity.datatype.DecNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
 import org.infinity.icon.Icons;
@@ -247,9 +248,9 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
             if (rbexact.isSelected()) {
               hit = regPattern.matcher(searchEntry.toString()).matches();
             } else if (rbless.isSelected()) {
-              hit = searchNumber > ((DecNumber)searchEntry).getValue();
+              hit = searchNumber > ((IsNumeric)searchEntry).getValue();
             } else if (rbgreater.isSelected()) {
-              hit = searchNumber < ((DecNumber)searchEntry).getValue();
+              hit = searchNumber < ((IsNumeric)searchEntry).getValue();
             }
 
             if (cbnot.isSelected()) {

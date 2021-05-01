@@ -14,6 +14,7 @@ import java.util.Collections;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.TextString;
 import org.infinity.datatype.Unknown;
@@ -75,7 +76,7 @@ final class Window extends AbstractStruct // implements AddRemovable
   /** Returns the number of controls associated with this panel. */
   public int getControlCount()
   {
-    return (int)((UnsignDecNumber)getAttribute(CHU_WINDOW_NUM_CONTROLS)).getValue();
+    return ((UnsignDecNumber)getAttribute(CHU_WINDOW_NUM_CONTROLS)).getValue();
   }
 
   /** Returns the given control. Index is relative to the controls associated with this panel. */
@@ -91,27 +92,27 @@ final class Window extends AbstractStruct // implements AddRemovable
   /** Returns the panel id. */
   public int getWindowId()
   {
-    return ((DecNumber)getAttribute(CHU_WINDOW_ID)).getValue();
+    return ((IsNumeric)getAttribute(CHU_WINDOW_ID)).getValue();
   }
 
   /** Returns the x and y positions of the panel. */
   public Point getWindowPosition()
   {
-    return new Point(((DecNumber)getAttribute(CHU_WINDOW_POSITION_X)).getValue(),
-                     ((DecNumber)getAttribute(CHU_WINDOW_POSITION_Y)).getValue());
+    return new Point(((IsNumeric)getAttribute(CHU_WINDOW_POSITION_X)).getValue(),
+                     ((IsNumeric)getAttribute(CHU_WINDOW_POSITION_Y)).getValue());
   }
 
   /** Returns width and height of the panel. */
   public Dimension getWindowDimension()
   {
-    return new Dimension(((DecNumber)getAttribute(CHU_WINDOW_WIDTH)).getValue(),
-                         ((DecNumber)getAttribute(CHU_WINDOW_HEIGHT)).getValue());
+    return new Dimension(((IsNumeric)getAttribute(CHU_WINDOW_WIDTH)).getValue(),
+                         ((IsNumeric)getAttribute(CHU_WINDOW_HEIGHT)).getValue());
   }
 
   /** Returns whether the panel references a background MOS. */
   public boolean hasBackgroundImage()
   {
-    return ((Bitmap)getAttribute(CHU_WINDOW_HAS_BACKGROUND)).getValue() == 1;
+    return ((IsNumeric)getAttribute(CHU_WINDOW_HAS_BACKGROUND)).getValue() == 1;
   }
 
   /** Returns the background MOS for the panel. */
@@ -122,8 +123,8 @@ final class Window extends AbstractStruct // implements AddRemovable
 
   public int readControls(ByteBuffer buffer) throws Exception
   {
-    int numctrl = (int)((UnsignDecNumber)getAttribute(CHU_WINDOW_NUM_CONTROLS)).getValue();
-    int first = (int)((UnsignDecNumber)getAttribute(CHU_WINDOW_FIRST_CONTROL_INDEX)).getValue();
+    int numctrl = ((UnsignDecNumber)getAttribute(CHU_WINDOW_NUM_CONTROLS)).getValue();
+    int first = ((UnsignDecNumber)getAttribute(CHU_WINDOW_FIRST_CONTROL_INDEX)).getValue();
     int controlsoffset = getParent().getControlsOffset() + (first*8);
     int endoffset = controlsoffset;
     for (int i = 0; i < numctrl; i++) {

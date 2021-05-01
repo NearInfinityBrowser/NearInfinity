@@ -71,7 +71,6 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     new ChooseBIFFrame(this);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -95,9 +94,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       bsave.setEnabled(!biftable.isEmpty());
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="ListSelectionListener">
   @Override
   public void valueChanged(ListSelectionEvent event)
   {
@@ -106,9 +103,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
       btobif.setEnabled(overridetable.getSelectedValues().length != 0);
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Runnable">
   @Override
   public void run()
   {
@@ -201,7 +196,6 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     ResourceFactory.getResourceTreeModel().sort();
     blocker.setBlocked(false);
   }
-  //</editor-fold>
 
   public void makeEditor(BIFFEntry bifentry, AbstractBIFFReader.Type format)
   {

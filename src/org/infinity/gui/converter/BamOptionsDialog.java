@@ -418,7 +418,7 @@ class BamOptionsDialog extends JDialog implements ActionListener, FocusListener,
     cbUseAlpha.addItemListener(this);
     cbUseAlpha.setSelectedIndex(getUseAlpha());
     itemStateChanged(new ItemEvent(cbUseAlpha, ItemEvent.ITEM_FIRST, cbUseAlpha.getSelectedItem(), ItemEvent.SELECTED));
-    cbSortPalette = new JComboBox<ColorConvert.SortType>(ColorConvert.SortType.values());
+    cbSortPalette = new JComboBox<>(ColorConvert.SortType.values());
     cbSortPalette.setSelectedItem(getSortPalette());
     cbCompressBam = new JCheckBox("Select \"Compress BAM\" by default", getCompressBam());
     JPanel pBamV1 = new JPanel(new GridBagLayout());

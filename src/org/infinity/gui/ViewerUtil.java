@@ -55,10 +55,10 @@ import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.graphics.BamDecoder;
+import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.graphics.BamResource;
 import org.infinity.resource.graphics.GraphicsResource;
 import org.infinity.resource.graphics.MosResource;
-import org.infinity.resource.graphics.BamDecoder.BamControl;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Misc;
 import org.infinity.util.SimpleListModel;
@@ -308,7 +308,23 @@ public final class ViewerUtil
     return new StructListPanel(title, struct, listClass, attrName, renderer, listener);
   }
 
+  /**
+   * Creates a panel with a text area control and a title with the {@code StructEntry} name.
+   * @param entry the {@code StructEntry} instance used to derive data and title from.
+   * @return a {@code JPanel} instance.
+   */
   public static JPanel makeTextAreaPanel(StructEntry entry)
+  {
+    return makeTextAreaPanel(entry, true);
+  }
+
+  /**
+   * Creates a panel with a text area control and an optional title with the {@code StructEntry} name.
+   * @param entry the {@code StructEntry} instance used to derive data and title from.
+   * @param showTitle whether to show the entry title.
+   * @return a {@code JPanel} instance.
+   */
+  public static JPanel makeTextAreaPanel(StructEntry entry, boolean showTitle)
   {
     String text;
     if (entry instanceof StringRef) {
@@ -329,7 +345,9 @@ public final class ViewerUtil
     scroll.setLineNumbersEnabled(false);
     ta.setMargin(new Insets(3, 3, 3, 3));
     JPanel panel = new JPanel(new BorderLayout());
-    panel.add(new JLabel(entry.getName()), BorderLayout.NORTH);
+    if (showTitle) {
+      panel.add(new JLabel(entry.getName()), BorderLayout.NORTH);
+    }
     panel.add(scroll, BorderLayout.CENTER);
     panel.setPreferredSize(new Dimension(5, 5));
     return panel;
@@ -387,7 +405,7 @@ public final class ViewerUtil
     private final AbstractStruct struct;
     private final Class<? extends StructEntry> listClass;
     private final JList<Object> list;
-    private final SimpleListModel<Object> listModel = new SimpleListModel<Object>();
+    private final SimpleListModel<Object> listModel = new SimpleListModel<>();
     private final JButton bOpen = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
 
     private StructListPanel(String title, AbstractStruct struct,

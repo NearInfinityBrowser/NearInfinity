@@ -26,7 +26,6 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.HexNumber;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.gui.ToolTipTableCellRenderer;
@@ -48,7 +47,7 @@ final class ViewerItems extends JPanel implements ActionListener, ListSelectionL
   {
     super(new BorderLayout(0, 3));
     final List<Item> items = new ArrayList<>();
-    HexNumber slots_offset = (HexNumber)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS);
+    IsNumeric slots_offset = (IsNumeric)cre.getAttribute(CreResource.CRE_OFFSET_ITEM_SLOTS);
     for (final StructEntry entry : cre.getFields()) {
       if (entry instanceof Item)
         items.add((Item)entry);

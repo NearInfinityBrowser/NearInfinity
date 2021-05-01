@@ -72,7 +72,6 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   private static final Color NORMAL_COLOR = Color.BLACK;
   private static final Color ERROR_COLOR  = Color.RED;
 
-  //<editor-fold defaultstate="collapsed" desc="Dialog content">
   private final DlgResource dlg;
   /** List of all states, found in {@link #dlg}. */
   private final List<State> stateList = new ArrayList<>();
@@ -93,14 +92,12 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
    * will be do when game process entering to related state.
    */
   private final List<Action> actionList = new ArrayList<>();
-  //</editor-fold>
 
   /** State that editor shows right now. */
   private State currentState;
   /** Transition that editor shows right now. */
   private Transition currentTrans;
 
-  //<editor-fold defaultstate="collapsed" desc="Select/Return">
   /**
    * Stack of states, that were selected by the {@link #CtrlSelect} button. The
    * {@link #CtrlReturn} button allows return to one of this states together with
@@ -115,9 +112,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   private final ArrayDeque<Transition> lastTransitions = new ArrayDeque<>();
   private DlgResource undoDlg;
   private boolean alive = true;
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="GUI">
   private final ButtonPanel buttonPanel = new ButtonPanel();
   private final DlgPanel stateTextPanel, stateTriggerPanel, transTextPanel, transTriggerPanel, transActionPanel;
   private final JMenuItem ifindall = new JMenuItem("in all DLG files");
@@ -127,7 +122,6 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   private final JTextField tfResponse = new JTextField(4);
   private final TitledBorder bostate = new TitledBorder("State");
   private final TitledBorder botrans = new TitledBorder("Response");
-  //</editor-fold>
 
   Viewer(DlgResource dlg)
   {
@@ -317,7 +311,7 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
         List<ResourceEntry> files = ResourceFactory.getResources("DLG");
         new DialogSearcher(files, getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
-        List<ResourceEntry> files = new ArrayList<ResourceEntry>();
+        List<ResourceEntry> files = new ArrayList<>();
         files.add(dlg.getResourceEntry());
         new DialogSearcher(files, getTopLevelAncestor());
       }

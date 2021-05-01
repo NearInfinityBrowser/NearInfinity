@@ -281,7 +281,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
         }
       }
     }
-    List<JMenuItem> list = new ArrayList<JMenuItem>();
+    List<JMenuItem> list = new ArrayList<>();
     if (miExport != null)
       list.add(miExport);
     if (miExportMOSV1 != null)
@@ -478,7 +478,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
       progress.setMillisToPopup(2000);
 
       // creating list of tiles as int[] arrays
-      List<int[]> tileList = new ArrayList<int[]>(cols*rows);
+      List<int[]> tileList = new ArrayList<>(cols*rows);
       for (int y = 0; y < rows; y++) {
         for (int x = 0; x < cols; x++) {
           int tileX = x * 64;
@@ -497,7 +497,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
       byte[] tilePalette = new byte[1024];
       byte[] tileData = new byte[64*64];
       int curPalOfs = palOfs, curTableOfs = tableOfs, curDataOfs = dataOfs;
-      IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(1536);   // caching RGBColor -> index
+      IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(1536);   // caching RGBColor -> index
       for (int tileIdx = 0; tileIdx < tileList.size(); tileIdx++) {
         colorCache.clear();
         if (progress.isCanceled()) {
@@ -531,7 +531,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
               if (palIndex != null) {
                 tileData[i] = (byte)(palIndex + 1);
               } else {
-                byte color = (byte)ColorConvert.nearestColorRGB(pixels[i], palette, true);
+                byte color = (byte)ColorConvert.getNearestColor(pixels[i], palette, 0.0, null);
                 tileData[i] = (byte)(color + 1);
                 colorCache.put(pixels[i], color);
               }
@@ -571,7 +571,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
       @Override
       public List<byte[]> doInBackground()
       {
-        List<byte[]> list = new Vector<byte[]>(1);
+        List<byte[]> list = new Vector<>(1);
         try {
           byte[] buf = convertToMosV1(exportCompressed);
           if (buf != null) {
@@ -592,44 +592,37 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
   {
     boolean retVal = false;
     if (index >= 0 && index <= 99999) {
-      try {
-        InputStream is = entry.getResourceDataAsStream();
-        if (is != null) {
-          try {
-            // parsing resource header
-            byte[] sig = new byte[8];
-            byte[] buf = new byte[16];
-            long len;
-            long curOfs = 0;
-            if ((len = is.read(sig)) != sig.length) throw new Exception();
-            if (!"MOS V2  ".equals(DynamicArray.getString(sig, 0, 8))) throw new Exception();
-            curOfs += len;
-            if ((len = is.read(buf)) != buf.length) throw new Exception();
-            curOfs += len;
-            int numBlocks = DynamicArray.getInt(buf, 8);
-            int ofsBlocks = DynamicArray.getInt(buf, 12);
-            curOfs = ofsBlocks - curOfs;
-            if (curOfs > 0) {
-              do {
-                len = is.skip(curOfs);
-                if (len <= 0) throw new Exception();
-                curOfs -= len;
-              } while (curOfs > 0);
-            }
+      try (InputStream is = entry.getResourceDataAsStream()) {
+        // parsing resource header
+        byte[] sig = new byte[8];
+        byte[] buf = new byte[16];
+        long len;
+        long curOfs = 0;
+        if ((len = is.read(sig)) != sig.length) throw new Exception();
+        if (!"MOS V2  ".equals(DynamicArray.getString(sig, 0, 8))) throw new Exception();
+        curOfs += len;
+        if ((len = is.read(buf)) != buf.length) throw new Exception();
+        curOfs += len;
+        int numBlocks = DynamicArray.getInt(buf, 8);
+        int ofsBlocks = DynamicArray.getInt(buf, 12);
+        curOfs = ofsBlocks - curOfs;
+        if (curOfs > 0) {
+          do {
+            len = is.skip(curOfs);
+            if (len <= 0) throw new Exception();
+            curOfs -= len;
+          } while (curOfs > 0);
+        }
 
-            // parsing blocks
-            buf = new byte[28];
-            for (int i = 0; i < numBlocks && !retVal; i++) {
-              if (is.read(buf) != buf.length) throw new Exception();
-              int curIndex = DynamicArray.getInt(buf, 0);
-              retVal = (curIndex == index);
-            }
-          } finally {
-            is.close();
-            is = null;
-          }
+        // parsing blocks
+        buf = new byte[28];
+        for (int i = 0; i < numBlocks && !retVal; i++) {
+          if (is.read(buf) != buf.length) throw new Exception();
+          int curIndex = DynamicArray.getInt(buf, 0);
+          retVal = (curIndex == index);
         }
       } catch (Exception e) {
+        e.printStackTrace();
       }
     }
     return retVal;

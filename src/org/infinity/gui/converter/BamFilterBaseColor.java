@@ -23,9 +23,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.infinity.gui.ColorGrid;
-import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.ColorGrid.MouseOverEvent;
 import org.infinity.gui.ColorGrid.MouseOverListener;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.util.Misc;
 
 /**
@@ -105,7 +105,7 @@ public abstract class BamFilterBaseColor extends BamFilterBase
       }
     }
 
-    private final List<ChangeListener> listChangeListeners = new ArrayList<ChangeListener>();
+    private final List<ChangeListener> listChangeListeners = new ArrayList<>();
 
     private ColorGrid cgPalette;
     private JLabel lInfoIndex, lInfoRGB, lInfoHexRGB;

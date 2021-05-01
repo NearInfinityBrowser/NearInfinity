@@ -37,7 +37,7 @@ public class Song2daBitmap extends ResourceBitmap
 
   public Song2daBitmap(ByteBuffer buffer, int offset, int length, String name)
   {
-    super(buffer, offset, length, name, createSongList(), "Unknown", FormatString);
+    super(buffer, offset, length, name, createSongList(), "Unknown", FormatString, true);
   }
 
   public static synchronized List<RefEntry> createSongList()
@@ -79,8 +79,8 @@ public class Song2daBitmap extends ResourceBitmap
       Table2da table = Table2daCache.get(TableName);
       String defValue = table.getDefaultValue();
       SongList.ensureCapacity(2 + table.getRowCount());
-      SongList.add(new RefEntry(0xfffffffeL, "Special", "Continue area music"));
-      SongList.add(new RefEntry(0xffffffffL, "Special", "Continue outside music"));
+      SongList.add(new RefEntry(-2L, "Special", "Continue area music"));
+      SongList.add(new RefEntry(-1L, "Special", "Continue outside music"));
 
       for (int i = 0, size = table.getRowCount(); i < size; i++) {
         String name = table.get(i, 1);
@@ -100,8 +100,8 @@ public class Song2daBitmap extends ResourceBitmap
     if (SongList.isEmpty()) {
       IdsMap map = IdsMapCache.get(TableName);
       SongList.ensureCapacity(2 + map.size());
-      SongList.add(new RefEntry(0xfffffffeL, "Continue area music"));
-      SongList.add(new RefEntry(0xffffffffL, "Continue outside music"));
+      SongList.add(new RefEntry(-2L, "Continue area music"));
+      SongList.add(new RefEntry(-1L, "Continue outside music"));
 
       for (final IdsMapEntry e: map.getAllValues()) {
         String name = e.getSymbol();
@@ -167,8 +167,8 @@ public class Song2daBitmap extends ResourceBitmap
       };
 
       SongList.ensureCapacity(2 + map.length);
-      SongList.add(new RefEntry(0xfffffffeL, "Special", "Continue area music"));
-      SongList.add(new RefEntry(0xffffffffL, "Special", "Continue outside music"));
+      SongList.add(new RefEntry(-2L, "Special", "Continue area music"));
+      SongList.add(new RefEntry(-1L, "Special", "Continue outside music"));
 
       for (int i = 0; i < map.length; i+=2) {
         final String ref  = map[i];
@@ -230,8 +230,8 @@ public class Song2daBitmap extends ResourceBitmap
         /*38L,*/ "DEATH.MUS",
       };
 
-      SongList.add(new RefEntry(0xfffffffeL, "Continue area music"));
-      SongList.add(new RefEntry(0xffffffffL, "Continue outside music"));
+      SongList.add(new RefEntry(-2L, "Continue area music"));
+      SongList.add(new RefEntry(-1L, "Continue outside music"));
 
       for (int i = 0; i < map.length; ++i) {
         SongList.add(new RefEntry(i, map[i], null, searchDirs));

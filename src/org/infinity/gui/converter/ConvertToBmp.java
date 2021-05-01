@@ -18,9 +18,9 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -324,7 +324,7 @@ public class ConvertToBmp extends ChildFrame
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pInputButtons.add(pRemove, c);
 
-    modelInputFiles = new SimpleListModel<String>();
+    modelInputFiles = new SimpleListModel<>();
     listInputFiles = new JList<>(modelInputFiles);
     JScrollPane scroll = new JScrollPane(listInputFiles);
     JPanel pInputFrame = new JPanel(new GridBagLayout());
@@ -482,7 +482,7 @@ public class ConvertToBmp extends ChildFrame
     }
     Path[] files = getOpenFileName(this, "Choose file(s)", rootPath, true, getGraphicsFilters(), 0);
     if (files != null) {
-      List<String> skippedFiles = new ArrayList<String>();
+      List<String> skippedFiles = new ArrayList<>();
       int idx = listInputFiles.getSelectedIndex() + 1;
       for (final Path file: files) {
         if (isValidInput(file)) {
@@ -524,7 +524,7 @@ public class ConvertToBmp extends ChildFrame
     if (path != null && FileEx.create(path).isDirectory()) {
       // adding all files in the directory
       FileNameExtensionFilter[] filters = getGraphicsFilters();
-      List<String> skippedFiles = new ArrayList<String>();
+      List<String> skippedFiles = new ArrayList<>();
       int idx = listInputFiles.getSelectedIndex() + 1;
       try (DirectoryStream<Path> dstream = Files.newDirectoryStream(path)) {
         for (final Path file: dstream) {
@@ -610,7 +610,7 @@ public class ConvertToBmp extends ChildFrame
 
   private List<String> convert()
   {
-    List<String> result = new ArrayList<String>(2);
+    List<String> result = new ArrayList<>(2);
     final String progressMsg = "Converting file %d / %d";
     int progressIdx = 0, progressMax = modelInputFiles.size() + 1;
     ProgressMonitor progress = new ProgressMonitor(this, "Converting files...", "Preparing", 0, progressMax);

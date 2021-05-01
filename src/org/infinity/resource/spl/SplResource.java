@@ -16,9 +16,11 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
+import org.infinity.datatype.AbstractBitmap;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.PriTypeBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SecTypeBitmap;
@@ -67,7 +69,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
 {
   // SPL-specific field labels
   public static final String SPL_NAME                             = "Spell name";
-  public static final String SPL_NAME_IDENTIFIED                  = org.infinity.resource.itm.ItmResource.ITM_NAME_IDENTIFIED;
+  public static final String SPL_NAME_IDENTIFIED                  = org.infinity.resource.itm.ItmResource.ITM_NAME_IDENTIFIED + SUFFIX_UNUSED;
   public static final String SPL_CASTING_SOUND                    = "Casting sound";
   public static final String SPL_FLAGS                            = "Flags";
   public static final String SPL_TYPE                             = "Spell type";
@@ -80,7 +82,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
   public static final String SPL_ICON                             = "Spell icon";
   public static final String SPL_ICON_GROUND                      = "Ground icon";
   public static final String SPL_DESCRIPTION                      = "Spell description";
-  public static final String SPL_DESCRIPTION_IDENTIFIED           = org.infinity.resource.itm.ItmResource.ITM_DESCRIPTION_IDENTIFIED;
+  public static final String SPL_DESCRIPTION_IDENTIFIED           = org.infinity.resource.itm.ItmResource.ITM_DESCRIPTION_IDENTIFIED + SUFFIX_UNUSED;
   public static final String SPL_DESCRIPTION_IMAGE                = org.infinity.resource.itm.ItmResource.ITM_DESCRIPTION_IMAGE;
   public static final String SPL_OFFSET_ABILITIES                 = org.infinity.resource.itm.ItmResource.ITM_OFFSET_ABILITIES;
   public static final String SPL_NUM_ABILITIES                    = org.infinity.resource.itm.ItmResource.ITM_NUM_ABILITIES;
@@ -108,10 +110,15 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
                                              "Divination", "Illusion", "Invocation", "Necromancy", "Innate"};
 
   public static final String[] s_spellflag = {"No flags set", "", "", "", "", "", "", "", "",
-                                              "", "EE: Break Sanctuary", "Hostile", "No LOS required",
+                                              "", "EE: Break Sanctuary/Invisibility", "Hostile", "No LOS required",
                                               "Allow spotting", "Outdoors only", "Ignore dead/wild magic",
                                               "Ignore wild surge", "Non-combat ability", "", "", "", "", "",
                                               "", "", "EE/Ex: Can target invisible", "EE/Ex: Castable when silenced"};
+  public static final String[] s_spellflag2 = {"No flags set", "", "", "", "", "", "", "", "",
+                                               "", "", "Hostile", "No LOS required",
+                                               "Allow spotting", "Outdoors only", "Simplified duration",
+                                               "Trigger/Contingency", "", "", "Non-combat ability (?)", "", "", "",
+                                               "", "", "", ""};
   public static final String[] s_exclude =
     { "None",
       "Berserker", "Wizard slayer", "Kensai", "Cavalier", "Inquisitor", "Undead hunter",
@@ -154,7 +161,6 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -166,9 +172,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -213,9 +217,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
   {
     return (index == 0);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
@@ -227,17 +229,15 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="UpdateListener">
   @Override
   public boolean valueUpdated(UpdateEvent event)
   {
-    if (event.getSource() instanceof Bitmap &&
-        SPL_TYPE.equals(((Bitmap)event.getSource()).getName())) {
+    if (event.getSource() instanceof AbstractBitmap<?> &&
+        SPL_TYPE.equals(((AbstractBitmap<?>)event.getSource()).getName())) {
       Flag curFlags = (Flag)getAttribute(SPL_EXCLUSION_FLAGS);
       if (curFlags != null) {
-        int type = ((Bitmap)event.getSource()).getValue();
+        int type = ((IsNumeric)event.getSource()).getValue();
         int size = curFlags.getSize();
         int offset = curFlags.getOffset();
         ByteBuffer b = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN).putInt(curFlags.getValue());
@@ -249,9 +249,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
     }
     return false;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -268,7 +266,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
       }
     }
     else if (datatype instanceof Ability) {
-      int effect_count = ((SectionCount)getAttribute(SPL_NUM_GLOBAL_EFFECTS)).getValue();
+      int effect_count = ((IsNumeric)getAttribute(SPL_NUM_GLOBAL_EFFECTS)).getValue();
       for (final StructEntry o : getFields()) {
         if (o instanceof Ability) {
           Ability ability = (Ability)o;
@@ -299,7 +297,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
       }
     }
     else if (datatype instanceof Ability) {
-      int effect_count = ((SectionCount)getAttribute(SPL_NUM_GLOBAL_EFFECTS)).getValue();
+      int effect_count = ((IsNumeric)getAttribute(SPL_NUM_GLOBAL_EFFECTS)).getValue();
       for (final StructEntry o : getFields()) {
         if (o instanceof Ability) {
           Ability ability = (Ability)o;
@@ -319,9 +317,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
     super.datatypeRemovedInChild(child, datatype);
     incAbilityEffects(child, datatype, -1);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -331,7 +327,11 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
     addField(new StringRef(buffer, offset + 8, SPL_NAME));
     addField(new StringRef(buffer, offset + 12, SPL_NAME_IDENTIFIED));
     addField(new ResourceRef(buffer, offset + 16, SPL_CASTING_SOUND, "WAV"));
-    addField(new Flag(buffer, offset + 24, 4, SPL_FLAGS, s_spellflag));
+    if (version.getText().equalsIgnoreCase("V2.0")) {
+      addField(new Flag(buffer, offset + 24, 4, SPL_FLAGS, s_spellflag2));
+    } else {
+      addField(new Flag(buffer, offset + 24, 4, SPL_FLAGS, s_spellflag));
+    }
     Bitmap spellType = new Bitmap(buffer, offset + 28, 2, SPL_TYPE, s_spelltype);   // 0x1c
     spellType.addUpdateListener(this);
     addField(spellType);
@@ -397,7 +397,6 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
 
     return Math.max(offset, offset2);
   }
-  //</editor-fold>
 
   private void incAbilityEffects(StructEntry child, AddRemovable datatype, int value)
   {
@@ -433,8 +432,8 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
         Object o;
 
         // preparing substructures
-        DecNumber ofs = (DecNumber)spl.getAttribute(SPL_OFFSET_EFFECTS, false);
-        DecNumber cnt = (DecNumber)spl.getAttribute(SPL_NUM_GLOBAL_EFFECTS, false);
+        IsNumeric ofs = (IsNumeric)spl.getAttribute(SPL_OFFSET_EFFECTS, false);
+        IsNumeric cnt = (IsNumeric)spl.getAttribute(SPL_NUM_GLOBAL_EFFECTS, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           effects = new Effect[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -445,8 +444,8 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
           effects = new Effect[0];
         }
 
-        ofs = (DecNumber)spl.getAttribute(SPL_OFFSET_ABILITIES, false);
-        cnt = (DecNumber)spl.getAttribute(SPL_NUM_ABILITIES, false);
+        ofs = (IsNumeric)spl.getAttribute(SPL_OFFSET_ABILITIES, false);
+        cnt = (IsNumeric)spl.getAttribute(SPL_NUM_ABILITIES, false);
         if (ofs != null && ofs.getValue() > 0 && cnt != null && cnt.getValue() > 0) {
           abilities = new Ability[cnt.getValue()];
           for (int idx = 0; idx < cnt.getValue(); idx++) {
@@ -460,7 +459,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
         abilityEffects = new Effect[abilities.length][];
         for (int idx = 0; idx < abilities.length; idx++) {
           if (abilities[idx] != null) {
-            cnt = (DecNumber)abilities[idx].getAttribute(AbstractAbility.ABILITY_NUM_EFFECTS, false);
+            cnt = (IsNumeric)abilities[idx].getAttribute(AbstractAbility.ABILITY_NUM_EFFECTS, false);
             if (cnt != null && cnt.getValue() > 0) {
               abilityEffects[idx] = new Effect[cnt.getValue()];
               for (int idx2 = 0; idx2 < cnt.getValue(); idx2++) {

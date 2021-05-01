@@ -52,7 +52,7 @@ public class AbstractComponent extends AbstractStruct implements AddRemovable
     VefType type = new VefType(buffer, offset + 12, 4);
     addField(type);
 
-    List<StructEntry> list = new ArrayList<StructEntry>();
+    List<StructEntry> list = new ArrayList<>();
     offset = type.readAttributes(buffer, offset + 16, list);
     addFields(getFields().size() - 1, list);
 

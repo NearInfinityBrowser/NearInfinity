@@ -43,16 +43,14 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
 import org.infinity.NearInfinity;
-import org.infinity.datatype.Bitmap;
+import org.infinity.datatype.AbstractBitmap;
 import org.infinity.datatype.ColorPicker;
 import org.infinity.datatype.ColorValue;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.FloatNumber;
-import org.infinity.datatype.HashBitmap;
 import org.infinity.datatype.MultiNumber;
 import org.infinity.datatype.ProRef;
-import org.infinity.datatype.ResourceBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -144,8 +142,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
     } else if (type instanceof DecNumber || type instanceof MultiNumber ||
                type instanceof FloatNumber) {
       return "Number";
-    } else if (type instanceof Bitmap || type instanceof HashBitmap ||
-               type instanceof ResourceBitmap) {
+    } else if (type instanceof AbstractBitmap<?>) {
       return "Numeric type or identifier";
     } else if (type instanceof TextBitmap || type instanceof TextEdit ||
                type instanceof TextString) {
@@ -192,7 +189,6 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
     initGui();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="IHexViewListener">
   @Override
   public void stateChanged(HexViewEvent event)
   {
@@ -209,17 +205,13 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       updateStatusBar(offset);
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="IDataChangedListener">
   @Override
   public void dataChanged(DataChangedEvent event)
   {
     getStruct().setStructChanged(true);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -329,9 +321,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       getHexView().requestFocusInWindow();
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="ChangeListener">
   @Override
   public void stateChanged(ChangeEvent e)
   {
@@ -350,9 +340,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Closeable">
   @Override
   public void close() throws Exception
   {
@@ -374,7 +362,6 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
       findData = null;
     }
   }
-  //</editor-fold>
 
   /** Returns the associated resource structure. */
   public AbstractStruct getStruct()
@@ -625,7 +612,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
             list.remove(0);
           }
         } else {
-          list = new ArrayList<StructEntry>();
+          list = new ArrayList<>();
         }
 
         // removing invalid models and controls

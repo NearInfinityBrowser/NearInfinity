@@ -6,9 +6,9 @@ package org.infinity.datatype;
 
 import java.nio.ByteBuffer;
 import java.util.Locale;
+import java.util.TreeMap;
 
 import org.infinity.resource.ResourceFactory;
-import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 
@@ -21,7 +21,7 @@ public class SecTypeBitmap extends HashBitmap
                                               "Divination attack", "Conjuration", "Combat protections",
                                               "Contingency", "Battleground", "Offensive damage",
                                               "Disabling", "Combination", "Non-combat"};
-  private static final LongIntegerHashMap<String> typeMap = new LongIntegerHashMap<>();
+  private static final TreeMap<Long, String> typeMap = new TreeMap<>();
 
   public SecTypeBitmap(ByteBuffer buffer, int offset, int length, String name)
   {
@@ -35,11 +35,11 @@ public class SecTypeBitmap extends HashBitmap
 
   public static String[] getTypeArray()
   {
-    final LongIntegerHashMap<String> map = getTypeTable();
+    final TreeMap<Long, String> map = getTypeTable();
     return map.values().toArray(new String[map.size()]);
   }
 
-  private static synchronized LongIntegerHashMap<String> getTypeTable()
+  private static synchronized TreeMap<Long, String> getTypeTable()
   {
     if (typeMap.isEmpty()) {
       if (ResourceFactory.resourceExists(TableName)) {

@@ -130,7 +130,7 @@ public class IdsTargetType extends Bitmap
   public StructEntry createIdsValueFromType(ByteBuffer buffer, int offset, int size, String name)
   {
     int value = getValue();
-    String type = getString(value);
+    String type = getDataOf(value);
     if (type != null) {
       if (ResourceFactory.resourceExists(type)) {
         return new IdsBitmap(buffer, offset, size, createFieldName(name, index, DEFAULT_NAME_VALUE), type);
@@ -155,7 +155,7 @@ public class IdsTargetType extends Bitmap
   public StructEntry createResourceFromType(ByteBuffer buffer, int offset, String name)
   {
     int value = getValue();
-    String type = getString(value);
+    String type = getDataOf(value);
     if (type != null) {
       if (value == 11 &&
           !type.isEmpty() &&

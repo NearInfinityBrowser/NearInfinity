@@ -61,13 +61,13 @@ public class IdsMap
   /** Returns a copy of the values contained in the IDS map. */
   public List<IdsMapEntry> getAllValues()
   {
-    return new ArrayList<IdsMapEntry>(idsMap.values());
+    return new ArrayList<>(idsMap.values());
   }
 
   /** Returns a copy of the keys contained in the IDS map as a sorted set. */
   public SortedSet<Long> getKeys()
   {
-    return new TreeSet<Long>(idsMap.keySet());
+    return new TreeSet<>(idsMap.keySet());
   }
 
   /** Returns the entry structure defined by the specified IDS value, or {@code null} otherwise. */
@@ -221,7 +221,8 @@ public class IdsMap
 
   private long normalizedKey(long key)
   {
-    return key & 0xffffffffL;
+    // cap to 32 bit but preserve sign
+    return key % 0x100000000L;
   }
 
   private String normalizedString(String s)

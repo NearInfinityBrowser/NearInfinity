@@ -40,6 +40,9 @@ public class IniMapEntry
   public Integer getIntValue() { return value == null ? null : Integer.valueOf(value); }
   public int getIntValue(int defValue) { return value == null ? defValue : Integer.valueOf(value); }
 
+  public Double getDoubleValue() { return value == null ? null : Double.valueOf(value); }
+  public double getDoubleValue(double defValue) { return value == null ? defValue : Double.valueOf(value); }
+
   public StringRef getStringRefValue() {
     return value == null ? null : new StringRef(key, Integer.valueOf(value));
   }
@@ -81,7 +84,7 @@ public class IniMapEntry
   {
     String[] retVal = null;
     if (value != null) {
-      List<String> results = new ArrayList<String>();
+      List<String> results = new ArrayList<>();
       try {
         Matcher matcher = Pattern.compile(pattern).matcher(value);
         while (matcher.find()) {
@@ -109,7 +112,7 @@ public class IniMapEntry
   {
     int[] retVal = null;
     if (value != null && Pattern.matches("^\\[(-?\\d+\\.?)+\\]$", value)) {
-      List<String> results = new ArrayList<String>();
+      List<String> results = new ArrayList<>();
       Pattern p = Pattern.compile("-?\\d+");
       Matcher m = p.matcher(value);
       while (m.find()) {
@@ -138,7 +141,7 @@ public class IniMapEntry
   {
     int[] retVal = null;
     if (value != null && Pattern.matches("^\\[[-0-9]+\\.[-0-9]+(:[0-9]+)?\\]$", value)) {
-      List<String> results = new ArrayList<String>();
+      List<String> results = new ArrayList<>();
       Pattern p = Pattern.compile("-?\\d+");
       Matcher m = p.matcher(value);
       while (m.find()) {

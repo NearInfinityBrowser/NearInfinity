@@ -19,8 +19,8 @@ import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
-import org.infinity.util.Pair;
 import org.infinity.util.io.StreamUtils;
+import org.infinity.util.tuples.Couple;
 
 /**
  * Stores a list of search options specified in SearchResource (Extended search) for use in the
@@ -278,7 +278,7 @@ public class SearchOptions
   public static final String VVC_Custom4          = "VVC.+Custom.3";
 
 
-  private final HashMap<String, Object> mapOptions = new HashMap<String, Object>();
+  private final HashMap<String, Object> mapOptions = new HashMap<>();
   private final String resourceType;
 
   /**
@@ -552,10 +552,10 @@ public class SearchOptions
         int v;
         boolean isExact;
 
-        if (value instanceof Pair<?> && ((Pair<?>)value).getFirst() instanceof Integer &&
-            ((Pair<?>)value).getSecond() instanceof Boolean) {
-          v = (Integer)((Pair<?>)value).getFirst();
-          isExact = (Boolean)((Pair<?>)value).getSecond();
+        if (value instanceof Couple<?, ?> && ((Couple<?, ?>)value).getValue0() instanceof Integer &&
+            ((Couple<?, ?>)value).getValue1() instanceof Boolean) {
+          v = (Integer)((Couple<?, ?>)value).getValue0();
+          isExact = (Boolean)((Couple<?, ?>)value).getValue1();
         } else if (value instanceof Integer) {
           v = (Integer)value;
           isExact = false;
@@ -589,11 +589,11 @@ public class SearchOptions
         int n1, n2, n3;
         if (value instanceof Integer) {
           n1 = n2 = (Integer)value;
-        } else if (value instanceof Pair<?> &&
-                   ((Pair<?>)value).getFirst() instanceof Integer &&
-                   ((Pair<?>)value).getSecond() instanceof Integer) {
-          n1 = (Integer)((Pair<?>)value).getFirst();
-          n2 = (Integer)((Pair<?>)value).getSecond();
+        } else if (value instanceof Couple<?, ?> &&
+                   ((Couple<?, ?>)value).getValue0() instanceof Integer &&
+                   ((Couple<?, ?>)value).getValue1() instanceof Integer) {
+          n1 = (Integer)((Couple<?, ?>)value).getValue0();
+          n2 = (Integer)((Couple<?, ?>)value).getValue1();
           if (n1 > n2) { int tmp = n1; n1 = n2; n2 = tmp; }
         } else {
           return false;
@@ -614,10 +614,10 @@ public class SearchOptions
 
     public static boolean matchCustomFilter(AbstractStruct struct, Object match)
     {
-      if (struct != null && match != null && match instanceof Pair<?> &&
-          ((Pair<?>)match).getFirst() instanceof String) {
-        String fieldName = (String)((Pair<?>)match).getFirst();
-        Object value = ((Pair<?>)match).getSecond();
+      if (struct != null && match != null && match instanceof Couple<?, ?> &&
+          ((Couple<?, ?>)match).getValue0() instanceof String) {
+        String fieldName = (String)((Couple<?, ?>)match).getValue0();
+        Object value = ((Couple<?, ?>)match).getValue1();
         if (!fieldName.isEmpty() && value != null) {
           boolean bRet = false;
           final List<StructEntry> structList = struct.getFlatFields();
@@ -630,11 +630,11 @@ public class SearchOptions
                   // field name matches
                   if (value instanceof String) {
                     bRet |= matchResourceRef(entry, value, false) || matchString(entry, value, false, false);
-                  } else if (value instanceof Pair<?>) {
-                    if (((Pair<?>)value).getFirst() instanceof Integer) {
-                      if (((Pair<?>)value).getSecond() instanceof Integer) {
+                  } else if (value instanceof Couple<?, ?>) {
+                    if (((Couple<?, ?>)value).getValue0() instanceof Integer) {
+                      if (((Couple<?, ?>)value).getValue1() instanceof Integer) {
                         bRet |= matchNumber(entry, value);
-                      } else if (((Pair<?>)value).getSecond() instanceof Boolean) {
+                      } else if (((Couple<?, ?>)value).getValue1() instanceof Boolean) {
                         bRet |= matchFlags(entry, value);
                       }
                     }

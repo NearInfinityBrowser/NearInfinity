@@ -7,8 +7,10 @@ package org.infinity.search;
 import java.awt.Component;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
+
 import javax.swing.JOptionPane;
 import javax.swing.ProgressMonitor;
+
 import org.infinity.NearInfinity;
 import org.infinity.resource.key.ResourceEntry;
 import org.infinity.util.Debugging;

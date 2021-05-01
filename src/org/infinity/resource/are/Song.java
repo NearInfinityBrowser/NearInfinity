@@ -75,7 +75,7 @@ public final class Song extends AbstractStruct // implements AddRemovable
       addField(new DecNumber(buffer, offset + 76, 4, ARE_SONGS_AMBIENT_VOLUME_NIGHT));
     }
     if (ResourceFactory.resourceExists("REVERB.IDS")) {
-      addField(new IdsBitmap(buffer, offset + 80, 4, ARE_SONGS_REVERB, "REVERB.IDS"));
+      addField(new IdsBitmap(buffer, offset + 80, 4, ARE_SONGS_REVERB, "REVERB.IDS", true, false, true));
       addField(new Unknown(buffer, offset + 84, 60));
     } else if (ResourceFactory.resourceExists("REVERB.2DA")) {
       addField(new TableBitmap(buffer, offset + 80, 4, ARE_SONGS_REVERB, "REVERB.2DA"));

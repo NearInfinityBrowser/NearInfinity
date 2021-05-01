@@ -16,6 +16,7 @@ import org.infinity.datatype.ColorPicker;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HexNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
@@ -113,16 +114,13 @@ final class Control extends AbstractStruct // implements AddRemovable
     this.size = size;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Writable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     getFields().get(0).write(os);
     getFields().get(1).write(os);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -130,38 +128,37 @@ final class Control extends AbstractStruct // implements AddRemovable
     addField(new HexNumber(buffer, offset + 4, 4, CHU_CONTROL_LENGTH));
     return offset + 8;
   }
-  //</editor-fold>
 
   /** Returns the control id. */
   public int getControlId()
   {
-    return ((DecNumber)getAttribute(CHU_CONTROL_ID)).getValue();
+    return ((IsNumeric)getAttribute(CHU_CONTROL_ID)).getValue();
   }
 
   /** Returns the x and y position of the control. */
   public Point getControlPosition()
   {
-    return new Point(((DecNumber)getAttribute(CHU_CONTROL_POSITION_X)).getValue(),
-                     ((DecNumber)getAttribute(CHU_CONTROL_POSITION_Y)).getValue());
+    return new Point(((IsNumeric)getAttribute(CHU_CONTROL_POSITION_X)).getValue(),
+                     ((IsNumeric)getAttribute(CHU_CONTROL_POSITION_Y)).getValue());
   }
 
   /** Returns the width and height of the control. */
   public Dimension getControlDimensions()
   {
-    return new Dimension(((DecNumber)getAttribute(CHU_CONTROL_WIDTH)).getValue(),
-                         ((DecNumber)getAttribute(CHU_CONTROL_HEIGHT)).getValue());
+    return new Dimension(((IsNumeric)getAttribute(CHU_CONTROL_WIDTH)).getValue(),
+                         ((IsNumeric)getAttribute(CHU_CONTROL_HEIGHT)).getValue());
   }
 
   /** Returns the control type. */
   public int getControlType()
   {
-    return ((Bitmap)getAttribute(CHU_CONTROL_TYPE)).getValue();
+    return ((IsNumeric)getAttribute(CHU_CONTROL_TYPE)).getValue();
   }
 
 
   public int readControl(ByteBuffer buffer)
   {
-    int offset = ((HexNumber)getAttribute(CHU_CONTROL_OFFSET)).getValue();
+    int offset = ((IsNumeric)getAttribute(CHU_CONTROL_OFFSET)).getValue();
     final int endOffset = offset + size;
     addField(new DecNumber(buffer, offset, 2, CHU_CONTROL_ID));
     addField(new DecNumber(buffer, offset + 2, 2, CHU_CONTROL_BUFFER_LENGTH));
@@ -264,7 +261,7 @@ final class Control extends AbstractStruct // implements AddRemovable
         offset += 40;
         break;
       default:
-        HexNumber len = (HexNumber)getAttribute(CHU_CONTROL_LENGTH);
+        IsNumeric len = (IsNumeric)getAttribute(CHU_CONTROL_LENGTH);
         addField(new Unknown(buffer, offset + 14, len.getValue() - 14));
         offset += len.getValue();
         break;

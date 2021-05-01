@@ -64,7 +64,6 @@ public class LayerObjectContainer extends LayerObject
     item.setVisible(isVisible());
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -95,7 +94,6 @@ public class LayerObjectContainer extends LayerObject
       item.setShape(poly);
     }
   }
-  //</editor-fold>
 
   private String getAttributes()
   {

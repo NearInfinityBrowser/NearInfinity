@@ -13,7 +13,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.EventListener;
 
-import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
@@ -190,8 +189,8 @@ public abstract class LayerObject
         if (e.getOffset() >= baseOfs && type.isAssignableFrom(e.getClass())) {
           if (idx >= index) {
             final Vertex vertex = (Vertex)e;
-            coords[cnt] = new Point(((DecNumber)vertex.getAttribute(Vertex.VERTEX_X)).getValue(),
-                                    ((DecNumber)vertex.getAttribute(Vertex.VERTEX_Y)).getValue());
+            coords[cnt] = new Point(((IsNumeric)vertex.getAttribute(Vertex.VERTEX_X)).getValue(),
+                                    ((IsNumeric)vertex.getAttribute(Vertex.VERTEX_Y)).getValue());
             cnt++;
             if (cnt >= count) {
               break;

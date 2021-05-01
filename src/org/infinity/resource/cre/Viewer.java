@@ -96,6 +96,7 @@ public final class Viewer extends JPanel
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_GENDER), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ALIGNMENT), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_KIT), gbl, gbc, true);
+    ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_ANIMATION), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_CHALLENGE_RATING), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SAVE_FORTITUDE), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(panel, cre.getAttribute(CreResource.CRE_SAVE_REFLEX), gbl, gbc, true);

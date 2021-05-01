@@ -32,20 +32,20 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
   private enum GameType { UNKNOWN, BG2, IWD, IWD2, IWDEE }
 
   private static final EnumMap<GameType, Vector<StrrefItem>> STRREF_ITEM  =
-      new EnumMap<GameType, Vector<StrrefItem>>(GameType.class);
+      new EnumMap<>(GameType.class);
   static {
     Vector<StrrefItem> list;
     // creating maps for unknown, BG2, IWD and IWD2
     // initializing 'unknown' items
-    STRREF_ITEM.put(GameType.UNKNOWN, (list = new Vector<StrrefItem>()));
+    STRREF_ITEM.put(GameType.UNKNOWN, (list = new Vector<>()));
     list.add(new StrrefItem(-1,    "User-defined biography"));
     // initializing BG2 items
-    STRREF_ITEM.put(GameType.BG2, (list = new Vector<StrrefItem>()));
+    STRREF_ITEM.put(GameType.BG2, (list = new Vector<>()));
     list.add(new StrrefItem(-1,    "User-defined biography"));
     list.add(new StrrefItem(33347, "Biography of the protagonist"));
     list.add(new StrrefItem(15882, "Biography of a generic NPC"));
     // initializing IWD items
-    STRREF_ITEM.put(GameType.IWD, (list = new Vector<StrrefItem>()));
+    STRREF_ITEM.put(GameType.IWD, (list = new Vector<>()));
     list.add(new StrrefItem(-1,    "User-defined biography"));
     list.add(new StrrefItem(19423, "Biography of a fighter"));
     list.add(new StrrefItem(19429, "Biography of a ranger"));
@@ -56,7 +56,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     list.add(new StrrefItem(19428, "Biography of a thief"));
     list.add(new StrrefItem(19425, "Biography of a bard"));
     // initializing IWD2 items
-    STRREF_ITEM.put(GameType.IWD2, (list = new Vector<StrrefItem>()));
+    STRREF_ITEM.put(GameType.IWD2, (list = new Vector<>()));
     list.add(new StrrefItem(-1,    "User-defined biography"));
     list.add(new StrrefItem(27862, "Biography of a barbarian"));
     list.add(new StrrefItem(19425, "Biography of a bard"));
@@ -70,7 +70,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     list.add(new StrrefItem(27863, "Biography of a sorcerer"));
     list.add(new StrrefItem(19430, "Biography of a wizard"));
     // initializing IWDEE items
-    STRREF_ITEM.put(GameType.IWDEE, (list = new Vector<StrrefItem>()));
+    STRREF_ITEM.put(GameType.IWDEE, (list = new Vector<>()));
     list.add(new StrrefItem(-1,    "User-defined biography"));
     list.add(new StrrefItem(19423, "Biography of a fighter"));
     list.add(new StrrefItem(19429, "Biography of a ranger"));

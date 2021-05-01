@@ -4,9 +4,6 @@
 
 package org.infinity.resource.graphics;
 
-import tv.porst.jhexview.DataChangedEvent;
-import tv.porst.jhexview.IDataChangedListener;
-
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -84,6 +81,9 @@ import org.infinity.util.DynamicArray;
 import org.infinity.util.IntegerHashMap;
 import org.infinity.util.io.FileManager;
 import org.infinity.util.io.StreamUtils;
+
+import tv.porst.jhexview.DataChangedEvent;
+import tv.porst.jhexview.IDataChangedListener;
 
 /**
  * This resource describes animated graphics. Such files are used for animations
@@ -549,7 +549,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       miExportFramesPNG.addActionListener(this);
     }
 
-    List<JMenuItem> list = new ArrayList<JMenuItem>();
+    List<JMenuItem> list = new ArrayList<>();
     if (miExport != null) {
       list.add(miExport);
     }
@@ -793,13 +793,13 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
 
         if (curCycle >= 0) {
           ((JLabel)buttonControlPanel.getControlByType(CtrlCycleLabel))
-            .setText("Cycle: " + (curCycle + 1) + "/" + bamControl.cycleCount());
+            .setText("Cycle: " + curCycle + "/" + (bamControl.cycleCount() - 1));
           ((JLabel)buttonControlPanel.getControlByType(CtrlFrameLabel))
-            .setText("Frame: " + (curFrame + 1) + "/" + bamControl.cycleFrameCount());
+            .setText("Frame: " + curFrame + "/" + (bamControl.cycleFrameCount() - 1));
         } else {
           ((JLabel)buttonControlPanel.getControlByType(CtrlCycleLabel)).setText("All frames");
           ((JLabel)buttonControlPanel.getControlByType(CtrlFrameLabel))
-            .setText("Frame: " + (curFrame + 1) + "/" + decoder.frameCount());
+            .setText("Frame: " + curFrame + "/" + (decoder.frameCount() - 1));
         }
 
         buttonControlPanel.getControlByType(CtrlPrevCycle).setEnabled(curCycle > -1);
@@ -955,7 +955,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       int numCycles = bamControl.cycleCount();
       boolean hasSemiTrans = false;
       int maxWidth = 0, maxHeight = 0;
-      List<String> issues = new ArrayList<String>(10);
+      List<String> issues = new ArrayList<>(10);
 
       // checking for issues
       BamDecoder.BamControl control = decoder.createControl();
@@ -1079,7 +1079,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       int[] chainedImageData = ((DataBufferInt)composedImage.getRaster().getDataBuffer()).getData();
       int[] palette = ColorConvert.medianCut(chainedImageData, hasTransparency ? 255 : 256, ignoreAlpha);
       // initializing color cache
-      IntegerHashMap<Byte> colorCache = new IntegerHashMap<Byte>(1536);
+      IntegerHashMap<Byte> colorCache = new IntegerHashMap<>(1536);
       for (int i = 0; i < palette.length; i++) {
         colorCache.put(palette[i], (byte)i);
       }
@@ -1093,7 +1093,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       }
 
       // 2. encoding frames
-      List<byte[]> frameList = new ArrayList<byte[]>(frameCount);
+      List<byte[]> frameList = new ArrayList<>(frameCount);
       int colorShift = hasTransparency ? 1 : 0;   // considers transparent color index
       for (int i = 0; i < frameCount; i++) {
         if (decoder.frameGet(control, i) != null) {
@@ -1120,7 +1120,8 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
                 if (colIdx != null) {
                   dstData[dstIdx++] = (byte)(colIdx + colorShift);
                 } else {
-                  int color = ColorConvert.nearestColorRGB(srcData[srcIdx], palette, ignoreAlpha);
+                  double weight = ignoreAlpha ? 0.0 : 1.0;
+                  int color = ColorConvert.getNearestColor(srcData[srcIdx], palette, weight, null);
                   dstData[dstIdx++] = (byte)(color);
                   if (color > 0) {
                     colorCache.put(srcData[srcIdx], (byte)(color - colorShift));
@@ -1144,7 +1145,8 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
               if (colIdx != null) {
                 dstData[idx] = (byte)(colIdx + colorShift);
               } else {
-                int color = ColorConvert.nearestColorRGB(srcData[idx], palette, ignoreAlpha);
+                double weight = ignoreAlpha ? 0.0 : 1.0;
+                int color = ColorConvert.getNearestColor(srcData[idx], palette, weight, null);
                 dstData[idx] = (byte)(color);
                 if (color > 0) {
                   colorCache.put(srcData[idx], (byte)(color - colorShift));
@@ -1255,7 +1257,7 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
       @Override
       public List<byte[]> doInBackground()
       {
-        List<byte[]> list = new Vector<byte[]>(1);
+        List<byte[]> list = new Vector<>(1);
         try {
           byte[] buf = convertToBamV1(exportCompressed);
           if (buf != null) {
@@ -1276,44 +1278,37 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
   {
     boolean retVal = false;
     if (index >= 0 && index <= 99999) {
-      try {
-        InputStream is = entry.getResourceDataAsStream();
-        if (is != null) {
-          try {
-            // parsing resource header
-            byte[] sig = new byte[8];
-            byte[] buf = new byte[24];
-            long len;
-            long curOfs = 0;
-            if ((len = is.read(sig)) != sig.length) throw new Exception();
-            if (!"BAM V2  ".equals(DynamicArray.getString(sig, 0, 8))) throw new Exception();
-            curOfs += len;
-            if ((len = is.read(buf)) != buf.length) throw new Exception();
-            curOfs += len;
-            int numBlocks = DynamicArray.getInt(buf, 8);
-            int ofsBlocks = DynamicArray.getInt(buf, 20);
-            curOfs = ofsBlocks - curOfs;
-            if (curOfs > 0) {
-              do {
-                len = is.skip(curOfs);
-                if (len <= 0) throw new Exception();
-                curOfs -= len;
-              } while (curOfs > 0);
-            }
+      try (InputStream is = entry.getResourceDataAsStream()) {
+        // parsing resource header
+        byte[] sig = new byte[8];
+        byte[] buf = new byte[24];
+        long len;
+        long curOfs = 0;
+        if ((len = is.read(sig)) != sig.length) throw new Exception();
+        if (!"BAM V2  ".equals(DynamicArray.getString(sig, 0, 8))) throw new Exception();
+        curOfs += len;
+        if ((len = is.read(buf)) != buf.length) throw new Exception();
+        curOfs += len;
+        int numBlocks = DynamicArray.getInt(buf, 8);
+        int ofsBlocks = DynamicArray.getInt(buf, 20);
+        curOfs = ofsBlocks - curOfs;
+        if (curOfs > 0) {
+          do {
+            len = is.skip(curOfs);
+            if (len <= 0) throw new Exception();
+            curOfs -= len;
+          } while (curOfs > 0);
+        }
 
-            // parsing blocks
-            buf = new byte[28];
-            for (int i = 0; i < numBlocks && !retVal; i++) {
-              if (is.read(buf) != buf.length) throw new Exception();
-              int curIndex = DynamicArray.getInt(buf, 0);
-              retVal = (curIndex == index);
-            }
-          } finally {
-            is.close();
-            is = null;
-          }
+        // parsing blocks
+        buf = new byte[28];
+        for (int i = 0; i < numBlocks && !retVal; i++) {
+          if (is.read(buf) != buf.length) throw new Exception();
+          int curIndex = DynamicArray.getInt(buf, 0);
+          retVal = (curIndex == index);
         }
       } catch (Exception e) {
+        e.printStackTrace();
       }
     }
     return retVal;

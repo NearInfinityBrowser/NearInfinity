@@ -246,7 +246,7 @@ public class FontChooser extends JComponent
    **/
   public String getSelectedFontFamily()
   {
-    String fontName = (String) getFontFamilyList().getSelectedValue();
+    String fontName = getFontFamilyList().getSelectedValue();
     return fontName;
   }
 
@@ -284,7 +284,7 @@ public class FontChooser extends JComponent
         fontSize = Integer.parseInt(fontSizeString);
         break;
       } catch (NumberFormatException e) {
-        fontSizeString = (String) getFontSizeList().getSelectedValue();
+        fontSizeString = getFontSizeList().getSelectedValue();
         getFontSizeTextField().setText(fontSizeString);
       }
     }
@@ -408,6 +408,7 @@ public class FontChooser extends JComponent
     dialogResultValue = ERROR_OPTION;
     JDialog dialog = createDialog(parent);
     dialog.addWindowListener(new WindowAdapter() {
+      @Override
       public void windowClosing(WindowEvent e)
       {
         dialogResultValue = CANCEL_OPTION;
@@ -432,6 +433,7 @@ public class FontChooser extends JComponent
       this.textComponent = textComponent;
     }
 
+    @Override
     public void valueChanged(ListSelectionEvent e)
     {
       if (e.getValueIsAdjusting() == false) {
@@ -459,11 +461,13 @@ public class FontChooser extends JComponent
       this.textComponent = textComponent;
     }
 
+    @Override
     public void focusGained(FocusEvent e)
     {
       textComponent.selectAll();
     }
 
+    @Override
     public void focusLost(FocusEvent e)
     {
       textComponent.select(0, 0);
@@ -480,6 +484,7 @@ public class FontChooser extends JComponent
       this.targetList = list;
     }
 
+    @Override
     public void keyPressed(KeyEvent e)
     {
       int i = targetList.getSelectedIndex();
@@ -514,16 +519,19 @@ public class FontChooser extends JComponent
       this.targetList = targetList;
     }
 
+    @Override
     public void insertUpdate(DocumentEvent e)
     {
       update(e);
     }
 
+    @Override
     public void removeUpdate(DocumentEvent e)
     {
       update(e);
     }
 
+    @Override
     public void changedUpdate(DocumentEvent e)
     {
       update(e);
@@ -564,6 +572,7 @@ public class FontChooser extends JComponent
         this.index = index;
       }
 
+      @Override
       public void run()
       {
         targetList.setSelectedIndex(this.index);
@@ -584,6 +593,7 @@ public class FontChooser extends JComponent
       putValue(Action.NAME, (ACTION_NAME));
     }
 
+    @Override
     public void actionPerformed(ActionEvent e)
     {
       dialogResultValue = OK_OPTION;
@@ -604,6 +614,7 @@ public class FontChooser extends JComponent
       putValue(Action.NAME, (ACTION_NAME));
     }
 
+    @Override
     public void actionPerformed(ActionEvent e)
     {
       dialogResultValue = CANCEL_OPTION;

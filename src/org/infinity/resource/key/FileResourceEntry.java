@@ -103,6 +103,7 @@ public final class FileResourceEntry extends ResourceEntry
     return file.getFileName().toString();
   }
 
+  @Override
   public String getResourceRef()
   {
     String fileName = file.getFileName().toString();

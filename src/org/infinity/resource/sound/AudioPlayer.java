@@ -33,31 +33,27 @@ public class AudioPlayer
 
     setPlaying(true);
     setStopped(false);
-    AudioInputStream ais = null;
-    try {
-      ais = AudioSystem.getAudioInputStream(new ByteArrayInputStream(audioBuffer.getAudioData()));
-    } catch (UnsupportedAudioFileException e) {
-      throw new Exception("Unsupported audio format");
-    }
-
-    if (dataLine == null || !ais.getFormat().matches(audioFormat)) {
-      audioFormat = ais.getFormat();
-      DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
-      if (!AudioSystem.isLineSupported(info)) {
-        throw new Exception("Unsupported audio format");
+    try (AudioInputStream ais = AudioSystem.getAudioInputStream(new ByteArrayInputStream(audioBuffer.getAudioData()))) {
+      if (dataLine == null || !ais.getFormat().matches(audioFormat)) {
+        audioFormat = ais.getFormat();
+        DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
+        if (!AudioSystem.isLineSupported(info)) {
+          throw new UnsupportedAudioFileException("Unsupported audio format");
+        }
+        dataLine = (SourceDataLine)AudioSystem.getLine(info);
+        dataLine.open(ais.getFormat(), 16384);
       }
-      dataLine = (SourceDataLine)AudioSystem.getLine(info);
-      dataLine.open(ais.getFormat(), 16384);
-    }
-    dataLine.start();
+      dataLine.start();
 
-    while (isPlaying()) {
-      int numBytesRead = ais.read(buffer, 0, buffer.length);
-      if (numBytesRead < 0)
-        break;
-      dataLine.write(buffer, 0, numBytesRead);
+      while (isPlaying()) {
+        int numBytesRead = ais.read(buffer, 0, buffer.length);
+        if (numBytesRead < 0)
+          break;
+        dataLine.write(buffer, 0, numBytesRead);
+      }
+    } catch (UnsupportedAudioFileException e) {
+      throw new UnsupportedAudioFileException("Unsupported audio format");
     }
-    ais.close();
 
     if (!isPlaying()) {
       dataLine.drain();

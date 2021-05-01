@@ -51,7 +51,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
   public static final String[] s_abilityuse = {"", "Weapon", "Spell", "Item", "Ability", "reserved"};
   public static final String[] s_recharge = {
     "No flags set", "Add strength bonus", "Breakable", "EE: Damage strength bonus",
-    "EE: THAC0 strength bonus", null, null, null, null, null, "EE: Break Sanctuary;Ignored for Target: Caster",
+    "EE: THAC0 strength bonus", null, null, null, null, null, "EE: Break Sanctuary/Invisibility;Ignored for Target: Caster",
     "Hostile", "Recharge after resting", null, null, null, null, "Bypass armor", "Keen edge", null,
     null, null, null, null, null, null, "Ex: Toggle backstab", "EE/Ex: Cannot target invisible"};
 
@@ -65,7 +65,6 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
     super(superStruct, ITM_ABIL + " " + number, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -77,17 +76,13 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -111,9 +106,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -174,6 +167,5 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
 
     return offset + 56;
   }
-  //</editor-fold>
 }
 

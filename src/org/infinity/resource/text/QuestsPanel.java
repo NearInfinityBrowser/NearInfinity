@@ -67,7 +67,6 @@ public final class QuestsPanel extends JPanel implements ListSelectionListener
   private final JTable assignedChecks = new JTable();
   private final JTable completeChecks = new JTable();
 
-  //<editor-fold defaultstate="collapsed" desc="Internal classes">
   private static final class QuestsModel extends AbstractTableModel
   {
     private static final String[] COLUMNS = {
@@ -167,7 +166,6 @@ public final class QuestsPanel extends JPanel implements ListSelectionListener
       setFont(font.deriveFont(attributes));
     }
   }
-  //</editor-fold>
 
   public QuestsPanel(List<Quest> quests, Variables vars)
   {
@@ -234,7 +232,6 @@ public final class QuestsPanel extends JPanel implements ListSelectionListener
     setQuests(quests);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ListSelectionListener">
   @Override
   public void valueChanged(ListSelectionEvent e)
   {
@@ -261,7 +258,6 @@ public final class QuestsPanel extends JPanel implements ListSelectionListener
       completeChecks.setModel(EMPTY_MODEL);
     }
   }
-  //</editor-fold>
 
   public void setQuests(List<Quest> quests)
   {

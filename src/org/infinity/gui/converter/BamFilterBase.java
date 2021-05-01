@@ -31,7 +31,7 @@ public abstract class BamFilterBase
   private final ConvertToBam converter;
   private final String name, description;
   private final Type type;
-  private final List<ChangeListener> listChangeListeners = new ArrayList<ChangeListener>();
+  private final List<ChangeListener> listChangeListeners = new ArrayList<>();
   private final JPanel controls;
 
   protected BamFilterBase(ConvertToBam converter, String name, String desc, Type type)

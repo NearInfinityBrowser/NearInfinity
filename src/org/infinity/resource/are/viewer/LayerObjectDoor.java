@@ -73,7 +73,6 @@ public class LayerObjectDoor extends LayerObject
     }
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerObject">
   @Override
   public Viewable getViewable()
   {
@@ -114,7 +113,6 @@ public class LayerObjectDoor extends LayerObject
       items[i].setShape(poly);
     }
   }
-  //</editor-fold>
 
   private String getAttributes()
   {

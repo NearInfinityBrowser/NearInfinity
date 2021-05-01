@@ -50,7 +50,7 @@ public class SongReferenceSearcher extends AbstractReferenceSearcher
           new boolean[]{true, true, false, true}, parent);
     long songId = -1L;
     final Song2daBitmap songBitmap = new Song2daBitmap(StreamUtils.getByteBuffer(4), 0, 4);
-    for (final RefEntry refEntry : songBitmap.getResourceList()) {
+    for (final RefEntry refEntry : songBitmap.getBitmap().values()) {
       final ResourceEntry entry = refEntry.getResourceEntry();
       if (entry != null && entry.equals(musPlaylist)) {
         songId = refEntry.getValue();

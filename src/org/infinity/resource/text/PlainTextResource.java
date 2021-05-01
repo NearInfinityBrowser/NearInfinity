@@ -204,7 +204,7 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
       if (bpmFormat.getSelectedItem() == miFormatTrim) {
         trimSpaces();
       } else if (bpmFormat.getSelectedItem() == miFormatAlign) {
-        alignTableColumns(2, true);
+        alignTableColumns(2, true, 4);
       } else if (bpmFormat.getSelectedItem() == miFormatSort) {
         sortTable(true);
       }
@@ -396,10 +396,13 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
    * @param spaces Min. number of spaces between columns.
    * @param alignPerColumn specify {@code true} to calculate max width on a per column basis,
    *                       or {@code false} to calculate for the whole table.
+   * @param multipleOf ensures that column position is always a multiple of the specified value.
+   *                   (e.g. specify 2 to have every column start at an even horizontal position.)
    */
-  public void alignTableColumns(int spaces, boolean alignPerColumn)
+  public void alignTableColumns(int spaces, boolean alignPerColumn, int multipleOf)
   {
     spaces = Math.max(1, spaces);
+    multipleOf = Math.max(1, multipleOf);
 
     // splitting text into lines
     String input = editor.getText();
@@ -438,12 +441,20 @@ public class PlainTextResource implements TextResource, Writeable, ActionListene
       } else {
         maxLen = maxTokenLength;
       }
-      columns[col] = maxLen + spaces;
+      int len = maxLen + spaces;
+      if (len % multipleOf != 0) {
+        len += multipleOf - (len % multipleOf);
+      }
+      columns[col] = len;
     }
 
     // normalizing data
     StringBuilder newText = new StringBuilder();
-    String blank = new String(new char[maxTokenLength + spaces]).replace('\0', ' ');
+    int blankLen = maxTokenLength + spaces;
+    if (blankLen % multipleOf != 0) {
+      blankLen += multipleOf - (blankLen % multipleOf);
+    }
+    String blank = new String(new char[blankLen]).replace('\0', ' ');
     for (int row = 0, rows = matrix.size(); row < rows; row++) {
       StringBuilder sb = new StringBuilder();
       for (int col = 0, cols = matrix.get(row).size(); col < cols; col++) {

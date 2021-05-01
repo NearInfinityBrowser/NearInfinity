@@ -25,12 +25,14 @@ public final class IwdRef extends ResourceBitmap
   public long getValue(String ref)
   {
     if (ref != null && !ref.isEmpty()) {
-      ref = ref.toUpperCase(Locale.ENGLISH);
-      List<RefEntry> list = getResourceList();
-      for (final RefEntry entry: list) {
-        if (entry.getResourceName().equals(ref)) {
-          return entry.getValue();
-        }
+      RefEntry entry = getBitmap()
+          .values()
+          .parallelStream()
+          .filter(re -> re.getResourceName().equalsIgnoreCase(ref))
+          .findAny()
+          .orElse(null);
+      if (entry != null) {
+        return entry.getValue();
       }
     }
     return -1L;
@@ -47,11 +49,9 @@ public final class IwdRef extends ResourceBitmap
 
   public String getValueRef(long id)
   {
-    List<RefEntry> list = getResourceList();
-    for (final RefEntry entry: list) {
-      if (entry.getValue() == id) {
-        return entry.getResourceName();
-      }
+    RefEntry result = getBitmap().values().parallelStream().filter(re -> re.getValue() == id).findAny().orElse(null);
+    if (result != null) {
+      return result.getResourceName();
     }
     return NONE;
   }

@@ -251,7 +251,7 @@ public class FindDataDialog extends JDialog implements ActionListener, ItemListe
   // Attempts to parse useful byte values from the specified text string
   private byte[] parseBytes(String text)
   {
-    List<Byte> list = new ArrayList<Byte>();
+    List<Byte> list = new ArrayList<>();
 
     // parsing text string
     StringBuilder sb = new StringBuilder();

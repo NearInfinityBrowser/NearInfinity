@@ -6,27 +6,29 @@ package org.infinity.datatype;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.StructViewer;
 import org.infinity.gui.ViewerUtil;
-import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.util.Misc;
 
@@ -104,18 +106,30 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
     tValues = new JTable(mValues);
     tValues.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     tValues.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
+    tValues.getTableHeader().setFont(tValues.getTableHeader().getFont().deriveFont(Font.BOLD));
     tValues.setRowHeight(tValues.getFontMetrics(tValues.getFont()).getHeight() + 1);
     tValues.setBorder(BorderFactory.createLineBorder(Color.GRAY));
     tValues.getTableHeader().setBorder(BorderFactory.createLineBorder(Color.GRAY));
     tValues.getTableHeader().setReorderingAllowed(false);
     tValues.getTableHeader().setResizingAllowed(true);
+    tValues.setRowHeight(tValues.getRowHeight() * 5 / 4);
+    tValues.setIntercellSpacing(new Dimension(4, 0));
     tValues.setPreferredScrollableViewportSize(tValues.getPreferredSize());
+    tValues.setCellSelectionEnabled(true);
+    tValues.getModel().addTableModelListener(new TableModelListener() {
+      @Override
+      public void tableChanged(TableModelEvent e)
+      {
+        // update field value automatically
+        if (e.getType() == TableModelEvent.UPDATE) {
+          ActionEvent ae = new ActionEvent(tValues, 0, StructViewer.UPDATE_VALUE);
+          container.actionPerformed(ae);
+        }
+      }
+    });
+
     JScrollPane scroll = new JScrollPane(tValues);
     scroll.setBorder(BorderFactory.createEmptyBorder());
-
-    JButton bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
-    bUpdate.addActionListener(container);
-    bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
 
     JPanel panel = new JPanel(new GridBagLayout());
 
@@ -124,17 +138,14 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
                             GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     panel.add(scroll, gbc);
 
-    gbc = ViewerUtil.setGBC(gbc, 1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER,
-                            GridBagConstraints.NONE, new Insets(0, 8, 0, 0), 0, 0);
-    panel.add(bUpdate, gbc);
-
     Dimension dim = Misc.getScaledDimension(DIM_MEDIUM);
     panel.setPreferredSize(dim);
 
     // making "Attribute" column wider
-    int tableWidth = dim.width - bUpdate.getPreferredSize().width - 8;
-    tValues.getColumnModel().getColumn(0).setPreferredWidth(tableWidth * 3 / 4);
-    tValues.getColumnModel().getColumn(1).setPreferredWidth(tableWidth * 1 / 4);
+    tValues.getColumnModel().getColumn(0).setPreferredWidth(dim.width * 3 / 4);
+    tValues.getColumnModel().getColumn(1).setPreferredWidth(dim.width * 1 / 4);
+
+    tValues.changeSelection(0, 1, false, false);
 
     return panel;
   }
@@ -148,10 +159,13 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
+    long oldValue = getLongValue();
     setValueImpl(mValues.getValue());
 
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (getLongValue() != oldValue) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }
@@ -207,6 +221,25 @@ public class MultiNumber extends Datatype implements Editable, IsNumeric
         sb.append(", ");
     }
     return sb.toString();
+  }
+
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + Integer.hashCode(value);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof MultiNumber)) {
+      return false;
+    }
+    MultiNumber other = (MultiNumber)o;
+    boolean retVal = (value == other.value);
+    return retVal;
   }
 
   /** Returns number of bits per value. */

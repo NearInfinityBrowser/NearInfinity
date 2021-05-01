@@ -60,8 +60,8 @@ import org.infinity.resource.key.ResourceEntry;
 import org.infinity.search.ScriptReferenceSearcher;
 import org.infinity.search.TextResourceSearcher;
 import org.infinity.util.IdsMap;
-import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.Misc;
+import org.infinity.util.StaticSimpleXorDecryptor;
 import org.infinity.util.io.StreamUtils;
 
 /**
@@ -487,7 +487,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Re
         files.addAll(ResourceFactory.getResources("BS"));
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindthis) {
-        List<ResourceEntry> files = new ArrayList<ResourceEntry>(1);
+        List<ResourceEntry> files = new ArrayList<>(1);
         files.add(entry);
         new TextResourceSearcher(files, panel.getTopLevelAncestor());
       } else if (bpmFind.getSelectedItem() == ifindusage) {

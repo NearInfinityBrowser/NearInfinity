@@ -77,7 +77,7 @@ public class ByteBufferOutputStream extends OutputStream
       if (remaining <= 0) {
         throw new IndexOutOfBoundsException();
       }
-      buf.put(bytes, written, remaining);
+      buf.put(bytes, off + written, remaining);
       written += remaining;
     }
   }

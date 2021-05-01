@@ -7,7 +7,8 @@ package org.infinity.datatype;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,6 +24,7 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 
 import org.infinity.gui.StructViewer;
+import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.util.Misc;
 
@@ -72,7 +74,6 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     setFlagDescriptions(length, stable, 1);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -86,9 +87,7 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     }
     container.actionPerformed(new ActionEvent(this, 0, StructViewer.UPDATE_VALUE));
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Editable">
   @Override
   public JComponent edit(ActionListener container)
   {
@@ -122,21 +121,22 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     bPanel.add(bNone);
     bPanel.add(new JLabel("None = " + nodesc));
 
-    JPanel boxPanel = new JPanel(new GridLayout(0, 4));
-    int rows = checkBoxes.length >> 2;
-    if (rows << 2 != checkBoxes.length) {
-      for (int i = 0; i < checkBoxes.length; i++) {
-        boxPanel.add(checkBoxes[i]);
-        checkBoxes[i].setSelected(isFlagSet(i));
+    // spreading flags over columns with 8 rows each
+    JPanel boxPanel = new JPanel(new GridBagLayout());
+    int cols = checkBoxes.length / 8;
+    GridBagConstraints c = new GridBagConstraints();
+    for (int col = 0; col < cols; col++) {
+      JPanel colPanel = new JPanel(new GridBagLayout());
+      for (int row = 0; row < 8; row++) {
+        int idx = (col * 8) + row;
+        c = ViewerUtil.setGBC(c, 0, row, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+                              GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
+        colPanel.add(checkBoxes[idx], c);
+        checkBoxes[idx].setSelected(isFlagSet(idx));
       }
-    }
-    else {
-      for (int i = 0; i < rows; i++)
-        for (int j = 0; j < 4; j++) {
-          int index = i + j * rows;
-          boxPanel.add(checkBoxes[index]);
-          checkBoxes[index].setSelected(isFlagSet(index));
-        }
+      c = ViewerUtil.setGBC(c, col, 0, 1, 1, 1.0, 1.0, GridBagConstraints.FIRST_LINE_START,
+          GridBagConstraints.BOTH, new Insets(0, 8, 0, 8), 0, 0);
+      boxPanel.add(colPanel, c);
     }
 
     JPanel panel = new JPanel(new BorderLayout());
@@ -156,23 +156,25 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
   @Override
   public boolean updateValue(AbstractStruct struct)
   {
+    long oldValue = getLongValue();
+
     // updating value
     setValue(calcValue());
+
     // notifying listeners
-    fireValueUpdated(new UpdateEvent(this, struct));
+    if (getLongValue() != oldValue) {
+      fireValueUpdated(new UpdateEvent(this, struct));
+    }
 
     return true;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Writeable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     writeLong(os, value);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset)
   {
@@ -193,8 +195,6 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
 
     return offset + getSize();
   }
-  //</editor-fold>
-  //</editor-fold>
 
   @Override
   public String toString()
@@ -214,6 +214,25 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     return sb.toString();
   }
 
+  @Override
+  public int hashCode()
+  {
+    int hash = super.hashCode();
+    hash = 31 * hash + Long.hashCode(value);
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (!super.equals(o) || !(o instanceof Flag)) {
+      return false;
+    }
+    Flag other = (Flag)o;
+    boolean retVal = (value == other.value);
+    return retVal;
+  }
+
   /**
    * Returns label of flag {@code i} or {@code null}, if such flag does not exist.
    *
@@ -231,7 +250,6 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
     return (value & bitnr) == bitnr;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="IsNumeric">
   @Override
   public long getLongValue()
   {
@@ -243,7 +261,6 @@ public class Flag extends Datatype implements Editable, IsNumeric, ActionListene
   {
     return (int)value;
   }
-  //</editor-fold>
 
   public void setValue(long newValue)
   {

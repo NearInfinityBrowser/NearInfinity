@@ -5,8 +5,7 @@
 package org.infinity.check;
 
 import org.infinity.NearInfinity;
-import org.infinity.datatype.DecNumber;
-import org.infinity.datatype.SectionCount;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.resource.AbstractAbility;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Resource;
@@ -56,12 +55,12 @@ public class EffectsIndexChecker extends AbstractChecker
 
   private void search(ResourceEntry entry, AbstractStruct struct)
   {
-    final int numGlobalEffects = ((SectionCount) struct.getAttribute(SplResource.SPL_NUM_GLOBAL_EFFECTS)).getValue();
+    final int numGlobalEffects = ((IsNumeric) struct.getAttribute(SplResource.SPL_NUM_GLOBAL_EFFECTS)).getValue();
     int expectedEffectsIndex = numGlobalEffects;
     for (final StructEntry e : struct.getFields()) {
       if (e instanceof AbstractAbility) {
         final AbstractAbility abil = (AbstractAbility) e;
-        final int effectsIndex = ((DecNumber) abil.getAttribute(AbstractAbility.ABILITY_FIRST_EFFECT_INDEX)).getValue();
+        final int effectsIndex = ((IsNumeric) abil.getAttribute(AbstractAbility.ABILITY_FIRST_EFFECT_INDEX)).getValue();
         if (effectsIndex != expectedEffectsIndex) {
           synchronized (hitFrame) {
             hitFrame.addHit(entry, entry.getSearchString(), abil);

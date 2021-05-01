@@ -6,13 +6,13 @@ package org.infinity.datatype;
 
 import java.nio.ByteBuffer;
 import java.util.Locale;
+import java.util.TreeMap;
 
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
-import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 
@@ -23,7 +23,7 @@ public class PriTypeBitmap extends HashBitmap
   private static final String[] s_school = {"None", "Abjurer", "Conjurer", "Diviner", "Enchanter",
                                             "Illusionist", "Invoker", "Necromancer", "Transmuter",
                                             "Generalist"};
-  private static final LongIntegerHashMap<String> typeMap = new LongIntegerHashMap<String>();
+  private static final TreeMap<Long, String> typeMap = new TreeMap<>();
 
   static {
     if (ResourceFactory.resourceExists("MSCHOOL.2DA")) {
@@ -47,11 +47,11 @@ public class PriTypeBitmap extends HashBitmap
 
   public static String[] getTypeArray()
   {
-    final LongIntegerHashMap<String> map = getTypeTable();
+    final TreeMap<Long, String> map = getTypeTable();
     return map.values().toArray(new String[map.size()]);
   }
 
-  private static synchronized LongIntegerHashMap<String> getTypeTable()
+  private static synchronized TreeMap<Long, String> getTypeTable()
   {
     if (typeMap.isEmpty()) {
       if (ResourceFactory.resourceExists(TableName) && TableName.endsWith(".2DA")) {

@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.infinity.util.tuples.Couple;
+
 /**
  * Implementation of a two-dimensional rectangle bin packing algorithm.
  * (Port of Jukka Jylänki's C++ implementation of RectangleBinPack-&gt;MaxRectsBinPack.)
@@ -33,8 +35,8 @@ public class BinPack2D
     CONTACT_POINT_RULE,
   }
 
-  private final List<Rectangle> usedRectangles = new ArrayList<Rectangle>();
-  private final List<Rectangle> freeRectangles = new ArrayList<Rectangle>();
+  private final List<Rectangle> usedRectangles = new ArrayList<>();
+  private final List<Rectangle> freeRectangles = new ArrayList<>();
 
   private int binWidth, binHeight;
 
@@ -159,14 +161,14 @@ public class BinPack2D
         int bestRectIndex = -1;
         Rectangle bestNode = null;
 
-        Pair<Integer> score = new Pair<Integer>(0, 0);
+        Couple<Integer, Integer> score = Couple.with(0, 0);
         for (int i = 0, size = rects.size(); i < size; i++) {
           Dimension d = rects.get(i);
           Rectangle newNode = scoreRect(d.width, d.height, rule, score);
-          if (score.getFirst() < bestScore1 ||
-              (score.getFirst() == bestScore1 && score.getSecond() < bestScore2)) {
-            bestScore1 = score.getFirst();
-            bestScore2 = score.getSecond();
+          if (score.getValue0() < bestScore1 ||
+              (score.getValue0() == bestScore1 && score.getValue1() < bestScore2)) {
+            bestScore1 = score.getValue0();
+            bestScore2 = score.getValue1();
             bestNode = newNode;
             bestRectIndex = i;
           }
@@ -253,13 +255,13 @@ public class BinPack2D
    * @param score (out) Returns the primary and secondary placement score.
    * @return This struct identifies where the rectangle would be placed if it were placed.
    */
-  private Rectangle scoreRect(int width, int height, HeuristicRules rule, Pair<Integer> score)
+  private Rectangle scoreRect(int width, int height, HeuristicRules rule, Couple<Integer, Integer> score)
   {
-    if (score == null) { score = new Pair<Integer>(0, 0); }
+    if (score == null) { score = Couple.with(0, 0); }
 
     Rectangle newNode = null;
-    score.setFirst(Integer.MAX_VALUE);
-    score.setSecond(Integer.MAX_VALUE);
+    score.setValue0(Integer.MAX_VALUE);
+    score.setValue1(Integer.MAX_VALUE);
     switch (rule) {
       case BEST_SHORT_SIDE_FIT:
         newNode = findPositionForNewNodeBestShortSideFit(width, height, score);
@@ -269,7 +271,7 @@ public class BinPack2D
         break;
       case CONTACT_POINT_RULE:
         newNode = findPositionForNewNodeContactPoint(width, height, score);
-        score.setFirst(-score.getFirst());
+        score.setValue0(-score.getValue0());
         break;
       case BEST_LONG_SIDE_FIT:
         newNode = findPositionForNewNodeBestLongSideFit(width, height, score);
@@ -281,8 +283,8 @@ public class BinPack2D
 
     // cannot fit the current rectangle
     if (newNode.height == 0) {
-      score.setFirst(Integer.MAX_VALUE);
-      score.setSecond(Integer.MAX_VALUE);
+      score.setValue0(Integer.MAX_VALUE);
+      score.setValue1(Integer.MAX_VALUE);
     }
 
     return newNode;
@@ -334,26 +336,26 @@ public class BinPack2D
     return score;
   }
 
-  // bestPos.getFirst(): bestY, bestPos.getSecond(): bestX
-  private Rectangle findPositionForNewNodeBottomLeft(int width, int height, Pair<Integer> bestPos)
+  // bestPos.getValue0(): bestY, bestPos.getValue1(): bestX
+  private Rectangle findPositionForNewNodeBottomLeft(int width, int height, Couple<Integer, Integer> bestPos)
   {
-    if (bestPos == null) { bestPos = new Pair<Integer>(0, 0); }
+    if (bestPos == null) { bestPos = Couple.with(0, 0); }
     Rectangle bestNode = new Rectangle();
 
-    bestPos.setFirst(Integer.MAX_VALUE);
+    bestPos.setValue0(Integer.MAX_VALUE);
     for (int i = 0, size = freeRectangles.size(); i < size; i++) {
       // Try to place the rectangle in upright (non-flipped) orientation.
       Rectangle r = freeRectangles.get(i);
       if (r.width >= width && r.height >= height) {
         int topSideY = r.y + height;
-        if (topSideY < bestPos.getFirst() ||
-            (topSideY == bestPos.getFirst() && r.x < bestPos.getSecond())) {
+        if (topSideY < bestPos.getValue0() ||
+            (topSideY == bestPos.getValue0() && r.x < bestPos.getValue1())) {
           bestNode.x = r.x;
           bestNode.y = r.y;
           bestNode.width = width;
           bestNode.height = height;
-          bestPos.setSecond(r.x);
-          bestPos.setFirst(topSideY);
+          bestPos.setValue1(r.x);
+          bestPos.setValue0(topSideY);
         }
       }
     }
@@ -361,13 +363,13 @@ public class BinPack2D
     return bestNode;
   }
 
-  // bestFit.getFirst(): short side, bestFit.getSecond(): long side
-  private Rectangle findPositionForNewNodeBestShortSideFit(int width, int height, Pair<Integer> bestFit)
+  // bestFit.getValue0(): short side, bestFit.getValue1(): long side
+  private Rectangle findPositionForNewNodeBestShortSideFit(int width, int height, Couple<Integer, Integer> bestFit)
   {
-    if (bestFit == null) { bestFit = new Pair<Integer>(0, 0); }
+    if (bestFit == null) { bestFit = Couple.with(0, 0); }
     Rectangle bestNode = new Rectangle();
 
-    bestFit.setFirst(Integer.MAX_VALUE);
+    bestFit.setValue0(Integer.MAX_VALUE);
     for (int i = 0, size = freeRectangles.size(); i < size; i++) {
       // Try to place the rectangle in upright (non-flipped) orientation.
       Rectangle r = freeRectangles.get(i);
@@ -377,14 +379,14 @@ public class BinPack2D
         int shortSideFit = Math.min(leftoverHoriz, leftoverVert);
         int longSideFit = Math.max(leftoverHoriz, leftoverVert);
 
-        if (shortSideFit < bestFit.getFirst() ||
-            (shortSideFit == bestFit.getFirst() && longSideFit < bestFit.getSecond())) {
+        if (shortSideFit < bestFit.getValue0() ||
+            (shortSideFit == bestFit.getValue0() && longSideFit < bestFit.getValue1())) {
           bestNode.x = r.x;
           bestNode.y = r.y;
           bestNode.width = width;
           bestNode.height = height;
-          bestFit.setFirst(shortSideFit);
-          bestFit.setSecond(longSideFit);
+          bestFit.setValue0(shortSideFit);
+          bestFit.setValue1(longSideFit);
         }
       }
     }
@@ -392,13 +394,13 @@ public class BinPack2D
     return bestNode;
   }
 
-  // bestFit.getFirst(): short side, bestFit.getSecond(): long side
-  private Rectangle findPositionForNewNodeBestLongSideFit(int width, int height, Pair<Integer> bestFit)
+  // bestFit.getValue0(): short side, bestFit.getValue1(): long side
+  private Rectangle findPositionForNewNodeBestLongSideFit(int width, int height, Couple<Integer, Integer> bestFit)
   {
-    if (bestFit == null) { bestFit = new Pair<Integer>(0, 0); }
+    if (bestFit == null) { bestFit = Couple.with(0, 0); }
     Rectangle bestNode = new Rectangle();
 
-    bestFit.setSecond(Integer.MAX_VALUE);
+    bestFit.setValue1(Integer.MAX_VALUE);
     for (int i = 0, size = freeRectangles.size(); i < size; i++) {
       // Try to place the rectangle in upright (non-flipped) orientation.
       Rectangle r = freeRectangles.get(i);
@@ -408,14 +410,14 @@ public class BinPack2D
         int shortSideFit = Math.min(leftoverHoriz, leftoverVert);
         int longSideFit = Math.max(leftoverHoriz, leftoverVert);
 
-        if (longSideFit < bestFit.getSecond() ||
-            (longSideFit == bestFit.getSecond() && shortSideFit < bestFit.getFirst())) {
+        if (longSideFit < bestFit.getValue1() ||
+            (longSideFit == bestFit.getValue1() && shortSideFit < bestFit.getValue0())) {
           bestNode.x = r.x;
           bestNode.y = r.y;
           bestNode.width = width;
           bestNode.height = height;
-          bestFit.setFirst(shortSideFit);
-          bestFit.setSecond(longSideFit);
+          bestFit.setValue0(shortSideFit);
+          bestFit.setValue1(longSideFit);
         }
       }
     }
@@ -423,13 +425,13 @@ public class BinPack2D
     return bestNode;
   }
 
-  // bestFit.getFirst(): area, bestFit.getSecond(): short side
-  private Rectangle findPositionForNewNodeBestAreaFit(int width, int height, Pair<Integer> bestFit)
+  // bestFit.getValue0(): area, bestFit.getValue1(): short side
+  private Rectangle findPositionForNewNodeBestAreaFit(int width, int height, Couple<Integer, Integer> bestFit)
   {
-    if (bestFit == null) { bestFit = new Pair<Integer>(0, 0); }
+    if (bestFit == null) { bestFit = Couple.with(0, 0); }
     Rectangle bestNode = new Rectangle();
 
-    bestFit.setFirst(Integer.MAX_VALUE);
+    bestFit.setValue0(Integer.MAX_VALUE);
     for (int i = 0, size = freeRectangles.size(); i < size; i++) {
       Rectangle r = freeRectangles.get(i);
       int areaFit = r.width*r.height - width*height;
@@ -440,14 +442,14 @@ public class BinPack2D
         int leftoverVert = Math.abs(r.height - height);
         int shortSideFit = Math.min(leftoverHoriz, leftoverVert);
 
-        if (areaFit < bestFit.getFirst() ||
-            (areaFit == bestFit.getFirst() && shortSideFit < bestFit.getSecond())) {
+        if (areaFit < bestFit.getValue0() ||
+            (areaFit == bestFit.getValue0() && shortSideFit < bestFit.getValue1())) {
           bestNode.x = r.x;
           bestNode.y = r.y;
           bestNode.width = width;
           bestNode.height = height;
-          bestFit.setFirst(areaFit);
-          bestFit.setSecond(shortSideFit);
+          bestFit.setValue0(areaFit);
+          bestFit.setValue1(shortSideFit);
         }
       }
     }
@@ -455,25 +457,25 @@ public class BinPack2D
     return bestNode;
   }
 
-  // bestScore.getFirst(): contact, bestScore.getSecond(): unused
-  private Rectangle findPositionForNewNodeContactPoint(int width, int height, Pair<Integer> bestScore)
+  // bestScore.getValue0(): contact, bestScore.getValue1(): unused
+  private Rectangle findPositionForNewNodeContactPoint(int width, int height, Couple<Integer, Integer> bestScore)
   {
-    if (bestScore == null) { bestScore = new Pair<Integer>(0, 0); }
+    if (bestScore == null) { bestScore = Couple.with(0, 0); }
     Rectangle bestNode = new Rectangle();
 
-    bestScore.setFirst(-1);
+    bestScore.setValue0(-1);
     for (int i = 0, size = freeRectangles.size(); i < size; i++) {
       // Try to place the rectangle in upright (non-flipped) orientation.
       Rectangle r = freeRectangles.get(i);
       if (r.width >= width && r.height >= height) {
         int score = contactPointScoreNode(r.x, r.y, width, height);
-        if (score > bestScore.getFirst())
+        if (score > bestScore.getValue0())
         {
           bestNode.x = r.x;
           bestNode.y = r.y;
           bestNode.width = width;
           bestNode.height = height;
-          bestScore.setFirst(score);
+          bestScore.setValue0(score);
         }
       }
     }

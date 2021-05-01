@@ -5,7 +5,6 @@
 package org.infinity.gui.hexview;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,13 +17,12 @@ import org.infinity.gui.ViewFrame;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.StructEntry;
 
-import tv.porst.jhexview.IMenuCreator;
 import tv.porst.jhexview.JHexView;
 
 /**
  * Provides a dynamic popupmenu for the StructHexViewer component.
  */
-public class ResourceMenuCreator extends MenuCreator implements IMenuCreator, ActionListener
+public class ResourceMenuCreator extends MenuCreator
 {
   private final AbstractStruct struct;
 
@@ -118,7 +116,7 @@ public class ResourceMenuCreator extends MenuCreator implements IMenuCreator, Ac
   // Creates a list of all structures containing the specified offset, starting from topmost level.
   private List<JMenuItem> createStructEntries(int offset)
   {
-    List<JMenuItem> list = new ArrayList<JMenuItem>();
+    List<JMenuItem> list = new ArrayList<>();
     if (getHexView().getData() instanceof StructuredDataProvider) {
       StructEntry curEntry = ((StructuredDataProvider)getHexView().getData()).getFieldAt(offset);
       if (curEntry != null) {

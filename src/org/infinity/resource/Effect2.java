@@ -113,8 +113,8 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
     } else {
       list.add(new DecNumber(buffer, offset + 84, 4, EFFECT_IMPACT_PROJECTILE));
     }
-    IdsBitmap slot_type = new IdsBitmap(buffer, offset + 88, 4, EFFECT_SOURCE_ITEM_SLOT, "SLOTS.IDS");
-    slot_type.addIdsMapEntry(new IdsMapEntry(4294967295L, "NONE"));
+    IdsBitmap slot_type = new IdsBitmap(buffer, offset + 88, 4, EFFECT_SOURCE_ITEM_SLOT, "SLOTS.IDS", true, false, true);
+    slot_type.addIdsMapEntry(new IdsMapEntry(-1L, "NONE"));
     list.add(slot_type);
     list.add(new TextString(buffer, offset + 92, 32, EFFECT_VARIABLE_NAME));
     list.add(new DecNumber(buffer, offset + 124, 4, EFFECT_CASTER_LEVEL));
@@ -208,7 +208,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
       retVal.setOffset(offset);
       ((AbstractStruct)retVal).realignStructOffsets();
     } else {
-      retVal = (StructEntry)clone();
+      retVal = clone();
     }
 
     return retVal;

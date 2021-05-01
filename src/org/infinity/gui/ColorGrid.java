@@ -64,12 +64,12 @@ public class ColorGrid extends JPanel implements MouseListener, MouseMotionListe
   // Background pattern is visible for semi-transparent color entries
   private static final TexturePaint BackgroundPattern = createBackgroundPattern();
 
-  private final List<Color> listColors = new ArrayList<Color>();
-  private final List<ActionListener> listActionListeners = new ArrayList<ActionListener>();
-  private final List<MouseOverListener> listMouseOverListeners = new ArrayList<MouseOverListener>();
-  private final List<ChangeListener> listChangeListeners = new ArrayList<ChangeListener>();
+  private final List<Color> listColors = new ArrayList<>();
+  private final List<ActionListener> listActionListeners = new ArrayList<>();
+  private final List<MouseOverListener> listMouseOverListeners = new ArrayList<>();
+  private final List<ChangeListener> listChangeListeners = new ArrayList<>();
   // stores selected color entry indices
-  private final List<Integer> listSelection = new ArrayList<Integer>();
+  private final List<Integer> listSelection = new ArrayList<>();
 
   private Frame frame;                // frame type
   private Color frameColor;           // frame color

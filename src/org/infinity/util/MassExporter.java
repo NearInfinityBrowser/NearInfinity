@@ -288,7 +288,7 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
         }
       }
 
-      selectedFiles = new ArrayList<ResourceEntry>(1000);
+      selectedFiles = new ArrayList<>(1000);
       for (final String newVar : selectedTypes) {
         selectedFiles.addAll(ResourceFactory.getResources(newVar, extraDirs));
       }

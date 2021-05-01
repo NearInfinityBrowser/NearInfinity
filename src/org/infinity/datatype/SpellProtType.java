@@ -7,6 +7,7 @@ package org.infinity.datatype;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.ListIterator;
+import java.util.TreeMap;
 
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Profile;
@@ -15,7 +16,6 @@ import org.infinity.resource.StructEntry;
 import org.infinity.util.IdsMap;
 import org.infinity.util.IdsMapCache;
 import org.infinity.util.IdsMapEntry;
-import org.infinity.util.LongIntegerHashMap;
 import org.infinity.util.Table2da;
 import org.infinity.util.Table2daCache;
 
@@ -64,7 +64,7 @@ public class SpellProtType extends Bitmap
       "ALIGN.IDS", "KIT.IDS" };
 
   private static final String tableName = "SPLPROT.2DA";
-  private static final LongIntegerHashMap<String> statIds = new LongIntegerHashMap<>();
+  private static final TreeMap<Long, String> statIds = new TreeMap<>();
   private static String[] creType;
 
   static {
@@ -303,9 +303,9 @@ public class SpellProtType extends Bitmap
               break;
             case 0x102: // circle size
               if (isBitwiseRelation(rel) && value != -1) {
-                label = String.format("Circle size %s %d [0x%x]", getRelation(rel), value, value);
+                label = String.format("Personal space %s %d [0x%x]", getRelation(rel), value, value);
               } else {
-                label = String.format("Circle size %s %d", getRelation(rel), value);
+                label = String.format("Personal space %s %d", getRelation(rel), value);
               }
               break;
             case 0x103: // use two rows of splprot.2da

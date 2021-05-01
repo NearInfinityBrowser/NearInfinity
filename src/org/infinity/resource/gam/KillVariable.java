@@ -7,10 +7,9 @@ package org.infinity.resource.gam;
 import java.nio.ByteBuffer;
 
 import org.infinity.resource.AbstractStruct;
-import org.infinity.resource.AddRemovable;
 import org.infinity.util.io.StreamUtils;
 
-public final class KillVariable extends Variable implements AddRemovable
+public final class KillVariable extends Variable
 {
   // GAM/KillVariable-specific field labels
   public static final String GAM_KILLVAR = "Kill variable";

@@ -100,8 +100,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
                                       JOptionPane.ERROR_MESSAGE);
       }
     } else if (event.getSource() == miPNG) {
-      try {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
+      try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
         final String fileName = StreamUtils.replaceFileExtension(entry.getResourceName(), "PNG");
         BufferedImage image = getImage();
         if (ImageIO.write(image, "png", os)) {
@@ -112,9 +111,6 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
                                         "Error while exporting " + entry, "Error",
                                         JOptionPane.ERROR_MESSAGE);
         }
-        os.close();
-        os = null;
-        image = null;
       } catch (Exception e) {
         e.printStackTrace();
       }

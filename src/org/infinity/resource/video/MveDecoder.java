@@ -577,7 +577,7 @@ public class MveDecoder
       width = height = 0;
       isPalette = true;
 
-      audioOutput = new Vector<AudioQueue>(AUDIOSTREAMS_MAX);
+      audioOutput = new Vector<>(AUDIOSTREAMS_MAX);
       for (int i = 0; i < AUDIOSTREAMS_MAX; i++) {
         audioOutput.add(null);
       }
@@ -643,7 +643,7 @@ public class MveDecoder
     private MveChunk()
     {
       initialized = false;
-      segments = new ArrayList<MveSegment>(10);
+      segments = new ArrayList<>(10);
       segmentIndex = 0;
     }
 

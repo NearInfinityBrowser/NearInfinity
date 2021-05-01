@@ -56,7 +56,7 @@ public class ButtonPopupWindow extends JButton
   }
 
   private final PopupWindow window = new PopupWindow(this);
-  private final List<PopupWindowListener> listeners = new ArrayList<PopupWindowListener>();
+  private final List<PopupWindowListener> listeners = new ArrayList<>();
 
   private PopupWindow ignoredWindow;    // used to determine whether to hide the current window on lost focus
   private Align windowAlign;

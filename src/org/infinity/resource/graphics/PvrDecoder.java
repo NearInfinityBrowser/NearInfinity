@@ -63,7 +63,7 @@ public class PvrDecoder
   }
 
   // The global cache list for PVR objects. The "key" has to be a unique String (e.g. filename or integer as string)
-  private static final Map<String, PvrDecoder> pvrCache = new LinkedHashMap<String, PvrDecoder>();
+  private static final Map<String, PvrDecoder> pvrCache = new LinkedHashMap<>();
   // The max. number of cache entries to hold
   private static int MaxCacheEntries = 32;
 
@@ -86,18 +86,16 @@ public class PvrDecoder
     if (entry == null) {
       throw new NullPointerException();
     }
-    try {
+    try (InputStream is = entry.getResourceDataAsStream()) {
       String key = null;
       if (entry instanceof FileResourceEntry) {
         key = ((FileResourceEntry)entry).getActualPath().toString();
       } else {
         key = entry.getResourceName();
       }
-      PvrDecoder decoder = getCachedPvrDecoder(key);
+      PvrDecoder decoder = createPvrDecoder(key, is);
       if (decoder != null) {
         return decoder;
-      } else {
-        return createPvrDecoder(key, entry.getResourceDataAsStream());
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -115,13 +113,11 @@ public class PvrDecoder
     if (fileName == null) {
       throw new NullPointerException();
     }
-    try {
+    try (InputStream is = StreamUtils.getInputStream(FileManager.resolve(fileName))) {
       String key = fileName;
-      PvrDecoder decoder = getCachedPvrDecoder(key);
+      PvrDecoder decoder = createPvrDecoder(key, is);
       if (decoder != null) {
         return decoder;
-      } else {
-        return createPvrDecoder(key, StreamUtils.getInputStream(FileManager.resolve(fileName)));
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -136,13 +132,11 @@ public class PvrDecoder
    */
   public static PvrDecoder loadPvr(Path file)
   {
-    try {
+    try (InputStream is = StreamUtils.getInputStream(file)) {
       String key = file.getFileName().toString();
-      PvrDecoder decoder = getCachedPvrDecoder(key);
+      PvrDecoder decoder = createPvrDecoder(key, is);
       if (decoder != null) {
         return decoder;
-      } else {
-        return createPvrDecoder(key, StreamUtils.getInputStream(file));
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -162,11 +156,9 @@ public class PvrDecoder
     }
     try {
       String key = Integer.valueOf(input.hashCode()).toString();
-      PvrDecoder decoder = getCachedPvrDecoder(key);
+      PvrDecoder decoder = createPvrDecoder(key, input);
       if (decoder != null) {
         return decoder;
-      } else {
-        return createPvrDecoder(key, input);
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -209,8 +201,24 @@ public class PvrDecoder
     }
   }
 
-  // Returns a PvrDecoder object only if it already exists in the cache.
-  private static synchronized PvrDecoder getCachedPvrDecoder(String key)
+//  // Returns a PvrDecoder object only if it already exists in the cache.
+//  private static synchronized PvrDecoder getCachedPvrDecoder(String key)
+//  {
+//    PvrDecoder retVal = null;
+//    if (key != null && !key.isEmpty()) {
+//      key = key.toUpperCase(Locale.ENGLISH);
+//      if (pvrCache.containsKey(key)) {
+//        retVal = pvrCache.get(key);
+//        // re-inserting entry to prevent premature removal from cache
+//        pvrCache.remove(key);
+//        pvrCache.put(key, retVal);
+//      }
+//    }
+//    return retVal;
+//  }
+
+  // Returns a PvrDecoder object of the specified key if available, or creates and returns a new one otherwise.
+  private static synchronized PvrDecoder createPvrDecoder(String key, InputStream input)
   {
     PvrDecoder retVal = null;
     if (key != null && !key.isEmpty()) {
@@ -220,30 +228,38 @@ public class PvrDecoder
         // re-inserting entry to prevent premature removal from cache
         pvrCache.remove(key);
         pvrCache.put(key, retVal);
-      }
-    }
-    return retVal;
-  }
-
-  // Returns a PvrDecoder object of the specified key if available, or creates and returns a new one otherwise.
-  private static synchronized PvrDecoder createPvrDecoder(String key, InputStream input)
-  {
-    PvrDecoder retVal = getCachedPvrDecoder(key);
-    if (retVal == null && input != null) {
-      try {
-        retVal = new PvrDecoder(input);
-        if (retVal != null) {
-          pvrCache.put(key, retVal);
-          // removing excess cache entries
-          while (pvrCache.size() > MaxCacheEntries) {
-            pvrCache.remove(pvrCache.keySet().iterator().next());
+      } else {
+        try {
+          retVal = new PvrDecoder(input);
+          if (retVal != null) {
+            pvrCache.put(key, retVal);
+            // removing excess cache entries
+            while (pvrCache.size() > MaxCacheEntries) {
+              pvrCache.remove(pvrCache.keySet().iterator().next());
+            }
           }
+        } catch (Exception e) {
+          e.printStackTrace();
         }
-      } catch (Exception e) {
-        e.printStackTrace();
       }
     }
     return retVal;
+//    PvrDecoder retVal = getCachedPvrDecoder(key);
+//    if (retVal == null && input != null) {
+//      try {
+//        retVal = new PvrDecoder(input);
+//        if (retVal != null) {
+//          pvrCache.put(key, retVal);
+//          // removing excess cache entries
+//          while (pvrCache.size() > MaxCacheEntries) {
+//            pvrCache.remove(pvrCache.keySet().iterator().next());
+//          }
+//        }
+//      } catch (Exception e) {
+//        e.printStackTrace();
+//      }
+//    }
+//    return retVal;
   }
 
   // Returns a rectangle that is aligned to the values specified as arguments 2 and 3

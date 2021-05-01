@@ -110,32 +110,33 @@ public class DlcFileAttributes implements BasicFileAttributes
     return null;
   }
 
+  @Override
   public String toString()
   {
     StringBuilder sb = new StringBuilder(1024);
-    Formatter fm = new Formatter(sb);
-    if (creationTime() != null) {
-      fm.format("    creationTime    : %tc%n", creationTime().toMillis());
-    } else {
-      fm.format("    creationTime    : null%n");
-    }
+    try (Formatter fm = new Formatter(sb)) {
+      if (creationTime() != null) {
+        fm.format("    creationTime    : %tc%n", creationTime().toMillis());
+      } else {
+        fm.format("    creationTime    : null%n");
+      }
 
-    if (lastAccessTime() != null) {
-      fm.format("    lastAccessTime  : %tc%n", lastAccessTime().toMillis());
-    } else {
-      fm.format("    lastAccessTime  : null%n");
+      if (lastAccessTime() != null) {
+        fm.format("    lastAccessTime  : %tc%n", lastAccessTime().toMillis());
+      } else {
+        fm.format("    lastAccessTime  : null%n");
+      }
+      fm.format("    lastModifiedTime: %tc%n", lastModifiedTime().toMillis());
+      fm.format("    isRegularFile   : %b%n", isRegularFile());
+      fm.format("    isDirectory     : %b%n", isDirectory());
+      fm.format("    isSymbolicLink  : %b%n", isSymbolicLink());
+      fm.format("    isOther         : %b%n", isOther());
+      fm.format("    fileKey         : %s%n", fileKey());
+      fm.format("    size            : %d%n", size());
+      fm.format("    compressedSize  : %d%n", compressedSize());
+      fm.format("    crc             : %x%n", crc());
+      fm.format("    method          : %d%n", method());
     }
-    fm.format("    lastModifiedTime: %tc%n", lastModifiedTime().toMillis());
-    fm.format("    isRegularFile   : %b%n", isRegularFile());
-    fm.format("    isDirectory     : %b%n", isDirectory());
-    fm.format("    isSymbolicLink  : %b%n", isSymbolicLink());
-    fm.format("    isOther         : %b%n", isOther());
-    fm.format("    fileKey         : %s%n", fileKey());
-    fm.format("    size            : %d%n", size());
-    fm.format("    compressedSize  : %d%n", compressedSize());
-    fm.format("    crc             : %x%n", crc());
-    fm.format("    method          : %d%n", method());
-    fm.close();
     return sb.toString();
   }
 }

@@ -11,7 +11,7 @@ import javax.swing.JComponent;
 import org.infinity.datatype.Bitmap;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
-import org.infinity.datatype.HexNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.StringRef;
 import org.infinity.datatype.TextString;
@@ -72,7 +72,6 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     super(superStruct, ARE_CONTAINER + " " + nr, buffer, offset);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -84,17 +83,13 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AddRemovable">
   @Override
   public boolean canRemove()
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -118,14 +113,12 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
   {
     return true;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasVertices">
   @Override
   public void readVertices(ByteBuffer buffer, int offset) throws Exception
   {
-    int firstVertex = ((DecNumber)getAttribute(ARE_CONTAINER_FIRST_VERTEX_INDEX)).getValue();
-    int numVertices = ((DecNumber)getAttribute(ARE_CONTAINER_NUM_VERTICES)).getValue();
+    int firstVertex = ((IsNumeric)getAttribute(ARE_CONTAINER_FIRST_VERTEX_INDEX)).getValue();
+    int numVertices = ((IsNumeric)getAttribute(ARE_CONTAINER_NUM_VERTICES)).getValue();
     offset += firstVertex << 2;
     for (int i = 0; i < numVertices; i++) {
       addField(new Vertex(this, buffer, offset + 4 * i, i));
@@ -148,22 +141,21 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     ((DecNumber)getAttribute(ARE_CONTAINER_NUM_VERTICES)).setValue(count);
     return count;
   }
-  //</editor-fold>
 
   @Override
   protected void setAddRemovableOffset(AddRemovable datatype)
   {
     if (datatype instanceof Vertex) {
-      int index = ((DecNumber)getAttribute(ARE_CONTAINER_FIRST_VERTEX_INDEX)).getValue();
-      index += ((DecNumber)getAttribute(ARE_CONTAINER_NUM_VERTICES)).getValue();
-      final int offset = ((HexNumber)getParent().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
+      int index = ((IsNumeric)getAttribute(ARE_CONTAINER_FIRST_VERTEX_INDEX)).getValue();
+      index += ((IsNumeric)getAttribute(ARE_CONTAINER_NUM_VERTICES)).getValue();
+      final int offset = ((IsNumeric)getParent().getAttribute(AreResource.ARE_OFFSET_VERTICES)).getValue();
       datatype.setOffset(offset + 4 * index);
       ((AbstractStruct)datatype).realignStructOffsets();
     }
     else if (datatype instanceof Item) {
-      int index = ((DecNumber)getAttribute(ARE_CONTAINER_FIRST_ITEM_INDEX)).getValue();
-      index += ((DecNumber)getAttribute(ARE_CONTAINER_NUM_ITEMS)).getValue();
-      final int offset = ((HexNumber)getParent().getAttribute(AreResource.ARE_OFFSET_ITEMS)).getValue();
+      int index = ((IsNumeric)getAttribute(ARE_CONTAINER_FIRST_ITEM_INDEX)).getValue();
+      index += ((IsNumeric)getAttribute(ARE_CONTAINER_NUM_ITEMS)).getValue();
+      final int offset = ((IsNumeric)getParent().getAttribute(AreResource.ARE_OFFSET_ITEMS)).getValue();
       datatype.setOffset(offset + 20 * index);
       ((AbstractStruct)datatype).realignStructOffsets();
     }
@@ -171,8 +163,8 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
 
   public void readItems(ByteBuffer buffer, int offset) throws Exception
   {
-    int firstIndex = ((DecNumber)getAttribute(ARE_CONTAINER_FIRST_ITEM_INDEX)).getValue();
-    int numItems = ((DecNumber)getAttribute(ARE_CONTAINER_NUM_ITEMS)).getValue();
+    int firstIndex = ((IsNumeric)getAttribute(ARE_CONTAINER_FIRST_ITEM_INDEX)).getValue();
+    int numItems = ((IsNumeric)getAttribute(ARE_CONTAINER_NUM_ITEMS)).getValue();
     offset += firstIndex * 20;
     for (int i = 0; i < numItems; i++) {
       addField(new Item(this, buffer, offset + 20 * i, i));
@@ -196,7 +188,6 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     return count;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -229,5 +220,4 @@ public final class Container extends AbstractStruct implements AddRemovable, Has
     addField(new Unknown(buffer, offset + 136, 56));
     return offset + 192;
   }
-  //</editor-fold>
 }

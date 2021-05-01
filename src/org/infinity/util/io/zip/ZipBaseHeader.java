@@ -35,6 +35,16 @@ public abstract class ZipBaseHeader implements Comparable<ZipBaseHeader>
   }
 
   @Override
+  public int hashCode()
+  {
+    int hash = 7;
+    hash = 31 * hash + Long.hashCode(offset);
+    hash = 31 * hash + Long.hashCode(size);
+    hash = 31 * hash + Long.hashCode(signature);
+    return hash;
+  }
+
+  @Override
   public boolean equals(Object o)
   {
     if (this == o) {

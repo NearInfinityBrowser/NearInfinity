@@ -8,13 +8,13 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -24,6 +24,7 @@ import javax.swing.Timer;
 
 import org.infinity.gui.RenderCanvas;
 import org.infinity.resource.Viewable;
+import org.infinity.resource.are.viewer.AbstractAnimationProvider;
 import org.infinity.resource.are.viewer.ViewerConstants;
 import org.infinity.resource.graphics.ColorConvert;
 
@@ -178,6 +179,22 @@ public class AnimatedLayerItem extends AbstractLayerItem
   }
 
   /**
+   * Returns the {@link Composite} object assigned to the canvas.
+   */
+  public Composite getComposite()
+  {
+    return rcCanvas.getComposite();
+  }
+
+  /**
+   * Sets the {@link Composite} object for the canvas.
+   */
+  public void setComposite(Composite comp)
+  {
+    rcCanvas.setComposite(comp);
+  }
+
+  /**
    * Returns whether the animation will automatically restart after playing the last frame.
    * (Note: Merely returns the value provided by the attached BasicAnimationProvider object.)
    */
@@ -307,7 +324,6 @@ public class AnimatedLayerItem extends AbstractLayerItem
     super.setVisible(aFlag);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="LayerItemListener">
   @Override
   public void layerItemChanged(LayerItemEvent event)
   {
@@ -315,9 +331,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
       updateDisplay(false);
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -346,9 +360,7 @@ public class AnimatedLayerItem extends AbstractLayerItem
       }
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="PropertyChangeListener">
   @Override
   public void propertyChange(PropertyChangeEvent event)
   {
@@ -360,7 +372,6 @@ public class AnimatedLayerItem extends AbstractLayerItem
       }
     }
   }
-  //</editor-fold>
 
   @Override
   public void repaint()
@@ -457,8 +468,8 @@ public class AnimatedLayerItem extends AbstractLayerItem
     if (anim != null) {
       animation = anim;
     } else {
-      if (!(animation instanceof DefaultAnimationProvider)) {
-        animation = new DefaultAnimationProvider();
+      if (!(animation instanceof AbstractAnimationProvider.DefaultAnimationProvider)) {
+        animation = AbstractAnimationProvider.DEFAULT_ANIMATION_PROVIDER;
       }
     }
 
@@ -618,47 +629,6 @@ public class AnimatedLayerItem extends AbstractLayerItem
         color = DefaultColor;
       }
       this.color = color;
-    }
-  }
-
-
-  /** A pseudo animation provider that always returns a transparent image of 16x16 size. */
-  private static final class DefaultAnimationProvider implements BasicAnimationProvider
-  {
-    private final BufferedImage image;
-
-    public DefaultAnimationProvider()
-    {
-      image = ColorConvert.createCompatibleImage(16, 16, true);
-    }
-
-    @Override
-    public Image getImage()
-    {
-      return image;
-    }
-
-    @Override
-    public boolean advanceFrame()
-    {
-      return false;
-    }
-
-    @Override
-    public void resetFrame()
-    {
-    }
-
-    @Override
-    public boolean isLooping()
-    {
-      return false;
-    }
-
-    @Override
-    public Point getLocationOffset()
-    {
-      return new Point();
     }
   }
 }

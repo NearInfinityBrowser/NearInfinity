@@ -7,8 +7,10 @@ package org.infinity.datatype;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.nio.ByteBuffer;
+import java.util.function.BiFunction;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 
 import org.infinity.gui.ViewFrame;
 import org.infinity.icon.Icons;
@@ -24,13 +26,28 @@ import org.infinity.util.IdsMapEntry;
  */
 public class AnimateBitmap extends IdsBitmap implements ActionListener
 {
+  private final BiFunction<Long, IdsMapEntry, String> formatterAnimateBitmap = (value, item) -> {
+    String number;
+    if (isShowAsHex()) {
+      number = String.format("0x%04X", value);
+    } else {
+      number = value.toString();
+    }
+    if (item != null) {
+      return item.getSymbol() + " - " + number;
+    } else {
+      return "UNKNOWN - " + number;
+    }
+  };
+
   private final JButton showIni;
   private IdsMap idsMap;
   private boolean useIni;
 
   public AnimateBitmap(ByteBuffer buffer, int offset, int length, String name)
   {
-    super(buffer, offset, length, name, "ANIMATE.IDS");
+    super(buffer, offset, length, name, "ANIMATE.IDS", true, true, false);
+    setFormatter(formatterAnimateBitmap);
 
     if (Profile.isEnhancedEdition() || ResourceFactory.resourceExists("ANISND.IDS")) {
       showIni = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
@@ -52,27 +69,45 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
     }
   }
 
+  //--------------------- Begin Interface Editable ---------------------
+
+  @Override
+  public JComponent edit(ActionListener container)
+  {
+    if (getDataOf(getLongValue()) == null) {
+      putItem(getLongValue(), new IdsMapEntry(getLongValue(), "UNKNOWN"));
+    }
+
+    return super.edit(container);
+  }
+
+  //--------------------- End Interface Editable ---------------------
+
+  //--------------------- Begin Interface ActionListener ---------------------
+
   @Override
   public void actionPerformed(ActionEvent e)
   {
     if (e.getSource() == showIni) {
-      final Long value = getCurrentValue();
+      final Long value = getSelectedValue();
       String animRes = value == null ? null : getAnimResource(value.longValue());
       if (animRes != null) {
         ResourceEntry entry = ResourceFactory.getResourceEntry(animRes);
         if (entry != null) {
-          new ViewFrame(getListPanel().getTopLevelAncestor(), ResourceFactory.getResource(entry));
+          new ViewFrame(getUiControl().getTopLevelAncestor(), ResourceFactory.getResource(entry));
         }
       }
     }
   }
+
+  //--------------------- End Interface ActionListener ---------------------
 
   @Override
   protected void listItemChanged()
   {
     if (showIni != null) {
       boolean b = false;
-      final Long value = getCurrentValue();
+      final Long value = getSelectedValue();
       if (value != null) {
         b = (getAnimResource(value) != null);
       }

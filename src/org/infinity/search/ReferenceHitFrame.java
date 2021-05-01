@@ -320,6 +320,19 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     }
 
     @Override
+    public int hashCode()
+    {
+      int hash = 7;
+      hash = 31 * hash + ((mode == null) ? 0 : mode.hashCode());
+      hash = 31 * hash + ((entry == null) ? 0 : entry.hashCode());
+      hash = 31 * hash + ((name == null) ? 0 : name.hashCode());
+      hash = 31 * hash + ((ref == null) ? 0 : ref.hashCode());
+      hash = 31 * hash + ((line == null) ? 0 : line.hashCode());
+      hash = 31 * hash + lineNr;
+      return hash;
+    }
+
+    @Override
     public boolean equals(Object obj)
     {
       if (obj instanceof ReferenceHit) {

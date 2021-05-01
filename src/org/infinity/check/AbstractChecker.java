@@ -84,7 +84,6 @@ public abstract class AbstractChecker extends AbstractSearcher implements Action
     return runSearch("Checking", entries);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="ActionListener">
   @Override
   public void actionPerformed(ActionEvent event)
   {
@@ -99,5 +98,4 @@ public abstract class AbstractChecker extends AbstractSearcher implements Action
       settingsWindow.setVisible(false);
     }
   }
-  //</editor-fold>
 }

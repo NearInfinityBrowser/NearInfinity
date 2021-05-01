@@ -741,7 +741,7 @@ public class DlcPath implements Path
   /////////////////////////////////////////////////////////////////////
 
 
-  void createDirectory(FileAttribute<?>... attrs) throws IOException
+  void createDirectory(FileAttribute<?>... attrs)
   {
     throw new UnsupportedOperationException();
   }
@@ -763,12 +763,12 @@ public class DlcPath implements Path
     return new DlcDirectoryStream(this, filter);
   }
 
-  void delete() throws IOException
+  void delete()
   {
     throw new UnsupportedOperationException();
   }
 
-  void deleteIfExists() throws IOException
+  void deleteIfExists()
   {
     throw new UnsupportedOperationException();
   }
@@ -782,12 +782,12 @@ public class DlcPath implements Path
     return zfas;
   }
 
-  void setAttribute(String attribute, Object value, LinkOption... options) throws IOException
+  void setAttribute(String attribute, Object value, LinkOption... options)
   {
     throw new UnsupportedOperationException();
   }
 
-  void setTimes(FileTime mtime, FileTime atime, FileTime ctime) throws IOException
+  void setTimes(FileTime mtime, FileTime atime, FileTime ctime)
   {
     throw new UnsupportedOperationException();
   }
@@ -882,24 +882,20 @@ public class DlcPath implements Path
     if (path.length == 1 && path[0] == '/') {
       return true;
     }
-    try {
-      return dfs.exists(getResolvedPath());
-    } catch (IOException x) {
-    }
-    return false;
+    return dfs.exists(getResolvedPath());
   }
 
-  OutputStream newOutputStream(OpenOption... options) throws IOException
+  OutputStream newOutputStream(OpenOption... options)
   {
     throw new UnsupportedOperationException();
   }
 
-  void move(DlcPath target, CopyOption... options) throws IOException
+  void move(DlcPath target, CopyOption... options)
   {
     throw new UnsupportedOperationException();
   }
 
-  void copy(DlcPath target, CopyOption... options) throws IOException
+  void copy(DlcPath target, CopyOption... options)
   {
     throw new UnsupportedOperationException();
   }

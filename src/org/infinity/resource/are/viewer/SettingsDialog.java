@@ -76,9 +76,9 @@ public class SettingsDialog extends JDialog
   private SimpleListModel<LayerEntry> modelLayers;
   private JList<LayerEntry> listLayers;
   private JButton bUp, bDown, bDefaultOrder;
-  private JComboBox<String> cbFrames, cbQualityMap, cbQualityAnim;
-  private JCheckBox cbOverrideAnimVisibility, cbMouseWheelZoom, cbExportLayers, cbUseColorShades,
-                    cbStoreSettings;
+  private JComboBox<String> cbActorFrames, cbFrames, cbQualityMap, cbQualityAnim;
+  private JCheckBox cbShowActorSelectionCircle, cbShowActorPersonalSpace, cbActorAccurateBlending,
+                    cbOverrideAnimVisibility, cbMouseWheelZoom, cbExportLayers, cbUseColorShades, cbStoreSettings;
   private JButton bDefaultSettings, bCancel, bOK;
   private JSpinner sOverlaysFps, sAnimationsFps;
   private JSlider sMiniMapAlpha;
@@ -149,7 +149,12 @@ public class SettingsDialog extends JDialog
     Settings.ShowLabelMapNotes = cbLabels[INDEX_LABEL_MAPNOTES].isSelected();
     Settings.ShowLabelSpawnPoints = cbLabels[INDEX_LABEL_SPAWNPOINTS].isSelected();
 
-    Settings.ShowFrame = cbFrames.getSelectedIndex();
+    Settings.ShowActorFrame = cbActorFrames.getSelectedIndex();
+    Settings.ShowActorSelectionCircle = cbShowActorSelectionCircle.isSelected();
+    Settings.ShowActorPersonalSpace = cbShowActorPersonalSpace.isSelected();
+    Settings.UseActorAccurateBlending = cbActorAccurateBlending.isSelected();
+
+    Settings.ShowAnimationFrame = cbFrames.getSelectedIndex();
     Settings.OverrideAnimVisibility = cbOverrideAnimVisibility.isSelected();
 
     Settings.InterpolationMap = cbQualityMap.getSelectedIndex();
@@ -202,7 +207,12 @@ public class SettingsDialog extends JDialog
     cbLabels[INDEX_LABEL_MAPNOTES].setSelected(Settings.getDefaultLabelMapNotes());
     cbLabels[INDEX_LABEL_SPAWNPOINTS].setSelected(Settings.getDefaultLabelSpawnPoints());
 
-    cbFrames.setSelectedIndex(Settings.getDefaultShowFrame());
+    cbActorFrames.setSelectedIndex(Settings.getDefaultShowActorFrame());
+    cbShowActorSelectionCircle.setSelected(Settings.getDefaultActorSelectionCircle());
+    cbShowActorPersonalSpace.setSelected(Settings.getDefaultActorPersonalSpace());
+    cbShowActorSelectionCircle.setSelected(Settings.getDefaultActorAccurateBlending());
+
+    cbFrames.setSelectedIndex(Settings.getDefaultShowAnimationFrame());
     cbOverrideAnimVisibility.setSelected(Settings.getDefaultOverrideAnimVisibility());
 
     cbQualityMap.setSelectedIndex(Settings.getDefaultInterpolationMap());
@@ -256,7 +266,7 @@ public class SettingsDialog extends JDialog
     settingsChanged = false;
 
     // Initializing layer items order
-    modelLayers = new SimpleListModel<LayerEntry>();
+    modelLayers = new SimpleListModel<>();
     listLayers = new JList<>(modelLayers);
     listLayers.setCellRenderer(new IndexedCellRenderer(1));
     listLayers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -365,14 +375,43 @@ public class SettingsDialog extends JDialog
       pShowLabels.add(cbLabels[idx], c);
     }
 
+    // Actor animation options
+    JPanel pShowActorFrame = new JPanel(new GridBagLayout());
+    pShowActorFrame.setBorder(BorderFactory.createTitledBorder("Actor animations: "));
+    JLabel lActorFrames = new JLabel("Show frame:");
+    cbActorFrames = new JComboBox<>(AnimationFrames);
+    cbActorFrames.setSelectedIndex(Settings.ShowActorFrame);
+    cbShowActorSelectionCircle = new JCheckBox("Draw selection circle", Settings.ShowActorSelectionCircle);
+    cbShowActorSelectionCircle.setToolTipText("Requires a restart of the area viewer or a map update via toolbar button.");
+    cbShowActorPersonalSpace = new JCheckBox("Draw personal space indicator", Settings.ShowActorPersonalSpace);
+    cbShowActorPersonalSpace.setToolTipText("Requires a restart of the area viewer or a map update via toolbar button.");
+    cbActorAccurateBlending = new JCheckBox("Enable accurate color blending", Settings.UseActorAccurateBlending);
+    cbActorAccurateBlending.setToolTipText("<html>Creature animations with special blending modes (such as movanic devas or wisps)<br/>" +
+                                           "can reduce overall performance of the area viewer. Disable to improve performance.<br/>" +
+                                           "Requires a restart of the area viewer or a map update via toolbar button.</html>");
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
+    pShowActorFrame.add(lActorFrames, c);
+    c = ViewerUtil.setGBC(c, 1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 4), 0, 0);
+    pShowActorFrame.add(cbActorFrames, c);
+    c = ViewerUtil.setGBC(c, 0, 1, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 4), 0, 0);
+    pShowActorFrame.add(cbShowActorSelectionCircle, c);
+    c = ViewerUtil.setGBC(c, 0, 2, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 0, 4), 0, 0);
+    pShowActorFrame.add(cbShowActorPersonalSpace, c);
+    c = ViewerUtil.setGBC(c, 0, 3, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.NONE, new Insets(4, 4, 4, 4), 0, 0);
+    pShowActorFrame.add(cbActorAccurateBlending, c);
 
     // Background animation frame
     JPanel pShowFrame = new JPanel(new GridBagLayout());
     pShowFrame.setBorder(BorderFactory.createTitledBorder("Background animations: "));
     JLabel lFrames = new JLabel("Show frame:");
     cbFrames = new JComboBox<>(AnimationFrames);
-    cbFrames.setSelectedIndex(Settings.ShowFrame);
-    cbOverrideAnimVisibility = new JCheckBox("Show animations regardless of their active state", Settings.OverrideAnimVisibility);
+    cbFrames.setSelectedIndex(Settings.ShowAnimationFrame);
+    cbOverrideAnimVisibility = new JCheckBox("Show background animations regardless of their active state", Settings.OverrideAnimVisibility);
     cbOverrideAnimVisibility.setToolTipText("Requires a restart of the area viewer or a map update via toolbar button.");
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.NONE, new Insets(4, 4, 4, 0), 0, 0);
@@ -451,7 +490,7 @@ public class SettingsDialog extends JDialog
     JPanel pMiniMap = new JPanel(new GridBagLayout());
     pMiniMap.setBorder(BorderFactory.createTitledBorder("Mini map opacity: "));
 
-    Hashtable<Integer, JLabel> table = new Hashtable<Integer, JLabel>();
+    Hashtable<Integer, JLabel> table = new Hashtable<>();
     for (int i = 0; i <= 100; i+=25) {
       table.put(Integer.valueOf(i), new JLabel(String.format("%d%%", i)));
     }
@@ -521,28 +560,28 @@ public class SettingsDialog extends JDialog
 
     // putting options together
     JPanel pCol2 = new JPanel(new GridBagLayout());
-//    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-//                          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-//    pOptions.add(pShowLabels, c);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-    pCol2.add(pShowFrame, c);
+    pCol2.add(pShowActorFrame, c);
     c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pCol2.add(pQuality, c);
+    pCol2.add(pShowFrame, c);
     c = ViewerUtil.setGBC(c, 0, 2, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pCol2.add(pFrameRates, c);
+    pCol2.add(pQuality, c);
     c = ViewerUtil.setGBC(c, 0, 3, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-    pCol2.add(pMiniMap, c);
+    pCol2.add(pFrameRates, c);
     c = ViewerUtil.setGBC(c, 0, 4, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
+    pCol2.add(pMiniMap, c);
+    c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                          GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
     pCol2.add(pMisc, c);
-    c = ViewerUtil.setGBC(c, 0, 5, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
+    c = ViewerUtil.setGBC(c, 0, 6, 1, 1, 1.0, 1.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     pCol2.add(new JPanel(), c);
-    c = ViewerUtil.setGBC(c, 0, 6, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+    c = ViewerUtil.setGBC(c, 0, 7, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
     pCol2.add(pButtons, c);
 

@@ -60,8 +60,8 @@ import org.infinity.util.io.FileManager;
  */
 public class BookmarkEditor extends JDialog implements ActionListener, FocusListener, ListSelectionListener, ItemListener
 {
-  private final SimpleListModel<Bookmark> modelEntries = new SimpleListModel<Bookmark>();
-  private final JList<Bookmark> listEntries = new JList<Bookmark>(modelEntries);
+  private final SimpleListModel<Bookmark> modelEntries = new SimpleListModel<>();
+  private final JList<Bookmark> listEntries = new JList<>(modelEntries);
   private final JButton bUp = new JButton("Up");
   private final JButton bDown = new JButton("Down");
   private final JButton bRemove = new JButton("Remove");
@@ -73,12 +73,12 @@ public class BookmarkEditor extends JDialog implements ActionListener, FocusList
   private final JTextField tfName = new JTextField();
   private final JTextField tfPath = createReadOnlyField(null, true);
   private final DefaultComboBoxModel<Platform.OS> cbPlatformModel =
-      new DefaultComboBoxModel<Platform.OS>(BrowserMenuBar.Bookmark.getSupportedOS());
+      new DefaultComboBoxModel<>(BrowserMenuBar.Bookmark.getSupportedOS());
   private final JComboBox<Platform.OS> cbPlatform = new JComboBox<>(cbPlatformModel);
   private final EnumMap<Platform.OS, DefaultListModel<Path>> listBinPathModels = new EnumMap<>(Platform.OS.class);
-  private final JList<Path> listBinPaths = new JList<Path>();
+  private final JList<Path> listBinPaths = new JList<>();
 
-  private final List<BrowserMenuBar.Bookmark> listBookmarks = new ArrayList<BrowserMenuBar.Bookmark>();
+  private final List<BrowserMenuBar.Bookmark> listBookmarks = new ArrayList<>();
 
   private boolean accepted;
 
@@ -305,7 +305,7 @@ public class BookmarkEditor extends JDialog implements ActionListener, FocusList
     // updating bookmark list
     listBookmarks.clear();
     for (int i = 0, size = modelEntries.size(); i < size; i++) {
-      listBookmarks.add((BrowserMenuBar.Bookmark)modelEntries.get(i));
+      listBookmarks.add(modelEntries.get(i));
     }
     accepted = true;
     setVisible(false);
@@ -534,7 +534,7 @@ public class BookmarkEditor extends JDialog implements ActionListener, FocusList
     if (event.getSource() == tfName) {
       int idx = listEntries.getSelectedIndex();
       if (idx >= 0) {
-        BrowserMenuBar.Bookmark bookmark = (BrowserMenuBar.Bookmark)modelEntries.get(idx);
+        BrowserMenuBar.Bookmark bookmark = modelEntries.get(idx);
         if (!tfName.getText().trim().isEmpty()) {
           // update name in selected entry
           bookmark.setName(tfName.getText().trim());

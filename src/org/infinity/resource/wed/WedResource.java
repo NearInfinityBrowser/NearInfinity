@@ -15,6 +15,7 @@ import javax.swing.JComponent;
 
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.HexNumber;
+import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.RemovableDecNumber;
 import org.infinity.datatype.SectionCount;
 import org.infinity.datatype.SectionOffset;
@@ -83,7 +84,6 @@ public final class WedResource extends AbstractStruct implements Resource, HasCh
     super(entry);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="HasChildStructs">
   @Override
   public AddRemovable[] getPrototypes() throws Exception
   {
@@ -95,17 +95,13 @@ public final class WedResource extends AbstractStruct implements Resource, HasCh
   {
     return entry;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Writeable">
   @Override
   public void write(OutputStream os) throws IOException
   {
     super.writeFlatFields(os);
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="HasViewerTabs">
   @Override
   public int getViewerTabCount()
   {
@@ -132,9 +128,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasCh
   {
     return false;
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="AbstractStruct">
   @Override
   protected void viewerInitialized(StructViewer viewer)
   {
@@ -202,9 +196,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasCh
       hexViewer.dataModified();
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Readable">
   @Override
   public int read(ByteBuffer buffer, int offset) throws Exception
   {
@@ -307,7 +299,6 @@ public final class WedResource extends AbstractStruct implements Resource, HasCh
     }
     return endoffset;
   }
-  //</editor-fold>
 
   private void updateSectionOffsets(AddRemovable datatype, int size)
   {
@@ -331,8 +322,8 @@ public final class WedResource extends AbstractStruct implements Resource, HasCh
     }
 
     // Assumes polygon offset is correct
-    int offset = ((SectionOffset)getAttribute(WED_OFFSET_WALL_POLYGONS)).getValue();
-    offset += ((SectionCount)getAttribute(WED_NUM_WALL_POLYGONS)).getValue() * 18;
+    int offset = ((IsNumeric)getAttribute(WED_OFFSET_WALL_POLYGONS)).getValue();
+    offset += ((IsNumeric)getAttribute(WED_NUM_WALL_POLYGONS)).getValue() * 18;
     for (final StructEntry o : getFields()) {
       if (o instanceof Door) {
         ((Door)o).updatePolygonsOffset(offset);
@@ -343,7 +334,7 @@ public final class WedResource extends AbstractStruct implements Resource, HasCh
   private void updateVertices()
   {
     // Assumes vertices offset is correct
-    int offset = ((HexNumber)getAttribute(WED_OFFSET_VERTICES)).getValue();
+    int offset = ((IsNumeric)getAttribute(WED_OFFSET_VERTICES)).getValue();
     int count = 0;
     for (final StructEntry o : getFields()) {
       if (o instanceof Polygon) {
