@@ -121,7 +121,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
                         BiFunction<Long, T, String> formatter, boolean signed)
   {
     super(offset, length, name);
-    this.itemMap = items;
+    this.itemMap = (items != null) ? items : new TreeMap<>();
     this.signed = signed;
     this.formatter = (formatter != null) ? formatter : formatterDefault;
     this.buttonList = new ArrayList<>();
