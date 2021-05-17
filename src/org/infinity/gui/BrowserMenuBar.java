@@ -67,6 +67,7 @@ import org.infinity.check.ResRefChecker;
 import org.infinity.check.ResourceUseChecker;
 import org.infinity.check.ScriptChecker;
 import org.infinity.check.StringUseChecker;
+import org.infinity.check.StringValidationChecker;
 import org.infinity.check.StrrefIndexChecker;
 import org.infinity.check.StructChecker;
 import org.infinity.gui.converter.ConvertToBam;
@@ -1482,7 +1483,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private final JMenuItem toolInfinityAmp, toolCreatureBrowser, toolCleanKeyfile, toolCheckAllDialog, toolCheckOverrideDialog;
     private final JMenuItem toolCheckResRef, toolIDSBrowser, toolDropZone, toolCheckCREInv;
     private final JMenuItem toolCheckIDSRef, toolCheckIDSBCSRef, toolCheckScripts, toolCheckStructs;
-    private final JMenuItem toolCheckStringUse, toolCheckStringIndex, toolCheckFileUse, toolMassExport;
+    private final JMenuItem toolCheckStringUse, toolCheckStringValid, toolCheckStringIndex, toolCheckFileUse, toolMassExport;
     private final JMenuItem toolCheckEffectsIndex;
     private final JMenuItem toolConvImageToBam, toolConvImageToBmp, toolConvImageToMos, toolConvImageToTis,
                             toolConvImageToPvrz;
@@ -1564,6 +1565,10 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       toolCheckStringUse =
           makeMenuItem("For Unused Strings", KeyEvent.VK_U, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
       checkMenu.add(toolCheckStringUse);
+
+      toolCheckStringValid =
+          makeMenuItem("For String Encoding Errors", KeyEvent.VK_E, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+      checkMenu.add(toolCheckStringValid);
 
       toolCheckStringIndex =
           makeMenuItem("For Illegal Strrefs...", KeyEvent.VK_S, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
@@ -1749,6 +1754,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         new StructChecker();
       else if (event.getSource() == toolCheckStringUse)
         new StringUseChecker(NearInfinity.getInstance());
+      else if (event.getSource() == toolCheckStringValid)
+        new StringValidationChecker(NearInfinity.getInstance());
       else if (event.getSource() == toolCheckStringIndex)
         new StrrefIndexChecker();
       else if (event.getSource() == toolCheckFileUse)

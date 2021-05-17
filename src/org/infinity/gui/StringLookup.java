@@ -20,11 +20,11 @@ import org.infinity.search.SearchMaster;
 import org.infinity.util.Misc;
 import org.infinity.util.StringTable;
 
-final class StringLookup extends ChildFrame implements SearchClient
+public final class StringLookup extends ChildFrame implements SearchClient
 {
   private final StringRef strref;
 
-  StringLookup()
+  public StringLookup()
   {
     super("StringRef Lookup");
     setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
