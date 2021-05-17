@@ -112,6 +112,7 @@ public class StringEditor extends ChildFrame implements SearchClient
     JOptionPane.showMessageDialog(NearInfinity.getInstance(), msg, "Warning", JOptionPane.WARNING_MESSAGE);
 
     initUI();
+    showEntry(0);
   }
 
   @Override
