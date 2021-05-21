@@ -62,13 +62,10 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
   public static final String[] s_dispel = {"Natural/Nonmagical", "Dispel/Not bypass resistance",
                                            "Not dispel/Bypass resistance", "Dispel/Bypass resistance"};
   public static final String[] s_dispel_ee = {"Natural/Nonmagical", "Dispel", "Bypass resistance",
-                                              "Bypass deflection/reflection/trap", null, null, null, null, null,
+                                              "Bypass deflection/reflection/trap", "Self-targeted", null, null, null, null,
                                               null, null, null, null, null, null, null, null,
                                               null, null, null, null, null, null, null, null,
                                               null, null, null, null, null, null, null, "Effect applied by item"};
-//  public static final String[] s_dispel_v1 = {"None", "Dispellable", "Bypass resistance"};
-//  public static final String[] s_dispel_v2 = {"None", "Dispellable", "Bypass resistance",
-//                                              "Bypass turn/reflect/absorb"};
 
   public static int readCommon(List<StructEntry> list, ByteBuffer buffer, int offset)
   {
