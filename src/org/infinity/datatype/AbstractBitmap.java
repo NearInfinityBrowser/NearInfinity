@@ -38,30 +38,52 @@ import org.infinity.util.Misc;
  */
 public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
 {
-  // The default formatter if none is specified in the constructor
-  private final BiFunction<Long, T, String> formatterDefault = (value, item) -> {
-    String s;
-    if (isShowAsHex()) {
-      switch (getSize()) {
-        case 1:
-          s = String.format("0x%02X", value);
-          break;
-        case 2:
-          s = String.format("0x%04X", value);
-          break;
-        case 4:
-          s = String.format("0x%08X", value);
-          break;
-        default:
-          s = String.format("0x%X", value);
-      }
-    } else {
-      s = value.toString();
-    }
+  /** Default formatter object if none are specified as constructor arguments. */
+  public final BiFunction<Long, T, String> formatterDefault = (value, item) -> {
+    String number = isShowAsHex() ? getHexValue(value) : value.toString();
     if (item != null) {
-      return item.toString() + " - " + s;
+      return item.toString() + " - " + number;
     } else {
-      return "Unknown - " + s;
+      return "Unknown - " + number;
+    }
+  };
+
+  /** Formatter object used by the {link HashBitmap} datatype. It is identical to the default formatter. */
+  public final BiFunction<Long, T, String> formatterHashBitmap = formatterDefault;
+
+  /** Formatter object used by the {@link Bitmap} datatype. */
+  public final BiFunction<Long, T, String> formatterBitmap = (value, item) -> {
+    String number = isShowAsHex() ? getHexValue(value) : value.toString();
+    if (item != null) {
+      return item.toString() + " (" + number + ")";
+    } else {
+      return "Unknown (" + number + ")";
+    }
+  };
+
+  /**
+   * This formatter object uses the same format as the {@link #formatterHashBitmap}
+   * but displays label and numeric value in reversed order.
+   */
+  public final BiFunction<Long, T, String> formatterHashBitmapReverse = (value, item) -> {
+    String number = isShowAsHex() ? getHexValue(value) : value.toString();
+    if (item != null) {
+      return number + " - " + item.toString();
+    } else {
+      return number + " - Unknown - ";
+    }
+  };
+
+  /**
+   * This formatter object uses the same format as the {@link #formatterBitmap}
+   * but displays label and numeric value in reversed order.
+   */
+  public final BiFunction<Long, T, String> formatterBitmapReverse = (value, item) -> {
+    String number = isShowAsHex() ? getHexValue(value) : value.toString();
+    if (item != null) {
+      return "(" + number + ") " + item.toString();
+    } else {
+      return "(" + number + ") Unknown";
     }
   };
 
