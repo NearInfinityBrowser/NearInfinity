@@ -50,7 +50,7 @@ public final class Entrance extends AbstractStruct implements AddRemovable
     addField(new DecNumber(buffer, offset + 32, 2, ARE_ENTRANCE_LOCATION_X));
     addField(new DecNumber(buffer, offset + 34, 2, ARE_ENTRANCE_LOCATION_Y));
     addField(new Bitmap(buffer, offset + 36, 2, ARE_ENTRANCE_ORIENTATION, OPTION_ORIENTATION));
-    addField(new Unknown(buffer, offset + 40, 66));
+    addField(new Unknown(buffer, offset + 38, 66));
     return offset + 104;
   }
 }
