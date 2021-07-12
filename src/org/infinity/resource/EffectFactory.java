@@ -130,7 +130,8 @@ public final class EffectFactory
   }
 
   // contains IDS mappings for BGEE's opcode 319 "Item Usability"
-  public static final TreeMap<Long, String> m_duration = new TreeMap<>();
+  public static final TreeMap<Long, String> m_duration_v1 = new TreeMap<>();
+  public static final TreeMap<Long, String> m_duration_v2 = new TreeMap<>();
   public static final TreeMap<Long, String> m_colorloc = new TreeMap<>();
   public static final TreeMap<Long, String> m_proj_iwd = new TreeMap<>();
   public static final TreeMap<Long, String> m_inctype = new TreeMap<>();
@@ -354,18 +355,30 @@ public final class EffectFactory
 
 
   static {
-    m_duration.put(0L, "Instant/Limited");
-    m_duration.put(1L, "Instant/Permanent until death");
-    m_duration.put(2L, "Instant/While equipped");
-    m_duration.put(3L, "Delay/Limited");
-    m_duration.put(4L, "Delay/Permanent");
-    m_duration.put(5L, "Delay/While equipped");
-    m_duration.put(6L, "Limited after duration");
-    m_duration.put(7L, "Permanent after duration");
-    m_duration.put(8L, "Equipped after duration");
-    m_duration.put(9L, "Instant/Permanent");
-    m_duration.put(10L, "Instant/Limited (ticks)");
-    m_duration.put(4096L, "Absolute duration");
+    m_duration_v1.put(0L, "Instant/Limited");
+    m_duration_v1.put(1L, "Instant/Permanent until death");
+    m_duration_v1.put(2L, "Instant/While equipped");
+    m_duration_v1.put(3L, "Delay/Limited");
+    m_duration_v1.put(4L, "Delay/Permanent");
+    m_duration_v1.put(5L, "Delay/While equipped");
+    m_duration_v1.put(6L, "Limited after duration");
+    m_duration_v1.put(7L, "Permanent after duration");
+    m_duration_v1.put(8L, "Equipped after duration");
+    m_duration_v1.put(9L, "Instant/Permanent");
+    m_duration_v1.put(10L, "Instant/Limited (ticks)");
+
+    m_duration_v2.put(0L, "Instant/Limited");
+    m_duration_v2.put(1L, "Instant/Permanent until death");
+    m_duration_v2.put(2L, "Instant/While equipped");
+    m_duration_v2.put(3L, "Delay/Limited");
+    m_duration_v2.put(4L, "Delay/Permanent");
+    m_duration_v2.put(5L, "Delay/While equipped");
+    m_duration_v2.put(6L, "Limited after duration");
+    m_duration_v2.put(7L, "Permanent after duration");
+    m_duration_v2.put(8L, "Equipped after duration");
+    m_duration_v2.put(9L, "Instant/Permanent");
+    m_duration_v2.put(10L, "Instant/Limited (ticks)");
+    m_duration_v2.put(4096L, "Absolute duration");
 
     m_colorloc.put(0x00L, "Armor (grey): Belt/Amulet");
     m_colorloc.put(0x01L, "Armor (teal): Minor color");
@@ -5476,12 +5489,12 @@ public final class EffectFactory
   private int makeEffectCommon1(ByteBuffer buffer, int offset, List<StructEntry> s, boolean isV1)
   {
     if (isV1) {
-      s.add(new HashBitmap(buffer, offset, 1, EFFECT_TIMING_MODE, m_duration, false));
+      s.add(new HashBitmap(buffer, offset, 1, EFFECT_TIMING_MODE, m_duration_v1, false));
 //      s.add(new Flag(buffer, offset + 1, 1, Effect2.EFFECT_DISPEL_TYPE, Effect2.s_dispel));
       s.add(new Bitmap(buffer, offset + 1, 1, Effect2.EFFECT_DISPEL_TYPE, Effect2.s_dispel));
       offset += 2;
     } else {
-      s.add(new HashBitmap(buffer, offset, 4, EFFECT_TIMING_MODE, m_duration, false));
+      s.add(new HashBitmap(buffer, offset, 4, EFFECT_TIMING_MODE, m_duration_v2, false));
       offset += 4;
     }
 

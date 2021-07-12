@@ -4019,7 +4019,7 @@ public class SearchResource extends ChildFrame
         cbTiming[i].addActionListener(this);
       }
 
-      cbMode = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(EffectFactory.m_duration)), 130);
+      cbMode = Utils.defaultWidth(new AutoComboBox<>(IndexedString.createArray(EffectFactory.m_duration_v2)), 130);
       sDuration[0] = Utils.createNumberSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, -32768, 32767, 0, 1);
       sDuration[1] = Utils.createNumberSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, -32768, 32767, 3600, 1);
 
