@@ -26,9 +26,35 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer
   private final StatusBar statusBar = new StatusBar();
   private Viewable viewable;
 
+  /**
+   * Returns a formatted string consisting of the name and optional description of the {@code Viewable} if available.
+   * @param viewable The {@code Viewable} object.
+   * @return A string describing the {@code Viewable}.
+   */
+  private static String getViewableTitle(Viewable viewable)
+  {
+    if (viewable == null) {
+      return "";
+    }
+    if (viewable instanceof Resource) {
+      final Resource res = (Resource)viewable;
+      final ResourceEntry entry = res.getResourceEntry();
+      if (entry != null) {
+        final String sn = entry.getSearchString();
+        final String rn = entry.getResourceName();
+        if (sn != null && !sn.isEmpty()) {
+          return rn + " (" + sn + ")";
+        } else {
+          return rn;
+        }
+      }
+    }
+    return viewable.getClass().getName();
+  }
+
   public ViewFrame(Component parent, Viewable viewable)
   {
-    super(viewable.getClass().getName(), true);
+    super(getViewableTitle(viewable), true);
     setViewable(viewable);
     if (viewable instanceof AbstractStruct || viewable instanceof TextResource ||
         viewable instanceof BamResource)
@@ -59,7 +85,7 @@ public final class ViewFrame extends ChildFrame implements ViewableContainer
     this.viewable = viewable;
     if (viewable instanceof Resource && ((Resource)viewable).getResourceEntry() != null) {
       ResourceEntry entry = ((Resource)viewable).getResourceEntry();
-      setTitle(entry.toString());
+//      setTitle(entry.toString());
       setIconImage(entry.getIcon().getImage());
       statusBar.setMessage(entry.getActualPath().toString());
     }
