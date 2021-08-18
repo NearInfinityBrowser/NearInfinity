@@ -1,6 +1,7 @@
 // Near Infinity - An Infinity Engine Browser and Editor
 // Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
+
 package org.infinity.resource.key;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.BrowserMenuBar.OverrideMode;
 import org.infinity.resource.Profile;
