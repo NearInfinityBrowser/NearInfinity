@@ -7,11 +7,11 @@ package org.infinity.resource.pro;
 import java.nio.ByteBuffer;
 import java.util.TreeMap;
 
+import org.infinity.datatype.AnimateBitmap;
 import org.infinity.datatype.ColorValue;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HashBitmap;
-import org.infinity.datatype.IdsBitmap;
 import org.infinity.datatype.ResourceRef;
 import org.infinity.datatype.Unknown;
 import org.infinity.resource.AbstractStruct;
@@ -97,7 +97,7 @@ public final class ProSingleType extends AbstractStruct implements AddRemovable
       addField(new ColorValue(buffer, offset + 44 + i, 1, String.format(PRO_SINGLE_SMOKE_COLOR_FMT, i+1), false));
     }
     addField(new HashBitmap(buffer, offset + 51, 1, PRO_SINGLE_FACE_TARGET_GRANULARITY, m_facetarget));
-    addField(new IdsBitmap(buffer, offset + 52, 2, PRO_SINGLE_SMOKE_ANIMATION, "ANIMATE.IDS"));
+    addField(new AnimateBitmap(buffer, offset + 52, 2, PRO_SINGLE_SMOKE_ANIMATION));
     for (int i = 0; i < 3; i++) {
       addField(new ResourceRef(buffer, offset + 54 + (i * 8),
                                String.format(PRO_SINGLE_TRAILING_ANIMATION_FMT, i+1), s_types));

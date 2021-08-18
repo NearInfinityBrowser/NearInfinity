@@ -7,11 +7,11 @@ package org.infinity.resource.pro;
 import java.nio.ByteBuffer;
 import java.util.TreeMap;
 
+import org.infinity.datatype.AnimateBitmap;
 import org.infinity.datatype.ColorValue;
 import org.infinity.datatype.DecNumber;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.HashBitmap;
-import org.infinity.datatype.IdsBitmap;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ProRef;
 import org.infinity.datatype.ResourceRef;
@@ -156,7 +156,7 @@ public final class ProAreaType extends AbstractStruct implements AddRemovable, U
     addField(new DecNumber(buffer, offset + 6, 2, PRO_AREA_EXPLOSION_SIZE));
     addField(new ResourceRef(buffer, offset + 8, PRO_AREA_EXPLOSION_SOUND, "WAV"));
     addField(new DecNumber(buffer, offset + 16, 2, PRO_AREA_EXPLOSION_FREQUENCY));
-    addField(new IdsBitmap(buffer, offset + 18, 2, PRO_AREA_FRAGMENT_ANIMATION, "ANIMATE.IDS"));
+    addField(new AnimateBitmap(buffer, offset + 18, 2, PRO_AREA_FRAGMENT_ANIMATION));
     addField(new ProRef(buffer, offset + 20, PRO_AREA_SECONDARY_PROJECTILE, false));
     addField(new DecNumber(buffer, offset + 22, 1, PRO_AREA_NUM_REPETITIONS));
     addField(new HashBitmap(buffer, offset + 23, 1, PRO_AREA_EXPLOSION_EFFECT, m_proj));
