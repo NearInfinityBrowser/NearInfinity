@@ -108,7 +108,7 @@ public final class FileResourceEntry extends ResourceEntry
     String fileName = file.getFileName().toString();
     int pos = fileName.lastIndexOf('.');
     if (pos >= 0)
-        fileName = fileName.substring(0, pos);
+      fileName = fileName.substring(0, pos);
     return fileName;
   }
 
@@ -124,9 +124,9 @@ public final class FileResourceEntry extends ResourceEntry
           return getExtension();
         } else if (mode == OverrideMode.Split &&
                    keyfile.getResourceEntry(getResourceName()) != null) {
-      return getExtension();
-    }
-    }
+          return getExtension();
+        }
+      }
     }
     if (hasOverride()) {
       return Profile.getOverrideFolderName();
