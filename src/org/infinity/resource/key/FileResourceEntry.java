@@ -1,7 +1,6 @@
 // Near Infinity - An Infinity Engine Browser and Editor
 // Copyright (C) 2001 - 2019 Jon Olav Hauglid
 // See LICENSE.txt for license information
-
 package org.infinity.resource.key;
 
 import java.io.IOException;
@@ -15,7 +14,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Locale;
-
+import java.util.Objects;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.BrowserMenuBar.OverrideMode;
 import org.infinity.resource.Profile;
@@ -109,7 +108,7 @@ public final class FileResourceEntry extends ResourceEntry
     String fileName = file.getFileName().toString();
     int pos = fileName.lastIndexOf('.');
     if (pos >= 0)
-      fileName = fileName.substring(0, pos);
+        fileName = fileName.substring(0, pos);
     return fileName;
   }
 
@@ -125,9 +124,9 @@ public final class FileResourceEntry extends ResourceEntry
           return getExtension();
         } else if (mode == OverrideMode.Split &&
                    keyfile.getResourceEntry(getResourceName()) != null) {
-          return getExtension();
-        }
-      }
+      return getExtension();
+    }
+    }
     }
     if (hasOverride()) {
       return Profile.getOverrideFolderName();
@@ -188,5 +187,25 @@ public final class FileResourceEntry extends ResourceEntry
       options[1] = StandardCopyOption.REPLACE_EXISTING;
     }
     file = Files.move(file, basePath.resolve(newName), options);
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((file == null) ? 0 : file.hashCode());
+    return prime * result + (override ? 1231 : 1237);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj) || getClass() != obj.getClass()) {
+      return false;
+    }
+    FileResourceEntry other = (FileResourceEntry) obj;
+    return Objects.equals(file, other.file) && override == other.override;
   }
 }
