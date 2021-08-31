@@ -68,6 +68,9 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.FontUIResource;
 
 import org.infinity.datatype.ProRef;
+import org.infinity.datatype.Song2daBitmap;
+import org.infinity.datatype.SpellProtType;
+import org.infinity.datatype.Summon2daBitmap;
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.ButtonPopupWindow;
 import org.infinity.gui.ChildFrame;
@@ -1060,6 +1063,9 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     SpriteUtils.clearCache();
     ItemInfo.clearCache();
     AreResource.clearCache();
+    Song2daBitmap.resetSonglist();
+    SpellProtType.resetTypeTable();
+    Summon2daBitmap.resetSummonTable();
   }
 
   private static void showProgress(String msg, int max)
