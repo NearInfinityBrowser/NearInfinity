@@ -36,10 +36,6 @@ public final class Decompiler
     add("extstate");  add("invitem");   add("itemflag");  add("jourtype");
     add("magespec");  add("splcast");   add("state");     add("wmpflag");
   }};
-//  private static final String[] BitwiseIds = {
-//      "areatype", "areaflag", "bits", "classmsk", "crearefl", "damages", "doorflag", "dmgtype",
-//      "extstate", "invitem", "itemflag", "jourtype", "magespec", "splcast", "state", "wmpflag",
-//  };
 
   private final Set<Integer> strrefsUsed = new HashSet<>();
   private final Set<ResourceEntry> resourcesUsed = new HashSet<>();
