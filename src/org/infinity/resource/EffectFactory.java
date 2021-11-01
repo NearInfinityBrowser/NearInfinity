@@ -2968,10 +2968,14 @@ public final class EffectFactory
         break;
 
       case 135: // Polymorph
-        s.add(new AnimateBitmap(buffer, offset, 4, "Animation"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Polymorph type",
-                         new String[]{"Change into", "Appearance only", "Appearance only",
-                                      "Appearance only"}));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        if (Profile.getEngine() != Profile.Engine.IWD2) {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Polymorph type",
+                           new String[]{"Change into", "Appearance only", "Appearance only",
+                                        "Appearance only"}));
+        } else {
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+        }
         restype = "CRE";
         break;
 
@@ -3305,7 +3309,7 @@ public final class EffectFactory
           makeEffectParamsDefault(buffer, offset, s);
         } else {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Pass walls?", AbstractStruct.OPTION_YESNO));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Pass walls?", AbstractStruct.OPTION_NOYES));
         }
         break;
 
