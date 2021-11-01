@@ -29,6 +29,18 @@ import org.infinity.util.io.StreamUtils;
 
 public final class Decompiler
 {
+  // List of IDS resources containing bitwise entries
+  private static final HashSet<String> BitwiseIds = new HashSet<String>() {{
+    add("areatype");  add("areaflag");  add("bits");      add("classmsk");
+    add("crearefl");  add("damages");   add("doorflag");  add("dmgtype");
+    add("extstate");  add("invitem");   add("itemflag");  add("jourtype");
+    add("magespec");  add("splcast");   add("state");     add("wmpflag");
+  }};
+//  private static final String[] BitwiseIds = {
+//      "areatype", "areaflag", "bits", "classmsk", "crearefl", "damages", "doorflag", "dmgtype",
+//      "extstate", "invitem", "itemflag", "jourtype", "magespec", "splcast", "state", "wmpflag",
+//  };
+
   private final Set<Integer> strrefsUsed = new HashSet<>();
   private final Set<ResourceEntry> resourcesUsed = new HashSet<>();
   private final SortedMap<Integer, String> idsErrors = new TreeMap<>();
@@ -964,24 +976,12 @@ public final class Decompiler
       IdsMap map = IdsMapCache.get(ids + ".ids");
       if (map != null) {
         IdsMapEntry entry = map.get(value);
+        if (entry == null) {
+          entry = map.get(value & 0xffffffffL);
+        }
         if (entry != null) {
           retVal = getNormalizedSymbol(entry.getSymbol());
-        } else if (ids.equals("areatype") ||
-                   ids.equals("areaflag") ||
-                   ids.equals("bits") ||
-                   ids.equals("classmsk") ||
-                   ids.equals("crearefl") ||
-                   ids.equals("damages") ||
-                   ids.equals("doorflag") ||
-                   ids.equals("dmgtype") ||
-                   ids.equals("extstate") ||
-                   ids.equals("invitem") ||
-                   ids.equals("itemflag") ||
-                   ids.equals("jourtype") ||
-                   ids.equals("magespec") ||
-                   ids.equals("splcast") ||
-                   ids.equals("state") ||
-                   ids.equals("wmpflag")) {
+        } else if (BitwiseIds.contains(ids.toLowerCase())) {
           value &= 0xffffffffL;   // converted into unsigned value
           StringBuilder combi = new StringBuilder();
           for (int bit = 0; bit < 32 && value > 0; bit++) {
