@@ -3314,7 +3314,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       // original author
       final String originalVersion = "From Near Infinity 1.32.1 beta 24";
       final String originalCopyright = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
-      final DataString<String> originalLink = DataString.with("Website", "http://www.idi.ntnu.no/~joh/ni/");
       // List of contributors (sorted alphabetically)
       final List<String> contributors = new ArrayList<String>() {{
         add("Argent77");
@@ -3387,18 +3386,6 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         label.setFont(font);
         gbc = ViewerUtil.setGBC(gbc, 0, row, 2, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-        pLinks.add(label, gbc);
-        row++;
-        label = new JLabel(originalLink.getString() + ":");
-        label.setFont(font);
-        gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                                GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-        pLinks.add(label, gbc);
-        String link = originalLink.getData();
-        label = ViewerUtil.createUrlLabel(link);
-        label.setFont(font);
-        gbc = ViewerUtil.setGBC(gbc, 1, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                                GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
         pLinks.add(label, gbc);
         row++;
       }
