@@ -30,9 +30,6 @@ public class FileManager implements FileWatchListener
 
   private static FileManager instance;
 
-  // Stores whether filesystems use case-sensitive filenames
-//  private final HashMap<FileSystem, Boolean> mapCaseSensitive = new HashMap<>();
-
   public static void reset()
   {
     pathCache.clear();
@@ -602,59 +599,5 @@ public class FileManager implements FileWatchListener
   {
     // quick&dirty solution
     return Platform.IS_UNIX;
-
-    // TODO: improve check for case-sensitivity
-//    if (!Platform.IS_UNIX) {
-//      return false;
-//    }
-//    Boolean retVal = null;
-//    if (fs != null) {
-//      retVal = getInstance().mapCaseSensitive.get(fs);
-//      if (retVal == null) {
-//        if (!Profile.<Boolean>getProperty(Profile.Key.GET_GLOBAL_FILE_CASE_CHECK)) {
-//          // forced by cmdline argument
-//          getInstance().mapCaseSensitive.put(fs, Boolean.valueOf(false));
-//          return false;
-//        }
-//
-//        final Path root = fs.getRootDirectories().iterator().next();
-//        // TODO: Does not work if stream encounters inaccessible paths; find workaround
-//        try (Stream<Path> pathStream = Files.walk(root, 1)) {
-//          // finding a valid path entry
-//          Path path = pathStream.filter(p -> {
-//            try {
-//              if (p.getNameCount() > 0) {
-//                String name = p.getName(p.getNameCount() - 1).toString();
-//                for (int i = 0, len = name.length(); i < len; i++) {
-//                  if (Character.isLowerCase(name.charAt(i)) || Character.isUpperCase(name.charAt(i))) {
-//                    if (Files.isDirectory(p) || Files.isRegularFile(p)) {
-//                      return true;
-//                    }
-//                  }
-//                }
-//              }
-//            } catch (Exception e) {
-//            }
-//            return false;
-//            }).findFirst().orElse(null);
-//
-//          // performing case-sensitivity check
-//          if (path != null) {
-//            Path parent = path.getParent();
-//            String leaf = path.getName(path.getNameCount() - 1).toString();
-//            Path path_lower = parent.resolve(leaf.toLowerCase(Locale.ENGLISH));
-//            Path path_upper = parent.resolve(leaf.toUpperCase(Locale.ENGLISH));
-//            retVal = Boolean.valueOf(!(Files.isSameFile(path, path_lower) && Files.isSameFile(path, path_upper)));
-//            getInstance().mapCaseSensitive.put(fs, retVal);
-//          }
-//        } catch (Exception e) {
-//          e.printStackTrace();
-//        }
-//      }
-//    }
-//    if (retVal == null) {
-//      retVal = Boolean.TRUE;
-//    }
-//    return retVal.booleanValue();
   }
 }

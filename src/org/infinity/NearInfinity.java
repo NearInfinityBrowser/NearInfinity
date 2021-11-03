@@ -215,8 +215,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
     System.out.println("\nOptions:");
     System.out.println("  -v, -version    Display version information.");
     System.out.println("  -h, -help       Display this help.");
-//    System.out.println("  -i              Disable support of case-sensitive filesystems");
-//    System.out.println("                  (temporary workaround for buggy file access on Linux systems)");
     System.out.println("  -t type         Force the current or specified game to be of");
     System.out.println("                  specific type. (Use with care!)");
     System.out.println("                  Supported game types:");
@@ -241,12 +239,6 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
 
   public static void main(String args[])
   {
-    // TODO: remove option when detection of case-sensitive filesystems has been fixed
-//    if (Arrays.asList(args).contains("-i")) {
-//      // must be set before first file access through FileManager class
-//      Profile.addProperty(Profile.Key.GET_GLOBAL_FILE_CASE_CHECK, Profile.Type.BOOLEAN, Boolean.valueOf(false));
-//    }
-
     Profile.Game forcedGame = null;
     Path gameOverride = null;
 
