@@ -8,7 +8,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -39,6 +38,7 @@ import java.util.Map;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
@@ -51,11 +51,13 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.LookAndFeel;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.border.BevelBorder;
 
 import org.infinity.NearInfinity;
 import org.infinity.check.BCSIDSChecker;
@@ -3314,21 +3316,19 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       // original author
       final String originalVersion = "From Near Infinity 1.32.1 beta 24";
       final String originalCopyright = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
-      // List of contributors (sorted alphabetically)
-      final List<String> contributors = new ArrayList<String>() {{
-        add("Argent77");
-        add("Bubb");
-        add("devSin");
-        add("Fredrik Lindgren (aka Wisp)");
-        add("FredSRichardson");
-        add("Mingun");
-        add("Taimon");
-        add("Valerio Bigiani (aka The Bigg)");
-        add("winterheart");
-      }};
-      // More contributors, in separate block
-      final List<String> contributorsMisc = new ArrayList<String>() {{
-        add("Near Infinity logo/icon by Cuv and Troodon80");
+      // List of various contributors (sorted alphabetically)
+      final List<Couple<String, String[]>> contributors2 = new ArrayList<Couple<String, String[]>>() {{
+        add(new Couple<String, String[]>("Maintainers",
+                                         new String[] {"Argent77", "devSin", "Fredrik Lindgren (aka Wisp)",
+                                                       "FredSRichardson", "Taimon", "Valerio Bigiani (aka The Bigg)"}));
+        add(new Couple<String, String[]>("Near Infinity logo/icon",
+                                         new String[] {"Cuv", "Troodon80"}));
+        add(new Couple<String, String[]>("Contributors",
+                                         new String[] {"Bubb", "Mingun", "nbauma109", "VileRik", "winterheart"}));
+        add(new Couple<String, String[]>("Many thanks to",
+                                         new String[] {"Avenger", "CamDawg", "Galactygon", "Gwendolyne", "K4thos",
+                                                       "kjeron", "Luke", "lynx", "Sam.",
+                                                       "everyone else who helped to improve Near Infinity"}));
       }};
       // copyright message
       final List<String> copyNearInfinityText = new ArrayList<String>() {{
@@ -3393,61 +3393,53 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       // contributors
       JPanel pContrib = new JPanel(new GridBagLayout());
       {
-        // trying to limit line width to a certain maximum
-        FontMetrics fm = getFontMetrics(font);
-        double maxWidth = 0.0;
-        for (int i = 0; i < currentLinks.size(); i++) {
-          String s = currentLinks.get(i).getString() + ": " + currentLinks.get(i).getData();
-          maxWidth = Math.max(maxWidth, fm.getStringBounds(s, getGraphics()).getWidth());
-        }
-
-        // adding title
-        int row = 0;
-        JLabel label = new JLabel("Additional Contributors (in alphabetical order):");
-        label.setFont(smallFont.deriveFont(Misc.getScaledValue(12.0f)));
-        gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 2, 0), 0, 0);
-        pContrib.add(label, gbc);
-        row++;
-
-        // adding names
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < contributors.size(); i++) {
-          if (i > 0) {
-            if (i+1 == contributors.size()) {
-              sb.append(" and ");
-            } else {
-              sb.append(", ");
-            }
-          }
-          String s = sb.toString() + contributors.get(i);
-          if (fm.getStringBounds(s, getGraphics()).getWidth() > maxWidth) {
-            label = new JLabel(sb.toString());
-            label.setFont(smallFont);
-            gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                                    GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-            pContrib.add(label, gbc);
-            row++;
-            sb = new StringBuilder();
-          }
-          sb.append(contributors.get(i));
-        }
-        label = new JLabel(sb.toString());
-        label.setFont(smallFont);
-        gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+        JLabel label = new JLabel("Credits:");
+        label.setFont(font);
+        gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
         pContrib.add(label, gbc);
-        row++;
 
-        // Adding misc. contributors
-        for (int i = 0; i < contributorsMisc.size(); i++) {
-          label = new JLabel(contributorsMisc.get(i));
-          label.setFont(smallFont);
-          gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                                  GridBagConstraints.HORIZONTAL, new Insets(i == 0 ? 4 : 0, 0, 0, 0), 0, 0);
-          pContrib.add(label, gbc);
-          row++;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0, count = contributors2.size(); i < count; i++) {
+          final Couple<String, String[]> entry = contributors2.get(i);
+        // for (final Couple<String, String[]> entry: contributors2) {
+          final String header = entry.getValue0() + ":\n";
+          sb.append(header);
+          final String[] sequence = entry.getValue1();
+          for (int j = 0, len = sequence.length; j < len; j++) {
+            if (j > 0) {
+              if (j == len - 1) {
+                if (len > 2) {
+                  sb.append(',');
+                }
+                sb.append(" and ");
+              } else {
+                sb.append(", ");
+              }
+            }
+            sb.append(sequence[j]);
+          }
+          if (i < count - 1) {
+            sb.append("\n\n");
+          }
         }
+
+        JTextArea editor = new JTextArea(6, 0);
+        editor.setBackground(label.getBackground());
+        editor.setBorder(BorderFactory.createEmptyBorder());
+        editor.setWrapStyleWord(true);
+        editor.setLineWrap(true);
+        editor.setEditable(false);
+        editor.setFocusable(false);
+        editor.setText(sb.toString());
+        editor.setCaretPosition(0);
+        JScrollPane scroll = new JScrollPane(editor,
+                                             JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+        gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.BOTH, new Insets(2, 0, 0, 0), 0, 0);
+        pContrib.add(scroll, gbc);
       }
 
       // Near Infinity license
