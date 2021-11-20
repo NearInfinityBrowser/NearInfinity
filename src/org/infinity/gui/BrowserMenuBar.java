@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -325,6 +325,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   public boolean showDlgTreeIcons()
   {
     return optionsMenu.dialogViewerMenu.showIcons.isSelected();
+  }
+
+  /** Returns whether root states are sorted by processing order (based on state trigger index). */
+  public boolean sortStatesByWeight()
+  {
+    return optionsMenu.dialogViewerMenu.sortStatesByWeight.isSelected();
   }
 
   /** Returns whether state 0 is always shown as a root node in the dialog tree viewer. */
@@ -3120,6 +3126,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   private static final class DialogViewerMenu extends JMenu
   {
     private static final String OPTION_SHOWICONS              = "DlgShowIcons";
+    private static final String OPTION_SORT_STATES_BY_WEIGHT  = "DlgSortStatesByWeight";
     private static final String OPTION_ALWAYS_SHOW_STATE_0    = "DlgAlwaysShowState0";
     private static final String OPTION_COLORIZE_OTHER_DIALOGS = "DlgColorizeOtherDialogs";
     private static final String OPTION_BREAK_CYCLES           = "DlgBreakCycles";
@@ -3132,6 +3139,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
      * what reasons be necessary it to switch off. By default this option is on.
      */
     final JCheckBoxMenuItem showIcons;
+    /**
+     * If checked, root states are sorted by the processing order in the game engine.
+     * This order is based on the state trigger index.
+     */
+    final JCheckBoxMenuItem sortStatesByWeight;
     /**
      * If checked, state 0 in dialogs will be always visible under root. This is
      * useful for exploring dialogs, that in game started only from other dialogs,
@@ -3165,6 +3177,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       showIcons = new JCheckBoxMenuItem("Show icons",
                                         prefs.getBoolean(OPTION_SHOWICONS, true));
       add(showIcons);
+      sortStatesByWeight = new JCheckBoxMenuItem("Sort states by weight",
+                                        prefs.getBoolean(OPTION_SORT_STATES_BY_WEIGHT, false));
+      add(sortStatesByWeight);
       alwaysShowState0 = new JCheckBoxMenuItem("Always show State 0",
                                         prefs.getBoolean(OPTION_ALWAYS_SHOW_STATE_0, false));
       add(alwaysShowState0);
@@ -3185,6 +3200,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     void storePreferences(Preferences prefs)
     {
       prefs.putBoolean(OPTION_SHOWICONS, showIcons.isSelected());
+      prefs.putBoolean(OPTION_SORT_STATES_BY_WEIGHT, sortStatesByWeight.isSelected());
       prefs.putBoolean(OPTION_ALWAYS_SHOW_STATE_0, alwaysShowState0.isSelected());
       prefs.putBoolean(OPTION_COLORIZE_OTHER_DIALOGS, colorizeOtherDialogs.isSelected());
       prefs.putBoolean(OPTION_BREAK_CYCLES, breakCyclesInDialogs.isSelected());
