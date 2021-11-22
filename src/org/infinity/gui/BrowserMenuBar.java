@@ -3334,13 +3334,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       final String originalCopyright = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
       // List of various contributors (sorted alphabetically)
       final List<Couple<String, String[]>> contributors2 = new ArrayList<Couple<String, String[]>>() {{
-        add(new Couple<String, String[]>("Maintainers",
-                                         new String[] {"Argent77", "devSin", "Fredrik Lindgren (aka Wisp)",
-                                                       "FredSRichardson", "Taimon", "Valerio Bigiani (aka The Bigg)"}));
+        add(new Couple<String, String[]>("Maintainers and contributors",
+                                         new String[] {"Argent77", "Bubb", "devSin", "Fredrik Lindgren (aka Wisp)",
+                                                       "FredSRichardson", "Mingun", "nbauma109", "Taimon",
+                                                       "Valerio Bigiani (aka The Bigg)", "VileRik", "winterheart"}));
         add(new Couple<String, String[]>("Near Infinity logo/icon",
                                          new String[] {"Cuv", "Troodon80"}));
-        add(new Couple<String, String[]>("Contributors",
-                                         new String[] {"Bubb", "Mingun", "nbauma109", "VileRik", "winterheart"}));
         add(new Couple<String, String[]>("Many thanks to",
                                          new String[] {"Avenger", "CamDawg", "Galactygon", "Gwendolyne", "K4thos",
                                                        "kjeron", "Luke", "lynx", "Sam.",
