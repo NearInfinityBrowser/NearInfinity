@@ -57,7 +57,7 @@ public final class Effect2 extends AbstractStruct implements AddRemovable
                                             "Bypass armor", "Keen edge"};
   public static final String[] s_splflag = {"No flags set", null, null, null, null, null, null, null, null, null,
                                             null, "Hostile", "No LOS required", "Allow spotting", "Outdoors only",
-                                            "Non-magical ability", "Trigger/Contingency", "Non-combat ability"};
+                                            "Non-magical ability", "Ignore wild surge", "Non-combat ability"};
   public static final String[] s_restype = {"None", "Spell", "Item"};
   public static final String[] s_dispel = {"Natural/Nonmagical", "Dispel/Not bypass resistance",
                                            "Not dispel/Bypass resistance", "Dispel/Bypass resistance"};

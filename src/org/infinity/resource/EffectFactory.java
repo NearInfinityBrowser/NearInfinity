@@ -3630,10 +3630,10 @@ public final class EffectFactory
 
       case 232: // Cast spell on condition
       {
-        s.add(new Bitmap(buffer, offset, 4, "Target", new String[]{"Myself", "LastHitter", "NearestEnemyOf", "Anyone"}));
+        s.add(new Bitmap(buffer, offset, 4, "Target", new String[]{"Myself", "LastHitter", "[ENEMY]", "Anyone"}));
         final List<String> cndList = new ArrayList<String>() {{
           add("HitBy([ANYONE]) / instant");
-          add("See(NearestEnemyOf(Myself)) / per round");
+          add("See([ENEMY]) / per round");
           add("HPPercentLT(Myself,50) / per round");
           add("HPPercentLT(Myself,25) / per round");
           add("HPPercentLT(Myself,10) / per round");
