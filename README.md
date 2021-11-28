@@ -11,7 +11,7 @@ the [Near Infinity Wiki](https://github.com/NearInfinityBrowser/NearInfinity/wik
 ## How to build Near Infinity
 
 **Required tools:**
-- [Java SE Development Kit 8 or higher](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+- [Oracle's Java SE Development Kit 8 or later](https://www.oracle.com/java/technologies/downloads/), or [OpenJDK 8 or later](https://adoptium.net/releases.html)
 - [Apache Ant](http://ant.apache.org/)
 
 If you wish to compile Near Infinity from source, the easiest way to do so is
