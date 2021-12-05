@@ -4467,9 +4467,9 @@ public class ConvertToBam extends ChildFrame
 
           Path[] filePath = new Path[1];
           boolean retVal = false;
-          for (final Object o: fileList) {
-            if (o instanceof File) {
-              final File f = (File)o;
+          for (int i = fileList.size() - 1; i >= 0; i--) {
+            if (fileList.get(i) instanceof File) {
+              final File f = (File)fileList.get(i);
               // Mixed list of files and folders is supported
               if (f.isFile()) {
                 filePath[0] = f.toPath();
