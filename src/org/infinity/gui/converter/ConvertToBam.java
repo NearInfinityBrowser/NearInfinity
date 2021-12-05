@@ -19,11 +19,13 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -55,6 +57,7 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.DropMode;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -80,6 +83,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
+import javax.swing.TransferHandler;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -123,7 +127,7 @@ import org.infinity.util.tuples.Couple;
 
 public class ConvertToBam extends ChildFrame
   implements ActionListener, PropertyChangeListener, FocusListener, ChangeListener,
-             ListSelectionListener, MouseListener
+             ListSelectionListener, MouseListener, KeyListener
 {
   // Available TabPane indices
   static final int TAB_FRAMES   = 0;
@@ -935,6 +939,43 @@ public class ConvertToBam extends ChildFrame
 
 //--------------------- End Interface MouseListener ---------------------
 
+//--------------------- Begin Interface KeyListener ---------------------
+
+  @Override
+  public void keyTyped(KeyEvent e)
+  {
+  }
+
+  @Override
+  public void keyPressed(KeyEvent e)
+  {
+    if (e.getSource() == listFrames) {
+      if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+        int selectedCount = listFrames.getSelectedIndices().length;
+        if (selectedCount > 0) {
+          String msg;
+          if (selectedCount == 1) {
+            msg = "Remove selected frame?";
+          } else {
+            msg = "Remove " + selectedCount + " selected frames?";
+          }
+          int retVal = JOptionPane.showConfirmDialog(this, msg, "Question", JOptionPane.YES_NO_OPTION,
+                                                     JOptionPane.QUESTION_MESSAGE);
+          if (retVal == JOptionPane.YES_OPTION) {
+            framesRemove();
+          }
+        }
+      }
+    }
+  }
+
+  @Override
+  public void keyReleased(KeyEvent e)
+  {
+  }
+
+//--------------------- End Interface KeyListener ---------------------
+
 
   private void init()
   {
@@ -1118,6 +1159,10 @@ public class ConvertToBam extends ChildFrame
     listFrames.setCellRenderer(new IndexedCellRenderer());
     listFrames.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listFrames.addListSelectionListener(this);
+    listFrames.addKeyListener(this);
+    listFrames.setDropMode(DropMode.INSERT);
+    listFrames.setTransferHandler(new ListFileTransferHandler());
+    listFrames.setDragEnabled(true);
     JScrollPane scroll = new JScrollPane(listFrames);
     c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 0, 0);
@@ -2330,33 +2375,37 @@ public class ConvertToBam extends ChildFrame
     if (entries != null) {
       try {
         WindowBlocker.blockWindow(this, true);
-        framesAdd(entries);
+        framesAdd(entries, listFrames.getSelectedIndex());
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
     }
   }
 
-  /** Called by framesAddLauncher. Can also be called directly. Makes use of a progress monitor if available. */
   public void framesAdd(Path[] files)
+  {
+    framesAdd(files, listFrames.getSelectedIndex());
+  }
+
+  /** Called by framesAddLauncher. Can also be called directly. Makes use of a progress monitor if available. */
+  public void framesAdd(Path[] files, int insertIndex)
   {
     if (files != null) {
       ResourceEntry[] entries = new ResourceEntry[files.length];
       for (int i = 0; i < files.length; i++) {
         entries[i] = new FileResourceEntry(files[i]);
       }
-      framesAdd(entries);
+      framesAdd(entries, insertIndex);
     }
   }
 
-  public void framesAdd(ResourceEntry[] entries)
+  public void framesAdd(ResourceEntry[] entries, int insertIndex)
   {
     if (entries != null) {
       outputSetModified(true);
       final List<ResourceEntry> skippedFiles = new ArrayList<>();
-      int insertIndex = listFrames.getSelectedIndex();
       int idx = insertIndex;
-      if (idx < 0) idx = modelFrames.getSize() - 1;
+      if (idx < -1) idx = modelFrames.getSize() - 1;  // includes adding frames before first list entry
       try {
         for (int i = 0; i < entries.length; i++) {
           if (isProgressMonitorActive()) {
@@ -2750,6 +2799,11 @@ public class ConvertToBam extends ChildFrame
 
   public void framesAddFolder(Path path)
   {
+    framesAddFolder(path, listFrames.getSelectedIndex());
+  }
+
+  public void framesAddFolder(Path path, int insertIndex)
+  {
     if (path != null && FileEx.create(path).isDirectory()) {
       // preparing list of valid files
       FileNameExtensionFilter filters = getGraphicsFilters()[0];
@@ -2768,7 +2822,7 @@ public class ConvertToBam extends ChildFrame
       // adding entries to frames list
       try {
         WindowBlocker.blockWindow(this, true);
-        framesAdd(validFiles.toArray(new Path[validFiles.size()]));
+        framesAdd(validFiles.toArray(new Path[validFiles.size()]), insertIndex);
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
@@ -4389,6 +4443,54 @@ public class ConvertToBam extends ChildFrame
 
 
 //-------------------------- INNER CLASSES --------------------------
+
+  /** Drag&Drop handler for dragging external files or folders to the frames list. */
+  private class ListFileTransferHandler extends TransferHandler
+  {
+    @Override
+    public boolean canImport(TransferSupport support)
+    {
+      return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
+    }
+
+    @Override
+    public boolean importData(TransferSupport support)
+    {
+      if (!support.isDrop()) {
+        return false;
+      }
+
+      if (support.getComponent() == listFrames) {
+        try {
+          List<?> fileList = (List<?>)support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+          JList.DropLocation dl = (JList.DropLocation)support.getDropLocation();
+
+          Path[] filePath = new Path[1];
+          boolean retVal = false;
+          for (final Object o: fileList) {
+            if (o instanceof File) {
+              final File f = (File)o;
+              // Mixed list of files and folders is supported
+              if (f.isFile()) {
+                filePath[0] = f.toPath();
+                framesAdd(filePath, dl.getIndex() - 1);
+                retVal = true;
+              } else if (f.isDirectory()) {
+                framesAddFolder(f.toPath(), dl.getIndex() - 1);
+                retVal = true;
+              }
+            }
+          }
+
+          return retVal;
+        } catch (Exception e) {
+        }
+      }
+
+      return false;
+    }
+  }
+
 
   /** Manages the frames aspect of BAM resources. */
   private static class BamFramesListModel extends AbstractListModel<PseudoBamFrameEntry>
