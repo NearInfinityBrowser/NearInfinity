@@ -4651,12 +4651,7 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
         }
-        break;
-
-      case 402: // EEex: Invoke Lua
-      case 403: // EEex: Screen Effects
-      case 406: // EEex: Render Override
-        if (isEEex) {
+        else {
           makeEffectParamsDefault(buffer, offset, s);
         }
         break;
@@ -4666,6 +4661,9 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset, 4, "Type to override", s_buttontype));
           s.add(new Bitmap(buffer, offset + 4, 4, "Override with type", s_buttontype));
         }
+        else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
         break;
 
       case 405: // EEex: Override Button Index
@@ -4673,11 +4671,14 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, "Index to override"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Override with type", s_buttontype));
         }
+        else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
         break;
 
       case 407: // EEex: On Remove
+        makeEffectParamsDefault(buffer, offset, s);
         if (isEEex) {
-          makeEffectParamsDefault(buffer, offset, s);
           restype = "SPL";
         }
         break;
@@ -5529,11 +5530,17 @@ public final class EffectFactory
           if (isEEex) {
             s.add(new TextString(buffer, offset, 8, "Lua function"));
           }
+          else {
+            s.add(new Unknown(buffer, offset, 8, AbstractStruct.COMMON_UNUSED));
+          }
           break;
 
         case 408:
           if (isEEex) {
             s.add(new TextString(buffer, offset, 8, "Lua table"));
+          }
+          else {
+            s.add(new Unknown(buffer, offset, 8, AbstractStruct.COMMON_UNUSED));
           }
           break;
 
