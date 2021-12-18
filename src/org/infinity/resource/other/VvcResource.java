@@ -89,10 +89,11 @@ public final class VvcResource extends AbstractStruct implements Resource, HasVi
       "No flags set", "Transparent", "Translucent", "Translucent shadow", "Blended",
       "Mirror X axis", "Mirror Y axis", "Clipped", "Copy from back", "Clear fill",
       "3D blend", "Not covered by wall", "Persist through time stop", "Ignore dream palette",
-      "2D blend"};
+      "2D blend", null, "Scale/center to view"};
   public static final String[] s_tint = {
       "No flags set", "Not light source", "Light source", "Internal brightness", "Time stopped", null,
-      "Internal gamma", "Non-reserved palette", "Full palette", null, "Dream palette"};
+      "Internal gamma", "Non-reserved palette", "Full palette", "Blend with creature's 'Major color'",
+      "Dream palette"};
   public static final String[] s_seq = {
       "No flags set", "Looping", "Special lighting", "Modify for height", "Draw animation", "Custom palette",
       "Purgeable", "Not covered by wall", "Mid-level brighten", "High-level brighten"};

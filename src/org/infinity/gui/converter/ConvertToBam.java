@@ -19,11 +19,13 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -45,9 +47,11 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.function.Consumer;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -55,6 +59,7 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.DropMode;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -80,6 +85,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
+import javax.swing.TransferHandler;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -123,7 +129,7 @@ import org.infinity.util.tuples.Couple;
 
 public class ConvertToBam extends ChildFrame
   implements ActionListener, PropertyChangeListener, FocusListener, ChangeListener,
-             ListSelectionListener, MouseListener
+             ListSelectionListener, MouseListener, KeyListener
 {
   // Available TabPane indices
   static final int TAB_FRAMES   = 0;
@@ -935,6 +941,49 @@ public class ConvertToBam extends ChildFrame
 
 //--------------------- End Interface MouseListener ---------------------
 
+//--------------------- Begin Interface KeyListener ---------------------
+
+  @Override
+  public void keyTyped(KeyEvent e)
+  {
+  }
+
+  @Override
+  public void keyPressed(KeyEvent e)
+  {
+    if (e.getSource() == listFrames) {
+      if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+        doWithSelectedListItems(listFrames, list -> framesRemove(), true,
+                            "Remove selected frame?", "Remove %d selected frames?");
+      }
+    }
+    else if (e.getSource() == listCurCycle) {
+      if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+        doWithSelectedListItems(listCurCycle, list -> currentCycleRemove(), true,
+                            "Remove selected frame index?", "Remove %d selected frame indices?");
+      }
+    }
+    else if (e.getSource() == listCycles) {
+      if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+        doWithSelectedListItems(listCycles, list -> cyclesRemove(), true,
+                            "Remove selected cycle?", "Remove %d selected cycles?");
+      }
+    }
+    else if (e.getSource() == listFilters) {
+      if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+        // List is set to single selection mode
+        doWithSelectedListItems(listFilters, list -> filterRemove(), true, "Remove selected filter?", null);
+      }
+    }
+  }
+
+  @Override
+  public void keyReleased(KeyEvent e)
+  {
+  }
+
+//--------------------- End Interface KeyListener ---------------------
+
 
   private void init()
   {
@@ -1118,6 +1167,10 @@ public class ConvertToBam extends ChildFrame
     listFrames.setCellRenderer(new IndexedCellRenderer());
     listFrames.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listFrames.addListSelectionListener(this);
+    listFrames.addKeyListener(this);
+    listFrames.setDropMode(DropMode.INSERT);
+    listFrames.setTransferHandler(new ListFileTransferHandler());
+    listFrames.setDragEnabled(true);
     JScrollPane scroll = new JScrollPane(listFrames);
     c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 0, 0);
@@ -1332,6 +1385,7 @@ public class ConvertToBam extends ChildFrame
     listCycles.setCellRenderer(new IndexedCellRenderer());
     listCycles.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listCycles.addListSelectionListener(this);
+    listCycles.addKeyListener(this);
     JScrollPane scroll = new JScrollPane(listCycles);
     c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 0, 0);
@@ -1470,6 +1524,7 @@ public class ConvertToBam extends ChildFrame
     listCurCycle.setCellRenderer(new IndexedCellRenderer());
     listCurCycle.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listCurCycle.addListSelectionListener(this);
+    listCurCycle.addKeyListener(this);
     listCurCycle.addMouseListener(this);
     JScrollPane scroll2 = new JScrollPane(listCurCycle);
 
@@ -1702,6 +1757,7 @@ public class ConvertToBam extends ChildFrame
     listFilters.setCellRenderer(new IndexedCellRenderer());
     listFilters.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     listFilters.addListSelectionListener(this);
+    listFilters.addKeyListener(this);
     JScrollPane scroll = new JScrollPane(listFilters);
 
     JPanel pFiltersList = new JPanel(new GridBagLayout());
@@ -2330,33 +2386,37 @@ public class ConvertToBam extends ChildFrame
     if (entries != null) {
       try {
         WindowBlocker.blockWindow(this, true);
-        framesAdd(entries);
+        framesAdd(entries, listFrames.getSelectedIndex());
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
     }
   }
 
-  /** Called by framesAddLauncher. Can also be called directly. Makes use of a progress monitor if available. */
   public void framesAdd(Path[] files)
+  {
+    framesAdd(files, listFrames.getSelectedIndex());
+  }
+
+  /** Called by framesAddLauncher. Can also be called directly. Makes use of a progress monitor if available. */
+  public void framesAdd(Path[] files, int insertIndex)
   {
     if (files != null) {
       ResourceEntry[] entries = new ResourceEntry[files.length];
       for (int i = 0; i < files.length; i++) {
         entries[i] = new FileResourceEntry(files[i]);
       }
-      framesAdd(entries);
+      framesAdd(entries, insertIndex);
     }
   }
 
-  public void framesAdd(ResourceEntry[] entries)
+  public void framesAdd(ResourceEntry[] entries, int insertIndex)
   {
     if (entries != null) {
       outputSetModified(true);
       final List<ResourceEntry> skippedFiles = new ArrayList<>();
-      int insertIndex = listFrames.getSelectedIndex();
       int idx = insertIndex;
-      if (idx < 0) idx = modelFrames.getSize() - 1;
+      if (idx < -1) idx = modelFrames.getSize() - 1;  // includes adding frames before first list entry
       try {
         for (int i = 0; i < entries.length; i++) {
           if (isProgressMonitorActive()) {
@@ -2750,6 +2810,11 @@ public class ConvertToBam extends ChildFrame
 
   public void framesAddFolder(Path path)
   {
+    framesAddFolder(path, listFrames.getSelectedIndex());
+  }
+
+  public void framesAddFolder(Path path, int insertIndex)
+  {
     if (path != null && FileEx.create(path).isDirectory()) {
       // preparing list of valid files
       FileNameExtensionFilter filters = getGraphicsFilters()[0];
@@ -2768,7 +2833,7 @@ public class ConvertToBam extends ChildFrame
       // adding entries to frames list
       try {
         WindowBlocker.blockWindow(this, true);
-        framesAdd(validFiles.toArray(new Path[validFiles.size()]));
+        framesAdd(validFiles.toArray(new Path[validFiles.size()]), insertIndex);
       } finally {
         WindowBlocker.blockWindow(this, false);
       }
@@ -3733,6 +3798,58 @@ public class ConvertToBam extends ChildFrame
   }
 
 
+  /**
+   * A helper method that performs a given operation on selected list items after optional user confirmation.
+   *
+   * @param <T> List item type.
+   * @param list {@code JList} instance to perform the operation on.
+   * @param operation The operation to perform if selected list items are available.
+   * @param confirm whether to ask for confirmation before performing the operation on the list.
+   * @param msgPromptSingle Confirmation string if a single list item is selected.
+   *                        May contain a {@code %d} placeholder for the number of selected list items.
+   * @param msgPromptMultiple Confirmation string if multiple list items are selected.
+   *                          May contain a {@code %d} placeholder for the number of selected list items.
+   */
+  private <T> void doWithSelectedListItems(JList<T> list,
+                                           Consumer<JList<T>> operation,
+                                           boolean confirm,
+                                           String msgPromptSingle,
+                                           String msgPromptMultiple) {
+    if (list == null || operation == null) {
+      return;
+    }
+
+    int selectedCount = list.getSelectedIndices().length;
+    if (selectedCount == 0) {
+      return;
+    }
+
+    boolean accepted = !confirm;
+    if (confirm) {
+      String message = "Remove selected item(s)?";
+      String fmt = null;
+      if (selectedCount == 1) {
+        fmt = (msgPromptSingle != null) ? msgPromptSingle : msgPromptMultiple;
+      } else {
+        fmt = (msgPromptMultiple != null) ? msgPromptMultiple : msgPromptSingle;
+      }
+      if (fmt != null) {
+        try {
+          message = String.format(fmt, selectedCount);
+        } catch (IllegalFormatException e) {
+        }
+      }
+
+      int retVal = JOptionPane.showConfirmDialog(this, message, "Question", JOptionPane.YES_NO_OPTION,
+                                                 JOptionPane.QUESTION_MESSAGE);
+      accepted = (retVal == JOptionPane.YES_OPTION);
+    }
+
+    if (accepted) {
+      operation.accept(list);
+    }
+  }
+
   /** Action for selecting BAM version in export section: 0=BAM v1, 1=BAM v2. */
   private void setBamVersion(int index)
   {
@@ -4389,6 +4506,54 @@ public class ConvertToBam extends ChildFrame
 
 
 //-------------------------- INNER CLASSES --------------------------
+
+  /** Drag&Drop handler for dragging external files or folders to the frames list. */
+  private class ListFileTransferHandler extends TransferHandler
+  {
+    @Override
+    public boolean canImport(TransferSupport support)
+    {
+      return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
+    }
+
+    @Override
+    public boolean importData(TransferSupport support)
+    {
+      if (!support.isDrop()) {
+        return false;
+      }
+
+      if (support.getComponent() == listFrames) {
+        try {
+          List<?> fileList = (List<?>)support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+          JList.DropLocation dl = (JList.DropLocation)support.getDropLocation();
+
+          Path[] filePath = new Path[1];
+          boolean retVal = false;
+          for (int i = fileList.size() - 1; i >= 0; i--) {
+            if (fileList.get(i) instanceof File) {
+              final File f = (File)fileList.get(i);
+              // Mixed list of files and folders is supported
+              if (f.isFile()) {
+                filePath[0] = f.toPath();
+                framesAdd(filePath, dl.getIndex() - 1);
+                retVal = true;
+              } else if (f.isDirectory()) {
+                framesAddFolder(f.toPath(), dl.getIndex() - 1);
+                retVal = true;
+              }
+            }
+          }
+
+          return retVal;
+        } catch (Exception e) {
+        }
+      }
+
+      return false;
+    }
+  }
+
 
   /** Manages the frames aspect of BAM resources. */
   private static class BamFramesListModel extends AbstractListModel<PseudoBamFrameEntry>

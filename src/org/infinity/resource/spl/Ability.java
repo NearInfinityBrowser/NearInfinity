@@ -32,7 +32,6 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
   public static final String SPL_ABIL                     = "Spell ability";
   public static final String SPL_ABIL_MIN_LEVEL           = "Minimum level";
   public static final String SPL_ABIL_CASTING_SPEED       = "Casting speed";
-  public static final String SPL_ABIL_TIMES_PER_DAY       = "Times per day";
   public static final String SPL_ABIL_DICE_SIZE           = AbstractAbility.ABILITY_DICE_SIZE + SUFFIX_UNUSED;
   public static final String SPL_ABIL_DICE_COUNT          = AbstractAbility.ABILITY_DICE_COUNT + SUFFIX_UNUSED;
   public static final String SPL_ABIL_DAMAGE_BONUS        = AbstractAbility.ABILITY_DAMAGE_BONUS + SUFFIX_UNUSED;
@@ -104,7 +103,7 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
     addField(new DecNumber(buffer, offset + 14, 2, ABILITY_RANGE));
     addField(new DecNumber(buffer, offset + 16, 2, SPL_ABIL_MIN_LEVEL));
     addField(new DecNumber(buffer, offset + 18, 2, SPL_ABIL_CASTING_SPEED));
-    addField(new DecNumber(buffer, offset + 20, 2, SPL_ABIL_TIMES_PER_DAY));
+    addField(new DecNumber(buffer, offset + 20, 2, COMMON_UNUSED));
     addField(new DecNumber(buffer, offset + 22, 2, SPL_ABIL_DICE_SIZE));
     addField(new DecNumber(buffer, offset + 24, 2, SPL_ABIL_DICE_COUNT));
     addField(new DecNumber(buffer, offset + 26, 2, SPL_ABIL_DAMAGE_BONUS));

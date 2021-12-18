@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.nio.ByteBuffer;
 import java.util.TreeMap;
-import java.util.function.BiFunction;
 
 import javax.swing.JComponent;
 
@@ -29,20 +28,6 @@ import org.infinity.resource.AbstractStruct;
  */
 public class Bitmap extends AbstractBitmap<String>
 {
-  private final BiFunction<Long, String, String> formatterBitmap = (value, item) -> {
-    String number;
-    if (isShowAsHex()) {
-      number = getHexValue(value.longValue());
-    } else {
-      number = value.toString();
-    }
-    if (item != null) {
-      return item + " (" + number + ")";
-    } else {
-      return "Unknown (" + number + ")";
-    }
-  };
-
   public Bitmap(ByteBuffer buffer, int offset, int length, String name, String[] table)
   {
     this(buffer, offset, length, name, table, true, false);

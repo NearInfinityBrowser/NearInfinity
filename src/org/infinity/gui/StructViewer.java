@@ -275,7 +275,8 @@ public final class StructViewer extends JPanel implements ListSelectionListener,
         return this;
       }
     });
-    table.setDefaultEditor(Object.class, new StructCellEditor());
+    // TODO: Reactive when pending issues have been solved (see org.infinity.gui.StructCellEditor.java for details)
+//    table.setDefaultEditor(Object.class, new StructCellEditor());
 
     popupmenu.add(miCopyValue);
     popupmenu.add(miPasteValue);

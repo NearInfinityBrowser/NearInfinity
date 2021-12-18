@@ -48,12 +48,18 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
   public static final String ITM_ABIL_IS_BULLET           = "Is bullet?";
 
   public static final String[] s_launcher = {"None", "Bow", "Crossbow", "Sling"};
-  public static final String[] s_abilityuse = {"", "Weapon", "Spell", "Item", "Ability", "reserved"};
+  public static final String[] s_abilityuse = {"None", "Weapon", "Spell", "Item", "Ability"};
   public static final String[] s_recharge = {
-    "No flags set", "Add strength bonus", "Breakable", "EE: Damage strength bonus",
-    "EE: THAC0 strength bonus", null, null, null, null, null, "EE: Break Sanctuary/Invisibility;Ignored for Target: Caster",
-    "Hostile", "Recharge after resting", null, null, null, null, "Bypass armor", "Keen edge", null,
-    null, null, null, null, null, null, "Ex: Toggle backstab", "EE/Ex: Cannot target invisible"};
+      "No flags set", "Add strength bonus", "Breakable", "EE: Damage strength bonus",
+      "EE: THAC0 strength bonus", null, null, null, null, null, "EE: Break Sanctuary;Ignored for Target: Caster",
+      "Hostile", "Recharge after resting", null, null, null, null, null, null, null,
+      null, null, null, null, null, null, "Ex: Toggle backstab", "EE/Ex: Cannot target invisible"};
+  public static final String[] s_recharge11 = {
+      "No flags set", "Add strength bonus", "Breakable", null, null, null, null, null, null, null, null,
+      "Hostile", "Recharge after resting"};
+  public static final String[] s_recharge20 = {
+      "No flags set", "Add strength bonus", "Breakable", null, null, null, null, null, null, null, null,
+      "Hostile", "Recharge after resting", null, null, null, null, "Bypass armor", "Keen edge"};
 
   Ability() throws Exception
   {
@@ -148,7 +154,13 @@ public final class Ability extends AbstractAbility implements AddRemovable, HasC
     addField(new DecNumber(buffer, offset + 32, 2, ABILITY_FIRST_EFFECT_INDEX));
     addField(new DecNumber(buffer, offset + 34, 2, ABILITY_NUM_CHARGES));
     addField(new Bitmap(buffer, offset + 36, 2, ABILITY_WHEN_DRAINED, s_drain));
-    addField(new Flag(buffer, offset + 38, 4, ITM_ABIL_FLAGS, s_recharge));
+    if (Profile.getEngine() == Profile.Engine.IWD2) {
+      addField(new Flag(buffer, offset + 38, 4, ITM_ABIL_FLAGS, s_recharge20));
+    } else if (Profile.getEngine() == Profile.Engine.PST) {
+      addField(new Flag(buffer, offset + 38, 4, ITM_ABIL_FLAGS, s_recharge11));
+    } else {
+      addField(new Flag(buffer, offset + 38, 4, ITM_ABIL_FLAGS, s_recharge));
+    }
     if (ResourceFactory.resourceExists("PROJECTL.IDS") && ResourceFactory.resourceExists("MISSILE.IDS")) {
       addField(new ProRef(buffer, offset + 42, ABILITY_PROJECTILE));
     } else if (Profile.getEngine() == Profile.Engine.PST) {

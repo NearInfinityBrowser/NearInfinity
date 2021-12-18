@@ -22,6 +22,9 @@ import org.infinity.datatype.InlineEditable;
 
 /**
  * A specialized cell renderer for the {@code StructViewer} table.
+ * TODO: Currently unused because of the following issues:
+ * - Closing a child window while an inline-editable cell is selected should not erase or overwrite that value when it is reopened
+ * - Accepting an inline-editable value by pressing Enter should not advance the selection to the next table row
  */
 public class StructCellEditor extends AbstractCellEditor implements TableCellEditor
 {

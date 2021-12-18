@@ -110,7 +110,7 @@ public final class SplResource extends AbstractStruct implements Resource, HasCh
                                              "Divination", "Illusion", "Invocation", "Necromancy", "Innate"};
 
   public static final String[] s_spellflag = {"No flags set", "", "", "", "", "", "", "", "",
-                                              "", "EE: Break Sanctuary/Invisibility", "Hostile", "No LOS required",
+                                              "", "EE: Break Sanctuary", "Hostile;Breaks Sanctuary and Invisibility", "No LOS required",
                                               "Allow spotting", "Outdoors only", "Ignore dead/wild magic",
                                               "Ignore wild surge", "Non-combat ability", "", "", "", "", "",
                                               "", "", "EE/Ex: Can target invisible", "EE/Ex: Castable when silenced"};

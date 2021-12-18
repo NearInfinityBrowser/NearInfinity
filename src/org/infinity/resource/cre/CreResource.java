@@ -435,7 +435,7 @@ public final class CreResource extends AbstractStruct
     "No flags set", "Identified", "No corpse", "Permanent corpse",
     "Original class: Fighter", "Original class: Mage", "Original class: Cleric", "Original class: Thief",
     "Original class: Druid", "Original class: Ranger", "Fallen paladin", "Fallen ranger",
-    "Export allowed", "Hide status", "Large creature", "Moving between areas", "Been in party",
+    "Export allowed", "Hide status", "Affected by alternate damage", "Moving between areas", "Been in party",
     "Holding item", "Reset bit 16", null, null, "EE: No exploding death", null, "EE: Ignore nightmare mode",
     "EE: No tooltip", "Allegiance tracking", "General tracking", "Race tracking", "Class tracking",
     "Specifics tracking", "Gender tracking", "Alignment tracking", "Uninterruptible"};

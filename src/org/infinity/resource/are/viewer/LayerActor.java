@@ -29,9 +29,6 @@ import org.infinity.resource.gam.GamResource;
 import org.infinity.resource.gam.PartyNPC;
 import org.infinity.resource.key.FileResourceEntry;
 import org.infinity.resource.key.ResourceEntry;
-
-import static org.infinity.resource.are.AreResource.ARE_NUM_ACTORS;
-import static org.infinity.resource.are.AreResource.ARE_OFFSET_ACTORS;
 import org.infinity.resource.text.PlainTextResource;
 import org.infinity.util.IniMap;
 import org.infinity.util.IniMapCache;
@@ -62,12 +59,12 @@ public class LayerActor extends BasicLayer<LayerObjectActor, AreResource> implem
   protected void loadLayer()
   {
     // loading actors from ARE
-    loadLayerItems(ARE_OFFSET_ACTORS, ARE_NUM_ACTORS,
+    loadLayerItems(AreResource.ARE_OFFSET_ACTORS, AreResource.ARE_NUM_ACTORS,
                    Actor.class, a -> new LayerObjectAreActor(parent, a));
 
     final List<LayerObjectActor> objectList = getLayerObjects();
     // loading actors from associated INI
-    final String iniFile = parent.getResourceEntry().getResourceName().toUpperCase(Locale.ENGLISH).replace(".ARE", ".INI");
+    final String iniFile = ((IsTextual)parent.getAttribute(AreResource.ARE_WED_RESOURCE)).getText().toUpperCase(Locale.ENGLISH) + ".INI";
     IniMap ini = ResourceFactory.resourceExists(iniFile) ? IniMapCache.get(iniFile) : null;
     if (ini != null) {
       for (final IniMapSection section : ini) {

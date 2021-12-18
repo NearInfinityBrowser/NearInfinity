@@ -1,5 +1,5 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2020 Jon Olav Hauglid
+// Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.gui;
@@ -8,7 +8,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -39,6 +38,7 @@ import java.util.Map;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
@@ -51,11 +51,13 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.LookAndFeel;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.border.BevelBorder;
 
 import org.infinity.NearInfinity;
 import org.infinity.check.BCSIDSChecker;
@@ -67,6 +69,7 @@ import org.infinity.check.ResRefChecker;
 import org.infinity.check.ResourceUseChecker;
 import org.infinity.check.ScriptChecker;
 import org.infinity.check.StringUseChecker;
+import org.infinity.check.StringValidationChecker;
 import org.infinity.check.StrrefIndexChecker;
 import org.infinity.check.StructChecker;
 import org.infinity.gui.converter.ConvertToBam;
@@ -109,7 +112,7 @@ import org.infinity.util.tuples.Couple;
 
 public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 {
-  public static final String VERSION = "v2.2-20210501";
+  public static final String VERSION = "v2.2-20211218";
   public static final LookAndFeelInfo DEFAULT_LOOKFEEL =
       new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel");
 
@@ -322,6 +325,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   public boolean showDlgTreeIcons()
   {
     return optionsMenu.dialogViewerMenu.showIcons.isSelected();
+  }
+
+  /** Returns whether root states are sorted by processing order (based on state trigger index). */
+  public boolean sortStatesByWeight()
+  {
+    return optionsMenu.dialogViewerMenu.sortStatesByWeight.isSelected();
   }
 
   /** Returns whether state 0 is always shown as a root node in the dialog tree viewer. */
@@ -1482,7 +1491,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     private final JMenuItem toolInfinityAmp, toolCreatureBrowser, toolCleanKeyfile, toolCheckAllDialog, toolCheckOverrideDialog;
     private final JMenuItem toolCheckResRef, toolIDSBrowser, toolDropZone, toolCheckCREInv;
     private final JMenuItem toolCheckIDSRef, toolCheckIDSBCSRef, toolCheckScripts, toolCheckStructs;
-    private final JMenuItem toolCheckStringUse, toolCheckStringIndex, toolCheckFileUse, toolMassExport;
+    private final JMenuItem toolCheckStringUse, toolCheckStringValid, toolCheckStringIndex, toolCheckFileUse, toolMassExport;
     private final JMenuItem toolCheckEffectsIndex;
     private final JMenuItem toolConvImageToBam, toolConvImageToBmp, toolConvImageToMos, toolConvImageToTis,
                             toolConvImageToPvrz;
@@ -1564,6 +1573,10 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       toolCheckStringUse =
           makeMenuItem("For Unused Strings", KeyEvent.VK_U, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
       checkMenu.add(toolCheckStringUse);
+
+      toolCheckStringValid =
+          makeMenuItem("For String Encoding Errors", KeyEvent.VK_E, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+      checkMenu.add(toolCheckStringValid);
 
       toolCheckStringIndex =
           makeMenuItem("For Illegal Strrefs...", KeyEvent.VK_S, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
@@ -1749,6 +1762,8 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
         new StructChecker();
       else if (event.getSource() == toolCheckStringUse)
         new StringUseChecker(NearInfinity.getInstance());
+      else if (event.getSource() == toolCheckStringValid)
+        new StringValidationChecker(NearInfinity.getInstance());
       else if (event.getSource() == toolCheckStringIndex)
         new StrrefIndexChecker();
       else if (event.getSource() == toolCheckFileUse)
@@ -3111,6 +3126,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
   private static final class DialogViewerMenu extends JMenu
   {
     private static final String OPTION_SHOWICONS              = "DlgShowIcons";
+    private static final String OPTION_SORT_STATES_BY_WEIGHT  = "DlgSortStatesByWeight";
     private static final String OPTION_ALWAYS_SHOW_STATE_0    = "DlgAlwaysShowState0";
     private static final String OPTION_COLORIZE_OTHER_DIALOGS = "DlgColorizeOtherDialogs";
     private static final String OPTION_BREAK_CYCLES           = "DlgBreakCycles";
@@ -3123,6 +3139,11 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
      * what reasons be necessary it to switch off. By default this option is on.
      */
     final JCheckBoxMenuItem showIcons;
+    /**
+     * If checked, root states are sorted by the processing order in the game engine.
+     * This order is based on the state trigger index.
+     */
+    final JCheckBoxMenuItem sortStatesByWeight;
     /**
      * If checked, state 0 in dialogs will be always visible under root. This is
      * useful for exploring dialogs, that in game started only from other dialogs,
@@ -3156,6 +3177,9 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       showIcons = new JCheckBoxMenuItem("Show icons",
                                         prefs.getBoolean(OPTION_SHOWICONS, true));
       add(showIcons);
+      sortStatesByWeight = new JCheckBoxMenuItem("Sort states by weight",
+                                        prefs.getBoolean(OPTION_SORT_STATES_BY_WEIGHT, false));
+      add(sortStatesByWeight);
       alwaysShowState0 = new JCheckBoxMenuItem("Always show State 0",
                                         prefs.getBoolean(OPTION_ALWAYS_SHOW_STATE_0, false));
       add(alwaysShowState0);
@@ -3176,6 +3200,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
     void storePreferences(Preferences prefs)
     {
       prefs.putBoolean(OPTION_SHOWICONS, showIcons.isSelected());
+      prefs.putBoolean(OPTION_SORT_STATES_BY_WEIGHT, sortStatesByWeight.isSelected());
       prefs.putBoolean(OPTION_ALWAYS_SHOW_STATE_0, alwaysShowState0.isSelected());
       prefs.putBoolean(OPTION_COLORIZE_OTHER_DIALOGS, colorizeOtherDialogs.isSelected());
       prefs.putBoolean(OPTION_BREAK_CYCLES, breakCyclesInDialogs.isSelected());
@@ -3307,22 +3332,18 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       // original author
       final String originalVersion = "From Near Infinity 1.32.1 beta 24";
       final String originalCopyright = "Copyright (\u00A9) 2001-2005 - Jon Olav Hauglid";
-      final DataString<String> originalLink = DataString.with("Website", "http://www.idi.ntnu.no/~joh/ni/");
-      // List of contributors (sorted alphabetically)
-      final List<String> contributors = new ArrayList<String>() {{
-        add("Argent77");
-        add("Bubb");
-        add("devSin");
-        add("Fredrik Lindgren (aka Wisp)");
-        add("FredSRichardson");
-        add("Mingun");
-        add("Taimon");
-        add("Valerio Bigiani (aka The Bigg)");
-        add("winterheart");
-      }};
-      // More contributors, in separate block
-      final List<String> contributorsMisc = new ArrayList<String>() {{
-        add("Near Infinity logo/icon by Cuv and Troodon80");
+      // List of various contributors (sorted alphabetically)
+      final List<Couple<String, String[]>> contributors2 = new ArrayList<Couple<String, String[]>>() {{
+        add(new Couple<String, String[]>("Maintainers and contributors",
+                                         new String[] {"Argent77", "Bubb", "devSin", "Fredrik Lindgren (aka Wisp)",
+                                                       "FredSRichardson", "Mingun", "nbauma109", "Taimon",
+                                                       "Valerio Bigiani (aka The Bigg)", "VileRik", "winterheart"}));
+        add(new Couple<String, String[]>("Near Infinity logo/icon",
+                                         new String[] {"Cuv", "Troodon80"}));
+        add(new Couple<String, String[]>("Many thanks to",
+                                         new String[] {"Avenger", "CamDawg", "Galactygon", "Gwendolyne", "K4thos",
+                                                       "kjeron", "Luke", "lynx", "Sam.",
+                                                       "everyone else who helped to improve Near Infinity"}));
       }};
       // copyright message
       final List<String> copyNearInfinityText = new ArrayList<String>() {{
@@ -3382,78 +3403,58 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
                                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
         pLinks.add(label, gbc);
         row++;
-        label = new JLabel(originalLink.getString() + ":");
-        label.setFont(font);
-        gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
-                                GridBagConstraints.HORIZONTAL, new Insets(4, 0, 0, 0), 0, 0);
-        pLinks.add(label, gbc);
-        String link = originalLink.getData();
-        label = ViewerUtil.createUrlLabel(link);
-        label.setFont(font);
-        gbc = ViewerUtil.setGBC(gbc, 1, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                                GridBagConstraints.HORIZONTAL, new Insets(4, 8, 0, 0), 0, 0);
-        pLinks.add(label, gbc);
-        row++;
       }
 
       // contributors
       JPanel pContrib = new JPanel(new GridBagLayout());
       {
-        // trying to limit line width to a certain maximum
-        FontMetrics fm = getFontMetrics(font);
-        double maxWidth = 0.0;
-        for (int i = 0; i < currentLinks.size(); i++) {
-          String s = currentLinks.get(i).getString() + ": " + currentLinks.get(i).getData();
-          maxWidth = Math.max(maxWidth, fm.getStringBounds(s, getGraphics()).getWidth());
-        }
-
-        // adding title
-        int row = 0;
-        JLabel label = new JLabel("Additional Contributors (in alphabetical order):");
-        label.setFont(smallFont.deriveFont(Misc.getScaledValue(12.0f)));
-        gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                                GridBagConstraints.HORIZONTAL, new Insets(0, 0, 2, 0), 0, 0);
-        pContrib.add(label, gbc);
-        row++;
-
-        // adding names
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < contributors.size(); i++) {
-          if (i > 0) {
-            if (i+1 == contributors.size()) {
-              sb.append(" and ");
-            } else {
-              sb.append(", ");
-            }
-          }
-          String s = sb.toString() + contributors.get(i);
-          if (fm.getStringBounds(s, getGraphics()).getWidth() > maxWidth) {
-            label = new JLabel(sb.toString());
-            label.setFont(smallFont);
-            gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                                    GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
-            pContrib.add(label, gbc);
-            row++;
-            sb = new StringBuilder();
-          }
-          sb.append(contributors.get(i));
-        }
-        label = new JLabel(sb.toString());
-        label.setFont(smallFont);
-        gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+        JLabel label = new JLabel("Credits:");
+        label.setFont(font);
+        gbc = ViewerUtil.setGBC(gbc, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
                                 GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
         pContrib.add(label, gbc);
-        row++;
 
-        // Adding misc. contributors
-        for (int i = 0; i < contributorsMisc.size(); i++) {
-          label = new JLabel(contributorsMisc.get(i));
-          label.setFont(smallFont);
-          gbc = ViewerUtil.setGBC(gbc, 0, row, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
-                                  GridBagConstraints.HORIZONTAL, new Insets(i == 0 ? 4 : 0, 0, 0, 0), 0, 0);
-          pContrib.add(label, gbc);
-          row++;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0, count = contributors2.size(); i < count; i++) {
+          final Couple<String, String[]> entry = contributors2.get(i);
+        // for (final Couple<String, String[]> entry: contributors2) {
+          final String header = entry.getValue0() + ":\n";
+          sb.append(header);
+          final String[] sequence = entry.getValue1();
+          for (int j = 0, len = sequence.length; j < len; j++) {
+            if (j > 0) {
+              if (j == len - 1) {
+                if (len > 2) {
+                  sb.append(',');
+                }
+                sb.append(" and ");
+              } else {
+                sb.append(", ");
+              }
+            }
+            sb.append(sequence[j]);
+          }
+          if (i < count - 1) {
+            sb.append("\n\n");
+          }
         }
+
+        JTextArea editor = new JTextArea(6, 0);
+        editor.setBackground(label.getBackground());
+        editor.setBorder(BorderFactory.createEmptyBorder());
+        editor.setWrapStyleWord(true);
+        editor.setLineWrap(true);
+        editor.setEditable(false);
+        editor.setFocusable(false);
+        editor.setText(sb.toString());
+        editor.setCaretPosition(0);
+        JScrollPane scroll = new JScrollPane(editor,
+                                             JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+        gbc = ViewerUtil.setGBC(gbc, 0, 1, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_START,
+                                GridBagConstraints.BOTH, new Insets(2, 0, 0, 0), 0, 0);
+        pContrib.add(scroll, gbc);
       }
 
       // Near Infinity license

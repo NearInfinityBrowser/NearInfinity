@@ -63,6 +63,7 @@ public class QuickSearch extends JPanel implements Runnable
 
   private JLabel lSearch;
   private JComboBox<ResourceEntry> cbSearch;
+  private JTextComponent tcEdit;
   private JButton bOk, bOkNew, bCancel;
   private String keyword;
   private Command command;
@@ -165,7 +166,8 @@ public class QuickSearch extends JPanel implements Runnable
     cbSearch = new JComboBox<>();
     cbSearch.setPreferredSize(Misc.getPrototypeSize(cbSearch, "WWWWWWWW.WWWW"));    // space for at least 8.4 characters
     cbSearch.setEditable(true);
-    cbSearch.getEditor().getEditorComponent().addKeyListener(keyListener);
+    tcEdit = (JTextComponent)cbSearch.getEditor().getEditorComponent();
+    tcEdit.addKeyListener(keyListener);
 
     bOk = new JButton(Icons.getIcon(Icons.ICON_CHECK_16));
     bOk.addActionListener(acceptAction);
@@ -221,7 +223,7 @@ public class QuickSearch extends JPanel implements Runnable
   // Returns the text field content of the combobox
   private String getSearchString()
   {
-    return ((JTextComponent)cbSearch.getEditor().getEditorComponent()).getText();
+    return tcEdit.getText();
   }
 
   // Executed when accepting current input
@@ -319,7 +321,7 @@ public class QuickSearch extends JPanel implements Runnable
     for (Iterator<ResourceEntry> iter = parentList.iterator(); iter.hasNext();) {
       final ResourceEntry entry = iter.next();
       final String resName = entry.getResourceName();
-      if (resName.length() > index && Character.toUpperCase(resName.charAt(index)) == ch) {
+      if (resName.length() > index && (ch == '?' || Character.toUpperCase(resName.charAt(index)) == ch)) {
         curList.add(entry);
       }
     }

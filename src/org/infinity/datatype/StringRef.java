@@ -123,7 +123,7 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
       StringEditor.edit(value);
     }
     else if (event.getSource() == bPlay) {
-      final ResourceEntry entry = ResourceFactory.getResourceEntry(StringTable.getSoundResource(value) + ".WAV");
+      final ResourceEntry entry = ResourceFactory.getResourceEntry(StringTable.getSoundResource(value) + ".WAV", true);
       new ViewFrame(bPlay.getTopLevelAncestor(), ResourceFactory.getResource(entry));
     }
     else if (event.getSource() == bSearch) {
@@ -378,7 +378,7 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
   private void enablePlay(int value)
   {
     final String resname = StringTable.getSoundResource(value);
-    bPlay.setEnabled(!resname.isEmpty() && ResourceFactory.resourceExists(resname + ".WAV"));
+    bPlay.setEnabled(!resname.isEmpty() && ResourceFactory.resourceExists(resname + ".WAV", true));
   }
   /**
    * Extracts current value of string reference from editor. This value may not
