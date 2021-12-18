@@ -173,6 +173,15 @@ public final class AreResource extends AbstractStruct implements Resource, HasCh
     return retVal;
   }
 
+  /** Clears cached area names. */
+  public static void clearCache()
+  {
+    if (mapNames != null) {
+      mapNames.clear();
+      mapNames = null;
+    }
+  }
+
   // Returns descriptive name of specified ARE resref if available, null otherwise.
   private static String getMapName(String resref) {
     String retVal = null;

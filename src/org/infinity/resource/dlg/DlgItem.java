@@ -1,11 +1,12 @@
 // Near Infinity - An Infinity Engine Browser and Editor
-// Copyright (C) 2001 - 2019 Jon Olav Hauglid
+// Copyright (C) 2001 - 2021 Jon Olav Hauglid
 // See LICENSE.txt for license information
 
 package org.infinity.resource.dlg;
 
 import java.util.ArrayList;
-import static java.util.Collections.enumeration;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.function.Consumer;
@@ -63,11 +64,13 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
           states.add(new StateItem(s, this, null));
         }
         if (++count >= numStates) {
-          // All states readed, so break cycle
+          // All states read, so break cycle
           break;
         }
       }
     }
+    // Sort by weight or natural order
+    Collections.sort(states, new StateComparator());
   }
 
   @Override
@@ -107,7 +110,7 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
   public boolean isLeaf() { return states.isEmpty(); }
 
   @Override
-  public Enumeration<? extends StateItem> children() { return enumeration(states); }
+  public Enumeration<? extends StateItem> children() { return Collections.enumeration(states); }
 
   @Override
   public Iterator<StateItem> iterator() { return states.iterator(); }
@@ -143,5 +146,39 @@ final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
     sb.append(")");
 
     return sb.toString();
+  }
+
+
+//-------------------------- INNER CLASSES --------------------------
+
+  /**
+   * Performs comparison based on global dialog tree option "Sort states by weight".
+   */
+  private static class StateComparator implements Comparator<StateItem>
+  {
+    private final boolean sortByWeight;
+
+    public StateComparator()
+    {
+      sortByWeight = BrowserMenuBar.getInstance().sortStatesByWeight();
+    }
+
+    @Override
+    public int compare(StateItem state1, StateItem state2)
+    {
+      if (sortByWeight) {
+        int idx1 = state1.getEntry().getTriggerIndex();
+        int idx2 = state2.getEntry().getTriggerIndex();
+        if (idx1 < 0) {
+          return (idx1 == idx2) ? 0 : 1;
+        } else if (idx2 < 0) {
+          return (idx1 == idx2) ? 0 : -1;
+        } else {
+          return idx1 - idx2;
+        }
+      } else {
+        return (state1.getEntry().getOffset() - state2.getEntry().getOffset());
+      }
+    }
   }
 }

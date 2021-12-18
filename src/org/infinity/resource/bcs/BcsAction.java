@@ -100,7 +100,7 @@ public class BcsAction extends BcsStructureBase
   {
     Signatures.Function retVal = null;
 
-    Signatures.Function[] functions = getSortedFunction(id);
+    Signatures.Function[] functions = getSortedFunction(id, false);
     if (functions != null && functions.length > 0) {
       if (functions.length == 1) {
         retVal = functions[0];
@@ -140,9 +140,10 @@ public class BcsAction extends BcsStructureBase
           }
 
           // evaluating remaining arguments
-          for (int i = 0; i < 3; i++) {
+          for (int i = 2; i >= 0; i--) {
             if (getNumericParam(i) != 0) {
-              pi--;
+              pi -= i + 1;
+              break;
             }
           }
 
@@ -151,10 +152,12 @@ public class BcsAction extends BcsStructureBase
             // don't choose if string arguments are left
             ps = -1;
           } else {
-            for (int i = 0; i < 4; i++) {
+            boolean hit = false;
+            for (int i = 3; i >= 0; i--) {
               try {
-                if (!getStringParam(f, i).isEmpty()) {
+                if (hit || !getStringParam(f, i).isEmpty()) {
                   ps--;
+                  hit = true;
                 }
               } catch (IllegalArgumentException e) {
                 break;
@@ -162,9 +165,9 @@ public class BcsAction extends BcsStructureBase
             }
           }
 
-          for (int i = 1; i < 3; i++) {
+          for (int i = 2; i >= 1; i--) {
             if (!getObjectParam(i).isEmpty()) {
-              po--;
+              po -= i;
             }
           }
 
@@ -173,7 +176,7 @@ public class BcsAction extends BcsStructureBase
           }
 
           // finding match
-          int score = Math.abs(pi * weightI + ps * weightS + po * weightO + pp * weightP);
+          int score = Math.abs(pi * weightI) + Math.abs(ps * weightS) + Math.abs(po * weightO) + Math.abs(pp * weightP);
           if (score < bestScore) {
             bestScore = score;
             retVal = f;
@@ -316,21 +319,25 @@ public class BcsAction extends BcsStructureBase
   }
 
   // Helper method: Returns a sorted list of function signatures matching the specified function id.
-  private Signatures.Function[] getSortedFunction(int id)
+  private Signatures.Function[] getSortedFunction(int id, boolean reversed)
   {
     Signatures.Function[] functions = signatures.getFunction(id);
     Arrays.sort(functions, new Comparator<Signatures.Function>() {
       @Override
       public int compare(Signatures.Function o1, Signatures.Function o2)
       {
+        int retVal;
         if (o1 != null && o2 != null)
-          return o1.getName().compareTo(o2.getName());
+          retVal = o1.getName().compareTo(o2.getName());
         else if (o1 == null && o2 == null)
-          return 0;
+          retVal = 0;
         else if (o1 != null && o2 == null)
-          return -1;
+          retVal = -1;
         else
-          return 1;
+          retVal = 1;
+        if (reversed)
+          retVal = -retVal;
+        return retVal;
       }
     });
     return functions;

@@ -375,7 +375,7 @@ public class CharacterOldDecoder extends CharacterBaseDecoder
           }
         } else {
           if (SpriteUtils.bamCyclesExist(entry, cycleIdx, SeqDef.DIR_REDUCED_W.length) &&
-              SpriteUtils.bamCyclesExist(entry, cycleIdx + SeqDef.DIR_REDUCED_W.length, SeqDef.DIR_REDUCED_E.length)) {
+              SpriteUtils.bamCyclesExist(entryE, cycleIdx + SeqDef.DIR_REDUCED_W.length, SeqDef.DIR_REDUCED_E.length)) {
             SeqDef tmp = SeqDef.createSequence(seq, SeqDef.DIR_REDUCED_W, false, entry, cycleIdx, spriteType, behavior);
             retVal.addDirections(tmp.getDirections().toArray(new DirDef[tmp.getDirections().size()]));
             tmp = SeqDef.createSequence(seq, SeqDef.DIR_REDUCED_E, false, entryE, cycleIdx + SeqDef.DIR_REDUCED_W.length, spriteType, behavior);

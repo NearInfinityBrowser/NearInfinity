@@ -879,10 +879,22 @@ public class StringTable
       niPath += " (" + NearInfinity.getVersion() + ")";
       writer.println("// creator : " + niPath);
       writer.println("// game    : " + Profile.getGameRoot().toString());
-      writer.println("// dialog  : " + Profile.getGameRoot().relativize(tableMale._getPath()));
+
+      Path pathDialog = tableMale._getPath();
+      try {
+        pathDialog = Profile.getGameRoot().relativize(pathDialog);
+      } catch (IllegalArgumentException e) {
+      }
+      writer.println("// dialog  : " + pathDialog);
+
       writer.print("// dialogF : ");
       if (tableFemale != null) {
-        writer.println(Profile.getGameRoot().relativize(tableFemale._getPath()));
+        pathDialog = tableFemale._getPath();
+        try {
+          pathDialog = Profile.getGameRoot().relativize(pathDialog);
+        } catch (IllegalArgumentException e) {
+        }
+        writer.println(pathDialog);
       } else {
         writer.println("(none)");
       }

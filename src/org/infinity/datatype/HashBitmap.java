@@ -7,7 +7,6 @@ package org.infinity.datatype;
 import java.beans.PropertyChangeEvent;
 import java.nio.ByteBuffer;
 import java.util.TreeMap;
-import java.util.function.BiFunction;
 
 import org.infinity.resource.AbstractStruct;
 
@@ -26,20 +25,6 @@ import org.infinity.resource.AbstractStruct;
  */
 public class HashBitmap extends AbstractBitmap<String>
 {
-  private final BiFunction<Long, String, String> formatterHashBitmap = (value, item) -> {
-    String number;
-    if (isShowAsHex()) {
-      number = getHexValue(value.longValue());
-    } else {
-      number = value.toString();
-    }
-    if (item != null) {
-      return item.toString() + " - " + number;
-    } else {
-      return "Unknown - " + number;
-    }
-  };
-
   public HashBitmap(ByteBuffer buffer, int offset, int length, String name, TreeMap<Long, String> idsmap)
   {
     this(buffer, offset, length, name, idsmap, true, false, false);

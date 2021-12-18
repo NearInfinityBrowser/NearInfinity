@@ -15,6 +15,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import org.infinity.gui.BrowserMenuBar;
 import org.infinity.gui.BrowserMenuBar.OverrideMode;
@@ -188,5 +189,25 @@ public final class FileResourceEntry extends ResourceEntry
       options[1] = StandardCopyOption.REPLACE_EXISTING;
     }
     file = Files.move(file, basePath.resolve(newName), options);
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((file == null) ? 0 : file.hashCode());
+    return prime * result + (override ? 1231 : 1237);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj) || getClass() != obj.getClass()) {
+      return false;
+    }
+    FileResourceEntry other = (FileResourceEntry) obj;
+    return Objects.equals(file, other.file) && override == other.override;
   }
 }

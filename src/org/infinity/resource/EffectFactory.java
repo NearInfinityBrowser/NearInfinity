@@ -130,7 +130,8 @@ public final class EffectFactory
   }
 
   // contains IDS mappings for BGEE's opcode 319 "Item Usability"
-  public static final TreeMap<Long, String> m_duration = new TreeMap<>();
+  public static final TreeMap<Long, String> m_duration_v1 = new TreeMap<>();
+  public static final TreeMap<Long, String> m_duration_v2 = new TreeMap<>();
   public static final TreeMap<Long, String> m_colorloc = new TreeMap<>();
   public static final TreeMap<Long, String> m_proj_iwd = new TreeMap<>();
   public static final TreeMap<Long, String> m_inctype = new TreeMap<>();
@@ -310,6 +311,19 @@ public final class EffectFactory
                                             "0.5 attack per round", "1.5 attacks per round",
                                             "2.5 attacks per round", "3.5 attacks per round",
                                             "4.5 attacks per round"};
+  public static final TreeMap<Long, String> s_attacks_ee = new TreeMap<Long, String>() {{
+    put(-10L, "-4.5 attack per round"); put(-9L, "-3.5 attack per round");
+    put(-8L, "-2.5 attack per round");  put(-7L, "-1.5 attack per round");
+    put(-6L, "-0.5 attack per round");  put(-5L, "-5 attacks per round");
+    put(-4L, "-4 attacks per round");   put(-3L, "-3 attacks per round");
+    put(-2L, "-2 attacks per round");   put(-1L, "-1 attack per round");
+    put(0L, "0 attacks per round");
+    put(1L, "1 attack per round");      put(2L, "2 attacks per round");
+    put(3L, "3 attacks per round");     put(4L, "4 attacks per round");
+    put(5L, "5 attacks per round");     put(6L, "0.5 attack per round");
+    put(7L, "1.5 attacks per round");   put(8L, "2.5 attacks per round");
+    put(9L, "3.5 attacks per round");   put(10L, "4.5 attacks per round");
+  }};
   public static final String[] s_summoncontrol = {"Match target", "Match target", "From CRE file",
                                                   "Match target", "From CRE file", "Hostile",
                                                   "From CRE file", "", "From CRE file"};
@@ -341,18 +355,30 @@ public final class EffectFactory
 
 
   static {
-    m_duration.put(0L, "Instant/Limited");
-    m_duration.put(1L, "Instant/Permanent until death");
-    m_duration.put(2L, "Instant/While equipped");
-    m_duration.put(3L, "Delay/Limited");
-    m_duration.put(4L, "Delay/Permanent");
-    m_duration.put(5L, "Delay/While equipped");
-    m_duration.put(6L, "Limited after duration");
-    m_duration.put(7L, "Permanent after duration");
-    m_duration.put(8L, "Equipped after duration");
-    m_duration.put(9L, "Instant/Permanent");
-    m_duration.put(10L, "Instant/Limited (ticks)");
-    m_duration.put(4096L, "Absolute duration");
+    m_duration_v1.put(0L, "Instant/Limited");
+    m_duration_v1.put(1L, "Instant/Permanent until death");
+    m_duration_v1.put(2L, "Instant/While equipped");
+    m_duration_v1.put(3L, "Delay/Limited");
+    m_duration_v1.put(4L, "Delay/Permanent");
+    m_duration_v1.put(5L, "Delay/While equipped");
+    m_duration_v1.put(6L, "Limited after duration");
+    m_duration_v1.put(7L, "Permanent after duration");
+    m_duration_v1.put(8L, "Equipped after duration");
+    m_duration_v1.put(9L, "Instant/Permanent");
+    m_duration_v1.put(10L, "Instant/Limited (ticks)");
+
+    m_duration_v2.put(0L, "Instant/Limited");
+    m_duration_v2.put(1L, "Instant/Permanent until death");
+    m_duration_v2.put(2L, "Instant/While equipped");
+    m_duration_v2.put(3L, "Delay/Limited");
+    m_duration_v2.put(4L, "Delay/Permanent");
+    m_duration_v2.put(5L, "Delay/While equipped");
+    m_duration_v2.put(6L, "Limited after duration");
+    m_duration_v2.put(7L, "Permanent after duration");
+    m_duration_v2.put(8L, "Equipped after duration");
+    m_duration_v2.put(9L, "Instant/Permanent");
+    m_duration_v2.put(10L, "Instant/Limited (ticks)");
+    m_duration_v2.put(4096L, "Absolute duration");
 
     m_colorloc.put(0x00L, "Armor (grey): Belt/Amulet");
     m_colorloc.put(0x01L, "Armor (teal): Minor color");
@@ -802,12 +828,21 @@ public final class EffectFactory
         int opcode = ((IsNumeric)getEntry(struct, EffectEntry.IDX_OPCODE)).getValue();
         if (opcode == 1) {
           int param2 = ((IsNumeric)getEntry(struct, EffectEntry.IDX_PARAM2)).getValue();
-          if (param2 == 2) {  // Set % of
-            replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
-                         new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value"));
-          } else {
-            replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
-                         new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value", s_attacks));
+          switch (param2) {
+            case 0: // Increment
+            {
+              final HashBitmap bmp = new HashBitmap(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value", s_attacks_ee, false, true);
+              bmp.setFormatter(bmp.formatterBitmap);
+              replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1, bmp);
+              break;
+            }
+            case 2: // Set % of
+              replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
+                           new DecNumber(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value"));
+              break;
+            default:
+              replaceEntry(struct, EffectEntry.IDX_PARAM1, EffectEntry.OFS_PARAM1,
+                           new Bitmap(getEntryData(struct, EffectEntry.IDX_PARAM1), 0, 4, "Value", s_attacks));
           }
           return true;
         }
@@ -2023,10 +2058,19 @@ public final class EffectFactory
                                         "4 attacks per round", "5 attacks per round"}));
         } else if (Profile.isEnhancedEdition()) {
           int type = buffer.getInt(offset + 4);
-          if (type == 2) {
-            s.add(new DecNumber(buffer, offset, 4, "Value"));
-          } else {
-            s.add(new Bitmap(buffer, offset, 4, "Value", s_attacks));
+          switch (type) {
+            case 0: // Increment
+            {
+              final HashBitmap bmp = new HashBitmap(buffer, offset, 4, "Value", s_attacks_ee, false, true);
+              bmp.setFormatter(bmp.formatterBitmap);
+              s.add(bmp);
+              break;
+            }
+            case 2: // Set % of
+              s.add(new DecNumber(buffer, offset, 4, "Value"));
+              break;
+            default:
+              s.add(new Bitmap(buffer, offset, 4, "Value", s_attacks));
           }
         } else {
           s.add(new Bitmap(buffer, offset, 4, "Value", s_attacks));
@@ -2924,10 +2968,14 @@ public final class EffectFactory
         break;
 
       case 135: // Polymorph
-        s.add(new AnimateBitmap(buffer, offset, 4, "Animation"));
-        s.add(new Bitmap(buffer, offset + 4, 4, "Polymorph type",
-                         new String[]{"Change into", "Appearance only", "Appearance only",
-                                      "Appearance only"}));
+        s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
+        if (Profile.getEngine() != Profile.Engine.IWD2) {
+          s.add(new Bitmap(buffer, offset + 4, 4, "Polymorph type",
+                           new String[]{"Change into", "Appearance only", "Appearance only",
+                                        "Appearance only"}));
+        } else {
+          s.add(new DecNumber(buffer, offset + 4, 4, AbstractStruct.COMMON_UNUSED));
+        }
         restype = "CRE";
         break;
 
@@ -3261,7 +3309,7 @@ public final class EffectFactory
           makeEffectParamsDefault(buffer, offset, s);
         } else {
           s.add(new DecNumber(buffer, offset, 4, AbstractStruct.COMMON_UNUSED));
-          s.add(new Bitmap(buffer, offset + 4, 4, "Pass walls?", AbstractStruct.OPTION_YESNO));
+          s.add(new Bitmap(buffer, offset + 4, 4, "Pass walls?", AbstractStruct.OPTION_NOYES));
         }
         break;
 
@@ -3582,10 +3630,10 @@ public final class EffectFactory
 
       case 232: // Cast spell on condition
       {
-        s.add(new Bitmap(buffer, offset, 4, "Target", new String[]{"Myself", "LastHitter", "NearestEnemyOf", "Anyone"}));
+        s.add(new Bitmap(buffer, offset, 4, "Target", new String[]{"Myself", "LastHitter", "[ENEMY]", "Anyone"}));
         final List<String> cndList = new ArrayList<String>() {{
           add("HitBy([ANYONE]) / instant");
-          add("See(NearestEnemyOf(Myself)) / per round");
+          add("See([ENEMY]) / per round");
           add("HPPercentLT(Myself,50) / per round");
           add("HPPercentLT(Myself,25) / per round");
           add("HPPercentLT(Myself,10) / per round");
@@ -4603,12 +4651,7 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, "Value"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Modifier type", s_inctype));
         }
-        break;
-
-      case 402: // EEex: Invoke Lua
-      case 403: // EEex: Screen Effects
-      case 406: // EEex: Render Override
-        if (isEEex) {
+        else {
           makeEffectParamsDefault(buffer, offset, s);
         }
         break;
@@ -4618,6 +4661,9 @@ public final class EffectFactory
           s.add(new Bitmap(buffer, offset, 4, "Type to override", s_buttontype));
           s.add(new Bitmap(buffer, offset + 4, 4, "Override with type", s_buttontype));
         }
+        else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
         break;
 
       case 405: // EEex: Override Button Index
@@ -4625,11 +4671,14 @@ public final class EffectFactory
           s.add(new DecNumber(buffer, offset, 4, "Index to override"));
           s.add(new Bitmap(buffer, offset + 4, 4, "Override with type", s_buttontype));
         }
+        else {
+          makeEffectParamsDefault(buffer, offset, s);
+        }
         break;
 
       case 407: // EEex: On Remove
+        makeEffectParamsDefault(buffer, offset, s);
         if (isEEex) {
-          makeEffectParamsDefault(buffer, offset, s);
           restype = "SPL";
         }
         break;
@@ -5445,12 +5494,12 @@ public final class EffectFactory
   private int makeEffectCommon1(ByteBuffer buffer, int offset, List<StructEntry> s, boolean isV1)
   {
     if (isV1) {
-      s.add(new HashBitmap(buffer, offset, 1, EFFECT_TIMING_MODE, m_duration, false));
+      s.add(new HashBitmap(buffer, offset, 1, EFFECT_TIMING_MODE, m_duration_v1, false));
 //      s.add(new Flag(buffer, offset + 1, 1, Effect2.EFFECT_DISPEL_TYPE, Effect2.s_dispel));
       s.add(new Bitmap(buffer, offset + 1, 1, Effect2.EFFECT_DISPEL_TYPE, Effect2.s_dispel));
       offset += 2;
     } else {
-      s.add(new HashBitmap(buffer, offset, 4, EFFECT_TIMING_MODE, m_duration, false));
+      s.add(new HashBitmap(buffer, offset, 4, EFFECT_TIMING_MODE, m_duration_v2, false));
       offset += 4;
     }
 
@@ -5481,11 +5530,17 @@ public final class EffectFactory
           if (isEEex) {
             s.add(new TextString(buffer, offset, 8, "Lua function"));
           }
+          else {
+            s.add(new Unknown(buffer, offset, 8, AbstractStruct.COMMON_UNUSED));
+          }
           break;
 
         case 408:
           if (isEEex) {
             s.add(new TextString(buffer, offset, 8, "Lua table"));
+          }
+          else {
+            s.add(new Unknown(buffer, offset, 8, AbstractStruct.COMMON_UNUSED));
           }
           break;
 
