@@ -47,9 +47,11 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.function.Consumer;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -951,20 +953,26 @@ public class ConvertToBam extends ChildFrame
   {
     if (e.getSource() == listFrames) {
       if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-        int selectedCount = listFrames.getSelectedIndices().length;
-        if (selectedCount > 0) {
-          String msg;
-          if (selectedCount == 1) {
-            msg = "Remove selected frame?";
-          } else {
-            msg = "Remove " + selectedCount + " selected frames?";
-          }
-          int retVal = JOptionPane.showConfirmDialog(this, msg, "Question", JOptionPane.YES_NO_OPTION,
-                                                     JOptionPane.QUESTION_MESSAGE);
-          if (retVal == JOptionPane.YES_OPTION) {
-            framesRemove();
-          }
-        }
+        doWithSelectedListItems(listFrames, list -> framesRemove(), true,
+                            "Remove selected frame?", "Remove %d selected frames?");
+      }
+    }
+    else if (e.getSource() == listCurCycle) {
+      if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+        doWithSelectedListItems(listCurCycle, list -> currentCycleRemove(), true,
+                            "Remove selected frame index?", "Remove %d selected frame indices?");
+      }
+    }
+    else if (e.getSource() == listCycles) {
+      if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+        doWithSelectedListItems(listCycles, list -> cyclesRemove(), true,
+                            "Remove selected cycle?", "Remove %d selected cycles?");
+      }
+    }
+    else if (e.getSource() == listFilters) {
+      if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+        // List is set to single selection mode
+        doWithSelectedListItems(listFilters, list -> filterRemove(), true, "Remove selected filter?", null);
       }
     }
   }
@@ -1377,6 +1385,7 @@ public class ConvertToBam extends ChildFrame
     listCycles.setCellRenderer(new IndexedCellRenderer());
     listCycles.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listCycles.addListSelectionListener(this);
+    listCycles.addKeyListener(this);
     JScrollPane scroll = new JScrollPane(listCycles);
     c = ViewerUtil.setGBC(c, 0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 0, 0);
@@ -1515,6 +1524,7 @@ public class ConvertToBam extends ChildFrame
     listCurCycle.setCellRenderer(new IndexedCellRenderer());
     listCurCycle.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     listCurCycle.addListSelectionListener(this);
+    listCurCycle.addKeyListener(this);
     listCurCycle.addMouseListener(this);
     JScrollPane scroll2 = new JScrollPane(listCurCycle);
 
@@ -1747,6 +1757,7 @@ public class ConvertToBam extends ChildFrame
     listFilters.setCellRenderer(new IndexedCellRenderer());
     listFilters.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     listFilters.addListSelectionListener(this);
+    listFilters.addKeyListener(this);
     JScrollPane scroll = new JScrollPane(listFilters);
 
     JPanel pFiltersList = new JPanel(new GridBagLayout());
@@ -3786,6 +3797,58 @@ public class ConvertToBam extends ChildFrame
     }
   }
 
+
+  /**
+   * A helper method that performs a given operation on selected list items after optional user confirmation.
+   *
+   * @param <T> List item type.
+   * @param list {@code JList} instance to perform the operation on.
+   * @param operation The operation to perform if selected list items are available.
+   * @param confirm whether to ask for confirmation before performing the operation on the list.
+   * @param msgPromptSingle Confirmation string if a single list item is selected.
+   *                        May contain a {@code %d} placeholder for the number of selected list items.
+   * @param msgPromptMultiple Confirmation string if multiple list items are selected.
+   *                          May contain a {@code %d} placeholder for the number of selected list items.
+   */
+  private <T> void doWithSelectedListItems(JList<T> list,
+                                           Consumer<JList<T>> operation,
+                                           boolean confirm,
+                                           String msgPromptSingle,
+                                           String msgPromptMultiple) {
+    if (list == null || operation == null) {
+      return;
+    }
+
+    int selectedCount = list.getSelectedIndices().length;
+    if (selectedCount == 0) {
+      return;
+    }
+
+    boolean accepted = !confirm;
+    if (confirm) {
+      String message = "Remove selected item(s)?";
+      String fmt = null;
+      if (selectedCount == 1) {
+        fmt = (msgPromptSingle != null) ? msgPromptSingle : msgPromptMultiple;
+      } else {
+        fmt = (msgPromptMultiple != null) ? msgPromptMultiple : msgPromptSingle;
+      }
+      if (fmt != null) {
+        try {
+          message = String.format(fmt, selectedCount);
+        } catch (IllegalFormatException e) {
+        }
+      }
+
+      int retVal = JOptionPane.showConfirmDialog(this, message, "Question", JOptionPane.YES_NO_OPTION,
+                                                 JOptionPane.QUESTION_MESSAGE);
+      accepted = (retVal == JOptionPane.YES_OPTION);
+    }
+
+    if (accepted) {
+      operation.accept(list);
+    }
+  }
 
   /** Action for selecting BAM version in export section: 0=BAM v1, 1=BAM v2. */
   private void setBamVersion(int index)
