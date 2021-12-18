@@ -76,10 +76,10 @@ public class StringEditor extends ChildFrame implements SearchClient
   private final ButtonPopupMenu bpmFind = new ButtonPopupMenu("Find...", ButtonPopupMenu.Align.TOP);
   private final ButtonPopupMenu bpmExport = new ButtonPopupMenu("Export...", ButtonPopupMenu.Align.TOP);
   private final ButtonPopupMenu bpmRevert = new ButtonPopupMenu("Revert...", ButtonPopupMenu.Align.TOP);
-  private final JButton bAdd = new JButton("Add", Icons.getIcon(Icons.ICON_ADD_16));
-  private final JButton bDelete = new JButton("Delete", Icons.getIcon(Icons.ICON_REMOVE_16));
-  private final JButton bSave = new JButton("Save", Icons.getIcon(Icons.ICON_SAVE_16));
-  private final JButton bSync = new JButton("Sync entry", Icons.getIcon(Icons.ICON_REFRESH_16));
+  private final JButton bAdd = new JButton("Add", Icons.ICON_ADD_16.getIcon());
+  private final JButton bDelete = new JButton("Delete", Icons.ICON_REMOVE_16.getIcon());
+  private final JButton bSave = new JButton("Save", Icons.ICON_SAVE_16.getIcon());
+  private final JButton bSync = new JButton("Sync entry", Icons.ICON_REFRESH_16.getIcon());
   private final JMenuItem miFindAttribute = new JMenuItem("selected attribute");
   private final JMenuItem miFindString = new JMenuItem("string");
   private final JMenuItem miFindRef = new JMenuItem("references to this entry");
@@ -186,7 +186,7 @@ public class StringEditor extends ChildFrame implements SearchClient
 
   private void initUI()
   {
-    setIconImage(Icons.getIcon(Icons.ICON_EDIT_16).getImage());
+    setIconImage(Icons.ICON_EDIT_16.getIcon().getImage());
 
     table.setFont(Misc.getScaledFont(BrowserMenuBar.getInstance().getScriptFont()));
     table.setRowHeight(table.getFontMetrics(table.getFont()).getHeight() + 1);
@@ -210,19 +210,19 @@ public class StringEditor extends ChildFrame implements SearchClient
 
     miFindAttribute.setEnabled(false);
     bpmFind.setMenuItems(new JMenuItem[]{miFindAttribute, miFindString, miFindRef}, false);
-    bpmFind.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
+    bpmFind.setIcon(Icons.ICON_FIND_16.getIcon());
     bpmFind.addItemListener(listeners);
     miExportTra.setToolTipText("Exports male and female string table into WeiDU TRA file");
     miExportTxt.setToolTipText("Exports selected string table into text file");
     bpmExport.setMenuItems(new JMenuItem[]{miExportTxt, miExportTra}, false);
-    bpmExport.setIcon(Icons.getIcon(Icons.ICON_EXPORT_16));
+    bpmExport.setIcon(Icons.ICON_EXPORT_16.getIcon());
     bpmExport.addItemListener(listeners);
     miRevertAll.setEnabled(false);
     miRevertAll.setToolTipText("Reverts all changes");
     miRevertLast.setEnabled(false);
     miRevertLast.setToolTipText("Reverts most recent add/delete operation");
     bpmRevert.setMenuItems(new JMenuItem[]{miRevertLast, miRevertAll}, false);
-    bpmRevert.setIcon(Icons.getIcon(Icons.ICON_UNDO_16));
+    bpmRevert.setIcon(Icons.ICON_UNDO_16.getIcon());
     bpmRevert.addItemListener(listeners);
     bAdd.addActionListener(listeners);
     bAdd.setMnemonic('a');

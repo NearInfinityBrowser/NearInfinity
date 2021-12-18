@@ -134,7 +134,7 @@ public final class NewResSettings extends NewAbstractSettings implements KeyList
     strrefLabel.setLabelFor(cbStrref);
     strrefLabel.setDisplayedMnemonic(KeyEvent.VK_S);
 
-    updateButton = new JButton("Update text", Icons.getIcon(Icons.ICON_REFRESH_16));
+    updateButton = new JButton("Update text", Icons.ICON_REFRESH_16.getIcon());
     updateButton.setMnemonic(KeyEvent.VK_U);
     updateButton.addActionListener(this);
 

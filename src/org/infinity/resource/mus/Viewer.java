@@ -182,12 +182,12 @@ public class Viewer extends JPanel implements Runnable, ActionListener
 
   private void initGUI()
   {
-    bPlay = new JButton("Play", Icons.getIcon(Icons.ICON_PLAY_16));
+    bPlay = new JButton("Play", Icons.ICON_PLAY_16.getIcon());
     bPlay.addActionListener(this);
-    bEnd = new JButton("Finish", Icons.getIcon(Icons.ICON_END_16));
+    bEnd = new JButton("Finish", Icons.ICON_END_16.getIcon());
     bEnd.setEnabled(false);
     bEnd.addActionListener(this);
-    bStop = new JButton("Stop", Icons.getIcon(Icons.ICON_STOP_16));
+    bStop = new JButton("Stop", Icons.ICON_STOP_16.getIcon());
     bStop.setEnabled(false);
     bStop.addActionListener(this);
 

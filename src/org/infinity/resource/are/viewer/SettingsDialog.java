@@ -298,11 +298,11 @@ public class SettingsDialog extends JDialog
     taOrderNote.setText("Note: Layers of higher priority are drawn on top of layers of lower priority.");
 
     JPanel pLayersArrows = new JPanel(new GridBagLayout());
-    bUp = new JButton(Icons.getIcon(Icons.ICON_UP_16));
+    bUp = new JButton(Icons.ICON_UP_16.getIcon());
     bUp.setMargin(new Insets(16, 2, 16, 2));
     bUp.addActionListener(this);
     bUp.setEnabled(listLayers.getSelectedIndex() > 0);
-    bDown = new JButton(Icons.getIcon(Icons.ICON_DOWN_16));
+    bDown = new JButton(Icons.ICON_DOWN_16.getIcon());
     bDown.setMargin(new Insets(16, 2, 16, 2));
     bDown.addActionListener(this);
     updateLayerButtons();

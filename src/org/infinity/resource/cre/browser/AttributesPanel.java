@@ -77,7 +77,7 @@ public class AttributesPanel extends JPanel implements ActionListener
   {
     JLabel label = new JLabel("Animation attributes:");
 
-    bIni = new JButton("View/Edit INI", Icons.getIcon(Icons.ICON_ZOOM_16));
+    bIni = new JButton("View/Edit INI", Icons.ICON_ZOOM_16.getIcon());
     bIni.addActionListener(this);
 
     GridBagConstraints c = new GridBagConstraints();

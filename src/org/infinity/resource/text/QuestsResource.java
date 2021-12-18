@@ -231,7 +231,7 @@ public class QuestsResource extends PlainTextResource implements ChangeListener
     final QuestsPanel details = new QuestsPanel(readQuests(), null);
     final JTabbedPane pane = new JTabbedPane();
     pane.addTab("Quest List", details);
-    pane.addTab("Text", Icons.getIcon(Icons.ICON_EDIT_16), textPage);
+    pane.addTab("Text", Icons.ICON_EDIT_16.getIcon(), textPage);
     pane.addChangeListener(this);
     return pane;
   }

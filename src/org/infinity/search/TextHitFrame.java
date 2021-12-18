@@ -39,9 +39,9 @@ import org.infinity.util.Misc;
 final class TextHitFrame extends ChildFrame implements ActionListener, ListSelectionListener
 {
   private final Component parent;
-  private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+  private final JButton bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+  private final JButton bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+  private final JButton bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
   private final JLabel count;
   /** List of the {@link TextHit} objects. */
   private final SortableTable table;
@@ -52,7 +52,7 @@ final class TextHitFrame extends ChildFrame implements ActionListener, ListSelec
     super("Search Result", true);
     this.query = query;
     this.parent = parent;
-    setIconImage(Icons.getIcon(Icons.ICON_HISTORY_16).getImage());
+    setIconImage(Icons.ICON_HISTORY_16.getIcon().getImage());
 
     table = new SortableTable(new String[]{"File", "Text", "Line"},
                               new Class<?>[]{ResourceEntry.class, String.class, Integer.class},

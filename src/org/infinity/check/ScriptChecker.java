@@ -156,7 +156,7 @@ public final class ScriptChecker extends AbstractSearcher implements Runnable, A
         errorTable.tableComplete();
         warningTable.tableComplete();
         resultFrame = new ChildFrame("Result of script check", true);
-        resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
+        resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
         JScrollPane scrollErrorTable = new JScrollPane(errorTable);
         scrollErrorTable.getViewport().setBackground(errorTable.getBackground());
         JScrollPane scrollWarningTable = new JScrollPane(warningTable);
@@ -165,9 +165,9 @@ public final class ScriptChecker extends AbstractSearcher implements Runnable, A
         tabbedPane.addTab("Errors (" + errorTable.getRowCount() + ')', scrollErrorTable);
         tabbedPane.addTab("Warnings (" + warningTable.getRowCount() + ')', scrollWarningTable);
         tabbedPane.addChangeListener(this);
-        bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
-        bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
-        bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+        bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+        bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+        bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
         bopen.setMnemonic('o');
         bopennew.setMnemonic('n');
         bsave.setMnemonic('s');

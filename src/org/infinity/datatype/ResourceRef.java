@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -162,10 +163,10 @@ public class ResourceRef extends Datatype
       }
     }
 
-    JButton bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
+    JButton bUpdate = new JButton("Update value", Icons.ICON_REFRESH_16.getIcon());
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
-    bView = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
+    bView = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
     bView.addActionListener(this);
     bView.setEnabled(isEditable(list.getSelectedValue()));
     list.addListSelectionListener(this);

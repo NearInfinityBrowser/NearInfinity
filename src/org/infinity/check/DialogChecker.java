@@ -173,10 +173,10 @@ public final class DialogChecker extends AbstractSearcher implements Runnable, A
         errorTable.tableComplete();
         warningTable.tableComplete();
         resultFrame = new ChildFrame("Result of dialogues check", true);
-        resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
-        bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
-        bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
-        bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+        resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
+        bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+        bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+        bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
         JScrollPane scrollErrorTable = new JScrollPane(errorTable);
         scrollErrorTable.getViewport().setBackground(errorTable.getBackground());
         JScrollPane scrollWarningTable = new JScrollPane(warningTable);

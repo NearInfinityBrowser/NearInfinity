@@ -23,6 +23,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -160,7 +161,7 @@ public class ColorValue extends Datatype implements Editable, IsNumeric
     int selection = Math.min(colorList.getModel().getSize(), Math.max(0, getValue()));
     colorList.setSelectedIndex(selection);
 
-    JButton bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
+    JButton bUpdate = new JButton("Update value", Icons.ICON_REFRESH_16.getIcon());
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
 

@@ -224,9 +224,9 @@ public final class ViewerUtil
   {
     JLabel check = new JLabel(entry.getName());
     if (entry.toString().equalsIgnoreCase(yes))
-      check.setIcon(Icons.getIcon(Icons.ICON_CHECK_16));
+      check.setIcon(Icons.ICON_CHECK_16.getIcon());
     else
-      check.setIcon(Icons.getIcon(Icons.ICON_CHECK_NOT_16));
+      check.setIcon(Icons.ICON_CHECK_NOT_16.getIcon());
     return check;
   }
 
@@ -237,8 +237,8 @@ public final class ViewerUtil
       final String label = flag.getString(i);
       if (label != null) {
         final JLabel check = new JLabel(label);
-        final String icon = flag.isFlagSet(i) ? Icons.ICON_CHECK_16 : Icons.ICON_CHECK_NOT_16;
-        check.setIcon(Icons.getIcon(icon));
+        final Icons icon = flag.isFlagSet(i) ? Icons.ICON_CHECK_16 : Icons.ICON_CHECK_NOT_16;
+        check.setIcon(icon.getIcon());
         panel.add(check);
       }
     }
@@ -406,7 +406,7 @@ public final class ViewerUtil
     private final Class<? extends StructEntry> listClass;
     private final JList<Object> list;
     private final SimpleListModel<Object> listModel = new SimpleListModel<>();
-    private final JButton bOpen = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
+    private final JButton bOpen = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
 
     private StructListPanel(String title, AbstractStruct struct,
                             Class<? extends StructEntry> listClass, String attrName,

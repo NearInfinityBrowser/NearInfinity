@@ -32,7 +32,7 @@ import org.infinity.util.io.StreamUtils;
 
 public class Keyfile
 {
-  public static final ImageIcon ICON_STRUCT = Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16);
+  public static final ImageIcon ICON_STRUCT = Icons.ICON_ROW_INSERT_AFTER_16.getIcon();
 
   public static final int TYPE_BMP    = 0x001;
   public static final int TYPE_MVE    = 0x002;
@@ -82,13 +82,13 @@ public class Keyfile
   public static final int TYPE_MUS    = 0xffe;  // not in bif?
   public static final int TYPE_ACM    = 0xfff;  // not in bif?
 
-  private static final ImageIcon ICON_TEXT = Icons.getIcon(Icons.ICON_EDIT_16);
-  private static final ImageIcon ICON_UNKNOWN = Icons.getIcon(Icons.ICON_HELP_16);
-  private static final ImageIcon ICON_SOUND = Icons.getIcon(Icons.ICON_VOLUME_16);
-  private static final ImageIcon ICON_MOVIE = Icons.getIcon(Icons.ICON_MOVIE_16);
-  private static final ImageIcon ICON_SCRIPT = Icons.getIcon(Icons.ICON_HISTORY_16);
-  private static final ImageIcon ICON_IMAGE = Icons.getIcon(Icons.ICON_COLOR_16);
-  private static final ImageIcon ICON_BUNDLE = Icons.getIcon(Icons.ICON_BUNDLE_16);
+  private static final ImageIcon ICON_TEXT = Icons.ICON_EDIT_16.getIcon();
+  private static final ImageIcon ICON_UNKNOWN = Icons.ICON_HELP_16.getIcon();
+  private static final ImageIcon ICON_SOUND = Icons.ICON_VOLUME_16.getIcon();
+  private static final ImageIcon ICON_MOVIE = Icons.ICON_MOVIE_16.getIcon();
+  private static final ImageIcon ICON_SCRIPT = Icons.ICON_HISTORY_16.getIcon();
+  private static final ImageIcon ICON_IMAGE = Icons.ICON_COLOR_16.getIcon();
+  private static final ImageIcon ICON_BUNDLE = Icons.ICON_BUNDLE_16.getIcon();
 
   private static final String KEY_SIGNATURE = "KEY ";
   private static final String KEY_VERSION   = "V1  ";

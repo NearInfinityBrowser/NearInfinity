@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
-import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.are.AreResource;
@@ -32,8 +31,8 @@ import org.infinity.util.io.FileManager;
  */
 public class LayerObjectAutomap extends LayerObject
 {
-  private static final Image[] ICONS = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AUTOMAP_1),
-                                        Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AUTOMAP_2)};
+  private static final Image[] ICONS = {ViewerIcons.ICON_ITM_AUTOMAP_1.getIcon().getImage(),
+                                        ViewerIcons.ICON_ITM_AUTOMAP_2.getIcon().getImage()};
   private static final Point CENTER = new Point(26, 26);
 
   private final AutomapNote note;

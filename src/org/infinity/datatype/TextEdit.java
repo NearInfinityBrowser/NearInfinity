@@ -8,6 +8,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -94,7 +95,7 @@ public final class TextEdit extends Datatype implements Editable, IsTextual
     InfinityScrollPane scroll = new InfinityScrollPane(textArea, true);
     scroll.setLineNumbersEnabled(false);
 
-    bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
+    bUpdate = new JButton("Update value", Icons.ICON_REFRESH_16.getIcon());
     bUpdate.setEnabled(editable);
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);

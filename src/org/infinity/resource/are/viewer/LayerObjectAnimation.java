@@ -16,7 +16,6 @@ import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.AnimatedLayerItem;
 import org.infinity.gui.layeritem.BasicAnimationProvider;
 import org.infinity.gui.layeritem.IconLayerItem;
-import org.infinity.icon.Icons;
 import org.infinity.resource.Profile;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.Viewable;
@@ -37,15 +36,15 @@ public class LayerObjectAnimation extends LayerObject
 {
   private static final Image[][] ICONS = {
     // active versions
-    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_1), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_2)},
-    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_WBM_1), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_WBM_2)},
-    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_PVRZ_1), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_PVRZ_2)},
-    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_BAM_1), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_BAM_2)},
+    {ViewerIcons.ICON_ITM_ANIM_1.getIcon().getImage(), ViewerIcons.ICON_ITM_ANIM_2.getIcon().getImage()},
+    {ViewerIcons.ICON_ITM_ANIM_WBM_1.getIcon().getImage(), ViewerIcons.ICON_ITM_ANIM_WBM_2.getIcon().getImage()},
+    {ViewerIcons.ICON_ITM_ANIM_PVRZ_1.getIcon().getImage(), ViewerIcons.ICON_ITM_ANIM_PVRZ_2.getIcon().getImage()},
+    {ViewerIcons.ICON_ITM_ANIM_BAM_1.getIcon().getImage(), ViewerIcons.ICON_ITM_ANIM_BAM_2.getIcon().getImage()},
     // inactive versions
-    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_1_BW), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_BAM_2_BW)},
-    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_WBM_1_BW), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_WBM_2_BW)},
-    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_PVRZ_1_BW), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_PVRZ_2_BW)},
-    {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_BAM_1_BW), Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ANIM_BAM_2_BW)}
+    {ViewerIcons.ICON_ITM_ANIM_1_BW.getIcon().getImage(), ViewerIcons.ICON_ITM_ANIM_BAM_2_BW.getIcon().getImage()},
+    {ViewerIcons.ICON_ITM_ANIM_WBM_1_BW.getIcon().getImage(), ViewerIcons.ICON_ITM_ANIM_WBM_2_BW.getIcon().getImage()},
+    {ViewerIcons.ICON_ITM_ANIM_PVRZ_1_BW.getIcon().getImage(), ViewerIcons.ICON_ITM_ANIM_PVRZ_2_BW.getIcon().getImage()},
+    {ViewerIcons.ICON_ITM_ANIM_BAM_1_BW.getIcon().getImage(), ViewerIcons.ICON_ITM_ANIM_BAM_2_BW.getIcon().getImage()}
   };
   private static final Point CENTER = new Point(16, 17);
 

@@ -46,7 +46,7 @@ final class ChooseBIFFrame extends ChildFrame implements ActionListener
   ChooseBIFFrame(BIFFEditor editor)
   {
     super("Edit BIFF: Select file", true);
-    setIconImage(Icons.getIcon(Icons.ICON_EDIT_16).getImage());
+    setIconImage(Icons.ICON_EDIT_16.getIcon().getImage());
     this.editor = editor;
     bok.setMnemonic('o');
     bcancel.setMnemonic('c');

@@ -53,9 +53,9 @@ import org.infinity.util.StringTable;
 public class StrrefIndexChecker extends AbstractChecker implements ListSelectionListener
 {
   private final ChildFrame resultFrame = new ChildFrame("Illegal strrefs found", true);
-  private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+  private final JButton bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+  private final JButton bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+  private final JButton bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
 
   /** List of the {@link StrrefEntry} objects. */
   private SortableTable table;
@@ -124,7 +124,7 @@ public class StrrefIndexChecker extends AbstractChecker implements ListSelection
                                     "Info", JOptionPane.INFORMATION_MESSAGE);
     } else {
       table.tableComplete();
-      resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
+      resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
       JLabel count = new JLabel(table.getRowCount() + " error(s) found", JLabel.CENTER);
       count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
       bopen.setMnemonic('o');

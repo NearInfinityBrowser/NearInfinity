@@ -16,7 +16,6 @@ import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
 import org.infinity.gui.layeritem.ShapedLayerItem;
-import org.infinity.icon.Icons;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.are.Ambient;
 import org.infinity.resource.are.AreResource;
@@ -28,10 +27,10 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
  */
 public class LayerObjectAmbient extends LayerObject
 {
-  private static final Image[] ICONS_GLOBAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_G_1),
-                                               Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_G_2)};
-  private static final Image[] ICONS_LOCAL = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_L_1),
-                                              Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_AMBIENT_L_2)};
+  private static final Image[] ICONS_GLOBAL = {ViewerIcons.ICON_ITM_AMBIENT_G_1.getIcon().getImage(),
+                                               ViewerIcons.ICON_ITM_AMBIENT_G_2.getIcon().getImage()};
+  private static final Image[] ICONS_LOCAL = {ViewerIcons.ICON_ITM_AMBIENT_L_1.getIcon().getImage(),
+                                              ViewerIcons.ICON_ITM_AMBIENT_L_2.getIcon().getImage()};
   private static final Point CENTER = new Point(16, 16);
   private static final Color[] COLOR_RANGE = {new Color(0xA0000080, true), new Color(0xA0000080, true),
                                               new Color(0x00204080, true), new Color(0x004060C0, true)};

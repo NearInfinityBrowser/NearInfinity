@@ -162,7 +162,7 @@ public class CreatureBrowser extends ChildFrame
     add(mainCentralPanel, BorderLayout.CENTER);
 
     addComponentListener(listeners);
-    setIconImage(Icons.getImage(Icons.ICON_CRE_VIEWER_24));
+    setIconImage(Icons.ICON_CRE_VIEWER_24.getIcon().getImage());
     setTitle("Creature Animation Browser");
     setSize(NearInfinity.getInstance().getPreferredSize());
     Center.center(this, NearInfinity.getInstance().getBounds());

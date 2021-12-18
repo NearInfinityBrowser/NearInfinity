@@ -50,9 +50,9 @@ public class FileTypeSelector extends JPanel implements ActionListener
   /** Button that check all checkboxes. */
   private final JButton bSet     = new JButton("Set");
   /** Button that resets checkbox checked state to their default values. */
-  private final JButton bDefault = new JButton("Default", Icons.getIcon(Icons.ICON_UNDO_16));
+  private final JButton bDefault = new JButton("Default", Icons.ICON_UNDO_16.getIcon());
   /** Button that inverts check state of each checkbox. */
-  private final JButton bInvert  = new JButton("Invert", Icons.getIcon(Icons.ICON_REFRESH_16));
+  private final JButton bInvert  = new JButton("Invert", Icons.ICON_REFRESH_16.getIcon());
 
   /**
    * Creates panel with tho columns of checkboxex with abilities to check/unckeck all,

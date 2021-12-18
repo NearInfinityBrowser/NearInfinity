@@ -255,7 +255,7 @@ public class AdvancedSearch extends ChildFrame implements Runnable
 
   private void init() throws Exception
   {
-    setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
+    setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
 
     GridBagConstraints c = new GridBagConstraints();
 
@@ -328,10 +328,10 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     scrollFilterList.setMinimumSize(new Dimension(filterList.getFixedCellWidth() + 8, filterList.getFixedCellHeight() * 6));
     scrollFilterList.setPreferredSize(new Dimension(8, scrollFilterList.getMinimumSize().height));
 
-    bFilterSave = new JButton("Save filters...", Icons.getIcon(Icons.ICON_IMPORT_16));
+    bFilterSave = new JButton("Save filters...", Icons.ICON_IMPORT_16.getIcon());
     bFilterSave.setEnabled(false);
     bFilterSave.addActionListener(listeners);
-    bFilterLoad = new JButton("Load filters...", Icons.getIcon(Icons.ICON_EXPORT_16));
+    bFilterLoad = new JButton("Load filters...", Icons.ICON_EXPORT_16.getIcon());
     bFilterLoad.addActionListener(listeners);
 
     bFilterAdd = new JButton("Add...");
@@ -354,19 +354,19 @@ public class AdvancedSearch extends ChildFrame implements Runnable
     bFilterRemoveAll.addActionListener(listeners);
     bFilterRemoveAll.setToolTipText("Remove all filters");
 
-    bSearch = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
+    bSearch = new JButton("Search", Icons.ICON_FIND_16.getIcon());
     bSearch.setEnabled(false);
     bSearch.addActionListener(listeners);
 
-    bOpen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
+    bOpen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
     bOpen.setMnemonic('o');
     bOpen.setEnabled(false);
     bOpen.addActionListener(listeners);
-    bOpenNew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
+    bOpenNew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
     bOpenNew.setMnemonic('n');
     bOpenNew.setEnabled(false);
     bOpenNew.addActionListener(listeners);
-    bSave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+    bSave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
     bSave.setMnemonic('s');
     bSave.setEnabled(false);
     bSave.addActionListener(listeners);

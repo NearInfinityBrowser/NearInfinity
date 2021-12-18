@@ -47,7 +47,7 @@ public final class TextListPanel<E> extends JPanel implements DocumentListener, 
   private final FilteredListModel<E> listmodel = new FilteredListModel<>(filterEnabled);
   private final JList<E> list = new JList<>();
   private final JTextField tfield = new JTextField();
-  private final JToggleButton tbFilter = new JToggleButton(Icons.getIcon("Filter16.png"), filterEnabled);
+  private final JToggleButton tbFilter = new JToggleButton(Icons.ICON_FILTER_16.getIcon(), filterEnabled);
 
   public TextListPanel(List<? extends E> values)
   {

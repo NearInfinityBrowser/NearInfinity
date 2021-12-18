@@ -135,7 +135,7 @@ public final class StringUseChecker extends AbstractSearcher implements Runnable
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(fileMenu);
         resultFrame.setJMenuBar(menuBar);
-        resultFrame.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
+        resultFrame.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
         JLabel count = new JLabel(table.getRowCount() + " unused string(s) found", JLabel.CENTER);
         count.setFont(count.getFont().deriveFont((float)count.getFont().getSize() + 2.0f));
         JScrollPane scrollTable = new JScrollPane(table);

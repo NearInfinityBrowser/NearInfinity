@@ -106,7 +106,7 @@ public class ResourceBitmap extends AbstractBitmap<ResourceBitmap.RefEntry> impl
     if (curEntry == null && resources != null && resources.size() > 0) {
       curEntry = resources.get(0);
     }
-    this.bView = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
+    this.bView = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
     this.bView.addActionListener(this);
     this.bView.setEnabled(curEntry != null && curEntry.isResource());
     addButtons(this.bView);

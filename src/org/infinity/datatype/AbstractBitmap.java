@@ -147,7 +147,7 @@ public class AbstractBitmap<T> extends Datatype implements Editable, IsNumeric
     this.signed = signed;
     this.formatter = (formatter != null) ? formatter : formatterDefault;
     this.buttonList = new ArrayList<>();
-    this.bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
+    this.bUpdate = new JButton("Update value", Icons.ICON_REFRESH_16.getIcon());
     this.buttonList.add(this.bUpdate);
 
     read(buffer, offset);

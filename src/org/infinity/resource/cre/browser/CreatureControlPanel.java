@@ -313,14 +313,14 @@ public class CreatureControlPanel extends JPanel
 
     // third column: buttons
     Insets margin;
-    bApply = new JButton("Apply", Icons.getIcon(Icons.ICON_REFRESH_16));
+    bApply = new JButton("Apply", Icons.ICON_REFRESH_16.getIcon());
     Font fnt = bApply.getFont().deriveFont(bApply.getFont().getSize2D() * 1.25f);
     bApply.setFont(fnt);
     margin = bApply.getMargin();
     margin.top += 4;  margin.bottom += 4;
     bApply.setMargin(margin);
     bApply.addActionListener(listeners);
-    bReset = new JButton("Reset", Icons.getIcon(Icons.ICON_UNDO_16));
+    bReset = new JButton("Reset", Icons.ICON_UNDO_16.getIcon());
     margin = bReset.getMargin();
     margin.top += 4; margin.bottom += 4;
     bReset.setMargin(margin);

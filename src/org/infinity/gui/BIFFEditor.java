@@ -202,7 +202,7 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
     this.bifentry = bifentry;
     this.format = format;
     editframe = new ChildFrame("Edit BIFF", true);
-    editframe.setIconImage(Icons.getIcon(Icons.ICON_EDIT_16).getImage());
+    editframe.setIconImage(Icons.ICON_EDIT_16.getIcon().getImage());
     Container pane = editframe.getContentPane();
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
@@ -230,12 +230,12 @@ public final class BIFFEditor implements ActionListener, ListSelectionListener, 
 
     biftable.addListSelectionListener(this);
     overridetable.addListSelectionListener(this);
-    bcancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
-    bsave = new JButton("Save", Icons.getIcon(Icons.ICON_SAVE_16));
+    bcancel = new JButton("Cancel", Icons.ICON_DELETE_16.getIcon());
+    bsave = new JButton("Save", Icons.ICON_SAVE_16.getIcon());
     bcancel.setMnemonic('c');
     bsave.setMnemonic('s');
-    btobif = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
-    bfrombif = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
+    btobif = new JButton(Icons.ICON_BACK_16.getIcon());
+    bfrombif = new JButton(Icons.ICON_FORWARD_16.getIcon());
 
     biftable.setBorder(BorderFactory.createTitledBorder("Files in " + bifentry.toString()));
     overridetable.setBorder(BorderFactory.createTitledBorder("Files in override"));

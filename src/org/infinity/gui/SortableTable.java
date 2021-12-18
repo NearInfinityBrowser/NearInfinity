@@ -197,7 +197,7 @@ public final class SortableTable extends JTable implements MouseListener
       }
 
       if (sortByColumn == column)
-        setIcon(sortAscending ? Icons.getIcon(Icons.ICON_UP_16) : Icons.getIcon(Icons.ICON_DOWN_16));
+        setIcon(sortAscending ? Icons.ICON_UP_16.getIcon() : Icons.ICON_DOWN_16.getIcon());
       else
         setIcon(null);
       return this;

@@ -46,12 +46,12 @@ public final class InfinityAmp extends ChildFrame
 {
   private final SimpleListModel<ResourceEntry> allMusModel = new SimpleListModel<>();
   private final SimpleListModel<ResourceEntry> selectedMusModel = new SimpleListModel<>();
-  private final JButton bPlay = new JButton(Icons.getIcon(Icons.ICON_PLAY_16));
-  private final JButton bStop = new JButton(Icons.getIcon(Icons.ICON_STOP_16));
-  private final JButton bAdd = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
-  private final JButton bRemove = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
-  private final JButton bUp = new JButton(Icons.getIcon(Icons.ICON_UP_16));
-  private final JButton bDown = new JButton(Icons.getIcon(Icons.ICON_DOWN_16));
+  private final JButton bPlay = new JButton(Icons.ICON_PLAY_16.getIcon());
+  private final JButton bStop = new JButton(Icons.ICON_STOP_16.getIcon());
+  private final JButton bAdd = new JButton(Icons.ICON_FORWARD_16.getIcon());
+  private final JButton bRemove = new JButton(Icons.ICON_BACK_16.getIcon());
+  private final JButton bUp = new JButton(Icons.ICON_UP_16.getIcon());
+  private final JButton bDown = new JButton(Icons.ICON_DOWN_16.getIcon());
   private final JCheckBox cbLoop = new JCheckBox("Loop", true);
   private final JList<ResourceEntry> allMusList;
   private final JList<ResourceEntry> selectedMusList;
@@ -63,7 +63,7 @@ public final class InfinityAmp extends ChildFrame
   public InfinityAmp()
   {
     super("InfinityAmp");
-    setIconImage(Icons.getIcon(Icons.ICON_VOLUME_16).getImage());
+    setIconImage(Icons.ICON_VOLUME_16.getIcon().getImage());
     List<ResourceEntry> files = ResourceFactory.getResources("MUS");
     for (int i = 0; i < files.size(); i++) {
       allMusModel.addElement(files.get(i));

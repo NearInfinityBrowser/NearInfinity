@@ -7,6 +7,7 @@ package org.infinity.datatype;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -84,7 +85,7 @@ public final class TextBitmap extends Datatype implements Editable, IsTextual
     }
 
     JScrollPane scroll = new JScrollPane(table);
-    JButton bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
+    JButton bUpdate = new JButton("Update value", Icons.ICON_REFRESH_16.getIcon());
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
 

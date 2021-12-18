@@ -64,8 +64,8 @@ import org.infinity.util.io.FileManager;
 
 final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelectionListener
 {
-  private final JButton bOpen = new JButton("Open selected", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton bSelectDir = new JButton(Icons.getIcon(Icons.ICON_OPEN_16));
+  private final JButton bOpen = new JButton("Open selected", Icons.ICON_OPEN_16.getIcon());
+  private final JButton bSelectDir = new JButton(Icons.ICON_OPEN_16.getIcon());
   private final JCheckBox cbIgnoreWarnings = new JCheckBox("Ignore compiler warnings", true);
   private final JFileChooser fc = new JFileChooser(Profile.getGameRoot().toFile());
   private final JLabel compZone = new JLabel("Compiler drop zone (BAF)", JLabel.CENTER);
@@ -84,7 +84,7 @@ final class BcsDropFrame extends ChildFrame implements ActionListener, ListSelec
   BcsDropFrame()
   {
     super("Script Drop Zone");
-    setIconImage(Icons.getIcon(Icons.ICON_HISTORY_16).getImage());
+    setIconImage(Icons.ICON_HISTORY_16.getIcon().getImage());
 
     blocker = new WindowBlocker(this);
     compZone.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));

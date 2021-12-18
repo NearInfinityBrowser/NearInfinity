@@ -119,13 +119,13 @@ public class StringValidationChecker extends AbstractSearcher implements Runnabl
     if (resultFrame == null) {
       table.tableComplete();
       resultFrame = new ChildFrame("Result of string validation", true);
-      resultFrame.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
-      bOpenLookup = new JButton("Open in StringRef Lookup", Icons.getIcon(Icons.ICON_OPEN_16));
+      resultFrame.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
+      bOpenLookup = new JButton("Open in StringRef Lookup", Icons.ICON_OPEN_16.getIcon());
       bOpenLookup.setMnemonic('l');
       bOpenLookup.setToolTipText("Only available for male strings.");
-      bOpenStringTable = new JButton("Open in String table", Icons.getIcon(Icons.ICON_OPEN_16));
+      bOpenStringTable = new JButton("Open in String table", Icons.ICON_OPEN_16.getIcon());
       bOpenStringTable.setMnemonic('t');
-      bSave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+      bSave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
       bSave.setMnemonic('s');
       JScrollPane scrollTable = new JScrollPane(table);
       scrollTable.getViewport().setBackground(table.getBackground());

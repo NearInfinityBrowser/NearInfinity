@@ -60,9 +60,9 @@ public class ScriptTextArea extends InfinityTextArea implements DocumentListener
 
   private static final EnumMap<IconType, Icon> icons = new EnumMap<>(IconType.class);
   static {
-    icons.put(IconType.INFORMATION, Icons.getIcon(Icons.ICON_INFORMATION_16));
-    icons.put(IconType.WARNING, Icons.getIcon(Icons.ICON_WARNING_16));
-    icons.put(IconType.ERROR, Icons.getIcon(Icons.ICON_ERROR_16));
+    icons.put(IconType.INFORMATION, Icons.ICON_INFORMATION_16.getIcon());
+    icons.put(IconType.WARNING, Icons.ICON_WARNING_16.getIcon());
+    icons.put(IconType.ERROR, Icons.ICON_ERROR_16.getIcon());
   }
 
   // Contains tokens that require special attention

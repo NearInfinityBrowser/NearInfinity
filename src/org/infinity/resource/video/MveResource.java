@@ -284,13 +284,13 @@ public class MveResource implements Resource, ActionListener, ItemListener, Clos
     optionsPanel.add(cbZoom);
     optionsPanel.add(cbFilter);
 
-    JButton bPlay = new JButton("Play", Icons.getIcon(Icons.ICON_PLAY_16));
+    JButton bPlay = new JButton("Play", Icons.ICON_PLAY_16.getIcon());
     bPlay.addActionListener(this);
     bPlay.setEnabled(decoder != null);
-    JButton bPause = new JButton("Pause", Icons.getIcon(Icons.ICON_PAUSE_16));
+    JButton bPause = new JButton("Pause", Icons.ICON_PAUSE_16.getIcon());
     bPause.addActionListener(this);
     bPause.setEnabled(false);
-    JButton bStop = new JButton("Stop", Icons.getIcon(Icons.ICON_STOP_16));
+    JButton bStop = new JButton("Stop", Icons.ICON_STOP_16.getIcon());
     bStop.addActionListener(this);
     bStop.setEnabled(false);
 

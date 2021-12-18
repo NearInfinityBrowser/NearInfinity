@@ -317,7 +317,7 @@ public class ConvertToPvrz extends ChildFrame implements ActionListener, Propert
 
   private void init()
   {
-    setIconImage(Icons.getImage(Icons.ICON_APPLICATION_16));
+    setIconImage(Icons.ICON_APPLICATION_16.getIcon().getImage());
 
     // setting up input section
     JPanel pInputAdd = new JPanel(new GridBagLayout());

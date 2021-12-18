@@ -21,13 +21,13 @@ import org.infinity.util.StructClipboard;
 
 final class ClipboardViewer extends ChildFrame implements ActionListener, ChangeListener
 {
-  private final JButton bclearclipboard = new JButton("Clear", Icons.getIcon(Icons.ICON_NEW_16));
+  private final JButton bclearclipboard = new JButton("Clear", Icons.ICON_NEW_16.getIcon());
   private final InfinityTextArea taClipBoard = new InfinityTextArea(false);
 
   ClipboardViewer()
   {
     super("Clipboard");
-    setIconImage(Icons.getIcon(Icons.ICON_PASTE_16).getImage());
+    setIconImage(Icons.ICON_PASTE_16.getIcon().getImage());
     bclearclipboard.setMnemonic('c');
     bclearclipboard.addActionListener(this);
     taClipBoard.setHighlightCurrentLine(false);

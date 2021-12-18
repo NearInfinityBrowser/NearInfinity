@@ -4,9 +4,10 @@
 
 package org.infinity.resource.dlg;
 
-import java.util.ArrayList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.enumeration;
+
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Objects;
@@ -22,7 +23,7 @@ import org.infinity.icon.Icons;
 /** Encapsulates a dialog state entry. */
 class StateItem extends TransitionOwnerItem
 {
-  private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_STOP_16);
+  private static final ImageIcon ICON = Icons.ICON_STOP_16.getIcon();
 
   private final State state;
 

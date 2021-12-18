@@ -37,8 +37,8 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
   private final ChildFrame selectframe = new ChildFrame("References", true);
   /** Selector of file types in which search must be performed. */
   private final FileTypeSelector selector;
-  private final JButton bStart = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
-  private final JButton bCancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
+  private final JButton bStart = new JButton("Search", Icons.ICON_FIND_16.getIcon());
+  private final JButton bCancel = new JButton("Cancel", Icons.ICON_DELETE_16.getIcon());
 
   /** Window with results of search. */
   private final ReferenceHitFrame hitFrame;
@@ -71,7 +71,7 @@ abstract class AbstractReferenceSearcher extends AbstractSearcher implements Run
       bStart.addActionListener(this);
       bCancel.addActionListener(this);
       selectframe.getRootPane().setDefaultButton(bStart);
-      selectframe.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
+      selectframe.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
 
       final JPanel bpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
       bpanel.add(bStart);

@@ -415,33 +415,33 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       JButton b;
       toolBar.setRollover(true);
       toolBar.setFloatable(false);
-      b = new JButton(Icons.getIcon(Icons.ICON_EXPAND_16));
+      b = new JButton(Icons.ICON_EXPAND_16.getIcon());
       b.addActionListener(this);
       b.setActionCommand("Expand");
       b.setToolTipText("Expand selected node");
       b.setMargin(new Insets(4, 4, 4, 4));
       toolBar.add(b);
-      b = new JButton(Icons.getIcon(Icons.ICON_COLLAPSE_16));
+      b = new JButton(Icons.ICON_COLLAPSE_16.getIcon());
       b.addActionListener(this);
       b.setActionCommand("Collapse");
       b.setToolTipText("Collapse selected node");
       b.setMargin(new Insets(4, 4, 4, 4));
       toolBar.add(b);
       toolBar.addSeparator(new Dimension(8, 24));
-      b = new JButton(Icons.getIcon(Icons.ICON_EXPAND_ALL_24));
+      b = new JButton(Icons.ICON_EXPAND_ALL_24.getIcon());
       b.addActionListener(this);
       b.setActionCommand("ExpandAll");
       b.setToolTipText("Expand all");
       b.setMargin(new Insets(0, 0, 0, 0));
       toolBar.add(b);
-      b = new JButton(Icons.getIcon(Icons.ICON_COLLAPSE_ALL_24));
+      b = new JButton(Icons.ICON_COLLAPSE_ALL_24.getIcon());
       b.addActionListener(this);
       b.setActionCommand("CollapseAll");
       b.setToolTipText("Collapse all");
       b.setMargin(new Insets(0, 0, 0, 0));
       toolBar.add(b);
       toolBar.addSeparator(new Dimension(8, 24));
-      bpwQuickSearch = new ButtonPopupWindow(Icons.getIcon(Icons.ICON_MAGNIFY_16));
+      bpwQuickSearch = new ButtonPopupWindow(Icons.ICON_MAGNIFY_16.getIcon());
       bpwQuickSearch.setToolTipText("Find resource");
       bpwQuickSearch.setMargin(new Insets(4, 4, 4, 4));
       toolBar.add(bpwQuickSearch);
@@ -481,7 +481,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
       });
 
       toolBar.add(Box.createHorizontalGlue());
-      btnLaunchGame = new JButton(Icons.getIcon(Icons.ICON_LAUNCH_24));
+      btnLaunchGame = new JButton(Icons.ICON_LAUNCH_24.getIcon());
       btnLaunchGame.setFocusable(false);
       btnLaunchGame.setEnabled(false);
       btnLaunchGame.setMargin(new Insets(0, 0, 0, 0));
@@ -1002,14 +1002,14 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
         boolean isEnabled = (binPaths != null) && BrowserMenuBar.getInstance().getLauncherEnabled();
         btnLaunchGame.setEnabled(isEnabled);
         if (binPaths == null ) {
-          btnLaunchGame.setIcon(Icons.getIcon(Icons.ICON_LAUNCH_24));
+          btnLaunchGame.setIcon(Icons.ICON_LAUNCH_24.getIcon());
           btnLaunchGame.setToolTipText("Launch game");
         } else if (binPaths.size() == 1) {
-          btnLaunchGame.setIcon(Icons.getIcon(Icons.ICON_LAUNCH_24));
+          btnLaunchGame.setIcon(Icons.ICON_LAUNCH_24.getIcon());
           btnLaunchGame.setToolTipText("Launch " + binPaths.get(0).toString());
         } else {
           String ctrlName = (Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() == Event.CTRL_MASK) ? "Ctrl" : "Command";
-          btnLaunchGame.setIcon(Icons.getIcon(Icons.ICON_LAUNCH_PLUS_24));
+          btnLaunchGame.setIcon(Icons.ICON_LAUNCH_PLUS_24.getIcon());
           btnLaunchGame.setToolTipText("Launch game (launch directly with " + ctrlName + "+Click)");
         }
       }
@@ -1121,7 +1121,7 @@ public final class NearInfinity extends JFrame implements ActionListener, Viewab
   {
     List<Image> list = new ArrayList<>();
     for (int i = 4; i < 8; i++) {
-      list.add(Icons.getImage(String.format("App%d.png", 1 << i)));
+      list.add(Icons.getImage(null, String.format("App%d.png", 1 << i)));
     }
     setIconImages(list);
   }

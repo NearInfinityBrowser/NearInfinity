@@ -27,7 +27,7 @@ public final class StringLookup extends ChildFrame implements SearchClient
   public StringLookup()
   {
     super("StringRef Lookup");
-    setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
+    setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
     strref = new StringRef("StringRef:", 0);
     Component com = strref.edit(null);
 

@@ -133,26 +133,26 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
     bpmFind.addItemListener(this);
     bpmFind.addActionListener(this);
 
-    JButton bNextState = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
+    JButton bNextState = new JButton(Icons.ICON_FORWARD_16.getIcon());
     bNextState.setMargin(new Insets(bNextState.getMargin().top, 0, bNextState.getMargin().bottom, 0));
     bNextState.addActionListener(this);
 
-    JButton bPrevState = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
+    JButton bPrevState = new JButton(Icons.ICON_BACK_16.getIcon());
     bPrevState.setMargin(bNextState.getMargin());
     bPrevState.addActionListener(this);
 
-    JButton bNextTrans = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
+    JButton bNextTrans = new JButton(Icons.ICON_FORWARD_16.getIcon());
     bNextTrans.setMargin(bNextState.getMargin());
     bNextTrans.addActionListener(this);
 
-    JButton bPrevTrans = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
+    JButton bPrevTrans = new JButton(Icons.ICON_BACK_16.getIcon());
     bPrevTrans.setMargin(bNextState.getMargin());
     bPrevTrans.addActionListener(this);
 
-    JButton bSelect = new JButton("Select", Icons.getIcon(Icons.ICON_REDO_16));
+    JButton bSelect = new JButton("Select", Icons.ICON_REDO_16.getIcon());
     bSelect.addActionListener(this);
 
-    JButton bReturn = new JButton("Return", Icons.getIcon(Icons.ICON_UNDO_16));
+    JButton bReturn = new JButton("Return", Icons.ICON_UNDO_16.getIcon());
     bReturn.addActionListener(this);
 
     int width = (int)tfState.getPreferredSize().getWidth();
@@ -622,12 +622,12 @@ final class Viewer extends JPanel implements ActionListener, ItemListener, Table
   private final class DlgPanel extends JPanel implements ActionListener
   {
     /** Button used to view {@link #struct} in the new {@link StructViewer} instance.  */
-    private final JButton bView = new JButton(Icons.getIcon(Icons.ICON_ZOOM_16));
+    private final JButton bView = new JButton(Icons.ICON_ZOOM_16.getIcon());
     /** Button used to open {@link #structEntry} in the table viewer. */
-    private final JButton bGoto = new JButton(Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16));
+    private final JButton bGoto = new JButton(Icons.ICON_ROW_INSERT_AFTER_16.getIcon());
     /** Button used to open {@link #structEntry} in the tree viewer. */
-    private final JButton bTree = new JButton(Icons.getIcon(Icons.ICON_SELECT_IN_TREE_16));
-    private final JButton bPlay = new JButton(Icons.getIcon(Icons.ICON_VOLUME_16));
+    private final JButton bTree = new JButton(Icons.ICON_SELECT_IN_TREE_16.getIcon());
+    private final JButton bPlay = new JButton(Icons.ICON_VOLUME_16.getIcon());
     private final ScriptTextArea textArea = new ScriptTextArea();
     private final JLabel label = new JLabel();
     private final String title;

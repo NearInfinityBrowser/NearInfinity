@@ -50,7 +50,7 @@ public class AnimateBitmap extends IdsBitmap implements ActionListener
     setFormatter(formatterAnimateBitmap);
 
     if (Profile.isEnhancedEdition() || ResourceFactory.resourceExists("ANISND.IDS")) {
-      showIni = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
+      showIni = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
       showIni.setEnabled(false);
       showIni.addActionListener(this);
       addButtons(showIni);

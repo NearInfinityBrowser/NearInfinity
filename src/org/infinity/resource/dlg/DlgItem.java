@@ -25,7 +25,7 @@ import org.infinity.resource.StructEntry;
 /** Meta class for identifying dialogue node. */
 final class DlgItem extends StateOwnerItem implements Iterable<StateItem>
 {
-  private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_ROW_INSERT_AFTER_16);
+  private static final ImageIcon ICON = Icons.ICON_ROW_INSERT_AFTER_16.getIcon();
 
   private final DlgTreeModel parent;
   /** Dialog which represents this tree. */

@@ -283,7 +283,7 @@ public class SearchResource extends ChildFrame
     pm.setMillisToPopup(0);
     pm.setProgress(progress++);
     try {
-      setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
+      setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
       GridBagConstraints c = new GridBagConstraints();
 
       boolean effSupported = Profile.getProperty(Profile.Key.IS_SUPPORTED_EFF);
@@ -349,7 +349,7 @@ public class SearchResource extends ChildFrame
       cbResourceType = new JComboBox<>(resTypeList);
       cbResourceType.setSelectedIndex(0);
       cbResourceType.addActionListener(this);
-      bSearch = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
+      bSearch = new JButton("Search", Icons.ICON_FIND_16.getIcon());
       bSearch.setEnabled(false);
       bSearch.addActionListener(this);
       bShowHideOptions = new JToggleButton(setShowHideText[1], true);
@@ -437,15 +437,15 @@ public class SearchResource extends ChildFrame
       pResultMain.add(pResult, c);
 
       // creating bottom bar for buttons and progress
-      bInsertRef = new JButton("Insert reference", Icons.getIcon(Icons.ICON_PASTE_16));
+      bInsertRef = new JButton("Insert reference", Icons.ICON_PASTE_16.getIcon());
       bInsertRef.setMnemonic('r');
       bInsertRef.setEnabled(false);
       bInsertRef.addActionListener(this);
-      bOpen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
+      bOpen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
       bOpen.setMnemonic('o');
       bOpen.setEnabled(false);
       bOpen.addActionListener(this);
-      bOpenNew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
+      bOpenNew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
       bOpenNew.setMnemonic('n');
       bOpenNew.setEnabled(false);
       bOpenNew.addActionListener(this);

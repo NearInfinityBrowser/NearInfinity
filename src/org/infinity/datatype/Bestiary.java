@@ -4,13 +4,15 @@
 
 package org.infinity.datatype;
 
+import static java.awt.event.ActionEvent.ACTION_PERFORMED;
+import static org.infinity.gui.StructViewer.UPDATE_VALUE;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
-import static java.awt.event.ActionEvent.ACTION_PERFORMED;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -44,7 +46,6 @@ import org.infinity.gui.InfinityScrollPane;
 import org.infinity.gui.InfinityTextArea;
 import org.infinity.gui.RenderCanvas;
 import org.infinity.gui.StringEditor;
-import static org.infinity.gui.StructViewer.UPDATE_VALUE;
 import org.infinity.gui.ViewFrame;
 import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
@@ -305,7 +306,7 @@ public final class Bestiary extends Datatype implements Editable, TableModel
     private final JMenuItem editDesc = new JMenuItem();
     /** Context menu item used to open {@code "beast.ini"} file. */
     private final JMenuItem beastIni = new JMenuItem(String.format("Open \"%s\"", BEAST_INI),
-                                                     Icons.getIcon(Icons.ICON_EDIT_16));
+                                                     Icons.ICON_EDIT_16.getIcon());
 
     public Viewer(ActionListener container)
     {

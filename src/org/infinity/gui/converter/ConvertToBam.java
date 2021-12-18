@@ -987,7 +987,7 @@ public class ConvertToBam extends ChildFrame
 
   private void init()
   {
-    setIconImage(Icons.getImage(Icons.ICON_APPLICATION_16));
+    setIconImage(Icons.ICON_APPLICATION_16.getIcon().getImage());
     BamOptionsDialog.loadSettings(false);
 
     if (BamOptionsDialog.getPath().isEmpty()) {
@@ -1031,7 +1031,7 @@ public class ConvertToBam extends ChildFrame
     bpmSession.addItem(miSessionExport);
     bpmSession.addItem(miSessionImport);
     bpmSession.setToolTipText("Export or import BAM frame, cycle or filter definitions.");
-    bpmSession.setIcon(Icons.getIcon(Icons.ICON_ARROW_UP_15));
+    bpmSession.setIcon(Icons.ICON_ARROW_UP_15.getIcon());
     bpmSession.setIconTextGap(8);
     Insets i = bpmSession.getInsets();
     bpmSession.setMargin(new Insets(i.top + 1, i.left, i.bottom + 1, i.right));
@@ -1095,10 +1095,10 @@ public class ConvertToBam extends ChildFrame
 
     // creating "Frames List"
     JPanel pFramesListArrows = new JPanel(new GridBagLayout());
-    bFramesUp = new JButton(Icons.getIcon(Icons.ICON_UP_16));
+    bFramesUp = new JButton(Icons.ICON_UP_16.getIcon());
     bFramesUp.setMargin(new Insets(bFramesUp.getInsets().top, 2, bFramesUp.getInsets().bottom, 2));
     bFramesUp.addActionListener(this);
-    bFramesDown = new JButton(Icons.getIcon(Icons.ICON_DOWN_16));
+    bFramesDown = new JButton(Icons.ICON_DOWN_16.getIcon());
     bFramesDown.setMargin(new Insets(bFramesDown.getInsets().top, 2, bFramesDown.getInsets().bottom, 2));
     bFramesDown.addActionListener(this);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_END,
@@ -1127,7 +1127,7 @@ public class ConvertToBam extends ChildFrame
                                                                  miFramesAddFolder,
                                                                  miFramesImportFile, miFramesImportResource},
                                        false, ButtonPopupMenu.Align.TOP);
-    bpmFramesAdd.setIcon(Icons.getIcon(Icons.ICON_ARROW_UP_15));
+    bpmFramesAdd.setIcon(Icons.ICON_ARROW_UP_15.getIcon());
     bpmFramesAdd.setIconTextGap(8);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
@@ -1143,7 +1143,7 @@ public class ConvertToBam extends ChildFrame
     miFramesDropUnused.setToolTipText("Remove frames that are not used in any cycle definitions.");
     bpmFramesRemove = new ButtonPopupMenu("Remove...", new JMenuItem[]{miFramesRemove, miFramesRemoveAll,
                                                                        miFramesDropUnused});
-    bpmFramesRemove.setIcon(Icons.getIcon(Icons.ICON_ARROW_UP_15));
+    bpmFramesRemove.setIcon(Icons.ICON_ARROW_UP_15.getIcon());
     bpmFramesRemove.setIconTextGap(8);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
                           GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0);
@@ -1365,10 +1365,10 @@ public class ConvertToBam extends ChildFrame
     pCyclesButtons.add(bCyclesRemoveAll, c);
 
     JPanel pCyclesArrows = new JPanel(new GridBagLayout());
-    bCyclesUp = new JButton(Icons.getIcon(Icons.ICON_UP_16));
+    bCyclesUp = new JButton(Icons.ICON_UP_16.getIcon());
     bCyclesUp.setMargin(new Insets(bCyclesUp.getInsets().top, 2, bCyclesUp.getInsets().bottom, 2));
     bCyclesUp.addActionListener(this);
-    bCyclesDown = new JButton(Icons.getIcon(Icons.ICON_DOWN_16));
+    bCyclesDown = new JButton(Icons.ICON_DOWN_16.getIcon());
     bCyclesDown.setMargin(new Insets(bCyclesDown.getInsets().top, 2, bCyclesDown.getInsets().bottom, 2));
     bCyclesDown.addActionListener(this);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
@@ -1482,11 +1482,11 @@ public class ConvertToBam extends ChildFrame
 
     // creating "Current Cycles" section
     JPanel pCycleTransfer = new JPanel(new GridBagLayout());
-    bCurCycleAdd = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
+    bCurCycleAdd = new JButton(Icons.ICON_FORWARD_16.getIcon());
     bCurCycleAdd.setMargin(new Insets(2, bCurCycleAdd.getInsets().left,
                                       2, bCurCycleAdd.getInsets().right));
     bCurCycleAdd.addActionListener(this);
-    bCurCycleRemove = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
+    bCurCycleRemove = new JButton(Icons.ICON_BACK_16.getIcon());
     bCurCycleRemove.setMargin(new Insets(2, bCurCycleRemove.getInsets().left,
                                          2, bCurCycleRemove.getInsets().right));
     bCurCycleRemove.addActionListener(this);
@@ -1498,10 +1498,10 @@ public class ConvertToBam extends ChildFrame
     pCycleTransfer.add(bCurCycleRemove, c);
 
     JPanel pCurCycleArrows = new JPanel(new GridBagLayout());
-    bCurCycleUp = new JButton(Icons.getIcon(Icons.ICON_UP_16));
+    bCurCycleUp = new JButton(Icons.ICON_UP_16.getIcon());
     bCurCycleUp.setMargin(new Insets(bCurCycleUp.getInsets().top, 2, bCurCycleUp.getInsets().bottom, 2));
     bCurCycleUp.addActionListener(this);
-    bCurCycleDown = new JButton(Icons.getIcon(Icons.ICON_DOWN_16));
+    bCurCycleDown = new JButton(Icons.ICON_DOWN_16.getIcon());
     bCurCycleDown.setMargin(new Insets(bCurCycleDown.getInsets().top, 2, bCurCycleDown.getInsets().bottom, 2));
     bCurCycleDown.addActionListener(this);
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START,
@@ -1569,30 +1569,30 @@ public class ConvertToBam extends ChildFrame
 
     // create bottom control bar
     lPreviewCycle = new JLabel("Cycle: X/Y");
-    bPreviewCyclePrev = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
+    bPreviewCyclePrev = new JButton(Icons.ICON_BACK_16.getIcon());
     bPreviewCyclePrev.setMargin(new Insets(bPreviewCyclePrev.getMargin().top, 2,
                                            bPreviewCyclePrev.getMargin().bottom, 2));
     bPreviewCyclePrev.addActionListener(this);
-    bPreviewCycleNext = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
+    bPreviewCycleNext = new JButton(Icons.ICON_FORWARD_16.getIcon());
     bPreviewCycleNext.setMargin(new Insets(bPreviewCycleNext.getMargin().top, 2,
                                            bPreviewCycleNext.getMargin().bottom, 2));
     bPreviewCycleNext.addActionListener(this);
 
     lPreviewFrame = new JLabel("Frame: X/Y");
-    bPreviewFramePrev = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
+    bPreviewFramePrev = new JButton(Icons.ICON_BACK_16.getIcon());
     bPreviewFramePrev.setMargin(new Insets(bPreviewFramePrev.getMargin().top, 2,
                                            bPreviewFramePrev.getMargin().bottom, 2));
     bPreviewFramePrev.addActionListener(this);
-    bPreviewFrameNext = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
+    bPreviewFrameNext = new JButton(Icons.ICON_FORWARD_16.getIcon());
     bPreviewFrameNext.setMargin(new Insets(bPreviewFrameNext.getMargin().top, 2,
                                            bPreviewFrameNext.getMargin().bottom, 2));
     bPreviewFrameNext.addActionListener(this);
 
-    bPreviewPlay = new JButton("Pause", Icons.getIcon(Icons.ICON_PLAY_16));
+    bPreviewPlay = new JButton("Pause", Icons.ICON_PLAY_16.getIcon());
     bPreviewPlay.setMinimumSize(bPreviewPlay.getPreferredSize());
     bPreviewPlay.setText("Play");
     bPreviewPlay.addActionListener(this);
-    bPreviewStop = new JButton("Stop", Icons.getIcon(Icons.ICON_STOP_16));
+    bPreviewStop = new JButton("Stop", Icons.ICON_STOP_16.getIcon());
     bPreviewStop.addActionListener(this);
     JPanel pControls = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START,
@@ -1723,10 +1723,10 @@ public class ConvertToBam extends ChildFrame
                           GridBagConstraints.NONE, new Insets(0, 4, 0, 0), 0, 0);
     pFiltersRemove.add(bFiltersRemoveAll, c);
 
-    bFiltersUp = new JButton(Icons.getIcon(Icons.ICON_UP_16));
+    bFiltersUp = new JButton(Icons.ICON_UP_16.getIcon());
     bFiltersUp.setMargin(new Insets(16, 2, 16, 2));
     bFiltersUp.addActionListener(this);
-    bFiltersDown = new JButton(Icons.getIcon(Icons.ICON_DOWN_16));
+    bFiltersDown = new JButton(Icons.ICON_DOWN_16.getIcon());
     bFiltersDown.setMargin(new Insets(16, 2, 16, 2));
     bFiltersDown.addActionListener(this);
     JPanel pFiltersMove = new JPanel(new GridBagLayout());
@@ -3279,13 +3279,13 @@ public class ConvertToBam extends ChildFrame
       timer.stop();
       isPreviewPlaying = false;
       bPreviewPlay.setText("Play");
-      bPreviewPlay.setIcon(Icons.getIcon(Icons.ICON_PLAY_16));
+      bPreviewPlay.setIcon(Icons.ICON_PLAY_16.getIcon());
       bPreviewStop.setEnabled(true);
       updatePreview();
     } else {
       isPreviewPlaying = true;
       bPreviewPlay.setText("Pause");
-      bPreviewPlay.setIcon(Icons.getIcon(Icons.ICON_PAUSE_16));
+      bPreviewPlay.setIcon(Icons.ICON_PAUSE_16.getIcon());
       bPreviewStop.setEnabled(true);
       timer.start();
     }
@@ -3297,7 +3297,7 @@ public class ConvertToBam extends ChildFrame
     timer.stop();
     isPreviewPlaying = false;
     bPreviewPlay.setText("Play");
-    bPreviewPlay.setIcon(Icons.getIcon(Icons.ICON_PLAY_16));
+    bPreviewPlay.setIcon(Icons.ICON_PLAY_16.getIcon());
     bPreviewStop.setEnabled(false);
     if (bamControlPreview != null) {
       bamControlPreview.cycleSetFrameIndex(0);

@@ -286,7 +286,7 @@ public class ConvertToBmp extends ChildFrame
 
   private void init()
   {
-    setIconImage(Icons.getImage(Icons.ICON_APPLICATION_16));
+    setIconImage(Icons.ICON_APPLICATION_16.getIcon().getImage());
     GridBagConstraints c = new GridBagConstraints();
 
     bAdd = new JButton("Add...");

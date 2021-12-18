@@ -117,7 +117,7 @@ public class TtfResource implements Resource, DocumentListener, ActionListener
     scroll.setBorder(BorderFactory.createLoweredBevelBorder());
 
     ((JButton)buttonPanel.addControl(ButtonPanel.Control.EXPORT_BUTTON)).addActionListener(this);
-    JButton bProperties = new JButton("Properties...", Icons.getIcon(Icons.ICON_EDIT_16));
+    JButton bProperties = new JButton("Properties...", Icons.ICON_EDIT_16.getIcon());
     bProperties.addActionListener(this);
     buttonPanel.addControl(bProperties, Properties);
 

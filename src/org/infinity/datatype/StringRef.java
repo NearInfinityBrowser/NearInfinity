@@ -184,14 +184,14 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
       taRefText.setLineWrap(true);
       taRefText.setWrapStyleWord(true);
       taRefText.setMargin(new Insets(3, 3, 3, 3));
-      bPlay = new JButton("Sound", Icons.getIcon(Icons.ICON_VOLUME_16));
+      bPlay = new JButton("Sound", Icons.ICON_VOLUME_16.getIcon());
       bPlay.setToolTipText("Opens associated sound");
       bPlay.addActionListener(this);
-      bEdit = new JButton("Edit", Icons.getIcon(Icons.ICON_EDIT_16));
+      bEdit = new JButton("Edit", Icons.ICON_EDIT_16.getIcon());
       bEdit.setToolTipText("Opens string editor");
       bEdit.setMnemonic('e');
       bEdit.addActionListener(this);
-      bSearch = new JButton("Find references...", Icons.getIcon(Icons.ICON_FIND_16));
+      bSearch = new JButton("Find references...", Icons.ICON_FIND_16.getIcon());
       bSearch.addActionListener(this);
       bSearch.setMnemonic('f');
     }
@@ -211,7 +211,7 @@ public final class StringRef extends Datatype implements Editable, IsNumeric, Is
 
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 0));
     if (container != null) {
-      bUpdate = new JButton("Update value", Icons.getIcon(Icons.ICON_REFRESH_16));
+      bUpdate = new JButton("Update value", Icons.ICON_REFRESH_16.getIcon());
       bUpdate.setMargin(bPlay.getMargin());
       bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
       bUpdate.addActionListener(this);

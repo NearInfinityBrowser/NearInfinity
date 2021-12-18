@@ -207,16 +207,16 @@ public final class SavResource implements Resource, Closeable, Writeable,
       }
     });
 
-    JButton bDecompress = new JButton("Decompress", Icons.getIcon(Icons.ICON_EXPORT_16));
+    JButton bDecompress = new JButton("Decompress", Icons.ICON_EXPORT_16.getIcon());
     bDecompress.setMnemonic('d');
     bDecompress.addActionListener(this);
 
-    JButton bEdit = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
+    JButton bEdit = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
     bEdit.setMnemonic('v');
     bEdit.addActionListener(this);
     bEdit.setEnabled(false);
 
-    JButton bDelete = new JButton("Delete file", Icons.getIcon(Icons.ICON_DELETE_16));
+    JButton bDelete = new JButton("Delete file", Icons.ICON_DELETE_16.getIcon());
     bDelete.addActionListener(this);
     bDelete.setEnabled(false);
 
@@ -225,10 +225,10 @@ public final class SavResource implements Resource, Closeable, Writeable,
     miAddInternal = new JMenuItem("Game resource");
     miAddInternal.addActionListener(this);
     ButtonPopupMenu bpmAdd = new ButtonPopupMenu("Add...", new JMenuItem[]{miAddExternal, miAddInternal});
-    bpmAdd.setIcon(Icons.getIcon(Icons.ICON_ADD_16));
+    bpmAdd.setIcon(Icons.ICON_ADD_16.getIcon());
     bpmAdd.setEnabled(false);
 
-    JButton bCompress = new JButton("Compress", Icons.getIcon(Icons.ICON_IMPORT_16));
+    JButton bCompress = new JButton("Compress", Icons.ICON_IMPORT_16.getIcon());
     bCompress.setMnemonic('c');
     bCompress.addActionListener(this);
     bCompress.setEnabled(false);

@@ -52,10 +52,10 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
 {
   private static final SearchFrame searchframe = null;
   private final CardLayout cards = new CardLayout();
-  private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton binsert = new JButton("Insert reference", Icons.getIcon(Icons.ICON_PASTE_16));
-  private final JButton bsearch = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
+  private final JButton bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+  private final JButton bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+  private final JButton binsert = new JButton("Insert reference", Icons.ICON_PASTE_16.getIcon());
+  private final JButton bsearch = new JButton("Search", Icons.ICON_FIND_16.getIcon());
   private final JList<String> list = new JList<>();
   private final JPanel bpanel;
   private final JProgressBar progress = new JProgressBar();
@@ -78,7 +78,7 @@ public final class SearchFrame extends ChildFrame implements ActionListener, Lis
   public SearchFrame()
   {
     super("Find");
-    setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
+    setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
     getRootPane().setDefaultButton(bsearch);
     bopen.setMnemonic('o');
     bopennew.setMnemonic('n');

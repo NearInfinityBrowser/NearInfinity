@@ -169,15 +169,15 @@ public class QuickSearch extends JPanel implements Runnable
     tcEdit = (JTextComponent)cbSearch.getEditor().getEditorComponent();
     tcEdit.addKeyListener(keyListener);
 
-    bOk = new JButton(Icons.getIcon(Icons.ICON_CHECK_16));
+    bOk = new JButton(Icons.ICON_CHECK_16.getIcon());
     bOk.addActionListener(acceptAction);
     bOk.setMargin(new Insets(1, 4, 1, 4));
     bOk.setToolTipText("Open (Shortcut: Enter)");
-    bOkNew = new JButton(Icons.getIcon(Icons.ICON_OPEN_16));
+    bOkNew = new JButton(Icons.ICON_OPEN_16.getIcon());
     bOkNew.addActionListener(acceptNewAction);
     bOkNew.setMargin(new Insets(1, 5, 1, 4));
     bOkNew.setToolTipText("Open in new window (Shortcut: Shift+Enter)");
-    bCancel = new JButton(Icons.getIcon(Icons.ICON_CHECK_NOT_16));
+    bCancel = new JButton(Icons.ICON_CHECK_NOT_16.getIcon());
     bCancel.setMargin(new Insets(1, 2, 1, 2));
     bCancel.setToolTipText("Cancel search (Shortcut: Esc)");
     bCancel.addActionListener(rejectAction);

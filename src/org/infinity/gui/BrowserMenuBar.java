@@ -758,20 +758,20 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       super("Game");
       setMnemonic(KeyEvent.VK_G);
 
-      gameOpenFile = makeMenuItem("Open File...", KeyEvent.VK_F, Icons.getIcon(Icons.ICON_OPEN_16),
+      gameOpenFile = makeMenuItem("Open File...", KeyEvent.VK_F, Icons.ICON_OPEN_16.getIcon(),
                                   KeyEvent.VK_I, this);
       add(gameOpenFile);
-      gameOpenGame = makeMenuItem("Open Game...", KeyEvent.VK_O, Icons.getIcon(Icons.ICON_OPEN_16),
+      gameOpenGame = makeMenuItem("Open Game...", KeyEvent.VK_O, Icons.ICON_OPEN_16.getIcon(),
                                   KeyEvent.VK_O, NearInfinity.getInstance());
       gameOpenGame.setActionCommand("Open");
       add(gameOpenGame);
-      gameRefresh = makeMenuItem("Refresh Tree", KeyEvent.VK_R, Icons.getIcon(Icons.ICON_REFRESH_16),
+      gameRefresh = makeMenuItem("Refresh Tree", KeyEvent.VK_R, Icons.ICON_REFRESH_16.getIcon(),
                                  -1, NearInfinity.getInstance());
       gameRefresh.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
       gameRefresh.setActionCommand("Refresh");
       add(gameRefresh);
 
-      gameProperties = makeMenuItem("Game Properties...", KeyEvent.VK_P, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
+      gameProperties = makeMenuItem("Game Properties...", KeyEvent.VK_P, Icons.ICON_EDIT_16.getIcon(), -1, this);
       add(gameProperties);
 
       addSeparator();
@@ -847,7 +847,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
       addSeparator();
 
-      gameExit = makeMenuItem("Quit", KeyEvent.VK_Q, Icons.getIcon(Icons.ICON_EXIT_16), KeyEvent.VK_Q,
+      gameExit = makeMenuItem("Quit", KeyEvent.VK_Q, Icons.ICON_EXIT_16.getIcon(), KeyEvent.VK_Q,
                               NearInfinity.getInstance());
       gameExit.setActionCommand("Exit");
       add(gameExit);
@@ -1251,28 +1251,28 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       setMnemonic(KeyEvent.VK_F);
 
       newFileMenu = new JMenu("New Resource");
-      newFileMenu.setIcon(Icons.getIcon(Icons.ICON_NEW_16));
+      newFileMenu.setIcon(Icons.ICON_NEW_16.getIcon());
       newFileMenu.setMnemonic(KeyEvent.VK_N);
       add(newFileMenu);
-      fileOpenNew = makeMenuItem("Open in New Window", KeyEvent.VK_W, Icons.getIcon(Icons.ICON_OPEN_16), -1, this);
+      fileOpenNew = makeMenuItem("Open in New Window", KeyEvent.VK_W, Icons.ICON_OPEN_16.getIcon(), -1, this);
       fileOpenNew.setEnabled(false);
       add(fileOpenNew);
-      fileReference = makeMenuItem("Find references...", KeyEvent.VK_F, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+      fileReference = makeMenuItem("Find references...", KeyEvent.VK_F, Icons.ICON_FIND_16.getIcon(), -1, this);
       fileReference.setEnabled(false);
       add(fileReference);
-      fileExport = makeMenuItem("Export...", KeyEvent.VK_E, Icons.getIcon(Icons.ICON_EXPORT_16), -1, this);
+      fileExport = makeMenuItem("Export...", KeyEvent.VK_E, Icons.ICON_EXPORT_16.getIcon(), -1, this);
       fileExport.setEnabled(false);
       add(fileExport);
-      fileAddCopy = makeMenuItem("Add Copy Of...", KeyEvent.VK_A, Icons.getIcon(Icons.ICON_ADD_16), -1, this);
+      fileAddCopy = makeMenuItem("Add Copy Of...", KeyEvent.VK_A, Icons.ICON_ADD_16.getIcon(), -1, this);
       fileAddCopy.setEnabled(false);
       add(fileAddCopy);
-      fileRename = makeMenuItem("Rename...", KeyEvent.VK_R, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
+      fileRename = makeMenuItem("Rename...", KeyEvent.VK_R, Icons.ICON_EDIT_16.getIcon(), -1, this);
       fileRename.setEnabled(false);
       add(fileRename);
-      fileDelete = makeMenuItem("Delete", KeyEvent.VK_D, Icons.getIcon(Icons.ICON_DELETE_16), -1, this);
+      fileDelete = makeMenuItem("Delete", KeyEvent.VK_D, Icons.ICON_DELETE_16.getIcon(), -1, this);
       fileDelete.setEnabled(false);
       add(fileDelete);
-      fileRestore = makeMenuItem("Restore backup", KeyEvent.VK_B, Icons.getIcon(Icons.ICON_UNDO_16), -1, this);
+      fileRestore = makeMenuItem("Restore backup", KeyEvent.VK_B, Icons.ICON_UNDO_16.getIcon(), -1, this);
       fileRestore.setEnabled(false);
       add(fileRestore);
     }
@@ -1363,10 +1363,10 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       setMnemonic(KeyEvent.VK_E);
 
       editString =
-          makeMenuItem("String table", KeyEvent.VK_S, Icons.getIcon(Icons.ICON_EDIT_16), KeyEvent.VK_S, this);
+          makeMenuItem("String table", KeyEvent.VK_S, Icons.ICON_EDIT_16.getIcon(), KeyEvent.VK_S, this);
       add(editString);
       // TODO: reactivate when fixed
-      editBIFF = makeMenuItem("BIFF", KeyEvent.VK_B, Icons.getIcon(Icons.ICON_EDIT_16), KeyEvent.VK_E, this);
+      editBIFF = makeMenuItem("BIFF", KeyEvent.VK_B, Icons.ICON_EDIT_16.getIcon(), KeyEvent.VK_E, this);
       editBIFF.setToolTipText("Temporarily disabled");
       editBIFF.setEnabled(false);
       add(editBIFF);
@@ -1400,30 +1400,30 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       setMnemonic(KeyEvent.VK_S);
 
       searchString =
-          makeMenuItem("StringRef...", KeyEvent.VK_S, Icons.getIcon(Icons.ICON_FIND_16), KeyEvent.VK_L, this);
+          makeMenuItem("StringRef...", KeyEvent.VK_S, Icons.ICON_FIND_16.getIcon(), KeyEvent.VK_L, this);
       add(searchString);
       searchFile =
-          makeMenuItem("CRE/ITM/SPL/STO...", KeyEvent.VK_C, Icons.getIcon(Icons.ICON_FIND_16), KeyEvent.VK_F, this);
+          makeMenuItem("CRE/ITM/SPL/STO...", KeyEvent.VK_C, Icons.ICON_FIND_16.getIcon(), KeyEvent.VK_F, this);
       add(searchFile);
 
       JMenu menuAdvanced = new JMenu("Advanced Search");
-      menuAdvanced.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
+      menuAdvanced.setIcon(Icons.ICON_FIND_16.getIcon());
       menuAdvanced.setMnemonic('a');
       add(menuAdvanced);
 
       advancedSearch =
-          makeMenuItem("Advanced search...", KeyEvent.VK_A, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+          makeMenuItem("Advanced search...", KeyEvent.VK_A, Icons.ICON_FIND_16.getIcon(), -1, this);
       advancedSearch.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, CTRL_MASK | ActionEvent.ALT_MASK));
       advancedSearch.setToolTipText("A powerful and highly flexible search for structured resources of all kinds.");
       menuAdvanced.add(advancedSearch);
       searchResource =
-          makeMenuItem("Legacy extended search...", KeyEvent.VK_X, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+          makeMenuItem("Legacy extended search...", KeyEvent.VK_X, Icons.ICON_FIND_16.getIcon(), -1, this);
       searchResource.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, CTRL_MASK | ActionEvent.ALT_MASK));
       searchResource.setToolTipText("The original \"Extended Search\".");
       menuAdvanced.add(searchResource);
 
       textSearchMenu = new JMenu("Text Search");
-      textSearchMenu.setIcon(Icons.getIcon(Icons.ICON_EDIT_16));
+      textSearchMenu.setIcon(Icons.ICON_EDIT_16.getIcon());
       for (final String type : TEXTSEARCH) {
         JMenuItem textSearch = new JMenuItem(type);
         textSearch.addActionListener(this);
@@ -1504,17 +1504,17 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       setMnemonic(KeyEvent.VK_T);
 
       toolCreatureBrowser = makeMenuItem("Creature Animation Browser", KeyEvent.VK_A,
-                                         Icons.getIcon(Icons.ICON_CRE_VIEWER_24), -1, this);
+                                         Icons.ICON_CRE_VIEWER_24.getIcon(), -1, this);
       add(toolCreatureBrowser);
 
-      toolInfinityAmp = makeMenuItem("InfinityAmp", KeyEvent.VK_I, Icons.getIcon(Icons.ICON_VOLUME_16), -1, this);
+      toolInfinityAmp = makeMenuItem("InfinityAmp", KeyEvent.VK_I, Icons.ICON_VOLUME_16.getIcon(), -1, this);
       add(toolInfinityAmp);
 
       addSeparator();
 
       // TODO: reactivate when fixed
       toolCleanKeyfile =
-          makeMenuItem("Keyfile Cleanup", KeyEvent.VK_K, Icons.getIcon(Icons.ICON_REFRESH_16), -1, this);
+          makeMenuItem("Keyfile Cleanup", KeyEvent.VK_K, Icons.ICON_REFRESH_16.getIcon(), -1, this);
       toolCleanKeyfile.setToolTipText("Temporarily disabled");
       toolCleanKeyfile.setEnabled(false);
       add(toolCleanKeyfile);
@@ -1523,12 +1523,12 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
 
       // *** Begin Check submenu ***
       JMenu checkMenu = new JMenu("Check");
-      checkMenu.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
+      checkMenu.setIcon(Icons.ICON_FIND_16.getIcon());
       checkMenu.setMnemonic('c');
       add(checkMenu);
 
       final JMenu checkSubMenu = new JMenu("Dialogues");
-      checkSubMenu.setIcon(Icons.getIcon(Icons.ICON_REFRESH_16));
+      checkSubMenu.setIcon(Icons.ICON_REFRESH_16.getIcon());
       toolCheckAllDialog = new JMenuItem("All");
       toolCheckAllDialog.addActionListener(this);
       checkSubMenu.add(toolCheckAllDialog);
@@ -1538,22 +1538,22 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       checkMenu.add(checkSubMenu);
 
       toolCheckScripts =
-          makeMenuItem("Scripts", KeyEvent.VK_S, Icons.getIcon(Icons.ICON_REFRESH_16), -1, this);
+          makeMenuItem("Scripts", KeyEvent.VK_S, Icons.ICON_REFRESH_16.getIcon(), -1, this);
       checkMenu.add(toolCheckScripts);
 
       toolCheckCREInv =
-          makeMenuItem("For CRE Items Not in Inventory", KeyEvent.VK_C, Icons.getIcon(Icons.ICON_REFRESH_16),
+          makeMenuItem("For CRE Items Not in Inventory", KeyEvent.VK_C, Icons.ICON_REFRESH_16.getIcon(),
                        -1, this);
       toolCheckCREInv.setToolTipText("Reports items present in the file but not in the inventory");
       checkMenu.add(toolCheckCREInv);
 
       toolCheckResRef =
-          makeMenuItem("For Illegal ResourceRefs...", KeyEvent.VK_R, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+          makeMenuItem("For Illegal ResourceRefs...", KeyEvent.VK_R, Icons.ICON_FIND_16.getIcon(), -1, this);
       toolCheckResRef.setToolTipText("Reports resource references pointing to nonexistent files");
       checkMenu.add(toolCheckResRef);
 
       JMenu findMenu = new JMenu("For Unknown IDS References In");
-      findMenu.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
+      findMenu.setIcon(Icons.ICON_FIND_16.getIcon());
       toolCheckIDSBCSRef = new JMenuItem("BCS & BS Files");
       toolCheckIDSBCSRef.addActionListener(this);
       findMenu.add(toolCheckIDSBCSRef);
@@ -1566,83 +1566,83 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       toolCheckIDSRef.setToolTipText("Note: \"0\" references are ignored");
 
       toolCheckStructs =
-          makeMenuItem("For Corrupted Files...", KeyEvent.VK_F, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+          makeMenuItem("For Corrupted Files...", KeyEvent.VK_F, Icons.ICON_FIND_16.getIcon(), -1, this);
       toolCheckStructs.setToolTipText("Reports structured files with partially overlapping subsections or resource-specific corruptions");
       checkMenu.add(toolCheckStructs);
 
       toolCheckStringUse =
-          makeMenuItem("For Unused Strings", KeyEvent.VK_U, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+          makeMenuItem("For Unused Strings", KeyEvent.VK_U, Icons.ICON_FIND_16.getIcon(), -1, this);
       checkMenu.add(toolCheckStringUse);
 
       toolCheckStringValid =
-          makeMenuItem("For String Encoding Errors", KeyEvent.VK_E, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+          makeMenuItem("For String Encoding Errors", KeyEvent.VK_E, Icons.ICON_FIND_16.getIcon(), -1, this);
       checkMenu.add(toolCheckStringValid);
 
       toolCheckStringIndex =
-          makeMenuItem("For Illegal Strrefs...", KeyEvent.VK_S, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+          makeMenuItem("For Illegal Strrefs...", KeyEvent.VK_S, Icons.ICON_FIND_16.getIcon(), -1, this);
       toolCheckStringIndex.setToolTipText("Reports resources with out-of-range string references");
       checkMenu.add(toolCheckStringIndex);
 
-      toolCheckFileUse = makeMenuItem("For Unused Files...", -1, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+      toolCheckFileUse = makeMenuItem("For Unused Files...", -1, Icons.ICON_FIND_16.getIcon(), -1, this);
       checkMenu.add(toolCheckFileUse);
 
       toolCheckEffectsIndex =
-          makeMenuItem("For Mis-indexed Effects...", -1, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+          makeMenuItem("For Mis-indexed Effects...", -1, Icons.ICON_FIND_16.getIcon(), -1, this);
       checkMenu.add(toolCheckEffectsIndex);
       // *** End Check submenu ***
 
       // *** Begin Convert submenu ***
       JMenu convertMenu = new JMenu("Convert");
-      convertMenu.setIcon(Icons.getIcon(Icons.ICON_APPLICATION_16));
+      convertMenu.setIcon(Icons.ICON_APPLICATION_16.getIcon());
       convertMenu.setMnemonic('v');
       add(convertMenu);
 
       toolConvImageToBam =
-          makeMenuItem("BAM Converter...", KeyEvent.VK_B, Icons.getIcon(Icons.ICON_APPLICATION_16), -1, this);
+          makeMenuItem("BAM Converter...", KeyEvent.VK_B, Icons.ICON_APPLICATION_16.getIcon(), -1, this);
       convertMenu.add(toolConvImageToBam);
 
       toolConvImageToBmp =
-          makeMenuItem("Image to BMP...", KeyEvent.VK_I, Icons.getIcon(Icons.ICON_APPLICATION_16), -1, this);
+          makeMenuItem("Image to BMP...", KeyEvent.VK_I, Icons.ICON_APPLICATION_16.getIcon(), -1, this);
       convertMenu.add(toolConvImageToBmp);
 
       toolConvImageToMos =
-          makeMenuItem("Image to MOS...", KeyEvent.VK_M, Icons.getIcon(Icons.ICON_APPLICATION_16), -1, this);
+          makeMenuItem("Image to MOS...", KeyEvent.VK_M, Icons.ICON_APPLICATION_16.getIcon(), -1, this);
       convertMenu.add(toolConvImageToMos);
 
       toolConvImageToPvrz =
-          makeMenuItem("Image to PVRZ...", KeyEvent.VK_P, Icons.getIcon(Icons.ICON_APPLICATION_16), -1, this);
+          makeMenuItem("Image to PVRZ...", KeyEvent.VK_P, Icons.ICON_APPLICATION_16.getIcon(), -1, this);
       convertMenu.add(toolConvImageToPvrz);
 
       toolConvImageToTis =
-          makeMenuItem("Image to TIS...", KeyEvent.VK_T, Icons.getIcon(Icons.ICON_APPLICATION_16), -1, this);
+          makeMenuItem("Image to TIS...", KeyEvent.VK_T, Icons.ICON_APPLICATION_16.getIcon(), -1, this);
       convertMenu.add(toolConvImageToTis);
       // *** End Convert submenu ***
 
       addSeparator();
 
       toolIDSBrowser =
-          makeMenuItem("IDS Browser", KeyEvent.VK_B, Icons.getIcon(Icons.ICON_HISTORY_16), KeyEvent.VK_B, this);
+          makeMenuItem("IDS Browser", KeyEvent.VK_B, Icons.ICON_HISTORY_16.getIcon(), KeyEvent.VK_B, this);
       add(toolIDSBrowser);
       toolDropZone =
-          makeMenuItem("Script Drop Zone", KeyEvent.VK_Z, Icons.getIcon(Icons.ICON_HISTORY_16), KeyEvent.VK_Z, this);
+          makeMenuItem("Script Drop Zone", KeyEvent.VK_Z, Icons.ICON_HISTORY_16.getIcon(), KeyEvent.VK_Z, this);
       add(toolDropZone);
 
       addSeparator();
 
       toolMassExport =
-          makeMenuItem("Mass Export...", KeyEvent.VK_M, Icons.getIcon(Icons.ICON_EXPORT_16), -1, this);
+          makeMenuItem("Mass Export...", KeyEvent.VK_M, Icons.ICON_EXPORT_16.getIcon(), -1, this);
       add(toolMassExport);
 
       addSeparator();
 
-      toolClipBoard = new JCheckBoxMenuItem("Show Clipboard", Icons.getIcon(Icons.ICON_PASTE_16));
+      toolClipBoard = new JCheckBoxMenuItem("Show Clipboard", Icons.ICON_PASTE_16.getIcon());
       toolClipBoard.addActionListener(this);
       add(toolClipBoard);
-      toolConsole = new JCheckBoxMenuItem("Show Debug Console", Icons.getIcon(Icons.ICON_PROPERTIES_16));
+      toolConsole = new JCheckBoxMenuItem("Show Debug Console", Icons.ICON_PROPERTIES_16.getIcon());
       toolConsole.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_MASK));
       toolConsole.addActionListener(this);
       add(toolConsole);
-      dumpDebugInfo = new JMenuItem("Print debug info to Console", Icons.getIcon(Icons.ICON_PROPERTIES_16));
+      dumpDebugInfo = new JMenuItem("Print debug info to Console", Icons.ICON_PROPERTIES_16.getIcon());
       dumpDebugInfo.setToolTipText("Output to console class of current top-level window, resource and selected field in the structure viewer");
       dumpDebugInfo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_MASK | ActionEvent.ALT_MASK));
       dumpDebugInfo.addActionListener(this);
@@ -3227,15 +3227,15 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       super("Help");
       setMnemonic(KeyEvent.VK_H);
 
-      helpAbout = makeMenuItem("About Near Infinity", KeyEvent.VK_A, Icons.getIcon(Icons.ICON_ABOUT_16), -1, this);
+      helpAbout = makeMenuItem("About Near Infinity", KeyEvent.VK_A, Icons.ICON_ABOUT_16.getIcon(), -1, this);
       add(helpAbout);
 
-      helpWiki = makeMenuItem("Near Infinity Wiki", KeyEvent.VK_W, Icons.getIcon(Icons.ICON_HELP_16), -1, this);
+      helpWiki = makeMenuItem("Near Infinity Wiki", KeyEvent.VK_W, Icons.ICON_HELP_16.getIcon(), -1, this);
       helpWiki.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
       add(helpWiki);
 
       helpLicense =
-          makeMenuItem("Near Infinity License", KeyEvent.VK_N, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
+          makeMenuItem("Near Infinity License", KeyEvent.VK_N, Icons.ICON_EDIT_16.getIcon(), -1, this);
       add(helpLicense);
 
       JMenu miscLicenses = new JMenu("Third-party licenses");
@@ -3243,27 +3243,27 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       add(miscLicenses);
 
       helpFifeLicense =
-          makeMenuItem("Fifesoft License", KeyEvent.VK_F, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
+          makeMenuItem("Fifesoft License", KeyEvent.VK_F, Icons.ICON_EDIT_16.getIcon(), -1, this);
       miscLicenses.add(helpFifeLicense);
 
       helpJFontChooserLicense =
-          makeMenuItem("JFontChooser License", KeyEvent.VK_C, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
+          makeMenuItem("JFontChooser License", KeyEvent.VK_C, Icons.ICON_EDIT_16.getIcon(), -1, this);
       miscLicenses.add(helpJFontChooserLicense);
 
       helpJHexViewLicense =
-          makeMenuItem("JHexView License", KeyEvent.VK_H, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
+          makeMenuItem("JHexView License", KeyEvent.VK_H, Icons.ICON_EDIT_16.getIcon(), -1, this);
       miscLicenses.add(helpJHexViewLicense);
 
       helpJOrbisLicense =
-          makeMenuItem("JOrbis License", KeyEvent.VK_J, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
+          makeMenuItem("JOrbis License", KeyEvent.VK_J, Icons.ICON_EDIT_16.getIcon(), -1, this);
       miscLicenses.add(helpJOrbisLicense);
 
       helpMonteMediaLicense =
-          makeMenuItem("Monte Media License", KeyEvent.VK_M, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
+          makeMenuItem("Monte Media License", KeyEvent.VK_M, Icons.ICON_EDIT_16.getIcon(), -1, this);
       miscLicenses.add(helpMonteMediaLicense);
 
       helpOracleLicense =
-          makeMenuItem("Oracle License", KeyEvent.VK_O, Icons.getIcon(Icons.ICON_EDIT_16), -1, this);
+          makeMenuItem("Oracle License", KeyEvent.VK_O, Icons.ICON_EDIT_16.getIcon(), -1, this);
       miscLicenses.add(helpOracleLicense);
 
       addSeparator();
@@ -3271,7 +3271,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       helpUpdateSettings = makeMenuItem("Update settings...", KeyEvent.VK_S, null, -1, this);
       add(helpUpdateSettings);
 
-      helpUpdateCheck = makeMenuItem("Check for updates", KeyEvent.VK_U, Icons.getIcon(Icons.ICON_FIND_16), -1, this);
+      helpUpdateCheck = makeMenuItem("Check for updates", KeyEvent.VK_U, Icons.ICON_FIND_16.getIcon(), -1, this);
       add(helpUpdateCheck);
     }
 
@@ -3518,7 +3518,7 @@ public final class BrowserMenuBar extends JMenuBar implements KeyEventDispatcher
       panel.add(pMiscLicenses, gbc);
 
       JOptionPane.showMessageDialog(NearInfinity.getInstance(), panel, "About Near Infinity",
-                                    JOptionPane.INFORMATION_MESSAGE, Icons.getIcon(Icons.ICON_APP_128));
+                                    JOptionPane.INFORMATION_MESSAGE, Icons.ICON_APP_128.getIcon());
     }
 
     private void displayLicense(String classPath, String title)

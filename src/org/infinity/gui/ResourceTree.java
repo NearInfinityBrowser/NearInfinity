@@ -60,8 +60,8 @@ import org.infinity.util.io.StreamUtils;
 
 public final class ResourceTree extends JPanel implements TreeSelectionListener, ActionListener
 {
-  private final JButton bnext = new JButton("Forward", Icons.getIcon(Icons.ICON_FORWARD_16));
-  private final JButton bprev = new JButton("Back", Icons.getIcon(Icons.ICON_BACK_16));
+  private final JButton bnext = new JButton("Forward", Icons.ICON_FORWARD_16.getIcon());
+  private final JButton bprev = new JButton("Back", Icons.ICON_BACK_16.getIcon());
   private final JTree tree = new JTree();
   private final Stack<ResourceEntry> nextstack = new Stack<>();
   private final Stack<ResourceEntry> prevstack = new Stack<>();

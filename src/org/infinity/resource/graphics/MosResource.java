@@ -297,7 +297,7 @@ public class MosResource implements Resource, Referenceable, ActionListener, Pro
     ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(mi);
 
-    JButton bProperties = new JButton("Properties...", Icons.getIcon(Icons.ICON_EDIT_16));
+    JButton bProperties = new JButton("Properties...", Icons.ICON_EDIT_16.getIcon());
     bProperties.addActionListener(this);
     buttonPanel.addControl(bProperties, Properties);
 

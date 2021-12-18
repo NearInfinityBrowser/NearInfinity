@@ -47,9 +47,9 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
   private static final String QUERY_STRING = "string reference";
 
   private final Component parent;
-  private final JButton bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
-  private final JButton bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+  private final JButton bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+  private final JButton bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+  private final JButton bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
   private final JLabel count;
   private final Object query;
   /** List of the {@link ReferenceHit} objects. */
@@ -63,7 +63,7 @@ public final class ReferenceHitFrame extends ChildFrame implements ActionListene
     }
     this.query = query;
     this.parent = parent;
-    setIconImage(Icons.getIcon(Icons.ICON_HISTORY_16).getImage());
+    setIconImage(Icons.ICON_HISTORY_16.getIcon().getImage());
 
     table = new SortableTable(new String[]{"File", "Name/Text", "Attribute/Line"},
                               new Class<?>[]{ResourceEntry.class, String.class, String.class},

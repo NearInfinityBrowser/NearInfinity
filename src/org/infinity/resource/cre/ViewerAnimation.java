@@ -405,22 +405,22 @@ public class ViewerAnimation extends JComponent implements ActionListener
     JScrollPane scrollDisplay = new JScrollPane(rcDisplay, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     scrollDisplay.setBorder(BorderFactory.createEmptyBorder());
 
-    bPlay = new JToggleButton("Play", Icons.getIcon(Icons.ICON_PLAY_16));
+    bPlay = new JToggleButton("Play", Icons.ICON_PLAY_16.getIcon());
     bPlay.addActionListener(this);
 
     lCurCycle = new JLabel("", JLabel.CENTER);
-    bPrevCycle = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
+    bPrevCycle = new JButton(Icons.ICON_BACK_16.getIcon());
     bPrevCycle.setMargin(new Insets(bPrevCycle.getMargin().top, 2, bPrevCycle.getMargin().bottom, 2));
     bPrevCycle.addActionListener(this);
-    bNextCycle = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
+    bNextCycle = new JButton(Icons.ICON_FORWARD_16.getIcon());
     bNextCycle.setMargin(bPrevCycle.getMargin());
     bNextCycle.addActionListener(this);
 
     lCurFrame = new JLabel("", JLabel.CENTER);
-    bPrevFrame = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
+    bPrevFrame = new JButton(Icons.ICON_BACK_16.getIcon());
     bPrevFrame.setMargin(new Insets(bPrevFrame.getMargin().top, 2, bPrevFrame.getMargin().bottom, 2));
     bPrevFrame.addActionListener(this);
-    bNextFrame = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
+    bNextFrame = new JButton(Icons.ICON_FORWARD_16.getIcon());
     bNextFrame.setMargin(bPrevFrame.getMargin());
     bNextFrame.addActionListener(this);
 
@@ -437,7 +437,7 @@ public class ViewerAnimation extends JComponent implements ActionListener
     cbShowBorders = new JCheckBox("Show overlay borders", showOverlayBorders);
     cbShowBorders.addActionListener(this);
 
-    bOpenBrowser = new JButton("Open in browser", Icons.getIcon(Icons.ICON_CRE_VIEWER_24));
+    bOpenBrowser = new JButton("Open in browser", Icons.ICON_CRE_VIEWER_24.getIcon());
     bOpenBrowser.setToolTipText("Open in Creature Animation Browser");
     bOpenBrowser.addActionListener(this);
 

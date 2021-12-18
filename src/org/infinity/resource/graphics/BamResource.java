@@ -477,22 +477,22 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
     JButton bFind = (JButton)ButtonPanel.createControl(ButtonPanel.Control.FIND_REFERENCES);
     bFind.addActionListener(this);
 
-    JToggleButton bPlay = new JToggleButton("Play", Icons.getIcon(Icons.ICON_PLAY_16));
+    JToggleButton bPlay = new JToggleButton("Play", Icons.ICON_PLAY_16.getIcon());
     bPlay.addActionListener(this);
 
     JLabel lCycle = new JLabel("", JLabel.CENTER);
-    JButton bPrevCycle = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
+    JButton bPrevCycle = new JButton(Icons.ICON_BACK_16.getIcon());
     bPrevCycle.setMargin(new Insets(bPrevCycle.getMargin().top, 2, bPrevCycle.getMargin().bottom, 2));
     bPrevCycle.addActionListener(this);
-    JButton bNextCycle = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
+    JButton bNextCycle = new JButton(Icons.ICON_FORWARD_16.getIcon());
     bNextCycle.setMargin(bPrevCycle.getMargin());
     bNextCycle.addActionListener(this);
 
     JLabel lFrame = new JLabel("", JLabel.CENTER);
-    JButton bPrevFrame = new JButton(Icons.getIcon(Icons.ICON_BACK_16));
+    JButton bPrevFrame = new JButton(Icons.ICON_BACK_16.getIcon());
     bPrevFrame.setMargin(bPrevCycle.getMargin());
     bPrevFrame.addActionListener(this);
-    JButton bNextFrame = new JButton(Icons.getIcon(Icons.ICON_FORWARD_16));
+    JButton bNextFrame = new JButton(Icons.ICON_FORWARD_16.getIcon());
     bNextFrame.setMargin(bPrevCycle.getMargin());
     bNextFrame.addActionListener(this);
 
@@ -569,10 +569,10 @@ public class BamResource implements Resource, Closeable, Writeable, Referenceabl
     ButtonPopupMenu bpmExport = (ButtonPopupMenu)ButtonPanel.createControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(mi);
 
-    JButton bProperties = new JButton("Properties...", Icons.getIcon(Icons.ICON_EDIT_16));
+    JButton bProperties = new JButton("Properties...", Icons.ICON_EDIT_16.getIcon());
     bProperties.addActionListener(this);
 
-    JButton bEdit = new JButton("Edit BAM", Icons.getIcon(Icons.ICON_APPLICATION_16));
+    JButton bEdit = new JButton("Edit BAM", Icons.ICON_APPLICATION_16.getIcon());
     bEdit.setToolTipText("Opens resource in BAM Converter.");
     bEdit.addActionListener(this);
 

@@ -39,9 +39,9 @@ import org.infinity.util.Misc;
 
 final class BIFFEditorTable extends JPanel implements ActionListener
 {
-  private static final ImageIcon updatedicon20 = Icons.getIcon(Icons.ICON_BLUE_CIRCLE_20);
-  private static final ImageIcon newicon20 = Icons.getIcon(Icons.ICON_YELLOW_CIRCLE_20);
-  private static final ImageIcon bificon20 = Icons.getIcon(Icons.ICON_CIRCLE_20);
+  private static final ImageIcon updatedicon20 = Icons.ICON_BLUE_CIRCLE_20.getIcon();
+  private static final ImageIcon newicon20 = Icons.ICON_YELLOW_CIRCLE_20.getIcon();
+  private static final ImageIcon bificon20 = Icons.ICON_CIRCLE_20.getIcon();
 
   private final BifEditorTableModel tablemodel;
   private final JTable table;
@@ -58,9 +58,9 @@ final class BIFFEditorTable extends JPanel implements ActionListener
 
     private final ImageIcon icon;
 
-    private State(String icon)
+    private State(Icons icon)
     {
-      this.icon = Icons.getIcon(icon);
+      this.icon = icon.getIcon();
     }
   }
 

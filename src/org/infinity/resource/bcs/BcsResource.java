@@ -635,15 +635,15 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Re
     InfinityScrollPane scrollDecompiled = new InfinityScrollPane(sourceText, true);
     scrollDecompiled.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
 
-    JButton bCompile = new JButton("Compile", Icons.getIcon(Icons.ICON_REDO_16));
+    JButton bCompile = new JButton("Compile", Icons.ICON_REDO_16.getIcon());
     bCompile.setMnemonic('c');
     bCompile.addActionListener(this);
     ButtonPopupMenu bpmErrors = new ButtonPopupMenu("Errors (0)...", new JMenuItem[0], 20);
-    bpmErrors.setIcon(Icons.getIcon(Icons.ICON_UP_16));
+    bpmErrors.setIcon(Icons.ICON_UP_16.getIcon());
     bpmErrors.addItemListener(this);
     bpmErrors.setEnabled(false);
     ButtonPopupMenu bpmWarnings = new ButtonPopupMenu("Warnings (0)...", new JMenuItem[0], 20);
-    bpmWarnings.setIcon(Icons.getIcon(Icons.ICON_UP_16));
+    bpmWarnings.setIcon(Icons.ICON_UP_16.getIcon());
     bpmWarnings.addItemListener(this);
     bpmWarnings.setEnabled(false);
     bpDecompile.addControl(bCompile, CtrlCompile);
@@ -662,7 +662,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Re
     InfinityScrollPane scrollCompiled = new InfinityScrollPane(codeText, true);
     scrollCompiled.setBorder(BorderFactory.createLineBorder(UIManager.getColor("controlDkShadow")));
 
-    JButton bDecompile = new JButton("Decompile", Icons.getIcon(Icons.ICON_UNDO_16));
+    JButton bDecompile = new JButton("Decompile", Icons.ICON_UNDO_16.getIcon());
     bDecompile.setMnemonic('d');
     bDecompile.addActionListener(this);
     bDecompile.setEnabled(false);
@@ -679,7 +679,7 @@ public final class BcsResource implements TextResource, Writeable, Closeable, Re
     bpmFind.setMenuItems(new JMenuItem[]{ifindall, ifindthis, ifindusage});
     bpmFind.addItemListener(this);
     ButtonPopupMenu bpmUses = new ButtonPopupMenu("Uses...", new JMenuItem[]{});
-    bpmUses.setIcon(Icons.getIcon(Icons.ICON_FIND_16));
+    bpmUses.setIcon(Icons.ICON_FIND_16.getIcon());
     bpmUses.addItemListener(this);
     buttonPanel.addControl(bpmUses, CtrlUses);
     iexportscript = new JMenuItem("script code");

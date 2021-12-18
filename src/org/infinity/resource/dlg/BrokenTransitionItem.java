@@ -17,7 +17,7 @@ import org.infinity.icon.Icons;
  */
 final class BrokenTransitionItem extends TransitionItem implements BrokenReference
 {
-  private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_WARNING_16);
+  private static final ImageIcon ICON = Icons.ICON_WARNING_16.getIcon();
 
   /** Number of non-existent response. */
   private final int number;

@@ -698,7 +698,7 @@ public class ConvertToMos extends ChildFrame
 
   private void init()
   {
-    setIconImage(Icons.getImage(Icons.ICON_APPLICATION_16));
+    setIconImage(Icons.ICON_APPLICATION_16.getIcon().getImage());
     GridBagConstraints c = new GridBagConstraints();
 
     // setting up input/output section (Legacy V1)

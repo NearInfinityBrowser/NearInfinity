@@ -68,8 +68,8 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
   private static final String[] CHECKTYPES = {"ARE", "BAM", "BCS", "CRE", "DLG", "EFF", "ITM", "PRO",
                                               "SPL", "STO", "TIS", "VEF", "VVC", "WAV", "WED"};
   private final ChildFrame selectframe = new ChildFrame("Find unused files", true);
-  private final JButton bstart = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_16));
-  private final JButton bcancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
+  private final JButton bstart = new JButton("Search", Icons.ICON_FIND_16.getIcon());
+  private final JButton bcancel = new JButton("Cancel", Icons.ICON_DELETE_16.getIcon());
   private final JRadioButton[] typeButtons = new JRadioButton[CHECKTYPES.length];
   private final List<ResourceEntry> unusedResources = new ArrayList<>();
   private ChildFrame resultFrame;
@@ -94,7 +94,7 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
     bstart.addActionListener(this);
     bcancel.addActionListener(this);
     selectframe.getRootPane().setDefaultButton(bstart);
-    selectframe.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
+    selectframe.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
     radioPanel.setBorder(BorderFactory.createTitledBorder("Select type to search:"));
 
     JPanel bpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -196,10 +196,10 @@ public final class ResourceUseChecker extends AbstractSearcher implements Runnab
         }
         table.tableComplete();
         resultFrame = new ChildFrame("Result", true);
-        resultFrame.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
-        bopen = new JButton("Open", Icons.getIcon(Icons.ICON_OPEN_16));
-        bopennew = new JButton("Open in new window", Icons.getIcon(Icons.ICON_OPEN_16));
-        bsave = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+        resultFrame.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
+        bopen = new JButton("Open", Icons.ICON_OPEN_16.getIcon());
+        bopennew = new JButton("Open in new window", Icons.ICON_OPEN_16.getIcon());
+        bsave = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
         bopen.setMnemonic('o');
         bopennew.setMnemonic('n');
         bsave.setMnemonic('s');

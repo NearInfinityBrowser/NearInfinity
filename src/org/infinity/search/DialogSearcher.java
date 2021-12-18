@@ -45,7 +45,7 @@ import org.infinity.resource.key.ResourceEntry;
 public final class DialogSearcher extends AbstractSearcher implements Runnable, ActionListener
 {
   private final ChildFrame inputFrame;
-  private final JButton bsearch = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_AGAIN_16));
+  private final JButton bsearch = new JButton("Search", Icons.ICON_FIND_AGAIN_16.getIcon());
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
   private final JCheckBox cbcase = new JCheckBox("Match case");
   private final JCheckBox cbsearchcode = new JCheckBox("Include trigger & action scripts", true);
@@ -64,7 +64,7 @@ public final class DialogSearcher extends AbstractSearcher implements Runnable, 
     if (files.size() == 1)
       title = "Find: " + files.get(0).toString();
     inputFrame = new ChildFrame(title, true);
-    inputFrame.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
+    inputFrame.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
     inputFrame.getRootPane().setDefaultButton(bsearch);
     bsearch.addActionListener(this);
     tfinput.addActionListener(this);

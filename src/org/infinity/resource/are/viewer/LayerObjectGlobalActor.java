@@ -14,7 +14,6 @@ import org.infinity.datatype.IsTextual;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.AnimatedLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
-import org.infinity.icon.Icons;
 import org.infinity.resource.Resource;
 import org.infinity.resource.ResourceFactory;
 import org.infinity.resource.StructEntry;
@@ -31,12 +30,12 @@ import org.infinity.resource.key.ResourceEntry;
 public class LayerObjectGlobalActor extends LayerObjectActor
 {
   private static final EnumMap<Allegiance, Image[]> ICONS = new EnumMap<Allegiance, Image[]>(Allegiance.class) {{
-    put(Allegiance.GOOD, new Image[] {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_GAM_ACTOR_G_1),
-                                      Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_GAM_ACTOR_G_2)});
-    put(Allegiance.NEUTRAL, new Image[] {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_GAM_ACTOR_B_1),
-                                         Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_GAM_ACTOR_B_2)});
-    put(Allegiance.ENEMY, new Image[] {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_GAM_ACTOR_R_1),
-                                       Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_GAM_ACTOR_R_2)});
+    put(Allegiance.GOOD, new Image[] {ViewerIcons.ICON_ITM_GAM_ACTOR_G_1.getIcon().getImage(),
+                                      ViewerIcons.ICON_ITM_GAM_ACTOR_G_2.getIcon().getImage()});
+    put(Allegiance.NEUTRAL, new Image[] {ViewerIcons.ICON_ITM_GAM_ACTOR_B_1.getIcon().getImage(),
+                                         ViewerIcons.ICON_ITM_GAM_ACTOR_B_2.getIcon().getImage()});
+    put(Allegiance.ENEMY, new Image[] {ViewerIcons.ICON_ITM_GAM_ACTOR_R_1.getIcon().getImage(),
+                                       ViewerIcons.ICON_ITM_GAM_ACTOR_R_2.getIcon().getImage()});
   }};
   private static final Point CENTER = new Point(12, 40);
 

@@ -150,7 +150,7 @@ public class BamFilterColorHSL extends BamFilterBaseColor
     pExcludeColors = new BamFilterBaseColor.ExcludeColorsPanel(
         getConverter().getPaletteDialog().getPalette(getConverter().getPaletteDialog().getPaletteType()));
     pExcludeColors.addChangeListener(this);
-    bpwExclude = new ButtonPopupWindow("Palette", Icons.getIcon(Icons.ICON_ARROW_DOWN_15), pExcludeColors);
+    bpwExclude = new ButtonPopupWindow("Palette", Icons.ICON_ARROW_DOWN_15.getIcon(), pExcludeColors);
     bpwExclude.setIconTextGap(8);
     bpwExclude.addActionListener(this);
     bpwExclude.setEnabled(getConverter().isBamV1Selected());

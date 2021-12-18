@@ -175,7 +175,7 @@ public class PvrzResource implements Resource, ActionListener, Closeable, Refere
     ButtonPopupMenu bpmExport = (ButtonPopupMenu)buttonPanel.addControl(ButtonPanel.Control.EXPORT_MENU);
     bpmExport.setMenuItems(new JMenuItem[]{miExport, miPVR, miPNG});
 
-    JButton bProperties = new JButton("Properties...", Icons.getIcon(Icons.ICON_EDIT_16));
+    JButton bProperties = new JButton("Properties...", Icons.ICON_EDIT_16.getIcon());
     bProperties.addActionListener(this);
     buttonPanel.addControl(bProperties, Properties);
 

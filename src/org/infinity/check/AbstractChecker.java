@@ -9,9 +9,11 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+
 import org.infinity.NearInfinity;
 import org.infinity.gui.Center;
 import org.infinity.gui.ChildFrame;
@@ -32,9 +34,9 @@ public abstract class AbstractChecker extends AbstractSearcher implements Action
   /** Selector of file types in which search must be performed. */
   private final FileTypeSelector selector;
   /** Button that begins check with specified settings. */
-  private final JButton bStart  = new JButton("Check", Icons.getIcon(Icons.ICON_FIND_16));
+  private final JButton bStart  = new JButton("Check", Icons.ICON_FIND_16.getIcon());
   /** Button that closes start check dialog. */
-  private final JButton bCancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
+  private final JButton bCancel = new JButton("Cancel", Icons.ICON_DELETE_16.getIcon());
 
   /** Key used to save and restore checkbox selection. */
   private final String key;
@@ -45,7 +47,7 @@ public abstract class AbstractChecker extends AbstractSearcher implements Action
   {
     super(CHECK_MULTI_TYPE_FORMAT, NearInfinity.getInstance());
     settingsWindow = new ChildFrame(title, true);
-    settingsWindow.setIconImage(Icons.getIcon(Icons.ICON_REFRESH_16).getImage());
+    settingsWindow.setIconImage(Icons.ICON_REFRESH_16.getIcon().getImage());
     this.key = key;
     selector = new FileTypeSelector("Select files to check:", key, filetypes, null);
 

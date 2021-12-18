@@ -35,7 +35,7 @@ import org.infinity.util.Misc;
 
 final class ViewerSpells extends JPanel implements ActionListener
 {
-  private final JButton bOpen = new JButton("View/Edit", Icons.getIcon(Icons.ICON_ZOOM_16));
+  private final JButton bOpen = new JButton("View/Edit", Icons.ICON_ZOOM_16.getIcon());
   private final JTable table;
   private final MemSpellTableModel tableModel;
 

@@ -82,9 +82,9 @@ public final class MassExporter extends ChildFrame implements ActionListener, Li
                                          "MOS", "MVE", "PLT", "PNG", "PRO", "PVRZ", "RES",
                                          "SPL", "SQL", "SRC", "STO", "TIS", "TOH", "TOT",
                                          "TTF", "VEF", "VVC", "WAV", "WBM", "WED", "WFX", "WMP"};
-  private final JButton bExport = new JButton("Export", Icons.getIcon(Icons.ICON_EXPORT_16));
-  private final JButton bCancel = new JButton("Cancel", Icons.getIcon(Icons.ICON_DELETE_16));
-  private final JButton bDirectory = new JButton(Icons.getIcon(Icons.ICON_OPEN_16));
+  private final JButton bExport = new JButton("Export", Icons.ICON_EXPORT_16.getIcon());
+  private final JButton bCancel = new JButton("Cancel", Icons.ICON_DELETE_16.getIcon());
+  private final JButton bDirectory = new JButton(Icons.ICON_OPEN_16.getIcon());
   private final JCheckBox cbIncludeExtraDirs = new JCheckBox("Include extra folders", true);
   private final JCheckBox cbDecompile = new JCheckBox("Decompile scripts", true);
   private final JCheckBox cbDecrypt = new JCheckBox("Decrypt text files", true);

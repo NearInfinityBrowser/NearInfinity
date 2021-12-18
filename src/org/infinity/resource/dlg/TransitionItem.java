@@ -7,6 +7,7 @@ package org.infinity.resource.dlg;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.enumeration;
 import static java.util.Collections.singletonList;
+
 import java.util.Enumeration;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -21,7 +22,7 @@ import org.infinity.icon.Icons;
 /** Encapsulates a dialog transition entry. */
 class TransitionItem extends StateOwnerItem
 {
-  private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_PLAY_16);
+  private static final ImageIcon ICON = Icons.ICON_PLAY_16.getIcon();
 
   private final Transition trans;
 

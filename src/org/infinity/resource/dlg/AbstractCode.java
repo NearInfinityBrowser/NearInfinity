@@ -172,24 +172,24 @@ public abstract class AbstractCode extends Datatype
 
     buttonPanel.removeAllControls();
 
-    JButton bUpdate = new JButton("Update", Icons.getIcon(Icons.ICON_REFRESH_16));
+    JButton bUpdate = new JButton("Update", Icons.ICON_REFRESH_16.getIcon());
     bUpdate.addActionListener(container);
     bUpdate.setActionCommand(StructViewer.UPDATE_VALUE);
     bUpdate.setEnabled(false);
     buttonPanel.addControl(bUpdate, CtrlUpdate);
 
-    JButton bCheck = new JButton("Compile Check", Icons.getIcon(Icons.ICON_REDO_16));
+    JButton bCheck = new JButton("Compile Check", Icons.ICON_REDO_16.getIcon());
     bCheck.addActionListener(this);
     buttonPanel.addControl(bCheck, CtrlCheck);
 
     ButtonPopupMenu bpmErrors = new ButtonPopupMenu("Errors (0)...", new JMenuItem[]{});
-    bpmErrors.setIcon(Icons.getIcon(Icons.ICON_UP_16));
+    bpmErrors.setIcon(Icons.ICON_UP_16.getIcon());
     bpmErrors.addItemListener(this);
     bpmErrors.setEnabled(false);
     buttonPanel.addControl(bpmErrors, CtrlErrors);
 
     ButtonPopupMenu bpmWarnings = new ButtonPopupMenu("Warnings (0)...", new JMenuItem[]{});
-    bpmWarnings.setIcon(Icons.getIcon(Icons.ICON_UP_16));
+    bpmWarnings.setIcon(Icons.ICON_UP_16.getIcon());
     bpmWarnings.addItemListener(this);
     bpmWarnings.setEnabled(false);
     buttonPanel.addControl(bpmWarnings, CtrlWarnings);

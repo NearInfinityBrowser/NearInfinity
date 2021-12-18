@@ -38,7 +38,7 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
   public IdsBrowser()
   {
     super("IDS Browser");
-    setIconImage(Icons.getIcon(Icons.ICON_HISTORY_16).getImage());
+    setIconImage(Icons.ICON_HISTORY_16.getIcon().getImage());
 
     List<ResourceEntry> resList = ResourceFactory.getResources("IDS");
     idsfiles = new JComboBox<>(resList.toArray(new ResourceEntry[resList.size()]));
@@ -46,7 +46,7 @@ public final class IdsBrowser extends ChildFrame implements ActionListener
     idsfiles.setSelectedIndex(0);
     idsfiles.addActionListener(this);
 
-    binsert = new JButton("Insert reference", Icons.getIcon(Icons.ICON_PASTE_16));
+    binsert = new JButton("Insert reference", Icons.ICON_PASTE_16.getIcon());
     binsert.setMnemonic('i');
     binsert.addActionListener(this);
     binsert.setToolTipText("Inserts selected text into script displayed in main window");

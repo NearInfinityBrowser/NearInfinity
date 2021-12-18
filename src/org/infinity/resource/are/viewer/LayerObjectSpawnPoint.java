@@ -11,7 +11,6 @@ import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
-import org.infinity.icon.Icons;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.are.AreResource;
 import org.infinity.resource.are.SpawnPoint;
@@ -22,8 +21,8 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
  */
 public class LayerObjectSpawnPoint extends LayerObject
 {
-  private static final Image[] ICONS = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_SPAWN_POINT_1),
-                                        Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_SPAWN_POINT_2)};
+  private static final Image[] ICONS = {ViewerIcons.ICON_ITM_SPAWN_POINT_1.getIcon().getImage(),
+                                        ViewerIcons.ICON_ITM_SPAWN_POINT_2.getIcon().getImage()};
   private static final Point CENTER = new Point(22, 22);
 
   private final SpawnPoint sp;

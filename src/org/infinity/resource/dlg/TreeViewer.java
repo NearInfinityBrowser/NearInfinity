@@ -61,11 +61,11 @@ final class TreeViewer extends JPanel implements ActionListener, TreeSelectionLi
 {
   private final JPopupMenu pmTree = new JPopupMenu();
 
-  private final JMenuItem miExpandAll   = new JMenuItem("Expand all nodes",        Icons.getIcon(Icons.ICON_EXPAND_ALL_24));
-  private final JMenuItem miExpand      = new JMenuItem("Expand selected node",    Icons.getIcon(Icons.ICON_EXPAND_16));
-  private final JMenuItem miCollapseAll = new JMenuItem("Collapse all nodes",      Icons.getIcon(Icons.ICON_COLLAPSE_ALL_24));
-  private final JMenuItem miCollapse    = new JMenuItem("Collapse selected nodes", Icons.getIcon(Icons.ICON_COLLAPSE_16));
-  private final JMenuItem miEditEntry   = new JMenuItem("Edit selected entry",     Icons.getIcon(Icons.ICON_EDIT_16));
+  private final JMenuItem miExpandAll   = new JMenuItem("Expand all nodes",        Icons.ICON_EXPAND_ALL_24.getIcon());
+  private final JMenuItem miExpand      = new JMenuItem("Expand selected node",    Icons.ICON_EXPAND_16.getIcon());
+  private final JMenuItem miCollapseAll = new JMenuItem("Collapse all nodes",      Icons.ICON_COLLAPSE_ALL_24.getIcon());
+  private final JMenuItem miCollapse    = new JMenuItem("Collapse selected nodes", Icons.ICON_COLLAPSE_16.getIcon());
+  private final JMenuItem miEditEntry   = new JMenuItem("Edit selected entry",     Icons.ICON_EDIT_16.getIcon());
 
   /** Caches ViewFrame instances used to display external dialog entries. */
   private final HashMap<DlgResource, ViewFrame> mapViewer = new HashMap<>();

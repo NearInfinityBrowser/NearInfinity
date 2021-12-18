@@ -184,7 +184,7 @@ public class FilterInput extends ChildFrame
   private void init()
   {
     resourceType = "";
-    setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
+    setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
 
     // preparing popup menus for formatted text fields
     menuFieldOffset = new JPopupMenu();

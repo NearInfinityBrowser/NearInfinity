@@ -447,7 +447,7 @@ public class StructHexViewer extends JPanel implements IHexViewListener, IDataCh
     b = (JButton)buttonPanel.addControl(BUTTON_SAVE);
     b.addActionListener(this);
     b = (JButton)buttonPanel.addControl(new JButton("Refresh"), BUTTON_REFRESH);
-    b.setIcon(Icons.getIcon(Icons.ICON_REFRESH_16));
+    b.setIcon(Icons.ICON_REFRESH_16.getIcon());
     b.setToolTipText("Force a refresh of the displayed data");
     b.addActionListener(this);
 

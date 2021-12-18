@@ -812,7 +812,7 @@ public class ConvertToTis extends ChildFrame
 
   private void init()
   {
-    setIconImage(Icons.getImage(Icons.ICON_APPLICATION_16));
+    setIconImage(Icons.ICON_APPLICATION_16.getIcon().getImage());
 
     // setting up files section
     JPanel pFiles = new JPanel(new GridBagLayout());

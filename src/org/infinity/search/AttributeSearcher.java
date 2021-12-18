@@ -42,7 +42,7 @@ import org.infinity.resource.key.ResourceEntry;
 public final class AttributeSearcher extends AbstractSearcher implements Runnable, ActionListener
 {
   private final ChildFrame inputFrame;
-  private final JButton bsearch = new JButton("Search", Icons.getIcon(Icons.ICON_FIND_AGAIN_16));
+  private final JButton bsearch = new JButton("Search", Icons.ICON_FIND_AGAIN_16.getIcon());
   private final JCheckBox cbwhole = new JCheckBox("Match whole word only");
   private final JCheckBox cbcase = new JCheckBox("Match case");
   private final JCheckBox cbnot = new JCheckBox("Negate result");
@@ -65,7 +65,7 @@ public final class AttributeSearcher extends AbstractSearcher implements Runnabl
       struct = struct.getParent();
     files = ResourceFactory.getResources(struct.getResourceEntry().getExtension());
     inputFrame = new ChildFrame("Find: " + structEntry.getName(), true);
-    inputFrame.setIconImage(Icons.getIcon(Icons.ICON_FIND_16).getImage());
+    inputFrame.setIconImage(Icons.ICON_FIND_16.getIcon().getImage());
     inputFrame.getRootPane().setDefaultButton(bsearch);
     tfinput.setText(structEntry.toString());
     bsearch.addActionListener(this);

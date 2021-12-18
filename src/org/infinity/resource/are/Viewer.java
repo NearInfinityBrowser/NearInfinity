@@ -47,7 +47,7 @@ final class Viewer extends JPanel implements ActionListener
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_PROBABILITY_LIGHTNING), gbl, gbc, true);
     ViewerUtil.addLabelFieldPair(fieldPanel, are.getAttribute(AreResource.ARE_AREA_SCRIPT), gbl, gbc, true);
 
-    JButton bView = new JButton("View Area", Icons.getIcon(Icons.ICON_VOLUME_16));
+    JButton bView = new JButton("View Area", Icons.ICON_VOLUME_16.getIcon());
     bView.setActionCommand(CMD_VIEWAREA);
     bView.addActionListener(this);
     bView.setEnabled(AreaViewer.isValid(are));

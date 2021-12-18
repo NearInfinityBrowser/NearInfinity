@@ -620,7 +620,7 @@ class BamPaletteDialog extends JDialog
     miPaletteClear.addActionListener(this);
     miPaletteClear.setEnabled(currentPaletteType == TYPE_EXTERNAL);
     bpmPalette = new ButtonPopupMenu("External palette", new JMenuItem[]{miPaletteClear, miPaletteSet});
-    bpmPalette.setIcon(Icons.getIcon(Icons.ICON_ARROW_UP_15));
+    bpmPalette.setIcon(Icons.ICON_ARROW_UP_15.getIcon());
     bpmPalette.setIconTextGap(8);
     cbLockPalette = new JCheckBox("Lock palette");
     cbLockPalette.setToolTipText("Selecting this option prevents automatic palette generation when modifying the global frames list");

@@ -10,7 +10,6 @@ import java.awt.Point;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.gui.layeritem.AbstractLayerItem;
 import org.infinity.gui.layeritem.IconLayerItem;
-import org.infinity.icon.Icons;
 import org.infinity.resource.AbstractStruct;
 import org.infinity.resource.Viewable;
 import org.infinity.resource.are.AreResource;
@@ -22,8 +21,8 @@ import org.infinity.resource.are.viewer.icon.ViewerIcons;
  */
 public class LayerObjectEntrance extends LayerObject
 {
-  private static final Image[] ICONS = {Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ENTRANCE_1),
-                                        Icons.getImage(ViewerIcons.class, ViewerIcons.ICON_ITM_ENTRANCE_2)};
+  private static final Image[] ICONS = {ViewerIcons.ICON_ITM_ENTRANCE_1.getIcon().getImage(),
+                                        ViewerIcons.ICON_ITM_ENTRANCE_2.getIcon().getImage()};
   private static final Point CENTER = new Point(11, 18);
 
   private final Entrance entrance;

@@ -17,7 +17,7 @@ import org.infinity.icon.Icons;
  */
 class BrokenStateItem extends StateItem implements BrokenReference
 {
-  private static final ImageIcon ICON = Icons.getIcon(Icons.ICON_WARNING_16);
+  private static final ImageIcon ICON = Icons.ICON_WARNING_16.getIcon();
 
   /** Dialog which contains non-existent state. */
   private final DlgResource dlg;

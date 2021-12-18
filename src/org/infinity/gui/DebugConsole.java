@@ -30,14 +30,14 @@ import org.infinity.util.io.FileEx;
 
 final class DebugConsole extends ChildFrame implements ActionListener
 {
-  private final JButton bClearConsole = new JButton("Clear", Icons.getIcon(Icons.ICON_NEW_16));
-  private final JButton bSaveConsole = new JButton("Save...", Icons.getIcon(Icons.ICON_SAVE_16));
+  private final JButton bClearConsole = new JButton("Clear", Icons.ICON_NEW_16.getIcon());
+  private final JButton bSaveConsole = new JButton("Save...", Icons.ICON_SAVE_16.getIcon());
   private final JCheckBox cbExtraInfo = new JCheckBox("Print internal debug info");
 
   DebugConsole()
   {
     super("Debug Console");
-    setIconImage(Icons.getIcon(Icons.ICON_PROPERTIES_16).getImage());
+    setIconImage(Icons.ICON_PROPERTIES_16.getIcon().getImage());
 
     bClearConsole.setMnemonic('c');
     bClearConsole.addActionListener(this);
