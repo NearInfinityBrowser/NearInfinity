@@ -51,8 +51,9 @@ public class AudioPlayer
           break;
         dataLine.write(buffer, 0, numBytesRead);
       }
-    } catch (UnsupportedAudioFileException e) {
-      throw new UnsupportedAudioFileException("Unsupported audio format");
+    } catch (Exception e) {
+      setStopped(true);
+      throw e;
     }
 
     if (!isPlaying()) {
