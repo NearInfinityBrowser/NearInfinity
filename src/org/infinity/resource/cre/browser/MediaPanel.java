@@ -4,14 +4,22 @@
 
 package org.infinity.resource.cre.browser;
 
+import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,7 +31,9 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
@@ -31,14 +41,21 @@ import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.WindowBlocker;
+import org.infinity.resource.Profile;
+import org.infinity.resource.cre.CreResource;
 import org.infinity.resource.cre.browser.icon.Icons;
 import org.infinity.resource.cre.decoder.SpriteDecoder;
 import org.infinity.resource.cre.decoder.SpriteDecoder.SpriteBamControl;
 import org.infinity.resource.cre.decoder.util.Direction;
 import org.infinity.resource.cre.decoder.util.Sequence;
+import org.infinity.resource.graphics.ColorConvert;
+import org.infinity.util.tuples.Couple;
+
+import ork.sevenstates.apng.APNGSeqWriter;
 
 /**
  * This panel provides controls for animation playback and related visual options.
@@ -61,6 +78,7 @@ public class MediaPanel extends JPanel {
   private JButton bStepForward;
   private JButton bPlay;
   private JButton bStop;
+  private JButton bExport;
   private DefaultComboBoxModel<Sequence> modelSequences;
   private JComboBox<Sequence> cbSequences;
   private JCheckBox cbLoop;
@@ -72,6 +90,7 @@ public class MediaPanel extends JPanel {
   private Timer timer;
   private int curFrame;
   private int curCycle;
+  private JFileChooser fileChooser;
 
   public MediaPanel(CreatureBrowser browser) {
     super();
@@ -520,6 +539,20 @@ public class MediaPanel extends JPanel {
         new Insets(8, 0, 0, 0), 0, 0);
     pColumn2.add(cbLoop, c);
 
+    // export to file
+    l1 = new JLabel(" ");
+    bExport = new JButton("Export...", org.infinity.icon.Icons.ICON_SAVE_16.getIcon());
+    bExport.setToolTipText("Export animation sequence to graphics file");
+    bExport.addActionListener(listeners);
+
+    JPanel pColumn3 = new JPanel(new GridBagLayout());
+    c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(0, 0, 0, 0), 0, 0);
+    pColumn3.add(l1, c);
+    c = ViewerUtil.setGBC(c, 0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE,
+        new Insets(8, 0, 0, 0), 0, 0);
+    pColumn3.add(bExport, c);
+
     // combining panels
     JPanel panelMain = new JPanel(new GridBagLayout());
     c = ViewerUtil.setGBC(c, 0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
@@ -531,7 +564,10 @@ public class MediaPanel extends JPanel {
     c = ViewerUtil.setGBC(c, 2, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(8, 32, 8, 0), 0, 0);
     panelMain.add(pColumn2, c);
-    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+    c = ViewerUtil.setGBC(c, 3, 0, 1, 1, 0.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
+        new Insets(8, 16, 8, 0), 0, 0);
+    panelMain.add(pColumn3, c);
+    c = ViewerUtil.setGBC(c, 4, 0, 1, 1, 1.0, 0.0, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL,
         new Insets(0, 0, 0, 0), 0, 0);
     panelMain.add(new JPanel(), c);
 
@@ -698,6 +734,92 @@ public class MediaPanel extends JPanel {
     return directionMap.getOrDefault(Integer.valueOf(index), Direction.S);
   }
 
+  /** Interactive export of the current animation sequence to an animation file. */
+  private void exportBamSequence() {
+    // Using global instance of file chooser to preserve output directory across export operations
+    if (fileChooser == null) {
+      fileChooser = new JFileChooser(Profile.getGameRoot().toFile());
+      fileChooser.setDialogTitle("Export animation sequence");
+      fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
+      fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      FileNameExtensionFilter filter = new FileNameExtensionFilter("APNG files (*.png)", "png");
+      fileChooser.addChoosableFileFilter(filter);
+      fileChooser.setFileFilter(filter);
+    }
+
+    // Generating preselected filename
+    String fileName;
+
+    CreResource cre = browser.getControlPanel().getSelectedCreature();
+    if (cre != null) {
+      fileName = cre.getResourceEntry().getResourceRef();
+    } else {
+      fileName = "output";
+    }
+    fileName += "-" + getSequence().toString();
+    if (directionMap.containsKey(getCurrentDirection())) {
+      fileName += "-" + directionMap.get(getCurrentDirection()).toString();
+    }
+    fileName += ".png";
+    fileChooser.setSelectedFile(new File(fileChooser.getCurrentDirectory(), fileName));
+
+    if (fileChooser.showSaveDialog(browser) == JFileChooser.APPROVE_OPTION) {
+      // TODO: The export operation is executed nearly instantaneously.
+      // However, for cleaner code it should be performed in a separate background task.
+      File saveFile = fileChooser.getSelectedFile();
+
+      try (APNGSeqWriter writer = new APNGSeqWriter(saveFile, 0)) {
+        final RenderPanel renderer = browser.getRenderPanel();
+        final SpriteBamControl ctrl = controller.getDecoder().createControl();
+        ctrl.setMode(controller.getMode());
+        ctrl.setSharedPerCycle(controller.isSharedPerCycle());
+        ctrl.cycleSet(controller.cycleGet());
+        ctrl.cycleSetFrameIndex(0);
+
+        final Color color = renderer.getBackgroundColor();
+        Rectangle frameBounds = null;
+        BufferedImage frame = null;
+        BufferedImage outputFrame = null;
+
+        WindowBlocker blocker = new WindowBlocker(browser);
+        blocker.setBlocked(true);
+        try {
+          for (int i = 0; i < ctrl.cycleFrameCount(); i++) {
+            ctrl.cycleSetFrameIndex(i);
+            Couple<Image, Rectangle> result = renderer.setFrame(ctrl, frame, frameBounds, color);
+            frame = (BufferedImage) result.getValue0();
+            frameBounds = result.getValue1();
+
+            // APNG writer doesn't support alpha -> manually composing output frame
+            if (outputFrame == null) {
+              outputFrame = ColorConvert.createCompatibleImage(frame.getWidth(), frame.getHeight(), false);
+            }
+            Graphics2D g = (Graphics2D) outputFrame.getGraphics();
+            try {
+              g.setComposite(AlphaComposite.Src);
+              g.setColor(color);
+              g.fillRect(0, 0, outputFrame.getWidth(), outputFrame.getHeight());
+              g.setComposite(AlphaComposite.SrcOver);
+              g.drawImage(frame, 0, 0, null);
+            } finally {
+              g.dispose();
+            }
+
+            writer.writeImage(outputFrame, 1, 15);
+          }
+        } finally {
+          blocker.setBlocked(false);
+        }
+        String message = "Animation sequence exported to" + ((saveFile.toString().length() > 30) ? "\n" : " ") + saveFile;
+        JOptionPane.showMessageDialog(browser, message, "Export animation sequence",
+            JOptionPane.INFORMATION_MESSAGE);
+      } catch (IOException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(browser, "Unable to export animation sequence.", "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    }
+  }
+
   // -------------------------- INNER CLASSES --------------------------
 
   /**
@@ -733,6 +855,8 @@ public class MediaPanel extends JPanel {
         setRunning(!isRunning());
       } else if (e.getSource() == bStop) {
         stop();
+      } else if (e.getSource() == bExport) {
+        exportBamSequence();
       }
     }
 

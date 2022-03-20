@@ -30,6 +30,7 @@ import org.infinity.gui.RenderCanvas;
 import org.infinity.gui.ViewerUtil;
 import org.infinity.resource.cre.decoder.SpriteDecoder.SpriteBamControl;
 import org.infinity.resource.graphics.ColorConvert;
+import org.infinity.util.tuples.Couple;
 
 /**
  * This panel handles drawing background and creature animations.
@@ -187,20 +188,38 @@ public class RenderPanel extends JPanel {
    * display.
    */
   public void setFrame(SpriteBamControl ctrl) {
+    Couple<Image, Rectangle> result = setFrame(ctrl, frame, frameBounds, null);
+    frame = result.getValue0();
+    frameBounds = result.getValue1();
+  }
+
+  /**
+   * Renders the sprite frame specified by the given {@link SpriteBamControl} instance to an image and calculates the
+   * bounds of the sprite frame.
+   *
+   * @param ctrl        {@code SpriteBamControl} instance referencing the BAM sprite frame.
+   * @param frame       Optional image object which can be reused to draw the sprite into. May be {@code null}.
+   * @param frameBounds Optional rectangle to store the sprite frame bounds. May be {@code null}.
+   * @param background  Optional background color for the sprite. Specify {@code null} to use transparent background.
+   * @return A tuple with the resulting frame image and bound rectangle.
+   */
+  public Couple<Image, Rectangle> setFrame(SpriteBamControl ctrl, Image frame, Rectangle frameBounds, Color background) {
     if (ctrl != null) {
       if (frameBounds == null) {
         frameBounds = new Rectangle();
       }
       frameBounds.setSize(ctrl.getSharedDimension());
       frameBounds.setLocation(ctrl.getSharedOrigin());
-      if (frame == null || frame.getWidth(null) != frameBounds.width || frame.getHeight(null) != frameBounds.height) {
+      boolean recreate = (frame == null || frame.getWidth(null) != frameBounds.width || frame.getHeight(null) != frameBounds.height);
+      if (recreate) {
         frame = ColorConvert.createCompatibleImage(frameBounds.width, frameBounds.height, true);
-      } else {
+      }
+      if (!recreate || background != null) {
         // clear old content
         Graphics2D g = (Graphics2D) frame.getGraphics();
         try {
           g.setComposite(AlphaComposite.Src);
-          g.setColor(COLOR_TRANSPARENT);
+          g.setColor(background != null ? background : COLOR_TRANSPARENT);
           g.fillRect(0, 0, frame.getWidth(null), frame.getHeight(null));
         } finally {
           g.dispose();
@@ -214,6 +233,9 @@ public class RenderPanel extends JPanel {
       }
       frame = null;
     }
+
+    Couple<Image, Rectangle> retVal = new Couple<Image, Rectangle>(frame, frameBounds);
+    return retVal;
   }
 
   /**

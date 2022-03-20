@@ -108,6 +108,15 @@ public class CreatureControlPanel extends JPanel {
     validate();
   }
 
+  /**
+   * Returns the currently selected CRE resource.
+   * Returns {@code null} if the placeholder creature for customization is selected.
+   */
+  public CreResource getSelectedCreature() {
+    final CreResource cre = getControlModel().getDecoder().getCreResource();
+    return cre.getResourceEntry().getResourceRef().startsWith("*") ? null : cre;
+  }
+
   /** Resets all CRE-related settings to the values provided by the selected CRE resource. */
   public void resetSettings() {
     getControlModel().reset();

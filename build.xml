@@ -9,6 +9,7 @@
   <property name="rsyntaxtextarea.file" value="${lib.path.rel}/rsyntaxtextarea/rsyntaxtextarea.jar"/>
   <property name="jhexview.file" value="${lib.path.rel}/jhexview/jhexview.jar"/>
   <property name="montemedia.file" value="${lib.path.rel}/montemedia/montemedia.jar"/>
+  <property name="apng_writer.file" value="${lib.path.rel}/apng-writer/apng-writer-core.jar"/>
   <property name="javacc.home" value="lib/javacc"/>
   <property name="parser.path" value="org/infinity/resource/bcs/parser"/>
   <property name="src.parser.path" value="${src.path}/org/infinity/resource/bcs/parser"/>
@@ -26,7 +27,7 @@
            deprecation="false"
            debug="false"
            debuglevel="lines,vars,source"
-           classpath="${classpath}:${jorbis.file}:${rsyntaxtextarea.file}:${jhexview.file}:${montemedia.file}">
+           classpath="${classpath}:${jorbis.file}:${rsyntaxtextarea.file}:${jhexview.file}:${montemedia.file}:${apng_writer.file}">
       <!-- Various debugging options: -->
       <!-- <compilerarg value="-Xlint:cast"/> -->
       <!-- <compilerarg value="-Xlint:deprecation"/> -->
@@ -49,6 +50,7 @@
       <zipgroupfileset dir="." includes="${rsyntaxtextarea.file}"/>
       <zipgroupfileset dir="." includes="${jhexview.file}"/>
       <zipgroupfileset dir="." includes="${montemedia.file}"/>
+      <zipgroupfileset dir="." includes="${apng_writer.file}"/>
       <manifest>
         <attribute name="Main-Class" value="org.infinity.NearInfinity"/>
       </manifest>
